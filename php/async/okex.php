@@ -68,12 +68,10 @@ class okex extends Exchange {
                 'fetchLedgerEntry' => null,
                 'fetchLeverage' => true,
                 'fetchMarkets' => true,
-                'fetchMarketsByType' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMyBuys' => null,
                 'fetchMySells' => null,
                 'fetchMyTrades' => true,
-                'fetchNetworkDepositAddress' => null,
                 'fetchOHLCV' => true,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
@@ -81,10 +79,7 @@ class okex extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => null,
                 'fetchOrders' => null,
-                'fetchOrdersByState' => null,
-                'fetchOrdersByStatus' => null,
                 'fetchOrderTrades' => true,
-                'fetchPartiallyFilledOrders' => null,
                 'fetchPosition' => true,
                 'fetchPositions' => true,
                 'fetchPositionsRisk' => null,
@@ -92,7 +87,6 @@ class okex extends Exchange {
                 'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
-                'fetchTickersByType' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
@@ -100,13 +94,10 @@ class okex extends Exchange {
                 'fetchTradingLimits' => null,
                 'fetchTransactions' => null,
                 'fetchTransfers' => null,
-                'fetchWithdrawAddress' => null,
-                'fetchWithdrawAddressesByNetwork' => null,
                 'fetchWithdrawal' => null,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => null,
                 'loadLeverageBrackets' => null,
-                'loadTimeDifference' => null,
                 'reduceMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
@@ -802,7 +793,7 @@ class okex extends Exchange {
         $fees = $this->safe_value_2($this->fees, $type, 'trading', array());
         $contractSize = null;
         if ($contract) {
-            $contractSize = $this->safe_string($market, 'ctVal');
+            $contractSize = $this->safe_number($market, 'ctVal');
         }
         $leverage = $this->safe_number($market, 'lever', 1);
         return array_merge($fees, array(
@@ -2880,6 +2871,7 @@ class okex extends Exchange {
             'id' => $id,
             'currency' => $code,
             'amount' => $amount,
+            'network' => null,
             'addressFrom' => $addressFrom,
             'addressTo' => $addressTo,
             'address' => $address,
@@ -3177,7 +3169,7 @@ class okex extends Exchange {
             'unrealizedPnl' => $this->parse_number($unrealizedPnlString),
             'percentage' => $percentage,
             'contracts' => $contracts,
-            'contractSize' => $this->parse_number($market['contractSize']),
+            'contractSize' => $this->safe_value($market, 'contractSize'),
             'markPrice' => $this->parse_number($markPriceString),
             'side' => $side,
             'hedged' => $hedged,

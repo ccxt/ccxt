@@ -427,14 +427,6 @@ class kucoin extends Exchange {
         return $this->milliseconds();
     }
 
-    public function load_time_difference($params = array ()) {
-        $response = $this->publicGetTimestamp ($params);
-        $after = $this->milliseconds();
-        $kucoinTime = $this->safe_integer($response, 'data');
-        $this->options['timeDifference'] = intval($after - $kucoinTime);
-        return $this->options['timeDifference'];
-    }
-
     public function fetch_time($params = array ()) {
         $response = $this->publicGetTimestamp ($params);
         //
@@ -1792,6 +1784,7 @@ class kucoin extends Exchange {
             'info' => $transaction,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,

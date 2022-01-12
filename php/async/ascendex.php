@@ -23,6 +23,11 @@ class ascendex extends Exchange {
             'certified' => true,
             // new metainfo interface
             'has' => array(
+                'spot' => true,
+                'margin' => null,
+                'swap' => true,
+                'future' => false,
+                'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'CORS' => null,
@@ -376,6 +381,8 @@ class ascendex extends Exchange {
                 'margin' => $margin,
                 'name' => $this->safe_string($currency, 'assetName'),
                 'active' => $active,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => $fee,
                 'precision' => intval($precision),
                 'limits' => array(
@@ -502,7 +509,7 @@ class ascendex extends Exchange {
             $type = $swap ? 'swap' : 'spot';
             $margin = $this->safe_value($market, 'marginTradable', false);
             $linear = $swap ? true : null;
-            $contractSize = $swap ? '1' : null;
+            $contractSize = $swap ? $this->parse_number('1') : null;
             $minQty = $this->safe_number($market, 'minQty');
             $maxQty = $this->safe_number($market, 'maxQty');
             $minPrice = $this->safe_number($market, 'tickSize');
@@ -1836,8 +1843,21 @@ class ascendex extends Exchange {
     }
 
     public function safe_network($networkId) {
-        // TODO => parse network
-        return $networkId;
+        $networksById = array(
+            'TRC20' => 'TRC20',
+            'ERC20' => 'ERC20',
+            'GO20' => 'GO20',
+            'BEP2' => 'BEP2',
+            'BEP20 (BSC)' => 'BEP20',
+            'Bitcoin' => 'BTC',
+            'Bitcoin ABC' => 'BCH',
+            'Litecoin' => 'LTC',
+            'Matic Network' => 'MATIC',
+            'Solana' => 'SOL',
+            'xDai' => 'STAKE',
+            'Akash' => 'AKT',
+        );
+        return $this->safe_string($networksById, $networkId, $networkId);
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
@@ -2016,6 +2036,7 @@ class ascendex extends Exchange {
             'id' => $id,
             'currency' => $code,
             'amount' => $amount,
+            'network' => null,
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,

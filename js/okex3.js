@@ -19,6 +19,8 @@ module.exports = class okex3 extends Exchange {
             'rateLimit': 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'pro': true,
             'has': {
+                'fetchPositions': true,
+                'fetchPosition': true,
                 'cancelOrder': true,
                 'CORS': undefined,
                 'createOrder': true,
@@ -2700,6 +2702,7 @@ module.exports = class okex3 extends Exchange {
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': undefined,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'address': address,

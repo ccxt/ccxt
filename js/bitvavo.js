@@ -306,8 +306,6 @@ module.exports = class bitvavo extends Exchange {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'taker': undefined,
-                'maker': undefined,
                 'contractSize': undefined,
                 'active': (status === 'trading'),
                 'expiry': undefined,
@@ -396,6 +394,8 @@ module.exports = class bitvavo extends Exchange {
                 'code': code,
                 'name': name,
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdrawal,
                 'fee': this.safeNumber (currency, 'withdrawalFee'),
                 'precision': precision,
                 'limits': {

@@ -85,26 +85,26 @@ module.exports = class kraken extends Exchange {
                     'maker': 0.16 / 100,
                     'tiers': {
                         'taker': [
-                            [0, 0.0026],
-                            [50000, 0.0024],
-                            [100000, 0.0022],
-                            [250000, 0.0020],
-                            [500000, 0.0018],
-                            [1000000, 0.0016],
-                            [2500000, 0.0014],
-                            [5000000, 0.0012],
-                            [10000000, 0.0001],
+                            [ 0, 0.0026 ],
+                            [ 50000, 0.0024 ],
+                            [ 100000, 0.0022 ],
+                            [ 250000, 0.0020 ],
+                            [ 500000, 0.0018 ],
+                            [ 1000000, 0.0016 ],
+                            [ 2500000, 0.0014 ],
+                            [ 5000000, 0.0012 ],
+                            [ 10000000, 0.0001 ],
                         ],
                         'maker': [
-                            [0, 0.0016],
-                            [50000, 0.0014],
-                            [100000, 0.0012],
-                            [250000, 0.0010],
-                            [500000, 0.0008],
-                            [1000000, 0.0006],
-                            [2500000, 0.0004],
-                            [5000000, 0.0002],
-                            [10000000, 0.0],
+                            [ 0, 0.0016 ],
+                            [ 50000, 0.0014 ],
+                            [ 100000, 0.0012 ],
+                            [ 250000, 0.0010 ],
+                            [ 500000, 0.0008 ],
+                            [ 1000000, 0.0006 ],
+                            [ 2500000, 0.0004 ],
+                            [ 5000000, 0.0002 ],
+                            [ 10000000, 0.0 ],
                         ],
                     },
                 },
@@ -211,6 +211,12 @@ module.exports = class kraken extends Exchange {
                         'WithdrawCancel': 1,
                         'WithdrawInfo': 1,
                         'WithdrawStatus': 1,
+                        // staking
+                        'Stake': 1,
+                        'Unstake': 1,
+                        'Staking/Assets': 1,
+                        'Staking/Pending': 1,
+                        'Staking/Transactions': 1,
                     },
                 },
             },
@@ -1528,7 +1534,7 @@ module.exports = class kraken extends Exchange {
         const request = {
             'txid': clientOrderId, // order id or userref
         };
-        params = this.omit (params, ['userref', 'clientOrderId' ]);
+        params = this.omit (params, [ 'userref', 'clientOrderId' ]);
         try {
             response = await this.privatePostCancelOrder (this.extend (request, params));
         } catch (e) {
@@ -1691,8 +1697,13 @@ module.exports = class kraken extends Exchange {
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': undefined,
             'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
             'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'status': status,
             'type': type,
             'updated': undefined,

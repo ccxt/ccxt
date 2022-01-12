@@ -66,12 +66,10 @@ module.exports = class huobi extends Exchange {
                 'fetchLedgerEntry': undefined,
                 'fetchLeverage': undefined,
                 'fetchMarkets': true,
-                'fetchMarketsByType': undefined,
                 'fetchMarkOHLCV': true,
                 'fetchMyBuys': undefined,
                 'fetchMySells': undefined,
                 'fetchMyTrades': true,
-                'fetchNetworkDepositAddress': undefined,
                 'fetchOHLCV': true,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
@@ -79,10 +77,7 @@ module.exports = class huobi extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
                 'fetchOrders': true,
-                'fetchOrdersByState': undefined,
-                'fetchOrdersByStatus': undefined,
                 'fetchOrderTrades': true,
-                'fetchPartiallyFilledOrders': undefined,
                 'fetchPosition': true,
                 'fetchPositions': true,
                 'fetchPositionsRisk': undefined,
@@ -90,7 +85,6 @@ module.exports = class huobi extends Exchange {
                 'fetchStatus': undefined,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchTickersByType': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
@@ -98,13 +92,11 @@ module.exports = class huobi extends Exchange {
                 'fetchTradingLimits': true,
                 'fetchTransactions': undefined,
                 'fetchTransfers': undefined,
-                'fetchWithdrawAddress': true,
                 'fetchWithdrawAddressesByNetwork': true,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': undefined,
                 'loadLeverageBrackets': undefined,
-                'loadTimeDifference': undefined,
                 'reduceMargin': undefined,
                 'setLeverage': true,
                 'setMarginMode': undefined,
@@ -1236,7 +1228,7 @@ module.exports = class huobi extends Exchange {
                     symbol += '-' + this.yymmdd (expiry);
                 }
             }
-            const contractSize = this.safeString (market, 'contract_size');
+            const contractSize = this.safeNumber (market, 'contract_size');
             let pricePrecision = undefined;
             let amountPrecision = undefined;
             let costPrecision = undefined;
@@ -4056,14 +4048,21 @@ module.exports = class huobi extends Exchange {
         if (feeCost !== undefined) {
             feeCost = Math.abs (feeCost);
         }
+        const address = this.safeString (transaction, 'address');
+        const network = this.safeStringUpper (transaction, 'chain');
         return {
             'info': transaction,
             'id': this.safeString (transaction, 'id'),
             'txid': this.safeString (transaction, 'tx-hash'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'address': this.safeString (transaction, 'address'),
+            'network': network,
+            'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
             'tag': tag,
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'type': type,
             'amount': this.safeNumber (transaction, 'amount'),
             'currency': code,
@@ -4780,7 +4779,8 @@ module.exports = class huobi extends Exchange {
         market = this.safeMarket (this.safeString (position, 'contract_code'));
         const symbol = market['symbol'];
         const contracts = this.safeString (position, 'volume');
-        const contractSize = this.safeString (market, 'contractSize');
+        const contractSize = this.safeValue (market, 'contractSize');
+        const contractSizeString = this.numberToString (contractSize);
         const entryPrice = this.safeNumber (position, 'cost_hold');
         const initialMargin = this.safeString (position, 'position_margin');
         const rawSide = this.safeString (position, 'direction');
@@ -4790,7 +4790,7 @@ module.exports = class huobi extends Exchange {
         const leverage = this.safeString (position, 'lever_rate');
         const percentage = Precise.stringMul (this.safeString (position, 'profit_rate'), '100');
         const lastPrice = this.safeString (position, 'last_price');
-        const faceValue = Precise.stringMul (contracts, contractSize);
+        const faceValue = Precise.stringMul (contracts, contractSizeString);
         let notional = undefined;
         if (market['linear']) {
             notional = Precise.stringMul (faceValue, lastPrice);
@@ -4809,7 +4809,7 @@ module.exports = class huobi extends Exchange {
             'info': position,
             'symbol': symbol,
             'contracts': this.parseNumber (contracts),
-            'contractSize': this.parseNumber (contractSize),
+            'contractSize': contractSize,
             'entryPrice': entryPrice,
             'collateral': this.parseNumber (collateral),
             'side': side,

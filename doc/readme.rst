@@ -23,10 +23,10 @@ CCXT – CryptoCurrency eXchange Trading Library
      :alt: NPM Downloads
  
 .. image:: https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white
-     :target: https://discord.gg/dhzSKYU
+     :target: https://discord.gg/ccxt
      :alt: Discord
  
-.. image:: https://img.shields.io/badge/exchanges-115-blue.svg
+.. image:: https://img.shields.io/badge/exchanges-116-blue.svg
      :target: https://github.com/ccxt/ccxt/wiki/Exchange-Markets
      :alt: Supported Exchanges
  
@@ -377,7 +377,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The CCXT library currently supports the following 112 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 113 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -1795,6 +1795,18 @@ The CCXT library currently supports the following 112 cryptocurrency exchange ma
           :alt: CCXT Certified
      
      - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/148647666-c109c20b-f8ac-472f-91c3-5f658cb90f49.jpeg
+          :target: https://wazirx.com
+          :alt: wazirx
+     
+     - wazirx
+     - `WazirX <https://wazirx.com>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://docs.wazirx.com/#public-rest-api-for-wazirx
+          :alt: API Version 2
+     
+     - 
+     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg
           :target: https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963
           :alt: whitebit
@@ -1945,14 +1957,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.66.26/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@1.66.26/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.67.17/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@1.67.17/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.66.26/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.67.17/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

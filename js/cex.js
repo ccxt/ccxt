@@ -243,6 +243,8 @@ module.exports = class cex extends Exchange {
                 'code': code,
                 'name': id,
                 'active': active,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'precision': precision,
                 'fee': undefined,
                 'limits': {
@@ -453,11 +455,8 @@ module.exports = class cex extends Exchange {
         const bid = this.safeNumber (ticker, 'bid');
         const ask = this.safeNumber (ticker, 'ask');
         const last = this.safeNumber (ticker, 'last');
-        let symbol = undefined;
-        if (market) {
-            symbol = market['symbol'];
-        }
-        return {
+        const symbol = this.safeSymbol (undefined, market);
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -478,7 +477,7 @@ module.exports = class cex extends Exchange {
             'baseVolume': volume,
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

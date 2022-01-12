@@ -17,6 +17,7 @@ module.exports = class probit extends Exchange {
             'countries': [ 'SC', 'KR' ], // Seychelles, South Korea
             'rateLimit': 50, // ms
             'has': {
+                'fetchDepositAddresses': true,
                 'cancelOrder': true,
                 'CORS': true,
                 'createMarketOrder': true,
@@ -1167,6 +1168,7 @@ module.exports = class probit extends Exchange {
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': undefined,
             'addressFrom': undefined,
             'address': address,
             'addressTo': address,
@@ -1178,6 +1180,7 @@ module.exports = class probit extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'updated': undefined,
             'fee': fee,
             'info': transaction,
         };

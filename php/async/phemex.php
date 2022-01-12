@@ -326,6 +326,7 @@ class phemex extends Exchange {
                 'defaultNetworks' => array(
                     'USDT' => 'ETH',
                 ),
+                'defaultSubType' => 'linear',
             ),
         ));
     }
@@ -422,7 +423,7 @@ class phemex extends Exchange {
         $taker = $this->parse_number($this->from_en($takerFeeRateEr, $ratioScale));
         $limits = array(
             'amount' => array(
-                'min' => $precision['amount'],
+                'min' => null,
                 'max' => null,
             ),
             'price' => array(
@@ -436,7 +437,17 @@ class phemex extends Exchange {
         );
         $status = $this->safe_string($market, 'status');
         $active = $status === 'Listed';
-        $contractSize = $this->safe_string($market, 'contractSize');
+        $contractSizeString = $this->safe_string($market, 'contractSize', ' ');
+        $contractSize = null;
+        if (mb_strpos($contractSizeString, ' ')) {
+            // "1 USD"
+            // "0.005 ETH"
+            $parts = explode(' ', $contractSizeString);
+            $contractSize = $this->parse_number($parts[0]);
+        } else {
+            // "1.0"
+            $contractSize = $this->parse_number($contractSizeString);
+        }
         return array(
             'id' => $id,
             'symbol' => $symbol,
@@ -2441,6 +2452,7 @@ class phemex extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,
@@ -2458,18 +2470,17 @@ class phemex extends Exchange {
 
     public function fetch_positions($symbols = null, $params = array ()) {
         yield $this->load_markets();
+        $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'linear');
         $code = $this->safe_string($params, 'code');
-        $request = array();
         if ($code === null) {
-            $currencyId = $this->safe_string($params, 'currency');
-            if ($currencyId === null) {
-                throw new ArgumentsRequired($this->id . ' fetchPositions() requires a $currency parameter or a $code parameter');
-            }
+            $code = ($defaultSubType === 'linear') ? 'USD' : 'BTC';
         } else {
-            $currency = $this->currency($code);
             $params = $this->omit($params, 'code');
-            $request['currency'] = $currency['id'];
         }
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
         $response = yield $this->privateGetAccountsAccountPositions (array_merge($request, $params));
         //
         //     {
@@ -2549,8 +2560,147 @@ class phemex extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $positions = $this->safe_value($data, 'positions', array());
-        // todo unify parsePosition/parsePositions
-        return $positions;
+        $result = array();
+        for ($i = 0; $i < count($positions); $i++) {
+            $position = $positions[$i];
+            $result[] = $this->parse_position($position);
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols, false);
+    }
+
+    public function parse_position($position, $market = null) {
+        //
+        //   {
+        //     userID => '811370',
+        //     accountID => '8113700002',
+        //     $symbol => 'ETHUSD',
+        //     $currency => 'USD',
+        //     $side => 'Buy',
+        //     positionStatus => 'Normal',
+        //     crossMargin => false,
+        //     leverageEr => '200000000',
+        //     $leverage => '2.00000000',
+        //     initMarginReqEr => '50000000',
+        //     initMarginReq => '0.50000000',
+        //     maintMarginReqEr => '1000000',
+        //     maintMarginReq => '0.01000000',
+        //     riskLimitEv => '5000000000',
+        //     riskLimit => '500000.00000000',
+        //     size => '1',
+        //     value => '22.22370000',
+        //     valueEv => '222237',
+        //     avgEntryPriceEp => '44447400',
+        //     avgEntryPrice => '4444.74000000',
+        //     posCostEv => '111202',
+        //     posCost => '11.12020000',
+        //     assignedPosBalanceEv => '111202',
+        //     assignedPosBalance => '11.12020000',
+        //     bankruptCommEv => '84',
+        //     bankruptComm => '0.00840000',
+        //     bankruptPriceEp => '22224000',
+        //     bankruptPrice => '2222.40000000',
+        //     positionMarginEv => '111118',
+        //     positionMargin => '11.11180000',
+        //     liquidationPriceEp => '22669000',
+        //     $liquidationPrice => '2266.90000000',
+        //     deleveragePercentileEr => '0',
+        //     deleveragePercentile => '0E-8',
+        //     buyValueToCostEr => '50112500',
+        //     buyValueToCost => '0.50112500',
+        //     sellValueToCostEr => '50187500',
+        //     sellValueToCost => '0.50187500',
+        //     markPriceEp => '31332499',
+        //     markPrice => '3133.24990000',
+        //     markValueEv => '0',
+        //     markValue => null,
+        //     unRealisedPosLossEv => '0',
+        //     unRealisedPosLoss => null,
+        //     estimatedOrdLossEv => '0',
+        //     estimatedOrdLoss => '0E-8',
+        //     usedBalanceEv => '111202',
+        //     usedBalance => '11.12020000',
+        //     takeProfitEp => '0',
+        //     takeProfit => null,
+        //     stopLossEp => '0',
+        //     stopLoss => null,
+        //     cumClosedPnlEv => '-1546',
+        //     cumFundingFeeEv => '1605',
+        //     cumTransactFeeEv => '8438',
+        //     realisedPnlEv => '0',
+        //     realisedPnl => null,
+        //     cumRealisedPnlEv => '0',
+        //     cumRealisedPnl => null,
+        //     transactTimeNs => '1641571200001885324',
+        //     takerFeeRateEr => '0',
+        //     makerFeeRateEr => '0',
+        //     term => '6',
+        //     lastTermEndTimeNs => '1607711882505745356',
+        //     lastFundingTimeNs => '1641571200000000000',
+        //     curTermRealisedPnlEv => '-1567',
+        //     execSeq => '12112761561'
+        //   }
+        //
+        $marketId = $this->safe_string($position, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
+        $collateral = $this->safe_string($position, 'positionMargin');
+        $notionalString = $this->safe_string($position, 'value');
+        $maintenanceMarginPercentageString = $this->safe_string($position, 'maintMarginReq');
+        $maintenanceMarginString = Precise::string_mul($notionalString, $maintenanceMarginPercentageString);
+        $initialMarginString = $this->safe_string($position, 'assignedPosBalance');
+        $initialMarginPercentageString = Precise::string_div($initialMarginString, $notionalString);
+        $liquidationPrice = $this->safe_number($position, 'liquidationPrice');
+        $markPriceString = $this->safe_string($position, 'markPrice');
+        $contracts = $this->safe_string($position, 'size');
+        $contractSize = $this->safe_value($market, 'contractSize');
+        $contractSizeString = $this->number_to_string($contractSize);
+        $leverage = $this->safe_number($position, 'leverage');
+        $entryPriceString = $this->safe_string($position, 'avgEntryPrice');
+        $rawSide = $this->safe_string($position, 'side');
+        $side = ($rawSide === 'Buy') ? 'long' : 'short';
+        $priceDiff = null;
+        $currency = $this->safe_string($position, 'currency');
+        if ($currency === 'USD') {
+            if ($side === 'long') {
+                $priceDiff = Precise::string_sub($markPriceString, $entryPriceString);
+            } else {
+                $priceDiff = Precise::string_sub($entryPriceString, $markPriceString);
+            }
+        } else {
+            // inverse
+            if ($side === 'long') {
+                $priceDiff = Precise::string_sub(Precise::string_div('1', $entryPriceString), Precise::string_div('1', $markPriceString));
+            } else {
+                $priceDiff = Precise::string_sub(Precise::string_div('1', $markPriceString), Precise::string_div('1', $entryPriceString));
+            }
+        }
+        $unrealizedPnl = Precise::string_mul(Precise::string_mul($priceDiff, $contracts), $contractSizeString);
+        $percentage = Precise::string_mul(Precise::string_div($unrealizedPnl, $initialMarginString), '100');
+        $marginRatio = Precise::string_div($maintenanceMarginString, $collateral);
+        return array(
+            'info' => $position,
+            'symbol' => $symbol,
+            'contracts' => $this->parse_number($contracts),
+            'contractSize' => $contractSize,
+            'unrealizedPnl' => $this->parse_number($unrealizedPnl),
+            'leverage' => $leverage,
+            'liquidationPrice' => $liquidationPrice,
+            'collateral' => $this->parse_number($collateral),
+            'notional' => $this->parse_number($notionalString),
+            'markPrice' => $this->parse_number($markPriceString), // markPrice lags a bit ¯\_(ツ)_/¯
+            'entryPrice' => $this->parse_number($entryPriceString),
+            'timestamp' => null,
+            'initialMargin' => $this->parse_number($initialMarginString),
+            'initialMarginPercentage' => $this->parse_number($initialMarginPercentageString),
+            'maintenanceMargin' => $this->parse_number($maintenanceMarginString),
+            'maintenanceMarginPercentage' => $this->parse_number($maintenanceMarginPercentageString),
+            'marginRatio' => $this->parse_number($marginRatio),
+            'datetime' => null,
+            'marginType' => null,
+            'side' => $side,
+            'hedged' => false,
+            'percentage' => $this->parse_number($percentage),
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

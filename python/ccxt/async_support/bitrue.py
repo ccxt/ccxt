@@ -359,12 +359,6 @@ class bitrue(Exchange):
         #
         return self.safe_integer(response, 'serverTime')
 
-    async def load_time_difference(self, params={}):
-        serverTime = await self.fetch_time(params)
-        after = self.milliseconds()
-        self.options['timeDifference'] = after - serverTime
-        return self.options['timeDifference']
-
     def safe_network(self, networkId):
         uppercaseNetworkId = networkId.upper()
         networksById = {
@@ -516,6 +510,8 @@ class bitrue(Exchange):
                 'precision': precision,
                 'info': currency,
                 'active': active,
+                'deposit': enableDeposit,
+                'withdraw': enableWithdraw,
                 'networks': networks,
                 'fee': self.safe_number(currency, 'withdrawFee'),
                 # 'fees': fees,

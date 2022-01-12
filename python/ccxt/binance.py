@@ -80,15 +80,12 @@ class binance(Exchange):
                 'fetchIsolatedPositions': None,
                 'fetchL3OrderBook': None,
                 'fetchLedger': None,
-                'fetchLedgerEntry': None,
                 'fetchLeverage': None,
                 'fetchMarkets': True,
-                'fetchMarketsByType': None,
                 'fetchMarkOHLCV': True,
                 'fetchMyBuys': None,
                 'fetchMySells': None,
                 'fetchMyTrades': True,
-                'fetchNetworkDepositAddress': None,
                 'fetchOHLCV': True,
                 'fetchOpenOrder': None,
                 'fetchOpenOrders': True,
@@ -96,10 +93,7 @@ class binance(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrderBooks': None,
                 'fetchOrders': True,
-                'fetchOrdersByState': None,
-                'fetchOrdersByStatus': None,
                 'fetchOrderTrades': True,
-                'fetchPartiallyFilledOrders': None,
                 'fetchPosition': None,
                 'fetchPositions': True,
                 'fetchPositionsRisk': True,
@@ -107,7 +101,6 @@ class binance(Exchange):
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
-                'fetchTickersByType': None,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
@@ -115,18 +108,15 @@ class binance(Exchange):
                 'fetchTradingLimits': None,
                 'fetchTransactions': False,
                 'fetchTransfers': True,
-                'fetchWithdrawAddress': None,
-                'fetchWithdrawAddressesByNetwork': None,
-                'fetchWithdrawal': None,
+                'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
-                'fetchWithdrawalWhitelist': None,
-                'loadLeverageBrackets': None,
-                'loadTimeDifference': None,
+                'fetchWithdrawalWhitelist': False,
+                'loadLeverageBrackets': True,
                 'reduceMargin': True,
                 'setLeverage': True,
                 'setMarginMode': True,
                 'setPositionMode': True,
-                'signIn': None,
+                'signIn': False,
                 'transfer': True,
                 'transferOut': False,
                 'withdraw': True,
@@ -1170,12 +1160,6 @@ class binance(Exchange):
         response = getattr(self, method)(query)
         return self.safe_integer(response, 'serverTime')
 
-    def load_time_difference(self, params={}):
-        serverTime = self.fetch_time(params)
-        after = self.milliseconds()
-        self.options['timeDifference'] = after - serverTime
-        return self.options['timeDifference']
-
     def fetch_currencies(self, params={}):
         fetchCurrenciesEnabled = self.safe_value(self.options, 'fetchCurrencies')
         if not fetchCurrenciesEnabled:
@@ -1303,6 +1287,8 @@ class binance(Exchange):
                 'precision': precision,
                 'info': entry,
                 'active': active,
+                'deposit': isDepositEnabled,
+                'withdraw': isWithdrawEnabled,
                 'networks': networkList,
                 'fee': fee,
                 'fees': fees,
@@ -1506,7 +1492,7 @@ class binance(Exchange):
             contractSize = None
             fees = self.fees
             if future or delivery:
-                contractSize = self.safe_string(market, 'contractSize', '1')
+                contractSize = self.safe_number(market, 'contractSize', self.parse_number('1'))
                 fees = self.fees[type]
             maker = fees['trading']['maker']
             taker = fees['trading']['taker']
@@ -3346,12 +3332,14 @@ class binance(Exchange):
         updated = self.safe_integer_2(transaction, 'successTime', 'updateTime')
         internal = self.safe_integer(transaction, 'transferType', False)
         internal = True if internal else False
+        network = self.safe_string(transaction, 'network')
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': network,
             'address': address,
             'addressTo': address,
             'addressFrom': None,
@@ -4217,6 +4205,8 @@ class binance(Exchange):
         percentage = None
         liquidationPriceStringRaw = None
         liquidationPrice = None
+        contractSize = self.safe_value(market, 'contractSize')
+        contractSizeString = self.number_to_string(contractSize)
         if notionalFloat == 0.0:
             entryPrice = None
         else:
@@ -4253,7 +4243,7 @@ class binance(Exchange):
                 else:
                     onePlusMaintenanceMarginPercentageString = Precise.string_sub('-1', maintenanceMarginPercentageString)
                     entryPriceSignString = Precise.string_mul('-1', entryPriceSignString)
-                size = Precise.string_mul(contractsStringAbs, market['contractSize'])
+                size = Precise.string_mul(contractsStringAbs, contractSizeString)
                 leftSide = Precise.string_mul(size, onePlusMaintenanceMarginPercentageString)
                 rightSide = Precise.string_sub(Precise.string_mul(Precise.string_div('1', entryPriceSignString), size), walletBalance)
                 liquidationPriceStringRaw = Precise.string_div(leftSide, rightSide)
@@ -4286,7 +4276,7 @@ class binance(Exchange):
             'leverage': self.parse_number(leverageString),
             'unrealizedPnl': unrealizedPnl,
             'contracts': contracts,
-            'contractSize': self.parse_number(market['contractSize']),
+            'contractSize': contractSize,
             'marginRatio': marginRatio,
             'liquidationPrice': liquidationPrice,
             'markPrice': None,
@@ -4369,6 +4359,8 @@ class binance(Exchange):
             side = 'short'
         entryPriceString = self.safe_string(position, 'entryPrice')
         entryPrice = self.parse_number(entryPriceString)
+        contractSize = self.safe_value(market, 'contractSize')
+        contractSizeString = self.number_to_string(contractSize)
         # as oppose to notionalValue
         linear = ('notional' in position)
         if marginType == 'cross':
@@ -4394,7 +4386,7 @@ class binance(Exchange):
                 else:
                     onePlusMaintenanceMarginPercentageString = Precise.string_sub('-1', maintenanceMarginPercentageString)
                     entryPriceSignString = Precise.string_mul('-1', entryPriceSignString)
-                leftSide = Precise.string_mul(contractsAbs, market['contractSize'])
+                leftSide = Precise.string_mul(contractsAbs, contractSizeString)
                 rightSide = Precise.string_sub(Precise.string_div('1', entryPriceSignString), Precise.string_div(onePlusMaintenanceMarginPercentageString, liquidationPriceString))
                 collateralString = Precise.string_div(Precise.string_mul(leftSide, rightSide), '1', market['precision']['base'])
         else:
@@ -4426,7 +4418,7 @@ class binance(Exchange):
             'info': position,
             'symbol': symbol,
             'contracts': contracts,
-            'contractSize': self.parse_number(market['contractSize']),
+            'contractSize': contractSize,
             'unrealizedPnl': unrealizedPnl,
             'leverage': self.parse_number(leverageString),
             'liquidationPrice': liquidationPrice,

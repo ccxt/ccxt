@@ -25,12 +25,17 @@ class kucoinfutures extends kucoin {
             'comment' => 'Platform 2.0',
             'quoteJsonNumbers' => false,
             'has' => array(
+                'spot' => false,
+                'margin' => false,
+                'swap' => true,
+                'future' => true,
+                'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'CORS' => null,
-                'createDepositAddress' => false,
+                'createDepositAddress' => true,
                 'createOrder' => true,
-                'fetchAccounts' => false,
+                'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRates' => false,
@@ -38,14 +43,14 @@ class kucoinfutures extends kucoin {
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => false,
                 'fetchDepositAddress' => true,
-                'fetchDeposits' => null,
-                'fetchFundingFee' => false,
+                'fetchDeposits' => true,
+                'fetchFundingFee' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => false,
                 'fetchIndexOHLCV' => false,
-                'fetchL3OrderBook' => false,
-                'fetchLedger' => false,
+                'fetchL3OrderBook' => true,
+                'fetchLedger' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -53,7 +58,6 @@ class kucoinfutures extends kucoin {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrdersByStatus' => true,
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
@@ -61,8 +65,7 @@ class kucoinfutures extends kucoin {
                 'fetchTickers' => false,
                 'fetchTime' => true,
                 'fetchTrades' => true,
-                'fetchWithdrawals' => null,
-                'loadTimeDifference' => true,
+                'fetchWithdrawals' => true,
                 'setMarginMode' => false,
                 'transfer' => true,
                 'transferOut' => true,
@@ -291,14 +294,6 @@ class kucoinfutures extends kucoin {
         throw new BadRequest($this->id . ' has no method fetchAccounts');
     }
 
-    public function load_time_difference($params = array ()) {
-        $response = yield $this->futuresPublicGetTimestamp ($params);
-        $after = $this->milliseconds();
-        $kucoinTime = $this->safe_integer($response, 'data');
-        $this->options['timeDifference'] = intval($after - $kucoinTime);
-        return $this->options['timeDifference'];
-    }
-
     public function fetch_status($params = array ()) {
         $response = yield $this->futuresPublicGetStatus ($params);
         //
@@ -443,7 +438,7 @@ class kucoinfutures extends kucoin {
                 'inverse' => $inverse,
                 'taker' => $this->safe_number($market, 'takerFeeRate'),
                 'maker' => $this->safe_number($market, 'makerFeeRate'),
-                'contractSize' => Precise::string_abs($this->safe_string($market, 'multiplier')),
+                'contractSize' => $this->parse_number(Precise::string_abs($this->safe_string($market, 'multiplier'))),
                 'expiry' => $expiry,
                 'expiryDatetime' => $this->iso8601($expiry),
                 'precision' => array(
@@ -912,7 +907,7 @@ class kucoinfutures extends kucoin {
             'leverage' => $this->safe_number($position, 'realLeverage'),
             'unrealizedPnl' => $this->parse_number($unrealisedPnl),
             'contracts' => $this->parse_number(Precise::string_abs($size)),
-            'contractSize' => $this->safe_number($market, 'contractSize'),
+            'contractSize' => $this->safe_value($market, 'contractSize'),
             //     realisedPnl => $position['realised_pnl'],
             'marginRatio' => null,
             'liquidationPrice' => $this->safe_number($position, 'liquidationPrice'),
@@ -930,12 +925,8 @@ class kucoinfutures extends kucoin {
         // required param, cannot be used twice
         $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId', $this->uuid());
         $params = $this->omit($params, array( 'clientOid', 'clientOrderId' ));
-        $leverage = $this->safe_number($params, 'leverage');
-        if (!$leverage) {
-            throw new ArgumentsRequired($this->id . ' createOrder requires $params->leverage');
-        }
         if ($amount < 1) {
-            throw new InvalidOrder('Minimum contract order size using ' . $this->id . ' is 1');
+            throw new InvalidOrder($this->id . ' createOrder() minimum contract order $amount is 1');
         }
         $preciseAmount = intval($this->amount_to_precision($symbol, $amount));
         $request = array(
@@ -944,6 +935,7 @@ class kucoinfutures extends kucoin {
             'symbol' => $market['id'],
             'type' => $type, // limit or $market
             'size' => $preciseAmount,
+            'leverage' => 1,
             // 'remark' => '', // optional remark for the order, length cannot exceed 100 utf8 characters
             // 'tradeType' => 'TRADE', // TRADE, MARGIN_TRADE // not used with margin orders
             // limit orders ---------------------------------------------------
@@ -972,14 +964,14 @@ class kucoinfutures extends kucoin {
             $request['stop'] = ($side === 'buy') ? 'down' : 'up';
             $stopPriceType = $this->safe_string($params, 'stopPriceType');
             if (!$stopPriceType) {
-                throw new ArgumentsRequired($this->id . ' trigger orders require $params->stopPriceType to be set to TP, IP or MP (Trade Price, Index Price or Mark Price)');
+                throw new ArgumentsRequired($this->id . ' createOrder() trigger orders require a $stopPriceType parameter to be set to TP, IP or MP (Trade Price, Index Price or Mark Price)');
             }
         }
         $uppercaseType = strtoupper($type);
         $timeInForce = $this->safe_string($params, 'timeInForce');
         if ($uppercaseType === 'LIMIT') {
             if ($price === null) {
-                throw new ArgumentsRequired($this->id . ' limit orders require the $price argument');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $price argument for limit orders');
             } else {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
@@ -991,13 +983,13 @@ class kucoinfutures extends kucoin {
         $postOnly = $this->safe_value($params, 'postOnly', false);
         $hidden = $this->safe_value($params, 'hidden');
         if ($postOnly && $hidden !== null) {
-            throw new BadRequest($this->id . ' createOrder cannot contain both $params->postOnly and $params->hidden');
+            throw new BadRequest($this->id . ' createOrder() does not support the $postOnly parameter together with a $hidden parameter');
         }
         $iceberg = $this->safe_value($params, 'iceberg');
         if ($iceberg) {
             $visibleSize = $this->safe_value($params, 'visibleSize');
             if ($visibleSize === null) {
-                throw new ArgumentsRequired($this->id . ' requires $params->visibleSize for $iceberg orders');
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $visibleSize parameter for $iceberg orders');
             }
         }
         $params = $this->omit($params, 'timeInForce'); // Time in force only valid for limit orders, exchange error when gtc for $market orders

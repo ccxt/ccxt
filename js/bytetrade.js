@@ -13,7 +13,7 @@ module.exports = class bytetrade extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bytetrade',
             'name': 'ByteTrade',
-            'countries': ['HK'],
+            'countries': [ 'HK' ],
             'rateLimit': 500,
             'requiresWeb3': true,
             'certified': false,
@@ -205,6 +205,8 @@ module.exports = class bytetrade extends Exchange {
                 'code': code,
                 'name': name,
                 'active': active,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'precision': amountPrecision,
                 'fee': undefined,
                 'limits': {
@@ -352,23 +354,10 @@ module.exports = class bytetrade extends Exchange {
         //         }
         //     ]
         //
-        let symbol = undefined;
         const marketId = this.safeString (ticker, 'symbol');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        } else {
-            const baseId = this.safeString (ticker, 'base');
-            const quoteId = this.safeString (ticker, 'quote');
-            if ((baseId !== undefined) && (quoteId !== undefined)) {
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
-        return {
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -389,7 +378,7 @@ module.exports = class bytetrade extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'baseVolume'),
             'quoteVolume': this.safeNumber (ticker, 'quoteVolume'),
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

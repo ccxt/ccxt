@@ -28,6 +28,8 @@ class delta(Exchange):
             'version': 'v2',
             # new metainfo interface
             'has': {
+                'fetchPositions': True,
+                'fetchPosition': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
@@ -265,6 +267,8 @@ class delta(Exchange):
                 'name': self.safe_string(currency, 'name'),
                 'info': currency,  # the original payload
                 'active': active,
+                'deposit': depositsEnabled,
+                'withdraw': withdrawalsEnabled,
                 'fee': self.safe_number(currency, 'base_withdrawal_fee'),
                 'precision': 1 / math.pow(10, precision),
                 'limits': {

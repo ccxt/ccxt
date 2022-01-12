@@ -123,22 +123,22 @@ module.exports = class bitpanda extends Exchange {
                         // volume in BTC
                         {
                             'taker': [
-                                [this.parseNumber ('0'), this.parseNumber ('0.0015')],
-                                [this.parseNumber ('100'), this.parseNumber ('0.0013')],
-                                [this.parseNumber ('250'), this.parseNumber ('0.0013')],
-                                [this.parseNumber ('1000'), this.parseNumber ('0.001')],
-                                [this.parseNumber ('5000'), this.parseNumber ('0.0009')],
-                                [this.parseNumber ('10000'), this.parseNumber ('0.00075')],
-                                [this.parseNumber ('20000'), this.parseNumber ('0.00065')],
+                                [ this.parseNumber ('0'), this.parseNumber ('0.0015') ],
+                                [ this.parseNumber ('100'), this.parseNumber ('0.0013') ],
+                                [ this.parseNumber ('250'), this.parseNumber ('0.0013') ],
+                                [ this.parseNumber ('1000'), this.parseNumber ('0.001') ],
+                                [ this.parseNumber ('5000'), this.parseNumber ('0.0009') ],
+                                [ this.parseNumber ('10000'), this.parseNumber ('0.00075') ],
+                                [ this.parseNumber ('20000'), this.parseNumber ('0.00065') ],
                             ],
                             'maker': [
-                                [this.parseNumber ('0'), this.parseNumber ('0.001')],
-                                [this.parseNumber ('100'), this.parseNumber ('0.001')],
-                                [this.parseNumber ('250'), this.parseNumber ('0.0009')],
-                                [this.parseNumber ('1000'), this.parseNumber ('0.00075')],
-                                [this.parseNumber ('5000'), this.parseNumber ('0.0006')],
-                                [this.parseNumber ('10000'), this.parseNumber ('0.0005')],
-                                [this.parseNumber ('20000'), this.parseNumber ('0.0005')],
+                                [ this.parseNumber ('0'), this.parseNumber ('0.001') ],
+                                [ this.parseNumber ('100'), this.parseNumber ('0.001') ],
+                                [ this.parseNumber ('250'), this.parseNumber ('0.0009') ],
+                                [ this.parseNumber ('1000'), this.parseNumber ('0.00075') ],
+                                [ this.parseNumber ('5000'), this.parseNumber ('0.0006') ],
+                                [ this.parseNumber ('10000'), this.parseNumber ('0.0005') ],
+                                [ this.parseNumber ('20000'), this.parseNumber ('0.0005') ],
                             ],
                         },
                     ],
@@ -345,6 +345,8 @@ module.exports = class bitpanda extends Exchange {
                 'type': 'spot',
                 'spot': true,
                 'active': active,
+                'deposit': undefined,
+                'withdraw': undefined,
             });
         }
         return result;
@@ -1169,6 +1171,7 @@ module.exports = class bitpanda extends Exchange {
             'id': id,
             'currency': currency['code'],
             'amount': amount,
+            'network': undefined,
             'address': addressTo,
             'addressFrom': undefined,
             'addressTo': addressTo,

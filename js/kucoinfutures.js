@@ -22,12 +22,17 @@ module.exports = class kucoinfutures extends kucoin {
             'comment': 'Platform 2.0',
             'quoteJsonNumbers': false,
             'has': {
+                'spot': false,
+                'margin': false,
+                'swap': true,
+                'future': true,
+                'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'CORS': undefined,
-                'createDepositAddress': false,
+                'createDepositAddress': true,
                 'createOrder': true,
-                'fetchAccounts': false,
+                'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRates': false,
@@ -35,14 +40,14 @@ module.exports = class kucoinfutures extends kucoin {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': false,
                 'fetchDepositAddress': true,
-                'fetchDeposits': undefined,
-                'fetchFundingFee': false,
+                'fetchDeposits': true,
+                'fetchFundingFee': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
                 'fetchIndexOHLCV': false,
-                'fetchL3OrderBook': false,
-                'fetchLedger': false,
+                'fetchL3OrderBook': true,
+                'fetchLedger': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -50,7 +55,6 @@ module.exports = class kucoinfutures extends kucoin {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrdersByStatus': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
@@ -58,8 +62,7 @@ module.exports = class kucoinfutures extends kucoin {
                 'fetchTickers': false,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchWithdrawals': undefined,
-                'loadTimeDifference': true,
+                'fetchWithdrawals': true,
                 'setMarginMode': false,
                 'transfer': true,
                 'transferOut': true,
@@ -288,14 +291,6 @@ module.exports = class kucoinfutures extends kucoin {
         throw new BadRequest (this.id + ' has no method fetchAccounts');
     }
 
-    async loadTimeDifference (params = {}) {
-        const response = await this.futuresPublicGetTimestamp (params);
-        const after = this.milliseconds ();
-        const kucoinTime = this.safeInteger (response, 'data');
-        this.options['timeDifference'] = parseInt (after - kucoinTime);
-        return this.options['timeDifference'];
-    }
-
     async fetchStatus (params = {}) {
         const response = await this.futuresPublicGetStatus (params);
         //
@@ -440,7 +435,7 @@ module.exports = class kucoinfutures extends kucoin {
                 'inverse': inverse,
                 'taker': this.safeNumber (market, 'takerFeeRate'),
                 'maker': this.safeNumber (market, 'makerFeeRate'),
-                'contractSize': Precise.stringAbs (this.safeString (market, 'multiplier')),
+                'contractSize': this.parseNumber (Precise.stringAbs (this.safeString (market, 'multiplier'))),
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
                 'precision': {
@@ -909,7 +904,7 @@ module.exports = class kucoinfutures extends kucoin {
             'leverage': this.safeNumber (position, 'realLeverage'),
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'contracts': this.parseNumber (Precise.stringAbs (size)),
-            'contractSize': this.safeNumber (market, 'contractSize'),
+            'contractSize': this.safeValue (market, 'contractSize'),
             //     realisedPnl: position['realised_pnl'],
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
@@ -927,12 +922,8 @@ module.exports = class kucoinfutures extends kucoin {
         // required param, cannot be used twice
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId', this.uuid ());
         params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
-        const leverage = this.safeNumber (params, 'leverage');
-        if (!leverage) {
-            throw new ArgumentsRequired (this.id + ' createOrder requires params.leverage');
-        }
         if (amount < 1) {
-            throw new InvalidOrder ('Minimum contract order size using ' + this.id + ' is 1');
+            throw new InvalidOrder (this.id + ' createOrder() minimum contract order amount is 1');
         }
         const preciseAmount = parseInt (this.amountToPrecision (symbol, amount));
         const request = {
@@ -941,6 +932,7 @@ module.exports = class kucoinfutures extends kucoin {
             'symbol': market['id'],
             'type': type, // limit or market
             'size': preciseAmount,
+            'leverage': 1,
             // 'remark': '', // optional remark for the order, length cannot exceed 100 utf8 characters
             // 'tradeType': 'TRADE', // TRADE, MARGIN_TRADE // not used with margin orders
             // limit orders ---------------------------------------------------
@@ -969,14 +961,14 @@ module.exports = class kucoinfutures extends kucoin {
             request['stop'] = (side === 'buy') ? 'down' : 'up';
             const stopPriceType = this.safeString (params, 'stopPriceType');
             if (!stopPriceType) {
-                throw new ArgumentsRequired (this.id + ' trigger orders require params.stopPriceType to be set to TP, IP or MP (Trade Price, Index Price or Mark Price)');
+                throw new ArgumentsRequired (this.id + ' createOrder() trigger orders require a stopPriceType parameter to be set to TP, IP or MP (Trade Price, Index Price or Mark Price)');
             }
         }
         const uppercaseType = type.toUpperCase ();
         let timeInForce = this.safeString (params, 'timeInForce');
         if (uppercaseType === 'LIMIT') {
             if (price === undefined) {
-                throw new ArgumentsRequired (this.id + ' limit orders require the price argument');
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for limit orders');
             } else {
                 request['price'] = this.priceToPrecision (symbol, price);
             }
@@ -988,13 +980,13 @@ module.exports = class kucoinfutures extends kucoin {
         const postOnly = this.safeValue (params, 'postOnly', false);
         const hidden = this.safeValue (params, 'hidden');
         if (postOnly && hidden !== undefined) {
-            throw new BadRequest (this.id + ' createOrder cannot contain both params.postOnly and params.hidden');
+            throw new BadRequest (this.id + ' createOrder() does not support the postOnly parameter together with a hidden parameter');
         }
         const iceberg = this.safeValue (params, 'iceberg');
         if (iceberg) {
             const visibleSize = this.safeValue (params, 'visibleSize');
             if (visibleSize === undefined) {
-                throw new ArgumentsRequired (this.id + ' requires params.visibleSize for iceberg orders');
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a visibleSize parameter for iceberg orders');
             }
         }
         params = this.omit (params, 'timeInForce'); // Time in force only valid for limit orders, exchange error when gtc for market orders

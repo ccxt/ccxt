@@ -19,6 +19,11 @@ module.exports = class mexc extends Exchange {
             'version': 'v2',
             'certified': true,
             'has': {
+                'spot': true,
+                'margin': undefined,
+                'swap': true,
+                'future': undefined,
+                'option': undefined,
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
@@ -33,13 +38,11 @@ module.exports = class mexc extends Exchange {
                 'fetchDeposits': true,
                 'fetchFundingRateHistory': true,
                 'fetchMarkets': true,
-                'fetchMarketsByType': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrdersByState': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositions': true,
@@ -61,6 +64,7 @@ module.exports = class mexc extends Exchange {
                 '30m': '30m',
                 '1h': '1h',
                 '1d': '1d',
+                '1w': '1w',
                 '1M': '1M',
             },
             'urls': {
@@ -512,14 +516,14 @@ module.exports = class mexc extends Exchange {
                 'spot': false,
                 'margin': false,
                 'swap': true,
-                'futures': false,
+                'future': false,
                 'option': false,
                 'contract': true,
                 'linear': true,
                 'inverse': false,
                 'taker': this.safeNumber (market, 'takerFeeRate'),
                 'maker': this.safeNumber (market, 'makerFeeRate'),
-                'contractSize': this.safeString (market, 'contractSize'),
+                'contractSize': this.safeNumber (market, 'contractSize'),
                 'active': (state === '0'),
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -1056,9 +1060,10 @@ module.exports = class mexc extends Exchange {
         const market = this.market (symbol);
         const options = this.safeValue (this.options, 'timeframes', {});
         const timeframes = this.safeValue (options, market['type'], {});
+        const timeframeValue = this.safeString (timeframes, timeframe, timeframe);
         const request = {
             'symbol': market['id'],
-            'interval': timeframes[timeframe],
+            'interval': timeframeValue,
         };
         let method = undefined;
         if (market['spot']) {
@@ -1477,12 +1482,16 @@ module.exports = class mexc extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': network,
             'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
             'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'type': type,
             'amount': amount,
             'currency': code,
-            'network': network,
             'status': status,
             'updated': updated,
             'fee': fee,

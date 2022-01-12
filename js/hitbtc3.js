@@ -13,6 +13,9 @@ module.exports = class hitbtc3 extends Exchange {
             'version': '3',
             'pro': true,
             'has': {
+                'fetchTradingFees': true,
+                'fetchOrderBooks': true,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'CORS': false,
                 'createOrder': true,
@@ -21,7 +24,7 @@ module.exports = class hitbtc3 extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchDeposits': false,
+                'fetchDeposits': true,
                 'fetchFundingRateHistory': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -37,7 +40,7 @@ module.exports = class hitbtc3 extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTransactions': true,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': true,
                 'withdraw': true,
                 'transfer': true,
             },
@@ -336,7 +339,7 @@ module.exports = class hitbtc3 extends Exchange {
             let linear = undefined;
             let inverse = undefined;
             if (contract) {
-                contractSize = '1';
+                contractSize = this.parseNumber ('1');
                 settleId = feeCurrencyId;
                 settle = this.safeCurrencyCode (settleId);
                 linear = ((quote !== undefined) && (quote === settle));
@@ -930,6 +933,7 @@ module.exports = class hitbtc3 extends Exchange {
             'txid': txhash,
             'code': code,
             'amount': amount,
+            'network': undefined,
             'address': address,
             'addressFrom': addressFrom,
             'addressTo': addressTo,

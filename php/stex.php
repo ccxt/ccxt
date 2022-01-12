@@ -21,6 +21,7 @@ class stex extends Exchange {
             'certified' => false,
             // new metainfo interface
             'has' => array(
+                'fetchClosedOrder' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'CORS' => null,
@@ -1583,12 +1584,14 @@ class stex extends Exchange {
                 'currency' => $feeCurrencyCode,
             );
         }
+        $network = $this->safe_string($withdrawalAddress, 'protocol_name');
         return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => $network,
             'addressFrom' => null,
             'address' => $address,
             'addressTo' => $address,

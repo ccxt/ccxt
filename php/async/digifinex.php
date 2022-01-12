@@ -244,7 +244,9 @@ class digifinex extends Exchange {
             $code = $this->safe_currency_code($id);
             $depositStatus = $this->safe_value($currency, 'deposit_status', 1);
             $withdrawStatus = $this->safe_value($currency, 'withdraw_status', 1);
-            $active = $depositStatus && $withdrawStatus;
+            $deposit = $depositStatus > 0;
+            $withdraw = $withdrawStatus > 0;
+            $active = $deposit && $withdraw;
             $fee = $this->safe_number($currency, 'withdraw_fee_rate');
             if (is_array($result) && array_key_exists($code, $result)) {
                 if (gettype($result[$code]['info']) === 'array' && count(array_filter(array_keys($result[$code]['info']), 'is_string')) == 0) {
@@ -260,6 +262,8 @@ class digifinex extends Exchange {
                     'type' => null,
                     'name' => null,
                     'active' => $active,
+                    'deposit' => $deposit,
+                    'withdraw' => $withdraw,
                     'fee' => $fee,
                     'precision' => 8, // todo fix hardcoded value
                     'limits' => array(
@@ -1381,12 +1385,17 @@ class digifinex extends Exchange {
         if ($feeCost !== null) {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
         }
+        $network = $this->safe_string($transaction, 'chain');
+        if ($network === '') {
+            $network = null;
+        }
         return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => $network,
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,

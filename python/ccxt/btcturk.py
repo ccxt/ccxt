@@ -281,11 +281,12 @@ class btcturk(Exchange):
         #     "order": 1000
         #   }
         #
-        marketId = self.safe_string(ticker, 'pair')
-        symbol = self.safe_symbol(marketId, market)
+        marketId = self.safe_string(ticker, 'pairNormalized')
+        market = self.safe_market(marketId, market, '_')
+        symbol = market['symbol']
         timestamp = self.safe_integer(ticker, 'timestamp')
         last = self.safe_number(ticker, 'last')
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -306,7 +307,7 @@ class btcturk(Exchange):
             'baseVolume': self.safe_number(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()

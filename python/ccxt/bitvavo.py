@@ -317,8 +317,6 @@ class bitvavo(Exchange):
                 'contract': False,
                 'linear': None,
                 'inverse': None,
-                'taker': None,
-                'maker': None,
                 'contractSize': None,
                 'active': (status == 'trading'),
                 'expiry': None,
@@ -403,6 +401,8 @@ class bitvavo(Exchange):
                 'code': code,
                 'name': name,
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdrawal,
                 'fee': self.safe_number(currency, 'withdrawalFee'),
                 'precision': precision,
                 'limits': {

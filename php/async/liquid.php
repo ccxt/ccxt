@@ -1111,7 +1111,7 @@ class liquid extends Exchange {
         //         broadcasted_at => null,
         //         wallet_label => null,
         //         chain_name => 'Bitcoin',
-        //         network => null
+        //         $network => null
         //     ),
         //
         // fetchWithdrawals
@@ -1130,7 +1130,7 @@ class liquid extends Exchange {
         //         broadcasted_at => '1614720762',
         //         wallet_label => 'btc',
         //         chain_name => 'Bitcoin',
-        //         network => null
+        //         $network => null
         //     ),
         //
         // fetchDeposits
@@ -1150,14 +1150,20 @@ class liquid extends Exchange {
         $amountString = $this->safe_string($transaction, 'amount');
         $feeCostString = $this->safe_string($transaction, 'withdrawal_fee');
         $amount = $this->parse_number(Precise::string_sub($amountString, $feeCostString));
+        $network = $this->safe_string($transaction, 'chain_name');
         return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => $network,
             'address' => $address,
+            'addressTo' => null,
+            'addressFrom' => null,
             'tag' => $tag,
+            'tagTo' => null,
+            'tagFrom' => null,
             'type' => $type,
             'amount' => $amount,
             'currency' => $code,

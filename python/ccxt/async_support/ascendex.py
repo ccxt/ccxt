@@ -27,6 +27,11 @@ class ascendex(Exchange):
             'certified': True,
             # new metainfo interface
             'has': {
+                'spot': True,
+                'margin': None,
+                'swap': True,
+                'future': False,
+                'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'CORS': None,
@@ -378,6 +383,8 @@ class ascendex(Exchange):
                 'margin': margin,
                 'name': self.safe_string(currency, 'assetName'),
                 'active': active,
+                'deposit': None,
+                'withdraw': None,
                 'fee': fee,
                 'precision': int(precision),
                 'limits': {
@@ -502,7 +509,7 @@ class ascendex(Exchange):
             type = 'swap' if swap else 'spot'
             margin = self.safe_value(market, 'marginTradable', False)
             linear = True if swap else None
-            contractSize = '1' if swap else None
+            contractSize = self.parse_number('1') if swap else None
             minQty = self.safe_number(market, 'minQty')
             maxQty = self.safe_number(market, 'maxQty')
             minPrice = self.safe_number(market, 'tickSize')
@@ -1774,8 +1781,21 @@ class ascendex(Exchange):
         }
 
     def safe_network(self, networkId):
-        # TODO: parse network
-        return networkId
+        networksById = {
+            'TRC20': 'TRC20',
+            'ERC20': 'ERC20',
+            'GO20': 'GO20',
+            'BEP2': 'BEP2',
+            'BEP20(BSC)': 'BEP20',
+            'Bitcoin': 'BTC',
+            'Bitcoin ABC': 'BCH',
+            'Litecoin': 'LTC',
+            'Matic Network': 'MATIC',
+            'Solana': 'SOL',
+            'xDai': 'STAKE',
+            'Akash': 'AKT',
+        }
+        return self.safe_string(networksById, networkId, networkId)
 
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()
@@ -1943,6 +1963,7 @@ class ascendex(Exchange):
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': None,
             'address': address,
             'addressTo': address,
             'addressFrom': None,

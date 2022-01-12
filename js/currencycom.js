@@ -170,13 +170,6 @@ module.exports = class currencycom extends Exchange {
         return this.safeInteger (response, 'serverTime');
     }
 
-    async loadTimeDifference (params = {}) {
-        const response = await this.publicGetTime (params);
-        const after = this.milliseconds ();
-        this.options['timeDifference'] = parseInt (after - response['serverTime']);
-        return this.options['timeDifference'];
-    }
-
     async fetchMarkets (params = {}) {
         const response = await this.publicGetExchangeInfo (params);
         //

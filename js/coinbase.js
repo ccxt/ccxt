@@ -440,8 +440,13 @@ module.exports = class coinbase extends Exchange {
             'txid': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'address': undefined,
+            'addressTo': undefined,
+            'addressFrom': undefined,
             'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'type': type,
             'amount': amount,
             'currency': currency,
@@ -654,6 +659,8 @@ module.exports = class coinbase extends Exchange {
                 'type': type,
                 'name': name,
                 'active': true,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
                 'precision': undefined,
                 'limits': {
@@ -823,7 +830,7 @@ module.exports = class coinbase extends Exchange {
             currency = this.currency (code);
         }
         const request = await this.prepareAccountRequestWithCurrencyCode (code, limit, params);
-        const query = this.omit (params, ['account_id', 'accountId']);
+        const query = this.omit (params, [ 'account_id', 'accountId' ]);
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg: instance.last_json_response.pagination.next_starting_after

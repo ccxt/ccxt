@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.66.26'
+__version__ = '1.67.17'
 
 # -----------------------------------------------------------------------------
 
@@ -321,8 +321,6 @@ class Exchange(object):
         'fetchTradingLimits': None,
         'fetchTransactions': None,
         'fetchTransfers': None,
-        'fetchWithdrawAddress': None,
-        'fetchWithdrawAddressesByNetwork': None,
         'fetchWithdrawal': None,
         'fetchWithdrawals': None,
         'loadLeverageBrackets': None,
@@ -2215,6 +2213,43 @@ class Exchange(object):
         signature = self.signHash(message_hash[-64:], privateKey[-64:])
         return signature
 
+    def get_network(self, network, code):
+        network = network.upper()
+        aliases = {
+            'ETHEREUM': 'ETH',
+            'ETHER': 'ETH',
+            'ERC20': 'ETH',
+            'ETH': 'ETH',
+            'TRC20': 'TRX',
+            'TRON': 'TRX',
+            'TRX': 'TRX',
+            'BEP20': 'BSC',
+            'BSC': 'BSC',
+            'HRC20': 'HT',
+            'HECO': 'HT',
+            'SPL': 'SOL',
+            'SOL': 'SOL',
+            'TERRA': 'LUNA',
+            'LUNA': 'LUNA',
+            'POLYGON': 'MATIC',
+            'MATIC': 'MATIC',
+            'EOS': 'EOS',
+            'WAVES': 'WAVES',
+            'AVALANCHE': 'AVAX',
+            'AVAX': 'AVAX',
+            'QTUM': 'QTUM',
+            'CHZ': 'CHZ',
+            'NEO': 'NEO',
+            'ONT': 'ONT',
+            'RON': 'RON',
+        }
+        if network == code:
+            return network
+        elif network in aliases:
+            return aliases[network]
+        else:
+            raise NotSupported(self.id + ' network ' + network + ' is not yet supported')
+
     def oath(self):
         if self.twofa is not None:
             return self.totp(self.twofa)
@@ -2638,3 +2673,9 @@ class Exchange(object):
         type = self.safe_string_2(params, 'defaultType', 'type', market_type)
         params = self.omit(params, ['defaultType', 'type'])
         return [type, params]
+
+    def load_time_difference(self, params={}):
+        server_time = self.fetch_time(params)
+        after = self.milliseconds()
+        self.options['timeDifference'] = after - server_time
+        return self.options['timeDifference']

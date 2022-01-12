@@ -417,6 +417,8 @@ class hitbtc extends Exchange {
                 'info' => $currency,
                 'name' => $name,
                 'active' => $active,
+                'deposit' => $payin,
+                'withdraw' => $payout,
                 'fee' => $this->safe_number($currency, 'payoutFee'), // todo => redesign
                 'precision' => $precision,
                 'limits' => array(
@@ -788,8 +790,13 @@ class hitbtc extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'address' => $address,
+            'addressTo' => null,
+            'addressFrom' => null,
             'tag' => null,
+            'tagTo' => null,
+            'tagFrom' => null,
             'type' => $type,
             'amount' => $amount,
             'currency' => $code,

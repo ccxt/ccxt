@@ -9,7 +9,7 @@ module.exports = class ftxus extends ftx {
         return this.deepExtend (super.describe (), {
             'id': 'ftxus',
             'name': 'FTX US',
-            'countries': ['US'],
+            'countries': [ 'US' ],
             'certified': false,
             'hostname': 'ftx.us',
             'has': {

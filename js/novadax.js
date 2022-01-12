@@ -1080,11 +1080,13 @@ module.exports = class novadax extends Exchange {
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
+        const network = this.safeString (transaction, 'chain');
         return {
             'info': transaction,
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': network,
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,

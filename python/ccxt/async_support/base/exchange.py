@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.66.26'
+__version__ = '1.67.17'
 
 # -----------------------------------------------------------------------------
 
@@ -360,3 +360,9 @@ class Exchange(BaseExchange):
 
     async def sleep(self, milliseconds):
         return await asyncio.sleep(milliseconds / 1000)
+
+    async def load_time_difference(self, params={}):
+        server_time = await self.fetch_time(params)
+        after = self.milliseconds()
+        self.options['timeDifference'] = after - server_time
+        return self.options['timeDifference']

@@ -443,8 +443,13 @@ class coinbase extends Exchange {
             'txid' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'address' => null,
+            'addressTo' => null,
+            'addressFrom' => null,
             'tag' => null,
+            'tagTo' => null,
+            'tagFrom' => null,
             'type' => $type,
             'amount' => $amount,
             'currency' => $currency,
@@ -657,6 +662,8 @@ class coinbase extends Exchange {
                 'type' => $type,
                 'name' => $name,
                 'active' => true,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => null,
                 'precision' => null,
                 'limits' => array(
@@ -826,7 +833,7 @@ class coinbase extends Exchange {
             $currency = $this->currency($code);
         }
         $request = yield $this->prepare_account_request_with_currency_code($code, $limit, $params);
-        $query = $this->omit($params, ['account_id', 'accountId']);
+        $query = $this->omit($params, array( 'account_id', 'accountId' ));
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg => instance.last_json_response.pagination.next_starting_after

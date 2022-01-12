@@ -30,7 +30,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'editOrder': undefined,
                 'fetchBalance': true,
                 'fetchClosedOrder': true,
-                'fetchClosedOrders': undefined,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchFundingFees': undefined,
@@ -40,7 +40,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'fetchOHLCV': true,
                 'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
-                'fetchOrder': undefined,
+                'fetchOrder': true,
                 'fetchOrderTrades': true,
                 'fetchStatus': true,
                 'fetchTickers': true,
@@ -232,30 +232,30 @@ module.exports = class bitfinex2 extends bitfinex {
                     'taker': this.parseNumber ('0.002'),
                     'tiers': {
                         'taker': [
-                            [this.parseNumber ('0'), this.parseNumber ('0.002')],
-                            [this.parseNumber ('500000'), this.parseNumber ('0.002')],
-                            [this.parseNumber ('1000000'), this.parseNumber ('0.002')],
-                            [this.parseNumber ('2500000'), this.parseNumber ('0.002')],
-                            [this.parseNumber ('5000000'), this.parseNumber ('0.002')],
-                            [this.parseNumber ('7500000'), this.parseNumber ('0.002')],
-                            [this.parseNumber ('10000000'), this.parseNumber ('0.0018')],
-                            [this.parseNumber ('15000000'), this.parseNumber ('0.0016')],
-                            [this.parseNumber ('20000000'), this.parseNumber ('0.0014')],
-                            [this.parseNumber ('25000000'), this.parseNumber ('0.0012')],
-                            [this.parseNumber ('30000000'), this.parseNumber ('0.001')],
+                            [ this.parseNumber ('0'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('500000'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('2500000'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('7500000'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.0018') ],
+                            [ this.parseNumber ('15000000'), this.parseNumber ('0.0016') ],
+                            [ this.parseNumber ('20000000'), this.parseNumber ('0.0014') ],
+                            [ this.parseNumber ('25000000'), this.parseNumber ('0.0012') ],
+                            [ this.parseNumber ('30000000'), this.parseNumber ('0.001') ],
                         ],
                         'maker': [
-                            [this.parseNumber ('0'), this.parseNumber ('0.001')],
-                            [this.parseNumber ('500000'), this.parseNumber ('0.0008')],
-                            [this.parseNumber ('1000000'), this.parseNumber ('0.0006')],
-                            [this.parseNumber ('2500000'), this.parseNumber ('0.0004')],
-                            [this.parseNumber ('5000000'), this.parseNumber ('0.0002')],
-                            [this.parseNumber ('7500000'), this.parseNumber ('0')],
-                            [this.parseNumber ('10000000'), this.parseNumber ('0')],
-                            [this.parseNumber ('15000000'), this.parseNumber ('0')],
-                            [this.parseNumber ('20000000'), this.parseNumber ('0')],
-                            [this.parseNumber ('25000000'), this.parseNumber ('0')],
-                            [this.parseNumber ('30000000'), this.parseNumber ('0')],
+                            [ this.parseNumber ('0'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('500000'), this.parseNumber ('0.0008') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('2500000'), this.parseNumber ('0.0004') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.0002') ],
+                            [ this.parseNumber ('7500000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('15000000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('20000000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('25000000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('30000000'), this.parseNumber ('0') ],
                         ],
                     },
                 },
@@ -374,8 +374,8 @@ module.exports = class bitfinex2 extends bitfinex {
             if (this.inArray (id, futuresMarketIds)) {
                 spot = false;
             }
-            const futures = !spot;
-            const type = spot ? 'spot' : 'futures';
+            const future = !spot;
+            const type = spot ? 'spot' : 'future';
             let baseId = undefined;
             let quoteId = undefined;
             if (id.indexOf (':') >= 0) {
@@ -428,7 +428,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'swap': false,
                 'spot': spot,
                 'margin': margin,
-                'futures': futures,
+                'future': future,
             });
         }
         return result;
@@ -560,6 +560,8 @@ module.exports = class bitfinex2 extends bitfinex {
                 'type': type,
                 'name': name,
                 'active': true,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': fee,
                 'precision': precision,
                 'limits': {
@@ -1470,6 +1472,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'addressFrom': undefined,
             'address': addressTo, // this is actually the tag for XRP transfers (the address is missing)
             'addressTo': addressTo,

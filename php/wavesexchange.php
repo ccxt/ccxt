@@ -18,7 +18,7 @@ class wavesexchange extends Exchange {
         return $this->deep_extend(parent::describe (), array(
             'id' => 'wavesexchange',
             'name' => 'Waves.Exchange',
-            'countries' => ['CH'], // Switzerland
+            'countries' => array( 'CH' ), // Switzerland
             'rateLimit' => 500,
             'certified' => true,
             'pro' => false,
@@ -436,13 +436,11 @@ class wavesexchange extends Exchange {
                 'spot' => true,
                 'margin' => false,
                 'swap' => false,
-                'futures' => false,
+                'future' => false,
                 'option' => false,
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                'taker' => null,
-                'maker' => null,
                 'contractSize' => null,
                 'active' => null,
                 'expiry' => null,
@@ -512,7 +510,7 @@ class wavesexchange extends Exchange {
             if (($limit !== null) && ($i > $limit)) {
                 break;
             }
-            $result[] = [$price, $amount];
+            $result[] = array( $price, $amount );
         }
         return $result;
     }
@@ -566,7 +564,7 @@ class wavesexchange extends Exchange {
                 $headers['content-type'] = 'application/x-www-form-urlencoded';
             }
             if ($isCancelOrder) {
-                $body = $this->json([$query['orderId']]);
+                $body = $this->json([ $query['orderId'] ]);
                 $queryString = '';
             }
             if (strlen($queryString) > 0) {
@@ -1808,7 +1806,7 @@ class wavesexchange extends Exchange {
             }
         }
         $this->load_markets();
-        $hexChars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'];
+        $hexChars = array( '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' );
         $set = array();
         for ($i = 0; $i < count($hexChars); $i++) {
             $key = $hexChars[$i];

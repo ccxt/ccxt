@@ -308,8 +308,6 @@ class bitvavo extends Exchange {
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                'taker' => null,
-                'maker' => null,
                 'contractSize' => null,
                 'active' => ($status === 'trading'),
                 'expiry' => null,
@@ -398,6 +396,8 @@ class bitvavo extends Exchange {
                 'code' => $code,
                 'name' => $name,
                 'active' => $active,
+                'deposit' => $deposit,
+                'withdraw' => $withdrawal,
                 'fee' => $this->safe_number($currency, 'withdrawalFee'),
                 'precision' => $precision,
                 'limits' => array(

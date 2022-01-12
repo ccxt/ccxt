@@ -895,8 +895,38 @@ node run-tests
 You can restrict tests to a specific language, a particular exchange or symbol:
 
 ```
-node run-tests [--php] [--js] [--python] [--python3] [exchange] [symbol]
+node run-tests [--js] [--python] [--python-async] [--php] [--php-async] [exchange] [symbol]
 ```
+
+The `node run-tests exchangename` will try 5 tests: `js`, `python`, `python-async`, `php`, `php-async`. You can control that like so:
+
+```
+node run-tests exchange --js
+node run-tests exchange --js --python-async
+node run-tests exchange --js --php
+node run-tests exchange --python --python-async
+...
+```
+
+However, if that fails, you might have to bury one level lower and run language-specific tests to see what exactly is wrong:
+
+```
+node js/test/test exchange --verbose
+python3 python/ccxt/test/test_sync.py exchange --verbose
+python3 python/ccxt/test/test_async.py exchange --verbose
+php -f php/test/test_sync.php exchange --verbose
+php -f php/test/test_async.php exchange --verbose
+```
+
+The `test_sync` is just a synchronous version of `test_async`, so in most cases just running `test_async.py` and `test_async.php` is enough:
+
+```
+node js/test/test exchange --verbose
+python3 python/ccxt/test/test_async.py exchange --verbose
+php -f php/test/test_async.php exchange --verbose
+```
+
+When all of the language-specific tests work, then node run-tests will also succeed. In order to run those tests you want to make sure that the build has completed successfully.
 
 For example, the first of the following lines will only test the source JS version of the library (`ccxt.js`). It does not require an `npm run build` before running it (can be useful if you need to verify quickly whether your changes break the code or not):
 

@@ -1038,11 +1038,13 @@ class novadax(Exchange):
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
+        network = self.safe_string(transaction, 'chain')
         return {
             'info': transaction,
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': network,
             'address': address,
             'addressTo': address,
             'addressFrom': None,

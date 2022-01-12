@@ -335,6 +335,7 @@ class phemex(Exchange):
                 'defaultNetworks': {
                     'USDT': 'ETH',
                 },
+                'defaultSubType': 'linear',
             },
         })
 
@@ -426,7 +427,7 @@ class phemex(Exchange):
         taker = self.parse_number(self.from_en(takerFeeRateEr, ratioScale))
         limits = {
             'amount': {
-                'min': precision['amount'],
+                'min': None,
                 'max': None,
             },
             'price': {
@@ -440,7 +441,16 @@ class phemex(Exchange):
         }
         status = self.safe_string(market, 'status')
         active = status == 'Listed'
-        contractSize = self.safe_string(market, 'contractSize')
+        contractSizeString = self.safe_string(market, 'contractSize', ' ')
+        contractSize = None
+        if contractSizeString.find(' '):
+            # "1 USD"
+            # "0.005 ETH"
+            parts = contractSizeString.split(' ')
+            contractSize = self.parse_number(parts[0])
+        else:
+            # "1.0"
+            contractSize = self.parse_number(contractSizeString)
         return {
             'id': id,
             'symbol': symbol,
@@ -2323,6 +2333,7 @@ class phemex(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'address': address,
             'addressTo': address,
             'addressFrom': None,
@@ -2339,16 +2350,16 @@ class phemex(Exchange):
 
     async def fetch_positions(self, symbols=None, params={}):
         await self.load_markets()
+        defaultSubType = self.safe_string(self.options, 'defaultSubType', 'linear')
         code = self.safe_string(params, 'code')
-        request = {}
         if code is None:
-            currencyId = self.safe_string(params, 'currency')
-            if currencyId is None:
-                raise ArgumentsRequired(self.id + ' fetchPositions() requires a currency parameter or a code parameter')
+            code = 'USD' if (defaultSubType == 'linear') else 'BTC'
         else:
-            currency = self.currency(code)
             params = self.omit(params, 'code')
-            request['currency'] = currency['id']
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
         response = await self.privateGetAccountsAccountPositions(self.extend(request, params))
         #
         #     {
@@ -2428,8 +2439,142 @@ class phemex(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         positions = self.safe_value(data, 'positions', [])
-        # todo unify parsePosition/parsePositions
-        return positions
+        result = []
+        for i in range(0, len(positions)):
+            position = positions[i]
+            result.append(self.parse_position(position))
+        return self.filter_by_array(result, 'symbol', symbols, False)
+
+    def parse_position(self, position, market=None):
+        #
+        #   {
+        #     userID: '811370',
+        #     accountID: '8113700002',
+        #     symbol: 'ETHUSD',
+        #     currency: 'USD',
+        #     side: 'Buy',
+        #     positionStatus: 'Normal',
+        #     crossMargin: False,
+        #     leverageEr: '200000000',
+        #     leverage: '2.00000000',
+        #     initMarginReqEr: '50000000',
+        #     initMarginReq: '0.50000000',
+        #     maintMarginReqEr: '1000000',
+        #     maintMarginReq: '0.01000000',
+        #     riskLimitEv: '5000000000',
+        #     riskLimit: '500000.00000000',
+        #     size: '1',
+        #     value: '22.22370000',
+        #     valueEv: '222237',
+        #     avgEntryPriceEp: '44447400',
+        #     avgEntryPrice: '4444.74000000',
+        #     posCostEv: '111202',
+        #     posCost: '11.12020000',
+        #     assignedPosBalanceEv: '111202',
+        #     assignedPosBalance: '11.12020000',
+        #     bankruptCommEv: '84',
+        #     bankruptComm: '0.00840000',
+        #     bankruptPriceEp: '22224000',
+        #     bankruptPrice: '2222.40000000',
+        #     positionMarginEv: '111118',
+        #     positionMargin: '11.11180000',
+        #     liquidationPriceEp: '22669000',
+        #     liquidationPrice: '2266.90000000',
+        #     deleveragePercentileEr: '0',
+        #     deleveragePercentile: '0E-8',
+        #     buyValueToCostEr: '50112500',
+        #     buyValueToCost: '0.50112500',
+        #     sellValueToCostEr: '50187500',
+        #     sellValueToCost: '0.50187500',
+        #     markPriceEp: '31332499',
+        #     markPrice: '3133.24990000',
+        #     markValueEv: '0',
+        #     markValue: null,
+        #     unRealisedPosLossEv: '0',
+        #     unRealisedPosLoss: null,
+        #     estimatedOrdLossEv: '0',
+        #     estimatedOrdLoss: '0E-8',
+        #     usedBalanceEv: '111202',
+        #     usedBalance: '11.12020000',
+        #     takeProfitEp: '0',
+        #     takeProfit: null,
+        #     stopLossEp: '0',
+        #     stopLoss: null,
+        #     cumClosedPnlEv: '-1546',
+        #     cumFundingFeeEv: '1605',
+        #     cumTransactFeeEv: '8438',
+        #     realisedPnlEv: '0',
+        #     realisedPnl: null,
+        #     cumRealisedPnlEv: '0',
+        #     cumRealisedPnl: null,
+        #     transactTimeNs: '1641571200001885324',
+        #     takerFeeRateEr: '0',
+        #     makerFeeRateEr: '0',
+        #     term: '6',
+        #     lastTermEndTimeNs: '1607711882505745356',
+        #     lastFundingTimeNs: '1641571200000000000',
+        #     curTermRealisedPnlEv: '-1567',
+        #     execSeq: '12112761561'
+        #   }
+        #
+        marketId = self.safe_string(position, 'symbol')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        collateral = self.safe_string(position, 'positionMargin')
+        notionalString = self.safe_string(position, 'value')
+        maintenanceMarginPercentageString = self.safe_string(position, 'maintMarginReq')
+        maintenanceMarginString = Precise.string_mul(notionalString, maintenanceMarginPercentageString)
+        initialMarginString = self.safe_string(position, 'assignedPosBalance')
+        initialMarginPercentageString = Precise.string_div(initialMarginString, notionalString)
+        liquidationPrice = self.safe_number(position, 'liquidationPrice')
+        markPriceString = self.safe_string(position, 'markPrice')
+        contracts = self.safe_string(position, 'size')
+        contractSize = self.safe_value(market, 'contractSize')
+        contractSizeString = self.number_to_string(contractSize)
+        leverage = self.safe_number(position, 'leverage')
+        entryPriceString = self.safe_string(position, 'avgEntryPrice')
+        rawSide = self.safe_string(position, 'side')
+        side = 'long' if (rawSide == 'Buy') else 'short'
+        priceDiff = None
+        currency = self.safe_string(position, 'currency')
+        if currency == 'USD':
+            if side == 'long':
+                priceDiff = Precise.string_sub(markPriceString, entryPriceString)
+            else:
+                priceDiff = Precise.string_sub(entryPriceString, markPriceString)
+        else:
+            # inverse
+            if side == 'long':
+                priceDiff = Precise.string_sub(Precise.string_div('1', entryPriceString), Precise.string_div('1', markPriceString))
+            else:
+                priceDiff = Precise.string_sub(Precise.string_div('1', markPriceString), Precise.string_div('1', entryPriceString))
+        unrealizedPnl = Precise.string_mul(Precise.string_mul(priceDiff, contracts), contractSizeString)
+        percentage = Precise.string_mul(Precise.string_div(unrealizedPnl, initialMarginString), '100')
+        marginRatio = Precise.string_div(maintenanceMarginString, collateral)
+        return {
+            'info': position,
+            'symbol': symbol,
+            'contracts': self.parse_number(contracts),
+            'contractSize': contractSize,
+            'unrealizedPnl': self.parse_number(unrealizedPnl),
+            'leverage': leverage,
+            'liquidationPrice': liquidationPrice,
+            'collateral': self.parse_number(collateral),
+            'notional': self.parse_number(notionalString),
+            'markPrice': self.parse_number(markPriceString),  # markPrice lags a bit ¯\_(ツ)_/¯
+            'entryPrice': self.parse_number(entryPriceString),
+            'timestamp': None,
+            'initialMargin': self.parse_number(initialMarginString),
+            'initialMarginPercentage': self.parse_number(initialMarginPercentageString),
+            'maintenanceMargin': self.parse_number(maintenanceMarginString),
+            'maintenanceMarginPercentage': self.parse_number(maintenanceMarginPercentageString),
+            'marginRatio': self.parse_number(marginRatio),
+            'datetime': None,
+            'marginType': None,
+            'side': side,
+            'hedged': False,
+            'percentage': self.parse_number(percentage),
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))

@@ -28,6 +28,8 @@ class upbit(Exchange):
             'pro': True,
             # new metainfo interface
             'has': {
+                'fetchDepositAddresses': True,
+                'fetchCanceledOrders': True,
                 'cancelOrder': True,
                 'CORS': True,
                 'createDepositAddress': True,
@@ -1033,8 +1035,13 @@ class upbit(Exchange):
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': None,
             'address': address,
+            'addressTo': None,
+            'addressFrom': None,
             'tag': tag,
+            'tagTo': None,
+            'tagFrom': None,
             'status': status,
             'type': type,
             'updated': updated,

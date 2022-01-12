@@ -18,6 +18,7 @@ module.exports = class gemini extends Exchange {
             'rateLimit': 1500, // 200 for private API
             'version': 'v1',
             'has': {
+                'fetchDepositAddressesByNetwork': true,
                 'cancelOrder': true,
                 'CORS': undefined,
                 'createDepositAddress': true,
@@ -826,8 +827,13 @@ module.exports = class gemini extends Exchange {
             'txid': this.safeString (transaction, 'txHash'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
             'tag': undefined, // or is it defined?
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'type': type, // direction of the transaction, ('deposit' | 'withdraw')
             'amount': this.safeNumber (transaction, 'amount'),
             'currency': code,
@@ -870,7 +876,7 @@ module.exports = class gemini extends Exchange {
             'network': networkId,
         };
         const response = await this.privatePostV1AddressesNetwork (this.extend (request, params));
-        const results = this.parseDepositAddresses (response, [code], false, { 'network': networkCode, 'currency': code });
+        const results = this.parseDepositAddresses (response, [ code ], false, { 'network': networkCode, 'currency': code });
         return this.groupBy (results, 'network');
     }
 

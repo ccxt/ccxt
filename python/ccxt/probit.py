@@ -31,6 +31,7 @@ class probit(Exchange):
             'countries': ['SC', 'KR'],  # Seychelles, South Korea
             'rateLimit': 50,  # ms
             'has': {
+                'fetchDepositAddresses': True,
                 'cancelOrder': True,
                 'CORS': True,
                 'createMarketOrder': True,
@@ -1108,6 +1109,7 @@ class probit(Exchange):
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': None,
             'addressFrom': None,
             'address': address,
             'addressTo': address,
@@ -1119,6 +1121,7 @@ class probit(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'updated': None,
             'fee': fee,
             'info': transaction,
         }

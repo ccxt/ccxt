@@ -62,12 +62,10 @@ module.exports = class okex extends Exchange {
                 'fetchLedgerEntry': undefined,
                 'fetchLeverage': true,
                 'fetchMarkets': true,
-                'fetchMarketsByType': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyBuys': undefined,
                 'fetchMySells': undefined,
                 'fetchMyTrades': true,
-                'fetchNetworkDepositAddress': undefined,
                 'fetchOHLCV': true,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
@@ -75,10 +73,7 @@ module.exports = class okex extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
                 'fetchOrders': undefined,
-                'fetchOrdersByState': undefined,
-                'fetchOrdersByStatus': undefined,
                 'fetchOrderTrades': true,
-                'fetchPartiallyFilledOrders': undefined,
                 'fetchPosition': true,
                 'fetchPositions': true,
                 'fetchPositionsRisk': undefined,
@@ -86,7 +81,6 @@ module.exports = class okex extends Exchange {
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchTickersByType': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
@@ -94,13 +88,10 @@ module.exports = class okex extends Exchange {
                 'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
                 'fetchTransfers': undefined,
-                'fetchWithdrawAddress': undefined,
-                'fetchWithdrawAddressesByNetwork': undefined,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': undefined,
                 'loadLeverageBrackets': undefined,
-                'loadTimeDifference': undefined,
                 'reduceMargin': true,
                 'setLeverage': true,
                 'setMarginMode': true,
@@ -796,7 +787,7 @@ module.exports = class okex extends Exchange {
         const fees = this.safeValue2 (this.fees, type, 'trading', {});
         let contractSize = undefined;
         if (contract) {
-            contractSize = this.safeString (market, 'ctVal');
+            contractSize = this.safeNumber (market, 'ctVal');
         }
         const leverage = this.safeNumber (market, 'lever', 1);
         return this.extend (fees, {
@@ -2874,6 +2865,7 @@ module.exports = class okex extends Exchange {
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': undefined,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'address': address,
@@ -3171,7 +3163,7 @@ module.exports = class okex extends Exchange {
             'unrealizedPnl': this.parseNumber (unrealizedPnlString),
             'percentage': percentage,
             'contracts': contracts,
-            'contractSize': this.parseNumber (market['contractSize']),
+            'contractSize': this.safeValue (market, 'contractSize'),
             'markPrice': this.parseNumber (markPriceString),
             'side': side,
             'hedged': hedged,

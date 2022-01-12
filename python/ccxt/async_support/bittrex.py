@@ -416,6 +416,8 @@ class bittrex(Exchange):
                 'type': self.safe_string(currency, 'coinType'),
                 'name': self.safe_string(currency, 'name'),
                 'active': (isActive == 'ONLINE'),
+                'deposit': None,
+                'withdraw': None,
                 'fee': fee,
                 'precision': precision,
                 'limits': {
@@ -456,10 +458,11 @@ class bittrex(Exchange):
         #
         timestamp = self.parse8601(self.safe_string(ticker, 'updatedAt'))
         marketId = self.safe_string(ticker, 'symbol')
-        symbol = self.safe_symbol(marketId, market, '-')
+        market = self.safe_market(marketId, market, '-')
+        symbol = market['symbol']
         percentage = self.safe_number(ticker, 'percentChange')
         last = self.safe_number(ticker, 'lastTradeRate')
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -480,7 +483,7 @@ class bittrex(Exchange):
             'baseVolume': self.safe_number(ticker, 'volume'),
             'quoteVolume': self.safe_number(ticker, 'quoteVolume'),
             'info': ticker,
-        }
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
@@ -950,8 +953,13 @@ class bittrex(Exchange):
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': None,
             'address': address,
+            'addressTo': None,
+            'addressFrom': None,
             'tag': None,
+            'tagTo': None,
+            'tagFrom': None,
             'status': status,
             'type': type,
             'updated': updated,
