@@ -49,7 +49,6 @@ module.exports = class mexc extends Exchange {
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchTickersByType': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
