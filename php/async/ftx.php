@@ -307,7 +307,7 @@ class ftx extends Exchange {
             ),
             'exceptions' => array(
                 'exact' => array(
-                    'Please slow down' => '\\ccxt\\RateLimitExceeded', // array("error":"Please slow down","success":false)
+                    'Slow down' => '\\ccxt\\RateLimitExceeded', // array("error":"Slow down","success":false)
                     'Size too small for provide' => '\\ccxt\\InvalidOrder', // array("error":"Size too small for provide","success":false)
                     'Not enough balances' => '\\ccxt\\InsufficientFunds', // array("error":"Not enough balances","success":false)
                     'InvalidPrice' => '\\ccxt\\InvalidOrder', // array("error":"Invalid price","success":false)
