@@ -286,11 +286,12 @@ class btcturk extends Exchange {
         //     "order" => 1000
         //   }
         //
-        $marketId = $this->safe_string($ticker, 'pair');
-        $symbol = $this->safe_symbol($marketId, $market);
+        $marketId = $this->safe_string($ticker, 'pairNormalized');
+        $market = $this->safe_market($marketId, $market, '_');
+        $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $last = $this->safe_number($ticker, 'last');
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -311,7 +312,7 @@ class btcturk extends Exchange {
             'baseVolume' => $this->safe_number($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
