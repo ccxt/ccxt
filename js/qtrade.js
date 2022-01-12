@@ -276,6 +276,8 @@ module.exports = class qtrade extends Exchange {
                 'fee': this.safeNumber (config, 'withdraw_fee'),
                 'precision': this.safeInteger (currency, 'precision'),
                 'active': active,
+                'deposit': !depositDisabled,
+                'withdraw': canWithdraw,
                 'limits': {
                     'amount': {
                         'min': this.safeNumber (currency, 'minimum_order'),
