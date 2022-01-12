@@ -354,22 +354,9 @@ module.exports = class bytetrade extends Exchange {
         //         }
         //     ]
         //
-        let symbol = undefined;
         const marketId = this.safeString (ticker, 'symbol');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        } else {
-            const baseId = this.safeString (ticker, 'base');
-            const quoteId = this.safeString (ticker, 'quote');
-            if ((baseId !== undefined) && (quoteId !== undefined)) {
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -391,7 +378,7 @@ module.exports = class bytetrade extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'baseVolume'),
             'quoteVolume': this.safeNumber (ticker, 'quoteVolume'),
             'info': ticker,
-        });
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

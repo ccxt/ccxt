@@ -344,20 +344,10 @@ class bytetrade(Exchange):
         #         }
         #     ]
         #
-        symbol = None
         marketId = self.safe_string(ticker, 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        else:
-            baseId = self.safe_string(ticker, 'base')
-            quoteId = self.safe_string(ticker, 'quote')
-            if (baseId is not None) and (quoteId is not None):
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
-        return {
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -378,7 +368,7 @@ class bytetrade(Exchange):
             'baseVolume': self.safe_number(ticker, 'baseVolume'),
             'quoteVolume': self.safe_number(ticker, 'quoteVolume'),
             'info': ticker,
-        }
+        }, market)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
