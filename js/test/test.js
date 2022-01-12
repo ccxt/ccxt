@@ -97,9 +97,9 @@ if (settings && settings.skip) {
 
 //-----------------------------------------------------------------------------
 
-async function test (methodName, ... args) {
-    console.log ('Testing', methodName, '(', ... args, ')')
-    return await tests[methodName] (... args)
+async function test (methodName, exchange, ... args) {
+    console.log ('Testing', exchange.id, methodName, '(', ... args, ')')
+    return await (tests[methodName] (exchange, ... args))
 }
 
 async function testSymbol (exchange, symbol) {
@@ -274,7 +274,6 @@ async function testExchange (exchange) {
     // if (exchange.urls['test'])
     //    exchange.urls['api'] = exchange.urls['test']
 
-    
     const balance = await test ('fetchBalance', exchange)
 
     await test ('fetchFundingFees', exchange)
@@ -388,7 +387,7 @@ async function tryAllProxies (exchange, proxies) {
 
 //-----------------------------------------------------------------------------
 
-async function test () {
+async function main () {
 
     if (exchangeSymbol) {
 
@@ -402,4 +401,4 @@ async function test () {
 
 }
 
-test ()
+main ()
