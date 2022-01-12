@@ -173,12 +173,9 @@ module.exports = class independentreserve extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         const timestamp = this.parse8601 (this.safeString (ticker, 'CreatedTimestampUtc'));
-        let symbol = undefined;
-        if (market) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (undefined, market);
         const last = this.safeNumber (ticker, 'LastPrice');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -199,7 +196,7 @@ module.exports = class independentreserve extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
