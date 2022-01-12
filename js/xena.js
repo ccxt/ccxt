@@ -364,6 +364,8 @@ module.exports = class xena extends Exchange {
                 'info': currency,
                 'name': name,
                 'active': active,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': this.safeNumber (withdraw, 'commission'),
                 'precision': precision,
                 'limits': {
