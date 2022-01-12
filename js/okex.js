@@ -963,6 +963,8 @@ module.exports = class okex extends Exchange {
                         'id': networkId,
                         'network': network,
                         'active': active,
+                        'deposit': canDeposit,
+                        'withdraw': canWithdraw,
                         'fee': this.safeNumber (chain, 'minFee'),
                         'precision': undefined,
                         'limits': {
@@ -980,6 +982,8 @@ module.exports = class okex extends Exchange {
                 'id': currencyId,
                 'name': undefined,
                 'active': currencyActive,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
                 'precision': precision,
                 'limits': {
