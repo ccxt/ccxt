@@ -369,7 +369,7 @@ module.exports = class buda extends Exchange {
         const open = parseFloat (this.priceToPrecision (symbol, last / (percentage + 1)));
         const change = last - open;
         const average = this.sum (last, open) / 2;
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -390,7 +390,7 @@ module.exports = class buda extends Exchange {
             'baseVolume': parseFloat (ticker['volume'][0]),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
