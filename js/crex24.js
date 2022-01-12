@@ -542,7 +542,7 @@ module.exports = class crex24 extends Exchange {
         const marketId = this.safeString (ticker, 'instrument');
         const symbol = this.safeSymbol (marketId, market, '-');
         const last = this.safeNumber (ticker, 'last');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -563,7 +563,7 @@ module.exports = class crex24 extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'baseVolume'),
             'quoteVolume': this.safeNumber (ticker, 'quoteVolume'),
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
