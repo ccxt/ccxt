@@ -380,6 +380,8 @@ module.exports = class mexc extends Exchange {
                     'id': networkId,
                     'network': network,
                     'active': active,
+                    'deposit': isDepositEnabled,
+                    'withdraw': isWithdrawEnabled,
                     'fee': this.safeNumber (chain, 'fee'),
                     'precision': precision,
                     'limits': {
@@ -405,6 +407,8 @@ module.exports = class mexc extends Exchange {
                 'info': currency,
                 'name': name,
                 'active': currencyActive,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': currencyFee,
                 'precision': currencyPrecision,
                 'limits': {
