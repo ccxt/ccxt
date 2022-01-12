@@ -60,7 +60,6 @@ module.exports = class gateio extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrdersByStatus': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -313,6 +312,7 @@ module.exports = class gateio extends Exchange {
                 '8h': '8h',
                 '1d': '1d',
                 '7d': '7d',
+                '1w': '7d',
             },
             // copied from gateiov2
             'commonCurrencies': {
@@ -564,9 +564,7 @@ module.exports = class gateio extends Exchange {
     async fetchMarkets (params = {}) {
         // :param params['type']: 'spot', 'margin', 'future' or 'delivery'
         // :param params['settle']: The quote currency
-        const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
         const spot = (type === 'spot');
         const margin = (type === 'margin');
         const future = (type === 'future');
@@ -731,7 +729,7 @@ module.exports = class gateio extends Exchange {
                         'inverse': inverse,
                         'taker': taker,
                         'maker': maker,
-                        'contractSize': this.safeString (market, 'quanto_multiplier'),
+                        'contractSize': this.safeNumber (market, 'quanto_multiplier'),
                         'expiry': expiry,
                         'expiryDatetime': this.iso8601 (expiry),
                         'strike': undefined,
@@ -880,7 +878,7 @@ module.exports = class gateio extends Exchange {
     getSettlementCurrencies (type, method) {
         const options = this.safeValue (this.options, type, {}); // [ 'BTC', 'USDT' ] unified codes
         const fetchMarketsContractOptions = this.safeValue (options, method, {});
-        const defaultSettle = (type === 'swap') ? ['usdt'] : ['btc'];
+        const defaultSettle = (type === 'swap') ? [ 'usdt' ] : [ 'btc' ];
         return this.safeValue (fetchMarketsContractOptions, 'settlementCurrencies', defaultSettle);
     }
 
@@ -905,10 +903,14 @@ module.exports = class gateio extends Exchange {
             const currencyIdLower = this.safeStringLower (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const delisted = this.safeValue (entry, 'delisted');
-            const withdraw_disabled = this.safeValue (entry, 'withdraw_disabled');
-            const deposit_disabled = this.safeValue (entry, 'disabled_disabled');
-            const trade_disabled = this.safeValue (entry, 'trade_disabled');
-            const active = !(delisted && withdraw_disabled && deposit_disabled && trade_disabled);
+            const withdrawDisabled = this.safeValue (entry, 'withdraw_disabled', false);
+            const depositDisabled = this.safeValue (entry, 'deposit_disabled', false);
+            const tradeDisabled = this.safeValue (entry, 'trade_disabled', false);
+            const withdrawEnabled = !withdrawDisabled;
+            const depositEnabled = !depositDisabled;
+            const tradeEnabled = !tradeDisabled;
+            const listed = !delisted;
+            const active = listed && tradeEnabled && withdrawEnabled && depositEnabled;
             result[code] = {
                 'id': currencyId,
                 'lowerCaseId': currencyIdLower,
@@ -917,6 +919,8 @@ module.exports = class gateio extends Exchange {
                 'precision': amountPrecision,
                 'info': entry,
                 'active': active,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': undefined,
                 'fees': [],
                 'limits': this.limits,
@@ -1484,9 +1488,8 @@ module.exports = class gateio extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
         const method = this.getSupportedMapping (type, {
             'spot': 'publicSpotGetTickers',
             'margin': 'publicSpotGetTickers',
@@ -1516,9 +1519,8 @@ module.exports = class gateio extends Exchange {
         // :param params.type: spot, margin, crossMargin, swap or future
         // :param params.settle: Settle currency (usdt or btc) for perpetual swap and future
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const swap = type === 'swap';
         const future = type === 'future';
         const method = this.getSupportedMapping (type, {
@@ -1533,7 +1535,7 @@ module.exports = class gateio extends Exchange {
             const defaultSettle = swap ? 'usdt' : 'btc';
             request['settle'] = this.safeStringLower (params, 'settle', defaultSettle);
             const response_item = await this[method] (this.extend (request, params));
-            response = [response_item];
+            response = [ response_item ];
         } else {
             response = await this[method] (this.extend (request, params));
         }
@@ -1678,7 +1680,9 @@ module.exports = class gateio extends Exchange {
         if (since !== undefined) {
             const duration = this.parseTimeframe (timeframe);
             request['from'] = parseInt (since / 1000);
-            request['to'] = this.sum (request['from'], limit * duration - 1);
+            const toTimestamp = this.sum (request['from'], limit * duration - 1);
+            const currentTimestamp = this.seconds ();
+            request['to'] = Math.min (toTimestamp, currentTimestamp);
         }
         const response = await this[method] (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
@@ -1853,6 +1857,9 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         //
@@ -1957,30 +1964,26 @@ module.exports = class gateio extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         let amountString = this.safeString2 (trade, 'amount', 'size');
         const priceString = this.safeString (trade, 'price');
-        const costString = Precise.stringAbs (Precise.stringMul (amountString, priceString));
-        const price = this.parseNumber (priceString);
-        const cost = this.parseNumber (costString);
         const contractSide = Precise.stringLt (amountString, '0') ? 'sell' : 'buy';
         amountString = Precise.stringAbs (amountString);
-        const amount = this.parseNumber (amountString);
         const side = this.safeString (trade, 'side', contractSide);
         const orderId = this.safeString (trade, 'order_id');
         const gtFee = this.safeString (trade, 'gt_fee');
         let feeCurrency = undefined;
-        let feeCost = undefined;
+        let feeCostString = undefined;
         if (gtFee === '0') {
             feeCurrency = this.safeString (trade, 'fee_currency');
-            feeCost = this.safeNumber (trade, 'fee');
+            feeCostString = this.safeString (trade, 'fee');
         } else {
             feeCurrency = 'GT';
-            feeCost = this.parseNumber (gtFee);
+            feeCostString = gtFee;
         }
         const fee = {
-            'cost': feeCost,
+            'cost': feeCostString,
             'currency': feeCurrency,
         };
         const takerOrMaker = this.safeString (trade, 'role');
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
@@ -1990,11 +1993,11 @@ module.exports = class gateio extends Exchange {
             'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2136,12 +2139,18 @@ module.exports = class gateio extends Exchange {
             'txid': txid,
             'currency': code,
             'amount': amount,
+            'network': undefined,
             'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
             'tag': tag,
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'status': status,
             'type': type,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'updated': undefined,
             'fee': fee,
         };
     }
@@ -2442,8 +2451,19 @@ module.exports = class gateio extends Exchange {
             side = this.safeString (order, 'side');
         }
         const status = this.parseOrderStatus (rawStatus);
-        const type = this.safeString (order, 'type');
-        const timeInForce = this.safeStringUpper2 (order, 'time_in_force', 'tif');
+        let timeInForce = this.safeStringUpper2 (order, 'time_in_force', 'tif');
+        if (timeInForce === 'POC') {
+            timeInForce = 'PO';
+        }
+        let type = this.safeString (order, 'type');
+        if (type === undefined) {
+            // response for swaps doesn't include the type information
+            if (timeInForce === 'PO' || timeInForce === 'GTC' || timeInForce === 'IOC' || timeInForce === 'FOK') {
+                type = 'limit';
+            } else {
+                type = 'market';
+            }
+        }
         const fees = [];
         const gtFee = this.safeNumber (order, 'gt_fee');
         if (gtFee) {
@@ -2532,8 +2552,8 @@ module.exports = class gateio extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', undefined, params);
         if (symbol === undefined && (type === 'spot') || type === 'margin' || type === 'cross_margin') {
             const request = {
                 // 'page': 1,
@@ -2804,7 +2824,7 @@ module.exports = class gateio extends Exchange {
             'to': toId,
             'amount': truncated,
         };
-        if ((toId === 'future') || (toId === 'delivery')) {
+        if ((toId === 'futures') || (toId === 'delivery') || (fromId === 'futures') || (fromId === 'delivery')) {
             request['settle'] = currency['lowerCaseId'];
         }
         const response = await this.privateWalletPostTransfers (this.extend (request, params));
@@ -2951,7 +2971,7 @@ module.exports = class gateio extends Exchange {
             'leverage': this.safeNumber (position, 'leverage'),
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'contracts': this.parseNumber (size),
-            'contractSize': this.safeNumber (market, 'contractSize'),
+            'contractSize': this.safeValue (market, 'contractSize'),
             //     realisedPnl: position['realised_pnl'],
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'liq_price'),

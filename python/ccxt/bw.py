@@ -328,12 +328,13 @@ class bw(Exchange):
         #     ]
         #
         marketId = self.safe_string(ticker, 0)
-        symbol = self.safe_symbol(marketId, market)
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         timestamp = self.milliseconds()
         close = self.safe_number(ticker, 1)
         bid = self.safe_value(ticker, 'bid', {})
         ask = self.safe_value(ticker, 'ask', {})
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -354,7 +355,7 @@ class bw(Exchange):
             'baseVolume': self.safe_number(ticker, 4),
             'quoteVolume': self.safe_number(ticker, 9),
             'info': ticker,
-        }
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -1016,6 +1017,7 @@ class bw(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'addressFrom': None,
             'address': address,
             'addressTo': None,

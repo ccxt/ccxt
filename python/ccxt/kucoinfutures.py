@@ -41,9 +41,9 @@ class kucoinfutures(kucoin):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'CORS': None,
-                'createDepositAddress': False,
+                'createDepositAddress': True,
                 'createOrder': True,
-                'fetchAccounts': False,
+                'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRates': False,
@@ -51,14 +51,14 @@ class kucoinfutures(kucoin):
                 'fetchClosedOrders': True,
                 'fetchCurrencies': False,
                 'fetchDepositAddress': True,
-                'fetchDeposits': None,
-                'fetchFundingFee': False,
+                'fetchDeposits': True,
+                'fetchFundingFee': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': False,
                 'fetchIndexOHLCV': False,
-                'fetchL3OrderBook': False,
-                'fetchLedger': False,
+                'fetchL3OrderBook': True,
+                'fetchLedger': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -66,7 +66,6 @@ class kucoinfutures(kucoin):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrdersByStatus': True,
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
@@ -74,8 +73,7 @@ class kucoinfutures(kucoin):
                 'fetchTickers': False,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'fetchWithdrawals': None,
-                'loadTimeDifference': True,
+                'fetchWithdrawals': True,
                 'setMarginMode': False,
                 'transfer': True,
                 'transferOut': True,
@@ -302,13 +300,6 @@ class kucoinfutures(kucoin):
     def fetch_accounts(self, params={}):
         raise BadRequest(self.id + ' has no method fetchAccounts')
 
-    def load_time_difference(self, params={}):
-        response = self.futuresPublicGetTimestamp(params)
-        after = self.milliseconds()
-        kucoinTime = self.safe_integer(response, 'data')
-        self.options['timeDifference'] = int(after - kucoinTime)
-        return self.options['timeDifference']
-
     def fetch_status(self, params={}):
         response = self.futuresPublicGetStatus(params)
         #
@@ -450,7 +441,7 @@ class kucoinfutures(kucoin):
                 'inverse': inverse,
                 'taker': self.safe_number(market, 'takerFeeRate'),
                 'maker': self.safe_number(market, 'makerFeeRate'),
-                'contractSize': Precise.string_abs(self.safe_string(market, 'multiplier')),
+                'contractSize': self.parse_number(Precise.string_abs(self.safe_string(market, 'multiplier'))),
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
                 'precision': {
@@ -893,7 +884,7 @@ class kucoinfutures(kucoin):
             'leverage': self.safe_number(position, 'realLeverage'),
             'unrealizedPnl': self.parse_number(unrealisedPnl),
             'contracts': self.parse_number(Precise.string_abs(size)),
-            'contractSize': self.safe_number(market, 'contractSize'),
+            'contractSize': self.safe_value(market, 'contractSize'),
             #     realisedPnl: position['realised_pnl'],
             'marginRatio': None,
             'liquidationPrice': self.safe_number(position, 'liquidationPrice'),
@@ -910,11 +901,8 @@ class kucoinfutures(kucoin):
         # required param, cannot be used twice
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId', self.uuid())
         params = self.omit(params, ['clientOid', 'clientOrderId'])
-        leverage = self.safe_number(params, 'leverage')
-        if not leverage:
-            raise ArgumentsRequired(self.id + ' createOrder requires params.leverage')
         if amount < 1:
-            raise InvalidOrder('Minimum contract order size using ' + self.id + ' is 1')
+            raise InvalidOrder(self.id + ' createOrder() minimum contract order amount is 1')
         preciseAmount = int(self.amount_to_precision(symbol, amount))
         request = {
             'clientOid': clientOrderId,
@@ -922,6 +910,7 @@ class kucoinfutures(kucoin):
             'symbol': market['id'],
             'type': type,  # limit or market
             'size': preciseAmount,
+            'leverage': 1,
             # 'remark': '',  # optional remark for the order, length cannot exceed 100 utf8 characters
             # 'tradeType': 'TRADE',  # TRADE, MARGIN_TRADE  # not used with margin orders
             # limit orders ---------------------------------------------------
@@ -950,12 +939,12 @@ class kucoinfutures(kucoin):
             request['stop'] = 'down' if (side == 'buy') else 'up'
             stopPriceType = self.safe_string(params, 'stopPriceType')
             if not stopPriceType:
-                raise ArgumentsRequired(self.id + ' trigger orders require params.stopPriceType to be set to TP, IP or MP(Trade Price, Index Price or Mark Price)')
+                raise ArgumentsRequired(self.id + ' createOrder() trigger orders require a stopPriceType parameter to be set to TP, IP or MP(Trade Price, Index Price or Mark Price)')
         uppercaseType = type.upper()
         timeInForce = self.safe_string(params, 'timeInForce')
         if uppercaseType == 'LIMIT':
             if price is None:
-                raise ArgumentsRequired(self.id + ' limit orders require the price argument')
+                raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for limit orders')
             else:
                 request['price'] = self.price_to_precision(symbol, price)
             if timeInForce is not None:
@@ -964,12 +953,12 @@ class kucoinfutures(kucoin):
         postOnly = self.safe_value(params, 'postOnly', False)
         hidden = self.safe_value(params, 'hidden')
         if postOnly and hidden is not None:
-            raise BadRequest(self.id + ' createOrder cannot contain both params.postOnly and params.hidden')
+            raise BadRequest(self.id + ' createOrder() does not support the postOnly parameter together with a hidden parameter')
         iceberg = self.safe_value(params, 'iceberg')
         if iceberg:
             visibleSize = self.safe_value(params, 'visibleSize')
             if visibleSize is None:
-                raise ArgumentsRequired(self.id + ' requires params.visibleSize for iceberg orders')
+                raise ArgumentsRequired(self.id + ' createOrder() requires a visibleSize parameter for iceberg orders')
         params = self.omit(params, 'timeInForce')  # Time in force only valid for limit orders, exchange error when gtc for market orders
         response = self.futuresPrivatePostOrders(self.extend(request, params))
         #

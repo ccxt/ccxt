@@ -33,6 +33,9 @@ class hitbtc3(Exchange):
             'version': '3',
             'pro': True,
             'has': {
+                'fetchTradingFees': True,
+                'fetchOrderBooks': True,
+                'cancelAllOrders': True,
                 'cancelOrder': True,
                 'CORS': False,
                 'createOrder': True,
@@ -41,7 +44,7 @@ class hitbtc3(Exchange):
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
-                'fetchDeposits': False,
+                'fetchDeposits': True,
                 'fetchFundingRateHistory': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -57,7 +60,7 @@ class hitbtc3(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTransactions': True,
-                'fetchWithdrawals': False,
+                'fetchWithdrawals': True,
                 'withdraw': True,
                 'transfer': True,
             },
@@ -354,7 +357,7 @@ class hitbtc3(Exchange):
             linear = None
             inverse = None
             if contract:
-                contractSize = '1'
+                contractSize = self.parse_number('1')
                 settleId = feeCurrencyId
                 settle = self.safe_currency_code(settleId)
                 linear = ((quote is not None) and (quote == settle))
@@ -907,6 +910,7 @@ class hitbtc3(Exchange):
             'txid': txhash,
             'code': code,
             'amount': amount,
+            'network': None,
             'address': address,
             'addressFrom': addressFrom,
             'addressTo': addressTo,

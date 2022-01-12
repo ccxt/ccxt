@@ -23,6 +23,7 @@ class probit extends Exchange {
             'countries' => array( 'SC', 'KR' ), // Seychelles, South Korea
             'rateLimit' => 50, // ms
             'has' => array(
+                'fetchDepositAddresses' => true,
                 'cancelOrder' => true,
                 'CORS' => true,
                 'createMarketOrder' => true,
@@ -1173,6 +1174,7 @@ class probit extends Exchange {
             'id' => $id,
             'currency' => $code,
             'amount' => $amount,
+            'network' => null,
             'addressFrom' => null,
             'address' => $address,
             'addressTo' => $address,
@@ -1184,6 +1186,7 @@ class probit extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'updated' => null,
             'fee' => $fee,
             'info' => $transaction,
         );

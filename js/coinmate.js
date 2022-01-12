@@ -109,24 +109,24 @@ module.exports = class coinmate extends Exchange {
                     'taker': 0.25 / 100,
                     'tiers': {
                         'taker': [
-                            [0, 0.25 / 100],
-                            [10000, 0.23 / 100],
-                            [100000, 0.21 / 100],
-                            [250000, 0.20 / 100],
-                            [500000, 0.15 / 100],
-                            [1000000, 0.13 / 100],
-                            [3000000, 0.10 / 100],
-                            [15000000, 0.05 / 100],
+                            [ 0, 0.25 / 100 ],
+                            [ 10000, 0.23 / 100 ],
+                            [ 100000, 0.21 / 100 ],
+                            [ 250000, 0.20 / 100 ],
+                            [ 500000, 0.15 / 100 ],
+                            [ 1000000, 0.13 / 100 ],
+                            [ 3000000, 0.10 / 100 ],
+                            [ 15000000, 0.05 / 100 ],
                         ],
                         'maker': [
-                            [0, 0.12 / 100],
-                            [10000, 0.11 / 100],
-                            [1000000, 0.10 / 100],
-                            [250000, 0.08 / 100],
-                            [500000, 0.05 / 100],
-                            [1000000, 0.03 / 100],
-                            [3000000, 0.02 / 100],
-                            [15000000, 0],
+                            [ 0, 0.12 / 100 ],
+                            [ 10000, 0.11 / 100 ],
+                            [ 1000000, 0.10 / 100 ],
+                            [ 250000, 0.08 / 100 ],
+                            [ 500000, 0.05 / 100 ],
+                            [ 1000000, 0.03 / 100 ],
+                            [ 3000000, 0.02 / 100 ],
+                            [ 15000000, 0 ],
                         ],
                     },
                 },
@@ -136,31 +136,31 @@ module.exports = class coinmate extends Exchange {
                         'taker': 0.15 / 100,
                         'tiers': {
                             'taker': [
-                                [0, 0.15 / 100],
-                                [10000, 0.14 / 100],
-                                [100000, 0.13 / 100],
-                                [250000, 0.12 / 100],
-                                [500000, 0.11 / 100],
-                                [1000000, 0.1 / 100],
-                                [3000000, 0.08 / 100],
-                                [15000000, 0.05 / 100],
+                                [ 0, 0.15 / 100 ],
+                                [ 10000, 0.14 / 100 ],
+                                [ 100000, 0.13 / 100 ],
+                                [ 250000, 0.12 / 100 ],
+                                [ 500000, 0.11 / 100 ],
+                                [ 1000000, 0.1 / 100 ],
+                                [ 3000000, 0.08 / 100 ],
+                                [ 15000000, 0.05 / 100 ],
                             ],
                             'maker': [
-                                [0, 0.05 / 100],
-                                [10000, 0.04 / 100],
-                                [1000000, 0.03 / 100],
-                                [250000, 0.02 / 100],
-                                [500000, 0],
-                                [1000000, 0],
-                                [3000000, 0],
-                                [15000000, 0],
+                                [ 0, 0.05 / 100 ],
+                                [ 10000, 0.04 / 100 ],
+                                [ 1000000, 0.03 / 100 ],
+                                [ 250000, 0.02 / 100 ],
+                                [ 500000, 0 ],
+                                [ 1000000, 0 ],
+                                [ 3000000, 0 ],
+                                [ 15000000, 0 ],
                             ],
                         },
                     },
                 },
             },
             'options': {
-                'promotionalMarkets': ['ETH/EUR', 'ETH/CZK', 'ETH/BTC', 'XRP/EUR', 'XRP/CZK', 'XRP/BTC', 'DASH/EUR', 'DASH/CZK', 'DASH/BTC', 'BCH/EUR', 'BCH/CZK', 'BCH/BTC'],
+                'promotionalMarkets': [ 'ETH/EUR', 'ETH/CZK', 'ETH/BTC', 'XRP/EUR', 'XRP/CZK', 'XRP/BTC', 'DASH/EUR', 'DASH/CZK', 'DASH/BTC', 'BCH/EUR', 'BCH/CZK', 'BCH/BTC' ],
             },
             'exceptions': {
                 'exact': {
@@ -346,7 +346,7 @@ module.exports = class coinmate extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (item, currency = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         //
         // deposits
         //
@@ -381,17 +381,18 @@ module.exports = class coinmate extends Exchange {
         //         destinationTag: null
         //     }
         //
-        const timestamp = this.safeInteger (item, 'timestamp');
-        const amount = this.safeNumber (item, 'amount');
-        const fee = this.safeNumber (item, 'fee');
-        const txid = this.safeString (item, 'txid');
-        const address = this.safeString (item, 'destination');
-        const tag = this.safeString (item, 'destinationTag');
-        const currencyId = this.safeString (item, 'amountCurrency');
+        const timestamp = this.safeInteger (transaction, 'timestamp');
+        const amount = this.safeNumber (transaction, 'amount');
+        const fee = this.safeNumber (transaction, 'fee');
+        const txid = this.safeString (transaction, 'txid');
+        const address = this.safeString (transaction, 'destination');
+        const tag = this.safeString (transaction, 'destinationTag');
+        const currencyId = this.safeString (transaction, 'amountCurrency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const type = this.safeStringLower (item, 'transferType');
-        const status = this.parseTransactionStatus (this.safeString (item, 'transferStatus'));
-        const id = this.safeString (item, 'transactionId');
+        const type = this.safeStringLower (transaction, 'transferType');
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'transferStatus'));
+        const id = this.safeString (transaction, 'transactionId');
+        const network = this.safeString (transaction, 'walletType');
         return {
             'id': id,
             'timestamp': timestamp,
@@ -400,14 +401,19 @@ module.exports = class coinmate extends Exchange {
             'amount': amount,
             'type': type,
             'txid': txid,
+            'network': network,
             'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
             'tag': tag,
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'status': status,
             'fee': {
                 'cost': fee,
                 'currency': code,
             },
-            'info': item,
+            'info': transaction,
         };
     }
 
@@ -427,8 +433,8 @@ module.exports = class coinmate extends Exchange {
             request['timestampFrom'] = since;
         }
         const response = await this.privatePostTradeHistory (this.extend (request, params));
-        const items = response['data'];
-        return this.parseTrades (items, undefined, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTrades (data, undefined, since, limit);
     }
 
     parseTrade (trade, market = undefined) {

@@ -75,7 +75,6 @@ class gateio(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrdersByStatus': True,
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -328,6 +327,7 @@ class gateio(Exchange):
                 '8h': '8h',
                 '1d': '1d',
                 '7d': '7d',
+                '1w': '7d',
             },
             # copied from gateiov2
             'commonCurrencies': {
@@ -578,9 +578,7 @@ class gateio(Exchange):
     async def fetch_markets(self, params={}):
         # :param params['type']: 'spot', 'margin', 'future' or 'delivery'
         # :param params['settle']: The quote currency
-        defaultType = self.safe_string_2(self.options, 'fetchMarkets', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
-        query = self.omit(params, 'type')
+        type, query = self.handle_market_type_and_params('fetchMarkets', None, params)
         spot = (type == 'spot')
         margin = (type == 'margin')
         future = (type == 'future')
@@ -743,7 +741,7 @@ class gateio(Exchange):
                         'inverse': inverse,
                         'taker': taker,
                         'maker': maker,
-                        'contractSize': self.safe_string(market, 'quanto_multiplier'),
+                        'contractSize': self.safe_number(market, 'quanto_multiplier'),
                         'expiry': expiry,
                         'expiryDatetime': self.iso8601(expiry),
                         'strike': None,
@@ -909,10 +907,14 @@ class gateio(Exchange):
             currencyIdLower = self.safe_string_lower(entry, 'currency')
             code = self.safe_currency_code(currencyId)
             delisted = self.safe_value(entry, 'delisted')
-            withdraw_disabled = self.safe_value(entry, 'withdraw_disabled')
-            deposit_disabled = self.safe_value(entry, 'disabled_disabled')
-            trade_disabled = self.safe_value(entry, 'trade_disabled')
-            active = not (delisted and withdraw_disabled and deposit_disabled and trade_disabled)
+            withdrawDisabled = self.safe_value(entry, 'withdraw_disabled', False)
+            depositDisabled = self.safe_value(entry, 'deposit_disabled', False)
+            tradeDisabled = self.safe_value(entry, 'trade_disabled', False)
+            withdrawEnabled = not withdrawDisabled
+            depositEnabled = not depositDisabled
+            tradeEnabled = not tradeDisabled
+            listed = not delisted
+            active = listed and tradeEnabled and withdrawEnabled and depositEnabled
             result[code] = {
                 'id': currencyId,
                 'lowerCaseId': currencyIdLower,
@@ -921,6 +923,8 @@ class gateio(Exchange):
                 'precision': amountPrecision,
                 'info': entry,
                 'active': active,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': None,
                 'fees': [],
                 'limits': self.limits,
@@ -1461,9 +1465,8 @@ class gateio(Exchange):
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        defaultType = self.safe_string_2(self.options, 'fetchTickers', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
-        params = self.omit(params, 'type')
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTickers', None, params)
         method = self.get_supported_mapping(type, {
             'spot': 'publicSpotGetTickers',
             'margin': 'publicSpotGetTickers',
@@ -1490,9 +1493,8 @@ class gateio(Exchange):
         # :param params.type: spot, margin, crossMargin, swap or future
         # :param params.settle: Settle currency(usdt or btc) for perpetual swap and future
         await self.load_markets()
-        defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
-        params = self.omit(params, 'type')
+        type = None
+        type, params = self.handle_market_type_and_params('fetchBalance', None, params)
         swap = type == 'swap'
         future = type == 'future'
         method = self.get_supported_mapping(type, {
@@ -1645,7 +1647,9 @@ class gateio(Exchange):
         if since is not None:
             duration = self.parse_timeframe(timeframe)
             request['from'] = int(since / 1000)
-            request['to'] = self.sum(request['from'], limit * duration - 1)
+            toTimestamp = self.sum(request['from'], limit * duration - 1)
+            currentTimestamp = self.seconds()
+            request['to'] = min(toTimestamp, currentTimestamp)
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
@@ -1806,6 +1810,8 @@ class gateio(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         #
@@ -1905,29 +1911,25 @@ class gateio(Exchange):
         symbol = self.safe_symbol(marketId, market)
         amountString = self.safe_string_2(trade, 'amount', 'size')
         priceString = self.safe_string(trade, 'price')
-        costString = Precise.string_abs(Precise.string_mul(amountString, priceString))
-        price = self.parse_number(priceString)
-        cost = self.parse_number(costString)
         contractSide = 'sell' if Precise.string_lt(amountString, '0') else 'buy'
         amountString = Precise.string_abs(amountString)
-        amount = self.parse_number(amountString)
         side = self.safe_string(trade, 'side', contractSide)
         orderId = self.safe_string(trade, 'order_id')
         gtFee = self.safe_string(trade, 'gt_fee')
         feeCurrency = None
-        feeCost = None
+        feeCostString = None
         if gtFee == '0':
             feeCurrency = self.safe_string(trade, 'fee_currency')
-            feeCost = self.safe_number(trade, 'fee')
+            feeCostString = self.safe_string(trade, 'fee')
         else:
             feeCurrency = 'GT'
-            feeCost = self.parse_number(gtFee)
+            feeCostString = gtFee
         fee = {
-            'cost': feeCost,
+            'cost': feeCostString,
             'currency': feeCurrency,
         }
         takerOrMaker = self.safe_string(trade, 'role')
-        return {
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
@@ -1937,11 +1939,11 @@ class gateio(Exchange):
             'type': None,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -2067,12 +2069,18 @@ class gateio(Exchange):
             'txid': txid,
             'currency': code,
             'amount': amount,
+            'network': None,
             'address': address,
+            'addressTo': None,
+            'addressFrom': None,
             'tag': tag,
+            'tagTo': None,
+            'tagFrom': None,
             'status': status,
             'type': type,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'updated': None,
             'fee': fee,
         }
 
@@ -2353,8 +2361,16 @@ class gateio(Exchange):
             rawStatus = self.safe_string(order, 'status')
             side = self.safe_string(order, 'side')
         status = self.parse_order_status(rawStatus)
-        type = self.safe_string(order, 'type')
         timeInForce = self.safe_string_upper_2(order, 'time_in_force', 'tif')
+        if timeInForce == 'POC':
+            timeInForce = 'PO'
+        type = self.safe_string(order, 'type')
+        if type is None:
+            # response for swaps doesn't include the type information
+            if timeInForce == 'PO' or timeInForce == 'GTC' or timeInForce == 'IOC' or timeInForce == 'FOK':
+                type = 'limit'
+            else:
+                type = 'market'
         fees = []
         gtFee = self.safe_number(order, 'gt_fee')
         if gtFee:
@@ -2434,8 +2450,8 @@ class gateio(Exchange):
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        defaultType = self.safe_string_2(self.options, 'fetchMarkets', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchOpenOrders', None, params)
         if symbol is None and (type == 'spot') or type == 'margin' or type == 'cross_margin':
             request = {
                 # 'page': 1,
@@ -2689,7 +2705,7 @@ class gateio(Exchange):
             'to': toId,
             'amount': truncated,
         }
-        if (toId == 'future') or (toId == 'delivery'):
+        if (toId == 'futures') or (toId == 'delivery') or (fromId == 'futures') or (fromId == 'delivery'):
             request['settle'] = currency['lowerCaseId']
         response = await self.privateWalletPostTransfers(self.extend(request, params))
         #
@@ -2828,7 +2844,7 @@ class gateio(Exchange):
             'leverage': self.safe_number(position, 'leverage'),
             'unrealizedPnl': self.parse_number(unrealisedPnl),
             'contracts': self.parse_number(size),
-            'contractSize': self.safe_number(market, 'contractSize'),
+            'contractSize': self.safe_value(market, 'contractSize'),
             #     realisedPnl: position['realised_pnl'],
             'marginRatio': None,
             'liquidationPrice': self.safe_number(position, 'liq_price'),

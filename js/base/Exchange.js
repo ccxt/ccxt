@@ -129,8 +129,6 @@ module.exports = class Exchange {
                 'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
                 'fetchTransfers': undefined,
-                'fetchWithdrawAddress': undefined,
-                'fetchWithdrawAddressesByNetwork': undefined,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': undefined,
                 'loadLeverageBrackets': undefined,
@@ -1604,6 +1602,45 @@ module.exports = class Exchange {
         }
     }
 
+    getNetwork (network, code) {
+        network = network.toUpperCase ();
+        const aliases = {
+            'ETHEREUM': 'ETH',
+            'ETHER': 'ETH',
+            'ERC20': 'ETH',
+            'ETH': 'ETH',
+            'TRC20': 'TRX',
+            'TRON': 'TRX',
+            'TRX': 'TRX',
+            'BEP20': 'BSC',
+            'BSC': 'BSC',
+            'HRC20': 'HT',
+            'HECO': 'HT',
+            'SPL': 'SOL',
+            'SOL': 'SOL',
+            'TERRA': 'LUNA',
+            'LUNA': 'LUNA',
+            'POLYGON': 'MATIC',
+            'MATIC': 'MATIC',
+            'EOS': 'EOS',
+            'WAVES': 'WAVES',
+            'AVALANCHE': 'AVAX',
+            'AVAX': 'AVAX',
+            'QTUM': 'QTUM',
+            'CHZ': 'CHZ',
+            'NEO': 'NEO',
+            'ONT': 'ONT',
+            'RON': 'RON',
+        };
+        if (network === code) {
+            return network;
+        } else if (network in aliases) {
+            return aliases[network];
+        } else {
+            throw new NotSupported (this.id + ' network ' + network + ' is not yet supported');
+        }
+    }
+
     reduceFeesByCurrency (fees, string = false) {
         //
         // this function takes a list of fee structures having the following format
@@ -2026,5 +2063,12 @@ module.exports = class Exchange {
         const type = this.safeString2 (params, 'defaultType', 'type', marketType);
         params = this.omit (params, [ 'defaultType', 'type' ]);
         return [ type, params ];
+    }
+
+    async loadTimeDifference (params = {}) {
+        const serverTime = await this.fetchTime (params);
+        const after = this.milliseconds ();
+        this.options['timeDifference'] = after - serverTime;
+        return this.options['timeDifference'];
     }
 }

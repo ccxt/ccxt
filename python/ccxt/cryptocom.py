@@ -406,7 +406,7 @@ class cryptocom(Exchange):
             if future:
                 type = 'future'
                 symbol = symbol + '-' + self.yymmdd(expiry)
-            contractSize = self.safe_string(market, 'contract_size')
+            contractSize = self.safe_number(market, 'contract_size')
             marketId = self.safe_string(market, 'symbol')
             maxLeverage = self.safe_number(market, 'max_leverage')
             active = self.safe_value(market, 'tradable')
@@ -1654,6 +1654,7 @@ class cryptocom(Exchange):
             'txid': txId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'address': address,
             'addressTo': address,
             'addressFrom': None,
@@ -1690,6 +1691,7 @@ class cryptocom(Exchange):
                 strSortKey = strSortKey + str(paramsKeys[i]) + str(requestParams[paramsKeys[i]])
             payload = path + nonce + self.apiKey + strSortKey + nonce
             signature = self.hmac(self.encode(payload), self.encode(self.secret))
+            paramsKeysLength = len(paramsKeys)
             body = self.json({
                 'id': nonce,
                 'method': path,
@@ -1698,6 +1700,15 @@ class cryptocom(Exchange):
                 'sig': signature,
                 'nonce': nonce,
             })
+            # fix issue https://github.com/ccxt/ccxt/issues/11179
+            # php always encodes dictionaries as arrays
+            # if an array is empty, php will put it in square brackets
+            # python and js will put it in curly brackets
+            # the code below checks and replaces those brackets in empty requests
+            if paramsKeysLength == 0:
+                paramsString = '{}'
+                arrayString = '[]'
+                body = body.replace(arrayString, paramsString)
             headers = {
                 'Content-Type': 'application/json',
             }

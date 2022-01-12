@@ -625,7 +625,7 @@ class bitmart(Exchange):
                 'inverse': None,
                 'taker': self.safe_number(feeConfig, 'taker_fee'),
                 'maker': self.safe_number(feeConfig, 'maker_fee'),
-                'contractSize': self.safe_string(market, 'contract_size'),
+                'contractSize': self.safe_number(market, 'contract_size'),
                 'active': None,
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
@@ -886,6 +886,8 @@ class bitmart(Exchange):
                 'name': name,
                 'info': currency,  # the original payload
                 'active': active,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': None,
                 'precision': None,
                 'limits': {
@@ -2228,6 +2230,7 @@ class bitmart(Exchange):
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': None,
             'address': address,
             'addressFrom': None,
             'addressTo': None,

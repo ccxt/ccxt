@@ -18,6 +18,8 @@ module.exports = class bitget extends Exchange {
             'version': 'v3',
             'rateLimit': 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'has': {
+                'fetchPositions': true,
+                'fetchPosition': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'CORS': undefined,
@@ -933,6 +935,8 @@ module.exports = class bitget extends Exchange {
                 'type': undefined,
                 'name': undefined,
                 'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
                 'precision': undefined,
                 'limits': {
@@ -1754,7 +1758,7 @@ module.exports = class bitget extends Exchange {
         } else if (type === 'swap') {
             return this.parseSwapBalance (response);
         }
-        throw new NotSupported (this.id + " fetchBalance does not support the '" + type + "' type (the type must be one of 'account', 'spot', 'margin', 'futures', 'swap')");
+        throw new NotSupported (this.id + " fetchBalance does not support the '" + type + "' type (the type must be one of 'account', 'spot', or 'swap')");
     }
 
     parseOrderStatus (status) {
@@ -1894,7 +1898,7 @@ module.exports = class bitget extends Exchange {
         // }
         // if ((type !== 'limit') && (type !== 'market')) {
         //     if ('pnl' in order) {
-        //         type = 'futures';
+        //         type = 'future';
         //     } else {
         //         type = 'swap';
         //     }
@@ -2564,6 +2568,7 @@ module.exports = class bitget extends Exchange {
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': undefined,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'address': address,

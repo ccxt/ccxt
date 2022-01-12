@@ -91,12 +91,10 @@ class huobi(Exchange):
                 'fetchLedgerEntry': None,
                 'fetchLeverage': None,
                 'fetchMarkets': True,
-                'fetchMarketsByType': None,
                 'fetchMarkOHLCV': True,
                 'fetchMyBuys': None,
                 'fetchMySells': None,
                 'fetchMyTrades': True,
-                'fetchNetworkDepositAddress': None,
                 'fetchOHLCV': True,
                 'fetchOpenOrder': None,
                 'fetchOpenOrders': True,
@@ -104,10 +102,7 @@ class huobi(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrderBooks': None,
                 'fetchOrders': True,
-                'fetchOrdersByState': None,
-                'fetchOrdersByStatus': None,
                 'fetchOrderTrades': True,
-                'fetchPartiallyFilledOrders': None,
                 'fetchPosition': True,
                 'fetchPositions': True,
                 'fetchPositionsRisk': None,
@@ -115,7 +110,6 @@ class huobi(Exchange):
                 'fetchStatus': None,
                 'fetchTicker': True,
                 'fetchTickers': True,
-                'fetchTickersByType': None,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
@@ -123,13 +117,11 @@ class huobi(Exchange):
                 'fetchTradingLimits': True,
                 'fetchTransactions': None,
                 'fetchTransfers': None,
-                'fetchWithdrawAddress': True,
                 'fetchWithdrawAddressesByNetwork': True,
                 'fetchWithdrawal': None,
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': None,
                 'loadLeverageBrackets': None,
-                'loadTimeDifference': None,
                 'reduceMargin': None,
                 'setLeverage': True,
                 'setMarginMode': None,
@@ -1234,7 +1226,7 @@ class huobi(Exchange):
                 if future:
                     expiry = self.safe_integer(market, 'delivery_time')
                     symbol += '-' + self.yymmdd(expiry)
-            contractSize = self.safe_string(market, 'contract_size')
+            contractSize = self.safe_number(market, 'contract_size')
             pricePrecision = None
             amountPrecision = None
             costPrecision = None
@@ -3833,14 +3825,21 @@ class huobi(Exchange):
         feeCost = self.safe_number(transaction, 'fee')
         if feeCost is not None:
             feeCost = abs(feeCost)
+        address = self.safe_string(transaction, 'address')
+        network = self.safe_string_upper(transaction, 'chain')
         return {
             'info': transaction,
             'id': self.safe_string(transaction, 'id'),
             'txid': self.safe_string(transaction, 'tx-hash'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'address': self.safe_string(transaction, 'address'),
+            'network': network,
+            'address': address,
+            'addressTo': None,
+            'addressFrom': None,
             'tag': tag,
+            'tagTo': None,
+            'tagFrom': None,
             'type': type,
             'amount': self.safe_number(transaction, 'amount'),
             'currency': code,
@@ -4506,7 +4505,8 @@ class huobi(Exchange):
         market = self.safe_market(self.safe_string(position, 'contract_code'))
         symbol = market['symbol']
         contracts = self.safe_string(position, 'volume')
-        contractSize = self.safe_string(market, 'contractSize')
+        contractSize = self.safe_value(market, 'contractSize')
+        contractSizeString = self.number_to_string(contractSize)
         entryPrice = self.safe_number(position, 'cost_hold')
         initialMargin = self.safe_string(position, 'position_margin')
         rawSide = self.safe_string(position, 'direction')
@@ -4516,7 +4516,7 @@ class huobi(Exchange):
         leverage = self.safe_string(position, 'lever_rate')
         percentage = Precise.string_mul(self.safe_string(position, 'profit_rate'), '100')
         lastPrice = self.safe_string(position, 'last_price')
-        faceValue = Precise.string_mul(contracts, contractSize)
+        faceValue = Precise.string_mul(contracts, contractSizeString)
         notional = None
         if market['linear']:
             notional = Precise.string_mul(faceValue, lastPrice)
@@ -4534,7 +4534,7 @@ class huobi(Exchange):
             'info': position,
             'symbol': symbol,
             'contracts': self.parse_number(contracts),
-            'contractSize': self.parse_number(contractSize),
+            'contractSize': contractSize,
             'entryPrice': entryPrice,
             'collateral': self.parse_number(collateral),
             'side': side,

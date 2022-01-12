@@ -122,29 +122,29 @@ class bitpanda extends Exchange {
                     'percentage' => true,
                     'taker' => $this->parse_number('0.0015'),
                     'maker' => $this->parse_number('0.001'),
-                    'tiers' => [
+                    'tiers' => array(
                         // volume in BTC
                         array(
-                            'taker' => [
-                                [$this->parse_number('0'), $this->parse_number('0.0015')],
-                                [$this->parse_number('100'), $this->parse_number('0.0013')],
-                                [$this->parse_number('250'), $this->parse_number('0.0013')],
-                                [$this->parse_number('1000'), $this->parse_number('0.001')],
-                                [$this->parse_number('5000'), $this->parse_number('0.0009')],
-                                [$this->parse_number('10000'), $this->parse_number('0.00075')],
-                                [$this->parse_number('20000'), $this->parse_number('0.00065')],
-                            ],
-                            'maker' => [
-                                [$this->parse_number('0'), $this->parse_number('0.001')],
-                                [$this->parse_number('100'), $this->parse_number('0.001')],
-                                [$this->parse_number('250'), $this->parse_number('0.0009')],
-                                [$this->parse_number('1000'), $this->parse_number('0.00075')],
-                                [$this->parse_number('5000'), $this->parse_number('0.0006')],
-                                [$this->parse_number('10000'), $this->parse_number('0.0005')],
-                                [$this->parse_number('20000'), $this->parse_number('0.0005')],
-                            ],
+                            'taker' => array(
+                                array( $this->parse_number('0'), $this->parse_number('0.0015') ),
+                                array( $this->parse_number('100'), $this->parse_number('0.0013') ),
+                                array( $this->parse_number('250'), $this->parse_number('0.0013') ),
+                                array( $this->parse_number('1000'), $this->parse_number('0.001') ),
+                                array( $this->parse_number('5000'), $this->parse_number('0.0009') ),
+                                array( $this->parse_number('10000'), $this->parse_number('0.00075') ),
+                                array( $this->parse_number('20000'), $this->parse_number('0.00065') ),
+                            ),
+                            'maker' => array(
+                                array( $this->parse_number('0'), $this->parse_number('0.001') ),
+                                array( $this->parse_number('100'), $this->parse_number('0.001') ),
+                                array( $this->parse_number('250'), $this->parse_number('0.0009') ),
+                                array( $this->parse_number('1000'), $this->parse_number('0.00075') ),
+                                array( $this->parse_number('5000'), $this->parse_number('0.0006') ),
+                                array( $this->parse_number('10000'), $this->parse_number('0.0005') ),
+                                array( $this->parse_number('20000'), $this->parse_number('0.0005') ),
+                            ),
                         ),
-                    ],
+                    ),
                 ),
             ),
             'requiredCredentials' => array(
@@ -348,6 +348,8 @@ class bitpanda extends Exchange {
                 'type' => 'spot',
                 'spot' => true,
                 'active' => $active,
+                'deposit' => null,
+                'withdraw' => null,
             );
         }
         return $result;
@@ -1172,6 +1174,7 @@ class bitpanda extends Exchange {
             'id' => $id,
             'currency' => $currency['code'],
             'amount' => $amount,
+            'network' => null,
             'address' => $addressTo,
             'addressFrom' => null,
             'addressTo' => $addressTo,

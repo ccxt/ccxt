@@ -404,7 +404,7 @@ class cryptocom extends Exchange {
                 $type = 'future';
                 $symbol = $symbol . '-' . $this->yymmdd($expiry);
             }
-            $contractSize = $this->safe_string($market, 'contract_size');
+            $contractSize = $this->safe_number($market, 'contract_size');
             $marketId = $this->safe_string($market, 'symbol');
             $maxLeverage = $this->safe_number($market, 'max_leverage');
             $active = $this->safe_value($market, 'tradable');
@@ -1738,6 +1738,7 @@ class cryptocom extends Exchange {
             'txid' => $txId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,
@@ -1778,6 +1779,7 @@ class cryptocom extends Exchange {
             }
             $payload = $path . $nonce . $this->apiKey . $strSortKey . $nonce;
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret));
+            $paramsKeysLength = is_array($paramsKeys) ? count($paramsKeys) : 0;
             $body = $this->json(array(
                 'id' => $nonce,
                 'method' => $path,
@@ -1786,6 +1788,16 @@ class cryptocom extends Exchange {
                 'sig' => $signature,
                 'nonce' => $nonce,
             ));
+            // fix issue https://github.com/ccxt/ccxt/issues/11179
+            // php always encodes dictionaries as arrays
+            // if an array is empty, php will put it in square brackets
+            // python and js will put it in curly brackets
+            // the code below checks and replaces those brackets in empty requests
+            if ($paramsKeysLength === 0) {
+                $paramsString = '{}';
+                $arrayString = '[]';
+                $body = str_replace($arrayString, $paramsString, $body);
+            }
             $headers = array(
                 'Content-Type' => 'application/json',
             );

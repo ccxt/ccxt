@@ -22,6 +22,9 @@ class hitbtc3 extends Exchange {
             'version' => '3',
             'pro' => true,
             'has' => array(
+                'fetchTradingFees' => true,
+                'fetchOrderBooks' => true,
+                'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'CORS' => false,
                 'createOrder' => true,
@@ -30,7 +33,7 @@ class hitbtc3 extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
-                'fetchDeposits' => false,
+                'fetchDeposits' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -46,7 +49,7 @@ class hitbtc3 extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTransactions' => true,
-                'fetchWithdrawals' => false,
+                'fetchWithdrawals' => true,
                 'withdraw' => true,
                 'transfer' => true,
             ),
@@ -345,7 +348,7 @@ class hitbtc3 extends Exchange {
             $linear = null;
             $inverse = null;
             if ($contract) {
-                $contractSize = '1';
+                $contractSize = $this->parse_number('1');
                 $settleId = $feeCurrencyId;
                 $settle = $this->safe_currency_code($settleId);
                 $linear = (($quote !== null) && ($quote === $settle));
@@ -939,6 +942,7 @@ class hitbtc3 extends Exchange {
             'txid' => $txhash,
             'code' => $code,
             'amount' => $amount,
+            'network' => null,
             'address' => $address,
             'addressFrom' => $addressFrom,
             'addressTo' => $addressTo,

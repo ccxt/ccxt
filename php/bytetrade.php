@@ -17,7 +17,7 @@ class bytetrade extends Exchange {
         return $this->deep_extend(parent::describe (), array(
             'id' => 'bytetrade',
             'name' => 'ByteTrade',
-            'countries' => ['HK'],
+            'countries' => array( 'HK' ),
             'rateLimit' => 500,
             'requiresWeb3' => true,
             'certified' => false,
@@ -209,6 +209,8 @@ class bytetrade extends Exchange {
                 'code' => $code,
                 'name' => $name,
                 'active' => $active,
+                'deposit' => null,
+                'withdraw' => null,
                 'precision' => $amountPrecision,
                 'fee' => null,
                 'limits' => array(
@@ -356,23 +358,10 @@ class bytetrade extends Exchange {
         //         }
         //     )
         //
-        $symbol = null;
         $marketId = $this->safe_string($ticker, 'symbol');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        } else {
-            $baseId = $this->safe_string($ticker, 'base');
-            $quoteId = $this->safe_string($ticker, 'quote');
-            if (($baseId !== null) && ($quoteId !== null)) {
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
-        return array(
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -393,7 +382,7 @@ class bytetrade extends Exchange {
             'baseVolume' => $this->safe_number($ticker, 'baseVolume'),
             'quoteVolume' => $this->safe_number($ticker, 'quoteVolume'),
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

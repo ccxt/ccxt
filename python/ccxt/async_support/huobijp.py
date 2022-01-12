@@ -39,6 +39,7 @@ class huobijp(Exchange):
             'hostname': 'api-cloud.huobi.co.jp',
             'pro': True,
             'has': {
+                'fetchAccounts': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
@@ -1402,14 +1403,21 @@ class huobijp(Exchange):
         feeCost = self.safe_number(transaction, 'fee')
         if feeCost is not None:
             feeCost = abs(feeCost)
+        address = self.safe_string(transaction, 'address')
+        network = self.safe_string_upper(transaction, 'chain')
         return {
             'info': transaction,
             'id': self.safe_string(transaction, 'id'),
             'txid': self.safe_string(transaction, 'tx-hash'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'address': self.safe_string(transaction, 'address'),
+            'network': network,
+            'address': address,
+            'addressTo': None,
+            'addressFrom': None,
             'tag': tag,
+            'tagTo': None,
+            'tagFrom': None,
             'type': type,
             'amount': self.safe_number(transaction, 'amount'),
             'currency': code,

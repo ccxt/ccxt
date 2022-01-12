@@ -240,7 +240,9 @@ module.exports = class digifinex extends Exchange {
             const code = this.safeCurrencyCode (id);
             const depositStatus = this.safeValue (currency, 'deposit_status', 1);
             const withdrawStatus = this.safeValue (currency, 'withdraw_status', 1);
-            const active = depositStatus && withdrawStatus;
+            const deposit = depositStatus > 0;
+            const withdraw = withdrawStatus > 0;
+            const active = deposit && withdraw;
             const fee = this.safeNumber (currency, 'withdraw_fee_rate');
             if (code in result) {
                 if (Array.isArray (result[code]['info'])) {
@@ -256,6 +258,8 @@ module.exports = class digifinex extends Exchange {
                     'type': undefined,
                     'name': undefined,
                     'active': active,
+                    'deposit': deposit,
+                    'withdraw': withdraw,
                     'fee': fee,
                     'precision': 8, // todo fix hardcoded value
                     'limits': {
@@ -1377,12 +1381,17 @@ module.exports = class digifinex extends Exchange {
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
+        let network = this.safeString (transaction, 'chain');
+        if (network === '') {
+            network = undefined;
+        }
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': network,
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,

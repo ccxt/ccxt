@@ -97,14 +97,19 @@ if (settings && settings.skip) {
 
 //-----------------------------------------------------------------------------
 
+async function test (methodName, exchange, ... args) {
+    console.log ('Testing', exchange.id, methodName, '(', ... args, ')')
+    return await (tests[methodName] (exchange, ... args))
+}
+
 async function testSymbol (exchange, symbol) {
 
-    await tests['loadMarkets'] (exchange)
-    await tests['fetchCurrencies'] (exchange)
-    await tests['fetchTicker']  (exchange, symbol)
-    await tests['fetchTickers'] (exchange, symbol)
-    await tests['fetchOHLCV']   (exchange, symbol)
-    await tests['fetchTrades']  (exchange, symbol)
+    await test ('loadMarkets', exchange);
+    await test ('fetchCurrencies', exchange);
+    await test ('fetchTicker', exchange, symbol);
+    await test ('fetchTickers', exchange, symbol);
+    await test ('fetchOHLCV', exchange, symbol);
+    await test ('fetchTrades', exchange, symbol);
 
     if (exchange.id === 'coinbase') {
 
@@ -112,9 +117,9 @@ async function testSymbol (exchange, symbol) {
 
     } else {
 
-        await tests['fetchOrderBook']   (exchange, symbol)
-        await tests['fetchL2OrderBook'] (exchange, symbol)
-        await tests['fetchOrderBooks']  (exchange)
+        await test ('fetchOrderBook', exchange, symbol);
+        await test ('fetchL2OrderBook', exchange, symbol);
+        await test ('fetchOrderBooks', exchange);
     }
 }
 
@@ -269,35 +274,35 @@ async function testExchange (exchange) {
     // if (exchange.urls['test'])
     //    exchange.urls['api'] = exchange.urls['test']
 
-    const balance = await tests['fetchBalance'] (exchange)
+    const balance = await test ('fetchBalance', exchange)
 
-    await tests['fetchFundingFees']  (exchange)
-    await tests['fetchTradingFees']  (exchange)
-    await tests['fetchStatus'] (exchange)
+    await test ('fetchFundingFees', exchange)
+    await test ('fetchTradingFees', exchange)
+    await test ('fetchStatus', exchange)
 
-    await tests['fetchOrders']       (exchange, symbol)
-    await tests['fetchOpenOrders']   (exchange, symbol)
-    await tests['fetchClosedOrders'] (exchange, symbol)
-    await tests['fetchMyTrades']     (exchange, symbol)
+    await test ('fetchOrders', exchange, symbol)
+    await test ('fetchOpenOrders', exchange, symbol)
+    await test ('fetchClosedOrders', exchange, symbol)
+    await test ('fetchMyTrades', exchange, symbol)
 
-    await tests['fetchPositions']    (exchange, symbol)
+    await test ('fetchPositions', exchange, symbol)
 
     if ('fetchLedger' in tests) {
-        await tests['fetchLedger'] (exchange, code)
+        await test ('fetchLedger', exchange, code)
     }
 
-    await tests['fetchTransactions'] (exchange, code)
-    await tests['fetchDeposits']     (exchange, code)
-    await tests['fetchWithdrawals']  (exchange, code)
-    await tests['fetchBorrowRate']   (exchange, code)
-    await tests['fetchBorrowRates']  (exchange)
+    await test ('fetchTransactions', exchange, code)
+    await test ('fetchDeposits', exchange, code)
+    await test ('fetchWithdrawals', exchange, code)
+    await test ('fetchBorrowRate', exchange, code)
+    await test ('fetchBorrowRates', exchange)
 
     if (exchange.extendedTest) {
 
-        await tests['InvalidNonce']      (exchange, symbol)
-        await tests['OrderNotFound']     (exchange, symbol)
-        await tests['InvalidOrder']      (exchange, symbol)
-        await tests['InsufficientFunds'] (exchange, symbol, balance) // danger zone - won't execute with non-empty balance
+        await test ('InvalidNonce', exchange, symbol)
+        await test ('OrderNotFound', exchange, symbol)
+        await test ('InvalidOrder', exchange, symbol)
+        await test ('InsufficientFunds', exchange, symbol, balance) // danger zone - won't execute with non-empty balance
     }
 
     // try {
@@ -382,7 +387,7 @@ async function tryAllProxies (exchange, proxies) {
 
 //-----------------------------------------------------------------------------
 
-async function test () {
+async function main () {
 
     if (exchangeSymbol) {
 
@@ -396,4 +401,4 @@ async function test () {
 
 }
 
-test ()
+main ()

@@ -326,12 +326,13 @@ module.exports = class bw extends Exchange {
         //     ]
         //
         const marketId = this.safeString (ticker, 0);
-        const symbol = this.safeSymbol (marketId, market);
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const timestamp = this.milliseconds ();
         const close = this.safeNumber (ticker, 1);
         const bid = this.safeValue (ticker, 'bid', {});
         const ask = this.safeValue (ticker, 'ask', {});
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -352,7 +353,7 @@ module.exports = class bw extends Exchange {
             'baseVolume': this.safeNumber (ticker, 4),
             'quoteVolume': this.safeNumber (ticker, 9),
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -1066,6 +1067,7 @@ module.exports = class bw extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'addressFrom': undefined,
             'address': address,
             'addressTo': undefined,

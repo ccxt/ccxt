@@ -51,7 +51,7 @@ Exchanges
 
 
 
-The CCXT library currently supports the following 112 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 113 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -1469,6 +1469,18 @@ The CCXT library currently supports the following 112 cryptocurrency exchange ma
           :alt: CCXT Certified
      
      - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/148647666-c109c20b-f8ac-472f-91c3-5f658cb90f49.jpeg
+          :target: https://wazirx.com
+          :alt: wazirx
+     
+     - wazirx
+     - `WazirX <https://wazirx.com>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://docs.wazirx.com/#public-rest-api-for-wazirx
+          :alt: API Version 2
+     
+     - 
+     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg
           :target: https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963
           :alt: whitebit
@@ -2443,6 +2455,35 @@ For example:
    $formatted_amount = $exchange->amount_to_precision($symbol, $amount);
    $formatted_price = $exchange->price_to_precision($symbol, $price);
    echo $formatted_amount, " ", $formatted_price, "\n";
+
+More practical examples that describe the behavior of ``exchange.precisionMode``\ :
+
+.. code-block:: JavaScript
+
+   // case A
+   exchange.precisionMode = ccxt.DECIMAL_PLACES
+   market = exchange.market (symbol)
+   market['precision']['amount'] === 8 // up to 8 decimals after the dot
+   exchange.amountToPrecision (symbol, 0.123456789) === 0.12345678 
+   exchange.amountToPrecision (symbol, 0.0000000000123456789) === 0.0000000 === 0.0
+
+.. code-block:: JavaScript
+
+   // case B
+   exchange.precisionMode = ccxt.TICK_SIZE
+   market = exchange.market (symbol)
+   market['precision']['amount'] === 0.00000001 // up to 0.00000001 precision
+   exchange.amountToPrecision (symbol, 0.123456789) === 0.12345678
+   exchange.amountToPrecision (symbol, 0.0000000000123456789) === 0.00000000 === 0.0
+
+.. code-block:: JavaScript
+
+   // case C
+   exchange.precisionMode = ccxt.SIGNIFICANT_DIGITS
+   market = exchange.market (symbol)
+   market['precision']['amount'] === 8 // up to 8 significant non-zero digits
+   exchange.amountToPrecision (symbol, 0.0000000000123456789) === 0.000000000012345678 
+   exchange.amountToPrecision (symbol, 123.4567890123456789) === 123.45678
 
 Loading Markets
 ---------------

@@ -1082,11 +1082,13 @@ class novadax extends Exchange {
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
+        $network = $this->safe_string($transaction, 'chain');
         return array(
             'info' => $transaction,
             'id' => $id,
             'currency' => $code,
             'amount' => $amount,
+            'network' => $network,
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,

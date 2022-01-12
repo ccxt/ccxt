@@ -18,6 +18,7 @@ module.exports = class vcc extends Exchange {
             'rateLimit': 1000,
             'version': 'v3',
             'has': {
+                'fetchTradingFee': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
@@ -743,12 +744,14 @@ module.exports = class vcc extends Exchange {
             };
         }
         const type = (amount > 0) ? 'deposit' : 'withdrawal';
+        const network = this.safeString (transaction, 'network');
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': network,
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,

@@ -73,12 +73,10 @@ class huobi extends Exchange {
                 'fetchLedgerEntry' => null,
                 'fetchLeverage' => null,
                 'fetchMarkets' => true,
-                'fetchMarketsByType' => null,
                 'fetchMarkOHLCV' => true,
                 'fetchMyBuys' => null,
                 'fetchMySells' => null,
                 'fetchMyTrades' => true,
-                'fetchNetworkDepositAddress' => null,
                 'fetchOHLCV' => true,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
@@ -86,10 +84,7 @@ class huobi extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => null,
                 'fetchOrders' => true,
-                'fetchOrdersByState' => null,
-                'fetchOrdersByStatus' => null,
                 'fetchOrderTrades' => true,
-                'fetchPartiallyFilledOrders' => null,
                 'fetchPosition' => true,
                 'fetchPositions' => true,
                 'fetchPositionsRisk' => null,
@@ -97,7 +92,6 @@ class huobi extends Exchange {
                 'fetchStatus' => null,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
-                'fetchTickersByType' => null,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
@@ -105,13 +99,11 @@ class huobi extends Exchange {
                 'fetchTradingLimits' => true,
                 'fetchTransactions' => null,
                 'fetchTransfers' => null,
-                'fetchWithdrawAddress' => true,
                 'fetchWithdrawAddressesByNetwork' => true,
                 'fetchWithdrawal' => null,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => null,
                 'loadLeverageBrackets' => null,
-                'loadTimeDifference' => null,
                 'reduceMargin' => null,
                 'setLeverage' => true,
                 'setMarginMode' => null,
@@ -1243,7 +1235,7 @@ class huobi extends Exchange {
                     $symbol .= '-' . $this->yymmdd($expiry);
                 }
             }
-            $contractSize = $this->safe_string($market, 'contract_size');
+            $contractSize = $this->safe_number($market, 'contract_size');
             $pricePrecision = null;
             $amountPrecision = null;
             $costPrecision = null;
@@ -4058,14 +4050,21 @@ class huobi extends Exchange {
         if ($feeCost !== null) {
             $feeCost = abs($feeCost);
         }
+        $address = $this->safe_string($transaction, 'address');
+        $network = $this->safe_string_upper($transaction, 'chain');
         return array(
             'info' => $transaction,
             'id' => $this->safe_string($transaction, 'id'),
             'txid' => $this->safe_string($transaction, 'tx-hash'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'address' => $this->safe_string($transaction, 'address'),
+            'network' => $network,
+            'address' => $address,
+            'addressTo' => null,
+            'addressFrom' => null,
             'tag' => $tag,
+            'tagTo' => null,
+            'tagFrom' => null,
             'type' => $type,
             'amount' => $this->safe_number($transaction, 'amount'),
             'currency' => $code,
@@ -4645,7 +4644,7 @@ class huobi extends Exchange {
         $response = $this->$method (array_merge($request, $query));
         $data = $this->safe_value($response, 'data', array());
         $financialRecord = $this->safe_value($data, 'financial_record', array());
-        return $this->parse_incomes ($financialRecord, $market, $since, $limit);
+        return $this->parse_incomes($financialRecord, $market, $since, $limit);
     }
 
     public function set_leverage($leverage, $symbol = null, $params = array ()) {
@@ -4740,7 +4739,7 @@ class huobi extends Exchange {
         $result = array();
         for ($i = 0; $i < count($incomes); $i++) {
             $entry = $incomes[$i];
-            $parsed = $this->parse_income ($entry, $market);
+            $parsed = $this->parse_income($entry, $market);
             $result[] = $parsed;
         }
         $sorted = $this->sort_by($result, 'timestamp');
@@ -4782,7 +4781,8 @@ class huobi extends Exchange {
         $market = $this->safe_market($this->safe_string($position, 'contract_code'));
         $symbol = $market['symbol'];
         $contracts = $this->safe_string($position, 'volume');
-        $contractSize = $this->safe_string($market, 'contractSize');
+        $contractSize = $this->safe_value($market, 'contractSize');
+        $contractSizeString = $this->number_to_string($contractSize);
         $entryPrice = $this->safe_number($position, 'cost_hold');
         $initialMargin = $this->safe_string($position, 'position_margin');
         $rawSide = $this->safe_string($position, 'direction');
@@ -4792,7 +4792,7 @@ class huobi extends Exchange {
         $leverage = $this->safe_string($position, 'lever_rate');
         $percentage = Precise::string_mul($this->safe_string($position, 'profit_rate'), '100');
         $lastPrice = $this->safe_string($position, 'last_price');
-        $faceValue = Precise::string_mul($contracts, $contractSize);
+        $faceValue = Precise::string_mul($contracts, $contractSizeString);
         $notional = null;
         if ($market['linear']) {
             $notional = Precise::string_mul($faceValue, $lastPrice);
@@ -4811,7 +4811,7 @@ class huobi extends Exchange {
             'info' => $position,
             'symbol' => $symbol,
             'contracts' => $this->parse_number($contracts),
-            'contractSize' => $this->parse_number($contractSize),
+            'contractSize' => $contractSize,
             'entryPrice' => $entryPrice,
             'collateral' => $this->parse_number($collateral),
             'side' => $side,

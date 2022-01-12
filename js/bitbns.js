@@ -928,6 +928,7 @@ module.exports = class bitbns extends Exchange {
             'txid': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'address': undefined,
             'addressTo': undefined,
             'addressFrom': undefined,

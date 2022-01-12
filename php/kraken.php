@@ -93,28 +93,28 @@ class kraken extends Exchange {
                     'taker' => 0.26 / 100,
                     'maker' => 0.16 / 100,
                     'tiers' => array(
-                        'taker' => [
-                            [0, 0.0026],
-                            [50000, 0.0024],
-                            [100000, 0.0022],
-                            [250000, 0.0020],
-                            [500000, 0.0018],
-                            [1000000, 0.0016],
-                            [2500000, 0.0014],
-                            [5000000, 0.0012],
-                            [10000000, 0.0001],
-                        ],
-                        'maker' => [
-                            [0, 0.0016],
-                            [50000, 0.0014],
-                            [100000, 0.0012],
-                            [250000, 0.0010],
-                            [500000, 0.0008],
-                            [1000000, 0.0006],
-                            [2500000, 0.0004],
-                            [5000000, 0.0002],
-                            [10000000, 0.0],
-                        ],
+                        'taker' => array(
+                            array( 0, 0.0026 ),
+                            array( 50000, 0.0024 ),
+                            array( 100000, 0.0022 ),
+                            array( 250000, 0.0020 ),
+                            array( 500000, 0.0018 ),
+                            array( 1000000, 0.0016 ),
+                            array( 2500000, 0.0014 ),
+                            array( 5000000, 0.0012 ),
+                            array( 10000000, 0.0001 ),
+                        ),
+                        'maker' => array(
+                            array( 0, 0.0016 ),
+                            array( 50000, 0.0014 ),
+                            array( 100000, 0.0012 ),
+                            array( 250000, 0.0010 ),
+                            array( 500000, 0.0008 ),
+                            array( 1000000, 0.0006 ),
+                            array( 2500000, 0.0004 ),
+                            array( 5000000, 0.0002 ),
+                            array( 10000000, 0.0 ),
+                        ),
                     ),
                 ),
                 // this is a bad way of hardcoding fees that change on daily basis
@@ -1543,7 +1543,7 @@ class kraken extends Exchange {
         $request = array(
             'txid' => $clientOrderId, // order $id or userref
         );
-        $params = $this->omit($params, ['userref', 'clientOrderId' ]);
+        $params = $this->omit($params, array( 'userref', 'clientOrderId' ));
         try {
             $response = $this->privatePostCancelOrder (array_merge($request, $params));
         } catch (Exception $e) {
@@ -1706,8 +1706,13 @@ class kraken extends Exchange {
             'id' => $id,
             'currency' => $code,
             'amount' => $amount,
+            'network' => null,
             'address' => $address,
+            'addressTo' => null,
+            'addressFrom' => null,
             'tag' => null,
+            'tagTo' => null,
+            'tagFrom' => null,
             'status' => $status,
             'type' => $type,
             'updated' => null,

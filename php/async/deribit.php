@@ -23,6 +23,7 @@ class deribit extends Exchange {
             // 5 requests per second for matching-engine endpoints, cost = (1000ms / rateLimit) / 5 = 4
             'rateLimit' => 50,
             'has' => array(
+                'fetchPosition' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'CORS' => true,
@@ -33,6 +34,7 @@ class deribit extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchHistoricalVolatility' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
@@ -509,7 +511,7 @@ class deribit extends Exchange {
                     'inverse' => true,
                     'taker' => $this->safe_number($market, 'taker_commission'),
                     'maker' => $this->safe_number($market, 'maker_commission'),
-                    'contractSize' => $this->safe_string($market, 'contract_size'),
+                    'contractSize' => $this->safe_number($market, 'contract_size'),
                     'active' => $this->safe_value($market, 'is_active'),
                     'expiry' => $expiry,
                     'expiryDatetime' => $this->iso8601($expiry),
@@ -730,7 +732,7 @@ class deribit extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $last = $this->safe_number_2($ticker, 'last_price', 'last');
         $stats = $this->safe_value($ticker, 'stats', $ticker);
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -751,7 +753,7 @@ class deribit extends Exchange {
             'baseVolume' => null,
             'quoteVolume' => $this->safe_number($stats, 'volume'),
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -1687,6 +1689,69 @@ class deribit extends Exchange {
         );
     }
 
+    public function parse_position($position, $market = null) {
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "id" => 404,
+        //         "result" => {
+        //             "average_price" => 0,
+        //             "delta" => 0,
+        //             "direction" => "buy",
+        //             "estimated_liquidation_price" => 0,
+        //             "floating_profit_loss" => 0,
+        //             "index_price" => 3555.86,
+        //             "initial_margin" => 0,
+        //             "instrument_name" => "BTC-PERPETUAL",
+        //             "leverage" => 100,
+        //             "kind" => "future",
+        //             "maintenance_margin" => 0,
+        //             "mark_price" => 3556.62,
+        //             "open_orders_margin" => 0.000165889,
+        //             "realized_profit_loss" => 0,
+        //             "settlement_price" => 3555.44,
+        //             "size" => 0,
+        //             "size_currency" => 0,
+        //             "total_profit_loss" => 0
+        //         }
+        //     }
+        //
+        $contract = $this->safe_string($position, 'instrument_name');
+        $market = $this->safe_market($contract, $market);
+        $size = $this->safe_string($position, 'size');
+        $side = $this->safe_string($position, 'direction');
+        $maintenanceRate = $this->safe_string($position, 'maintenance_margin');
+        $markPrice = $this->safe_string($position, 'mark_price');
+        $notionalString = Precise::string_mul($markPrice, $size);
+        $unrealisedPnl = $this->safe_string($position, 'floating_profit_loss');
+        $initialMarginString = $this->safe_string($position, 'initial_margin');
+        $percentage = Precise::string_mul(Precise::string_div($unrealisedPnl, $initialMarginString), '100');
+        $currentTime = $this->milliseconds();
+        return array(
+            'info' => $position,
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'timestamp' => $currentTime,
+            'datetime' => $this->iso8601($currentTime),
+            'initialMargin' => $this->parse_number($initialMarginString),
+            'initialMarginPercentage' => $this->parse_number(Precise::string_div($initialMarginString, $notionalString)),
+            'maintenanceMargin' => $this->parse_number(Precise::string_mul($maintenanceRate, $notionalString)),
+            'maintenanceMarginPercentage' => $this->parse_number($maintenanceRate),
+            'entryPrice' => $this->safe_string($position, 'average_price'),
+            'notional' => $this->parse_number($notionalString),
+            'leverage' => $this->safe_number($position, 'leverage'),
+            'unrealizedPnl' => $this->parse_number($unrealisedPnl),
+            'contracts' => $this->parse_number($size),  // in USD for perpetuals on deribit
+            'contractSize' => $this->safe_value($market, 'contractSize'),
+            'marginRatio' => null,
+            'liquidationPrice' => $this->safe_number($position, 'estimated_liquidation_price'),
+            'markPrice' => $markPrice,
+            'collateral' => null,
+            'marginType' => null,
+            'side' => $side,
+            'percentage' => $this->parse_number($percentage),
+        );
+    }
+
     public function fetch_position($symbol, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
@@ -1720,8 +1785,16 @@ class deribit extends Exchange {
         //         }
         //     }
         //
-        // todo unify parsePosition/parsePositions
         $result = $this->safe_value($response, 'result');
+        return $this->parse_position($result);
+    }
+
+    public function parse_positions($positions) {
+        $result = array();
+        for ($i = 0; $i < count($positions); $i++) {
+            $result[] = $this->parse_position($positions[$i]);
+        }
+        // todo unify parsePositions
         return $result;
     }
 
@@ -1762,8 +1835,46 @@ class deribit extends Exchange {
         //         )
         //     }
         //
-        // todo unify parsePosition/parsePositions
+        // $response is returning an empty list for $result
+        // todo unify parsePositions
         $result = $this->safe_value($response, 'result', array());
+        $positions = $this->parse_positions($result);
+        return $this->filter_by_array($positions, 'symbol', $symbols, false);
+    }
+
+    public function fetch_historical_volatility($code, $params = array ()) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        $response = yield $this->publicGetGetHistoricalVolatility (array_merge($request, $params));
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "result" => [
+        //             [1640142000000,63.828320460740585],
+        //             [1640142000000,63.828320460740585],
+        //             [1640145600000,64.03821964123213]
+        //         ],
+        //         "usIn" => 1641515379467734,
+        //         "usOut" => 1641515379468095,
+        //         "usDiff" => 361,
+        //         "testnet" => false
+        //     }
+        //
+        $volatilityResult = $this->safe_value($response, 'result', array());
+        $result = array();
+        for ($i = 0; $i < count($volatilityResult); $i++) {
+            $timestamp = $this->safe_integer($volatilityResult[$i], 0);
+            $volatility = $this->safe_number($volatilityResult[$i], 1);
+            $result[] = array(
+                'info' => $response,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'volatility' => $volatility,
+            );
+        }
         return $result;
     }
 

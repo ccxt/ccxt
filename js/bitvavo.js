@@ -394,6 +394,8 @@ module.exports = class bitvavo extends Exchange {
                 'code': code,
                 'name': name,
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdrawal,
                 'fee': this.safeNumber (currency, 'withdrawalFee'),
                 'precision': precision,
                 'limits': {

@@ -339,7 +339,7 @@ class coinmate(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction(self, item, currency=None):
+    def parse_transaction(self, transaction, currency=None):
         #
         # deposits
         #
@@ -374,17 +374,18 @@ class coinmate(Exchange):
         #         destinationTag: null
         #     }
         #
-        timestamp = self.safe_integer(item, 'timestamp')
-        amount = self.safe_number(item, 'amount')
-        fee = self.safe_number(item, 'fee')
-        txid = self.safe_string(item, 'txid')
-        address = self.safe_string(item, 'destination')
-        tag = self.safe_string(item, 'destinationTag')
-        currencyId = self.safe_string(item, 'amountCurrency')
+        timestamp = self.safe_integer(transaction, 'timestamp')
+        amount = self.safe_number(transaction, 'amount')
+        fee = self.safe_number(transaction, 'fee')
+        txid = self.safe_string(transaction, 'txid')
+        address = self.safe_string(transaction, 'destination')
+        tag = self.safe_string(transaction, 'destinationTag')
+        currencyId = self.safe_string(transaction, 'amountCurrency')
         code = self.safe_currency_code(currencyId, currency)
-        type = self.safe_string_lower(item, 'transferType')
-        status = self.parse_transaction_status(self.safe_string(item, 'transferStatus'))
-        id = self.safe_string(item, 'transactionId')
+        type = self.safe_string_lower(transaction, 'transferType')
+        status = self.parse_transaction_status(self.safe_string(transaction, 'transferStatus'))
+        id = self.safe_string(transaction, 'transactionId')
+        network = self.safe_string(transaction, 'walletType')
         return {
             'id': id,
             'timestamp': timestamp,
@@ -393,14 +394,19 @@ class coinmate(Exchange):
             'amount': amount,
             'type': type,
             'txid': txid,
+            'network': network,
             'address': address,
+            'addressTo': None,
+            'addressFrom': None,
             'tag': tag,
+            'tagTo': None,
+            'tagFrom': None,
             'status': status,
             'fee': {
                 'cost': fee,
                 'currency': code,
             },
-            'info': item,
+            'info': transaction,
         }
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
@@ -416,8 +422,8 @@ class coinmate(Exchange):
         if since is not None:
             request['timestampFrom'] = since
         response = self.privatePostTradeHistory(self.extend(request, params))
-        items = response['data']
-        return self.parse_trades(items, None, since, limit)
+        data = self.safe_value(response, 'data', [])
+        return self.parse_trades(data, None, since, limit)
 
     def parse_trade(self, trade, market=None):
         #

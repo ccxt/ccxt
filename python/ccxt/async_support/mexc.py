@@ -51,13 +51,11 @@ class mexc(Exchange):
                 'fetchDeposits': True,
                 'fetchFundingRateHistory': True,
                 'fetchMarkets': True,
-                'fetchMarketsByType': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrdersByState': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
                 'fetchPositions': True,
@@ -78,6 +76,7 @@ class mexc(Exchange):
                 '30m': '30m',
                 '1h': '1h',
                 '1d': '1d',
+                '1w': '1w',
                 '1M': '1M',
             },
             'urls': {
@@ -513,14 +512,14 @@ class mexc(Exchange):
                 'spot': False,
                 'margin': False,
                 'swap': True,
-                'futures': False,
+                'future': False,
                 'option': False,
                 'contract': True,
                 'linear': True,
                 'inverse': False,
                 'taker': self.safe_number(market, 'takerFeeRate'),
                 'maker': self.safe_number(market, 'makerFeeRate'),
-                'contractSize': self.safe_string(market, 'contractSize'),
+                'contractSize': self.safe_number(market, 'contractSize'),
                 'active': (state == '0'),
                 'expiry': None,
                 'expiryDatetime': None,
@@ -1029,9 +1028,10 @@ class mexc(Exchange):
         market = self.market(symbol)
         options = self.safe_value(self.options, 'timeframes', {})
         timeframes = self.safe_value(options, market['type'], {})
+        timeframeValue = self.safe_string(timeframes, timeframe, timeframe)
         request = {
             'symbol': market['id'],
-            'interval': timeframes[timeframe],
+            'interval': timeframeValue,
         }
         method = None
         if market['spot']:
@@ -1416,12 +1416,16 @@ class mexc(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': network,
             'address': address,
+            'addressTo': None,
+            'addressFrom': None,
             'tag': None,
+            'tagTo': None,
+            'tagFrom': None,
             'type': type,
             'amount': amount,
             'currency': code,
-            'network': network,
             'status': status,
             'updated': updated,
             'fee': fee,

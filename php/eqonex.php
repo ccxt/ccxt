@@ -18,6 +18,7 @@ class eqonex extends Exchange {
             'countries' => array( 'US', 'SG' ), // United States, Singapore
             'rateLimit' => 10,
             'has' => array(
+                'fetchTradingLimits' => true,
                 'cancelOrder' => true,
                 'CORS' => null,
                 'createOrder' => true,
@@ -48,6 +49,7 @@ class eqonex extends Exchange {
                 '6h' => 5,
                 '1d' => 6,
                 '7d' => 7,
+                '1w' => 7,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/122649755-1a076c80-d138-11eb-8f2e-9a9166a03d79.jpg',
@@ -300,6 +302,8 @@ class eqonex extends Exchange {
             'precision' => $precision,
             'fee' => $fee,
             'active' => $active,
+            'deposit' => null,
+            'withdraw' => null,
             'limits' => array(
                 'amount' => array(
                     'min' => null,
@@ -366,7 +370,7 @@ class eqonex extends Exchange {
         $low = $this->parse_number($this->convert_from_scale($this->safe_string($ohlcv, 3), $market['precision']['price']));
         $close = $this->parse_number($this->convert_from_scale($this->safe_string($ohlcv, 4), $market['precision']['price']));
         $volume = $this->parse_number($this->convert_from_scale($this->safe_string($ohlcv, 5), $market['precision']['amount']));
-        return [$timestamp, $open, $high, $low, $close, $volume];
+        return array( $timestamp, $open, $high, $low, $close, $volume );
     }
 
     public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1, $market = null) {
@@ -1126,6 +1130,7 @@ class eqonex extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'addressFrom' => null,
             'address' => $address,
             'addressTo' => null,

@@ -20,6 +20,8 @@ class delta extends Exchange {
             'version' => 'v2',
             // new metainfo interface
             'has' => array(
+                'fetchPositions' => true,
+                'fetchPosition' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
@@ -126,24 +128,24 @@ class delta extends Exchange {
                     'taker' => 0.15 / 100,
                     'maker' => 0.10 / 100,
                     'tiers' => array(
-                        'taker' => [
-                            [0, 0.15 / 100],
-                            [100, 0.13 / 100],
-                            [250, 0.13 / 100],
-                            [1000, 0.1 / 100],
-                            [5000, 0.09 / 100],
-                            [10000, 0.075 / 100],
-                            [20000, 0.065 / 100],
-                        ],
-                        'maker' => [
-                            [0, 0.1 / 100],
-                            [100, 0.1 / 100],
-                            [250, 0.09 / 100],
-                            [1000, 0.075 / 100],
-                            [5000, 0.06 / 100],
-                            [10000, 0.05 / 100],
-                            [20000, 0.05 / 100],
-                        ],
+                        'taker' => array(
+                            array( 0, 0.15 / 100 ),
+                            array( 100, 0.13 / 100 ),
+                            array( 250, 0.13 / 100 ),
+                            array( 1000, 0.1 / 100 ),
+                            array( 5000, 0.09 / 100 ),
+                            array( 10000, 0.075 / 100 ),
+                            array( 20000, 0.065 / 100 ),
+                        ),
+                        'maker' => array(
+                            array( 0, 0.1 / 100 ),
+                            array( 100, 0.1 / 100 ),
+                            array( 250, 0.09 / 100 ),
+                            array( 1000, 0.075 / 100 ),
+                            array( 5000, 0.06 / 100 ),
+                            array( 10000, 0.05 / 100 ),
+                            array( 20000, 0.05 / 100 ),
+                        ),
                     ),
                 ),
             ),
@@ -260,6 +262,8 @@ class delta extends Exchange {
                 'name' => $this->safe_string($currency, 'name'),
                 'info' => $currency, // the original payload
                 'active' => $active,
+                'deposit' => $depositsEnabled,
+                'withdraw' => $withdrawalsEnabled,
                 'fee' => $this->safe_number($currency, 'base_withdrawal_fee'),
                 'precision' => 1 / pow(10, $precision),
                 'limits' => array(

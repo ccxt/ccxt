@@ -352,13 +352,6 @@ class bitrue extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function load_time_difference($params = array ()) {
-        $serverTime = $this->fetch_time($params);
-        $after = $this->milliseconds();
-        $this->options['timeDifference'] = $after - $serverTime;
-        return $this->options['timeDifference'];
-    }
-
     public function safe_network($networkId) {
         $uppercaseNetworkId = strtoupper($networkId);
         $networksById = array(
@@ -512,6 +505,8 @@ class bitrue extends Exchange {
                 'precision' => $precision,
                 'info' => $currency,
                 'active' => $active,
+                'deposit' => $enableDeposit,
+                'withdraw' => $enableWithdraw,
                 'networks' => $networks,
                 'fee' => $this->safe_number($currency, 'withdrawFee'),
                 // 'fees' => fees,

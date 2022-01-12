@@ -381,6 +381,8 @@ class ascendex extends Exchange {
                 'margin' => $margin,
                 'name' => $this->safe_string($currency, 'assetName'),
                 'active' => $active,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => $fee,
                 'precision' => intval($precision),
                 'limits' => array(
@@ -507,7 +509,7 @@ class ascendex extends Exchange {
             $type = $swap ? 'swap' : 'spot';
             $margin = $this->safe_value($market, 'marginTradable', false);
             $linear = $swap ? true : null;
-            $contractSize = $swap ? '1' : null;
+            $contractSize = $swap ? $this->parse_number('1') : null;
             $minQty = $this->safe_number($market, 'minQty');
             $maxQty = $this->safe_number($market, 'maxQty');
             $minPrice = $this->safe_number($market, 'tickSize');
@@ -2034,6 +2036,7 @@ class ascendex extends Exchange {
             'id' => $id,
             'currency' => $code,
             'amount' => $amount,
+            'network' => null,
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,

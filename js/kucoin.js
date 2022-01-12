@@ -425,14 +425,6 @@ module.exports = class kucoin extends Exchange {
         return this.milliseconds ();
     }
 
-    async loadTimeDifference (params = {}) {
-        const response = await this.publicGetTimestamp (params);
-        const after = this.milliseconds ();
-        const kucoinTime = this.safeInteger (response, 'data');
-        this.options['timeDifference'] = parseInt (after - kucoinTime);
-        return this.options['timeDifference'];
-    }
-
     async fetchTime (params = {}) {
         const response = await this.publicGetTimestamp (params);
         //
@@ -1790,6 +1782,7 @@ module.exports = class kucoin extends Exchange {
             'info': transaction,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': undefined,
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,

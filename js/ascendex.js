@@ -376,6 +376,8 @@ module.exports = class ascendex extends Exchange {
                 'margin': margin,
                 'name': this.safeString (currency, 'assetName'),
                 'active': active,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': fee,
                 'precision': parseInt (precision),
                 'limits': {
@@ -502,7 +504,7 @@ module.exports = class ascendex extends Exchange {
             const type = swap ? 'swap' : 'spot';
             const margin = this.safeValue (market, 'marginTradable', false);
             const linear = swap ? true : undefined;
-            const contractSize = swap ? '1' : undefined;
+            const contractSize = swap ? this.parseNumber ('1') : undefined;
             let minQty = this.safeNumber (market, 'minQty');
             let maxQty = this.safeNumber (market, 'maxQty');
             let minPrice = this.safeNumber (market, 'tickSize');
@@ -2029,6 +2031,7 @@ module.exports = class ascendex extends Exchange {
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': undefined,
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,

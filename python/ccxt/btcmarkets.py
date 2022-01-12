@@ -254,6 +254,7 @@ class btcmarkets(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'address': address,
             'addressTo': addressTo,
             'addressFrom': addressFrom,
@@ -458,18 +459,9 @@ class btcmarkets(Exchange):
         #         "timestamp":"2020-08-09T18:28:23.280000Z"
         #     }
         #
-        symbol = None
         marketId = self.safe_string(ticker, 'marketId')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        market = self.safe_market(marketId, market, '-')
+        symbol = market['symbol']
         timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
         last = self.safe_number(ticker, 'lastPrice')
         baseVolume = self.safe_number(ticker, 'volume24h')
@@ -477,7 +469,7 @@ class btcmarkets(Exchange):
         vwap = self.vwap(baseVolume, quoteVolume)
         change = self.safe_number(ticker, 'price24h')
         percentage = self.safe_number(ticker, 'pricePct24h')
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -498,7 +490,7 @@ class btcmarkets(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

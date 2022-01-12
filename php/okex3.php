@@ -24,6 +24,8 @@ class okex3 extends Exchange {
             'rateLimit' => 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'pro' => true,
             'has' => array(
+                'fetchPositions' => true,
+                'fetchPosition' => true,
                 'cancelOrder' => true,
                 'CORS' => null,
                 'createOrder' => true,
@@ -2705,6 +2707,7 @@ class okex3 extends Exchange {
             'id' => $id,
             'currency' => $code,
             'amount' => $amount,
+            'network' => null,
             'addressFrom' => $addressFrom,
             'addressTo' => $addressTo,
             'address' => $address,

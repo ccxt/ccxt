@@ -21,6 +21,7 @@ class kuna(Exchange):
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
+                'fetchL3OrderBook': True,
                 'cancelOrder': True,
                 'CORS': None,
                 'createOrder': True,

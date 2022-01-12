@@ -38,7 +38,7 @@ module.exports = async (exchange, symbol) => {
             console.log ('fetched', Object.keys (tickers).length, 'tickers')
         }
 
-        Object.values (tickers).forEach ((ticker) => testTicker (exchange, ticker, method, symbol))
+        Object.values (tickers).forEach ((ticker) => testTicker (exchange, ticker, undefined, symbol))
         return tickers
 
     } else {

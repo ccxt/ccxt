@@ -249,6 +249,8 @@ class cex extends Exchange {
                 'code' => $code,
                 'name' => $id,
                 'active' => $active,
+                'deposit' => null,
+                'withdraw' => null,
                 'precision' => $precision,
                 'fee' => null,
                 'limits' => array(
@@ -459,11 +461,8 @@ class cex extends Exchange {
         $bid = $this->safe_number($ticker, 'bid');
         $ask = $this->safe_number($ticker, 'ask');
         $last = $this->safe_number($ticker, 'last');
-        $symbol = null;
-        if ($market) {
-            $symbol = $market['symbol'];
-        }
-        return array(
+        $symbol = $this->safe_symbol(null, $market);
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -484,7 +483,7 @@ class cex extends Exchange {
             'baseVolume' => $volume,
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

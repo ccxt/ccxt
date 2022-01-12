@@ -1316,6 +1316,7 @@ module.exports = class exmo extends Exchange {
                 };
             }
         }
+        const network = this.safeString (transaction, 'provider');
         return {
             'info': transaction,
             'id': id,
@@ -1323,6 +1324,7 @@ module.exports = class exmo extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'currency': code,
             'amount': amount,
+            'network': network,
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,

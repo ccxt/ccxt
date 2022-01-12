@@ -83,12 +83,10 @@ class okex(Exchange):
                 'fetchLedgerEntry': None,
                 'fetchLeverage': True,
                 'fetchMarkets': True,
-                'fetchMarketsByType': True,
                 'fetchMarkOHLCV': True,
                 'fetchMyBuys': None,
                 'fetchMySells': None,
                 'fetchMyTrades': True,
-                'fetchNetworkDepositAddress': None,
                 'fetchOHLCV': True,
                 'fetchOpenOrder': None,
                 'fetchOpenOrders': True,
@@ -96,10 +94,7 @@ class okex(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrderBooks': None,
                 'fetchOrders': None,
-                'fetchOrdersByState': None,
-                'fetchOrdersByStatus': None,
                 'fetchOrderTrades': True,
-                'fetchPartiallyFilledOrders': None,
                 'fetchPosition': True,
                 'fetchPositions': True,
                 'fetchPositionsRisk': None,
@@ -107,7 +102,6 @@ class okex(Exchange):
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
-                'fetchTickersByType': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
@@ -115,13 +109,10 @@ class okex(Exchange):
                 'fetchTradingLimits': None,
                 'fetchTransactions': None,
                 'fetchTransfers': None,
-                'fetchWithdrawAddress': None,
-                'fetchWithdrawAddressesByNetwork': None,
                 'fetchWithdrawal': None,
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': None,
                 'loadLeverageBrackets': None,
-                'loadTimeDifference': None,
                 'reduceMargin': True,
                 'setLeverage': True,
                 'setMarginMode': True,
@@ -803,7 +794,7 @@ class okex(Exchange):
         fees = self.safe_value_2(self.fees, type, 'trading', {})
         contractSize = None
         if contract:
-            contractSize = self.safe_string(market, 'ctVal')
+            contractSize = self.safe_number(market, 'ctVal')
         leverage = self.safe_number(market, 'lever', 1)
         return self.extend(fees, {
             'id': id,
@@ -2762,6 +2753,7 @@ class okex(Exchange):
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': None,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'address': address,
@@ -3043,7 +3035,7 @@ class okex(Exchange):
             'unrealizedPnl': self.parse_number(unrealizedPnlString),
             'percentage': percentage,
             'contracts': contracts,
-            'contractSize': self.parse_number(market['contractSize']),
+            'contractSize': self.safe_value(market, 'contractSize'),
             'markPrice': self.parse_number(markPriceString),
             'side': side,
             'hedged': hedged,

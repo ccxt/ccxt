@@ -21,6 +21,7 @@ class gemini extends Exchange {
             'rateLimit' => 1500, // 200 for private API
             'version' => 'v1',
             'has' => array(
+                'fetchDepositAddressesByNetwork' => true,
                 'cancelOrder' => true,
                 'CORS' => null,
                 'createDepositAddress' => true,
@@ -829,8 +830,13 @@ class gemini extends Exchange {
             'txid' => $this->safe_string($transaction, 'txHash'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'address' => $address,
+            'addressTo' => null,
+            'addressFrom' => null,
             'tag' => null, // or is it defined?
+            'tagTo' => null,
+            'tagFrom' => null,
             'type' => $type, // direction of the $transaction, ('deposit' | 'withdraw')
             'amount' => $this->safe_number($transaction, 'amount'),
             'currency' => $code,
@@ -873,7 +879,7 @@ class gemini extends Exchange {
             'network' => $networkId,
         );
         $response = $this->privatePostV1AddressesNetwork (array_merge($request, $params));
-        $results = $this->parse_deposit_addresses($response, [$code], false, array( 'network' => $networkCode, 'currency' => $code ));
+        $results = $this->parse_deposit_addresses($response, array( $code ), false, array( 'network' => $networkCode, 'currency' => $code ));
         return $this->group_by($results, 'network');
     }
 

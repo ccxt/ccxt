@@ -226,6 +226,8 @@ class bitstamp(Exchange):
                         'gala_address/',
                         'shib_withdrawal/',
                         'shib_address/',
+                        'amp_withdrawal/',
+                        'amp_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
@@ -398,6 +400,8 @@ class bitstamp(Exchange):
             'type': currencyType,
             'name': name,
             'active': True,
+            'deposit': None,
+            'withdraw': None,
             'fee': self.safe_number(description['fees']['funding']['withdraw'], code),
             'precision': precision,
             'limits': {
@@ -437,6 +441,20 @@ class bitstamp(Exchange):
 
     def fetch_currencies(self, params={}):
         response = self.fetch_markets_from_cache(params)
+        #
+        #     [
+        #         {
+        #             "trading": "Enabled",
+        #             "base_decimals": 8,
+        #             "url_symbol": "btcusd",
+        #             "name": "BTC/USD",
+        #             "instant_and_market_orders": "Enabled",
+        #             "minimum_order": "20.0 USD",
+        #             "counter_decimals": 2,
+        #             "description": "Bitcoin / U.S. dollar"
+        #         },
+        #     ]
+        #
         result = {}
         for i in range(0, len(response)):
             market = response[i]
@@ -1173,6 +1191,7 @@ class bitstamp(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'address': address,

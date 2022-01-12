@@ -19,6 +19,7 @@ class ndax extends Exchange {
             'rateLimit' => 1000,
             'pro' => true,
             'has' => array(
+                'withdraw' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
