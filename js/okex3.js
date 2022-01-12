@@ -1022,6 +1022,8 @@ module.exports = class okex3 extends Exchange {
                     'type': undefined,
                     'name': name,
                     'active': active,
+                    'deposit': canDeposit,
+                    'withdraw': canWithdraw,
                     'fee': undefined, // todo: redesign
                     'precision': precision,
                     'limits': {
