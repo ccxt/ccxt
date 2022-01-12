@@ -426,7 +426,7 @@ module.exports = class hollaex extends Exchange {
             'average': undefined,
             'baseVolume': this.safeNumber (ticker, 'volume'),
             'quoteVolume': undefined,
-        });
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
