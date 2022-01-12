@@ -979,6 +979,8 @@ module.exports = class timex extends Exchange {
             'type': undefined,
             'name': name,
             'active': active,
+            'deposit': undefined,
+            'withdraw': undefined,
             'fee': fee,
             'precision': precision,
             'limits': {
