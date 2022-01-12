@@ -809,16 +809,10 @@ class bybit extends Exchange {
         if ($percentage !== null) {
             $percentage *= 100;
         }
-        $change = null;
-        $average = null;
-        if (($last !== null) && ($open !== null)) {
-            $change = $last - $open;
-            $average = $this->sum($open, $last) / 2;
-        }
         $baseVolume = $this->safe_number($ticker, 'turnover_24h');
         $quoteVolume = $this->safe_number($ticker, 'volume_24h');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -833,13 +827,13 @@ class bybit extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $change,
+            'change' => null,
             'percentage' => $percentage,
-            'average' => $average,
+            'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
