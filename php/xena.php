@@ -372,6 +372,8 @@ class xena extends Exchange {
                 'info' => $currency,
                 'name' => $name,
                 'active' => $active,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => $this->safe_number($withdraw, 'commission'),
                 'precision' => $precision,
                 'limits' => array(
