@@ -20,6 +20,11 @@ module.exports = class bitbns extends Exchange {
             'version': 'v2',
             // new metainfo interface
             'has': {
+                'spot': true,
+                'margin': undefined,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
@@ -201,12 +206,7 @@ module.exports = class bitbns extends Exchange {
             const quoteId = this.safeString (market, 'quote');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
             const marketPrecision = this.safeValue (market, 'precision', {});
-            const precision = {
-                'amount': this.safeInteger (marketPrecision, 'amount'),
-                'price': this.safeInteger (marketPrecision, 'price'),
-            };
             const marketLimits = this.safeValue (market, 'limits', {});
             const amountLimits = this.safeValue (marketLimits, 'amount', {});
             const priceLimits = this.safeValue (marketLimits, 'price', {});
@@ -217,17 +217,37 @@ module.exports = class bitbns extends Exchange {
             result.push ({
                 'id': id,
                 'uppercaseId': uppercaseId,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
                 'active': undefined,
-                'precision': precision,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeInteger (marketPrecision, 'amount'),
+                    'price': this.safeInteger (marketPrecision, 'price'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (amountLimits, 'min'),
                         'max': this.safeNumber (amountLimits, 'max'),
@@ -241,6 +261,7 @@ module.exports = class bitbns extends Exchange {
                         'max': this.safeNumber (costLimits, 'max'),
                     },
                 },
+                'info': market,
             });
         }
         return result;
