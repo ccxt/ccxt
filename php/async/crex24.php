@@ -550,7 +550,7 @@ class crex24 extends Exchange {
         $marketId = $this->safe_string($ticker, 'instrument');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $last = $this->safe_number($ticker, 'last');
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -571,7 +571,7 @@ class crex24 extends Exchange {
             'baseVolume' => $this->safe_number($ticker, 'baseVolume'),
             'quoteVolume' => $this->safe_number($ticker, 'quoteVolume'),
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

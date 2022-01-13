@@ -311,6 +311,8 @@ class whitebit(Exchange):
                 'info': currency,  # the original payload
                 'name': None,  # see the comment above
                 'active': active,
+                'deposit': canDeposit,
+                'withdraw': canWithdraw,
                 'fee': None,
                 'precision': None,
                 'limits': {

@@ -238,6 +238,8 @@ class latoken1 extends Exchange {
                 'info' => $currency,
                 'name' => $code,
                 'active' => $active,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => $fee,
                 'precision' => $precision,
                 'limits' => array(

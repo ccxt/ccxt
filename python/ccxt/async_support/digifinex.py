@@ -579,7 +579,7 @@ class digifinex(Exchange):
         timestamp = self.safe_timestamp(ticker, 'date')
         last = self.safe_number(ticker, 'last')
         percentage = self.safe_number(ticker, 'change')
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -600,7 +600,7 @@ class digifinex(Exchange):
             'baseVolume': self.safe_number(ticker, 'vol'),
             'quoteVolume': self.safe_number(ticker, 'base_vol'),
             'info': ticker,
-        }
+        }, market)
 
     def parse_trade(self, trade, market=None):
         #

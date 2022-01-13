@@ -307,6 +307,8 @@ class whitebit extends Exchange {
                 'info' => $currency, // the original payload
                 'name' => null, // see the comment above
                 'active' => $active,
+                'deposit' => $canDeposit,
+                'withdraw' => $canWithdraw,
                 'fee' => null,
                 'precision' => null,
                 'limits' => array(

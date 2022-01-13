@@ -168,11 +168,9 @@ class tidex extends Exchange {
             $code = $this->safe_currency_code($id);
             $visible = $this->safe_value($currency, 'visible');
             $active = $visible === true;
-            $withdrawEnable = $this->safe_value($currency, 'withdrawEnable');
-            $depositEnable = $this->safe_value($currency, 'depositEnable');
-            $canWithdraw = $withdrawEnable === true;
-            $canDeposit = $depositEnable === true;
-            if (!$canWithdraw || !$canDeposit) {
+            $withdrawEnable = $this->safe_value($currency, 'withdrawEnable', true);
+            $depositEnable = $this->safe_value($currency, 'depositEnable', true);
+            if (!$withdrawEnable || !$depositEnable) {
                 $active = false;
             }
             $name = $this->safe_string($currency, 'name');
@@ -182,14 +180,16 @@ class tidex extends Exchange {
                 'code' => $code,
                 'name' => $name,
                 'active' => $active,
+                'deposit' => $depositEnable,
+                'withdraw' => $withdrawEnable,
                 'precision' => $precision,
                 'funding' => array(
                     'withdraw' => array(
-                        'active' => $canWithdraw,
+                        'active' => $withdrawEnable,
                         'fee' => $fee,
                     ),
                     'deposit' => array(
-                        'active' => $canDeposit,
+                        'active' => $depositEnable,
                         'fee' => $this->parse_number('0'),
                     ),
                 ),

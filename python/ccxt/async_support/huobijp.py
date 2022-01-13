@@ -891,6 +891,8 @@ class huobijp(Exchange):
                 # 'transfer': None,
                 'name': name,
                 'active': active,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': None,  # todo need to fetch from fee endpoint
                 'precision': precision,
                 'limits': {
