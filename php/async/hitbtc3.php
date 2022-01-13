@@ -464,6 +464,8 @@ class hitbtc3 extends Exchange {
             $rawNetworks = $this->safe_value($entry, 'networks', array());
             $networks = array();
             $fee = null;
+            $depositEnabled = null;
+            $withdrawEnabled = null;
             for ($j = 0; $j < count($rawNetworks); $j++) {
                 $rawNetwork = $rawNetworks[$j];
                 $networkId = $this->safe_string($rawNetwork, 'protocol');
@@ -477,12 +479,24 @@ class hitbtc3 extends Exchange {
                 $payoutEnabledNetwork = $this->safe_value($entry, 'payout_enabled', false);
                 $transferEnabledNetwork = $this->safe_value($entry, 'transfer_enabled', false);
                 $active = $payinEnabledNetwork && $payoutEnabledNetwork && $transferEnabledNetwork;
+                if ($payinEnabledNetwork && !$depositEnabled) {
+                    $depositEnabled = true;
+                } else if (!$payinEnabledNetwork) {
+                    $depositEnabled = false;
+                }
+                if ($payoutEnabledNetwork && !$withdrawEnabled) {
+                    $withdrawEnabled = true;
+                } else if (!$payoutEnabledNetwork) {
+                    $withdrawEnabled = false;
+                }
                 $networks[$network] = array(
                     'info' => $rawNetwork,
                     'id' => $networkId,
                     'network' => $network,
                     'fee' => $fee,
                     'active' => $active,
+                    'deposit' => $payinEnabledNetwork,
+                    'withdraw' => $payoutEnabledNetwork,
                     'precision' => $precision,
                     'limits' => array(
                         'withdraw' => array(
@@ -501,6 +515,8 @@ class hitbtc3 extends Exchange {
                 'precision' => $precision,
                 'name' => $name,
                 'active' => $active,
+                'deposit' => $depositEnabled,
+                'withdraw' => $withdrawEnabled,
                 'networks' => $networks,
                 'fee' => ($networksLength <= 1) ? $fee : null,
                 'limits' => array(
