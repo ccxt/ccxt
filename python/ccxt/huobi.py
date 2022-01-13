@@ -2145,6 +2145,8 @@ class huobi(Exchange):
             minPrecision = None
             minWithdraw = None
             maxWithdraw = None
+            deposit = None
+            withdraw = None
             for j in range(0, len(chains)):
                 chain = chains[j]
                 networkId = self.safe_string(chain, 'chain')
@@ -2158,13 +2160,23 @@ class huobi(Exchange):
                 network = self.safe_network(baseChainProtocol)
                 minWithdraw = self.safe_number(chain, 'minWithdrawAmt')
                 maxWithdraw = self.safe_number(chain, 'maxWithdrawAmt')
-                withdraw = self.safe_string(chain, 'withdrawStatus')
-                deposit = self.safe_string(chain, 'depositStatus')
-                active = (withdraw == 'allowed') and (deposit == 'allowed')
+                withdrawStatus = self.safe_string(chain, 'withdrawStatus')
+                depositStatus = self.safe_string(chain, 'depositStatus')
+                withdrawEnabled = (withdrawStatus == 'allowed')
+                depositEnabled = (depositStatus == 'allowed')
+                active = withdrawEnabled and depositEnabled
                 precision = self.safe_string(chain, 'withdrawPrecision')
                 if precision is not None:
                     precision = self.parse_number('1e-' + precision)
                     minPrecision = precision if (minPrecision is None) else max(precision, minPrecision)
+                if withdrawEnabled and not withdraw:
+                    withdraw = True
+                elif not withdrawEnabled:
+                    withdraw = False
+                if depositEnabled and not deposit:
+                    deposit = True
+                elif not depositEnabled:
+                    deposit = False
                 fee = self.safe_number(chain, 'transactFeeWithdraw')
                 networks[network] = {
                     'info': chain,
@@ -2177,6 +2189,8 @@ class huobi(Exchange):
                         },
                     },
                     'active': active,
+                    'deposit': depositEnabled,
+                    'withdraw': withdrawEnabled,
                     'fee': fee,
                     'precision': precision,
                 }
@@ -2187,6 +2201,8 @@ class huobi(Exchange):
                 'code': code,
                 'id': currencyId,
                 'active': currencyActive,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': fee if (networkLength <= 1) else None,
                 'name': None,
                 'limits': {
