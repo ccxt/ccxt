@@ -304,8 +304,8 @@ module.exports = class idex extends Exchange {
         //   sequence: 3902
         // }
         const marketId = this.safeString (ticker, 'market');
-
-        const symbol = this.safeSymbol (marketId, market, '-');
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
         const timestamp = this.safeInteger (ticker, 'time');
         const close = this.safeNumber (ticker, 'close');
         return this.safeTicker ({
