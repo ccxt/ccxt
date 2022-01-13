@@ -250,13 +250,15 @@ module.exports = class vcc extends Exchange {
             const canDeposit = this.safeValue (currency, 'can_deposit');
             const canWithdraw = this.safeValue (currency, 'can_withdraw');
             const active = (canDeposit && canWithdraw);
+            const depositEnabled = (canDeposit === 1);
+            const withdrawEnabled = (canWithdraw === 1);
             result[code] = {
                 'id': id,
                 'code': code,
                 'name': this.safeString (currency, 'name'),
                 'active': active,
-                'deposit': canDeposit,
-                'withdraw': canWithdraw,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': this.safeNumber (currency, 'withdrawal_fee'),
                 'precision': this.safeInteger (currency, 'decimal'),
                 'limits': {
