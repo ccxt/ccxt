@@ -455,6 +455,8 @@ module.exports = class hitbtc3 extends Exchange {
             const rawNetworks = this.safeValue (entry, 'networks', []);
             const networks = {};
             let fee = undefined;
+            let depositEnabled = true;
+            let withdrawEnabled = true;
             for (let j = 0; j < rawNetworks.length; j++) {
                 const rawNetwork = rawNetworks[j];
                 let networkId = this.safeString (rawNetwork, 'protocol');
@@ -468,14 +470,20 @@ module.exports = class hitbtc3 extends Exchange {
                 const payoutEnabledNetwork = this.safeValue (entry, 'payout_enabled', false);
                 const transferEnabledNetwork = this.safeValue (entry, 'transfer_enabled', false);
                 const active = payinEnabledNetwork && payoutEnabledNetwork && transferEnabledNetwork;
+                if (!payinEnabledNetwork) {
+                    depositEnabled = false;
+                }
+                if (!payoutEnabledNetwork) {
+                    withdrawEnabled = false;
+                }
                 networks[network] = {
                     'info': rawNetwork,
                     'id': networkId,
                     'network': network,
                     'fee': fee,
                     'active': active,
-                    'deposit': payinEnabled,
-                    'withdraw': payoutEnabled,
+                    'deposit': payinEnabledNetwork,
+                    'withdraw': payoutEnabledNetwork,
                     'precision': precision,
                     'limits': {
                         'withdraw': {
@@ -494,6 +502,8 @@ module.exports = class hitbtc3 extends Exchange {
                 'precision': precision,
                 'name': name,
                 'active': active,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'networks': networks,
                 'fee': (networksLength <= 1) ? fee : undefined,
                 'limits': {
