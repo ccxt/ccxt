@@ -112,6 +112,7 @@ module.exports = class yobit extends Exchange {
                 'DIRT': 'DIRTY',
                 'DROP': 'FaucetCoin',
                 'DSH': 'DASH',
+                'EGC': 'EverGreenCoin',
                 'EGG': 'EggCoin',
                 'EKO': 'EkoCoin',
                 'ENTER': 'ENTRC',
