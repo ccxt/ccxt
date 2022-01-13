@@ -311,6 +311,8 @@ class ndax(Exchange):
                 'precision': precision,
                 'info': currency,
                 'active': active,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
                 'limits': self.limits,
             }
