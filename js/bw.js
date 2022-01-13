@@ -285,6 +285,10 @@ module.exports = class bw extends Exchange {
             const id = this.safeString (currency, 'currencyId');
             const code = this.safeCurrencyCode (this.safeStringUpper (currency, 'name'));
             const state = this.safeInteger (currency, 'state');
+            const rechargeFlag = this.safeInteger (currency, 'rechargeFlag');
+            const drawFlag = this.safeInteger (currency, 'drawFlag');
+            const deposit = rechargeFlag === 1;
+            const withdraw = drawFlag === 1;
             const active = state === 1;
             result[code] = {
                 'id': id,
@@ -292,8 +296,8 @@ module.exports = class bw extends Exchange {
                 'info': currency,
                 'name': code,
                 'active': active,
-                'deposit': undefined,
-                'withdraw': undefined,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': this.safeNumber (currency, 'drawFee'),
                 'precision': undefined,
                 'limits': {
