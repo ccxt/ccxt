@@ -241,6 +241,8 @@ module.exports = class ripio extends Exchange {
                 'name': name,
                 'info': currency, // the original payload
                 'active': active,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
                 'precision': precision,
                 'limits': {
