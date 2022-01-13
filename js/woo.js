@@ -652,7 +652,7 @@ module.exports = class woo extends Exchange {
             'side': side.toUpperCase (),
         };
         if (price !== undefined) {
-            request['order_price'] = price; // TODO:   this.priceToPrecision (symbol, price);  --> rounds-dow 1.01 to 1.0 , for WOO_USDT
+            request['order_price'] = this.priceToPrecision (symbol, price);
         }
         if (type === 'market') {
             // for market buy it requires the amount of quote currency to spend
