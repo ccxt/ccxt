@@ -338,8 +338,8 @@ class okex extends Exchange {
                     '51009' => '\\ccxt\\AccountSuspended', // Order placement function is blocked by the platform
                     '51010' => '\\ccxt\\InsufficientFunds', // Account level too low
                     '51011' => '\\ccxt\\InvalidOrder', // Duplicated order ID
-                    '51012' => '\\ccxt\\ExchangeError', // Token does not exist
-                    '51014' => '\\ccxt\\ExchangeError', // Index does not exist
+                    '51012' => '\\ccxt\\BadSymbol', // Token does not exist
+                    '51014' => '\\ccxt\\BadSymbol', // Index does not exist
                     '51015' => '\\ccxt\\BadSymbol', // Instrument ID does not match instrument type
                     '51016' => '\\ccxt\\InvalidOrder', // Duplicated client order ID
                     '51017' => '\\ccxt\\ExchangeError', // Borrow amount exceeds the limit
