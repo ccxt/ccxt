@@ -332,8 +332,8 @@ module.exports = class okex extends Exchange {
                     '51009': AccountSuspended, // Order placement function is blocked by the platform
                     '51010': InsufficientFunds, // Account level too low
                     '51011': InvalidOrder, // Duplicated order ID
-                    '51012': ExchangeError, // Token does not exist
-                    '51014': ExchangeError, // Index does not exist
+                    '51012': BadSymbol, // Token does not exist
+                    '51014': BadSymbol, // Index does not exist
                     '51015': BadSymbol, // Instrument ID does not match instrument type
                     '51016': InvalidOrder, // Duplicated client order ID
                     '51017': ExchangeError, // Borrow amount exceeds the limit
