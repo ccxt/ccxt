@@ -658,10 +658,7 @@ module.exports = class kraken extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         const timestamp = this.milliseconds ();
-        let symbol = undefined;
-        if (market) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (undefined, market);
         const baseVolume = parseFloat (ticker['v'][1]);
         const vwap = parseFloat (ticker['p'][1]);
         let quoteVolume = undefined;
@@ -669,7 +666,7 @@ module.exports = class kraken extends Exchange {
             quoteVolume = baseVolume * vwap;
         }
         const last = parseFloat (ticker['c'][0]);
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -690,7 +687,7 @@ module.exports = class kraken extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
