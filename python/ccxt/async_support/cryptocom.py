@@ -1716,9 +1716,7 @@ class cryptocom(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         errorCode = self.safe_string(response, 'code')
-        message = self.safe_string(response, 'message')
-        if errorCode in self.exceptions['exact']:
-            Exception = self.exceptions['exact'][errorCode]
-            raise Exception(self.id + ' ' + message)
         if errorCode != '0':
-            raise ExchangeError(self.id + ' ' + message)
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+            raise ExchangeError(self.id + ' ' + body)

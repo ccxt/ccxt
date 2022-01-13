@@ -658,16 +658,14 @@ class kraken(Exchange):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
-        symbol = None
-        if market:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(None, market)
         baseVolume = float(ticker['v'][1])
         vwap = float(ticker['p'][1])
         quoteVolume = None
         if baseVolume is not None and vwap is not None:
             quoteVolume = baseVolume * vwap
         last = float(ticker['c'][0])
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -688,7 +686,7 @@ class kraken(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()

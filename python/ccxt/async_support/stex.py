@@ -311,6 +311,8 @@ class stex(Exchange):
                 'type': None,
                 'name': self.safe_string(currency, 'name'),
                 'active': active,
+                'deposit': None,
+                'withdraw': None,
                 'fee': fee,
                 'precision': int(precision),
                 'limits': {

@@ -383,6 +383,8 @@ class zb extends Exchange {
                 'precision' => $precision,
                 'info' => $currency,
                 'active' => $active,
+                'deposit' => $isDepositEnabled,
+                'withdraw' => $isWithdrawEnabled,
                 'fee' => null,
                 'fees' => $fees,
                 'limits' => $this->limits,
