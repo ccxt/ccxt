@@ -656,10 +656,7 @@ module.exports = class kraken extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         const timestamp = this.milliseconds ();
-        let symbol = undefined;
-        if (market) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (undefined, market);
         const baseVolume = parseFloat (ticker['v'][1]);
         const vwap = parseFloat (ticker['p'][1]);
         let quoteVolume = undefined;
