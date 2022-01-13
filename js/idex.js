@@ -5,7 +5,6 @@
 const Exchange = require ('./base/Exchange');
 const { PAD_WITH_ZERO } = require ('./base/functions/number');
 const { InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest, NotSupported, InvalidAddress, AuthenticationError } = require ('./base/errors');
-const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
 
@@ -427,44 +426,48 @@ module.exports = class idex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
         // public trades
-        // {
-        //   fillId: 'b5467d00-b13e-3fa9-8216-dd66735550fc',
-        //   price: '0.09771286',
-        //   quantity: '1.45340410',
-        //   quoteQuantity: '0.14201627',
-        //   time: 1598345638994,
-        //   makerSide: 'buy',
-        //   sequence: 3853
-        // }
+        //  {
+        //      "fillId":"a4883704-850b-3c4b-8588-020b5e4c62f1",
+        //      "price":"0.20377008",
+        //      "quantity":"47.58448728",
+        //      "quoteQuantity":"9.69629509",
+        //      "time":1642091300873,
+        //      "makerSide":"buy",
+        //      "type":"hybrid",        // one of either: "orderBook", "hybrid", or "pool"
+        //      "sequence":31876
+        //  }
+        //
         // private trades
-        // {
-        //   fillId: '48582d10-b9bb-3c4b-94d3-e67537cf2472',
-        //   price: '0.09905990',
-        //   quantity: '0.40000000',
-        //   quoteQuantity: '0.03962396',
-        //   time: 1598873478762,
-        //   makerSide: 'sell',
-        //   sequence: 5053,
-        //   market: 'DIL-ETH',
-        //   orderId: '7cdc8e90-eb7d-11ea-9e60-4118569f6e63',
-        //   side: 'buy',
-        //   fee: '0.00080000',
-        //   feeAsset: 'DIL',
-        //   gas: '0.00857497',
-        //   liquidity: 'taker',
-        //   txId: '0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65',
-        //   txStatus: 'mined'
-        // }
+        //  {
+        //      "fillId":"83429066-9334-3582-b710-78858b2f0d6b",
+        //      "price":"0.20717368",
+        //      "quantity":"15.00000000",
+        //      "quoteQuantity":"3.10760523",
+        //      "orderBookQuantity":"0.00000003",
+        //      "orderBookQuoteQuantity":"0.00000001",
+        //      "poolQuantity":"14.99999997",
+        //      "poolQuoteQuantity":"3.10760522",
+        //      "time":1642083351215,
+        //      "makerSide":"sell",
+        //      "sequence":31795,
+        //      "market":"IDEX-USDC",
+        //      "orderId":"4fe993f0-747b-11ec-bd08-79d4a0b6e47c",
+        //      "side":"buy",
+        //      "fee":"0.03749989",
+        //      "feeAsset":"IDEX",
+        //      "gas":"0.40507261",
+        //      "liquidity":"taker",
+        //      "type":"hybrid",
+        //      "txId":"0x69f6d82a762d12e3201efd0b3e9cc1969351e3c6ea3cf07c47c66bf24a459815",
+        //      "txStatus":"mined"
+        //  }
+        //
         const id = this.safeString (trade, 'fillId');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'quantity');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        let cost = this.safeNumber (trade, 'quoteQuantity');
-        if (cost === undefined) {
-            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        }
+        const costString = this.safeString (trade, 'quoteQuantity');
         const timestamp = this.safeInteger (trade, 'time');
         const marketId = this.safeString (trade, 'market');
         const symbol = this.safeSymbol (marketId, market, '-');
@@ -473,17 +476,17 @@ module.exports = class idex extends Exchange {
         const oppositeSide = (makerSide === 'buy') ? 'sell' : 'buy';
         const side = this.safeString (trade, 'side', oppositeSide);
         const takerOrMaker = this.safeString (trade, 'liquidity', 'taker');
-        const feeCost = this.safeNumber (trade, 'fee');
+        const feeCostString = this.safeString (trade, 'fee');
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'feeAsset');
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': this.safeCurrencyCode (feeCurrencyId),
             };
         }
         const orderId = this.safeString (trade, 'orderId');
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -493,11 +496,11 @@ module.exports = class idex extends Exchange {
             'type': 'limit',
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
