@@ -238,6 +238,8 @@ class latoken1(Exchange):
                 'info': currency,
                 'name': code,
                 'active': active,
+                'deposit': None,
+                'withdraw': None,
                 'fee': fee,
                 'precision': precision,
                 'limits': {

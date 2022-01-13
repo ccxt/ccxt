@@ -182,11 +182,9 @@ class tidex(Exchange):
             code = self.safe_currency_code(id)
             visible = self.safe_value(currency, 'visible')
             active = visible is True
-            withdrawEnable = self.safe_value(currency, 'withdrawEnable')
-            depositEnable = self.safe_value(currency, 'depositEnable')
-            canWithdraw = withdrawEnable is True
-            canDeposit = depositEnable is True
-            if not canWithdraw or not canDeposit:
+            withdrawEnable = self.safe_value(currency, 'withdrawEnable', True)
+            depositEnable = self.safe_value(currency, 'depositEnable', True)
+            if not withdrawEnable or not depositEnable:
                 active = False
             name = self.safe_string(currency, 'name')
             fee = self.safe_number(currency, 'withdrawFee')
@@ -195,14 +193,16 @@ class tidex(Exchange):
                 'code': code,
                 'name': name,
                 'active': active,
+                'deposit': depositEnable,
+                'withdraw': withdrawEnable,
                 'precision': precision,
                 'funding': {
                     'withdraw': {
-                        'active': canWithdraw,
+                        'active': withdrawEnable,
                         'fee': fee,
                     },
                     'deposit': {
-                        'active': canDeposit,
+                        'active': depositEnable,
                         'fee': self.parse_number('0'),
                     },
                 },

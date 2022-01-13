@@ -1802,13 +1802,10 @@ module.exports = class cryptocom extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const errorCode = this.safeString (response, 'code');
-        const message = this.safeString (response, 'message');
-        if (errorCode in this.exceptions['exact']) {
-            const Exception = this.exceptions['exact'][errorCode];
-            throw new Exception (this.id + ' ' + message);
-        }
         if (errorCode !== '0') {
-            throw new ExchangeError (this.id + ' ' + message);
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            throw new ExchangeError (this.id + ' ' + body);
         }
     }
 };

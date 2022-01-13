@@ -586,9 +586,11 @@ class exmo(Exchange):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_timestamp(ticker, 'updated')
-        symbol = self.safe_symbol(None, market)
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         last = self.safe_number(ticker, 'last_trade')
-        return self.safe_ticker({
+        return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -609,7 +611,7 @@ class exmo(Exchange):
             'baseVolume': self.safe_number(ticker, 'vol'),
             'quoteVolume': self.safe_number(ticker, 'vol_curr'),
             'info': ticker,
-        }, market)
+        }
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()

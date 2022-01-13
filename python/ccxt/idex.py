@@ -312,7 +312,8 @@ class idex(Exchange):
         #   sequence: 3902
         # }
         marketId = self.safe_string(ticker, 'market')
-        symbol = self.safe_symbol(marketId, market, '-')
+        market = self.safe_market(marketId, market, '-')
+        symbol = market['symbol']
         baseVolume = self.safe_number(ticker, 'baseVolume')
         quoteVolume = self.safe_number(ticker, 'quoteVolume')
         timestamp = self.safe_integer(ticker, 'time')
@@ -325,10 +326,7 @@ class idex(Exchange):
         percentage = self.safe_number(ticker, 'percentChange')
         if percentage is not None:
             percentage = 1 + percentage / 100
-        change = None
-        if (close is not None) and (open is not None):
-            change = close - open
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -343,13 +341,13 @@ class idex(Exchange):
             'close': close,
             'last': close,
             'previousClose': None,
-            'change': change,
+            'change': None,
             'percentage': percentage,
             'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
@@ -572,6 +570,8 @@ class idex(Exchange):
                 'type': None,
                 'name': name,
                 'active': None,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
                 'precision': int(precisionString),
                 'limits': {

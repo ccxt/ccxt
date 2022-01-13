@@ -303,7 +303,7 @@ module.exports = class ftx extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    'Please slow down': RateLimitExceeded, // {"error":"Please slow down","success":false}
+                    'Slow down': RateLimitExceeded, // {"error":"Slow down","success":false}
                     'Size too small for provide': InvalidOrder, // {"error":"Size too small for provide","success":false}
                     'Not enough balances': InsufficientFunds, // {"error":"Not enough balances","success":false}
                     'InvalidPrice': InvalidOrder, // {"error":"Invalid price","success":false}

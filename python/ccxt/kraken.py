@@ -574,6 +574,8 @@ class kraken(Exchange):
                 'info': currency,
                 'name': code,
                 'active': active,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
                 'precision': precision,
                 'limits': {

@@ -30,6 +30,7 @@ function test_ohlcv($exchange, $ohlcv, $symbol, $now) {
         'bitmex', // BitMEX API docs => also note the open price is equal to the close price of the previous timeframe bucket.
         'vcc', // same as BitMEX, the open price is equal to the close price of the previous timeframe bucket.
         'delta',
+        'cryptocom',
     );
 
     if (!$exchange->in_array($exchange->id, $skippedExchanges)) {
