@@ -2540,44 +2540,40 @@ module.exports = class aax extends Exchange {
         const size = this.safeString (position, 'currentQty');
         let side = undefined;
         if (Precise.stringGt (size, '0')) {
-            side = 'buy';
+            side = 'long';
         } else if (Precise.stringLt (size, '0')) {
-            side = 'sell';
+            side = 'short';
         }
-        // const maintenanceRate = this.safeString (position, 'maintenance_rate');
-        // const notional = this.safeString (position, 'value');
         const leverage = this.safeString (position, 'leverage');
         const unrealisedPnl = this.safeString (position, 'unrealisedPnl');
-        // const realisedPnl = this.safeString (position, 'realisedPnl');
-        // Initial Position Margin = ( Position Value / Leverage ) + Close Position Fee
-        // const takerFee = this.fees['trading']['taker'];
-        // const feePaid = Precise.stringMul (takerFee, notional);
-        // const initialMarginString = this.safeString (position, 'posMargin');
-        // const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
+        const currentQty = this.safeString (position, 'currentQty');
+        const contractSize = this.safeString (market, 'contractSize');
+        const initialQuote = Precise.stringMul (currentQty, contractSize);
+        const marketPrice = this.safeString (position, 'marketPrice');
+        const notional = Precise.stringMul (initialQuote, marketPrice);
         const timestamp = this.safeInteger (position, 'ts');
         return {
             'info': position,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            // 'initialMargin': this.parseNumber (initialMarginString),
-            // 'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notional)),
-            // 'maintenanceMargin': this.parseNumber (Precise.stringMul (maintenanceRate, notional)),
-            // 'maintenanceMarginPercentage': this.parseNumber (maintenanceRate),
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
             'entryPrice': this.safeNumber (position, 'avgEntryPrice'),
-            // 'notional': this.parseNumber (notional),
+            'notional': this.parseNumber (notional),
             'leverage': this.parseNumber (leverage),
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'contracts': this.parseNumber (size),
-            'contractSize': this.safeNumber (market, 'contractSize'),
-            //     realisedPnl: position['realised_pnl'],
-            // 'marginRatio': undefined,
+            'contractSize': this.parseNumber (contractSize),
+            'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
             'markPrice': this.safeNumber (position, 'marketPrice'),
             'collateral': this.safeNumber (position, 'posMargin'),
             'marginType': this.safeString (position, 'settleType'),
             'side': side,
-            // 'percentage': this.parseNumber (percentage),
+            'percentage': undefined,
         };
     }
 
@@ -2635,7 +2631,7 @@ module.exports = class aax extends Exchange {
         return this.extend (position, {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-        })
+        });
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
@@ -2700,7 +2696,7 @@ module.exports = class aax extends Exchange {
         const positions = this.safeValue (response, 'data', []);
         const timestamp = this.safeInteger (response, 'ts');
         for (let i = 0; i < positions.length; i++) {
-            const position = this.parsePosition (positions[i])
+            const position = this.parsePosition (positions[i]);
             result.push (this.extend (position, {
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
