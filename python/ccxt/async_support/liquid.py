@@ -267,7 +267,9 @@ class liquid(Exchange):
             id = self.safe_string(currency, 'currency')
             code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'name')
-            active = currency['depositable'] and currency['withdrawable']
+            depositable = self.safe_value(currency, 'depositable')
+            withdrawable = self.safe_value(currency, 'withdrawable')
+            active = depositable and withdrawable
             amountPrecision = self.safe_integer(currency, 'assets_precision')
             result[code] = {
                 'id': id,
@@ -275,6 +277,8 @@ class liquid(Exchange):
                 'info': currency,
                 'name': name,
                 'active': active,
+                'deposit': depositable,
+                'withdraw': withdrawable,
                 'fee': self.safe_number(currency, 'withdrawal_fee'),
                 'precision': amountPrecision,
                 'limits': {
