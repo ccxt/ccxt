@@ -92,7 +92,7 @@ module.exports = class woo extends Exchange {
                     'public': {
                         'get': {
                             'info': 1,
-                            'info/:symbol': 1, // TO_DO
+                            'info/{symbol}': 1, // TO_DO
                             'market_trades': 1,
                             'token': 1,
                             'token_network': 1,
@@ -106,14 +106,14 @@ module.exports = class woo extends Exchange {
                             'orders': 1,
                             'orderbook/{symbol}': 1,
                             'kline': 1,
-                            'client/trade/:tid': 1, // implicit
+                            'client/trade/{tid}': 1, // implicit
                             'order/{oid}/trades': 1,
                             'client/trades': 1,
                             'client/info': 60,
                             'asset/deposit': 120,
                             'asset/history': 60,
                             'token_interest': 60, // implicit
-                            'token_interest/:token': 60, // implicit
+                            'token_interest/{token}': 60, // implicit
                             'interest/history': 60, // implicit
                             'interest/repay': 60, // implicit
                         },
@@ -473,7 +473,7 @@ module.exports = class woo extends Exchange {
             }
             const chainedCode = this.safeString (item, 'token');
             const networkSlug = chainedCode.split ('_')[0];
-            const networkId = this.detectChainSlug (networkSlug);
+            const networkId = this.safeDetectChainSlug (networkSlug);
             derivedCurrenciesData[code]['networks'][networkId] = {
                 'chained_currency_code': chainedCode,
                 'network_exchangeslug': networkSlug,
@@ -522,7 +522,7 @@ module.exports = class woo extends Exchange {
                     'networks': {},
                 };
             }
-            const networkId = this.detectChainSlug (this.safeString (item, 'protocol', ''));
+            const networkId = this.safeDetectChainSlug (this.safeString (item, 'protocol', ''));
             derivedNetworksData[code]['networks'][networkId] = {
                 'network_title': this.safeString (item, 'name'),
                 'allow_deposit': this.safeString (item, 'allow_deposit'),
@@ -542,15 +542,16 @@ module.exports = class woo extends Exchange {
             // if response1 each item contains only one child, then they are the same network . Quite bad behavior of their API for this matter, but as-is: the only solution is this as I think at this moment.
             const name = this.safeString (currencyMerged, 'fullname');
             const isActive = this.hasChildWithKeyValue (currencyNetworks, 'allow_deposit', 1) && this.hasChildWithKeyValue (currencyNetworks, 'allow_withdraw', 1);
+            const networks = this.parseTokenNetworks (code, currencyMerged['networks']);
             result[code] = {
                 'id': code,
                 'name': name,
                 'code': code,
-                'precision': undefined, // TODO: different networks have different precision
+                'precision': undefined,
                 'info': { 'currencyInfo': currencyInfo, 'networkInfo': currencyNetworks },
                 'active': isActive,
                 'fee': undefined, // TODO
-                'networks': currencyMerged['networks'],
+                'networks': networks,
                 'limits': {
                     'deposit': {
                         'min': undefined,
@@ -564,6 +565,82 @@ module.exports = class woo extends Exchange {
             };
         }
         return result;
+    }
+
+    parseTokenNetworks (code, chains) {
+        //
+        // i.e. for USDT code:
+        // {
+        //     ALGO: {
+        //       chained_currency_code: 'ALGO_USDT',
+        //       network_exchangeslug: 'ALGO',
+        //       decimals: '6',
+        //       network_title: 'Algorand',
+        //       allow_deposit: '1',
+        //       allow_withdraw: '1',
+        //       withdrawal_fee: '0.50000000',
+        //       minimum_withdrawal: '10.00000000',
+        //       info: { currencyInfo: [Object], networkInfo: [Object] },
+        //     },
+        //     BEP20: {
+        //       chained_currency_code: 'BSC_USDT',
+        //       network_exchangeslug: 'BSC',
+        //       decimals: '18',
+        //       network_title: 'Binance Smart Chain',
+        //       allow_deposit: '1',
+        //       allow_withdraw: '1',
+        //       withdrawal_fee: '1.00000000',
+        //       minimum_withdrawal: '15.00000000',
+        //       info: { currencyInfo: [Object], networkInfo: [Object] },
+        //     },
+        //     ERC20: {
+        //       chained_currency_code: 'ETH_USDT',
+        //       network_exchangeslug: 'ETH',
+        //       decimals: '6',
+        //       network_title: 'Ethereum',
+        //       allow_deposit: '1',
+        //       allow_withdraw: '1',
+        //       withdrawal_fee: '35.00000000',
+        //       minimum_withdrawal: '50.00000000',
+        //       info: { currencyInfo: [Object], networkInfo: [Object] },
+        //     },
+        //     TRC20: {
+        //       chained_currency_code: 'TRON_USDT',
+        //       network_exchangeslug: 'TRON',
+        //       decimals: '6',
+        //       network_title: 'Tron',
+        //       allow_deposit: '1',
+        //       allow_withdraw: '1',
+        //       withdrawal_fee: '1.00000000',
+        //       minimum_withdrawal: '30.00000000',
+        //       info: { currencyInfo: [Object], networkInfo: [Object] },
+        //     }
+        // }
+        const networks = {};
+        const keys = Object.keys (chains);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const chain = chains[key];
+            const networkId = this.safeString (chain, 'network_exchangeslug');
+            const networkUnifiedName = this.safeDetectChainSlug (key);
+            const withdrawAllowed = this.safeInteger (chain, 'allow_withdraw', 0) === 1;
+            const depositAllowed = this.safeInteger (chain, 'allow_deposit', 0) === 1;
+            networks[networkUnifiedName] = {
+                'id': networkId,
+                'network': networkUnifiedName,
+                'limits': {
+                    'withdraw': {
+                        'min': this.safeNumber (chain, 'minimum_withdrawal'),
+                        'max': undefined,
+                    },
+                },
+                'active': withdrawAllowed && depositAllowed,
+                'fee': this.safeNumber (chain, 'withdrawal_fee'),
+                'precision': this.safeInteger (chain, 'decimals'),
+                'info': chain,
+            };
+        }
+        return networks;
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1164,14 +1241,27 @@ module.exports = class woo extends Exchange {
         if (currency === undefined) {
             currency = this.getCurrencyByNetworkizedCode (networkizedCode);
         }
-        const code = currency['code'];
+        let code = undefined;
+        if (currency !== undefined) {
+            code = currency['code'];
+        } else {
+            const parts = networkizedCode.split ('_');
+            let currencyId = undefined;
+            if (parts.length > 1) {
+                currencyId = parts[1];
+            } else {
+                currencyId = parts[0];
+            }
+            code = this.safeCurrencyCode (currencyId);
+        }
         let movementDirection = this.safeStringLower (transaction, 'token_side');
         if (movementDirection === 'withdraw') {
             movementDirection = 'withdrawal';
         }
-        let fee_token = this.safeString (transaction, 'fee_token', '');
-        if (fee_token === '') {
-            fee_token = code;
+        const feeCurrencyId = this.safeString (transaction, 'fee_token', '');
+        let feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+        if (feeCurrencyCode === '') {
+            feeCurrencyCode = code;
         }
         const addressTo = this.safeString (transaction, 'target_address');
         const addressFrom = this.safeString (transaction, 'source_address');
@@ -1181,9 +1271,9 @@ module.exports = class woo extends Exchange {
             'txid': this.safeString (transaction, 'tx_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'address': movementDirection === 'deposit' ? addressTo : addressFrom, // TODO - should become deprecated property
-            'address_from': addressTo, // TODO - make unified property
-            'address_to': addressFrom, // TODO - make unified property
+            'address': undefined,
+            'addressFrom': addressFrom,
+            'addressTo': addressTo,
             'tag': this.safeString (transaction, 'extra'),
             'type': movementDirection,
             'amount': this.safeNumber (transaction, 'amount'),
@@ -1191,7 +1281,7 @@ module.exports = class woo extends Exchange {
             'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
             'updated': this.safeTimestamp (transaction, 'updated_time'),
             'fee': {
-                'currency': fee_token,
+                'currency': feeCurrencyCode,
                 'cost': this.safeNumber (transaction, 'fee_amount'),
                 'rate': undefined,
             },
@@ -1218,12 +1308,8 @@ module.exports = class woo extends Exchange {
         const request = {
             'type': 'COLLATERAL',
         };
-        params = this.omit (params, 'type'); // conflict! we need to change 'type' param for spot/futures into 'exchangeType'
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTransfers', undefined, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'v1PrivateGetAssetHistory',
-        });
-        const response = await this[method] (this.extend (request, query));
+        params = this.omit (params, 'type');
+        const response = await this.v1PrivateGetAssetHistory (this.extend (request, params));
         const rows = this.safeValue (response, 'rows');
         return this.parseTransfers (rows, currency, since, limit, params);
     }
@@ -1237,11 +1323,11 @@ module.exports = class woo extends Exchange {
         let fromAccount = undefined;
         let toAccount = undefined;
         if (movementDirection === 'withdraw') {
-            fromAccount = 'derivative';
+            fromAccount = 'derivatives';
             toAccount = 'spot';
         } else {
             fromAccount = 'spot';
-            toAccount = 'derivative';
+            toAccount = 'derivatives';
         }
         const timestamp = this.safeTimestamp (transfer, 'created_time');
         return {
@@ -1328,7 +1414,7 @@ module.exports = class woo extends Exchange {
             if (defaultNetworkCode !== undefined) {
                 const networks = this.safeValue (this.options, 'networks');
                 if (networks !== undefined) {
-                    const unifiedNetworkCode = userChosenNetork !== undefined ? this.detectChainSlug (userChosenNetork) : defaultNetworkCode;
+                    const unifiedNetworkCode = (userChosenNetork !== undefined) ? this.safeDetectChainSlug (userChosenNetork) : defaultNetworkCode;
                     const exchangeNetworkSlug = this.safeString (networks, unifiedNetworkCode, defaultNetworkCode);
                     if (exchangeNetworkSlug !== undefined) {
                         return {
@@ -1393,7 +1479,7 @@ module.exports = class woo extends Exchange {
         return undefined;
     }
 
-    getCurrencyByNetworkizedCode (chainedCode) { // TODO: this method can be moved into base
+    getCurrencyByNetworkizedCode (chainedCode) { // TODO: this method can be moved into base. it is not needed for all exchanges, but only for those exchange classes, which has composited ids (like "ETH_USDT", "TRC_USDT" ...)
         const keys = Object.keys (this.currencies);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -1416,10 +1502,6 @@ module.exports = class woo extends Exchange {
         return undefined;
     }
 
-    objectMemberAt (objOrArray, position) { // TODO: can be in base
-        return objOrArray[Object.keys (objOrArray)[position]];
-    }
-
     hasChildWithKeyValue (obj, targetKey, targetValue) {
         const keys = Object.keys (obj);
         for (let i = 0; i < keys.length; i++) {
@@ -1440,17 +1522,13 @@ module.exports = class woo extends Exchange {
         return str.toLowerCase ();
     }
 
-    detectChainSlug (type) { // TODO: this method can be moved into base
+    safeDetectChainSlug (type) { // TODO: this method can be moved into base ( all possible slugs list including other exchanges: https://pastebin.com/gXdZ3E4n )
         const type_S = this.sanitizestr (type);
         const chainsSlugs = {};
-        chainsSlugs['BTC'] = [ 'btc', 'btc-chain', 'btc-network', 'bitcoin', 'bitcoin-chain', 'bitcoin-network' ];
-        chainsSlugs['BEP20'] = [ 'bep', 'bep20', 'bep-20', 'bsc', 'bsc20', 'bsc-20', 'binance', 'binance-network', 'binance-smart-chain', 'bep20-bsc' ]; // i.e. lbank has 'bep20(bsc)'
-        chainsSlugs['BEP2'] = [ 'bep2', 'bep-2', 'bnb', 'binance-chain', 'binance-network' ];
-        chainsSlugs['ERC20'] = [ 'erc', 'erc20', 'erc-20', 'eth', 'eth20', 'eth-20', 'ethereum', 'ethereum-network', 'ethereum-chain' ];
-        chainsSlugs['HRC20'] = [ 'heco', 'hrc', 'hrc20', 'hrc-20', 'huobi', 'huobi-network', 'huobi-chain', 'huobi-eco-chain', 'eco-network', 'eco-chain' ];
-        chainsSlugs['TRC20'] = [ 'trc', 'trc20', 'trc-20', 'trx', 'trx20', 'trx-20', 'tron', 'tron-network', 'tron-chain', 'trx-chain', 'trx-network' ];
-        chainsSlugs['SOL'] = [ 'sol', 'solana', 'solana-network', 'solana-chain', 'sol-network', 'sol-chain' ];
-        chainsSlugs['MATIC'] = [ 'matic', 'matic-network', 'matic-chain', 'polygon', 'polygon-network', 'polygon-chain' ];
+        chainsSlugs['BTC'] = [ 'btc', 'bitcoin' ];
+        chainsSlugs['BEP20'] = [ 'bep', 'bep20', 'bsc' ];
+        chainsSlugs['ERC20'] = [ 'erc20', 'eth', 'ethereum' ];
+        chainsSlugs['TRC20'] = [ 'trc', 'trx' ];
         const keys = Object.keys (chainsSlugs);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
