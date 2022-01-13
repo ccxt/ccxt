@@ -305,45 +305,30 @@ module.exports = class idex extends Exchange {
         // }
         const marketId = this.safeString (ticker, 'market');
         const symbol = this.safeSymbol (marketId, market, '-');
-        const baseVolume = this.safeNumber (ticker, 'baseVolume');
-        const quoteVolume = this.safeNumber (ticker, 'quoteVolume');
         const timestamp = this.safeInteger (ticker, 'time');
-        const open = this.safeNumber (ticker, 'open');
-        const high = this.safeNumber (ticker, 'high');
-        const low = this.safeNumber (ticker, 'low');
         const close = this.safeNumber (ticker, 'close');
-        const ask = this.safeNumber (ticker, 'ask');
-        const bid = this.safeNumber (ticker, 'bid');
-        let percentage = this.safeNumber (ticker, 'percentChange');
-        if (percentage !== undefined) {
-            percentage = 1 + percentage / 100;
-        }
-        let change = undefined;
-        if ((close !== undefined) && (open !== undefined)) {
-            change = close - open;
-        }
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': high,
-            'low': low,
-            'bid': bid,
+            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeNumber (ticker, 'low'),
+            'bid': this.safeNumber (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': ask,
+            'ask': this.safeNumber (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': open,
+            'open': this.safeNumber (ticker, 'open'),
             'close': close,
             'last': close,
             'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
+            'change': undefined,
+            'percentage': this.safeNumber (ticker, 'percentChange'),
             'average': undefined,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'baseVolume': this.safeNumber (ticker, 'baseVolume'),
+            'quoteVolume': this.safeNumber (ticker, 'quoteVolume'),
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
