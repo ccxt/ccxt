@@ -159,6 +159,7 @@ module.exports = class probit extends Exchange {
                 'CBC': 'CryptoBharatCoin',
                 'CHE': 'Chellit',
                 'DIP': 'Dipper',
+                'EGC': 'EcoG9coin',
                 'EPS': 'Epanus',  // conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
                 'FX': 'Fanzy',
                 'GDT': 'Gorilla Diamond',
