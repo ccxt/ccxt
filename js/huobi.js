@@ -2213,6 +2213,8 @@ module.exports = class huobi extends Exchange {
             let minPrecision = undefined;
             let minWithdraw = undefined;
             let maxWithdraw = undefined;
+            let deposit = undefined;
+            let withdraw = undefined;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'chain');
@@ -2228,15 +2230,25 @@ module.exports = class huobi extends Exchange {
                 const network = this.safeNetwork (baseChainProtocol);
                 minWithdraw = this.safeNumber (chain, 'minWithdrawAmt');
                 maxWithdraw = this.safeNumber (chain, 'maxWithdrawAmt');
-                const withdraw = this.safeString (chain, 'withdrawStatus');
-                const deposit = this.safeString (chain, 'depositStatus');
-                const withdrawEnabled = (withdraw === 'allowed');
-                const depositEnabled = (deposit === 'allowed');
+                const withdrawStatus = this.safeString (chain, 'withdrawStatus');
+                const depositStatus = this.safeString (chain, 'depositStatus');
+                const withdrawEnabled = (withdrawStatus === 'allowed');
+                const depositEnabled = (depositStatus === 'allowed');
                 const active = withdrawEnabled && depositEnabled;
                 let precision = this.safeString (chain, 'withdrawPrecision');
                 if (precision !== undefined) {
                     precision = this.parseNumber ('1e-' + precision);
                     minPrecision = (minPrecision === undefined) ? precision : Math.max (precision, minPrecision);
+                }
+                if (withdrawEnabled && !withdraw) {
+                    withdraw = true;
+                } else if (!withdrawEnabled) {
+                    withdraw = false;
+                }
+                if (depositEnabled && !deposit) {
+                    deposit = true;
+                } else if (!depositEnabled) {
+                    deposit = false;
                 }
                 fee = this.safeNumber (chain, 'transactFeeWithdraw');
                 networks[network] = {
@@ -2263,8 +2275,8 @@ module.exports = class huobi extends Exchange {
                 'code': code,
                 'id': currencyId,
                 'active': currencyActive,
-                'deposit': undefined,
-                'withdraw': undefined,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': (networkLength <= 1) ? fee : undefined,
                 'name': undefined,
                 'limits': {
