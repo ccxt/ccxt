@@ -570,6 +570,8 @@ class idex(Exchange):
                 'type': None,
                 'name': name,
                 'active': None,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
                 'precision': int(precisionString),
                 'limits': {
