@@ -1014,6 +1014,8 @@ module.exports = class okex3 extends Exchange {
                 const name = this.safeString (currency, 'name');
                 const canDeposit = this.safeInteger (currency, 'can_deposit');
                 const canWithdraw = this.safeInteger (currency, 'can_withdraw');
+                const depositEnabled = (canDeposit === 1);
+                const withdrawEnabled = (canWithdraw === 1);
                 const active = (canDeposit && canWithdraw) ? true : false;
                 result[code] = {
                     'id': id,
@@ -1022,8 +1024,8 @@ module.exports = class okex3 extends Exchange {
                     'type': undefined,
                     'name': name,
                     'active': active,
-                    'deposit': canDeposit,
-                    'withdraw': canWithdraw,
+                    'deposit': depositEnabled,
+                    'withdraw': withdrawEnabled,
                     'fee': undefined, // todo: redesign
                     'precision': precision,
                     'limits': {
