@@ -15,7 +15,9 @@ module.exports = class idex extends Exchange {
             'id': 'idex',
             'name': 'IDEX',
             'countries': [ 'US' ],
-            'rateLimit': 1500,
+            // public data endpoints 5 requests a second => 1000ms / 5 = 200ms between requests roughly (without Authentication)
+            // all endpoints 10 requests a second => (1000ms / rateLimit) / 10 => 1 / 2 (with Authentication)
+            'rateLimit': 200,
             'version': 'v2',
             'pro': true,
             'certified': true,
@@ -65,38 +67,38 @@ module.exports = class idex extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'ping',
-                        'time',
-                        'exchange',
-                        'assets',
-                        'markets',
-                        'tickers',
-                        'candles',
-                        'trades',
-                        'orderbook',
-                        'wsToken',
-                    ],
+                    'get': {
+                        'ping': 1,
+                        'time': 1,
+                        'exchange': 1,
+                        'assets': 1,
+                        'markets': 1,
+                        'tickers': 1,
+                        'candles': 1,
+                        'trades': 1,
+                        'orderbook': 1,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'user',
-                        'wallets',
-                        'balances',
-                        'orders',
-                        'fills',
-                        'deposits',
-                        'withdrawals',
-                    ],
-                    'post': [
-                        'wallets',
-                        'orders',
-                        'orders/test',
-                        'withdrawals',
-                    ],
-                    'delete': [
-                        'orders',
-                    ],
+                    'get': {
+                        'user': 1,
+                        'wallets': 1,
+                        'balances': 1,
+                        'orders': 1,
+                        'fills': 1,
+                        'deposits': 1,
+                        'withdrawals': 1,
+                        'wsToken': 1,
+                    },
+                    'post': {
+                        'wallets': 1,
+                        'orders': 1,
+                        'orders/test': 1,
+                        'withdrawals': 1,
+                    },
+                    'delete': {
+                        'orders': 1,
+                    },
                 },
             },
             'options': {
@@ -121,11 +123,6 @@ module.exports = class idex extends Exchange {
             },
             'paddingMode': PAD_WITH_ZERO,
             'commonCurrencies': {},
-            'requireCredentials': {
-                'privateKey': true,
-                'apiKey': true,
-                'secret': true,
-            },
         });
     }
 
@@ -1053,11 +1050,13 @@ module.exports = class idex extends Exchange {
                 'side': side,
                 'type': type,
                 'wallet': this.walletAddress,
-                'timeInForce': timeInForce,
                 'selfTradePrevention': selfTradePrevention,
             },
             'signature': signature,
         };
+        if (type !== 'market') {
+            request['parameters']['timeInForce'] = timeInForce;
+        }
         if (limitOrder) {
             request['parameters']['price'] = priceString;
         }
@@ -1312,6 +1311,18 @@ module.exports = class idex extends Exchange {
             'updated': updated,
             'fee': fee,
         };
+    }
+
+    calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
+        const hasApiKey = (this.apiKey !== undefined);
+        const hasSecret = (this.secret !== undefined);
+        const hasWalletAddress = (this.walletAddress !== undefined);
+        const hasPrivateKey = (this.privateKey !== undefined);
+        if (hasApiKey && hasSecret && hasWalletAddress && hasPrivateKey) {
+            return 0.5;
+        } else {
+            return 1;
+        }
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
