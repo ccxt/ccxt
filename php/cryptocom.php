@@ -1807,13 +1807,10 @@ class cryptocom extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         $errorCode = $this->safe_string($response, 'code');
-        $message = $this->safe_string($response, 'message');
-        if (is_array($this->exceptions['exact']) && array_key_exists($errorCode, $this->exceptions['exact'])) {
-            $Exception = $this->exceptions['exact'][$errorCode];
-            throw new $Exception($this->id . ' ' . $message);
-        }
         if ($errorCode !== '0') {
-            throw new ExchangeError($this->id . ' ' . $message);
+            $feedback = $this->id . ' ' . $body;
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+            throw new ExchangeError($this->id . ' ' . $body);
         }
     }
 }
