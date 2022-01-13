@@ -360,15 +360,9 @@ module.exports = class buda extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         const timestamp = this.milliseconds ();
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (undefined, market);
         const last = parseFloat (ticker['last_price'][0]);
         const percentage = parseFloat (ticker['price_variation_24h']);
-        const open = parseFloat (this.priceToPrecision (symbol, last / (percentage + 1)));
-        const change = last - open;
-        const average = this.sum (last, open) / 2;
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -380,13 +374,13 @@ module.exports = class buda extends Exchange {
             'ask': parseFloat (ticker['min_ask'][0]),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': open,
+            'open': undefined,
             'close': last,
             'last': last,
-            'previousClose': open,
-            'change': change,
+            'previousClose': undefined,
+            'change': undefined,
             'percentage': percentage * 100,
-            'average': average,
+            'average': undefined,
             'baseVolume': parseFloat (ticker['volume'][0]),
             'quoteVolume': undefined,
             'info': ticker,
