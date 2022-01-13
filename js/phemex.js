@@ -739,6 +739,8 @@ module.exports = class phemex extends Exchange {
                 'code': code,
                 'name': name,
                 'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
                 'precision': precision,
                 'limits': {
