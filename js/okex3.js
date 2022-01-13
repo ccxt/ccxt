@@ -1097,26 +1097,9 @@ module.exports = class okex3 extends Exchange {
         //       quote_volume_24h: "15094.86831261"            }
         //
         const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
-        let symbol = undefined;
         const marketId = this.safeString (ticker, 'instrument_id');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        } else if (marketId !== undefined) {
-            const parts = marketId.split ('-');
-            const numParts = parts.length;
-            if (numParts === 2) {
-                const [ baseId, quoteId ] = parts;
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            } else {
-                symbol = marketId;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
         const last = this.safeNumber (ticker, 'last');
         const open = this.safeNumber (ticker, 'open_24h');
         return this.safeTicker ({
@@ -1140,7 +1123,7 @@ module.exports = class okex3 extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'base_volume_24h'),
             'quoteVolume': this.safeNumber (ticker, 'quote_volume_24h'),
             'info': ticker,
-        });
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
