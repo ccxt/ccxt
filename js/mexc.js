@@ -234,6 +234,7 @@ module.exports = class mexc extends Exchange {
                 'COFI': 'COFIX', // conflict with CoinFi
                 'DFT': 'dFuture',
                 'DRK': 'DRK',
+                'EGC': 'Egoras Credit',
                 'FLUX1': 'FLUX', // switched places
                 'FLUX': 'FLUX1', // switched places
                 'FREE': 'FreeRossDAO', // conflict with FREE Coin
