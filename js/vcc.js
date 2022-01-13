@@ -247,8 +247,8 @@ module.exports = class vcc extends Exchange {
             const id = this.safeStringLower (ids, i);
             const currency = this.safeValue (data, ids[i]);
             const code = this.safeCurrencyCode (id);
-            const canDeposit = this.safeValue (currency, 'can_deposit');
-            const canWithdraw = this.safeValue (currency, 'can_withdraw');
+            const canDeposit = this.safeInteger (currency, 'can_deposit');
+            const canWithdraw = this.safeInteger (currency, 'can_withdraw');
             const active = (canDeposit && canWithdraw);
             const depositEnabled = (canDeposit === 1);
             const withdrawEnabled = (canWithdraw === 1);
