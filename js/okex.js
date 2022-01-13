@@ -3814,6 +3814,38 @@ module.exports = class okex extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
+    async loadLeverageBrackets (reload = false, params = {}) {
+        await this.loadMarkets ();
+        // by default cache the leverage bracket
+        // it contains useful stuff like the maintenance margin and initial margin for positions
+        const request = {
+            'instType': this.safeString (params, 'instType', 'SWAP'),
+            'tdMode': this.safeString (params, 'tdMode', 'isolated'),
+            'uly': 'BTC-USD',
+        };
+        const leverageBrackets = this.safeValue (this.options, 'leverageBrackets');
+        if ((leverageBrackets === undefined) || (reload)) {
+            const response = await this.publicGetPublicPositionTiers (this.extend (request, params));
+            this.options['leverageBrackets'] = {};
+            const data = this.safeValue (response, 'data');
+            const leverageBrackets = {};
+            for (let i = 0; i < data.length; i++) {
+                const entry = data[i];
+                const marketId = this.safeString (entry, 'instId');
+                const symbol = this.safeSymbol (marketId);
+                if (!(symbol in leverageBrackets)) {
+                    leverageBrackets[symbol] = [];
+                }
+                // we use floats here internally on purpose
+                const floorValue = this.safeFloat (entry, 'minSz');
+                const maintenanceMarginPercentage = this.safeString (entry, 'mmr');
+                leverageBrackets[symbol].push ([ floorValue, maintenanceMarginPercentage ]);
+            }
+            this.options['leverageBrackets'] = leverageBrackets;
+        }
+        return this.options['leverageBrackets'];
+    }
+
     setSandboxMode (enable) {
         if (enable) {
             this.headers['x-simulated-trading'] = '1';
