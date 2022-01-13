@@ -740,6 +740,8 @@ class phemex(Exchange):
                 'code': code,
                 'name': name,
                 'active': None,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
                 'precision': precision,
                 'limits': {

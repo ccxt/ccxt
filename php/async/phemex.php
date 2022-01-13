@@ -743,6 +743,8 @@ class phemex extends Exchange {
                 'code' => $code,
                 'name' => $name,
                 'active' => null,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => null,
                 'precision' => $precision,
                 'limits' => array(
