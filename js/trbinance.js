@@ -584,14 +584,14 @@ module.exports = class trbinance extends Exchange {
         }
         if (since !== undefined) {
             request['startTime'] = since;
-            if (market['inverse']) {
-                if (since > 0) {
-                    const duration = this.parseTimeframe (timeframe);
-                    const endTime = this.sum (since, limit * duration * 1000 - 1);
-                    const now = this.milliseconds ();
-                    request['endTime'] = Math.min (now, endTime);
-                }
-            }
+            // if (market['inverse']) {
+            //     if (since > 0) {
+            //         const duration = this.parseTimeframe (timeframe);
+            //         const endTime = this.sum (since, limit * duration * 1000 - 1);
+            //         const now = this.milliseconds ();
+            //         request['endTime'] = Math.min (now, endTime);
+            //     }
+            // }
         }
         const method = 'publicGetKlines';
         const response = await this[method] (this.extend (request, params));
@@ -696,12 +696,12 @@ module.exports = class trbinance extends Exchange {
         const request = {
             'symbol': market['id'].replace ('_', ''),
         };
-        let method = 'publicGetTicker24hr';
-        if (market['linear']) {
-            method = 'fapiPublicGetTicker24hr';
-        } else if (market['inverse']) {
-            method = 'dapiPublicGetTicker24hr';
-        }
+        const method = 'publicGetTicker24hr';
+        // if (market['linear']) {
+        //     method = 'fapiPublicGetTicker24hr';
+        // } else if (market['inverse']) {
+        //     method = 'dapiPublicGetTicker24hr';
+        // }
         const response = await this[method] (this.extend (request, params));
         if (Array.isArray (response)) {
             const firstTicker = this.safeValue (response, 0, {});
