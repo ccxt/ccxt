@@ -14,7 +14,7 @@ module.exports = class ndax extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'ndax',
             'name': 'NDAX',
-            'countries': [ 'US' ], // United States
+            'countries': [ 'CA' ], // Canada
             'rateLimit': 1000,
             'pro': true,
             'has': {
