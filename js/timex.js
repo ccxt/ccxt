@@ -952,7 +952,10 @@ module.exports = class timex extends Exchange {
         const code = this.safeCurrencyCode (id);
         const name = this.safeString (currency, 'name');
         const precision = this.safeInteger (currency, 'decimals');
-        const active = this.safeValue (currency, 'active');
+        const depositEnabled = this.safeValue (currency, 'depositEnabled');
+        const withdrawEnabled = this.safeValue (currency, 'withdrawalEnabled');
+        const isActive = this.safeValue (currency, 'active');
+        const active = depositEnabled && withdrawEnabled && isActive;
         // const fee = this.safeNumber (currency, 'withdrawalFee');
         const feeString = this.safeString (currency, 'withdrawalFee');
         const tradeDecimals = this.safeInteger (currency, 'tradeDecimals');
@@ -979,8 +982,8 @@ module.exports = class timex extends Exchange {
             'type': undefined,
             'name': name,
             'active': active,
-            'deposit': undefined,
-            'withdraw': undefined,
+            'deposit': depositEnabled,
+            'withdraw': withdrawEnabled,
             'fee': fee,
             'precision': precision,
             'limits': {
