@@ -920,6 +920,8 @@ class huobijp extends Exchange {
                 // 'transfer' => null,
                 'name' => $name,
                 'active' => $active,
+                'deposit' => $depositEnabled,
+                'withdraw' => $withdrawEnabled,
                 'fee' => null, // todo need to fetch from fee endpoint
                 'precision' => $precision,
                 'limits' => array(
