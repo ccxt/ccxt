@@ -587,6 +587,8 @@ class idex extends Exchange {
                 'type' => null,
                 'name' => $name,
                 'active' => null,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => null,
                 'precision' => intval($precisionString),
                 'limits' => array(
