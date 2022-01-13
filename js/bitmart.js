@@ -713,7 +713,7 @@ module.exports = class bitmart extends Exchange {
         //
         const timestamp = this.safeTimestamp2 (ticker, 'timestamp', 's_t', this.milliseconds ());
         const marketId = this.safeString2 (ticker, 'symbol', 'contract_id');
-        market = this.safeMarket (marketId, market, '_');
+        market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const last = this.safeNumber2 (ticker, 'close_24h', 'last_price');
         let percentage = this.safeNumber2 (ticker, 'fluctuation', 'rise_fall_rate');
