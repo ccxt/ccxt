@@ -1264,8 +1264,8 @@ module.exports = class kucoinfutures extends kucoin {
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
-        if ((toAccount !== 'spot' && toAccount !== 'trade' && toAccount !== 'trading') || (fromAccount !== 'futures' && fromAccount !== 'future' && fromAccount !== 'contract')) {
-            throw new BadRequest (this.id + ' only supports transfers from contract(future) account to trade(spot) account');
+        if ((toAccount !== 'main' && toAccount !== 'funding') || (fromAccount !== 'futures' && fromAccount !== 'future' && fromAccount !== 'contract')) {
+            throw new BadRequest (this.id + ' only supports transfers from contract(future) account to main(funding) account');
         }
         return this.transferOut (code, amount, params);
     }
