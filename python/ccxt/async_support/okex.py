@@ -1055,7 +1055,7 @@ class okex(Exchange):
         quoteVolume = self.safe_number(ticker, 'volCcy24h')
         baseVolume = self.safe_number(ticker, 'vol24h')
         vwap = self.vwap(baseVolume, quoteVolume)
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1076,7 +1076,7 @@ class okex(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

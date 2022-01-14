@@ -1068,7 +1068,7 @@ class okex extends Exchange {
         $quoteVolume = $this->safe_number($ticker, 'volCcy24h');
         $baseVolume = $this->safe_number($ticker, 'vol24h');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -1089,7 +1089,7 @@ class okex extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
