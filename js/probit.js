@@ -365,8 +365,8 @@ module.exports = class probit extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                        'min': undefined,
+                        'max': undefined,
                     },
                     'deposit': {
                         'min': this.safeNumber (platform, 'min_deposit_amount'),
