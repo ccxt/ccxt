@@ -234,6 +234,41 @@ class hollaex extends Exchange {
 
     public function fetch_currencies($params = array ()) {
         $response = $this->publicGetConstants ($params);
+        //
+        //     {
+        //         "coins":array(
+        //             "bch":array(
+        //                 "id":4,
+        //                 "fullname":"Bitcoin Cash",
+        //                 "symbol":"bch",
+        //                 "active":true,
+        //                 "verified":true,
+        //                 "allow_deposit":true,
+        //                 "allow_withdrawal":true,
+        //                 "withdrawal_fee":0.0001,
+        //                 "min":0.001,
+        //                 "max":100000,
+        //                 "increment_unit":0.001,
+        //                 "logo":"https://bitholla.s3.ap-northeast-2.amazonaws.com/icon/BCH-hollaex-asset-01.svg",
+        //                 "code":"bch",
+        //                 "is_public":true,
+        //                 "meta":array(),
+        //                 "estimated_price":null,
+        //                 "description":null,
+        //                 "type":"blockchain",
+        //                 "network":null,
+        //                 "standard":null,
+        //                 "issuer":"HollaEx",
+        //                 "withdrawal_fees":null,
+        //                 "created_at":"2019-08-09T10:45:43.367Z",
+        //                 "updated_at":"2021-12-13T03:08:32.372Z",
+        //                 "created_by":1,
+        //                 "owner_id":1
+        //             ),
+        //         ),
+        //         "network":"https://api.hollaex.network"
+        //     }
+        //
         $coins = $this->safe_value($response, 'coins', array());
         $keys = is_array($coins) ? array_keys($coins) : array();
         $result = array();
@@ -244,7 +279,10 @@ class hollaex extends Exchange {
             $numericId = $this->safe_integer($currency, 'id');
             $code = $this->safe_currency_code($id);
             $name = $this->safe_string($currency, 'fullname');
-            $active = $this->safe_value($currency, 'active');
+            $depositEnabled = $this->safe_value($currency, 'allow_deposit');
+            $withdrawEnabled = $this->safe_value($currency, 'allow_withdrawal');
+            $isActive = $this->safe_value($currency, 'active');
+            $active = $isActive && $depositEnabled && $withdrawEnabled;
             $fee = $this->safe_number($currency, 'withdrawal_fee');
             $precision = $this->safe_number($currency, 'increment_unit');
             $withdrawalLimits = $this->safe_value($currency, 'withdrawal_limits', array());
@@ -255,6 +293,8 @@ class hollaex extends Exchange {
                 'info' => $currency,
                 'name' => $name,
                 'active' => $active,
+                'deposit' => $depositEnabled,
+                'withdraw' => $withdrawEnabled,
                 'fee' => $fee,
                 'precision' => $precision,
                 'limits' => array(
