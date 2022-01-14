@@ -292,6 +292,7 @@ class ascendex(Exchange):
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
                 'BYN': 'BeyondFi',
+                'PLN': 'Pollen',
             },
         })
 
