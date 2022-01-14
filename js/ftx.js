@@ -987,9 +987,13 @@ module.exports = class ftx extends Exchange {
         //         "baseCurrency": "BCHA",
         //         "quoteCurrency": "USD"
         //     }
+        //
         const id = this.safeString (trade, 'id');
         const takerOrMaker = this.safeString (trade, 'liquidity');
-        const marketId = this.safeString (trade, 'market');
+        // added handling for the OTC trades
+        const baseId = this.safeString (trade, 'baseCurrency');
+        const quoteId = this.safeString (trade, 'quoteCurrency');
+        const marketId = this.safeString (trade, 'market', baseId + '-' + quoteId);
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const timestamp = this.parse8601 (this.safeString (trade, 'time'));
