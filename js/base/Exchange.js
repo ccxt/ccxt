@@ -1383,17 +1383,30 @@ module.exports = class Exchange {
                 market = this.markets_by_id[marketId]
             } else if (delimiter !== undefined) {
                 // * Will not work for swap and futures markets
-                const [ baseId, quoteId ] = marketId.split (delimiter)
-                const base = this.safeCurrencyCode (baseId)
-                const quote = this.safeCurrencyCode (quoteId)
-                const symbol = base + '/' + quote
-                return {
-                    'id': marketId,
-                    'symbol': symbol,
-                    'base': base,
-                    'quote': quote,
-                    'baseId': baseId,
-                    'quoteId': quoteId,
+                const parts = marketId.split (delimiter)
+                if (parts.length === 2) {
+                    const baseId = this.safeString (parts, 0);
+                    const quoteId = this.safeString (parts, 0);
+                    const base = this.safeCurrencyCode (baseId)
+                    const quote = this.safeCurrencyCode (quoteId)
+                    const symbol = base + '/' + quote
+                    return {
+                        'id': marketId,
+                        'symbol': symbol,
+                        'base': base,
+                        'quote': quote,
+                        'baseId': baseId,
+                        'quoteId': quoteId,
+                    }
+                } else {
+                    return {
+                        'id': marketId,
+                        'symbol': marketId,
+                        'base': undefined,
+                        'quote': undefined,
+                        'baseId': undefined,
+                        'quoteId': undefined,
+                    }
                 }
             }
         }

@@ -2206,23 +2206,38 @@ class Exchange {
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
             } else if ($delimiter !== null) {
-                list($baseId, $quoteId) = explode($delimiter, $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-                return array(
-                    'symbol' => $symbol,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'baseId' => $baseId,
-                    'quoteId' => $quoteId,
-                );
+                $parts = explode($delimiter, $marketId);
+                if (count($parts) === 2) {
+                    $baseId = $this->safe_string($parts, 0);
+                    $quoteId = $this->safe_string($parts, 1);
+                    $base = $this->safe_currency_code($baseId);
+                    $quote = $this->safe_currency_code($quoteId);
+                    $symbol = $base . '/' . $quote;
+                    return array(
+                        'id' => $marketId,
+                        'symbol' => $symbol,
+                        'base' => $base,
+                        'quote' => $quote,
+                        'baseId' => $baseId,
+                        'quoteId' => $quoteId,
+                    );
+                } else {
+                    return array(
+                        'id' => $marketId,
+                        'symbol' => $marketId,
+                        'base' => null,
+                        'quote' => null,
+                        'baseId' => null,
+                        'quoteId' => null,
+                    );
+                }
             }
         }
         if ($market !== null) {
             return $market;
         }
         return array(
+            'id' => $marketId,
             'symbol' => $marketId,
             'base' => null,
             'quote' => null,
