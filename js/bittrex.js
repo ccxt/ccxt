@@ -326,7 +326,7 @@ module.exports = class bittrex extends Exchange {
                         'max': undefined,
                     },
                     'price': {
-                        'min': this.parseNumber ('1e-', pricePrecision),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
