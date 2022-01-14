@@ -990,9 +990,17 @@ class ftx extends Exchange {
         //         "baseCurrency" => "BCHA",
         //         "quoteCurrency" => "USD"
         //     }
+        //
         $id = $this->safe_string($trade, 'id');
         $takerOrMaker = $this->safe_string($trade, 'liquidity');
-        $marketId = $this->safe_string($trade, 'market');
+        // a workaround for the OTC trades, they don't have a $symbol
+        $baseId = $this->safe_string($trade, 'baseCurrency');
+        $quoteId = $this->safe_string($trade, 'quoteCurrency');
+        $defaultMarketId = null;
+        if (($baseId !== null) && ($quoteId !== null)) {
+            $defaultMarketId = $baseId . '-' . $quoteId;
+        }
+        $marketId = $this->safe_string($trade, 'market', $defaultMarketId);
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $timestamp = $this->parse8601($this->safe_string($trade, 'time'));
