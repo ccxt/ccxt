@@ -673,6 +673,46 @@ class Transpiler {
         return result
     }
 
+    // ========================================================================
+    // exchange capabilities ordering
+
+    areCapabilitiesAlreadySorted(capabilities) {
+        let secondIndex;
+        for(let firstIndex = 0; firstIndex < capabilities.length; firstIndex++){
+            secondIndex = firstIndex + 1;
+            if(capabilities[firstIndex] > capabilities[secondIndex]) return false;
+        }
+        return true;
+    }
+    
+    orderExchangeCapabilities(code) {
+        const lineBreak = '\n';
+        const capabilitiesPrefix = "'has': {" + lineBreak;
+        const capabilitiesSufix = '}';
+        const initHasObjectIndex = code.indexOf (capabilitiesPrefix);
+        if (initHasObjectIndex === -1) {
+            return null; // capabilities not found
+        }
+        const initExchangeCapabilities = code.substring (initHasObjectIndex).replace (capabilitiesPrefix, '');
+        const lastHasObjectIndex = initExchangeCapabilities.indexOf (capabilitiesSufix);
+        const exchangeCapabilitiesOnly = initExchangeCapabilities.substring (0, lastHasObjectIndex);
+        let capabilities = exchangeCapabilitiesOnly.split (lineBreak);
+        capabilities = capabilities.filter(item=>item != lineBreak)
+        const lastSpace = capabilities.pop();
+        if (areCapabilitiesAlreadySorted(capabilities)) {
+            return null;
+        }
+        capabilities.sort ();
+        const orderedCapabilities = capabilities.join (lineBreak);
+        const newCapabilitiesObject = capabilitiesPrefix + orderedCapabilities + lineBreak + lastSpace;
+        const currentCapabilitiesObject = capabilitiesPrefix + exchangeCapabilitiesOnly;
+        const finalResult = code.replace (currentCapabilitiesObject, newCapabilitiesObject);
+        if (finalResult.length !== code.length) {
+            return null; // something went wrong
+        }
+        return finalResult;
+    }
+
     // ------------------------------------------------------------------------
 
     createPHPClassDeclaration (className, baseClass) {
@@ -1060,7 +1100,8 @@ class Transpiler {
             const phpAsyncMtime = phpAsyncFolder ? (fs.existsSync (phpAsyncPath) ? fs.statSync (phpAsyncPath).mtime.getTime () : 0) : undefined
             const phpMtime      = phpPath        ? (fs.existsSync (phpPath)      ? fs.statSync (phpPath).mtime.getTime ()      : 0) : undefined
 
-            const contents = fs.readFileSync (jsFolder + filename, 'utf8')
+            const jsPath = jsFolder + filename;
+            const contents = fs.readFileSync (jsPath, 'utf8')
 
             if (force ||
                 (python3Folder  && (jsMtime > python3Mtime))  ||
