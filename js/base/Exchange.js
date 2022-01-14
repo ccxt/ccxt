@@ -1382,7 +1382,6 @@ module.exports = class Exchange {
             if (this.markets_by_id !== undefined && marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId]
             } else if (delimiter !== undefined) {
-                // * Will not work for swap and futures markets
                 const parts = marketId.split (delimiter)
                 if (parts.length === 2) {
                     const baseId = this.safeString (parts, 0);
