@@ -699,7 +699,7 @@ class Transpiler {
         let capabilities = exchangeCapabilitiesOnly.split (lineBreak);
         capabilities = capabilities.filter(item=>item != lineBreak)
         const lastSpace = capabilities.pop();
-        if (areCapabilitiesAlreadySorted(capabilities)) {
+        if (this.areCapabilitiesAlreadySorted(capabilities)) {
             return null;
         }
         capabilities.sort ();
