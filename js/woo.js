@@ -145,6 +145,19 @@ module.exports = class woo extends Exchange {
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
+                'network-aliases': {
+                    'ETH': 'ERC20',
+                    'TRON': 'TRC20',
+                    'BSC': 'BEP20',
+                    'SOL': 'SPL',
+                    'MATIC': 'POLYGON',
+                    // from 'token_network' endpoint
+                    'Ethereum': 'ERC20',
+                    'Tron': 'TRC20',
+                    'Binance Smart Chain': 'TRC20',
+                    'Solana': 'TRC20',
+                    'Polygon': 'POLYGON',
+                },
                 'networks': {
                     'ERC20': 'ETH',
                     'TRC20': 'TRX',
@@ -157,7 +170,7 @@ module.exports = class woo extends Exchange {
                     'BSC20',
                 ],
                 // if needed to change default network for specific token (as opposed to 'defaultNetworksPriorities' priorities) then list here
-                'defaultNetworks': {
+                'defaultNetworksForCodes': {
                     'USDT': 'TRC20',
                     'BTC': 'BTC',
                 },
@@ -471,12 +484,13 @@ module.exports = class woo extends Exchange {
                     'networks': {},
                 };
             }
-            const chainedCode = this.safeString (item, 'token');
-            const networkSlug = chainedCode.split ('_')[0];
-            const networkId = this.safeDetectChainSlug (networkSlug);
+            const chainedTokenCode = this.safeString (item, 'token');
+            const parts = chainedTokenCode.split ('_');
+            const networkId = parts.length === 2 ? this.safeString (parts, 0) : chainedTokenCode;
+            const networkUnifiedSlug = this.safeString (this.options['network-aliases'], networkId, networkId);
             derivedCurrenciesData[code]['networks'][networkId] = {
-                'chained_currency_code': chainedCode,
-                'network_exchangeslug': networkSlug,
+                'chained_currency_code': chainedTokenCode,
+                'network_exchangeslug': networkUnifiedSlug,
                 'decimals': this.safeString (item, 'decimals'),
                 'info': { 'currencyInfo': item },
             };
@@ -522,8 +536,9 @@ module.exports = class woo extends Exchange {
                     'networks': {},
                 };
             }
-            const networkId = this.safeDetectChainSlug (this.safeString (item, 'protocol', ''));
-            derivedNetworksData[code]['networks'][networkId] = {
+            const protocol = this.safeString (item, 'protocol', '');
+            const networkUnifiedSlug = this.safeString (this.options['network-aliases'], protocol, protocol);
+            derivedNetworksData[code]['networks'][networkUnifiedSlug] = {
                 'network_title': this.safeString (item, 'name'),
                 'allow_deposit': this.safeString (item, 'allow_deposit'),
                 'allow_withdraw': this.safeString (item, 'allow_withdraw'),
@@ -622,12 +637,12 @@ module.exports = class woo extends Exchange {
             const key = keys[i];
             const chain = chains[key];
             const networkId = this.safeString (chain, 'network_exchangeslug');
-            const networkUnifiedName = this.safeDetectChainSlug (key);
+            const networkUnifiedSlug = this.safeString (this.options['network-aliases'], key, key);
             const withdrawAllowed = this.safeInteger (chain, 'allow_withdraw', 0) === 1;
             const depositAllowed = this.safeInteger (chain, 'allow_deposit', 0) === 1;
-            networks[networkUnifiedName] = {
+            networks[networkUnifiedSlug] = {
                 'id': networkId,
-                'network': networkUnifiedName,
+                'network': networkUnifiedSlug,
                 'limits': {
                     'withdraw': {
                         'min': this.safeNumber (chain, 'minimum_withdrawal'),
@@ -1408,9 +1423,9 @@ module.exports = class woo extends Exchange {
         // at first, try to find if user or exchange has defined default networks for the specific currency
         const userChosenNetork = this.safeStringUpper (params, 'network');
         params = this.omit (params, 'network');
-        const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
-        if (defaultNetworks !== undefined) {
-            const defaultNetworkCode = this.safeStringUpper (defaultNetworks, code);
+        const defaultNetworksForCodes = this.safeValue (this.options, 'defaultNetworksForCodes');
+        if (defaultNetworksForCodes !== undefined) {
+            const defaultNetworkCode = this.safeStringUpper (defaultNetworksForCodes, code);
             if (defaultNetworkCode !== undefined) {
                 const networks = this.safeValue (this.options, 'networks');
                 if (networks !== undefined) {
@@ -1502,7 +1517,7 @@ module.exports = class woo extends Exchange {
         return undefined;
     }
 
-    hasChildWithKeyValue (obj, targetKey, targetValue) {
+    hasChildWithKeyValue (obj, targetKey, targetValue) { // TODO: This can be moved into base, because it's useful in analog cases
         const keys = Object.keys (obj);
         for (let i = 0; i < keys.length; i++) {
             const currentKey = keys[i];
@@ -1513,32 +1528,5 @@ module.exports = class woo extends Exchange {
             }
         }
         return false;
-    }
-
-    sanitizestr (str) { // TODO: this method can be moved into base
-        str = str.replace (' ', '-');
-        str = str.replace ('.', '-');
-        str = str.replace ('_', '-');
-        return str.toLowerCase ();
-    }
-
-    safeDetectChainSlug (type) { // TODO: this method can be moved into base ( all possible slugs list including other exchanges: https://pastebin.com/gXdZ3E4n )
-        const type_S = this.sanitizestr (type);
-        const chainsSlugs = {};
-        chainsSlugs['BTC'] = [ 'btc', 'bitcoin' ];
-        chainsSlugs['BEP20'] = [ 'bep', 'bep20', 'bsc' ];
-        chainsSlugs['ERC20'] = [ 'erc20', 'eth', 'ethereum' ];
-        chainsSlugs['TRC20'] = [ 'trc', 'trx' ];
-        const keys = Object.keys (chainsSlugs);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const chainPossibleSlugs = chainsSlugs[key];
-            for (let j = 0; j < chainPossibleSlugs.length; j++) {
-                if (type_S === chainPossibleSlugs[j]) {
-                    return key;
-                }
-            }
-        }
-        return type.toUpperCase ();
     }
 };
