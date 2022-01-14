@@ -333,11 +333,11 @@ module.exports = class latoken1 extends Exchange {
         //     }
         //
         const marketId = this.safeString (ticker, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
+        market = this.safeMarket (marketId, market);
         const close = this.safeNumber (ticker, 'close');
         const timestamp = this.nonce ();
         return this.safeTicker ({
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'low': this.safeNumber (ticker, 'low'),
