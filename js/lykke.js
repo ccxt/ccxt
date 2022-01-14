@@ -401,6 +401,13 @@ module.exports = class lykke extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        // {
+        //     "assetPair":"ADAUSD",
+        //     "volume24H":264.6398,
+        //     "lastPrice":1.29535,
+        //     "bid":1.28805,
+        //     "ask":1.29074
+        // }
         const timestamp = this.milliseconds ();
         const symbol = this.safeSymbol (undefined, market);
         const close = this.safeNumber (ticker, 'lastPrice');
@@ -435,6 +442,13 @@ module.exports = class lykke extends Exchange {
             'market': market['id'],
         };
         const ticker = await this.mobileGetMarketMarket (this.extend (request, params));
+        // {
+        //     "assetPair":"ADAUSD",
+        //     "volume24H":264.6398,
+        //     "lastPrice":1.29535,
+        //     "bid":1.28805,
+        //     "ask":1.29074
+        // }
         return this.parseTicker (ticker, market);
     }
 
