@@ -154,8 +154,20 @@ module.exports = class lbank extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        // {
+        //     "symbol":"btc_usdt",
+        //     "ticker":{
+        //     "high":43416.06,
+        //     "vol":7031.7427,
+        //     "low":41804.26,
+        //     "change":1.33,
+        //     "turnover":300302447.81,
+        //     "latest":43220.4
+        //     },
+        //     "timestamp":1642201617747
+        // }
         const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (marketId, market, '-');
+        market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (ticker, 'timestamp');
         const info = ticker;
@@ -193,6 +205,18 @@ module.exports = class lbank extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.publicGetTicker (this.extend (request, params));
+        // {
+        //     "symbol":"btc_usdt",
+        //     "ticker":{
+        //     "high":43416.06,
+        //     "vol":7031.7427,
+        //     "low":41804.26,
+        //     "change":1.33,
+        //     "turnover":300302447.81,
+        //     "latest":43220.4
+        //     },
+        //     "timestamp":1642201617747
+        // }
         return this.parseTicker (response, market);
     }
 
