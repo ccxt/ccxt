@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.67.66'
+__version__ = '1.67.69'
 
 # -----------------------------------------------------------------------------
 
@@ -14,6 +14,7 @@ import aiohttp
 import ssl
 import sys
 import yarl
+from typing import Coroutine
 
 # -----------------------------------------------------------------------------
 
@@ -294,6 +295,24 @@ class Exchange(BaseExchange):
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         raise NotSupported('create_order() not supported yet')
+
+    def create_limit_order(self, symbol, side, amount, price, params={}) -> Coroutine:
+        return self.create_order(symbol, 'limit', side, amount, price, params)
+
+    def create_market_order(self, symbol, side, amount, price=None, params={}) -> Coroutine:
+        return self.create_order(symbol, 'market', side, amount, price, params)
+
+    def create_limit_buy_order(self, symbol, amount, price, params={}) -> Coroutine:
+        return self.create_order(symbol, 'limit', 'buy', amount, price, params)
+
+    def create_limit_sell_order(self, symbol, amount, price, params={}) -> Coroutine:
+        return self.create_order(symbol, 'limit', 'sell', amount, price, params)
+
+    def create_market_buy_order(self, symbol, amount, params={}) -> Coroutine:
+        return self.create_order(symbol, 'market', 'buy', amount, None, params)
+
+    def create_market_sell_order(self, symbol, amount, params={}) -> Coroutine:
+        return self.create_order(symbol, 'market', 'sell', amount, None, params)
 
     async def cancel_order(self, id, symbol=None, params={}):
         raise NotSupported('cancel_order() not supported yet')
