@@ -439,19 +439,34 @@ module.exports = class poloniex extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        // {
+        //     id: '121',
+        //     last: '43196.31469670',
+        //     lowestAsk: '43209.61843169',
+        //     highestBid: '43162.41965234',
+        //     percentChange: '0.00963340',
+        //     baseVolume: '13444643.33799658',
+        //     quoteVolume: '315.84780115',
+        //     isFrozen: '0',
+        //     postOnly: '0',
+        //     marginTradingEnabled: '1',
+        //     high24hr: '43451.84481934',
+        //     low24hr: '41749.89529736'
+        // }
         const timestamp = this.milliseconds ();
         const symbol = this.safeSymbol (undefined, market);
-        const last = this.safeNumber (ticker, 'last');
-        const relativeChange = this.safeNumber (ticker, 'percentChange');
+        const last = this.safeString (ticker, 'last');
+        const relativeChange = this.safeString (ticker, 'percentChange');
+        const percentage = Precise.stringMul (relativeChange, '100');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high24hr'),
-            'low': this.safeNumber (ticker, 'low24hr'),
-            'bid': this.safeNumber (ticker, 'highestBid'),
+            'high': this.safeString (ticker, 'high24hr'),
+            'low': this.safeString (ticker, 'low24hr'),
+            'bid': this.safeString (ticker, 'highestBid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'lowestAsk'),
+            'ask': this.safeString (ticker, 'lowestAsk'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -459,10 +474,10 @@ module.exports = class poloniex extends Exchange {
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': relativeChange * 100,
+            'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'quoteVolume'),
-            'quoteVolume': this.safeNumber (ticker, 'baseVolume'),
+            'baseVolume': this.safeString (ticker, 'quoteVolume'),
+            'quoteVolume': this.safeString (ticker, 'baseVolume'),
             'info': ticker,
         });
     }
@@ -548,6 +563,23 @@ module.exports = class poloniex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const response = await this.publicGetReturnTicker (params);
+        // {
+        //     "BTC_BTS":{
+        //        "id":14,
+        //        "last":"0.00000073",
+        //        "lowestAsk":"0.00000075",
+        //        "highestBid":"0.00000073",
+        //        "percentChange":"0.01388888",
+        //        "baseVolume":"0.01413528",
+        //        "quoteVolume":"19431.16872167",
+        //        "isFrozen":"0",
+        //        "postOnly":"0",
+        //        "marginTradingEnabled":"0",
+        //        "high24hr":"0.00000074",
+        //        "low24hr":"0.00000071"
+        //     },
+        //     ...
+        // }
         const ticker = response[market['id']];
         return this.parseTicker (ticker, market);
     }
