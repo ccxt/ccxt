@@ -52,7 +52,6 @@ module.exports = class bitbns extends Exchange {
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
-                'loadLeverageBrackets': false,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setPositionMode': false,
