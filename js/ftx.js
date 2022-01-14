@@ -995,10 +995,10 @@ module.exports = class ftx extends Exchange {
         const quoteId = this.safeString (trade, 'quoteCurrency');
         let defaultMarketId = undefined;
         if ((baseId !== undefined) && (quoteId !== undefined)) {
-            defaultMarketId = baseId + '-' + quoteId;
+            defaultMarketId = baseId + '/' + quoteId;
         }
         const marketId = this.safeString (trade, 'market', defaultMarketId);
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarket (marketId, market, '/');
         const symbol = market['symbol'];
         const timestamp = this.parse8601 (this.safeString (trade, 'time'));
         const priceString = this.safeString (trade, 'price');
