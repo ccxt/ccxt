@@ -1321,11 +1321,9 @@ module.exports = class idex extends Exchange {
         const hasSecret = (this.secret !== undefined);
         const hasWalletAddress = (this.walletAddress !== undefined);
         const hasPrivateKey = (this.privateKey !== undefined);
-        if (hasApiKey && hasSecret && hasWalletAddress && hasPrivateKey) {
-            return 0.5;
-        } else {
-            return 1;
-        }
+        const defaultCost = this.safeValue (config, 'cost', 1);
+        const authenticated = hasApiKey && hasSecret && hasWalletAddress && hasPrivateKey;
+        return authenticated ? (defaultCost / 2) : defaultCost;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
