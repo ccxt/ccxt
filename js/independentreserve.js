@@ -186,7 +186,14 @@ module.exports = class independentreserve extends Exchange {
         //     "CreatedTimestampUtc":"2022-01-14T22:52:29.5029223Z"
         // }
         const timestamp = this.parse8601 (this.safeString (ticker, 'CreatedTimestampUtc'));
-        const symbol = this.safeSymbol (undefined, market);
+        const baseId = this.safeString (ticker, 'PrimaryCurrencyCode');
+        const quoteId = this.safeString (ticker, 'SecondaryCurrencyCode');
+        let defaultMarketId = undefined;
+        if ((baseId !== undefined) && (quoteId !== undefined)) {
+            defaultMarketId = baseId + '/' + quoteId;
+        }
+        market = this.safeMarket (defaultMarketId, market, '/');
+        const symbol = market['symbol'];
         const last = this.safeNumber (ticker, 'LastPrice');
         return this.safeTicker ({
             'symbol': symbol,
