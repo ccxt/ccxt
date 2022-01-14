@@ -1100,8 +1100,14 @@ class Transpiler {
             const phpAsyncMtime = phpAsyncFolder ? (fs.existsSync (phpAsyncPath) ? fs.statSync (phpAsyncPath).mtime.getTime () : 0) : undefined
             const phpMtime      = phpPath        ? (fs.existsSync (phpPath)      ? fs.statSync (phpPath).mtime.getTime ()      : 0) : undefined
 
-            const jsPath = jsFolder + filename;
-            const contents = fs.readFileSync (jsPath, 'utf8')
+            const jsPath = jsFolder + filename
+            let contents = fs.readFileSync (jsPath, 'utf8')
+
+            const orderedContent = this.orderExchangeCapabilities(contents)
+            if (orderedContent !== null) {
+                contents = orderedContent
+                fs.writeFileSync(jsPath, contents, {encoding:'utf8',flag:'w'})
+            }
 
             if (force ||
                 (python3Folder  && (jsMtime > python3Mtime))  ||
