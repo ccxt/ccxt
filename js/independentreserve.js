@@ -172,6 +172,19 @@ module.exports = class independentreserve extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        // {
+        //     "DayHighestPrice":43489.49,
+        //     "DayLowestPrice":41998.32,
+        //     "DayAvgPrice":42743.9,
+        //     "DayVolumeXbt":44.54515625000,
+        //     "DayVolumeXbtInSecondaryCurrrency":0.12209818,
+        //     "CurrentLowestOfferPrice":43619.64,
+        //     "CurrentHighestBidPrice":43153.58,
+        //     "LastPrice":43378.43,
+        //     "PrimaryCurrencyCode":"Xbt",
+        //     "SecondaryCurrencyCode":"Usd",
+        //     "CreatedTimestampUtc":"2022-01-14T22:52:29.5029223Z"
+        // }
         const timestamp = this.parse8601 (this.safeString (ticker, 'CreatedTimestampUtc'));
         const symbol = this.safeSymbol (undefined, market);
         const last = this.safeNumber (ticker, 'LastPrice');
@@ -207,6 +220,19 @@ module.exports = class independentreserve extends Exchange {
             'secondaryCurrencyCode': market['quoteId'],
         };
         const response = await this.publicGetGetMarketSummary (this.extend (request, params));
+        // {
+        //     "DayHighestPrice":43489.49,
+        //     "DayLowestPrice":41998.32,
+        //     "DayAvgPrice":42743.9,
+        //     "DayVolumeXbt":44.54515625000,
+        //     "DayVolumeXbtInSecondaryCurrrency":0.12209818,
+        //     "CurrentLowestOfferPrice":43619.64,
+        //     "CurrentHighestBidPrice":43153.58,
+        //     "LastPrice":43378.43,
+        //     "PrimaryCurrencyCode":"Xbt",
+        //     "SecondaryCurrencyCode":"Usd",
+        //     "CreatedTimestampUtc":"2022-01-14T22:52:29.5029223Z"
+        // }
         return this.parseTicker (response, market);
     }
 
