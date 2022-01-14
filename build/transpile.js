@@ -1078,7 +1078,7 @@ class Transpiler {
 
     // ========================================================================
 
-    transpileDerivedExchangeFile (jsFolder, filename, options, force = false) {
+    transpileDerivedExchangeFile (jsFolder, filename, options, force = false, order = false) {
 
         // todo normalize jsFolder and other arguments
 
@@ -1103,10 +1103,13 @@ class Transpiler {
             const jsPath = jsFolder + filename
             let contents = fs.readFileSync (jsPath, 'utf8')
 
-            const orderedContent = this.orderExchangeCapabilities(contents)
-            if (orderedContent !== null) {
-                contents = orderedContent
-                fs.writeFileSync(jsPath, contents, {encoding:'utf8',flag:'w'})
+            let orderedContent = null
+            if (order) {
+                orderedContent = this.orderExchangeCapabilities(contents)
+                if (orderedContent !== null) {
+                    contents = orderedContent
+                    fs.writeFileSync(jsPath, contents, {encoding:'utf8',flag:'w'})
+                }
             }
 
             if (orderedContent !==null || 
@@ -1149,7 +1152,7 @@ class Transpiler {
 
     //-------------------------------------------------------------------------
 
-    transpileDerivedExchangeFiles (jsFolder, options, pattern = '.js', force = false) {
+    transpileDerivedExchangeFiles (jsFolder, options, pattern = '.js', force = false, order = false) {
 
         // todo normalize jsFolder and other arguments
 
@@ -1166,7 +1169,7 @@ class Transpiler {
 
         const classNames = fs.readdirSync (jsFolder)
             .filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.js'))))
-            .map (file => this.transpileDerivedExchangeFile (jsFolder, file, options, force))
+            .map (file => this.transpileDerivedExchangeFile (jsFolder, file, options, force, order))
 
         const classes = {}
 
@@ -1643,7 +1646,7 @@ class Transpiler {
 
     // ============================================================================
 
-    transpileEverything (force = false) {
+    transpileEverything (force = false, order = false) {
 
         // default pattern is '.js'
         const [ /* node */, /* script */, pattern ] = process.argv.filter (x => !x.startsWith ('--'))
@@ -1660,7 +1663,7 @@ class Transpiler {
 
         //*
 
-        const classes = this.transpileDerivedExchangeFiles ('./js/', options, pattern, force)
+        const classes = this.transpileDerivedExchangeFiles ('./js/', options, pattern, force, order)
 
         if (classes === null) {
             log.bright.yellow ('0 files transpiled.')
@@ -1696,13 +1699,14 @@ if (require.main === module) { // called directly like `node module`
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests')
     const errors = process.argv.includes ('--error') || process.argv.includes ('--errors')
     const force = process.argv.includes ('--force')
+    const order = process.argv.includes('--order')
     log.bright.green ({ force })
     if (test) {
         transpiler.transpileTests ()
     } else if (errors) {
         transpiler.transpileErrorHierarchy ()
     } else {
-        transpiler.transpileEverything (force)
+        transpiler.transpileEverything (force, order)
     }
 
 } else { // if required as a module
