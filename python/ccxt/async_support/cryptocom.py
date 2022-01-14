@@ -1010,7 +1010,7 @@ class cryptocom(Exchange):
             # maximum date range is one day
             request['start_ts'] = since
             now = self.milliseconds()
-            endTimestamp = self.sim(since, 24 * 60 * 60 * 1000)
+            endTimestamp = self.sum(since, 24 * 60 * 60 * 1000)
             request['end_ts'] = min(now, endTimestamp)
         if limit is not None:
             request['page_size'] = limit

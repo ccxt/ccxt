@@ -1197,7 +1197,7 @@ class kucoinfutures(kucoin):
         # only fetches one balance at a time
         # by default it will only fetch the BTC balance of the futures account
         # you can send 'currency' in params to fetch other currencies
-        # fetchBalance({'type': 'futures', 'currency': 'USDT'})
+        # fetchBalance({'type': 'future', 'currency': 'USDT'})
         response = self.futuresPrivateGetAccountOverview(params)
         #
         #     {
@@ -1217,8 +1217,8 @@ class kucoinfutures(kucoin):
         return self.parse_balance(response)
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
-        if (toAccount != 'spot' and toAccount != 'trade' and toAccount != 'trading') or (fromAccount != 'futures' and fromAccount != 'contract'):
-            raise BadRequest(self.id + ' only supports transfers from contract(futures) account to trade(spot) account')
+        if (toAccount != 'main' and toAccount != 'funding') or (fromAccount != 'futures' and fromAccount != 'future' and fromAccount != 'contract'):
+            raise BadRequest(self.id + ' only supports transfers from contract(future) account to main(funding) account')
         return self.transfer_out(code, amount, params)
 
     def transfer_out(self, code, amount, params={}):
@@ -1247,7 +1247,7 @@ class kucoinfutures(kucoin):
             'datetime': self.iso8601(timestamp),
             'currency': code,
             'amount': amount,
-            'fromAccount': 'futures',
+            'fromAccount': 'future',
             'toAccount': 'spot',
             'status': self.safe_string(data, 'status'),
         }
