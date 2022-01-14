@@ -377,6 +377,15 @@ module.exports = class luno extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        // {
+        //     "pair":"XBTAUD",
+        //     "timestamp":1642201439301,
+        //     "bid":"59972.30000000",
+        //     "ask":"59997.99000000",
+        //     "last_trade":"59997.99000000",
+        //     "rolling_24_hour_volume":"1.89510000",
+        //     "status":"ACTIVE"
+        // }
         const timestamp = this.safeInteger (ticker, 'timestamp');
         const symbol = this.safeSymbol (undefined, market);
         const last = this.safeNumber (ticker, 'last_trade');
@@ -427,6 +436,15 @@ module.exports = class luno extends Exchange {
             'pair': market['id'],
         };
         const response = await this.publicGetTicker (this.extend (request, params));
+        // {
+        //     "pair":"XBTAUD",
+        //     "timestamp":1642201439301,
+        //     "bid":"59972.30000000",
+        //     "ask":"59997.99000000",
+        //     "last_trade":"59997.99000000",
+        //     "rolling_24_hour_volume":"1.89510000",
+        //     "status":"ACTIVE"
+        // }
         return this.parseTicker (response, market);
     }
 
