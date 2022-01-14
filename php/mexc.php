@@ -238,6 +238,7 @@ class mexc extends Exchange {
                 'COFI' => 'COFIX', // conflict with CoinFi
                 'DFT' => 'dFuture',
                 'DRK' => 'DRK',
+                'EGC' => 'Egoras Credit',
                 'FLUX1' => 'FLUX', // switched places
                 'FLUX' => 'FLUX1', // switched places
                 'FREE' => 'FreeRossDAO', // conflict with FREE Coin
@@ -656,14 +657,13 @@ class mexc extends Exchange {
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
-        $defaultType = $this->safe_string_2($this->options, 'fetchTickers', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $query = $this->omit($params, 'type');
-        $method = 'spotPublicGetMarketTicker';
-        if ($type === 'swap') {
-            $method = 'contractPublicGetTicker';
-        }
-        $response = $this->$method (array_merge($query));
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', null, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'spotPublicGetMarketTicker',
+            'swap' => 'contractPublicGetTicker',
+        ));
+        $response = $this->$method (array_merge($params));
         //
         //     {
         //         "success":true,

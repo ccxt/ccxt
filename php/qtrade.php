@@ -266,10 +266,13 @@ class qtrade extends Exchange {
             $name = $this->safe_string($currency, 'long_name');
             $type = $this->safe_string($currency, 'type');
             $canWithdraw = $this->safe_value($currency, 'can_withdraw', true);
+            $withdrawDisabled = $this->safe_value($currency, 'withdraw_disabled', false);
             $depositDisabled = $this->safe_value($currency, 'deposit_disabled', false);
+            $deposit = !$depositDisabled;
+            $withdraw = $canWithdraw && !$withdrawDisabled;
             $config = $this->safe_value($currency, 'config', array());
             $status = $this->safe_string($currency, 'status');
-            $active = $canWithdraw && ($status === 'ok') && !$depositDisabled;
+            $active = $withdraw && $deposit && ($status === 'ok');
             $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
@@ -279,6 +282,8 @@ class qtrade extends Exchange {
                 'fee' => $this->safe_number($config, 'withdraw_fee'),
                 'precision' => $this->safe_integer($currency, 'precision'),
                 'active' => $active,
+                'deposit' => $deposit,
+                'withdraw' => $withdraw,
                 'limits' => array(
                     'amount' => array(
                         'min' => $this->safe_number($currency, 'minimum_order'),

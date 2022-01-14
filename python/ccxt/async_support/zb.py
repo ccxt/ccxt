@@ -388,6 +388,8 @@ class zb(Exchange):
                 'precision': precision,
                 'info': currency,
                 'active': active,
+                'deposit': isDepositEnabled,
+                'withdraw': isWithdrawEnabled,
                 'fee': None,
                 'fees': fees,
                 'limits': self.limits,

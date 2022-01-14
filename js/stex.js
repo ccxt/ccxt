@@ -301,6 +301,8 @@ module.exports = class stex extends Exchange {
                 'type': undefined,
                 'name': this.safeString (currency, 'name'),
                 'active': active,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': fee,
                 'precision': parseInt (precision),
                 'limits': {

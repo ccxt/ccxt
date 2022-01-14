@@ -932,13 +932,13 @@ For example, the first of the following lines will only test the source JS versi
 
 ```shell
 
-node run-tests --js             # test master ccxt.js, all exchanges
+node run-tests --js                  # test master ccxt.js, all exchanges
 
 # other examples require the 'npm run build' to run
 
-node run-tests --python         # test Python 2 version, all exchanges
-node run-tests --php bitfinex   # test Bitfinex with PHP
-node run-tests --python3 kraken # test Kraken with Python 3, requires 'npm run build'
+node run-tests --python              # test Python 2 version, all exchanges
+node run-tests --php bitfinex        # test Bitfinex with PHP
+node run-tests --python-async kraken # test Kraken with Python async test, requires 'npm run build'
 ```
 
 ## Committing Changes To The Repository

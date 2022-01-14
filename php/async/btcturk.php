@@ -287,8 +287,8 @@ class btcturk extends Exchange {
         //     "order" => 1000
         //   }
         //
-        $marketId = $this->safe_string($ticker, 'pairNormalized');
-        $market = $this->safe_market($marketId, $market, '_');
+        $marketId = $this->safe_string($ticker, 'pair');
+        $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $last = $this->safe_number($ticker, 'last');

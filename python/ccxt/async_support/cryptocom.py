@@ -1009,6 +1009,9 @@ class cryptocom(Exchange):
         if since is not None:
             # maximum date range is one day
             request['start_ts'] = since
+            now = self.milliseconds()
+            endTimestamp = self.sim(since, 24 * 60 * 60 * 1000)
+            request['end_ts'] = min(now, endTimestamp)
         if limit is not None:
             request['page_size'] = limit
         marketType, query = self.handle_market_type_and_params('fetchMyTrades', market, params)
@@ -1716,9 +1719,7 @@ class cryptocom(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         errorCode = self.safe_string(response, 'code')
-        message = self.safe_string(response, 'message')
-        if errorCode in self.exceptions['exact']:
-            Exception = self.exceptions['exact'][errorCode]
-            raise Exception(self.id + ' ' + message)
         if errorCode != '0':
-            raise ExchangeError(self.id + ' ' + message)
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+            raise ExchangeError(self.id + ' ' + body)

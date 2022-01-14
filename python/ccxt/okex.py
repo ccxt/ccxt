@@ -353,8 +353,8 @@ class okex(Exchange):
                     '51009': AccountSuspended,  # Order placement function is blocked by the platform
                     '51010': InsufficientFunds,  # Account level too low
                     '51011': InvalidOrder,  # Duplicated order ID
-                    '51012': ExchangeError,  # Token does not exist
-                    '51014': ExchangeError,  # Index does not exist
+                    '51012': BadSymbol,  # Token does not exist
+                    '51014': BadSymbol,  # Index does not exist
                     '51015': BadSymbol,  # Instrument ID does not match instrument type
                     '51016': InvalidOrder,  # Duplicated client order ID
                     '51017': ExchangeError,  # Borrow amount exceeds the limit
@@ -937,6 +937,8 @@ class okex(Exchange):
             chains = dataByCurrencyId[currencyId]
             networks = {}
             currencyActive = False
+            depositEnabled = None
+            withdrawEnabled = None
             for j in range(0, len(chains)):
                 chain = chains[j]
                 canDeposit = self.safe_value(chain, 'canDep')
@@ -945,6 +947,14 @@ class okex(Exchange):
                 active = True if (canDeposit and canWithdraw and canInternal) else False
                 currencyActive = active if (currencyActive is None) else currencyActive
                 networkId = self.safe_string(chain, 'chain')
+                if canDeposit and not depositEnabled:
+                    depositEnabled = True
+                elif not canDeposit:
+                    depositEnabled = False
+                if canWithdraw and not withdrawEnabled:
+                    withdrawEnabled = True
+                elif not canWithdraw:
+                    withdrawEnabled = False
                 if networkId.find('-') >= 0:
                     parts = networkId.split('-')
                     chainPart = self.safe_string(parts, 1, networkId)
@@ -962,6 +972,8 @@ class okex(Exchange):
                         'id': networkId,
                         'network': network,
                         'active': active,
+                        'deposit': canDeposit,
+                        'withdraw': canWithdraw,
                         'fee': self.safe_number(chain, 'minFee'),
                         'precision': None,
                         'limits': {
@@ -977,6 +989,8 @@ class okex(Exchange):
                 'id': currencyId,
                 'name': None,
                 'active': currencyActive,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': None,
                 'precision': precision,
                 'limits': {
@@ -1055,7 +1069,7 @@ class okex(Exchange):
         quoteVolume = self.safe_number(ticker, 'volCcy24h')
         baseVolume = self.safe_number(ticker, 'vol24h')
         vwap = self.vwap(baseVolume, quoteVolume)
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1076,7 +1090,7 @@ class okex(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

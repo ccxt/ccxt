@@ -572,6 +572,8 @@ class kraken extends Exchange {
                 'info' => $currency,
                 'name' => $code,
                 'active' => $active,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => null,
                 'precision' => $precision,
                 'limits' => array(
@@ -666,10 +668,7 @@ class kraken extends Exchange {
 
     public function parse_ticker($ticker, $market = null) {
         $timestamp = $this->milliseconds();
-        $symbol = null;
-        if ($market) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol(null, $market);
         $baseVolume = floatval($ticker['v'][1]);
         $vwap = floatval($ticker['p'][1]);
         $quoteVolume = null;
@@ -677,7 +676,7 @@ class kraken extends Exchange {
             $quoteVolume = $baseVolume * $vwap;
         }
         $last = floatval($ticker['c'][0]);
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -698,7 +697,7 @@ class kraken extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

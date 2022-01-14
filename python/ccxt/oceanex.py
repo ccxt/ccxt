@@ -261,8 +261,9 @@ class oceanex(Exchange):
         #
         ticker = self.safe_value(data, 'ticker', {})
         timestamp = self.safe_timestamp(data, 'at')
-        return {
-            'symbol': market['symbol'],
+        symbol = self.safe_symbol(None, market)
+        return self.safe_ticker({
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_number(ticker, 'high'),
@@ -282,7 +283,7 @@ class oceanex(Exchange):
             'baseVolume': self.safe_number(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

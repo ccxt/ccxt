@@ -312,6 +312,8 @@ class ndax extends Exchange {
                 'precision' => $precision,
                 'info' => $currency,
                 'active' => $active,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => null,
                 'limits' => $this->limits,
             );

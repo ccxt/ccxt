@@ -263,10 +263,13 @@ module.exports = class qtrade extends Exchange {
             const name = this.safeString (currency, 'long_name');
             const type = this.safeString (currency, 'type');
             const canWithdraw = this.safeValue (currency, 'can_withdraw', true);
+            const withdrawDisabled = this.safeValue (currency, 'withdraw_disabled', false);
             const depositDisabled = this.safeValue (currency, 'deposit_disabled', false);
+            const deposit = !depositDisabled;
+            const withdraw = canWithdraw && !withdrawDisabled;
             const config = this.safeValue (currency, 'config', {});
             const status = this.safeString (currency, 'status');
-            const active = canWithdraw && (status === 'ok') && !depositDisabled;
+            const active = withdraw && deposit && (status === 'ok');
             result[code] = {
                 'id': id,
                 'code': code,
@@ -276,6 +279,8 @@ module.exports = class qtrade extends Exchange {
                 'fee': this.safeNumber (config, 'withdraw_fee'),
                 'precision': this.safeInteger (currency, 'precision'),
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'limits': {
                     'amount': {
                         'min': this.safeNumber (currency, 'minimum_order'),

@@ -739,6 +739,8 @@ module.exports = class phemex extends Exchange {
                 'code': code,
                 'name': name,
                 'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
                 'precision': precision,
                 'limits': {
@@ -1041,7 +1043,7 @@ module.exports = class phemex extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        });
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

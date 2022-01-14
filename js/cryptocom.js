@@ -1041,6 +1041,9 @@ module.exports = class cryptocom extends Exchange {
         if (since !== undefined) {
             // maximum date range is one day
             request['start_ts'] = since;
+            const now = this.milliseconds ();
+            const endTimestamp = this.sim (since, 24 * 60 * 60 * 1000);
+            request['end_ts'] = Math.min (now, endTimestamp);
         }
         if (limit !== undefined) {
             request['page_size'] = limit;
@@ -1802,13 +1805,10 @@ module.exports = class cryptocom extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const errorCode = this.safeString (response, 'code');
-        const message = this.safeString (response, 'message');
-        if (errorCode in this.exceptions['exact']) {
-            const Exception = this.exceptions['exact'][errorCode];
-            throw new Exception (this.id + ' ' + message);
-        }
         if (errorCode !== '0') {
-            throw new ExchangeError (this.id + ' ' + message);
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            throw new ExchangeError (this.id + ' ' + body);
         }
     }
 };

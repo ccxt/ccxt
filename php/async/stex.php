@@ -305,6 +305,8 @@ class stex extends Exchange {
                 'type' => null,
                 'name' => $this->safe_string($currency, 'name'),
                 'active' => $active,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => $fee,
                 'precision' => intval($precision),
                 'limits' => array(

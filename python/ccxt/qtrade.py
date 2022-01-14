@@ -273,10 +273,13 @@ class qtrade(Exchange):
             name = self.safe_string(currency, 'long_name')
             type = self.safe_string(currency, 'type')
             canWithdraw = self.safe_value(currency, 'can_withdraw', True)
+            withdrawDisabled = self.safe_value(currency, 'withdraw_disabled', False)
             depositDisabled = self.safe_value(currency, 'deposit_disabled', False)
+            deposit = not depositDisabled
+            withdraw = canWithdraw and not withdrawDisabled
             config = self.safe_value(currency, 'config', {})
             status = self.safe_string(currency, 'status')
-            active = canWithdraw and (status == 'ok') and not depositDisabled
+            active = withdraw and deposit and (status == 'ok')
             result[code] = {
                 'id': id,
                 'code': code,
@@ -286,6 +289,8 @@ class qtrade(Exchange):
                 'fee': self.safe_number(config, 'withdraw_fee'),
                 'precision': self.safe_integer(currency, 'precision'),
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'limits': {
                     'amount': {
                         'min': self.safe_number(currency, 'minimum_order'),

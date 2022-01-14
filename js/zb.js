@@ -377,6 +377,8 @@ module.exports = class zb extends Exchange {
                 'precision': precision,
                 'info': currency,
                 'active': active,
+                'deposit': isDepositEnabled,
+                'withdraw': isWithdrawEnabled,
                 'fee': undefined,
                 'fees': fees,
                 'limits': this.limits,

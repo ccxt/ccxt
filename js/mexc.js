@@ -234,6 +234,7 @@ module.exports = class mexc extends Exchange {
                 'COFI': 'COFIX', // conflict with CoinFi
                 'DFT': 'dFuture',
                 'DRK': 'DRK',
+                'EGC': 'Egoras Credit',
                 'FLUX1': 'FLUX', // switched places
                 'FLUX': 'FLUX1', // switched places
                 'FREE': 'FreeRossDAO', // conflict with FREE Coin
@@ -652,14 +653,13 @@ module.exports = class mexc extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
-        let method = 'spotPublicGetMarketTicker';
-        if (type === 'swap') {
-            method = 'contractPublicGetTicker';
-        }
-        const response = await this[method] (this.extend (query));
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'spotPublicGetMarketTicker',
+            'swap': 'contractPublicGetTicker',
+        });
+        const response = await this[method] (this.extend (params));
         //
         //     {
         //         "success":true,

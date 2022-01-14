@@ -401,7 +401,8 @@ module.exports = class hollaex extends Exchange {
         //     }
         //
         const marketId = this.safeString (ticker, 'symbol');
-        const symbol = this.safeSymbol (marketId, market, '-');
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
         const timestamp = this.parse8601 (this.safeString2 (ticker, 'time', 'timestamp'));
         const close = this.safeNumber (ticker, 'close');
         return this.safeTicker ({
@@ -425,7 +426,7 @@ module.exports = class hollaex extends Exchange {
             'average': undefined,
             'baseVolume': this.safeNumber (ticker, 'volume'),
             'quoteVolume': undefined,
-        });
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {

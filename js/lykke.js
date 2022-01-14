@@ -24,7 +24,7 @@ module.exports = class lykke extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
-                'fetchOHLCV': undefined,
+                'fetchOHLCV': 'emulated',
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,

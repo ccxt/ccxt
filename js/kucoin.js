@@ -291,6 +291,7 @@ module.exports = class kucoin extends Exchange {
                     '400100': BadRequest,
                     '400350': InvalidOrder, // {"code":"400350","msg":"Upper limit for holding: 10,000USDT, you can still buy 10,000USDT worth of coin."}
                     '400500': InvalidOrder, // {"code":"400500","msg":"Your located country/region is currently not supported for the trading of this token"}
+                    '401000': BadRequest, // {"code":"401000","msg":"The interface has been deprecated"}
                     '411100': AccountSuspended,
                     '415000': BadRequest, // {"code":"415000","msg":"Unsupported Media Type"}
                     '500000': ExchangeNotAvailable, // {"code":"500000","msg":"Internal Server Error"}
@@ -404,6 +405,7 @@ module.exports = class kucoin extends Exchange {
                     'margin': 'margin',
                     'main': 'main',
                     'funding': 'main',
+                    'future': 'contract',
                     'futures': 'contract',
                     'contract': 'contract',
                     'pool': 'pool',
@@ -710,7 +712,7 @@ module.exports = class kucoin extends Exchange {
             throw new ExchangeError (this.id + ' type must be one of ' + keys.join (', '));
         }
         params = this.omit (params, 'type');
-        return (type === 'contract') || (type === 'futures');
+        return (type === 'contract') || (type === 'future') || (type === 'futures'); // * (type === 'futures') deprecated, use (type === 'future')
     }
 
     parseTicker (ticker, market = undefined) {

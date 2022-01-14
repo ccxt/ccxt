@@ -2213,6 +2213,8 @@ module.exports = class huobi extends Exchange {
             let minPrecision = undefined;
             let minWithdraw = undefined;
             let maxWithdraw = undefined;
+            let deposit = undefined;
+            let withdraw = undefined;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'chain');
@@ -2228,13 +2230,25 @@ module.exports = class huobi extends Exchange {
                 const network = this.safeNetwork (baseChainProtocol);
                 minWithdraw = this.safeNumber (chain, 'minWithdrawAmt');
                 maxWithdraw = this.safeNumber (chain, 'maxWithdrawAmt');
-                const withdraw = this.safeString (chain, 'withdrawStatus');
-                const deposit = this.safeString (chain, 'depositStatus');
-                const active = (withdraw === 'allowed') && (deposit === 'allowed');
+                const withdrawStatus = this.safeString (chain, 'withdrawStatus');
+                const depositStatus = this.safeString (chain, 'depositStatus');
+                const withdrawEnabled = (withdrawStatus === 'allowed');
+                const depositEnabled = (depositStatus === 'allowed');
+                const active = withdrawEnabled && depositEnabled;
                 let precision = this.safeString (chain, 'withdrawPrecision');
                 if (precision !== undefined) {
                     precision = this.parseNumber ('1e-' + precision);
                     minPrecision = (minPrecision === undefined) ? precision : Math.max (precision, minPrecision);
+                }
+                if (withdrawEnabled && !withdraw) {
+                    withdraw = true;
+                } else if (!withdrawEnabled) {
+                    withdraw = false;
+                }
+                if (depositEnabled && !deposit) {
+                    deposit = true;
+                } else if (!depositEnabled) {
+                    deposit = false;
                 }
                 fee = this.safeNumber (chain, 'transactFeeWithdraw');
                 networks[network] = {
@@ -2248,6 +2262,8 @@ module.exports = class huobi extends Exchange {
                         },
                     },
                     'active': active,
+                    'deposit': depositEnabled,
+                    'withdraw': withdrawEnabled,
                     'fee': fee,
                     'precision': precision,
                 };
@@ -2259,6 +2275,8 @@ module.exports = class huobi extends Exchange {
                 'code': code,
                 'id': currencyId,
                 'active': currencyActive,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': (networkLength <= 1) ? fee : undefined,
                 'name': undefined,
                 'limits': {
@@ -3478,13 +3496,13 @@ module.exports = class huobi extends Exchange {
         }
         request['order_price_type'] = type;
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id'); // must be 64 chars max and unique within 24 hours
-        // if (clientOrderId === undefined) {
-        //     const broker = this.safeValue (this.options, 'broker', {});
-        //     const brokerId = this.safeString (broker, 'id');
-        //     request['client_order_id'] = brokerId + this.uuid ();
-        // } else {
-        //     request['client_order_id'] = clientOrderId;
-        // }
+        if (clientOrderId === undefined) {
+            const broker = this.safeValue (this.options, 'broker', {});
+            const brokerId = this.safeString (broker, 'id');
+            request['client_order_id'] = brokerId + this.uuid ();
+        } else {
+            request['client_order_id'] = clientOrderId;
+        }
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
             params = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);

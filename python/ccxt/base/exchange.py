@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.67.24'
+__version__ = '1.67.69'
 
 # -----------------------------------------------------------------------------
 
@@ -1960,20 +1960,34 @@ class Exchange(object):
             if self.markets_by_id is not None and marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
             elif delimiter is not None:
-                baseId, quoteId = marketId.split(delimiter)
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-                return {
-                    'symbol': symbol,
-                    'base': base,
-                    'quote': quote,
-                    'baseId': baseId,
-                    'quoteId': quoteId,
-                }
+                parts = marketId.split(delimiter)
+                if len(parts) == 2:
+                    baseId = self.safe_string(parts, 0)
+                    quoteId = self.safe_string(parts, 1)
+                    base = self.safe_currency_code(baseId)
+                    quote = self.safe_currency_code(quoteId)
+                    symbol = base + '/' + quote
+                    return {
+                        'id': marketId,
+                        'symbol': symbol,
+                        'base': base,
+                        'quote': quote,
+                        'baseId': baseId,
+                        'quoteId': quoteId,
+                    }
+                else:
+                    return {
+                        'id': marketId,
+                        'symbol': marketId,
+                        'base': None,
+                        'quote': None,
+                        'baseId': None,
+                        'quoteId': None,
+                    }
         if market is not None:
             return market
         return {
+            'id': marketId,
             'symbol': marketId,
             'base': None,
             'quote': None,

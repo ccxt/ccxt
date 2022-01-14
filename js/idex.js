@@ -5,7 +5,6 @@
 const Exchange = require ('./base/Exchange');
 const { PAD_WITH_ZERO } = require ('./base/functions/number');
 const { InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest, NotSupported, InvalidAddress, AuthenticationError } = require ('./base/errors');
-const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
 
@@ -15,7 +14,9 @@ module.exports = class idex extends Exchange {
             'id': 'idex',
             'name': 'IDEX',
             'countries': [ 'US' ],
-            'rateLimit': 1500,
+            // public data endpoints 5 requests a second => 1000ms / 5 = 200ms between requests roughly (without Authentication)
+            // all endpoints 10 requests a second => (1000ms / rateLimit) / 10 => 1 / 2 (with Authentication)
+            'rateLimit': 200,
             'version': 'v2',
             'pro': true,
             'certified': true,
@@ -65,38 +66,38 @@ module.exports = class idex extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'ping',
-                        'time',
-                        'exchange',
-                        'assets',
-                        'markets',
-                        'tickers',
-                        'candles',
-                        'trades',
-                        'orderbook',
-                        'wsToken',
-                    ],
+                    'get': {
+                        'ping': 1,
+                        'time': 1,
+                        'exchange': 1,
+                        'assets': 1,
+                        'markets': 1,
+                        'tickers': 1,
+                        'candles': 1,
+                        'trades': 1,
+                        'orderbook': 1,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'user',
-                        'wallets',
-                        'balances',
-                        'orders',
-                        'fills',
-                        'deposits',
-                        'withdrawals',
-                    ],
-                    'post': [
-                        'wallets',
-                        'orders',
-                        'orders/test',
-                        'withdrawals',
-                    ],
-                    'delete': [
-                        'orders',
-                    ],
+                    'get': {
+                        'user': 1,
+                        'wallets': 1,
+                        'balances': 1,
+                        'orders': 1,
+                        'fills': 1,
+                        'deposits': 1,
+                        'withdrawals': 1,
+                        'wsToken': 1,
+                    },
+                    'post': {
+                        'wallets': 1,
+                        'orders': 1,
+                        'orders/test': 1,
+                        'withdrawals': 1,
+                    },
+                    'delete': {
+                        'orders': 1,
+                    },
                 },
             },
             'options': {
@@ -121,11 +122,6 @@ module.exports = class idex extends Exchange {
             },
             'paddingMode': PAD_WITH_ZERO,
             'commonCurrencies': {},
-            'requireCredentials': {
-                'privateKey': true,
-                'apiKey': true,
-                'secret': true,
-            },
         });
     }
 
@@ -427,44 +423,48 @@ module.exports = class idex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
         // public trades
-        // {
-        //   fillId: 'b5467d00-b13e-3fa9-8216-dd66735550fc',
-        //   price: '0.09771286',
-        //   quantity: '1.45340410',
-        //   quoteQuantity: '0.14201627',
-        //   time: 1598345638994,
-        //   makerSide: 'buy',
-        //   sequence: 3853
-        // }
+        //  {
+        //      "fillId":"a4883704-850b-3c4b-8588-020b5e4c62f1",
+        //      "price":"0.20377008",
+        //      "quantity":"47.58448728",
+        //      "quoteQuantity":"9.69629509",
+        //      "time":1642091300873,
+        //      "makerSide":"buy",
+        //      "type":"hybrid",        // one of either: "orderBook", "hybrid", or "pool"
+        //      "sequence":31876
+        //  }
+        //
         // private trades
-        // {
-        //   fillId: '48582d10-b9bb-3c4b-94d3-e67537cf2472',
-        //   price: '0.09905990',
-        //   quantity: '0.40000000',
-        //   quoteQuantity: '0.03962396',
-        //   time: 1598873478762,
-        //   makerSide: 'sell',
-        //   sequence: 5053,
-        //   market: 'DIL-ETH',
-        //   orderId: '7cdc8e90-eb7d-11ea-9e60-4118569f6e63',
-        //   side: 'buy',
-        //   fee: '0.00080000',
-        //   feeAsset: 'DIL',
-        //   gas: '0.00857497',
-        //   liquidity: 'taker',
-        //   txId: '0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65',
-        //   txStatus: 'mined'
-        // }
+        //  {
+        //      "fillId":"83429066-9334-3582-b710-78858b2f0d6b",
+        //      "price":"0.20717368",
+        //      "quantity":"15.00000000",
+        //      "quoteQuantity":"3.10760523",
+        //      "orderBookQuantity":"0.00000003",
+        //      "orderBookQuoteQuantity":"0.00000001",
+        //      "poolQuantity":"14.99999997",
+        //      "poolQuoteQuantity":"3.10760522",
+        //      "time":1642083351215,
+        //      "makerSide":"sell",
+        //      "sequence":31795,
+        //      "market":"IDEX-USDC",
+        //      "orderId":"4fe993f0-747b-11ec-bd08-79d4a0b6e47c",
+        //      "side":"buy",
+        //      "fee":"0.03749989",
+        //      "feeAsset":"IDEX",
+        //      "gas":"0.40507261",
+        //      "liquidity":"taker",
+        //      "type":"hybrid",
+        //      "txId":"0x69f6d82a762d12e3201efd0b3e9cc1969351e3c6ea3cf07c47c66bf24a459815",
+        //      "txStatus":"mined"
+        //  }
+        //
         const id = this.safeString (trade, 'fillId');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'quantity');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        let cost = this.safeNumber (trade, 'quoteQuantity');
-        if (cost === undefined) {
-            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        }
+        const costString = this.safeString (trade, 'quoteQuantity');
         const timestamp = this.safeInteger (trade, 'time');
         const marketId = this.safeString (trade, 'market');
         const symbol = this.safeSymbol (marketId, market, '-');
@@ -473,17 +473,17 @@ module.exports = class idex extends Exchange {
         const oppositeSide = (makerSide === 'buy') ? 'sell' : 'buy';
         const side = this.safeString (trade, 'side', oppositeSide);
         const takerOrMaker = this.safeString (trade, 'liquidity', 'taker');
-        const feeCost = this.safeNumber (trade, 'fee');
+        const feeCostString = this.safeString (trade, 'fee');
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'feeAsset');
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': this.safeCurrencyCode (feeCurrencyId),
             };
         }
         const orderId = this.safeString (trade, 'orderId');
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -493,11 +493,11 @@ module.exports = class idex extends Exchange {
             'type': 'limit',
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -583,6 +583,8 @@ module.exports = class idex extends Exchange {
                 'type': undefined,
                 'name': name,
                 'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
                 'precision': parseInt (precisionString),
                 'limits': {
@@ -1050,11 +1052,13 @@ module.exports = class idex extends Exchange {
                 'side': side,
                 'type': type,
                 'wallet': this.walletAddress,
-                'timeInForce': timeInForce,
                 'selfTradePrevention': selfTradePrevention,
             },
             'signature': signature,
         };
+        if (type !== 'market') {
+            request['parameters']['timeInForce'] = timeInForce;
+        }
         if (limitOrder) {
             request['parameters']['price'] = priceString;
         }
@@ -1309,6 +1313,16 @@ module.exports = class idex extends Exchange {
             'updated': updated,
             'fee': fee,
         };
+    }
+
+    calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
+        const hasApiKey = (this.apiKey !== undefined);
+        const hasSecret = (this.secret !== undefined);
+        const hasWalletAddress = (this.walletAddress !== undefined);
+        const hasPrivateKey = (this.privateKey !== undefined);
+        const defaultCost = this.safeValue (config, 'cost', 1);
+        const authenticated = hasApiKey && hasSecret && hasWalletAddress && hasPrivateKey;
+        return authenticated ? (defaultCost / 2) : defaultCost;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

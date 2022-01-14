@@ -119,6 +119,7 @@ module.exports = class latoken extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'CTC': 'CyberTronchain',
                 'MT': 'Monarch',
                 'TPAY': 'Tetra Pay',
                 'TRADE': 'Smart Trade Coin',
@@ -369,6 +370,8 @@ module.exports = class latoken extends Exchange {
                 'name': name,
                 'type': type,
                 'active': active,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': fee,
                 'precision': precision,
                 'limits': {
