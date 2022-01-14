@@ -984,9 +984,16 @@ class ftx(Exchange):
         #         "baseCurrency": "BCHA",
         #         "quoteCurrency": "USD"
         #     }
+        #
         id = self.safe_string(trade, 'id')
         takerOrMaker = self.safe_string(trade, 'liquidity')
-        marketId = self.safe_string(trade, 'market')
+        # a workaround for the OTC trades, they don't have a symbol
+        baseId = self.safe_string(trade, 'baseCurrency')
+        quoteId = self.safe_string(trade, 'quoteCurrency')
+        defaultMarketId = None
+        if (baseId is not None) and (quoteId is not None):
+            defaultMarketId = baseId + '-' + quoteId
+        marketId = self.safe_string(trade, 'market', defaultMarketId)
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
         timestamp = self.parse8601(self.safe_string(trade, 'time'))
