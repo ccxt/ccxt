@@ -2220,6 +2220,8 @@ class huobi extends Exchange {
             $minPrecision = null;
             $minWithdraw = null;
             $maxWithdraw = null;
+            $deposit = null;
+            $withdraw = null;
             for ($j = 0; $j < count($chains); $j++) {
                 $chain = $chains[$j];
                 $networkId = $this->safe_string($chain, 'chain');
@@ -2235,13 +2237,25 @@ class huobi extends Exchange {
                 $network = $this->safe_network($baseChainProtocol);
                 $minWithdraw = $this->safe_number($chain, 'minWithdrawAmt');
                 $maxWithdraw = $this->safe_number($chain, 'maxWithdrawAmt');
-                $withdraw = $this->safe_string($chain, 'withdrawStatus');
-                $deposit = $this->safe_string($chain, 'depositStatus');
-                $active = ($withdraw === 'allowed') && ($deposit === 'allowed');
+                $withdrawStatus = $this->safe_string($chain, 'withdrawStatus');
+                $depositStatus = $this->safe_string($chain, 'depositStatus');
+                $withdrawEnabled = ($withdrawStatus === 'allowed');
+                $depositEnabled = ($depositStatus === 'allowed');
+                $active = $withdrawEnabled && $depositEnabled;
                 $precision = $this->safe_string($chain, 'withdrawPrecision');
                 if ($precision !== null) {
                     $precision = $this->parse_number('1e-' . $precision);
                     $minPrecision = ($minPrecision === null) ? $precision : max ($precision, $minPrecision);
+                }
+                if ($withdrawEnabled && !$withdraw) {
+                    $withdraw = true;
+                } else if (!$withdrawEnabled) {
+                    $withdraw = false;
+                }
+                if ($depositEnabled && !$deposit) {
+                    $deposit = true;
+                } else if (!$depositEnabled) {
+                    $deposit = false;
                 }
                 $fee = $this->safe_number($chain, 'transactFeeWithdraw');
                 $networks[$network] = array(
@@ -2255,6 +2269,8 @@ class huobi extends Exchange {
                         ),
                     ),
                     'active' => $active,
+                    'deposit' => $depositEnabled,
+                    'withdraw' => $withdrawEnabled,
                     'fee' => $fee,
                     'precision' => $precision,
                 );
@@ -2266,6 +2282,8 @@ class huobi extends Exchange {
                 'code' => $code,
                 'id' => $currencyId,
                 'active' => $currencyActive,
+                'deposit' => $deposit,
+                'withdraw' => $withdraw,
                 'fee' => ($networkLength <= 1) ? $fee : null,
                 'name' => null,
                 'limits' => array(

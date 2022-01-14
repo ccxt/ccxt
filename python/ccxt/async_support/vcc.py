@@ -256,14 +256,18 @@ class vcc(Exchange):
             id = self.safe_string_lower(ids, i)
             currency = self.safe_value(data, ids[i])
             code = self.safe_currency_code(id)
-            canDeposit = self.safe_value(currency, 'can_deposit')
-            canWithdraw = self.safe_value(currency, 'can_withdraw')
+            canDeposit = self.safe_integer(currency, 'can_deposit')
+            canWithdraw = self.safe_integer(currency, 'can_withdraw')
             active = (canDeposit and canWithdraw)
+            depositEnabled = (canDeposit == 1)
+            withdrawEnabled = (canWithdraw == 1)
             result[code] = {
                 'id': id,
                 'code': code,
                 'name': self.safe_string(currency, 'name'),
                 'active': active,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': self.safe_number(currency, 'withdrawal_fee'),
                 'precision': self.safe_integer(currency, 'decimal'),
                 'limits': {

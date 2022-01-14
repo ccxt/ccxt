@@ -395,10 +395,11 @@ class hollaex(Exchange):
         #     }
         #
         marketId = self.safe_string(ticker, 'symbol')
-        symbol = self.safe_symbol(marketId, market, '-')
+        market = self.safe_market(marketId, market, '-')
+        symbol = market['symbol']
         timestamp = self.parse8601(self.safe_string_2(ticker, 'time', 'timestamp'))
         close = self.safe_number(ticker, 'close')
-        result = {
+        return self.safe_ticker({
             'symbol': symbol,
             'info': ticker,
             'timestamp': timestamp,
@@ -419,8 +420,7 @@ class hollaex(Exchange):
             'average': None,
             'baseVolume': self.safe_number(ticker, 'volume'),
             'quoteVolume': None,
-        }
-        return result
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
