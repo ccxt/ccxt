@@ -351,12 +351,9 @@ module.exports = class kuna extends Exchange {
     parseTicker (ticker, market = undefined) {
         const timestamp = this.safeTimestamp (ticker, 'at');
         ticker = ticker['ticker'];
-        let symbol = undefined;
-        if (market) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (undefined, market);
         const last = this.safeNumber (ticker, 'last');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -377,7 +374,7 @@ module.exports = class kuna extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
