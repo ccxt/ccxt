@@ -281,8 +281,8 @@ class btcturk(Exchange):
         #     "order": 1000
         #   }
         #
-        marketId = self.safe_string(ticker, 'pairNormalized')
-        market = self.safe_market(marketId, market, '_')
+        marketId = self.safe_string(ticker, 'pair')
+        market = self.safe_market(marketId, market)
         symbol = market['symbol']
         timestamp = self.safe_integer(ticker, 'timestamp')
         last = self.safe_number(ticker, 'last')
