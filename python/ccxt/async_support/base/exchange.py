@@ -295,7 +295,7 @@ class Exchange(BaseExchange):
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         raise NotSupported('create_order() not supported yet')
-        
+
     def create_limit_order(self, symbol, side, amount, price, params={}) -> Coroutine:
         return self.create_order(symbol, 'limit', side, amount, price, params)
 
