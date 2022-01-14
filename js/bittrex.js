@@ -24,7 +24,7 @@ module.exports = class bittrex extends Exchange {
                 'margin': false,
                 'swap': false,
                 'future': false,
-                'options': false,
+                'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'CORS': undefined,
@@ -64,7 +64,6 @@ module.exports = class bittrex extends Exchange {
                 'fetchTrades': true,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
-                'loadLeverageBrackets': false,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -326,8 +325,8 @@ module.exports = class bittrex extends Exchange {
                         'max': undefined,
                     },
                     'leverage': {
-                        'min': 1,
-                        'max': 1,
+                        'min': undefined,
+                        'max': undefined,
                     },
                 },
             });
