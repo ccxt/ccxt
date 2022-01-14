@@ -366,8 +366,7 @@ module.exports = class exmo extends Exchange {
                         } else if (!activeProvider) {
                             depositEnabled = false;
                         }
-                    }
-                    if (type === 'withdraw') {
+                    } else if (type === 'withdraw') {
                         if (activeProvider && !withdrawEnabled) {
                             withdrawEnabled = true;
                         } else if (!activeProvider) {
