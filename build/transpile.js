@@ -1109,7 +1109,8 @@ class Transpiler {
                 fs.writeFileSync(jsPath, contents, {encoding:'utf8',flag:'w'})
             }
 
-            if (force ||
+            if (orderedContent !==null || 
+                force ||
                 (python3Folder  && (jsMtime > python3Mtime))  ||
                 (phpFolder      && (jsMtime > phpMtime))      ||
                 (phpAsyncFolder && (jsMtime > phpAsyncMtime)) ||
