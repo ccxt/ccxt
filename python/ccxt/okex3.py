@@ -1027,6 +1027,8 @@ class okex3(Exchange):
                 name = self.safe_string(currency, 'name')
                 canDeposit = self.safe_integer(currency, 'can_deposit')
                 canWithdraw = self.safe_integer(currency, 'can_withdraw')
+                depositEnabled = (canDeposit == 1)
+                withdrawEnabled = (canWithdraw == 1)
                 active = True if (canDeposit and canWithdraw) else False
                 result[code] = {
                     'id': id,
@@ -1035,6 +1037,8 @@ class okex3(Exchange):
                     'type': None,
                     'name': name,
                     'active': active,
+                    'deposit': depositEnabled,
+                    'withdraw': withdrawEnabled,
                     'fee': None,  # todo: redesign
                     'precision': precision,
                     'limits': {

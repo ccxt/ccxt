@@ -1019,6 +1019,8 @@ class okex3 extends Exchange {
                 $name = $this->safe_string($currency, 'name');
                 $canDeposit = $this->safe_integer($currency, 'can_deposit');
                 $canWithdraw = $this->safe_integer($currency, 'can_withdraw');
+                $depositEnabled = ($canDeposit === 1);
+                $withdrawEnabled = ($canWithdraw === 1);
                 $active = ($canDeposit && $canWithdraw) ? true : false;
                 $result[$code] = array(
                     'id' => $id,
@@ -1027,6 +1029,8 @@ class okex3 extends Exchange {
                     'type' => null,
                     'name' => $name,
                     'active' => $active,
+                    'deposit' => $depositEnabled,
+                    'withdraw' => $withdrawEnabled,
                     'fee' => null, // todo => redesign
                     'precision' => $precision,
                     'limits' => array(
