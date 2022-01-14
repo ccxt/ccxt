@@ -698,12 +698,12 @@ module.exports = class mexc extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let method = undefined;
-        if (market['spot']) {
-            method = 'spotPublicGetMarketTicker';
-        } else if (market['swap']) {
-            method = 'contractPublicGetTicker';
-        }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTicker', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'spotPublicGetMarketTicker',
+            'swap': 'contractPublicGetTicker',
+        });
         const response = await this[method] (this.extend (request, params));
         //
         // spot
