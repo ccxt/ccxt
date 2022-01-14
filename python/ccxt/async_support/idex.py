@@ -310,38 +310,28 @@ class idex(Exchange):
         marketId = self.safe_string(ticker, 'market')
         market = self.safe_market(marketId, market, '-')
         symbol = market['symbol']
-        baseVolume = self.safe_number(ticker, 'baseVolume')
-        quoteVolume = self.safe_number(ticker, 'quoteVolume')
         timestamp = self.safe_integer(ticker, 'time')
-        open = self.safe_number(ticker, 'open')
-        high = self.safe_number(ticker, 'high')
-        low = self.safe_number(ticker, 'low')
         close = self.safe_number(ticker, 'close')
-        ask = self.safe_number(ticker, 'ask')
-        bid = self.safe_number(ticker, 'bid')
-        percentage = self.safe_number(ticker, 'percentChange')
-        if percentage is not None:
-            percentage = 1 + percentage / 100
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': high,
-            'low': low,
-            'bid': bid,
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': ask,
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
-            'open': open,
+            'open': self.safe_number(ticker, 'open'),
             'close': close,
             'last': close,
             'previousClose': None,
             'change': None,
-            'percentage': percentage,
+            'percentage': self.safe_number(ticker, 'percentChange'),
             'average': None,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'baseVolume': self.safe_number(ticker, 'baseVolume'),
+            'quoteVolume': self.safe_number(ticker, 'quoteVolume'),
             'info': ticker,
         }, market)
 
