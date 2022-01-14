@@ -387,27 +387,14 @@ module.exports = class phemex extends Exchange {
         const id = this.safeString (market, 'symbol');
         const baseId = this.safeString2 (market, 'baseCurrency', 'contractUnderlyingAssets');
         const quoteId = this.safeString (market, 'quoteCurrency');
+        const settleId = this.safeString (market, 'settleCurrency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const type = this.safeStringLower (market, 'type');
+        const settle = this.safeCurrencyCode (settleId);
         let inverse = false;
-        const spot = false;
-        const swap = true;
-        const settlementCurrencyId = this.safeString (market, 'settleCurrency');
-        if (settlementCurrencyId !== quoteId) {
+        if (settleId !== quoteId) {
             inverse = true;
         }
-        const linear = !inverse;
-        let symbol = undefined;
-        if (linear) {
-            symbol = base + '/' + quote + ':' + quote;
-        } else {
-            symbol = base + '/' + quote + ':' + base;
-        }
-        const precision = {
-            'amount': this.safeNumber (market, 'lotSize'),
-            'price': this.safeNumber (market, 'tickSize'),
-        };
         const priceScale = this.safeInteger (market, 'priceScale');
         const ratioScale = this.safeInteger (market, 'ratioScale');
         const valueScale = this.safeInteger (market, 'valueScale');
@@ -415,24 +402,7 @@ module.exports = class phemex extends Exchange {
         const maxPriceEp = this.safeString (market, 'maxPriceEp');
         const makerFeeRateEr = this.safeString (market, 'makerFeeRateEr');
         const takerFeeRateEr = this.safeString (market, 'takerFeeRateEr');
-        const maker = this.parseNumber (this.fromEn (makerFeeRateEr, ratioScale));
-        const taker = this.parseNumber (this.fromEn (takerFeeRateEr, ratioScale));
-        const limits = {
-            'amount': {
-                'min': undefined,
-                'max': undefined,
-            },
-            'price': {
-                'min': this.parseNumber (this.fromEn (minPriceEp, priceScale)),
-                'max': this.parseNumber (this.fromEn (maxPriceEp, priceScale)),
-            },
-            'cost': {
-                'min': undefined,
-                'max': this.parseNumber (this.safeString (market, 'maxOrderQty')),
-            },
-        };
         const status = this.safeString (market, 'status');
-        const active = status === 'Listed';
         const contractSizeString = this.safeString (market, 'contractSize', ' ');
         let contractSize = undefined;
         if (contractSizeString.indexOf (' ')) {
@@ -446,26 +416,56 @@ module.exports = class phemex extends Exchange {
         }
         return {
             'id': id,
-            'symbol': symbol,
+            'symbol': base + '/' + quote + ':' + settle,
             'base': base,
             'quote': quote,
+            'settle': settle,
             'baseId': baseId,
             'quoteId': quoteId,
-            'info': market,
-            'type': type,
-            'spot': spot,
-            'swap': swap,
-            'linear': linear,
+            'settleId': settleId,
+            'type': 'swap',
+            'spot': false,
+            'margin': false,
+            'swap': true,
+            'future': false,
+            'option': false,
+            'contract': true,
+            'linear': !inverse,
             'inverse': inverse,
-            'active': active,
-            'taker': taker,
-            'maker': maker,
+            'taker': this.parseNumber (this.fromEn (takerFeeRateEr, ratioScale)),
+            'maker': this.parseNumber (this.fromEn (makerFeeRateEr, ratioScale)),
+            'contractSize': contractSize,
+            'active': status === 'Listed',
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
             'priceScale': priceScale,
             'valueScale': valueScale,
             'ratioScale': ratioScale,
-            'precision': precision,
-            'contractSize': contractSize,
-            'limits': limits,
+            'precision': {
+                'amount': this.safeNumber (market, 'lotSize'),
+                'price': this.safeNumber (market, 'tickSize'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': this.parseNumber ('1'),
+                    'max': this.safeNumber (market, 'maxLeverage'),
+                },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': this.parseNumber (this.fromEn (minPriceEp, priceScale)),
+                    'max': this.parseNumber (this.fromEn (maxPriceEp, priceScale)),
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': this.parseNumber (this.safeString (market, 'maxOrderQty')),
+                },
+            },
+            'info': market,
         };
     }
 
