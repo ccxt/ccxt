@@ -354,43 +354,68 @@ module.exports = class buda extends Exchange {
             'market': market['id'],
         };
         const response = await this.publicGetMarketsMarketTicker (this.extend (request, params));
+        //
+        //     {
+        //         "ticker":{
+        //             "market_id":"ETH-BTC",
+        //             "last_price":["0.07300001","BTC"],
+        //             "min_ask":["0.07716895","BTC"],
+        //             "max_bid":["0.0754966","BTC"],
+        //             "volume":["0.168965697","ETH"],
+        //             "price_variation_24h":"-0.046",
+        //             "price_variation_7d":"-0.085"
+        //         }
+        //     }
+        //
         const ticker = this.safeValue (response, 'ticker');
         return this.parseTicker (ticker, market);
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        // fetchTicker
+        //
+        //     {
+        //         "market_id":"ETH-BTC",
+        //         "last_price":["0.07300001","BTC"],
+        //         "min_ask":["0.07716895","BTC"],
+        //         "max_bid":["0.0754966","BTC"],
+        //         "volume":["0.168965697","ETH"],
+        //         "price_variation_24h":"-0.046",
+        //         "price_variation_7d":"-0.085"
+        //     }
+        //
         const timestamp = this.milliseconds ();
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        const last = parseFloat (ticker['last_price'][0]);
-        const percentage = parseFloat (ticker['price_variation_24h']);
-        const open = parseFloat (this.priceToPrecision (symbol, last / (percentage + 1)));
-        const change = last - open;
-        const average = this.sum (last, open) / 2;
-        return {
+        const marketId = this.safeString (ticker, 'market_id');
+        const symbol = this.safeSymbol (marketId, market, '-');
+        const lastPrice = this.safeValue (ticker, 'last_price', []);
+        const last = this.safeNumber (lastPrice, 0);
+        const percentage = this.safeNumber (ticker, 'price_variation_24h');
+        const maxBid = this.safeValue (ticker, 'max_bid', []);
+        const minAsk = this.safeValue (ticker, 'min_ask', []);
+        const baseVolume = this.safeValue (ticker, 'volume', []);
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': parseFloat (ticker['max_bid'][0]),
+            'bid': this.safeNumber (maxBid, 0),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['min_ask'][0]),
+            'ask': this.safeNumber (minAsk, 0),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': open,
+            'open': undefined,
             'close': last,
             'last': last,
-            'previousClose': open,
-            'change': change,
+            'previousClose': undefined,
+            'change': undefined,
             'percentage': percentage * 100,
-            'average': average,
-            'baseVolume': parseFloat (ticker['volume'][0]),
+            'average': undefined,
+            'baseVolume': this.safeNumber (baseVolume, 0),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
