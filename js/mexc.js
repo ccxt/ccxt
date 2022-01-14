@@ -999,13 +999,7 @@ module.exports = class mexc extends Exchange {
         priceString = this.safeString (trade, 'p', priceString);
         let amountString = this.safeString2 (trade, 'quantity', 'trade_quantity');
         amountString = this.safeString (trade, 'v', amountString);
-        let costString = this.safeString (trade, 'amount');
-        if (costString === undefined) {
-            costString = Precise.stringMul (priceString, amountString);
-        }
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (costString);
+        const costString = this.safeString (trade, 'amount');
         let side = this.safeString2 (trade, 'trade_type', 'T');
         if ((side === 'BID') || (side === '1')) {
             side = 'buy';
@@ -1019,20 +1013,20 @@ module.exports = class mexc extends Exchange {
                 id += '-' + market['id'] + '-' + amountString;
             }
         }
-        const feeCost = this.safeNumber (trade, 'fee');
+        const feeCostString = this.safeString (trade, 'fee');
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             };
         }
         const orderId = this.safeString (trade, 'order_id');
         const isTaker = this.safeValue (trade, 'is_taker', true);
         const takerOrMaker = isTaker ? 'taker' : 'maker';
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'order': orderId,
@@ -1042,11 +1036,11 @@ module.exports = class mexc extends Exchange {
             'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
