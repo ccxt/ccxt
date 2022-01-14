@@ -391,15 +391,18 @@ module.exports = class buda extends Exchange {
         const lastPrice = this.safeValue (ticker, 'last_price', []);
         const last = this.safeNumber (lastPrice, 0);
         const percentage = this.safeNumber (ticker, 'price_variation_24h');
+        const maxBid = this.safeValue (ticker, 'max_bid', []);
+        const minAsk = this.safeValue (ticker, 'min_ask', []);
+        const baseVolume = this.safeValue (ticker, 'volume', []);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': this.safeNumber (ticker['max_bid'][0]),
+            'bid': this.safeNumber (maxBid, 0),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker['min_ask'][0]),
+            'ask': this.safeNumber (minAsk, 0),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -409,7 +412,7 @@ module.exports = class buda extends Exchange {
             'change': undefined,
             'percentage': percentage * 100,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker['volume'][0]),
+            'baseVolume': this.safeNumber (baseVolume, 0),
             'quoteVolume': undefined,
             'info': ticker,
         }, market);
