@@ -1243,7 +1243,7 @@ module.exports = class kucoinfutures extends kucoin {
         // only fetches one balance at a time
         // by default it will only fetch the BTC balance of the futures account
         // you can send 'currency' in params to fetch other currencies
-        // fetchBalance ({ 'type': 'futures', 'currency': 'USDT' })
+        // fetchBalance ({ 'type': 'future', 'currency': 'USDT' })
         const response = await this.futuresPrivateGetAccountOverview (params);
         //
         //     {
@@ -1264,8 +1264,8 @@ module.exports = class kucoinfutures extends kucoin {
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
-        if ((toAccount !== 'spot' && toAccount !== 'trade' && toAccount !== 'trading') || (fromAccount !== 'futures' && fromAccount !== 'contract')) {
-            throw new BadRequest (this.id + ' only supports transfers from contract(futures) account to trade(spot) account');
+        if ((toAccount !== 'main' && toAccount !== 'funding') || (fromAccount !== 'futures' && fromAccount !== 'future' && fromAccount !== 'contract')) {
+            throw new BadRequest (this.id + ' only supports transfers from contract(future) account to main(funding) account');
         }
         return this.transferOut (code, amount, params);
     }
@@ -1296,7 +1296,7 @@ module.exports = class kucoinfutures extends kucoin {
             'datetime': this.iso8601 (timestamp),
             'currency': code,
             'amount': amount,
-            'fromAccount': 'futures',
+            'fromAccount': 'future',
             'toAccount': 'spot',
             'status': this.safeString (data, 'status'),
         };
