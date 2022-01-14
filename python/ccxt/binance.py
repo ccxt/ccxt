@@ -933,6 +933,7 @@ class binance(Exchange):
                     "You don't have permission.": PermissionDenied,  # {"msg":"You don't have permission.","success":false}
                     'Market is closed.': ExchangeNotAvailable,  # {"code":-1013,"msg":"Market is closed."}
                     'Too many requests. Please try again later.': DDoSProtection,  # {"msg":"Too many requests. Please try again later.","success":false}
+                    'This action disabled is on self account.': AccountSuspended,  # {"code":-2010,"msg":"This action disabled is on self account."}
                     '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
                     '-1001': ExchangeNotAvailable,  # {"code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'"}
                     '-1002': AuthenticationError,  # {"code":-1002,"msg":"'You are not authorized to execute self request.'"}
