@@ -98,7 +98,6 @@ module.exports = class okex extends Exchange {
                 'setPositionMode': true,
                 'signIn': undefined,
                 'transfer': true,
-                'transferOut': false,
                 'withdraw': true,
             },
             'timeframes': {
