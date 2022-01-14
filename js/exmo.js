@@ -335,12 +335,10 @@ module.exports = class exmo extends Exchange {
                 'deposit': {
                     'min': undefined,
                     'max': undefined,
-                    'enabled': undefined,
                 },
                 'withdraw': {
                     'min': undefined,
                     'max': undefined,
-                    'enabled': undefined,
                 },
             };
             let fee = undefined;
@@ -359,7 +357,6 @@ module.exports = class exmo extends Exchange {
                         maxValue = undefined;
                     }
                     const activeProvider = this.safeValue (provider, 'enabled');
-                    limits[type]['enabled'] = activeProvider;
                     if (type === 'deposit') {
                         if (activeProvider && !depositEnabled) {
                             depositEnabled = true;
