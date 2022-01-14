@@ -937,6 +937,8 @@ module.exports = class okex extends Exchange {
             const chains = dataByCurrencyId[currencyId];
             const networks = {};
             let currencyActive = false;
+            let depositEnabled = undefined;
+            let withdrawEnabled = undefined;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const canDeposit = this.safeValue (chain, 'canDep');
@@ -945,6 +947,16 @@ module.exports = class okex extends Exchange {
                 const active = (canDeposit && canWithdraw && canInternal) ? true : false;
                 currencyActive = (currencyActive === undefined) ? active : currencyActive;
                 const networkId = this.safeString (chain, 'chain');
+                if (canDeposit && !depositEnabled) {
+                    depositEnabled = true;
+                } else if (!canDeposit) {
+                    depositEnabled = false;
+                }
+                if (canWithdraw && !withdrawEnabled) {
+                    withdrawEnabled = true;
+                } else if (!canWithdraw) {
+                    withdrawEnabled = false;
+                }
                 if (networkId.indexOf ('-') >= 0) {
                     const parts = networkId.split ('-');
                     const chainPart = this.safeString (parts, 1, networkId);
@@ -963,6 +975,8 @@ module.exports = class okex extends Exchange {
                         'id': networkId,
                         'network': network,
                         'active': active,
+                        'deposit': canDeposit,
+                        'withdraw': canWithdraw,
                         'fee': this.safeNumber (chain, 'minFee'),
                         'precision': undefined,
                         'limits': {
@@ -980,6 +994,8 @@ module.exports = class okex extends Exchange {
                 'id': currencyId,
                 'name': undefined,
                 'active': currencyActive,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': undefined,
                 'precision': precision,
                 'limits': {
