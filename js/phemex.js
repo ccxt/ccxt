@@ -502,57 +502,63 @@ module.exports = class phemex extends Exchange {
         const id = this.safeString (market, 'symbol');
         const quoteId = this.safeString (market, 'quoteCurrency');
         const baseId = this.safeString (market, 'baseCurrency');
-        const linear = undefined;
-        const inverse = undefined;
-        const spot = true;
-        const swap = false;
-        const taker = this.safeNumber (market, 'defaultTakerFee');
-        const maker = this.safeNumber (market, 'defaultMakerFee');
-        const precision = {
-            'amount': this.parseSafeNumber (this.safeString (market, 'baseTickSize')),
-            'price': this.parseSafeNumber (this.safeString (market, 'quoteTickSize')),
-        };
-        const limits = {
-            'amount': {
-                'min': precision['amount'],
-                'max': this.parseSafeNumber (this.safeString (market, 'maxBaseOrderSize')),
-            },
-            'price': {
-                'min': precision['price'],
-                'max': undefined,
-            },
-            'cost': {
-                'min': this.parseSafeNumber (this.safeString (market, 'minOrderValue')),
-                'max': this.parseSafeNumber (this.safeString (market, 'maxOrderValue')),
-            },
-        };
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = base + '/' + quote;
         const status = this.safeString (market, 'status');
-        const active = status === 'Listed';
+        const precisionAmount = this.parseSafeNumber (this.safeString (market, 'baseTickSize'));
+        const precisionPrice = this.parseSafeNumber (this.safeString (market, 'quoteTickSize'));
         return {
             'id': id,
-            'symbol': symbol,
+            'symbol': base + '/' + quote,
             'base': base,
             'quote': quote,
+            'settle': undefined,
             'baseId': baseId,
             'quoteId': quoteId,
-            'info': market,
+            'settleId': undefined,
             'type': type,
-            'spot': spot,
-            'swap': swap,
-            'linear': linear,
-            'inverse': inverse,
-            'active': active,
-            'taker': taker,
-            'maker': maker,
-            'precision': precision,
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'taker': this.safeNumber (market, 'defaultTakerFee'),
+            'maker': this.safeNumber (market, 'defaultMakerFee'),
+            'contractSize': undefined,
+            'active': status === 'Listed',
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
             'priceScale': 8,
             'valueScale': 8,
             'ratioScale': 8,
-            'contractSize': undefined,
-            'limits': limits,
+            'precision': {
+                'amount': precisionAmount,
+                'price': precisionPrice,
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': precisionAmount,
+                    'max': this.parseSafeNumber (this.safeString (market, 'maxBaseOrderSize')),
+                },
+                'price': {
+                    'min': precisionPrice,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': this.parseSafeNumber (this.safeString (market, 'minOrderValue')),
+                    'max': this.parseSafeNumber (this.safeString (market, 'maxOrderValue')),
+                },
+            },
+            'info': market,
         };
     }
 
