@@ -937,6 +937,8 @@ class okex(Exchange):
             chains = dataByCurrencyId[currencyId]
             networks = {}
             currencyActive = False
+            depositEnabled = None
+            withdrawEnabled = None
             for j in range(0, len(chains)):
                 chain = chains[j]
                 canDeposit = self.safe_value(chain, 'canDep')
@@ -945,6 +947,14 @@ class okex(Exchange):
                 active = True if (canDeposit and canWithdraw and canInternal) else False
                 currencyActive = active if (currencyActive is None) else currencyActive
                 networkId = self.safe_string(chain, 'chain')
+                if canDeposit and not depositEnabled:
+                    depositEnabled = True
+                elif not canDeposit:
+                    depositEnabled = False
+                if canWithdraw and not withdrawEnabled:
+                    withdrawEnabled = True
+                elif not canWithdraw:
+                    withdrawEnabled = False
                 if networkId.find('-') >= 0:
                     parts = networkId.split('-')
                     chainPart = self.safe_string(parts, 1, networkId)
@@ -962,6 +972,8 @@ class okex(Exchange):
                         'id': networkId,
                         'network': network,
                         'active': active,
+                        'deposit': canDeposit,
+                        'withdraw': canWithdraw,
                         'fee': self.safe_number(chain, 'minFee'),
                         'precision': None,
                         'limits': {
@@ -977,6 +989,8 @@ class okex(Exchange):
                 'id': currencyId,
                 'name': None,
                 'active': currencyActive,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': None,
                 'precision': precision,
                 'limits': {

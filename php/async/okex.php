@@ -943,6 +943,8 @@ class okex extends Exchange {
             $chains = $dataByCurrencyId[$currencyId];
             $networks = array();
             $currencyActive = false;
+            $depositEnabled = null;
+            $withdrawEnabled = null;
             for ($j = 0; $j < count($chains); $j++) {
                 $chain = $chains[$j];
                 $canDeposit = $this->safe_value($chain, 'canDep');
@@ -951,6 +953,16 @@ class okex extends Exchange {
                 $active = ($canDeposit && $canWithdraw && $canInternal) ? true : false;
                 $currencyActive = ($currencyActive === null) ? $active : $currencyActive;
                 $networkId = $this->safe_string($chain, 'chain');
+                if ($canDeposit && !$depositEnabled) {
+                    $depositEnabled = true;
+                } else if (!$canDeposit) {
+                    $depositEnabled = false;
+                }
+                if ($canWithdraw && !$withdrawEnabled) {
+                    $withdrawEnabled = true;
+                } else if (!$canWithdraw) {
+                    $withdrawEnabled = false;
+                }
                 if (mb_strpos($networkId, '-') !== false) {
                     $parts = explode('-', $networkId);
                     $chainPart = $this->safe_string($parts, 1, $networkId);
@@ -969,6 +981,8 @@ class okex extends Exchange {
                         'id' => $networkId,
                         'network' => $network,
                         'active' => $active,
+                        'deposit' => $canDeposit,
+                        'withdraw' => $canWithdraw,
                         'fee' => $this->safe_number($chain, 'minFee'),
                         'precision' => null,
                         'limits' => array(
@@ -986,6 +1000,8 @@ class okex extends Exchange {
                 'id' => $currencyId,
                 'name' => null,
                 'active' => $currencyActive,
+                'deposit' => $depositEnabled,
+                'withdraw' => $withdrawEnabled,
                 'fee' => null,
                 'precision' => $precision,
                 'limits' => array(

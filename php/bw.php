@@ -288,6 +288,10 @@ class bw extends Exchange {
             $id = $this->safe_string($currency, 'currencyId');
             $code = $this->safe_currency_code($this->safe_string_upper($currency, 'name'));
             $state = $this->safe_integer($currency, 'state');
+            $rechargeFlag = $this->safe_integer($currency, 'rechargeFlag');
+            $drawFlag = $this->safe_integer($currency, 'drawFlag');
+            $deposit = $rechargeFlag === 1;
+            $withdraw = $drawFlag === 1;
             $active = $state === 1;
             $result[$code] = array(
                 'id' => $id,
@@ -295,6 +299,8 @@ class bw extends Exchange {
                 'info' => $currency,
                 'name' => $code,
                 'active' => $active,
+                'deposit' => $deposit,
+                'withdraw' => $withdraw,
                 'fee' => $this->safe_number($currency, 'drawFee'),
                 'precision' => null,
                 'limits' => array(

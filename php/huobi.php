@@ -3503,13 +3503,13 @@ class huobi extends Exchange {
         }
         $request['order_price_type'] = $type;
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id'); // must be 64 chars max and unique within 24 hours
-        // if ($clientOrderId === null) {
-        //     $broker = $this->safe_value($this->options, 'broker', array());
-        //     $brokerId = $this->safe_string($broker, 'id');
-        //     $request['client_order_id'] = $brokerId . $this->uuid();
-        // } else {
-        //     $request['client_order_id'] = $clientOrderId;
-        // }
+        if ($clientOrderId === null) {
+            $broker = $this->safe_value($this->options, 'broker', array());
+            $brokerId = $this->safe_string($broker, 'id');
+            $request['client_order_id'] = $brokerId . $this->uuid();
+        } else {
+            $request['client_order_id'] = $clientOrderId;
+        }
         if ($clientOrderId !== null) {
             $request['client_order_id'] = $clientOrderId;
             $params = $this->omit($params, array( 'clientOrderId', 'client_order_id' ));
