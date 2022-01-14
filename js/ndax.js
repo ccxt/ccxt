@@ -59,12 +59,10 @@ module.exports = class ndax extends Exchange {
                 'fetchTicker': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
-                'loadLeverageBrackets': false,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setPositionMode': false,
                 'signIn': true,
-                'transferOut': false,
                 'withdraw': true,
             },
             'timeframes': {
