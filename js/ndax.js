@@ -311,6 +311,8 @@ module.exports = class ndax extends Exchange {
                 'precision': precision,
                 'info': currency,
                 'active': active,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
                 'limits': this.limits,
             };

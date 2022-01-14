@@ -369,6 +369,8 @@ class xena(Exchange):
                 'info': currency,
                 'name': name,
                 'active': active,
+                'deposit': None,
+                'withdraw': None,
                 'fee': self.safe_number(withdraw, 'commission'),
                 'precision': precision,
                 'limits': {

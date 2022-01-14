@@ -494,6 +494,7 @@ class poloniex(Exchange):
 
     def fetch_currencies(self, params={}):
         response = self.publicGetReturnCurrencies(params)
+        #
         #     {
         #       "id": "293",
         #       "name": "0x",
@@ -509,6 +510,7 @@ class poloniex(Exchange):
         #       "delisted": "0",
         #       "isGeofenced": 0
         #     }
+        #
         ids = list(response.keys())
         result = {}
         for i in range(0, len(ids)):
@@ -517,7 +519,11 @@ class poloniex(Exchange):
             precision = 8  # default precision, todo: fix "magic constants"
             amountLimit = '1e-8'
             code = self.safe_currency_code(id)
-            active = (currency['delisted'] == 0) and not currency['disabled']
+            delisted = self.safe_integer(currency, 'delisted', 0)
+            disabled = self.safe_integer(currency, 'disabled', 0)
+            listed = not delisted
+            enabled = not disabled
+            active = enabled and listed
             numericId = self.safe_integer(currency, 'id')
             fee = self.safe_number(currency, 'txFee')
             result[code] = {
@@ -527,6 +533,8 @@ class poloniex(Exchange):
                 'info': currency,
                 'name': currency['name'],
                 'active': active,
+                'deposit': None,
+                'withdraw': None,
                 'fee': fee,
                 'precision': precision,
                 'limits': {

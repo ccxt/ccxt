@@ -241,8 +241,8 @@ class liquid extends Exchange {
         //             minimum_fee => null,
         //             minimum_order_quantity => null,
         //             display_precision => 2,
-        //             depositable => true,
-        //             withdrawable => true,
+        //             $depositable => true,
+        //             $withdrawable => true,
         //             discount_fee => 0.5,
         //             credit_card_fundable => false,
         //             lendable => false,
@@ -262,7 +262,9 @@ class liquid extends Exchange {
             $id = $this->safe_string($currency, 'currency');
             $code = $this->safe_currency_code($id);
             $name = $this->safe_string($currency, 'name');
-            $active = $currency['depositable'] && $currency['withdrawable'];
+            $depositable = $this->safe_value($currency, 'depositable');
+            $withdrawable = $this->safe_value($currency, 'withdrawable');
+            $active = $depositable && $withdrawable;
             $amountPrecision = $this->safe_integer($currency, 'assets_precision');
             $result[$code] = array(
                 'id' => $id,
@@ -270,6 +272,8 @@ class liquid extends Exchange {
                 'info' => $currency,
                 'name' => $name,
                 'active' => $active,
+                'deposit' => $depositable,
+                'withdraw' => $withdrawable,
                 'fee' => $this->safe_number($currency, 'withdrawal_fee'),
                 'precision' => $amountPrecision,
                 'limits' => array(

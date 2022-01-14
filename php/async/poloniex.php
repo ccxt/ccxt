@@ -508,6 +508,7 @@ class poloniex extends Exchange {
 
     public function fetch_currencies($params = array ()) {
         $response = yield $this->publicGetReturnCurrencies ($params);
+        //
         //     {
         //       "id" => "293",
         //       "name" => "0x",
@@ -523,6 +524,7 @@ class poloniex extends Exchange {
         //       "delisted" => "0",
         //       "isGeofenced" => 0
         //     }
+        //
         $ids = is_array($response) ? array_keys($response) : array();
         $result = array();
         for ($i = 0; $i < count($ids); $i++) {
@@ -531,7 +533,11 @@ class poloniex extends Exchange {
             $precision = 8; // default $precision, todo => fix "magic constants"
             $amountLimit = '1e-8';
             $code = $this->safe_currency_code($id);
-            $active = ($currency['delisted'] === 0) && !$currency['disabled'];
+            $delisted = $this->safe_integer($currency, 'delisted', 0);
+            $disabled = $this->safe_integer($currency, 'disabled', 0);
+            $listed = !$delisted;
+            $enabled = !$disabled;
+            $active = $enabled && $listed;
             $numericId = $this->safe_integer($currency, 'id');
             $fee = $this->safe_number($currency, 'txFee');
             $result[$code] = array(
@@ -541,6 +547,8 @@ class poloniex extends Exchange {
                 'info' => $currency,
                 'name' => $currency['name'],
                 'active' => $active,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => $fee,
                 'precision' => $precision,
                 'limits' => array(

@@ -1019,6 +1019,8 @@ class okex3 extends Exchange {
                 $name = $this->safe_string($currency, 'name');
                 $canDeposit = $this->safe_integer($currency, 'can_deposit');
                 $canWithdraw = $this->safe_integer($currency, 'can_withdraw');
+                $depositEnabled = ($canDeposit === 1);
+                $withdrawEnabled = ($canWithdraw === 1);
                 $active = ($canDeposit && $canWithdraw) ? true : false;
                 $result[$code] = array(
                     'id' => $id,
@@ -1027,6 +1029,8 @@ class okex3 extends Exchange {
                     'type' => null,
                     'name' => $name,
                     'active' => $active,
+                    'deposit' => $depositEnabled,
+                    'withdraw' => $withdrawEnabled,
                     'fee' => null, // todo => redesign
                     'precision' => $precision,
                     'limits' => array(
@@ -1102,29 +1106,12 @@ class okex3 extends Exchange {
         //       quote_volume_24h => "15094.86831261"            }
         //
         $timestamp = $this->parse8601($this->safe_string($ticker, 'timestamp'));
-        $symbol = null;
         $marketId = $this->safe_string($ticker, 'instrument_id');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-        } else if ($marketId !== null) {
-            $parts = explode('-', $marketId);
-            $numParts = is_array($parts) ? count($parts) : 0;
-            if ($numParts === 2) {
-                list($baseId, $quoteId) = $parts;
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            } else {
-                $symbol = $marketId;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market($marketId, $market, '-');
+        $symbol = $market['symbol'];
         $last = $this->safe_number($ticker, 'last');
         $open = $this->safe_number($ticker, 'open_24h');
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -1145,7 +1132,7 @@ class okex3 extends Exchange {
             'baseVolume' => $this->safe_number($ticker, 'base_volume_24h'),
             'quoteVolume' => $this->safe_number($ticker, 'quote_volume_24h'),
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

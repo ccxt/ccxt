@@ -130,6 +130,7 @@ class latoken(Exchange):
                 },
             },
             'commonCurrencies': {
+                'CTC': 'CyberTronchain',
                 'MT': 'Monarch',
                 'TPAY': 'Tetra Pay',
                 'TRADE': 'Smart Trade Coin',

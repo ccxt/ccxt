@@ -505,6 +505,7 @@ module.exports = class poloniex extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetReturnCurrencies (params);
+        //
         //     {
         //       "id": "293",
         //       "name": "0x",
@@ -520,6 +521,7 @@ module.exports = class poloniex extends Exchange {
         //       "delisted": "0",
         //       "isGeofenced": 0
         //     }
+        //
         const ids = Object.keys (response);
         const result = {};
         for (let i = 0; i < ids.length; i++) {
@@ -528,7 +530,11 @@ module.exports = class poloniex extends Exchange {
             const precision = 8; // default precision, todo: fix "magic constants"
             const amountLimit = '1e-8';
             const code = this.safeCurrencyCode (id);
-            const active = (currency['delisted'] === 0) && !currency['disabled'];
+            const delisted = this.safeInteger (currency, 'delisted', 0);
+            const disabled = this.safeInteger (currency, 'disabled', 0);
+            const listed = !delisted;
+            const enabled = !disabled;
+            const active = enabled && listed;
             const numericId = this.safeInteger (currency, 'id');
             const fee = this.safeNumber (currency, 'txFee');
             result[code] = {
@@ -538,6 +544,8 @@ module.exports = class poloniex extends Exchange {
                 'info': currency,
                 'name': currency['name'],
                 'active': active,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': fee,
                 'precision': precision,
                 'limits': {

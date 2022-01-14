@@ -959,7 +959,10 @@ class timex extends Exchange {
         $code = $this->safe_currency_code($id);
         $name = $this->safe_string($currency, 'name');
         $precision = $this->safe_integer($currency, 'decimals');
-        $active = $this->safe_value($currency, 'active');
+        $depositEnabled = $this->safe_value($currency, 'depositEnabled');
+        $withdrawEnabled = $this->safe_value($currency, 'withdrawalEnabled');
+        $isActive = $this->safe_value($currency, 'active');
+        $active = $depositEnabled && $withdrawEnabled && $isActive;
         // $fee = $this->safe_number($currency, 'withdrawalFee');
         $feeString = $this->safe_string($currency, 'withdrawalFee');
         $tradeDecimals = $this->safe_integer($currency, 'tradeDecimals');
@@ -986,6 +989,8 @@ class timex extends Exchange {
             'type' => null,
             'name' => $name,
             'active' => $active,
+            'deposit' => $depositEnabled,
+            'withdraw' => $withdrawEnabled,
             'fee' => $fee,
             'precision' => $precision,
             'limits' => array(

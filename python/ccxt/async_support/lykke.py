@@ -25,7 +25,7 @@ class lykke(Exchange):
                 'fetchClosedOrders': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
-                'fetchOHLCV': None,
+                'fetchOHLCV': 'emulated',
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,

@@ -469,6 +469,8 @@ class hitbtc3(Exchange):
             rawNetworks = self.safe_value(entry, 'networks', [])
             networks = {}
             fee = None
+            depositEnabled = None
+            withdrawEnabled = None
             for j in range(0, len(rawNetworks)):
                 rawNetwork = rawNetworks[j]
                 networkId = self.safe_string(rawNetwork, 'protocol')
@@ -481,12 +483,22 @@ class hitbtc3(Exchange):
                 payoutEnabledNetwork = self.safe_value(entry, 'payout_enabled', False)
                 transferEnabledNetwork = self.safe_value(entry, 'transfer_enabled', False)
                 active = payinEnabledNetwork and payoutEnabledNetwork and transferEnabledNetwork
+                if payinEnabledNetwork and not depositEnabled:
+                    depositEnabled = True
+                elif not payinEnabledNetwork:
+                    depositEnabled = False
+                if payoutEnabledNetwork and not withdrawEnabled:
+                    withdrawEnabled = True
+                elif not payoutEnabledNetwork:
+                    withdrawEnabled = False
                 networks[network] = {
                     'info': rawNetwork,
                     'id': networkId,
                     'network': network,
                     'fee': fee,
                     'active': active,
+                    'deposit': payinEnabledNetwork,
+                    'withdraw': payoutEnabledNetwork,
                     'precision': precision,
                     'limits': {
                         'withdraw': {
@@ -504,6 +516,8 @@ class hitbtc3(Exchange):
                 'precision': precision,
                 'name': name,
                 'active': active,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'networks': networks,
                 'fee': fee if (networksLength <= 1) else None,
                 'limits': {

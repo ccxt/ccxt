@@ -405,6 +405,7 @@ module.exports = class kucoin extends Exchange {
                     'margin': 'margin',
                     'main': 'main',
                     'funding': 'main',
+                    'future': 'contract',
                     'futures': 'contract',
                     'contract': 'contract',
                     'pool': 'pool',
@@ -711,7 +712,7 @@ module.exports = class kucoin extends Exchange {
             throw new ExchangeError (this.id + ' type must be one of ' + keys.join (', '));
         }
         params = this.omit (params, 'type');
-        return (type === 'contract') || (type === 'futures');
+        return (type === 'contract') || (type === 'future') || (type === 'futures'); // * (type === 'futures') deprecated, use (type === 'future')
     }
 
     parseTicker (ticker, market = undefined) {

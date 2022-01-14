@@ -742,6 +742,8 @@ class phemex extends Exchange {
                 'code' => $code,
                 'name' => $name,
                 'active' => null,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => null,
                 'precision' => $precision,
                 'limits' => array(
@@ -1021,17 +1023,9 @@ class phemex extends Exchange {
         if (($market !== null) && ($market['spot'])) {
             $vwap = $this->vwap($baseVolume, $quoteVolume);
         }
-        $change = null;
-        $percentage = null;
-        $average = null;
         $openString = $this->from_ep($this->safe_string($ticker, 'openEp'), $market);
         $open = $this->parse_number($openString);
-        if (($openString !== null) && ($lastString !== null)) {
-            $change = $this->parse_number(Precise::string_sub($lastString, $openString));
-            $average = $this->parse_number(Precise::string_div(Precise::string_add($lastString, $openString), '2'));
-            $percentage = $this->parse_number(Precise::string_mul(Precise::string_sub(Precise::string_div($lastString, $openString), '1'), '100'));
-        }
-        $result = array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -1046,14 +1040,13 @@ class phemex extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null, // previous day close
-            'change' => $change,
-            'percentage' => $percentage,
-            'average' => $average,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
-        return $result;
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

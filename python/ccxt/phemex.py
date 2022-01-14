@@ -740,6 +740,8 @@ class phemex(Exchange):
                 'code': code,
                 'name': name,
                 'active': None,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
                 'precision': precision,
                 'limits': {
@@ -990,16 +992,9 @@ class phemex(Exchange):
         vwap = None
         if (market is not None) and (market['spot']):
             vwap = self.vwap(baseVolume, quoteVolume)
-        change = None
-        percentage = None
-        average = None
         openString = self.from_ep(self.safe_string(ticker, 'openEp'), market)
         open = self.parse_number(openString)
-        if (openString is not None) and (lastString is not None):
-            change = self.parse_number(Precise.string_sub(lastString, openString))
-            average = self.parse_number(Precise.string_div(Precise.string_add(lastString, openString), '2'))
-            percentage = self.parse_number(Precise.string_mul(Precise.string_sub(Precise.string_div(lastString, openString), '1'), '100'))
-        result = {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1014,14 +1009,13 @@ class phemex(Exchange):
             'close': last,
             'last': last,
             'previousClose': None,  # previous day close
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': None,
+            'percentage': None,
+            'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
-        return result
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

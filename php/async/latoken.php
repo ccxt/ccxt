@@ -121,6 +121,7 @@ class latoken extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'CTC' => 'CyberTronchain',
                 'MT' => 'Monarch',
                 'TPAY' => 'Tetra Pay',
                 'TRADE' => 'Smart Trade Coin',

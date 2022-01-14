@@ -16,17 +16,35 @@ module.exports = class bitbank extends Exchange {
             'countries': [ 'JP' ],
             'version': 'v1',
             'has': {
+                'spot': true,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchDepositAddress': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setPositionMode': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -144,47 +162,61 @@ module.exports = class bitbank extends Exchange {
             const quoteId = this.safeString (entry, 'quote_asset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
             const maker = this.safeNumber (entry, 'maker_fee_rate_quote');
             const taker = this.safeNumber (entry, 'taker_fee_rate_quote');
             const pricePrecisionString = this.safeString (entry, 'price_digits');
             const priceLimit = this.parsePrecision (pricePrecisionString);
-            const precision = {
-                'price': parseInt (pricePrecisionString),
-                'amount': this.safeInteger (entry, 'amount_digits'),
-            };
-            const active = this.safeValue (entry, 'is_enabled');
             const minAmountString = this.safeString (entry, 'unit_amount');
             const minCost = Precise.stringMul (minAmountString, priceLimit);
-            const limits = {
-                'amount': {
-                    'min': this.safeNumber (entry, 'unit_amount'),
-                    'max': this.safeNumber (entry, 'limit_max_amount'),
-                },
-                'price': {
-                    'min': this.parseNumber (priceLimit),
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': this.parseNumber (minCost),
-                    'max': undefined,
-                },
-            };
             result.push ({
-                'info': entry,
                 'id': id,
-                'symbol': symbol,
-                'baseId': baseId,
-                'quoteId': quoteId,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
-                'precision': precision,
-                'limits': limits,
+                'settle': undefined,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': this.safeValue (entry, 'is_enabled'),
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
                 'maker': maker,
                 'taker': taker,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': parseInt (pricePrecisionString),
+                    'amount': this.safeInteger (entry, 'amount_digits'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (entry, 'unit_amount'),
+                        'max': this.safeNumber (entry, 'limit_max_amount'),
+                    },
+                    'price': {
+                        'min': this.parseNumber (priceLimit),
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.parseNumber (minCost),
+                        'max': undefined,
+                    },
+                },
+                'info': entry,
             });
         }
         return result;
