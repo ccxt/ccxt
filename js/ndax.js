@@ -527,6 +527,7 @@ module.exports = class ndax extends Exchange {
         //
         const timestamp = this.safeInteger (ticker, 'TimeStamp');
         const marketId = this.safeString (ticker, 'InstrumentId');
+        market = this.safeMarket (marketId, market);
         const symbol = this.safeSymbol (marketId, market);
         const last = this.safeNumber (ticker, 'LastTradedPx');
         const percentage = this.safeNumber (ticker, 'Rolling24HrPxChangePercent');
