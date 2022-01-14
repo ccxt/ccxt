@@ -233,38 +233,41 @@ module.exports = class hollaex extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetConstants (params);
-        // {
-        //   "coins":{
-        //     "bch":{
-        //     "id":4,
-        //     "fullname":"Bitcoin Cash",
-        //     "symbol":"bch",
-        //     "active":true,
-        //     "verified":true,
-        //     "allow_deposit":true,
-        //     "allow_withdrawal":true,
-        //     "withdrawal_fee":0.0001,
-        //     "min":0.001,
-        //     "max":100000,
-        //     "increment_unit":0.001,
-        //     "logo":"https://bitholla.s3.ap-northeast-2.amazonaws.com/icon/BCH-hollaex-asset-01.svg",
-        //     "code":"bch",
-        //     "is_public":true,
-        //     "meta":{},
-        //     "estimated_price":null,
-        //     "description":null,
-        //     "type":"blockchain",
-        //     "network":null,
-        //     "standard":null,
-        //     "issuer":"HollaEx",
-        //     "withdrawal_fees":null,
-        //     "created_at":"2019-08-09T10:45:43.367Z",
-        //     "updated_at":"2021-12-13T03:08:32.372Z",
-        //     "created_by":1,
-        //     "owner_id":1
-        //   },
-        //   "network":"https://api.hollaex.network"
-        // }
+        //
+        //     {
+        //         "coins":{
+        //             "bch":{
+        //                 "id":4,
+        //                 "fullname":"Bitcoin Cash",
+        //                 "symbol":"bch",
+        //                 "active":true,
+        //                 "verified":true,
+        //                 "allow_deposit":true,
+        //                 "allow_withdrawal":true,
+        //                 "withdrawal_fee":0.0001,
+        //                 "min":0.001,
+        //                 "max":100000,
+        //                 "increment_unit":0.001,
+        //                 "logo":"https://bitholla.s3.ap-northeast-2.amazonaws.com/icon/BCH-hollaex-asset-01.svg",
+        //                 "code":"bch",
+        //                 "is_public":true,
+        //                 "meta":{},
+        //                 "estimated_price":null,
+        //                 "description":null,
+        //                 "type":"blockchain",
+        //                 "network":null,
+        //                 "standard":null,
+        //                 "issuer":"HollaEx",
+        //                 "withdrawal_fees":null,
+        //                 "created_at":"2019-08-09T10:45:43.367Z",
+        //                 "updated_at":"2021-12-13T03:08:32.372Z",
+        //                 "created_by":1,
+        //                 "owner_id":1
+        //             },
+        //         },
+        //         "network":"https://api.hollaex.network"
+        //     }
+        //
         const coins = this.safeValue (response, 'coins', {});
         const keys = Object.keys (coins);
         const result = {};
