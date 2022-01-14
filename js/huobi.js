@@ -3496,13 +3496,13 @@ module.exports = class huobi extends Exchange {
         }
         request['order_price_type'] = type;
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id'); // must be 64 chars max and unique within 24 hours
-        // if (clientOrderId === undefined) {
-        //     const broker = this.safeValue (this.options, 'broker', {});
-        //     const brokerId = this.safeString (broker, 'id');
-        //     request['client_order_id'] = brokerId + this.uuid ();
-        // } else {
-        //     request['client_order_id'] = clientOrderId;
-        // }
+        if (clientOrderId === undefined) {
+            const broker = this.safeValue (this.options, 'broker', {});
+            const brokerId = this.safeString (broker, 'id');
+            request['client_order_id'] = brokerId + this.uuid ();
+        } else {
+            request['client_order_id'] = clientOrderId;
+        }
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
             params = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
