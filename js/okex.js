@@ -3814,6 +3814,45 @@ module.exports = class okex extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
+    async fetchMaxTradeAmount (symbol, marginMode, code = undefined, params = {}) {
+        await this.loadMarkets ();
+        const lowerCaseMarginMode = marginMode.toLowerCase ();
+        if (lowerCaseMarginMode !== 'cross' && lowerCaseMarginMode !== 'isolated' && lowerCaseMarginMode !== 'cash') {
+            throw new BadRequest (this.id + ' fetchMaxTradeAmount requires marginMode to be one of "cross", "isolated" or "cash"');
+        }
+        const market = this.market (symbol);
+        const request = {
+            'instId': market['id'],
+            'tdMode': lowerCaseMarginMode,
+        };
+        if (code !== undefined) {
+            const currency = this.currency (code);
+            request['ccy'] = currency['id'];
+        }
+        const response = await this.privateGetAccountMaxAvailSize (this.extend (request, params));
+        //
+        //  {
+        //      code: '0',
+        //      data: [
+        //          {
+        //              availBuy: '0.0000000027274389',
+        //              availSell: '0.0000000027274389',
+        //              instId: 'ADA-USDT-SWAP'
+        //          }
+        //      ],
+        //      msg: ''
+        //  }
+        //
+        const data = this.safeValue (response, 'data');
+        const result = this.safeValue (data, 0);
+        return {
+            'symbol': symbol,
+            'buy': this.safeNumber (result, 'availBuy'),
+            'sell': this.safeNumber (result, 'availSell'),
+            'info': result,
+        };
+    }
+
     setSandboxMode (enable) {
         if (enable) {
             this.headers['x-simulated-trading'] = '1';
