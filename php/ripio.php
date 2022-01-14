@@ -280,10 +280,11 @@ class ripio extends Exchange {
         //
         $timestamp = $this->parse8601($this->safe_string($ticker, 'created_at'));
         $marketId = $this->safe_string($ticker, 'pair');
-        $symbol = $this->safe_symbol($marketId, $market);
+        $market = $this->safe_market($marketId, $market, '_');
+        $symbol = $market['symbol'];
         $last = $this->safe_number($ticker, 'last_price');
         $average = $this->safe_number($ticker, 'avg');
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -304,7 +305,7 @@ class ripio extends Exchange {
             'baseVolume' => null,
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
