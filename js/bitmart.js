@@ -745,7 +745,7 @@ module.exports = class bitmart extends Exchange {
             'previousClose': undefined,
             'change': undefined,
             'percentage': percentage,
-            'average': undefined,
+            'average': average,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
