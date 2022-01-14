@@ -42,11 +42,9 @@ module.exports = class bitbank extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
-                'loadLeverageBrackets': false,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setPositionMode': false,
-                'transferOut': false,
                 'withdraw': true,
             },
             'timeframes': {
