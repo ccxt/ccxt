@@ -285,8 +285,8 @@ module.exports = class btcturk extends Exchange {
         //     "order": 1000
         //   }
         //
-        const marketId = this.safeString (ticker, 'pairNormalized');
-        market = this.safeMarket (marketId, market, '_');
+        const marketId = this.safeString (ticker, 'pair');
+        market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (ticker, 'timestamp');
         const last = this.safeNumber (ticker, 'last');
