@@ -998,10 +998,10 @@ class ftx extends Exchange {
         $quoteId = $this->safe_string($trade, 'quoteCurrency');
         $defaultMarketId = null;
         if (($baseId !== null) && ($quoteId !== null)) {
-            $defaultMarketId = $baseId . '-' . $quoteId;
+            $defaultMarketId = $baseId . '/' . $quoteId;
         }
         $marketId = $this->safe_string($trade, 'market', $defaultMarketId);
-        $market = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market, '/');
         $symbol = $market['symbol'];
         $timestamp = $this->parse8601($this->safe_string($trade, 'time'));
         $priceString = $this->safe_string($trade, 'price');

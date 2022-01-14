@@ -992,9 +992,9 @@ class ftx(Exchange):
         quoteId = self.safe_string(trade, 'quoteCurrency')
         defaultMarketId = None
         if (baseId is not None) and (quoteId is not None):
-            defaultMarketId = baseId + '-' + quoteId
+            defaultMarketId = baseId + '/' + quoteId
         marketId = self.safe_string(trade, 'market', defaultMarketId)
-        market = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market, '/')
         symbol = market['symbol']
         timestamp = self.parse8601(self.safe_string(trade, 'time'))
         priceString = self.safe_string(trade, 'price')
