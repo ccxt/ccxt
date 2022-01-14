@@ -289,6 +289,10 @@ class bw(Exchange):
             id = self.safe_string(currency, 'currencyId')
             code = self.safe_currency_code(self.safe_string_upper(currency, 'name'))
             state = self.safe_integer(currency, 'state')
+            rechargeFlag = self.safe_integer(currency, 'rechargeFlag')
+            drawFlag = self.safe_integer(currency, 'drawFlag')
+            deposit = rechargeFlag == 1
+            withdraw = drawFlag == 1
             active = state == 1
             result[code] = {
                 'id': id,
@@ -296,6 +300,8 @@ class bw(Exchange):
                 'info': currency,
                 'name': code,
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': self.safe_number(currency, 'drawFee'),
                 'precision': None,
                 'limits': {
