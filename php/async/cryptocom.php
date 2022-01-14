@@ -1047,6 +1047,9 @@ class cryptocom extends Exchange {
         if ($since !== null) {
             // maximum date range is one day
             $request['start_ts'] = $since;
+            $now = $this->milliseconds();
+            $endTimestamp = $this->sim ($since, 24 * 60 * 60 * 1000);
+            $request['end_ts'] = min ($now, $endTimestamp);
         }
         if ($limit !== null) {
             $request['page_size'] = $limit;
