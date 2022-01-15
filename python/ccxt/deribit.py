@@ -4,6 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -358,6 +365,9 @@ class deribit(Exchange):
             'options': {
                 'code': 'BTC',
                 'fetchBalance': {
+                    'code': 'BTC',
+                },
+                'fetchPositions': {
                     'code': 'BTC',
                 },
             },
@@ -1735,15 +1745,26 @@ class deribit(Exchange):
         result = []
         for i in range(0, len(positions)):
             result.append(self.parse_position(positions[i]))
-        # todo unify parsePositions
         return result
 
     def fetch_positions(self, symbols=None, params={}):
         self.load_markets()
-        code = self.code_from_options('fetchPositions', params)
+        code = None
+        if symbols is None:
+            code = self.code_from_options('fetchPositions', params)
+        elif isinstance(symbols, basestring):
+            code = symbols
+        else:
+            if isinstance(symbols, list):
+                length = len(symbols)
+                if length != 1:
+                    raise BadRequest(self.id + ' fetchPositions symbols argument cannot contain more than 1 symbol')
+                market = self.market(symbols[0])
+                code = market['base']
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
+            # "kind" : "future", "option"
         }
         response = self.privateGetGetPositions(self.extend(request, params))
         #
@@ -1771,15 +1792,12 @@ class deribit(Exchange):
         #                 "size": 50,
         #                 "size_currency": 0.006687487,
         #                 "total_profit_loss": 0.000032781
-        #             }
+        #             },
         #         ]
         #     }
         #
-        # response is returning an empty list for result
-        # todo unify parsePositions
-        result = self.safe_value(response, 'result', [])
-        positions = self.parse_positions(result)
-        return self.filter_by_array(positions, 'symbol', symbols, False)
+        result = self.safe_value(response, 'result')
+        return self.parse_positions(result)
 
     def fetch_historical_volatility(self, code, params={}):
         self.load_markets()

@@ -367,6 +367,9 @@ module.exports = class deribit extends Exchange {
                 'fetchBalance': {
                     'code': 'BTC',
                 },
+                'fetchPositions': {
+                    'code': 'BTC',
+                },
             },
         });
     }
@@ -1813,16 +1816,30 @@ module.exports = class deribit extends Exchange {
         for (let i = 0; i < positions.length; i++) {
             result.push (this.parsePosition (positions[i]));
         }
-        // todo unify parsePositions
         return result;
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const code = this.codeFromOptions ('fetchPositions', params);
+        let code = undefined;
+        if (symbols === undefined) {
+            code = this.codeFromOptions ('fetchPositions', params);
+        } else if (typeof symbols === 'string') {
+            code = symbols;
+        } else {
+            if (Array.isArray (symbols)) {
+                const length = symbols.length;
+                if (length !== 1) {
+                    throw new BadRequest (this.id + ' fetchPositions symbols argument cannot contain more than 1 symbol');
+                }
+                const market = this.market (symbols[0]);
+                code = market['base'];
+            }
+        }
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
+            // "kind" : "future", "option"
         };
         const response = await this.privateGetGetPositions (this.extend (request, params));
         //
@@ -1850,15 +1867,12 @@ module.exports = class deribit extends Exchange {
         //                 "size": 50,
         //                 "size_currency": 0.006687487,
         //                 "total_profit_loss": 0.000032781
-        //             }
+        //             },
         //         ]
         //     }
         //
-        // response is returning an empty list for result
-        // todo unify parsePositions
-        const result = this.safeValue (response, 'result', []);
-        const positions = this.parsePositions (result);
-        return this.filterByArray (positions, 'symbol', symbols, false);
+        const result = this.safeValue (response, 'result');
+        return this.parsePositions (result);
     }
 
     async fetchHistoricalVolatility (code, params = {}) {

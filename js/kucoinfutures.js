@@ -79,7 +79,6 @@ module.exports = class kucoinfutures extends kucoin {
                 'fetchWithdrawals': true,
                 'setMarginMode': false,
                 'transfer': true,
-                'transferOut': true,
                 'withdraw': undefined,
                 'addMargin': true,
             },

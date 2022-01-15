@@ -103,7 +103,6 @@ class okex extends Exchange {
                 'setPositionMode' => true,
                 'signIn' => null,
                 'transfer' => true,
-                'transferOut' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(

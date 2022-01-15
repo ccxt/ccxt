@@ -1105,17 +1105,14 @@ class mexc(Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
-        spot = (type == 'spot')
-        swap = (type == 'swap')
-        method = None
-        if spot:
-            method = 'spotPrivateGetAccountInfo'
-        elif swap:
-            method = 'contractPrivateGetAccountAssets'
-        query = self.omit(params, 'type')
-        response = await getattr(self, method)(query)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'spotPrivateGetAccountInfo',
+            'swap': 'contractPrivateGetAccountAssets',
+        })
+        spot = (marketType == 'spot')
+        response = await getattr(self, method)(params)
         #
         # spot
         #
@@ -1139,10 +1136,11 @@ class mexc(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', {})
+        currentTime = self.milliseconds()
         result = {
             'info': response,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': currentTime,
+            'datetime': self.iso8601(currentTime),
         }
         if spot:
             currencyIds = list(data.keys())

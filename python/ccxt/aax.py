@@ -120,7 +120,6 @@ class aax(Exchange):
                 'setPositionMode': None,
                 'signIn': None,
                 'transfer': None,
-                'transferOut': False,
                 'withdraw': None,
             },
             'timeframes': {
