@@ -387,7 +387,8 @@ module.exports = class luno extends Exchange {
         //     "status":"ACTIVE"
         // }
         const timestamp = this.safeInteger (ticker, 'timestamp');
-        const symbol = this.safeSymbol (undefined, market);
+        const marketId = this.safeString (ticker, 'pair');
+        const symbol = this.safeSymbol (marketId, market);
         const last = this.safeNumber (ticker, 'last_trade');
         return this.safeTicker ({
             'symbol': symbol,
