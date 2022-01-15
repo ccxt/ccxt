@@ -347,7 +347,9 @@ class probit(Exchange):
             precision = self.safe_integer(platform, 'precision')
             depositSuspended = self.safe_value(platform, 'deposit_suspended')
             withdrawalSuspended = self.safe_value(platform, 'withdrawal_suspended')
-            active = not (depositSuspended and withdrawalSuspended)
+            deposit = not depositSuspended
+            withdraw = not withdrawalSuspended
+            active = deposit and withdraw
             withdrawalFees = self.safe_value(platform, 'withdrawal_fee', {})
             fees = []
             # sometimes the withdrawal fee is an empty object
@@ -367,12 +369,14 @@ class probit(Exchange):
                 'info': currency,
                 'name': name,
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': fee,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
+                        'min': None,
+                        'max': None,
                     },
                     'deposit': {
                         'min': self.safe_number(platform, 'min_deposit_amount'),
