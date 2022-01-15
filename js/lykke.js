@@ -410,10 +410,10 @@ module.exports = class lykke extends Exchange {
         // }
         const timestamp = this.milliseconds ();
         const marketId = this.safeString (ticker, 'assetPair');
-        const symbol = this.safeSymbol (marketId, market);
+        market = this.safeMarket (marketId, market);
         const close = this.safeNumber (ticker, 'lastPrice');
         return this.safeTicker ({
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
