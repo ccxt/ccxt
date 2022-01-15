@@ -843,15 +843,18 @@ module.exports = class mexc extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let method = undefined;
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'spotPublicGetMarketDepth',
+            'swap': 'contractPublicGetDepthSymbol',
+        });
         if (market['spot']) {
-            method = 'spotPublicGetMarketDepth';
             if (limit === undefined) {
                 limit = 100; // the spot api requires a limit
             }
             request['depth'] = limit;
         } else if (market['swap']) {
-            method = 'contractPublicGetDepthSymbol';
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
