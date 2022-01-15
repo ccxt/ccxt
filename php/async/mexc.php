@@ -1140,18 +1140,14 @@ class mexc extends Exchange {
 
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
-        $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $spot = ($type === 'spot');
-        $swap = ($type === 'swap');
-        $method = null;
-        if ($spot) {
-            $method = 'spotPrivateGetAccountInfo';
-        } else if ($swap) {
-            $method = 'contractPrivateGetAccountAssets';
-        }
-        $query = $this->omit($params, 'type');
-        $response = yield $this->$method ($query);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'spotPrivateGetAccountInfo',
+            'swap' => 'contractPrivateGetAccountAssets',
+        ));
+        $spot = ($marketType === 'spot');
+        $response = yield $this->$method ($params);
         //
         // $spot
         //
@@ -1162,7 +1158,7 @@ class mexc extends Exchange {
         //         }
         //     }
         //
-        // $swap / contract
+        // swap / contract
         //
         //     {
         //         "success":true,
@@ -1175,10 +1171,11 @@ class mexc extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
+        $currentTime = $this->milliseconds();
         $result = array(
             'info' => $response,
-            'timestamp' => null,
-            'datetime' => null,
+            'timestamp' => $currentTime,
+            'datetime' => $this->iso8601($currentTime),
         );
         if ($spot) {
             $currencyIds = is_array($data) ? array_keys($data) : array();
