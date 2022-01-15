@@ -702,7 +702,9 @@ class Transpiler {
         if (this.areCapabilitiesAlreadySorted(capabilities)) {
             return null;
         }
-        capabilities.sort ();
+        capabilities.sort(function (a, b) {
+            return a.localeCompare(b);
+        });
         const orderedCapabilities = capabilities.join (lineBreak);
         const newCapabilitiesObject = capabilitiesPrefix + orderedCapabilities + lineBreak + lastSpace;
         const currentCapabilitiesObject = capabilitiesPrefix + exchangeCapabilitiesOnly;
