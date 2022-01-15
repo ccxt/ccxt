@@ -530,19 +530,16 @@ class ndax extends Exchange {
         //
         $timestamp = $this->safe_integer($ticker, 'TimeStamp');
         $marketId = $this->safe_string($ticker, 'InstrumentId');
+        $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_symbol($marketId, $market);
         $last = $this->safe_number($ticker, 'LastTradedPx');
         $percentage = $this->safe_number($ticker, 'Rolling24HrPxChangePercent');
         $change = $this->safe_number($ticker, 'Rolling24HrPxChange');
         $open = $this->safe_number($ticker, 'SessionOpen');
-        $average = null;
-        if (($last !== null) && ($change !== null)) {
-            $average = $this->sum($last, $open) / 2;
-        }
         $baseVolume = $this->safe_number($ticker, 'Rolling24HrVolume');
         $quoteVolume = $this->safe_number($ticker, 'Rolling24HrNotional');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -559,11 +556,11 @@ class ndax extends Exchange {
             'previousClose' => null,
             'change' => $change,
             'percentage' => $percentage,
-            'average' => $average,
+            'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

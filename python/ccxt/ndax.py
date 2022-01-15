@@ -520,18 +520,16 @@ class ndax(Exchange):
         #
         timestamp = self.safe_integer(ticker, 'TimeStamp')
         marketId = self.safe_string(ticker, 'InstrumentId')
+        market = self.safe_market(marketId, market)
         symbol = self.safe_symbol(marketId, market)
         last = self.safe_number(ticker, 'LastTradedPx')
         percentage = self.safe_number(ticker, 'Rolling24HrPxChangePercent')
         change = self.safe_number(ticker, 'Rolling24HrPxChange')
         open = self.safe_number(ticker, 'SessionOpen')
-        average = None
-        if (last is not None) and (change is not None):
-            average = self.sum(last, open) / 2
         baseVolume = self.safe_number(ticker, 'Rolling24HrVolume')
         quoteVolume = self.safe_number(ticker, 'Rolling24HrNotional')
         vwap = self.vwap(baseVolume, quoteVolume)
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -548,11 +546,11 @@ class ndax(Exchange):
             'previousClose': None,
             'change': change,
             'percentage': percentage,
-            'average': average,
+            'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         omsId = self.safe_integer(self.options, 'omsId', 1)
