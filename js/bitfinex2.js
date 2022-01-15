@@ -21,6 +21,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'has': {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelFundingOffer': true,
                 'CORS': undefined,
                 'createDepositAddress': true,
                 'createLimitOrder': true,
@@ -34,6 +35,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchFundingFees': undefined,
+                'fetchFundingOffers': true,
                 'fetchIndexOHLCV': false,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -968,6 +970,119 @@ module.exports = class bitfinex2 extends bitfinex {
         //     ]
         //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    parseCancelFunding (offer) {
+        if (offer.length === 0) {
+            throw new ExchangeError ('returned empty response');
+        }
+        const currency = this.safeString (offer, 4);
+        let symbol = undefined;
+        if (currency !== undefined) {
+            symbol = this.currency (currency)['id'];
+        }
+        const status = this.parseOrderStatus (this.safeString (offer, 11));
+        let notify = this.safeString (offer, 14);
+        notify = (notify === 'false') ? false : true;
+        let renew = this.safeString (offer, 16);
+        renew = (renew === 'false') ? false : true;
+        let hidden = this.safeInteger (offer, 15);
+        hidden = (hidden === 0) ? false : true;
+        return {
+            'MTS': this.safeNumber (offer, 0),
+            'type': this.safeString (offer, 1),
+            'messageId': this.safeInteger (offer, 2),
+            'id': this.safeInteger (offer, 3),
+            'symbol': symbol,
+            'created': this.safeNumber (offer, 5),
+            'updated': this.safeNumber (offer, 6),
+            'amount': this.safeNumber (offer, 7),
+            'amountOrig': this.safeNumber (offer, 8),
+            'offerType': this.safeString (offer, 9),
+            'flags': this.safeValue (offer, 10, []),
+            'offerStatus': status,
+            'rate': this.safeNumber (offer, 12),
+            'period': this.safeInteger (offer, 13),
+            'notify': notify,
+            'hidden': hidden,
+            'renew': renew,
+            'code': this.safeInteger (offer, 17),
+            'status': this.safeString (offer, 18),
+            'text': this.safeString (offer, 19),
+        };
+    }
+
+    async cancelFundingOffer (id = undefined, params = {}) {
+        let request = undefined;
+        if (id !== undefined) {
+            request = {
+                'id': parseInt (id),
+            };
+        } else {
+            throw new ArgumentsRequired (this.id + " canceling an offer requires 'id'");
+        }
+        const response = await this.privatePostAuthWFundingOfferCancel (this.extend (request, params));
+        return this.parseCancelFunding (response);
+    }
+
+    parseFundingOffer (offer = undefined) {
+        if (offer.length === 0) {
+            return offer;
+        }
+        const currency = this.safeString (offer, 1);
+        let symbol = undefined;
+        if (currency !== undefined) {
+            symbol = this.currency (currency)['id'];
+        }
+        const status = this.parseOrderStatus (this.safeString (offer, 8));
+        let notify = this.safeInteger (offer, 11);
+        notify = (notify === 0) ? false : true;
+        let hidden = this.safeInteger (offer, 12);
+        hidden = (hidden === 0) ? false : true;
+        let renew = this.safeInteger (offer, 13);
+        renew = (renew === 0) ? false : true;
+        return {
+            'id': this.safeInteger (offer, 0),
+            'symbol': symbol,
+            'timestamp': this.safeNumber (offer, 2),
+            'updated': this.safeNumber (offer, 3),
+            'amount': this.safeNumber (offer, 4),
+            'amountOrig': this.safeNumber (offer, 5),
+            'offerType': this.safeString (offer, 6),
+            'flags': this.safeValue (offer, 7, []),
+            'offerStatus': status,
+            'rate': this.safeNumber (offer, 9),
+            'period': this.safeInteger (offer, 10),
+            'notify': notify,
+            'hidden': hidden,
+            'renew': renew,
+        };
+    }
+
+    parseFundingOffers (offers = undefined, params = {}) {
+        let result = [];
+        if (Array.isArray (offers)) {
+            for (let i = 0; i < offers.length; i++) {
+                result.push (this.parseFundingOffer (offers[i]));
+            }
+        } else {
+            result = this.parseFundingOffer (offers);
+        }
+        return result;
+    }
+
+    async fetchFundingOffers (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let response = undefined;
+        if (symbol === undefined) {
+            response = await this.privatePostAuthRFundingOffers (this.extend (request, params));
+        } else {
+            const currency = this.currency (symbol);
+            request['symbol'] = currency['id'];
+            response = await this.privatePostAuthRFundingOffersSymbol (this.extend (request, params));
+        }
+        return this.parseFundingOffer (response);
     }
 
     parseOrderStatus (status) {
