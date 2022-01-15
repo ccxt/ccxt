@@ -77,8 +77,12 @@ module.exports = class woo extends Exchange {
                 'api': {
                     'public': 'https://api.woo.org',
                     'private': 'https://api.woo.org',
-                    // TODO: official api doesnt mention, but there seems to be :  API_TESTNET_URL = "http://api.staging.woo.network" as said https://github.com/wanth1997/python-wootrade/blob/main/wootrade/client.py
                 },
+                // TEST (stating) api ( https://support.woo.org/hc/en-001/articles/4406352945305--Institutional-Account-Welcome-Packet-V-2) doesn't work at this moment, even thou
+                // 'test': {
+                //     'public': 'http://api.staging.woo.org',
+                //     'private': 'http://api.staging.woo.org',
+                // },
                 'www': 'https://woo.org/',
                 'doc': [
                     'https://docs.woo.org/',
@@ -289,7 +293,6 @@ module.exports = class woo extends Exchange {
                         'min': undefined,
                         'max': undefined,
                     },
-                    // I am dubious that something is not correct in my below prop-value assignments
                     'amount': {
                         'min': minBase,
                         'max': maxBase,
@@ -389,9 +392,7 @@ module.exports = class woo extends Exchange {
         const isFromFetchOrder = ('id' in trade);
         const timestamp = this.safeTimestamp (trade, 'executed_timestamp');
         const marketId = this.safeString (trade, 'symbol');
-        if (market === undefined) {
-            market = this.safeMarket (marketId, market, '_');
-        }
+        market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
         const price = this.safeString (trade, 'executed_price');
         const amount = this.safeString (trade, 'executed_quantity');
@@ -412,7 +413,8 @@ module.exports = class woo extends Exchange {
         }
         let takerOrMaker = undefined;
         if (isFromFetchOrder) {
-            takerOrMaker = this.safeString (trade, 'is_maker') === '1' ? 'maker' : 'taker';
+            const isMaker = this.safeString (trade, 'is_maker') === '1';
+            takerOrMaker = isMaker ? 'maker' : 'taker';
         }
         return this.safeTrade ({
             'id': id,
@@ -435,7 +437,6 @@ module.exports = class woo extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        // TODO: we need to write them to merge 'token' and 'token_network' objects from API, as it's horrificly bad atm.
         let method = undefined;
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchCurrencies', undefined, params);
         method = this.getSupportedMapping (marketType, {
@@ -489,7 +490,7 @@ module.exports = class woo extends Exchange {
             }
             const chainedTokenCode = this.safeString (item, 'token');
             const parts = chainedTokenCode.split ('_');
-            const networkId = parts.length === 2 ? this.safeString (parts, 0) : chainedTokenCode;
+            const networkId = (parts.length === 2) ? this.safeString (parts, 0) : chainedTokenCode;
             const networkUnifiedSlug = this.safeString (this.options['network-aliases'], networkId, networkId);
             derivedCurrenciesData[code]['networks'][networkId] = {
                 'chained_currency_code': chainedTokenCode,
@@ -568,7 +569,7 @@ module.exports = class woo extends Exchange {
                 'precision': undefined,
                 'info': { 'currencyInfo': currencyInfo, 'networkInfo': currencyNetworks },
                 'active': isActive,
-                'fee': undefined, // TODO
+                'fee': undefined, // TO_DO
                 'networks': networks,
                 'limits': {
                     'deposit': {
@@ -576,8 +577,8 @@ module.exports = class woo extends Exchange {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': undefined, // TODO
-                        'max': undefined, // TODO
+                        'min': undefined, // TO_DO
+                        'max': undefined, // TO_DO
                     },
                 },
             };
@@ -1398,7 +1399,7 @@ module.exports = class woo extends Exchange {
         };
     }
 
-    async cancelWithdraw (id, code = undefined, network = undefined, params = {}) {
+    async cancelWithdraw (id, params = {}) {
         const request = {
             'id': id,
         };
@@ -1473,7 +1474,7 @@ module.exports = class woo extends Exchange {
         }
     }
 
-    getDefaultNetworkPairForCurrency (code, networkCode) { // TODO: this method can be moved into base
+    getDefaultNetworkPairForCurrency (code, networkCode) {
         // at first, try to find if user or exchange has defined default networks for the specific currency
         const userChosenNetork = networkCode;
         const defaultNetworksForCodes = this.safeValue (this.options, 'defaultNetworksForCodes');
@@ -1513,7 +1514,7 @@ module.exports = class woo extends Exchange {
         return undefined;
     }
 
-    currencyCodeWithNetwork (code, networkCode, divider = '_', beforOrAfter = true) { // TODO: this method can be moved into base
+    currencyCodeWithNetwork (code, networkCode, divider = '_', beforOrAfter = true) {
         // at first, try to get according to default networks
         const defaultNetworkPair = this.getDefaultNetworkPairForCurrency (code, networkCode);
         if (defaultNetworkPair !== undefined) {
@@ -1547,7 +1548,7 @@ module.exports = class woo extends Exchange {
         return undefined;
     }
 
-    getCurrencyByNetworkizedCode (chainedCode) { // TODO: this method can be moved into base. it is not needed for all exchanges, but only for those exchange classes, which has composited ids (like "ETH_USDT", "TRC_USDT" ...)
+    getCurrencyByNetworkizedCode (chainedCode) { // This method is not needed for all exchanges, but only for those exchange classes, which has composited ids (like "ETH_USDT", "TRC_USDT" ...)
         const keys = Object.keys (this.currencies);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -1570,7 +1571,7 @@ module.exports = class woo extends Exchange {
         return undefined;
     }
 
-    hasChildWithKeyValue (obj, targetKey, targetValue) { // TODO: This can be moved into base, because it's useful in analog cases
+    hasChildWithKeyValue (obj, targetKey, targetValue) { // TODO: This can be moved into base, because it's useful in analog cases, when you want to find if any from i.e.'3-4-5 networks children properties' of this currency has a key (i.e. 'allow_deposits') set to specific value (i.e. '1'). Please see how this method is implemented above, and lmk.
         const keys = Object.keys (obj);
         for (let i = 0; i < keys.length; i++) {
             const currentKey = keys[i];
