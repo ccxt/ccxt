@@ -27,11 +27,14 @@ module.exports = (exchange, market, method) => {
         'spot': true,
         'swap': false,     // doesn't exist on binance...
         'future': false,   // doesn't exist on binance...
+        'option': false,
         'margin': false,
         'contract': false,
         'contractSize': 0.001,
         'expiry': 1656057600000,
         'expiryDatetime': '2022-06-24T08:00:00.000Z',
+        'optionType': 'put',
+        'strike': 56000,
         'settle': undefined,
         'settleId': undefined,
         'precision': {        // number of decimal digits "after the dot"
@@ -68,6 +71,10 @@ module.exports = (exchange, market, method) => {
         assert (market['linear'] === !market['inverse']);
     } else {
         assert ((market['linear'] === undefined) && (market['inverse'] === undefined))
+    }
+    if (market['option']) {
+        assert (market['strike'] !== undefined);
+        assert (market['optionType'] !== undefined);
     }
     const validTypes = {
         'spot': true,
