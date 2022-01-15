@@ -158,12 +158,12 @@ module.exports = class lbank extends Exchange {
         //     {
         //         "symbol":"btc_usdt",
         //         "ticker":{
-        //         "high":43416.06,
-        //         "vol":7031.7427,
-        //         "low":41804.26,
-        //         "change":1.33,
-        //         "turnover":300302447.81,
-        //         "latest":43220.4
+        //             "high":43416.06,
+        //             "vol":7031.7427,
+        //             "low":41804.26,
+        //             "change":1.33,
+        //             "turnover":300302447.81,
+        //             "latest":43220.4
         //         },
         //         "timestamp":1642201617747
         //     }
