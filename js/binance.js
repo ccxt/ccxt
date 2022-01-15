@@ -4777,6 +4777,105 @@ module.exports = class binance extends Exchange {
         return this.options['leverageBrackets'];
     }
 
+    async fetchLeverageBrackets (params = {}) {
+        await this.loadMarkets ();
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchLeverageBrackets', undefined, params);
+        let method = undefined;
+        if (type === 'future') {
+            method = 'fapiPrivateGetLeverageBracket';
+        } else if (type === 'delivery') {
+            method = 'dapiPrivateV2GetLeverageBracket';
+        } else {
+            throw new NotSupported (this.id + ' fetchLeverageBrackets() supports linear and inverse contracts only');
+        }
+        const response = await this[method] (query);
+        //
+        //    [
+        //        {
+        //            "symbol": "SUSHIUSDT",
+        //            "brackets": [
+        //                {
+        //                    "bracket":1,
+        //                    "initialLeverage":50,
+        //                    "notionalCap": 50000,
+        //                    "notionalFloor":0,
+        //                    "maintMarginRatio": 0.01,
+        //                    "cum":0.0
+        //                },{
+        //                    "bracket":2,
+        //                    "initialLeverage": 20,
+        //                    "notionalCap": 150000,
+        //                    "notionalFloor": 50000,
+        //                    "maintMarginRatio": 0.025,
+        //                    "cum":750.0
+        //                },
+        //                {
+        //                    "bracket": 3,
+        //                    "initialLeverage": 10,
+        //                    "notionalCap": 250000,
+        //                    "notionalFloor": 150000,
+        //                    "maintMarginRatio": 0.05,
+        //                    "cum": 4500.0
+        //                },
+        //                {
+        //                    "bracket": 4,
+        //                    "initialLeverage": 5,
+        //                    "notionalCap": 500000,
+        //                    "notionalFloor": 250000,
+        //                    "maintMarginRatio": 0.1,
+        //                    "cum": 17000.0
+        //                },
+        //                {
+        //                    "bracket": 5,
+        //                    "initialLeverage": 4,
+        //                    "notionalCap": 1000000,
+        //                    "notionalFloor": 500000,
+        //                    "maintMarginRatio": 0.125,
+        //                    "cum": 29500.0
+        //                },
+        //                {
+        //                    "bracket": 6,
+        //                    "initialLeverage": 2,
+        //                    "notionalCap": 2000000,
+        //                    "notionalFloor": 1000000,
+        //                    "maintMarginRatio": 0.25,
+        //                    "cum": 154500.0
+        //                },
+        //                {
+        //                    "bracket": 7,
+        //                    "initialLeverage": 1,
+        //                    "notionalCap": 50000000,
+        //                    "notionalFloor": 2000000,
+        //                    "maintMarginRatio": 0.5,
+        //                    "cum": 654500.0
+        //                }
+        //            ]
+        //        }
+        //    ]
+        //
+        const leverageBrackets = {};
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const marketId = this.safeString (entry, 'symbol');
+            const symbol = this.safeSymbol (marketId);
+            const brackets = this.safeValue (entry, 'brackets');
+            const result = [];
+            for (let j = 0; j < brackets.length; j++) {
+                const bracket = brackets[j];
+                result.push ({
+                    'notionalFloor': this.safeFloat2 (bracket, 'notionalFloor', 'qtyFloor'),
+                    'notionalCap': this.safeNumber (bracket, 'notionalCap'),
+                    'maintenanceMarginRatio': this.safeNumber (bracket, 'maintMarginRatio'),
+                    'maintenanceAmount': this.safeNumber (bracket, 'cum'),
+                    'maxLeverage': this.safeNumber (bracket, 'initialLeverage'),
+                    'info': bracket,
+                });
+            }
+            leverageBrackets[symbol] = result;
+        }
+        return leverageBrackets;
+    }
+
     async fetchPositions (symbols = undefined, params = {}) {
         const defaultMethod = this.safeString (this.options, 'fetchPositions', 'positionRisk');
         if (defaultMethod === 'positionRisk') {
