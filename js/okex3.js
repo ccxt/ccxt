@@ -19,6 +19,30 @@ module.exports = class okex3 extends Exchange {
             'rateLimit': 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'pro': true,
             'has': {
+                'signIn': false,
+                'setPositionMode': false,
+                'setMarginMode': false,
+                'setLeverage': false,
+                'reduceMargin': false,
+                'fetchWithdrawal': false,
+                'fetchTransfers': false,
+                'fetchOrderBooks': false,
+                'fetchOpenOrder': false,
+                'fetchMarkOHLCV': false,
+                'fetchLeverage': false,
+                'fetchIndexOHLCV': false,
+                'fetchFundingRates': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingHistory': false,
+                'fetchDepositAddressesByNetwork': false,
+                'fetchDepositAddresses': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRateHistory': false,
+                'fetchAccounts': false,
+                'createDepositAddress': false,
+                'cancelAllOrders': false,
+                'addMargin': false,
                 'fetchPositions': true,
                 'fetchPosition': true,
                 'cancelOrder': true,
@@ -3460,7 +3484,7 @@ module.exports = class okex3 extends Exchange {
 
     parseLedgerEntryType (type) {
         const types = {
-            'transfer': 'transfer', // // funds transfer in/out
+                'transfer': false,
             'trade': 'trade', // funds moved as a result of a trade, spot and margin accounts only
             'rebate': 'rebate', // fee rebate as per fee schedule, spot and margin accounts only
             'match': 'trade', // open long/open short/close long/close short (futures) or a change in the amount because of trades (swap)

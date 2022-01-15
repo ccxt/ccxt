@@ -20,6 +20,18 @@ module.exports = class bittrex extends Exchange {
             'pro': true,
             // new metainfo interface
             'has': {
+                'transfer': false,
+                'signIn': false,
+                'fetchWithdrawal': false,
+                'fetchTransfers': false,
+                'fetchOrderBooks': false,
+                'fetchOpenOrder': false,
+                'fetchLeverage': false,
+                'fetchLedger': false,
+                'fetchDepositAddressesByNetwork': false,
+                'fetchDepositAddresses': false,
+                'fetchAccounts': false,
+                'addMargin': false,
                 'spot': true,
                 'margin': false,
                 'swap': false,

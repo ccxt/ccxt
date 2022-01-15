@@ -19,6 +19,29 @@ module.exports = class coinbasepro extends Exchange {
             'userAgent': this.userAgents['chrome'],
             'pro': true,
             'has': {
+                'signIn': false,
+                'setPositionMode': false,
+                'setMarginMode': false,
+                'setLeverage': false,
+                'reduceMargin': false,
+                'fetchWithdrawal': false,
+                'fetchTransfers': false,
+                'fetchPositions': false,
+                'fetchPosition': false,
+                'fetchOrderBooks': false,
+                'fetchOpenOrder': false,
+                'fetchMarkOHLCV': false,
+                'fetchLeverage': false,
+                'fetchIndexOHLCV': false,
+                'fetchFundingRates': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingHistory': false,
+                'fetchDepositAddressesByNetwork': false,
+                'fetchDepositAddresses': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRateHistory': false,
+                'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'CORS': true,
@@ -1093,7 +1116,7 @@ module.exports = class coinbasepro extends Exchange {
 
     parseLedgerEntryType (type) {
         const types = {
-            'transfer': 'transfer', // Funds moved between portfolios
+                'transfer': false,
             'match': 'trade',       // Funds moved as a result of a trade
             'fee': 'fee',           // Fee as a result of a trade
             'rebate': 'rebate',     // Fee rebate
