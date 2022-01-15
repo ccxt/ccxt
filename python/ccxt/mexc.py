@@ -286,13 +286,13 @@ class mexc(Exchange):
         })
 
     def fetch_time(self, params={}):
-        defaultType = self.safe_string_2(self.options, 'fetchMarkets', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
-        query = self.omit(params, 'type')
-        method = 'spotPublicGetCommonTimestamp'
-        if type == 'contract':
-            method = 'contractPublicGetPing'
-        response = getattr(self, method)(query)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchTime', None, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'spotPublicGetCommonTimestamp',
+            'swap': 'contractPublicGetPing',
+        })
+        response = getattr(self, method)(self.extend(params))
         #
         # spot
         #

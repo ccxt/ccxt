@@ -279,14 +279,13 @@ class mexc extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
-        $defaultType = $this->safe_string_2($this->options, 'fetchMarkets', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $query = $this->omit($params, 'type');
-        $method = 'spotPublicGetCommonTimestamp';
-        if ($type === 'contract') {
-            $method = 'contractPublicGetPing';
-        }
-        $response = yield $this->$method ($query);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchTime', null, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'spotPublicGetCommonTimestamp',
+            'swap' => 'contractPublicGetPing',
+        ));
+        $response = yield $this->$method (array_merge($params));
         //
         // spot
         //
