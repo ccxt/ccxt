@@ -156,45 +156,29 @@ class lbank(Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(ticker, 'symbol')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                parts = marketId.split('_')
-                baseId = None
-                quoteId = None
-                numParts = len(parts)
-                # lbank will return symbols like "vet_erc20_usdt"
-                if numParts > 2:
-                    baseId = parts[0] + '_' + parts[1]
-                    quoteId = parts[2]
-                else:
-                    baseId = parts[0]
-                    quoteId = parts[1]
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
+        #
+        #     {
+        #         "symbol":"btc_usdt",
+        #         "ticker":{
+        #             "high":43416.06,
+        #             "vol":7031.7427,
+        #             "low":41804.26,
+        #             "change":1.33,
+        #             "turnover":300302447.81,
+        #             "latest":43220.4
+        #         },
+        #         "timestamp":1642201617747
+        #     }
+        #
+        marketId = self.safe_string(ticker, 'symbol')
+        market = self.safe_market(marketId, market, '_')
+        symbol = market['symbol']
         timestamp = self.safe_integer(ticker, 'timestamp')
         info = ticker
         ticker = info['ticker']
         last = self.safe_number(ticker, 'latest')
         percentage = self.safe_number(ticker, 'change')
-        open = None
-        if percentage is not None:
-            relativeChange = self.sum(1, percentage / 100)
-            if relativeChange > 0:
-                open = last / self.sum(1, relativeChange)
-        change = None
-        average = None
-        if last is not None and open is not None:
-            change = last - open
-            average = self.sum(last, open) / 2
-        if market is not None:
-            symbol = market['symbol']
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -209,13 +193,13 @@ class lbank(Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
+            'change': None,
             'percentage': percentage,
-            'average': average,
+            'average': None,
             'baseVolume': self.safe_number(ticker, 'vol'),
             'quoteVolume': self.safe_number(ticker, 'turnover'),
             'info': info,
-        }
+        }, market)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -224,6 +208,18 @@ class lbank(Exchange):
             'symbol': market['id'],
         }
         response = await self.publicGetTicker(self.extend(request, params))
+        # {
+        #     "symbol":"btc_usdt",
+        #     "ticker":{
+        #         "high":43416.06,
+        #         "vol":7031.7427,
+        #         "low":41804.26,
+        #         "change":1.33,
+        #         "turnover":300302447.81,
+        #         "latest":43220.4
+        #         },
+        #     "timestamp":1642201617747
+        # }
         return self.parse_ticker(response, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
