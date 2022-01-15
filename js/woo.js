@@ -53,7 +53,8 @@ module.exports = class woo extends Exchange {
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
                 'deposit': false,
-                'withdraw': false,
+                'withdraw': false, // implemented in ccxt, but exchange have that endpoint disabled atm: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                'cancelWithdraw': false, // implemented in ccxt, but exchange have that endpoint disabled atm: https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
                 'addMargin': false,
                 'reduceMargin': false,
                 'setLeverage': false,
@@ -119,11 +120,13 @@ module.exports = class woo extends Exchange {
                         },
                         'post': {
                             'order': 5, // Limit: 2 requests per 1 second per symbol
+                            'asset/withdraw': 120,  // implemented in ccxt, but exchange have that endpoint disabled atm: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
                         },
                         'delete': {
                             'order': 1, // shared with "DELETE: client/order"
                             'client/order': 1, // shared with "DELETE: order"
                             'orders': 1,
+                            'asset/withdraw': 120,  // implemented in ccxt, but exchange have that endpoint disabled atm: https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
                         },
                     },
                 },
@@ -1143,7 +1146,9 @@ module.exports = class woo extends Exchange {
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const [ codeForExchange, networkId ] = this.currencyCodeWithNetwork (currency['code'], params, '_', true);
+        const networkCode = this.safeValue (params, 'network');
+        params = this.omit (params, 'network');
+        const [ codeForExchange, networkId ] = this.currencyCodeWithNetwork (currency['code'], networkCode, '_', true);
         const request = {
             'token': codeForExchange,
         };
@@ -1362,6 +1367,55 @@ module.exports = class woo extends Exchange {
         return this.parseTransactionStatus (status);
     }
 
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
+        let networkCode = this.safeStringUpper (params, 'network');
+        const networks = this.safeValue (this.options, 'networks', {});
+        networkCode = this.safeStringLower (networks, networkCode, networkCode);
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw() requires a network property in params');
+        } else {
+            params = this.omit (params, 'network');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const currencyId = currency['id'];
+        const request = {
+            'amount': amount,
+        };
+        const method = 'v1PrivatePostAssetWithdraw';
+        request['token'] = this.currencyCodeWithNetwork (currencyId, networkCode);
+        request['address'] = address;
+        const response = await this[method] (this.extend (request, params));
+        // {
+        //     "success": true,
+        //     "withdraw_id": "20200119145703654"
+        // }
+        const id = this.safeString (response, 'withdraw_id');
+        return {
+            'id': id,
+            'info': response,
+        };
+    }
+
+    async cancelWithdraw (id, code = undefined, network = undefined, params = {}) {
+        const request = {
+            'id': id,
+        };
+        const method = 'v1PrivateDeleteAssetWithdraw';
+        const response = await this[method] (this.extend (request, params));
+        //
+        // {
+        //     "success": true
+        // }
+        //
+        const success = this.safeValue (response, 'success', false);
+        return {
+            'success': success,
+            'info': response,
+        };
+    }
+
     nonce () {
         return this.milliseconds ();
     }
@@ -1419,10 +1473,9 @@ module.exports = class woo extends Exchange {
         }
     }
 
-    getDefaultNetworkPairForCurrency (code, params) { // TODO: this method can be moved into base
+    getDefaultNetworkPairForCurrency (code, networkCode) { // TODO: this method can be moved into base
         // at first, try to find if user or exchange has defined default networks for the specific currency
-        const userChosenNetork = this.safeStringUpper (params, 'network');
-        params = this.omit (params, 'network');
+        const userChosenNetork = networkCode;
         const defaultNetworksForCodes = this.safeValue (this.options, 'defaultNetworksForCodes');
         if (defaultNetworksForCodes !== undefined) {
             const defaultNetworkCode = this.safeStringUpper (defaultNetworksForCodes, code);
@@ -1460,9 +1513,9 @@ module.exports = class woo extends Exchange {
         return undefined;
     }
 
-    currencyCodeWithNetwork (code, params, divider = '_', beforOrAfter = true) { // TODO: this method can be moved into base
+    currencyCodeWithNetwork (code, networkCode, divider = '_', beforOrAfter = true) { // TODO: this method can be moved into base
         // at first, try to get according to default networks
-        const defaultNetworkPair = this.getDefaultNetworkPairForCurrency (code, params);
+        const defaultNetworkPair = this.getDefaultNetworkPairForCurrency (code, networkCode);
         if (defaultNetworkPair !== undefined) {
             const id = defaultNetworkPair['id'];
             let networkizedCode = undefined;
