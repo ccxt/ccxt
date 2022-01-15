@@ -2335,8 +2335,9 @@ module.exports = class kucoin extends Exchange {
         //
         const errorCode = this.safeString (response, 'code');
         const message = this.safeString (response, 'msg', '');
-        this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + message);
-        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, this.id + ' ' + message);
-        this.throwBroadlyMatchedException (this.exceptions['broad'], body, this.id + ' ' + message);
+        const feedback = this.id + ' ' + body;
+        this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+        this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
     }
 };
