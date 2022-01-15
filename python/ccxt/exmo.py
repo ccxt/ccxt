@@ -351,6 +351,8 @@ class exmo(Exchange):
                 },
             }
             fee = None
+            depositEnabled = None
+            withdrawEnabled = None
             if providers is None:
                 active = True
                 type = 'fiat'
@@ -363,6 +365,16 @@ class exmo(Exchange):
                     if maxValue == 0.0:
                         maxValue = None
                     activeProvider = self.safe_value(provider, 'enabled')
+                    if type == 'deposit':
+                        if activeProvider and not depositEnabled:
+                            depositEnabled = True
+                        elif not activeProvider:
+                            depositEnabled = False
+                    elif type == 'withdraw':
+                        if activeProvider and not withdrawEnabled:
+                            withdrawEnabled = True
+                        elif not activeProvider:
+                            withdrawEnabled = False
                     if activeProvider:
                         active = True
                         if (limits[type]['min'] is None) or (minValue < limits[type]['min']):
@@ -378,6 +390,8 @@ class exmo(Exchange):
                 'name': name,
                 'type': type,
                 'active': active,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': fee,
                 'precision': 8,
                 'limits': limits,

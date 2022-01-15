@@ -166,10 +166,10 @@ class binance(Exchange):
                     'v1': 'https://api.binance.com/api/v1',
                 },
                 'www': 'https://www.binance.com',
-                # 'referral': {
-                #     'url': 'https://www.binance.com/en/register?ref=BLEJC98C',
-                #     'discount': 0.2,
-                # },
+                'referral': {
+                    'url': 'https://www.binance.com/en/register?ref=D7YA7CLY',
+                    'discount': 0.1,
+                },
                 'doc': [
                     'https://binance-docs.github.io/apidocs/spot/en',
                 ],

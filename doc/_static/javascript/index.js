@@ -119,12 +119,14 @@ window.addEventListener ('load', function () {
             $('.swiper-container').css ('max-width', width + 'px')
             $('#widget').css ('display', 'initial').trigger ('resize')
             $('#widget-wrapper').css ('border-style', 'solid')
+            /*
             const brokerRef = $('.bnc-broker-widget-link')
             for (let i = 0; i < brokerRef.length; i++) {
                 const element = brokerRef[i]
                 const url = new URL (element.href)
                 element.href = url.origin + url.pathname
             }
+            */
         }, 0)
         return result
     }

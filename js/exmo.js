@@ -370,6 +370,8 @@ module.exports = class exmo extends Exchange {
                 },
             };
             let fee = undefined;
+            let depositEnabled = undefined;
+            let withdrawEnabled = undefined;
             if (providers === undefined) {
                 active = true;
                 type = 'fiat';
@@ -383,6 +385,19 @@ module.exports = class exmo extends Exchange {
                         maxValue = undefined;
                     }
                     const activeProvider = this.safeValue (provider, 'enabled');
+                    if (type === 'deposit') {
+                        if (activeProvider && !depositEnabled) {
+                            depositEnabled = true;
+                        } else if (!activeProvider) {
+                            depositEnabled = false;
+                        }
+                    } else if (type === 'withdraw') {
+                        if (activeProvider && !withdrawEnabled) {
+                            withdrawEnabled = true;
+                        } else if (!activeProvider) {
+                            withdrawEnabled = false;
+                        }
+                    }
                     if (activeProvider) {
                         active = true;
                         if ((limits[type]['min'] === undefined) || (minValue < limits[type]['min'])) {
@@ -403,6 +418,8 @@ module.exports = class exmo extends Exchange {
                 'name': name,
                 'type': type,
                 'active': active,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': fee,
                 'precision': 8,
                 'limits': limits,
