@@ -16,8 +16,8 @@ module.exports = class btcturk extends Exchange {
             'countries': [ 'TR' ], // Turkey
             'rateLimit': 100,
             'has': {
-                'cancelOrder': true,
                 'CORS': true,
+                'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchMarkets': true,

@@ -20,10 +20,9 @@ module.exports = class kraken extends Exchange {
             'certified': false,
             'pro': true,
             'has': {
-                'margin': true,
+                'CORS': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': undefined,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'fetchBalance': true,
@@ -51,6 +50,7 @@ module.exports = class kraken extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFees': true,
                 'fetchWithdrawals': true,
+                'margin': true,
                 'setMarginMode': false, // Kraken only supports cross margin
                 'withdraw': true,
             },

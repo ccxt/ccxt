@@ -18,9 +18,8 @@ module.exports = class gemini extends Exchange {
             'rateLimit': 1500, // 200 for private API
             'version': 'v1',
             'has': {
-                'fetchDepositAddressesByNetwork': true,
-                'cancelOrder': true,
                 'CORS': undefined,
+                'cancelOrder': true,
                 'createDepositAddress': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
@@ -28,6 +27,7 @@ module.exports = class gemini extends Exchange {
                 'fetchBidsAsks': undefined,
                 'fetchClosedOrders': undefined,
                 'fetchDepositAddress': undefined, // TODO
+                'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': undefined,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,

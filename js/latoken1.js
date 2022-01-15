@@ -19,9 +19,9 @@ module.exports = class latoken1 extends Exchange {
             'certified': false,
             'userAgent': this.userAgents['chrome'],
             'has': {
+                'CORS': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': undefined,
                 'createMarketOrder': undefined,
                 'createOrder': true,
                 'fetchBalance': true,

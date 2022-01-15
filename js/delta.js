@@ -18,8 +18,6 @@ module.exports = class delta extends Exchange {
             'version': 'v2',
             // new metainfo interface
             'has': {
-                'fetchPositions': true,
-                'fetchPosition': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
@@ -34,6 +32,8 @@ module.exports = class delta extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
+                'fetchPosition': true,
+                'fetchPositions': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,

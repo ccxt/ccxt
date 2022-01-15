@@ -17,8 +17,8 @@ module.exports = class mercado extends Exchange {
             'rateLimit': 1000,
             'version': 'v3',
             'has': {
-                'cancelOrder': true,
                 'CORS': true,
+                'cancelOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,

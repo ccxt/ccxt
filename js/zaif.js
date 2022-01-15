@@ -17,8 +17,8 @@ module.exports = class zaif extends Exchange {
             'rateLimit': 2000,
             'version': '1',
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'cancelOrder': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
                 'fetchBalance': true,

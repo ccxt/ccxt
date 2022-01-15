@@ -16,10 +16,10 @@ module.exports = class bw extends Exchange {
             'rateLimit': 1500,
             'version': 'v1',
             'has': {
+                'CORS': undefined,
                 'cancelAllOrders': undefined,
                 'cancelOrder': true,
                 'cancelOrders': undefined,
-                'CORS': undefined,
                 'createDepositAddress': undefined,
                 'createLimitOrder': true,
                 'createMarketOrder': undefined,

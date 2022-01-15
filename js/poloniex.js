@@ -18,10 +18,9 @@ module.exports = class poloniex extends Exchange {
             'certified': false,
             'pro': true,
             'has': {
-                'fetchPosition': true,
+                'CORS': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': undefined,
                 'createDepositAddress': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
@@ -39,6 +38,7 @@ module.exports = class poloniex extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderBooks': true,
                 'fetchOrderTrades': true, // true endpoint for trades of a single open or closed order
+                'fetchPosition': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,

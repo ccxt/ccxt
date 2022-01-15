@@ -18,7 +18,6 @@ module.exports = class vcc extends Exchange {
             'rateLimit': 1000,
             'version': 'v3',
             'has': {
-                'fetchTradingFee': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
@@ -38,6 +37,7 @@ module.exports = class vcc extends Exchange {
                 'fetchTicker': 'emulated',
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
                 'fetchTradingFees': undefined,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,

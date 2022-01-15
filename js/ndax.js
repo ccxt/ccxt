@@ -18,7 +18,6 @@ module.exports = class ndax extends Exchange {
             'rateLimit': 1000,
             'pro': true,
             'has': {
-                'withdraw': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createDepositAddress': true,
@@ -36,12 +35,13 @@ module.exports = class ndax extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': true,
                 'fetchOrderTrades': true,
+                'fetchOrders': true,
                 'fetchTicker': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
                 'signIn': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '60',

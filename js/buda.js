@@ -16,8 +16,8 @@ module.exports = class buda extends Exchange {
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'cancelOrder': true,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'fetchBalance': true,
