@@ -43,13 +43,16 @@ class bittrex(Exchange):
             'pro': True,
             # new metainfo interface
             'has': {
+                'spot': True,
                 'margin': False,
                 'swap': False,
                 'future': False,
+                'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'CORS': None,
                 'createDepositAddress': True,
+                'createReduceOnlyOrder': False,
                 'createMarketOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
@@ -60,19 +63,34 @@ class bittrex(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': 'emulated',
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderTrades': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTransactions': None,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -290,36 +308,45 @@ class bittrex(Exchange):
             market = response[i]
             baseId = self.safe_string(market, 'baseCurrencySymbol')
             quoteId = self.safe_string(market, 'quoteCurrencySymbol')
-            id = self.safe_string(market, 'symbol')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
             pricePrecision = self.safe_integer(market, 'precision', 8)
-            precision = {
-                'amount': 8,
-                'price': pricePrecision,
-            }
             status = self.safe_string(market, 'status')
-            active = (status == 'ONLINE')
             result.append({
-                'id': id,
-                'symbol': symbol,
+                'id': self.safe_string(market, 'symbol'),
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
-                'info': market,
-                'precision': precision,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': (status == 'ONLINE'),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': int('8'),
+                    'price': pricePrecision,
+                },
                 'limits': {
                     'amount': {
                         'min': self.safe_number(market, 'minTradeSize'),
                         'max': None,
                     },
                     'price': {
-                        'min': 1 / math.pow(10, precision['price']),
+                        'min': None,
                         'max': None,
                     },
                     'cost': {
@@ -327,9 +354,11 @@ class bittrex(Exchange):
                         'max': None,
                     },
                     'leverage': {
-                        'max': 1,
+                        'min': None,
+                        'max': None,
                     },
                 },
+                'info': market,
             })
         return result
 

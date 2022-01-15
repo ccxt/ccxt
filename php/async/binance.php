@@ -104,7 +104,6 @@ class binance extends Exchange {
                 'setPositionMode' => true,
                 'signIn' => false,
                 'transfer' => true,
-                'transferOut' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -152,10 +151,10 @@ class binance extends Exchange {
                     'v1' => 'https://api.binance.com/api/v1',
                 ),
                 'www' => 'https://www.binance.com',
-                // 'referral' => array(
-                //     'url' => 'https://www.binance.com/en/register?ref=BLEJC98C',
-                //     'discount' => 0.2,
-                // ),
+                'referral' => array(
+                    'url' => 'https://www.binance.com/en/register?ref=D7YA7CLY',
+                    'discount' => 0.1,
+                ),
                 'doc' => array(
                     'https://binance-docs.github.io/apidocs/spot/en',
                 ),
@@ -264,6 +263,7 @@ class binance extends Exchange {
                         'mining/payment/list' => 5,
                         'mining/statistics/user/status' => 5,
                         'mining/statistics/user/list' => 5,
+                        'mining/payment/uid' => 5,
                         // liquid swap endpoints
                         'bswap/pools' => 1,
                         'bswap/liquidity' => array( 'cost' => 1, 'noPoolId' => 10 ),
@@ -273,6 +273,8 @@ class binance extends Exchange {
                         'bswap/poolConfigure' => 1,
                         'bswap/addLiquidityPreview' => 1,
                         'bswap/removeLiquidityPreview' => 1,
+                        'bswap/unclaimedRewards' => 1,
+                        'bswap/claimedHistory' => 1,
                         // leveraged token endpoints
                         'blvt/tokenInfo' => 1,
                         'blvt/subscribe/record' => 1,
@@ -359,6 +361,7 @@ class binance extends Exchange {
                         'bswap/liquidityAdd' => 2,
                         'bswap/liquidityRemove' => 2,
                         'bswap/swap' => 2,
+                        'bswap/claimRewards' => 1,
                         // leveraged token endpoints
                         'blvt/subscribe' => 1,
                         'blvt/redeem' => 1,

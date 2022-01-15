@@ -119,7 +119,6 @@ class okex(Exchange):
                 'setPositionMode': True,
                 'signIn': None,
                 'transfer': True,
-                'transferOut': False,
                 'withdraw': True,
             },
             'timeframes': {

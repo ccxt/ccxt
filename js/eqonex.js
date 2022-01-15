@@ -193,36 +193,67 @@ module.exports = class eqonex extends Exchange {
         //     }
         //
         const id = this.safeString (market, 'instrumentId');
-        const uppercaseId = this.safeString (market, 'symbol');
+        const baseId = this.safeString (market, 'currency');
+        const quoteId = this.safeString (market, 'contAmtCurr');
+        const settleId = this.safeString (market, 'settlCurrency');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const settle = this.safeCurrencyCode (settleId);
         const assetType = this.safeString (market, 'assetType');
         const spot = (assetType === 'PAIR');
         const swap = (assetType === 'PERPETUAL_SWAP');
-        const type = swap ? 'swap' : 'spot';
-        const baseId = this.safeString (market, 'currency');
-        const quoteId = this.safeString (market, 'contAmtCurr');
-        const base = this.safeCurrencyCode (baseId);
-        const quote = this.safeCurrencyCode (quoteId);
-        const symbol = swap ? uppercaseId : (base + '/' + quote);
+        let symbol = base + '/' + quote;
+        const uppercaseId = this.safeString (market, 'symbol');
+        let type = 'spot';
+        let linear = undefined;
+        let inverse = undefined;
+        let contract = false;
+        if (swap) {
+            symbol = symbol + ':' + settle;
+            type = 'swap';
+            linear = quote === settle;
+            inverse = !linear;
+            contract = true;
+        } else if (!spot) {
+            symbol = uppercaseId;
+            type = assetType;
+            contract = true;
+        }
         const status = this.safeInteger (market, 'securityStatus');
-        const active = (status === 1);
-        const precision = {
-            'amount': this.safeInteger (market, 'quantity_scale'),
-            'price': this.safeInteger (market, 'price_scale'),
-        };
         return {
             'id': id,
             'uppercaseId': uppercaseId,
             'symbol': symbol,
             'base': base,
             'quote': quote,
+            'settle': settle,
             'baseId': baseId,
             'quoteId': quoteId,
+            'settleId': settleId,
             'type': type,
             'spot': spot,
+            'margin': false,
             'swap': swap,
-            'active': active,
-            'precision': precision,
+            'future': false,
+            'option': false,
+            'contract': contract,
+            'linear': linear,
+            'inverse': inverse,
+            'contractSize': this.safeNumber (market, 'contractMultiplier'),
+            'active': (status === 1),
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.safeInteger (market, 'quantity_scale'),
+                'price': this.safeInteger (market, 'price_scale'),
+            },
             'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
                 'amount': {
                     'min': this.safeNumber (market, 'minTradeVol'),
                     'max': undefined,

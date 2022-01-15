@@ -196,36 +196,67 @@ class eqonex extends Exchange {
         //     }
         //
         $id = $this->safe_string($market, 'instrumentId');
-        $uppercaseId = $this->safe_string($market, 'symbol');
+        $baseId = $this->safe_string($market, 'currency');
+        $quoteId = $this->safe_string($market, 'contAmtCurr');
+        $settleId = $this->safe_string($market, 'settlCurrency');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $settle = $this->safe_currency_code($settleId);
         $assetType = $this->safe_string($market, 'assetType');
         $spot = ($assetType === 'PAIR');
         $swap = ($assetType === 'PERPETUAL_SWAP');
-        $type = $swap ? 'swap' : 'spot';
-        $baseId = $this->safe_string($market, 'currency');
-        $quoteId = $this->safe_string($market, 'contAmtCurr');
-        $base = $this->safe_currency_code($baseId);
-        $quote = $this->safe_currency_code($quoteId);
-        $symbol = $swap ? $uppercaseId : ($base . '/' . $quote);
+        $symbol = $base . '/' . $quote;
+        $uppercaseId = $this->safe_string($market, 'symbol');
+        $type = 'spot';
+        $linear = null;
+        $inverse = null;
+        $contract = false;
+        if ($swap) {
+            $symbol = $symbol . ':' . $settle;
+            $type = 'swap';
+            $linear = $quote === $settle;
+            $inverse = !$linear;
+            $contract = true;
+        } else if (!$spot) {
+            $symbol = $uppercaseId;
+            $type = $assetType;
+            $contract = true;
+        }
         $status = $this->safe_integer($market, 'securityStatus');
-        $active = ($status === 1);
-        $precision = array(
-            'amount' => $this->safe_integer($market, 'quantity_scale'),
-            'price' => $this->safe_integer($market, 'price_scale'),
-        );
         return array(
             'id' => $id,
             'uppercaseId' => $uppercaseId,
             'symbol' => $symbol,
             'base' => $base,
             'quote' => $quote,
+            'settle' => $settle,
             'baseId' => $baseId,
             'quoteId' => $quoteId,
+            'settleId' => $settleId,
             'type' => $type,
             'spot' => $spot,
+            'margin' => false,
             'swap' => $swap,
-            'active' => $active,
-            'precision' => $precision,
+            'future' => false,
+            'option' => false,
+            'contract' => $contract,
+            'linear' => $linear,
+            'inverse' => $inverse,
+            'contractSize' => $this->safe_number($market, 'contractMultiplier'),
+            'active' => ($status === 1),
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $this->safe_integer($market, 'quantity_scale'),
+                'price' => $this->safe_integer($market, 'price_scale'),
+            ),
             'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
                 'amount' => array(
                     'min' => $this->safe_number($market, 'minTradeVol'),
                     'max' => null,

@@ -101,7 +101,6 @@ module.exports = class aax extends Exchange {
                 'signIn': undefined,
                 'swap': true,
                 'transfer': undefined,
-                'transferOut': false,
                 'withdraw': undefined,
             },
             'timeframes': {

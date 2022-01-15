@@ -102,7 +102,6 @@ module.exports = class huobi extends Exchange {
                 'signIn': undefined,
                 'swap': true,
                 'transfer': true,
-                'transferOut': false,
                 'withdraw': true,
                 // 'margin': true,
             },

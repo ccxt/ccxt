@@ -51,7 +51,7 @@ Exchanges
 
 
 
-The CCXT library currently supports the following 113 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 114 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -135,11 +135,11 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg
-          :target: https://www.binance.com
+          :target: https://www.binance.com/en/register?ref=D7YA7CLY
           :alt: binance
      
      - binance
-     - `Binance <https://www.binance.com>`__
+     - `Binance <https://www.binance.com/en/register?ref=D7YA7CLY>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://binance-docs.github.io/apidocs/spot/en
           :alt: API Version *
@@ -153,11 +153,11 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
-          :target: https://www.binance.com
+          :target: https://www.binance.com/en/register?ref=D7YA7CLY
           :alt: binancecoinm
      
      - binancecoinm
-     - `Binance COIN-M <https://www.binance.com>`__
+     - `Binance COIN-M <https://www.binance.com/en/register?ref=D7YA7CLY>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://binance-docs.github.io/apidocs/delivery/en/
           :alt: API Version *
@@ -186,11 +186,11 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
-          :target: https://www.binance.com
+          :target: https://www.binance.com/en/register?ref=D7YA7CLY
           :alt: binanceusdm
      
      - binanceusdm
-     - `Binance USDⓈ-M <https://www.binance.com>`__
+     - `Binance USDⓈ-M <https://www.binance.com/en/register?ref=D7YA7CLY>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://binance-docs.github.io/apidocs/futures/en/
           :alt: API Version *
@@ -244,7 +244,7 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
           :alt: bitcoincom
      
      - bitcoincom
-     - `bitcoin.com <https://fmfw.io/referral/da948b21d6c92d69>`__
+     - `FMFW.io <https://fmfw.io/referral/da948b21d6c92d69>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://api.fmfw.io/api/2/explore/
           :alt: API Version 2
@@ -854,6 +854,21 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      
      - 
      - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/97296144-514fa300-1861-11eb-952b-3d55d492200b.jpg
+          :target: https://fmfw.io/referral/da948b21d6c92d69
+          :alt: fmfwio
+     
+     - fmfwio
+     - `FMFW.io <https://fmfw.io/referral/da948b21d6c92d69>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://api.fmfw.io/api/2/explore/
+          :alt: API Version 2
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg
           :target: https://ftx.com/#a=ccxt
           :alt: ftx

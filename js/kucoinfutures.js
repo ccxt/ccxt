@@ -66,7 +66,6 @@ module.exports = class kucoinfutures extends kucoin {
                 'spot': false,
                 'swap': true,
                 'transfer': true,
-                'transferOut': true,
                 'withdraw': undefined,
             },
             'urls': {

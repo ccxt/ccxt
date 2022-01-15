@@ -506,6 +506,7 @@ module.exports = class gateio extends Exchange {
                     'INVALID_CURRENCY_PAIR': BadSymbol,
                     'POC_FILL_IMMEDIATELY': ExchangeError,
                     'ORDER_NOT_FOUND': OrderNotFound,
+                    'CLIENT_ID_NOT_FOUND': OrderNotFound,
                     'ORDER_CLOSED': InvalidOrder,
                     'ORDER_CANCELLED': InvalidOrder,
                     'QUANTITY_NOT_ENOUGH': InvalidOrder,

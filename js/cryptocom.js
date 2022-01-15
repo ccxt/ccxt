@@ -1041,9 +1041,8 @@ module.exports = class cryptocom extends Exchange {
         if (since !== undefined) {
             // maximum date range is one day
             request['start_ts'] = since;
-            const now = this.milliseconds ();
             const endTimestamp = this.sum (since, 24 * 60 * 60 * 1000);
-            request['end_ts'] = Math.min (now, endTimestamp);
+            request['end_ts'] = endTimestamp;
         }
         if (limit !== undefined) {
             request['page_size'] = limit;
