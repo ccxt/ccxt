@@ -209,6 +209,8 @@ module.exports = class bigone extends Exchange {
                 'expiryDatetime': undefined,
                 'contract': false,
                 'contractSize': undefined,
+                'settle': undefined,
+                'settleId': undefined,
                 'active': true,
                 'precision': precision,
                 'limits': {
