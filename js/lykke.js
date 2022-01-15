@@ -401,11 +401,16 @@ module.exports = class lykke extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        // {
+        //     "assetPair":"ADAUSD",
+        //     "volume24H":264.6398,
+        //     "lastPrice":1.29535,
+        //     "bid":1.28805,
+        //     "ask":1.29074
+        // }
         const timestamp = this.milliseconds ();
-        let symbol = undefined;
-        if (market) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (ticker, 'assetPair');
+        const symbol = this.safeSymbol (marketId, market);
         const close = this.safeNumber (ticker, 'lastPrice');
         return this.safeTicker ({
             'symbol': symbol,
@@ -428,7 +433,7 @@ module.exports = class lykke extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': this.safeNumber (ticker, 'volume24H'),
             'info': ticker,
-        });
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -438,6 +443,13 @@ module.exports = class lykke extends Exchange {
             'market': market['id'],
         };
         const ticker = await this.mobileGetMarketMarket (this.extend (request, params));
+        // {
+        //     "assetPair":"ADAUSD",
+        //     "volume24H":264.6398,
+        //     "lastPrice":1.29535,
+        //     "bid":1.28805,
+        //     "ask":1.29074
+        // }
         return this.parseTicker (ticker, market);
     }
 

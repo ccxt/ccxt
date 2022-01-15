@@ -210,6 +210,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :target: https://bybit-exchange.github.io/docs/inverse/
           :alt: API Version 2
      
+   * - Canada
+     - .. image:: https://user-images.githubusercontent.com/1294454/108623144-67a3ef00-744e-11eb-8140-75c6b851e945.jpg
+          :target: https://one.ndax.io/bfQiSL
+          :alt: ndax
+     
+     - ndax
+     - `NDAX <https://one.ndax.io/bfQiSL>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://apidoc.ndax.io/
+          :alt: API Version *
+     
    * - Cayman Islands
      - .. image:: https://user-images.githubusercontent.com/1294454/61511972-24c39f00-aa01-11e9-9f7c-471f1d6e5214.jpg
           :target: https://latoken.com/invite?r=mvgp2djk
@@ -942,7 +953,18 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: bitcoincom
      
      - bitcoincom
-     - `bitcoin.com <https://fmfw.io/referral/da948b21d6c92d69>`__
+     - `FMFW.io <https://fmfw.io/referral/da948b21d6c92d69>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://api.fmfw.io/api/2/explore/
+          :alt: API Version 2
+     
+   * - Saint Kitts and Nevis
+     - .. image:: https://user-images.githubusercontent.com/1294454/97296144-514fa300-1861-11eb-952b-3d55d492200b.jpg
+          :target: https://fmfw.io/referral/da948b21d6c92d69
+          :alt: fmfwio
+     
+     - fmfwio
+     - `FMFW.io <https://fmfw.io/referral/da948b21d6c92d69>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://api.fmfw.io/api/2/explore/
           :alt: API Version 2
@@ -1518,17 +1540,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/0-lightgray
           :target: https://www.kraken.com/features/api
           :alt: API Version 0
-     
-   * - US
-     - .. image:: https://user-images.githubusercontent.com/1294454/108623144-67a3ef00-744e-11eb-8140-75c6b851e945.jpg
-          :target: https://one.ndax.io/bfQiSL
-          :alt: ndax
-     
-     - ndax
-     - `NDAX <https://one.ndax.io/bfQiSL>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://apidoc.ndax.io/
-          :alt: API Version *
      
    * - US
      - .. image:: https://user-images.githubusercontent.com/51840849/87295551-102fbf00-c50e-11ea-90a9-462eebba5829.jpg

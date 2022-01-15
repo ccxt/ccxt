@@ -384,12 +384,18 @@ class lykke(Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
+        # {
+        #     "assetPair":"ADAUSD",
+        #     "volume24H":264.6398,
+        #     "lastPrice":1.29535,
+        #     "bid":1.28805,
+        #     "ask":1.29074
+        # }
         timestamp = self.milliseconds()
-        symbol = None
-        if market:
-            symbol = market['symbol']
+        marketId = self.safe_string(ticker, 'assetPair')
+        symbol = self.safe_symbol(marketId, market)
         close = self.safe_number(ticker, 'lastPrice')
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -410,7 +416,7 @@ class lykke(Exchange):
             'baseVolume': None,
             'quoteVolume': self.safe_number(ticker, 'volume24H'),
             'info': ticker,
-        }
+        }, market)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -419,6 +425,13 @@ class lykke(Exchange):
             'market': market['id'],
         }
         ticker = await self.mobileGetMarketMarket(self.extend(request, params))
+        # {
+        #     "assetPair":"ADAUSD",
+        #     "volume24H":264.6398,
+        #     "lastPrice":1.29535,
+        #     "bid":1.28805,
+        #     "ask":1.29074
+        # }
         return self.parse_ticker(ticker, market)
 
     def parse_order_status(self, status):

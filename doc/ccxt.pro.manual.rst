@@ -54,7 +54,7 @@ The CCXT Pro heavily relies on the transpiler of CCXT for `multilanguage support
 Exchanges
 ---------
 
-The CCXT Pro library currently supports the following 36 cryptocurrency exchange markets and WebSocket trading APIs:
+The CCXT Pro library currently supports the following 37 cryptocurrency exchange markets and WebSocket trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -172,7 +172,7 @@ The CCXT Pro library currently supports the following 36 cryptocurrency exchange
           :alt: bitcoincom
      
      - bitcoincom
-     - `bitcoin.com <https://fmfw.io/referral/da948b21d6c92d69>`__
+     - `FMFW.io <https://fmfw.io/referral/da948b21d6c92d69>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://api.fmfw.io/api/2/explore/
           :alt: API Version 2
@@ -322,6 +322,21 @@ The CCXT Pro library currently supports the following 36 cryptocurrency exchange
           :target: https://github.com/ccxt/ccxt/wiki/Certification
           :alt: CCXT Certified
      
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/97296144-514fa300-1861-11eb-952b-3d55d492200b.jpg
+          :target: https://fmfw.io/referral/da948b21d6c92d69
+          :alt: fmfwio
+     
+     - fmfwio
+     - `FMFW.io <https://fmfw.io/referral/da948b21d6c92d69>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://api.fmfw.io/api/2/explore/
+          :alt: API Version 2
+     
+     - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro

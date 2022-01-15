@@ -8,6 +8,7 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\BadRequest;
 
 class deribit extends Exchange {
 
@@ -345,6 +346,9 @@ class deribit extends Exchange {
             'options' => array(
                 'code' => 'BTC',
                 'fetchBalance' => array(
+                    'code' => 'BTC',
+                ),
+                'fetchPositions' => array(
                     'code' => 'BTC',
                 ),
             ),
@@ -1793,16 +1797,30 @@ class deribit extends Exchange {
         for ($i = 0; $i < count($positions); $i++) {
             $result[] = $this->parse_position($positions[$i]);
         }
-        // todo unify parsePositions
         return $result;
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
         $this->load_markets();
-        $code = $this->code_from_options('fetchPositions', $params);
+        $code = null;
+        if ($symbols === null) {
+            $code = $this->code_from_options('fetchPositions', $params);
+        } else if (gettype($symbols) === 'string') {
+            $code = $symbols;
+        } else {
+            if (gettype($symbols) === 'array' && count(array_filter(array_keys($symbols), 'is_string')) == 0) {
+                $length = is_array($symbols) ? count($symbols) : 0;
+                if ($length !== 1) {
+                    throw new BadRequest($this->id . ' fetchPositions $symbols argument cannot contain more than 1 symbol');
+                }
+                $market = $this->market($symbols[0]);
+                $code = $market['base'];
+            }
+        }
         $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
+            // "kind" : "future", "option"
         );
         $response = $this->privateGetGetPositions (array_merge($request, $params));
         //
@@ -1810,7 +1828,7 @@ class deribit extends Exchange {
         //         "jsonrpc" => "2.0",
         //         "id" => 2236,
         //         "result" => array(
-        //             {
+        //             array(
         //                 "average_price" => 7440.18,
         //                 "delta" => 0.006687487,
         //                 "direction" => "buy",
@@ -1830,15 +1848,12 @@ class deribit extends Exchange {
         //                 "size" => 50,
         //                 "size_currency" => 0.006687487,
         //                 "total_profit_loss" => 0.000032781
-        //             }
+        //             ),
         //         )
         //     }
         //
-        // $response is returning an empty list for $result
-        // todo unify parsePositions
-        $result = $this->safe_value($response, 'result', array());
-        $positions = $this->parse_positions($result);
-        return $this->filter_by_array($positions, 'symbol', $symbols, false);
+        $result = $this->safe_value($response, 'result');
+        return $this->parse_positions($result);
     }
 
     public function fetch_historical_volatility($code, $params = array ()) {

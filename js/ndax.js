@@ -14,11 +14,15 @@ module.exports = class ndax extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'ndax',
             'name': 'NDAX',
-            'countries': [ 'US' ], // United States
+            'countries': [ 'CA' ], // Canada
             'rateLimit': 1000,
             'pro': true,
             'has': {
-                'withdraw': true,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createDepositAddress': true,
@@ -26,11 +30,22 @@ module.exports = class ndax extends Exchange {
                 'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
                 'fetchLedger': true,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -38,10 +53,17 @@ module.exports = class ndax extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setPositionMode': false,
                 'signIn': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '60',
@@ -381,28 +403,43 @@ module.exports = class ndax extends Exchange {
             const quoteId = this.safeString (market, 'Product2');
             const base = this.safeCurrencyCode (this.safeString (market, 'Product1Symbol'));
             const quote = this.safeCurrencyCode (this.safeString (market, 'Product2Symbol'));
-            const symbol = base + '/' + quote;
-            const precision = {
-                'amount': this.safeNumber (market, 'QuantityIncrement'),
-                'price': this.safeNumber (market, 'PriceIncrement'),
-            };
             const sessionStatus = this.safeString (market, 'SessionStatus');
             const isDisable = this.safeValue (market, 'IsDisable');
             const sessionRunning = (sessionStatus === 'Running');
-            const active = (sessionRunning && !isDisable) ? true : false;
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'info': market,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
-                'precision': precision,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': (sessionRunning && !isDisable),
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeNumber (market, 'QuantityIncrement'),
+                    'price': this.safeNumber (market, 'PriceIncrement'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'MinimumQuantity'),
                         'max': undefined,
@@ -529,6 +566,7 @@ module.exports = class ndax extends Exchange {
         //
         const timestamp = this.safeInteger (ticker, 'TimeStamp');
         const marketId = this.safeString (ticker, 'InstrumentId');
+        market = this.safeMarket (marketId, market);
         const symbol = this.safeSymbol (marketId, market);
         const last = this.safeNumber (ticker, 'LastTradedPx');
         const percentage = this.safeNumber (ticker, 'Rolling24HrPxChangePercent');
@@ -558,7 +596,7 @@ module.exports = class ndax extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        });
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
