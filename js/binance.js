@@ -267,6 +267,8 @@ module.exports = class binance extends Exchange {
                         'bswap/poolConfigure': 1,
                         'bswap/addLiquidityPreview': 1,
                         'bswap/removeLiquidityPreview': 1,
+                        'bswap/unclaimedRewards': 1,
+                        'bswap/claimedHistory': 1,
                         // leveraged token endpoints
                         'blvt/tokenInfo': 1,
                         'blvt/subscribe/record': 1,
@@ -353,6 +355,7 @@ module.exports = class binance extends Exchange {
                         'bswap/liquidityAdd': 2,
                         'bswap/liquidityRemove': 2,
                         'bswap/swap': 2,
+                        'bswap/claimRewards': 1,
                         // leveraged token endpoints
                         'blvt/subscribe': 1,
                         'blvt/redeem': 1,
