@@ -20,11 +20,6 @@ module.exports = class bitbns extends Exchange {
             'version': 'v2',
             // new metainfo interface
             'has': {
-                'spot': true,
-                'margin': undefined,
-                'swap': false,
-                'future': false,
-                'option': false,
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
@@ -52,9 +47,14 @@ module.exports = class bitbns extends Exchange {
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
+                'future': false,
+                'margin': undefined,
+                'option': false,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setPositionMode': false,
+                'spot': true,
+                'swap': false,
             },
             'timeframes': {
             },
