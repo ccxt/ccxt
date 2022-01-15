@@ -1116,7 +1116,7 @@ module.exports = class coinbasepro extends Exchange {
 
     parseLedgerEntryType (type) {
         const types = {
-                'transfer': false,
+            'transfer': 'transfer', // Funds moved between portfolios
             'match': 'trade',       // Funds moved as a result of a trade
             'fee': 'fee',           // Fee as a result of a trade
             'rebate': 'rebate',     // Fee rebate

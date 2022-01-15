@@ -3484,8 +3484,7 @@ module.exports = class okex3 extends Exchange {
 
     parseLedgerEntryType (type) {
         const types = {
-                'transfer': false,
-            'trade': 'trade', // funds moved as a result of a trade, spot and margin accounts only
+            'transfer': 'transfer', // // funds transfer in/out'trade': 'trade', // funds moved as a result of a trade, spot and margin accounts only
             'rebate': 'rebate', // fee rebate as per fee schedule, spot and margin accounts only
             'match': 'trade', // open long/open short/close long/close short (futures) or a change in the amount because of trades (swap)
             'fee': 'fee', // fee, futures only

@@ -810,7 +810,7 @@ module.exports = class kraken extends Exchange {
             'trade': 'trade',
             'withdrawal': 'transaction',
             'deposit': 'transaction',
-                'transfer': false,
+            'transfer': 'transfer',
             'margin': 'margin',
         };
         return this.safeString (types, type, type);
