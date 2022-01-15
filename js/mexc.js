@@ -1173,10 +1173,11 @@ module.exports = class mexc extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
+        const currentTime = this.milliseconds ();
         const result = {
             'info': response,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': currentTime,
+            'datetime': this.iso8601 (currentTime),
         };
         if (spot) {
             const currencyIds = Object.keys (data);
