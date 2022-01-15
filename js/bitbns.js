@@ -55,7 +55,6 @@ module.exports = class bitbns extends Exchange {
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setPositionMode': false,
-                'transferOut': false,
             },
             'timeframes': {
             },
