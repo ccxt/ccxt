@@ -62,7 +62,9 @@ module.exports = (exchange, market, method) => {
     }
     assert ((market['taker'] === undefined) || (typeof market['taker'] === 'number'));
     assert ((market['maker'] === undefined) || (typeof market['maker'] === 'number'));
-    if (market['contract'] === false) {
+    if (market['contract']) {
+        assert (market['linear'] === !market['inverse']);
+    } else {
         assert ((market['linear'] === undefined) && (market['inverse'] === undefined))
     }
     const validTypes = {
