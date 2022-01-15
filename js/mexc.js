@@ -1135,18 +1135,14 @@ module.exports = class mexc extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        const spot = (type === 'spot');
-        const swap = (type === 'swap');
-        let method = undefined;
-        if (spot) {
-            method = 'spotPrivateGetAccountInfo';
-        } else if (swap) {
-            method = 'contractPrivateGetAccountAssets';
-        }
-        const query = this.omit (params, 'type');
-        const response = await this[method] (query);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'spotPrivateGetAccountInfo',
+            'swap': 'contractPrivateGetAccountAssets',
+        });
+        const spot = (marketType === 'spot');
+        const response = await this[method] (params);
         //
         // spot
         //
@@ -1170,10 +1166,11 @@ module.exports = class mexc extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
+        const currentTime = this.milliseconds ();
         const result = {
             'info': response,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': currentTime,
+            'datetime': this.iso8601 (currentTime),
         };
         if (spot) {
             const currencyIds = Object.keys (data);
