@@ -347,6 +347,8 @@ class exmo extends Exchange {
                 ),
             );
             $fee = null;
+            $depositEnabled = null;
+            $withdrawEnabled = null;
             if ($providers === null) {
                 $active = true;
                 $type = 'fiat';
@@ -360,6 +362,19 @@ class exmo extends Exchange {
                         $maxValue = null;
                     }
                     $activeProvider = $this->safe_value($provider, 'enabled');
+                    if ($type === 'deposit') {
+                        if ($activeProvider && !$depositEnabled) {
+                            $depositEnabled = true;
+                        } else if (!$activeProvider) {
+                            $depositEnabled = false;
+                        }
+                    } else if ($type === 'withdraw') {
+                        if ($activeProvider && !$withdrawEnabled) {
+                            $withdrawEnabled = true;
+                        } else if (!$activeProvider) {
+                            $withdrawEnabled = false;
+                        }
+                    }
                     if ($activeProvider) {
                         $active = true;
                         if (($limits[$type]['min'] === null) || ($minValue < $limits[$type]['min'])) {
@@ -380,6 +395,8 @@ class exmo extends Exchange {
                 'name' => $name,
                 'type' => $type,
                 'active' => $active,
+                'deposit' => $depositEnabled,
+                'withdraw' => $withdrawEnabled,
                 'fee' => $fee,
                 'precision' => 8,
                 'limits' => $limits,
