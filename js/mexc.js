@@ -1149,7 +1149,7 @@ module.exports = class mexc extends Exchange {
             'swap': 'contractPrivateGetAccountAssets',
         });
         const spot = (marketType === 'spot');
-        const response = await this[method] (this.extend (params));
+        const response = await this[method] (params);
         //
         // spot
         //
