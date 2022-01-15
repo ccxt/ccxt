@@ -29,6 +29,9 @@ module.exports = (exchange, market, method) => {
         'future': false,   // doesn't exist on binance...
         'margin': false,
         'contract': false,
+        'contractSize': 0.001,
+        'expiry': 1656057600000,
+        'expiryDatetime': '2022-06-24T08:00:00.000Z',
         'precision': {        // number of decimal digits "after the dot"
              'price': 8,       // integer
              'amount': 8,      // integer
