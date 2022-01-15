@@ -680,7 +680,7 @@ class Transpiler {
         let secondIndex;
         for(let firstIndex = 0; firstIndex < capabilities.length; firstIndex++){
             secondIndex = firstIndex + 1;
-            if(capabilities[firstIndex] > capabilities[secondIndex]) return false;
+            if (capabilities[firstIndex].localeCompare(capabilities[secondIndex]) > 0) return false;
         }
         return true;
     }
