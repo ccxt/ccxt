@@ -512,6 +512,7 @@ class gateio extends Exchange {
                     'INVALID_CURRENCY_PAIR' => '\\ccxt\\BadSymbol',
                     'POC_FILL_IMMEDIATELY' => '\\ccxt\\ExchangeError',
                     'ORDER_NOT_FOUND' => '\\ccxt\\OrderNotFound',
+                    'CLIENT_ID_NOT_FOUND' => '\\ccxt\\OrderNotFound',
                     'ORDER_CLOSED' => '\\ccxt\\InvalidOrder',
                     'ORDER_CANCELLED' => '\\ccxt\\InvalidOrder',
                     'QUANTITY_NOT_ENOUGH' => '\\ccxt\\InvalidOrder',

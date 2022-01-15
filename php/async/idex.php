@@ -294,55 +294,44 @@ class idex extends Exchange {
         // {
         //   $market => 'DIL-ETH',
         //   time => 1598367493008,
-        //   $open => '0.09695361',
-        //   $high => '0.10245881',
-        //   $low => '0.09572507',
+        //   open => '0.09695361',
+        //   high => '0.10245881',
+        //   low => '0.09572507',
         //   $close => '0.09917079',
         //   closeQuantity => '0.71320950',
-        //   $baseVolume => '309.17380612',
-        //   $quoteVolume => '30.57633981',
+        //   baseVolume => '309.17380612',
+        //   quoteVolume => '30.57633981',
         //   percentChange => '2.28',
         //   numTrades => 205,
-        //   $ask => '0.09910476',
-        //   $bid => '0.09688340',
+        //   ask => '0.09910476',
+        //   bid => '0.09688340',
         //   sequence => 3902
         // }
         $marketId = $this->safe_string($ticker, 'market');
         $market = $this->safe_market($marketId, $market, '-');
         $symbol = $market['symbol'];
-        $baseVolume = $this->safe_number($ticker, 'baseVolume');
-        $quoteVolume = $this->safe_number($ticker, 'quoteVolume');
         $timestamp = $this->safe_integer($ticker, 'time');
-        $open = $this->safe_number($ticker, 'open');
-        $high = $this->safe_number($ticker, 'high');
-        $low = $this->safe_number($ticker, 'low');
         $close = $this->safe_number($ticker, 'close');
-        $ask = $this->safe_number($ticker, 'ask');
-        $bid = $this->safe_number($ticker, 'bid');
-        $percentage = $this->safe_number($ticker, 'percentChange');
-        if ($percentage !== null) {
-            $percentage = 1 . $percentage / 100;
-        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $high,
-            'low' => $low,
-            'bid' => $bid,
+            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_number($ticker, 'low'),
+            'bid' => $this->safe_number($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $ask,
+            'ask' => $this->safe_number($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $open,
+            'open' => $this->safe_number($ticker, 'open'),
             'close' => $close,
             'last' => $close,
             'previousClose' => null,
             'change' => null,
-            'percentage' => $percentage,
+            'percentage' => $this->safe_number($ticker, 'percentChange'),
             'average' => null,
-            'baseVolume' => $baseVolume,
-            'quoteVolume' => $quoteVolume,
+            'baseVolume' => $this->safe_number($ticker, 'baseVolume'),
+            'quoteVolume' => $this->safe_number($ticker, 'quoteVolume'),
             'info' => $ticker,
         ), $market);
     }

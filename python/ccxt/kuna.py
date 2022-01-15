@@ -347,11 +347,9 @@ class kuna(Exchange):
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_timestamp(ticker, 'at')
         ticker = ticker['ticker']
-        symbol = None
-        if market:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(None, market)
         last = self.safe_number(ticker, 'last')
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -372,7 +370,7 @@ class kuna(Exchange):
             'baseVolume': self.safe_number(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()

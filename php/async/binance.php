@@ -264,6 +264,7 @@ class binance extends Exchange {
                         'mining/payment/list' => 5,
                         'mining/statistics/user/status' => 5,
                         'mining/statistics/user/list' => 5,
+                        'mining/payment/uid' => 5,
                         // liquid swap endpoints
                         'bswap/pools' => 1,
                         'bswap/liquidity' => array( 'cost' => 1, 'noPoolId' => 10 ),
@@ -273,6 +274,8 @@ class binance extends Exchange {
                         'bswap/poolConfigure' => 1,
                         'bswap/addLiquidityPreview' => 1,
                         'bswap/removeLiquidityPreview' => 1,
+                        'bswap/unclaimedRewards' => 1,
+                        'bswap/claimedHistory' => 1,
                         // leveraged token endpoints
                         'blvt/tokenInfo' => 1,
                         'blvt/subscribe/record' => 1,
@@ -359,6 +362,7 @@ class binance extends Exchange {
                         'bswap/liquidityAdd' => 2,
                         'bswap/liquidityRemove' => 2,
                         'bswap/swap' => 2,
+                        'bswap/claimRewards' => 1,
                         // leveraged token endpoints
                         'blvt/subscribe' => 1,
                         'blvt/redeem' => 1,
@@ -919,6 +923,7 @@ class binance extends Exchange {
                     "You don't have permission." => '\\ccxt\\PermissionDenied', // array("msg":"You don't have permission.","success":false)
                     'Market is closed.' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1013,"msg":"Market is closed.")
                     'Too many requests. Please try again later.' => '\\ccxt\\DDoSProtection', // array("msg":"Too many requests. Please try again later.","success":false)
+                    'This action disabled is on this account.' => '\\ccxt\\AccountSuspended', // array("code":-2010,"msg":"This action disabled is on this account.")
                     '-1000' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1000,"msg":"An unknown error occured while processing the request.")
                     '-1001' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'")
                     '-1002' => '\\ccxt\\AuthenticationError', // array("code":-1002,"msg":"'You are not authorized to execute this request.'")
