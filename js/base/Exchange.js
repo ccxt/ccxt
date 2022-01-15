@@ -1274,7 +1274,7 @@ module.exports = class Exchange {
             if (vwap === undefined) {
                 const baseVolume = this.safeValue (ticker, 'baseVolume');
                 const quoteVolume = this.safeValue (ticker, 'quoteVolume');
-                vwap = Precise.stringDiv (quoteVolume, baseVolume)
+                vwap = Precise.stringDiv (quoteVolume, baseVolume);
             }
             if ((last !== undefined) && (close === undefined)) {
                 close = last;
