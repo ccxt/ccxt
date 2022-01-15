@@ -15,8 +15,8 @@ module.exports = class indodax extends Exchange {
             'name': 'INDODAX',
             'countries': [ 'ID' ], // Indonesia
             'has': {
-                'CORS': undefined,
                 'cancelOrder': true,
+                'CORS': undefined,
                 'createMarketOrder': undefined,
                 'createOrder': true,
                 'fetchBalance': true,

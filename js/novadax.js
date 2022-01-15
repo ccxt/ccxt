@@ -19,8 +19,8 @@ module.exports = class novadax extends Exchange {
             'version': 'v1',
             // new metainfo interface
             'has': {
-                'CORS': undefined,
                 'cancelOrder': true,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
@@ -32,8 +32,8 @@ module.exports = class novadax extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrderTrades': true,
                 'fetchOrders': true,
+                'fetchOrderTrades': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,

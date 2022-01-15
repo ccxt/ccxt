@@ -19,8 +19,8 @@ module.exports = class bytetrade extends Exchange {
             'certified': false,
             // new metainfo interface
             'has': {
-                'CORS': undefined,
                 'cancelOrder': true,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,

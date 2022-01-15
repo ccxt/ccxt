@@ -17,8 +17,8 @@ module.exports = class flowbtc extends Exchange {
             'version': 'v1',
             'rateLimit': 1000,
             'has': {
-                'CORS': undefined,
                 'cancelOrder': true,
+                'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchMarkets': true,

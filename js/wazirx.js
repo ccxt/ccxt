@@ -13,9 +13,9 @@ module.exports = class wazirx extends Exchange {
             'version': 'v2',
             'rateLimit': 100,
             'has': {
-                'CORS': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'CORS': false,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,

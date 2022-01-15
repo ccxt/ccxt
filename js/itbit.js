@@ -17,8 +17,8 @@ module.exports = class itbit extends Exchange {
             'rateLimit': 2000,
             'version': 'v1',
             'has': {
-                'CORS': true,
                 'cancelOrder': true,
+                'CORS': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
                 'fetchBalance': true,

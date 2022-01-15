@@ -18,9 +18,9 @@ module.exports = class stex extends Exchange {
             'certified': false,
             // new metainfo interface
             'has': {
-                'CORS': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'CORS': undefined,
                 'createDepositAddress': true,
                 'createMarketOrder': undefined, // limit orders only
                 'createOrder': true,

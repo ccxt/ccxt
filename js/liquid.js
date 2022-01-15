@@ -18,8 +18,8 @@ module.exports = class liquid extends Exchange {
             'version': '2',
             'rateLimit': 1000,
             'has': {
-                'CORS': undefined,
                 'cancelOrder': true,
+                'CORS': undefined,
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,

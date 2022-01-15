@@ -20,9 +20,9 @@ module.exports = class bitfinex extends Exchange {
             'pro': true,
             // new metainfo interface
             'has': {
-                'CORS': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'CORS': undefined,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'editOrder': true,
@@ -32,8 +32,8 @@ module.exports = class bitfinex extends Exchange {
                 'fetchDeposits': undefined,
                 'fetchFundingFees': true,
                 'fetchIndexOHLCV': false,
-                'fetchMarkOHLCV': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,

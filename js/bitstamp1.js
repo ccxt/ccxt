@@ -17,8 +17,8 @@ module.exports = class bitstamp1 extends Exchange {
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
-                'CORS': true,
                 'cancelOrder': true,
+                'CORS': true,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchMyTrades': true,

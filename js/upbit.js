@@ -19,8 +19,8 @@ module.exports = class upbit extends Exchange {
             'pro': true,
             // new metainfo interface
             'has': {
-                'CORS': true,
                 'cancelOrder': true,
+                'CORS': true,
                 'createDepositAddress': true,
                 'createMarketOrder': true,
                 'createOrder': true,

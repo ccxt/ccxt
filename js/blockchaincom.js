@@ -18,9 +18,9 @@ module.exports = class blockchaincom extends Exchange {
             'rateLimit': 10000,
             'version': 'v3',
             'has': {
-                'CORS': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'CORS': false,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
@@ -42,8 +42,8 @@ module.exports = class blockchaincom extends Exchange {
                 'fetchTrades': false,
                 'fetchTradingFees': true,
                 'fetchWithdrawal': true,
-                'fetchWithdrawalWhitelist': true, // fetches exchange specific benficiary-ids needed for withdrawals
                 'fetchWithdrawals': true,
+                'fetchWithdrawalWhitelist': true, // fetches exchange specific benficiary-ids needed for withdrawals
                 'withdraw': true,
             },
             'timeframes': undefined,

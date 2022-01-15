@@ -17,8 +17,8 @@ module.exports = class yobit extends Exchange {
             'rateLimit': 3000, // responses are cached every 2 seconds
             'version': '3',
             'has': {
-                'CORS': undefined,
                 'cancelOrder': true,
+                'CORS': undefined,
                 'createDepositAddress': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,

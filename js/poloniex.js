@@ -18,9 +18,9 @@ module.exports = class poloniex extends Exchange {
             'certified': false,
             'pro': true,
             'has': {
-                'CORS': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'CORS': undefined,
                 'createDepositAddress': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,

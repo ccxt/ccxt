@@ -15,9 +15,9 @@ module.exports = class cryptocom extends Exchange {
             'version': 'v2',
             'rateLimit': 10, // 100 requests per second
             'has': {
-                'CORS': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'CORS': false,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,

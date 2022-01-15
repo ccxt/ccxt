@@ -19,8 +19,8 @@ module.exports = class zb extends Exchange {
             'certified': true,
             'pro': true,
             'has': {
-                'CORS': undefined,
                 'cancelOrder': true,
+                'CORS': undefined,
                 'createMarketOrder': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
