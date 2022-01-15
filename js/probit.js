@@ -336,7 +336,9 @@ module.exports = class probit extends Exchange {
             const precision = this.safeInteger (platform, 'precision');
             const depositSuspended = this.safeValue (platform, 'deposit_suspended');
             const withdrawalSuspended = this.safeValue (platform, 'withdrawal_suspended');
-            const active = !(depositSuspended && withdrawalSuspended);
+            const deposit = !depositSuspended;
+            const withdraw = !withdrawalSuspended;
+            const active = deposit && withdraw;
             const withdrawalFees = this.safeValue (platform, 'withdrawal_fee', {});
             const fees = [];
             // sometimes the withdrawal fee is an empty object
@@ -358,12 +360,14 @@ module.exports = class probit extends Exchange {
                 'info': currency,
                 'name': name,
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': fee,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                        'min': undefined,
+                        'max': undefined,
                     },
                     'deposit': {
                         'min': this.safeNumber (platform, 'min_deposit_amount'),
