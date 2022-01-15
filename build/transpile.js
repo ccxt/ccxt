@@ -1701,6 +1701,7 @@ if (require.main === module) { // called directly like `node module`
     const force = process.argv.includes ('--force')
     const order = process.argv.includes('--order')
     log.bright.green ({ force })
+    log.bright.green ({ order })
     if (test) {
         transpiler.transpileTests ()
     } else if (errors) {
