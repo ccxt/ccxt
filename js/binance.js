@@ -257,6 +257,7 @@ module.exports = class binance extends Exchange {
                         'mining/payment/list': 5,
                         'mining/statistics/user/status': 5,
                         'mining/statistics/user/list': 5,
+                        'mining/payment/uid': 5,
                         // liquid swap endpoints
                         'bswap/pools': 1,
                         'bswap/liquidity': { 'cost': 1, 'noPoolId': 10 },
