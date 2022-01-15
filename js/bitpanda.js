@@ -351,6 +351,8 @@ module.exports = class bitpanda extends Exchange {
                 'inverse': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
+                'settle': undefined,
+                'settleId': undefined,
                 'contract': false,
                 'contractSize': undefined,
                 'active': active,
