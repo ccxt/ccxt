@@ -288,6 +288,7 @@ class ascendex extends Exchange {
                 'BTCBEAR' => 'BEAR',
                 'BTCBULL' => 'BULL',
                 'BYN' => 'BeyondFi',
+                'PLN' => 'Pollen',
             ),
         ));
     }

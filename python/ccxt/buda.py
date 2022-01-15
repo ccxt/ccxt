@@ -346,41 +346,67 @@ class buda(Exchange):
             'market': market['id'],
         }
         response = self.publicGetMarketsMarketTicker(self.extend(request, params))
+        #
+        #     {
+        #         "ticker":{
+        #             "market_id":"ETH-BTC",
+        #             "last_price":["0.07300001","BTC"],
+        #             "min_ask":["0.07716895","BTC"],
+        #             "max_bid":["0.0754966","BTC"],
+        #             "volume":["0.168965697","ETH"],
+        #             "price_variation_24h":"-0.046",
+        #             "price_variation_7d":"-0.085"
+        #         }
+        #     }
+        #
         ticker = self.safe_value(response, 'ticker')
         return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market=None):
+        #
+        # fetchTicker
+        #
+        #     {
+        #         "market_id":"ETH-BTC",
+        #         "last_price":["0.07300001","BTC"],
+        #         "min_ask":["0.07716895","BTC"],
+        #         "max_bid":["0.0754966","BTC"],
+        #         "volume":["0.168965697","ETH"],
+        #         "price_variation_24h":"-0.046",
+        #         "price_variation_7d":"-0.085"
+        #     }
+        #
         timestamp = self.milliseconds()
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        last = float(ticker['last_price'][0])
-        percentage = float(ticker['price_variation_24h'])
-        open = float(self.price_to_precision(symbol, last / (percentage + 1)))
-        change = last - open
-        average = self.sum(last, open) / 2
-        return {
+        marketId = self.safe_string(ticker, 'market_id')
+        symbol = self.safe_symbol(marketId, market, '-')
+        lastPrice = self.safe_value(ticker, 'last_price', [])
+        last = self.safe_number(lastPrice, 0)
+        percentage = self.safe_number(ticker, 'price_variation_24h')
+        maxBid = self.safe_value(ticker, 'max_bid', [])
+        minAsk = self.safe_value(ticker, 'min_ask', [])
+        baseVolume = self.safe_value(ticker, 'volume', [])
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': float(ticker['max_bid'][0]),
+            'bid': self.safe_number(maxBid, 0),
             'bidVolume': None,
-            'ask': float(ticker['min_ask'][0]),
+            'ask': self.safe_number(minAsk, 0),
             'askVolume': None,
             'vwap': None,
-            'open': open,
+            'open': None,
             'close': last,
             'last': last,
-            'previousClose': open,
-            'change': change,
+            'previousClose': None,
+            'change': None,
             'percentage': percentage * 100,
-            'average': average,
-            'baseVolume': float(ticker['volume'][0]),
+            'average': None,
+            'baseVolume': self.safe_number(baseVolume, 0),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()

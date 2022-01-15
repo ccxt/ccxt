@@ -155,52 +155,29 @@ class lbank extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($ticker, 'symbol');
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                $parts = explode('_', $marketId);
-                $baseId = null;
-                $quoteId = null;
-                $numParts = is_array($parts) ? count($parts) : 0;
-                // lbank will return symbols like "vet_erc20_usdt"
-                if ($numParts > 2) {
-                    $baseId = $parts[0] . '_' . $parts[1];
-                    $quoteId = $parts[2];
-                } else {
-                    $baseId = $parts[0];
-                    $quoteId = $parts[1];
-                }
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
+        //
+        //     {
+        //         "symbol":"btc_usdt",
+        //         "ticker":array(
+        //             "high":43416.06,
+        //             "vol":7031.7427,
+        //             "low":41804.26,
+        //             "change":1.33,
+        //             "turnover":300302447.81,
+        //             "latest":43220.4
+        //         ),
+        //         "timestamp":1642201617747
+        //     }
+        //
+        $marketId = $this->safe_string($ticker, 'symbol');
+        $market = $this->safe_market($marketId, $market, '_');
+        $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $info = $ticker;
         $ticker = $info['ticker'];
         $last = $this->safe_number($ticker, 'latest');
         $percentage = $this->safe_number($ticker, 'change');
-        $open = null;
-        if ($percentage !== null) {
-            $relativeChange = $this->sum(1, $percentage / 100);
-            if ($relativeChange > 0) {
-                $open = $last / $this->sum(1, $relativeChange);
-            }
-        }
-        $change = null;
-        $average = null;
-        if ($last !== null && $open !== null) {
-            $change = $last - $open;
-            $average = $this->sum($last, $open) / 2;
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -215,13 +192,13 @@ class lbank extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $change,
+            'change' => null,
             'percentage' => $percentage,
-            'average' => $average,
+            'average' => null,
             'baseVolume' => $this->safe_number($ticker, 'vol'),
             'quoteVolume' => $this->safe_number($ticker, 'turnover'),
             'info' => $info,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -231,6 +208,18 @@ class lbank extends Exchange {
             'symbol' => $market['id'],
         );
         $response = $this->publicGetTicker (array_merge($request, $params));
+        // {
+        //     "symbol":"btc_usdt",
+        //     "ticker":array(
+        //         "high":43416.06,
+        //         "vol":7031.7427,
+        //         "low":41804.26,
+        //         "change":1.33,
+        //         "turnover":300302447.81,
+        //         "latest":43220.4
+        //         ),
+        //     "timestamp":1642201617747
+        // }
         return $this->parse_ticker($response, $market);
     }
 

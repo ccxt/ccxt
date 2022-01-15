@@ -174,13 +174,30 @@ class independentreserve extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
+        // {
+        //     "DayHighestPrice":43489.49,
+        //     "DayLowestPrice":41998.32,
+        //     "DayAvgPrice":42743.9,
+        //     "DayVolumeXbt":44.54515625000,
+        //     "DayVolumeXbtInSecondaryCurrrency":0.12209818,
+        //     "CurrentLowestOfferPrice":43619.64,
+        //     "CurrentHighestBidPrice":43153.58,
+        //     "LastPrice":43378.43,
+        //     "PrimaryCurrencyCode":"Xbt",
+        //     "SecondaryCurrencyCode":"Usd",
+        //     "CreatedTimestampUtc":"2022-01-14T22:52:29.5029223Z"
+        // }
         $timestamp = $this->parse8601($this->safe_string($ticker, 'CreatedTimestampUtc'));
-        $symbol = null;
-        if ($market) {
-            $symbol = $market['symbol'];
+        $baseId = $this->safe_string($ticker, 'PrimaryCurrencyCode');
+        $quoteId = $this->safe_string($ticker, 'SecondaryCurrencyCode');
+        $defaultMarketId = null;
+        if (($baseId !== null) && ($quoteId !== null)) {
+            $defaultMarketId = $baseId . '/' . $quoteId;
         }
+        $market = $this->safe_market($defaultMarketId, $market, '/');
+        $symbol = $market['symbol'];
         $last = $this->safe_number($ticker, 'LastPrice');
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -201,7 +218,7 @@ class independentreserve extends Exchange {
             'baseVolume' => $this->safe_number($ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -212,6 +229,19 @@ class independentreserve extends Exchange {
             'secondaryCurrencyCode' => $market['quoteId'],
         );
         $response = yield $this->publicGetGetMarketSummary (array_merge($request, $params));
+        // {
+        //     "DayHighestPrice":43489.49,
+        //     "DayLowestPrice":41998.32,
+        //     "DayAvgPrice":42743.9,
+        //     "DayVolumeXbt":44.54515625000,
+        //     "DayVolumeXbtInSecondaryCurrrency":0.12209818,
+        //     "CurrentLowestOfferPrice":43619.64,
+        //     "CurrentHighestBidPrice":43153.58,
+        //     "LastPrice":43378.43,
+        //     "PrimaryCurrencyCode":"Xbt",
+        //     "SecondaryCurrencyCode":"Usd",
+        //     "CreatedTimestampUtc":"2022-01-14T22:52:29.5029223Z"
+        // }
         return $this->parse_ticker($response, $market);
     }
 

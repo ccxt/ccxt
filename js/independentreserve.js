@@ -172,11 +172,28 @@ module.exports = class independentreserve extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        // {
+        //     "DayHighestPrice":43489.49,
+        //     "DayLowestPrice":41998.32,
+        //     "DayAvgPrice":42743.9,
+        //     "DayVolumeXbt":44.54515625000,
+        //     "DayVolumeXbtInSecondaryCurrrency":0.12209818,
+        //     "CurrentLowestOfferPrice":43619.64,
+        //     "CurrentHighestBidPrice":43153.58,
+        //     "LastPrice":43378.43,
+        //     "PrimaryCurrencyCode":"Xbt",
+        //     "SecondaryCurrencyCode":"Usd",
+        //     "CreatedTimestampUtc":"2022-01-14T22:52:29.5029223Z"
+        // }
         const timestamp = this.parse8601 (this.safeString (ticker, 'CreatedTimestampUtc'));
-        let symbol = undefined;
-        if (market) {
-            symbol = market['symbol'];
+        const baseId = this.safeString (ticker, 'PrimaryCurrencyCode');
+        const quoteId = this.safeString (ticker, 'SecondaryCurrencyCode');
+        let defaultMarketId = undefined;
+        if ((baseId !== undefined) && (quoteId !== undefined)) {
+            defaultMarketId = baseId + '/' + quoteId;
         }
+        market = this.safeMarket (defaultMarketId, market, '/');
+        const symbol = market['symbol'];
         const last = this.safeNumber (ticker, 'LastPrice');
         return this.safeTicker ({
             'symbol': symbol,
@@ -199,7 +216,7 @@ module.exports = class independentreserve extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume': undefined,
             'info': ticker,
-        });
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -210,6 +227,19 @@ module.exports = class independentreserve extends Exchange {
             'secondaryCurrencyCode': market['quoteId'],
         };
         const response = await this.publicGetGetMarketSummary (this.extend (request, params));
+        // {
+        //     "DayHighestPrice":43489.49,
+        //     "DayLowestPrice":41998.32,
+        //     "DayAvgPrice":42743.9,
+        //     "DayVolumeXbt":44.54515625000,
+        //     "DayVolumeXbtInSecondaryCurrrency":0.12209818,
+        //     "CurrentLowestOfferPrice":43619.64,
+        //     "CurrentHighestBidPrice":43153.58,
+        //     "LastPrice":43378.43,
+        //     "PrimaryCurrencyCode":"Xbt",
+        //     "SecondaryCurrencyCode":"Usd",
+        //     "CreatedTimestampUtc":"2022-01-14T22:52:29.5029223Z"
+        // }
         return this.parseTicker (response, market);
     }
 
