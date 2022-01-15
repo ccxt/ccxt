@@ -629,6 +629,8 @@ module.exports = class kucoin extends Exchange {
                 'precision': precision,
                 'info': entry,
                 'active': active,
+                'deposit': isDepositEnabled,
+                'withdraw': isWithdrawEnabled,
                 'fee': fee,
                 'limits': this.limits,
             };
