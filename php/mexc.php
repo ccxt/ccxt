@@ -1003,12 +1003,6 @@ class mexc extends Exchange {
         $amountString = $this->safe_string_2($trade, 'quantity', 'trade_quantity');
         $amountString = $this->safe_string($trade, 'v', $amountString);
         $costString = $this->safe_string($trade, 'amount');
-        if ($costString === null) {
-            $costString = Precise::string_mul($priceString, $amountString);
-        }
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number($costString);
         $side = $this->safe_string_2($trade, 'trade_type', 'T');
         if (($side === 'BID') || ($side === '1')) {
             $side = 'buy';
@@ -1022,20 +1016,20 @@ class mexc extends Exchange {
                 $id .= '-' . $market['id'] . '-' . $amountString;
             }
         }
-        $feeCost = $this->safe_number($trade, 'fee');
+        $feeCostString = $this->safe_string($trade, 'fee');
         $fee = null;
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'fee_currency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
             );
         }
         $orderId = $this->safe_string($trade, 'order_id');
         $isTaker = $this->safe_value($trade, 'is_taker', true);
         $takerOrMaker = $isTaker ? 'taker' : 'maker';
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'order' => $orderId,
@@ -1045,11 +1039,11 @@ class mexc extends Exchange {
             'type' => null,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => $costString,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
