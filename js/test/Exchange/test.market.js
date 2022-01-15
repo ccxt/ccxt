@@ -32,6 +32,8 @@ module.exports = (exchange, market, method) => {
         'contractSize': 0.001,
         'expiry': 1656057600000,
         'expiryDatetime': '2022-06-24T08:00:00.000Z',
+        'settle': undefined,
+        'settleId': undefined,
         'precision': {        // number of decimal digits "after the dot"
              'price': 8,       // integer
              'amount': 8,      // integer
