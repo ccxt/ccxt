@@ -20,13 +20,16 @@ module.exports = class bittrex extends Exchange {
             'pro': true,
             // new metainfo interface
             'has': {
+                'spot': true,
                 'margin': false,
                 'swap': false,
                 'future': false,
+                'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'CORS': undefined,
                 'createDepositAddress': true,
+                'createReduceOnlyOrder': false,
                 'createMarketOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
@@ -37,19 +40,34 @@ module.exports = class bittrex extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': 'emulated',
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderTrades': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -270,36 +288,45 @@ module.exports = class bittrex extends Exchange {
             const market = response[i];
             const baseId = this.safeString (market, 'baseCurrencySymbol');
             const quoteId = this.safeString (market, 'quoteCurrencySymbol');
-            const id = this.safeString (market, 'symbol');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
             const pricePrecision = this.safeInteger (market, 'precision', 8);
-            const precision = {
-                'amount': 8,
-                'price': pricePrecision,
-            };
             const status = this.safeString (market, 'status');
-            const active = (status === 'ONLINE');
             result.push ({
-                'id': id,
-                'symbol': symbol,
+                'id': this.safeString (market, 'symbol'),
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
-                'info': market,
-                'precision': precision,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': (status === 'ONLINE'),
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': parseInt ('8'),
+                    'price': pricePrecision,
+                },
                 'limits': {
                     'amount': {
                         'min': this.safeNumber (market, 'minTradeSize'),
                         'max': undefined,
                     },
                     'price': {
-                        'min': 1 / Math.pow (10, precision['price']),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
@@ -307,9 +334,11 @@ module.exports = class bittrex extends Exchange {
                         'max': undefined,
                     },
                     'leverage': {
-                        'max': 1,
+                        'min': undefined,
+                        'max': undefined,
                     },
                 },
+                'info': market,
             });
         }
         return result;
