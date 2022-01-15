@@ -328,7 +328,7 @@ class Exchange(object):
         'signIn': None,
         'transfer': None,
         'withdraw': None,
-    },
+    }
     precisionMode = DECIMAL_PLACES
     paddingMode = NO_PADDING
     minFundingAddressLength = 1  # used in check_address
@@ -409,7 +409,6 @@ class Exchange(object):
 
         # convert all properties from underscore notation foo_bar to camelcase notation fooBar
         cls = type(self)
-        x = {}
         for name in dir(self):
             if name[0] != '_' and name[-1] != '_' and '_' in name:
                 parts = name.split('_')
@@ -418,11 +417,9 @@ class Exchange(object):
                 camelcase = parts[0] + ''.join(exceptions.get(i, self.capitalize(i)) for i in parts[1:])
                 attr = getattr(self, name)
                 if isinstance(attr, types.MethodType):
-                    x[camelcase] = name
                     setattr(cls, camelcase, getattr(cls, name))
                 else:
                     setattr(self, camelcase, attr)
-        self.x = x
         self.tokenBucket = self.extend({
             'refillRate': 1.0 / self.rateLimit if self.rateLimit > 0 else float('inf'),
             'delay': 0.001,
