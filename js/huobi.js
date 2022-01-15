@@ -103,7 +103,6 @@ module.exports = class huobi extends Exchange {
                 'setPositionMode': undefined,
                 'signIn': undefined,
                 'transfer': true,
-                'transferOut': false,
                 'withdraw': true,
             },
             'timeframes': {
