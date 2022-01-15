@@ -416,13 +416,9 @@ module.exports = class yobit extends Exchange {
         //     updated: 1537522009          }
         //
         const timestamp = this.safeTimestamp (ticker, 'updated');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
         const last = this.safeNumber (ticker, 'last');
-        return {
-            'symbol': symbol,
+        return this.safeTicker ({
+            'symbol': this.safeSymbol (undefined, market),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeNumber (ticker, 'high'),
@@ -442,7 +438,7 @@ module.exports = class yobit extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'vol_cur'),
             'quoteVolume': this.safeNumber (ticker, 'vol'),
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
