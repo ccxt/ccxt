@@ -104,7 +104,6 @@ class binance extends Exchange {
                 'setPositionMode' => true,
                 'signIn' => false,
                 'transfer' => true,
-                'transferOut' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(

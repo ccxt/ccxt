@@ -76,7 +76,6 @@ class kucoinfutures(kucoin):
                 'fetchWithdrawals': True,
                 'setMarginMode': False,
                 'transfer': True,
-                'transferOut': True,
                 'withdraw': None,
                 'addMargin': True,
             },

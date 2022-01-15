@@ -118,7 +118,6 @@ class binance(Exchange):
                 'setPositionMode': True,
                 'signIn': False,
                 'transfer': True,
-                'transferOut': False,
                 'withdraw': True,
             },
             'timeframes': {

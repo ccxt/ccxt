@@ -104,7 +104,6 @@ class aax extends Exchange {
                 'setPositionMode' => null,
                 'signIn' => null,
                 'transfer' => null,
-                'transferOut' => false,
                 'withdraw' => null,
             ),
             'timeframes' => array(

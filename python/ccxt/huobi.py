@@ -128,7 +128,6 @@ class huobi(Exchange):
                 'setPositionMode': None,
                 'signIn': None,
                 'transfer': True,
-                'transferOut': False,
                 'withdraw': True,
             },
             'timeframes': {
