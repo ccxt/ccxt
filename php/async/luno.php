@@ -380,13 +380,20 @@ class luno extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
+        // {
+        //     "pair":"XBTAUD",
+        //     "timestamp":1642201439301,
+        //     "bid":"59972.30000000",
+        //     "ask":"59997.99000000",
+        //     "last_trade":"59997.99000000",
+        //     "rolling_24_hour_volume":"1.89510000",
+        //     "status":"ACTIVE"
+        // }
         $timestamp = $this->safe_integer($ticker, 'timestamp');
-        $symbol = null;
-        if ($market) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($ticker, 'pair');
+        $symbol = $this->safe_symbol($marketId, $market);
         $last = $this->safe_number($ticker, 'last_trade');
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -407,7 +414,7 @@ class luno extends Exchange {
             'baseVolume' => $this->safe_number($ticker, 'rolling_24_hour_volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -433,6 +440,15 @@ class luno extends Exchange {
             'pair' => $market['id'],
         );
         $response = yield $this->publicGetTicker (array_merge($request, $params));
+        // {
+        //     "pair":"XBTAUD",
+        //     "timestamp":1642201439301,
+        //     "bid":"59972.30000000",
+        //     "ask":"59997.99000000",
+        //     "last_trade":"59997.99000000",
+        //     "rolling_24_hour_volume":"1.89510000",
+        //     "status":"ACTIVE"
+        // }
         return $this->parse_ticker($response, $market);
     }
 
