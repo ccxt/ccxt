@@ -403,13 +403,18 @@ class lykke extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
+        // {
+        //     "assetPair":"ADAUSD",
+        //     "volume24H":264.6398,
+        //     "lastPrice":1.29535,
+        //     "bid":1.28805,
+        //     "ask":1.29074
+        // }
         $timestamp = $this->milliseconds();
-        $symbol = null;
-        if ($market) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($ticker, 'assetPair');
+        $symbol = $this->safe_symbol($marketId, $market);
         $close = $this->safe_number($ticker, 'lastPrice');
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -430,7 +435,7 @@ class lykke extends Exchange {
             'baseVolume' => null,
             'quoteVolume' => $this->safe_number($ticker, 'volume24H'),
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -440,6 +445,13 @@ class lykke extends Exchange {
             'market' => $market['id'],
         );
         $ticker = yield $this->mobileGetMarketMarket (array_merge($request, $params));
+        // {
+        //     "assetPair":"ADAUSD",
+        //     "volume24H":264.6398,
+        //     "lastPrice":1.29535,
+        //     "bid":1.28805,
+        //     "ask":1.29074
+        // }
         return $this->parse_ticker($ticker, $market);
     }
 
