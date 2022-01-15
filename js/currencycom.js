@@ -556,7 +556,7 @@ module.exports = class currencycom extends Exchange {
         market = this.safeMarket (marketId, market, '/');
         const last = this.safeNumber (ticker, 'lastPrice');
         const open = this.safeNumber (ticker, 'openPrice');
-        return {
+        return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -577,7 +577,7 @@ module.exports = class currencycom extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'volume'),
             'quoteVolume': this.safeNumber (ticker, 'quoteVolume'),
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
