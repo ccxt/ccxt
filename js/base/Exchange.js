@@ -1211,57 +1211,105 @@ module.exports = class Exchange {
         return indexed ? indexBy (result, key) : result
     }
 
-    safeTicker (ticker, market = undefined) {
-        let symbol = this.safeValue (ticker, 'symbol');
-        if (symbol === undefined) {
-            symbol = this.safeSymbol (undefined, market);
-        }
-        const timestamp = this.safeInteger (ticker, 'timestamp');
-        const baseVolume = this.safeValue (ticker, 'baseVolume');
-        const quoteVolume = this.safeValue (ticker, 'quoteVolume');
-        let vwap = this.safeValue (ticker, 'vwap');
-        if (vwap === undefined) {
-            vwap = this.vwap (baseVolume, quoteVolume);
-        }
-        let open = this.safeValue (ticker, 'open');
-        let close = this.safeValue (ticker, 'close');
-        let last = this.safeValue (ticker, 'last');
-        let change = this.safeValue (ticker, 'change');
-        let percentage = this.safeValue (ticker, 'percentage');
-        let average = this.safeValue (ticker, 'average');
-        if ((last !== undefined) && (close === undefined)) {
-            close = last;
-        } else if ((last === undefined) && (close !== undefined)) {
-            last = close;
-        }
-        if ((last !== undefined) && (open !== undefined)) {
-            if (change === undefined) {
-                change = last - open;
+    safeTicker (ticker, market = undefined, legacy = true) {
+        if (legacy) {
+            let symbol = this.safeValue (ticker, 'symbol');
+            if (symbol === undefined) {
+                symbol = this.safeSymbol (undefined, market);
             }
-            if (average === undefined) {
-                average = this.sum (last, open) / 2;
+            const timestamp = this.safeInteger (ticker, 'timestamp');
+            const baseVolume = this.safeValue (ticker, 'baseVolume');
+            const quoteVolume = this.safeValue (ticker, 'quoteVolume');
+            let vwap = this.safeValue (ticker, 'vwap');
+            if (vwap === undefined) {
+                vwap = this.vwap (baseVolume, quoteVolume);
             }
+            let open = this.safeValue (ticker, 'open');
+            let close = this.safeValue (ticker, 'close');
+            let last = this.safeValue (ticker, 'last');
+            let change = this.safeValue (ticker, 'change');
+            let percentage = this.safeValue (ticker, 'percentage');
+            let average = this.safeValue (ticker, 'average');
+            if ((last !== undefined) && (close === undefined)) {
+                close = last;
+            } else if ((last === undefined) && (close !== undefined)) {
+                last = close;
+            }
+            if ((last !== undefined) && (open !== undefined)) {
+                if (change === undefined) {
+                    change = last - open;
+                }
+                if (average === undefined) {
+                    average = this.sum (last, open) / 2;
+                }
+            }
+            if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && (open > 0)) {
+                percentage = change / open * 100;
+            }
+            if ((change === undefined) && (percentage !== undefined) && (last !== undefined)) {
+                change = percentage / 100 * last;
+            }
+            if ((open === undefined) && (last !== undefined) && (change !== undefined)) {
+                open = last - change;
+            }
+            ticker['symbol'] = symbol;
+            ticker['timestamp'] = timestamp;
+            ticker['datetime'] = this.iso8601 (timestamp);
+            ticker['open'] = open;
+            ticker['close'] = close;
+            ticker['last'] = last;
+            ticker['vwap'] = vwap;
+            ticker['change'] = change;
+            ticker['percentage'] = percentage;
+            ticker['average'] = average;
+            return ticker;
+        } else {
+            let open = this.safeValue (ticker, 'open');
+            let close = this.safeValue (ticker, 'close');
+            let last = this.safeValue (ticker, 'last');
+            let change = this.safeValue (ticker, 'change');
+            let percentage = this.safeValue (ticker, 'percentage');
+            let average = this.safeValue (ticker, 'average');
+            let vwap = this.safeValue (ticker, 'vwap');
+            if (vwap === undefined) {
+                const baseVolume = this.safeValue (ticker, 'baseVolume');
+                const quoteVolume = this.safeValue (ticker, 'quoteVolume');
+                vwap = Precise.stringDiv (quoteVolume, baseVolume)
+            }
+            if ((last !== undefined) && (close === undefined)) {
+                close = last;
+            } else if ((last === undefined) && (close !== undefined)) {
+                last = close;
+            }
+            if ((last !== undefined) && (open !== undefined)) {
+                if (change === undefined) {
+                    change = Precise.stringSub (last, open);
+                }
+                if (average === undefined) {
+                    average = Precise.stringDiv (Precise.stringAdd (last, open), '2');
+                }
+            }
+            if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && (open > 0)) {
+                percentage = Precise.stringMul (Precise.stringDiv (change, open), '100');
+            }
+            if ((change === undefined) && (percentage !== undefined) && (last !== undefined)) {
+                change = Precise.stringDiv (Precise.stringMul (percentage, last), '100');
+            }
+            if ((open === undefined) && (last !== undefined) && (change !== undefined)) {
+                open = Precise.stringSub (last, change);
+            }
+            // timestamp and symbol operations don't belong in safeTicker
+            // they should be done in the derived classes
+            return this.extend (ticker, {
+                'open': open,
+                'close': close,
+                'last': last,
+                'change': change,
+                'percentage': percentage,
+                'average': average,
+                'vwap': vwap,
+            });
         }
-        if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && (open > 0)) {
-            percentage = change / open * 100;
-        }
-        if ((change === undefined) && (percentage !== undefined) && (last !== undefined)) {
-            change = percentage / 100 * last;
-        }
-        if ((open === undefined) && (last !== undefined) && (change !== undefined)) {
-            open = last - change;
-        }
-        ticker['symbol'] = symbol;
-        ticker['timestamp'] = timestamp;
-        ticker['datetime'] = this.iso8601 (timestamp);
-        ticker['open'] = open;
-        ticker['close'] = close;
-        ticker['last'] = last;
-        ticker['vwap'] = vwap;
-        ticker['change'] = change;
-        ticker['percentage'] = percentage;
-        ticker['average'] = average;
-        return ticker;
     }
 
     parseTickers (tickers, symbols = undefined, params = {}) {
