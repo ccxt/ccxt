@@ -411,10 +411,10 @@ class lykke extends Exchange {
         // }
         $timestamp = $this->milliseconds();
         $marketId = $this->safe_string($ticker, 'assetPair');
-        $symbol = $this->safe_symbol($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
         $close = $this->safe_number($ticker, 'lastPrice');
         return $this->safe_ticker(array(
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => null,
