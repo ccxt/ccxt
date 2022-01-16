@@ -299,6 +299,7 @@ module.exports = class bybit extends Exchange {
                         ],
                     },
                 },
+                // new endpoints ------------------------------------------
                 'private': {
                     'get': {
                         // inverse swap
@@ -637,7 +638,7 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchTime (params = {}) {
-        const response = await this.v2PublicGetTime (params);
+        const response = await this.publicGetV2PublicTime (params);
         //
         //     {
         //         ret_code: 0,
@@ -655,7 +656,7 @@ module.exports = class bybit extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
-        const response = await this.v2PublicGetSymbols (params);
+        const response = await this.publicGetV2PublicSymbols (params);
         //
         //     {
         //         "ret_code":0,
