@@ -6,7 +6,7 @@ const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder } = require ('./base/errors'); // Permission-Denied, Arguments-Required, OrderNot-Found
 const Precise = require ('./base/Precise');
 const { TICK_SIZE } = require ('./base/functions/number');
-
+function c(o){console.log(o);} function x(o){c(o);process.exit();}
 // ---------------------------------------------------------------------------
 
 module.exports = class woo extends Exchange {
@@ -153,17 +153,33 @@ module.exports = class woo extends Exchange {
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
                 'network-aliases': {
-                    'ETH': 'ERC20',
-                    'TRON': 'TRC20',
+                    'ALGO': 'ALGO',
+                    'AVAXC': 'AVAXC',
+                    'BNB': 'BEP2',
                     'BSC': 'BEP20',
-                    'SOL': 'SPL',
+                    'EOS': 'EOS',
+                    'ETH': 'ERC20',
+                    'HECO': 'HRC20',
                     'MATIC': 'POLYGON',
+                    'ONT': 'ONT',
+                    'SOL': 'SPL',
+                    'TERRA': 'TERRA',
+                    'TRON': 'TRC20',
                     // from 'token_network' endpoint
+                    'Algorand': 'ALGO',
+                    'Avalanche C-Chain': 'AVAXC',
+                    'C Chain': 'AVAXC', // need to be renamed the protocol name itself
+                    'Binance Chain': 'BEP2',
+                    'Binance Smart Chain': 'BEP20',
+                    // EOS not needed, as matches token's protocol name
                     'Ethereum': 'ERC20',
+                    'Huobi ECO Chain': 'HRC20',
+                    // 'HECO': 'HRC20', // need to be renamed the protocol name itself (atm, the key is duplicate in this object, so comment it.)
+                    'Polygon': 'POLYGON', // need to be renamed the protocol name itself
+                    'Ontology': 'ONT',
+                    'Solana': 'SPL',
+                    'Terra Protocol': 'TERRA',
                     'Tron': 'TRC20',
-                    'Binance Smart Chain': 'TRC20',
-                    'Solana': 'TRC20',
-                    'Polygon': 'POLYGON',
                 },
                 'networks': {
                     'ERC20': 'ETH',
@@ -400,10 +416,7 @@ module.exports = class woo extends Exchange {
         const feeValue = this.safeString (trade, 'fee');
         const feeAsset = this.safeString (trade, 'fee_asset');
         const cost = Precise.stringMul (price, amount);
-        let side = this.safeString (trade, 'side');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (trade, 'side');
         let id = this.safeString (trade, 'id');
         if (id === undefined) { // reconstruct artificially, if it doesn't exist
             id = timestamp;
@@ -438,11 +451,12 @@ module.exports = class woo extends Exchange {
 
     async fetchCurrencies (params = {}) {
         let method = undefined;
+        let result = {};
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchCurrencies', undefined, params);
         method = this.getSupportedMapping (marketType, {
             'spot': 'v1PublicGetToken',
         });
-        const response1 = await this[method] (query);
+        const tokenResponse = await this[method] (query);
         //
         // {
         //     rows: [
@@ -475,35 +489,10 @@ module.exports = class woo extends Exchange {
         //     success: true
         // }
         //
-        const result = {};
-        const data1 = this.safeValue (response1, 'rows', []);
-        const derivedCurrenciesData = {};
-        for (let i = 0; i < data1.length; i++) {
-            const item = data1[i];
-            const tokenCode = this.safeString (item, 'balance_token');
-            const code = this.safeCurrencyCode (tokenCode);
-            if (!(code in derivedCurrenciesData)) {
-                derivedCurrenciesData[code] = {
-                    'fullname': this.safeString (item, 'fullname'),
-                    'networks': {},
-                };
-            }
-            const chainedTokenCode = this.safeString (item, 'token');
-            const parts = chainedTokenCode.split ('_');
-            const networkId = (parts.length === 2) ? this.safeString (parts, 0) : chainedTokenCode;
-            const networkUnifiedSlug = this.safeString (this.options['network-aliases'], networkId, networkId);
-            derivedCurrenciesData[code]['networks'][networkId] = {
-                'chained_currency_code': chainedTokenCode,
-                'network_exchangeslug': networkUnifiedSlug,
-                'decimals': this.safeString (item, 'decimals'),
-                'info': { 'currencyInfo': item },
-            };
-        }
         method = this.getSupportedMapping (marketType, {
             'spot': 'v1PublicGetTokenNetwork',
         });
-        const response2 = await this[method] (query);
-        const data2 = this.safeValue (response2, 'rows', []);
+        const tokenNetworkResponse = await this[method] (query);
         //
         // {
         //     rows: [
@@ -530,60 +519,135 @@ module.exports = class woo extends Exchange {
         //     success: true
         // }
         //
-        const derivedNetworksData = {};
-        for (let i = 0; i < data2.length; i++) {
-            const item = data2[i];
-            const tokenCode = this.safeString (item, 'token');
-            const code = this.safeCurrencyCode (tokenCode);
-            if (!(code in derivedNetworksData)) {
-                derivedNetworksData[code] = {
-                    'networks': {},
+        const tokenRows = this.safeValue (tokenResponse, 'rows', []);
+        const tokenNetworkRows = this.safeValue (tokenNetworkResponse, 'rows', []);
+        const networksByCurrencyId = this.groupBy (tokenNetworkRows, 'token');
+        for (let i = 0; i < tokenRows.length; i++) {
+            const currency = tokenRows[i];
+            const id = this.safeString (currency, 'balance_token');
+            const code = this.safeCurrencyCode (id);
+            if (!(code in result)) {
+                const networks = this.safeValue (networksByCurrencyId, id, []);
+                const resultingNetworks = {};
+                for (let j = 0; j < networks.length; j++) {
+                    const networkEntry = networks[i];
+                    const networkId = this.safeString (networkEntry, 'protocol');
+                    const networkCode = this.safeNetworkCode (networkId);
+                    c(networkId); 
+                    c(networkCode); continue;
+                    resultingNetworks[network] = {
+                        'info': chain,
+                        'id': networkId,
+                        'network': network,
+                        'limits': {
+                            'withdraw': {
+                                'min': minWithdraw,
+                                'max': maxWithdraw,
+                            },
+                        },
+                        'active': active,
+                        'deposit': depositEnabled,
+                        'withdraw': withdrawEnabled,
+                        'fee': fee,
+                        'precision': precision,
+                    };
+                }
+                result[code] = {
+                    // currency structure
+                    // ...
+                    'networks': resultingNetworks,
+                    // ...
                 };
+            } else {
+                
             }
-            const protocol = this.safeString (item, 'protocol', '');
-            const networkUnifiedSlug = this.safeString (this.options['network-aliases'], protocol, protocol);
-            derivedNetworksData[code]['networks'][networkUnifiedSlug] = {
-                'network_title': this.safeString (item, 'name'),
-                'allow_deposit': this.safeString (item, 'allow_deposit'),
-                'allow_withdraw': this.safeString (item, 'allow_withdraw'),
-                'withdrawal_fee': this.safeString (item, 'withdrawal_fee'),
-                'minimum_withdrawal': this.safeString (item, 'minimum_withdrawal'),
-                'info': { 'networkInfo': item },
-            };
-        }
-        // combine as final step.
-        const keys = Object.keys (derivedCurrenciesData); // keys and items amount in derivedCurrenciesData and derivedNetworksData are same
-        for (let i = 0; i < keys.length; i++) {
-            const code = keys[i]; // keys are alraedy safeCurrencyCode-d
-            const currencyInfo = derivedCurrenciesData[code];
-            const currencyNetworks = derivedNetworksData[code];
-            const currencyMerged = this.deepExtend (currencyInfo, currencyNetworks);
-            // if response1 each item contains only one child, then they are the same network . Quite bad behavior of their API for this matter, but as-is: the only solution is this as I think at this moment.
-            const name = this.safeString (currencyMerged, 'fullname');
-            const isActive = this.hasChildWithKeyValue (currencyNetworks, 'allow_deposit', 1) && this.hasChildWithKeyValue (currencyNetworks, 'allow_withdraw', 1);
-            const networks = this.parseTokenNetworks (code, currencyMerged['networks']);
-            result[code] = {
-                'id': code,
-                'name': name,
-                'code': code,
-                'precision': undefined,
-                'info': { 'currencyInfo': currencyInfo, 'networkInfo': currencyNetworks },
-                'active': isActive,
-                'fee': undefined, // TO_DO
-                'networks': networks,
-                'limits': {
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined, // TO_DO
-                        'max': undefined, // TO_DO
-                    },
-                },
-            };
         }
         return result;
+
+        
+                        // if (method < 34) {
+                        //     const derivedCurrenciesData = {};
+                        //     for (let i = 0; i < data1.length; i++) {
+                        //         const item = data1[i];
+                        //         const tokenCode = this.safeString (item, 'balance_token');
+                        //         const code = this.safeCurrencyCode (tokenCode);
+                        //         if (!(code in derivedCurrenciesData)) {
+                        //             derivedCurrenciesData[code] = {
+                        //                 'fullname': this.safeString (item, 'fullname'),
+                        //                 'networks': {},
+                        //             };
+                        //         }
+                        //         const chainedTokenCode = this.safeString (item, 'token');
+                        //         const parts = chainedTokenCode.split ('_');
+                        //         const networkId = (parts.length === 2) ? this.safeString (parts, 0) : chainedTokenCode;
+                        //         const networkUnifiedSlug = this.safeString (this.options['network-aliases'], networkId, networkId);
+                        //         derivedCurrenciesData[code]['networks'][networkId] = {
+                        //             'chained_currency_code': chainedTokenCode,
+                        //             'network_exchangeslug': networkUnifiedSlug,
+                        //             'decimals': this.safeString (item, 'decimals'),
+                        //             'info': { 'currencyInfo': item },
+                        //         };
+                        //     }
+                        // }
+
+                        
+                        // if (method < 34) {
+                        //     const derivedNetworksData = {};
+                        //     for (let i = 0; i < tokenNetworks.length; i++) {
+                        //         const item = tokenNetworks[i];
+                        //         const tokenCode = this.safeString (item, 'token');
+                        //         const code = this.safeCurrencyCode (tokenCode);
+                        //         if (!(code in derivedNetworksData)) {
+                        //             derivedNetworksData[code] = {
+                        //                 'networks': {},
+                        //             };
+                        //         }
+                        //         const protocol = this.safeString (item, 'protocol', '');
+                        //         const networkUnifiedSlug = this.safeString (this.options['network-aliases'], protocol, protocol);
+                        //         derivedNetworksData[code]['networks'][networkUnifiedSlug] = {
+                        //             'network_title': this.safeString (item, 'name'),
+                        //             'allow_deposit': this.safeString (item, 'allow_deposit'),
+                        //             'allow_withdraw': this.safeString (item, 'allow_withdraw'),
+                        //             'withdrawal_fee': this.safeString (item, 'withdrawal_fee'),
+                        //             'minimum_withdrawal': this.safeString (item, 'minimum_withdrawal'),
+                        //             'info': { 'networkInfo': item },
+                        //         };
+                        //     }
+                        //     // combine as final step.
+                        //     const keys = Object.keys (derivedCurrenciesData); // keys and items amount in derivedCurrenciesData and derivedNetworksData are same
+                        //     for (let i = 0; i < keys.length; i++) {
+                        //         const code = keys[i]; // keys are alraedy safeCurrencyCode-d
+                        //         const currencyInfo = derivedCurrenciesData[code];
+                        //         const currencyNetworks = derivedNetworksData[code];
+                        //         const currencyMerged = this.deepExtend (currencyInfo, currencyNetworks);
+                        //         // if tokenResponse each item contains only one child, then they are the same network . Quite bad behavior of their API for this matter, but as-is: the only solution is this as I think at this moment.
+                        //         const name = this.safeString (currencyMerged, 'fullname');
+                        //         const isActive = this.hasChildWithKeyValue (currencyNetworks, 'allow_deposit', 1) && this.hasChildWithKeyValue (currencyNetworks, 'allow_withdraw', 1);
+                        //         const networks = this.parseTokenNetworks (code, currencyMerged['networks']);
+                        //         result[code] = {
+                        //             'id': code,
+                        //             'name': name,
+                        //             'code': code,
+                        //             'precision': undefined,
+                        //             'info': { 'currencyInfo': currencyInfo, 'networkInfo': currencyNetworks },
+                        //             'active': isActive,
+                        //             'fee': undefined, // TO_DO
+                        //             'networks': networks,
+                        //             'limits': {
+                        //                 'deposit': {
+                        //                     'min': undefined,
+                        //                     'max': undefined,
+                        //                 },
+                        //                 'withdraw': {
+                        //                     'min': undefined, // TO_DO
+                        //                     'max': undefined, // TO_DO
+                        //                 },
+                        //             },
+                        //         };
+                        //     }
+                        // }
+                        // return result;
+
     }
 
     parseTokenNetworks (code, chains) {
@@ -1582,5 +1646,9 @@ module.exports = class woo extends Exchange {
             }
         }
         return false;
+    }
+
+    safeNetworkCode (networkId) {
+        return this.safeString (this.options['network-aliases'], networkId, networkId);
     }
 };
