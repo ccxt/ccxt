@@ -271,7 +271,6 @@ class bybit(Exchange):
                         'public/linear/mark-price-kline': 1,
                         'public/linear/index-price-kline': 1,
                         'public/linear/premium-index-kline': 1,
-                        'public/linear/symbols': 1,
                         # spot
                         'spot/v1/time': 1,
                         'spot/v1/symbols': 1,
@@ -626,6 +625,14 @@ class bybit(Exchange):
                     'XRP/USD': 'inverse',
                 },
                 'defaultType': 'linear',  # linear, inverse, futures
+                #
+                # ^
+                # |
+                # | self will be replaced with the following soon |
+                #                                                 |
+                #                                                 v
+                #
+                # 'defaultType': 'swap',  # swap, spot, future, option
                 'code': 'BTC',
                 'cancelAllOrders': {
                     # 'method': 'v2PrivatePostOrderCancelAll',  # v2PrivatePostStopOrderCancelAll
@@ -672,6 +679,9 @@ class bybit(Exchange):
             self.load_time_difference()
         response = self.publicGetV2PublicSymbols(params)
         #
+        # linear and inverse swaps
+        # swapsResponse = self.publicGetV2PublicSymbols(params)
+        #
         #     {
         #         "ret_code":0,
         #         "ret_msg":"OK",
@@ -688,7 +698,7 @@ class bybit(Exchange):
         #                 "taker_fee":"0.00075",
         #                 "maker_fee":"-0.00025",
         #                 "leverage_filter":{"min_leverage":1,"max_leverage":100,"leverage_step":"0.01"},
-        #                 "price_filter":{"min_price":"0.5","max_price":"999999.5","tick_size":"0.5"},
+        #                 "price_filter":{"min_price":"0.5","max_price":"999999","tick_size":"0.5"},
         #                 "lot_size_filter":{"max_trading_qty":1000000,"min_trading_qty":1,"qty_step":1}
         #             },
         #             {
@@ -701,11 +711,121 @@ class bybit(Exchange):
         #                 "taker_fee":"0.00075",
         #                 "maker_fee":"-0.00025",
         #                 "leverage_filter":{"min_leverage":1,"max_leverage":100,"leverage_step":"0.01"},
-        #                 "price_filter":{"min_price":"0.5","max_price":"999999.5","tick_size":"0.5"},
-        #                 "lot_size_filter":{"max_trading_qty":100,"min_trading_qty":0.001,"qty_step":0.001}
+        #                 "price_filter":{"min_price":"0.5","max_price":"999999","tick_size":"0.5"},
+        #                 "lot_size_filter":{"max_trading_qty":100,"min_trading_qty":0.001, "qty_step":0.001}
         #             },
         #         ],
-        #         "time_now":"1610539664.818033"
+        #         "time_now":"1642369942.072113"
+        #     }
+        #
+        # spot markets
+        # spotResponse = self.publicGetSpotV1Symbols(params)
+        #
+        #     {
+        #         "ret_code":0,
+        #         "ret_msg":"",
+        #         "ext_code":null,
+        #         "ext_info":null,
+        #         "result":[
+        #             {
+        #                 "name":"BTCUSDT",
+        #                 "alias":"BTCUSDT",
+        #                 "baseCurrency":"BTC",
+        #                 "quoteCurrency":"USDT",
+        #                 "basePrecision":"0.000001",
+        #                 "quotePrecision":"0.00000001",
+        #                 "minTradeQuantity":"0.000158",
+        #                 "minTradeAmount":"10",
+        #                 "maxTradeQuantity":"4",
+        #                 "maxTradeAmount":"100000",
+        #                 "minPricePrecision":"0.01",
+        #                 "category":1,
+        #                 "showStatus":true
+        #             },
+        #         ]
+        #     }
+        #
+        # USDC linear options response
+        # linearOptionsResponse = self.publicGetOptionUsdcOpenapiPublicV1Symbols(params)
+        #
+        #     {
+        #         "retCode":0,
+        #         "retMsg":"success",
+        #         "result":{
+        #             "resultTotalSize":424,
+        #             "cursor":"0%2C500",
+        #             "dataList":[
+        #                 {
+        #                     "symbol":"BTC-24JUN22-300000-C",
+        #                     "status":"ONLINE",
+        #                     "baseCoin":"BTC",
+        #                     "quoteCoin":"USD",
+        #                     "settleCoin":"USDC",
+        #                     "takerFee":"0.0003",
+        #                     "makerFee":"0.0003",
+        #                     "minLeverage":"",
+        #                     "maxLeverage":"",
+        #                     "leverageStep":"",
+        #                     "minOrderPrice":"0.5",
+        #                     "maxOrderPrice":"10000000",
+        #                     "minOrderSize":"0.01",
+        #                     "maxOrderSize":"200",
+        #                     "tickSize":"0.5",
+        #                     "minOrderSizeIncrement":"0.01",
+        #                     "basicDeliveryFeeRate":"0.00015",
+        #                     "deliveryTime":"1656057600000"
+        #                 },
+        #                 {
+        #                     "symbol":"BTC-24JUN22-300000-P",
+        #                     "status":"ONLINE",
+        #                     "baseCoin":"BTC",
+        #                     "quoteCoin":"USD",
+        #                     "settleCoin":"USDC",
+        #                     "takerFee":"0.0003",
+        #                     "makerFee":"0.0003",
+        #                     "minLeverage":"",
+        #                     "maxLeverage":"",
+        #                     "leverageStep":"",
+        #                     "minOrderPrice":"0.5",
+        #                     "maxOrderPrice":"10000000",
+        #                     "minOrderSize":"0.01",
+        #                     "maxOrderSize":"200",
+        #                     "tickSize":"0.5",
+        #                     "minOrderSizeIncrement":"0.01",
+        #                     "basicDeliveryFeeRate":"0.00015",
+        #                     "deliveryTime":"1656057600000"
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
+        # USDC linear perpetual swaps
+        # usdcLinearPerpetualSwaps = self.publicGetPerpetualUsdcOpenapiPublicV1Symbols(params)
+        #
+        #     {
+        #         "retCode":0,
+        #         "retMsg":"",
+        #         "result":[
+        #             {
+        #                 "symbol":"BTCPERP",
+        #                 "status":"ONLINE",
+        #                 "baseCoin":"BTC",
+        #                 "quoteCoin":"USD",
+        #                 "takerFeeRate":"0.00075",
+        #                 "makerFeeRate":"-0.00025",
+        #                 "minLeverage":"1",
+        #                 "maxLeverage":"100",
+        #                 "leverageStep":"0.01",
+        #                 "minPrice":"0.50",
+        #                 "maxPrice":"999999.00",
+        #                 "tickSize":"0.50",
+        #                 "maxTradingQty":"5.000",
+        #                 "minTradingQty":"0.001",
+        #                 "qtyStep":"0.001",
+        #                 "deliveryFeeRate":"",
+        #                 "deliveryTime":"0"
+        #             }
+        #         ]
         #     }
         #
         markets = self.safe_value(response, 'result', [])
@@ -2746,7 +2866,13 @@ class bybit(Exchange):
         #         time_now: '1583934106.590436'
         #     }
         #
-        errorCode = self.safe_string(response, 'ret_code')
+        #     {
+        #         "retCode":10001,
+        #         "retMsg":"symbol params err",
+        #         "result":{"symbol":"","bid":"","bidIv":"","bidSize":"","ask":"","askIv":"","askSize":"","lastPrice":"","openInterest":"","indexPrice":"","markPrice":"","markPriceIv":"","change24h":"","high24h":"","low24h":"","volume24h":"","turnover24h":"","totalVolume":"","totalTurnover":"","fundingRate":"","predictedFundingRate":"","nextFundingTime":"","countdownHour":"0","predictedDeliveryPrice":"","underlyingPrice":"","delta":"","gamma":"","vega":"","theta":""}
+        #     }
+        #
+        errorCode = self.safe_string_2(response, 'ret_code', 'retCode')
         if errorCode != '0':
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
