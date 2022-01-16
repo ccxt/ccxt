@@ -302,6 +302,7 @@ class bybit extends Exchange {
                         ),
                     ),
                 ),
+                // new endpoints ------------------------------------------
                 'private' => array(
                     'get' => array(
                         // inverse swap
@@ -640,7 +641,7 @@ class bybit extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
-        $response = yield $this->v2PublicGetTime ($params);
+        $response = yield $this->publicGetV2PublicTime ($params);
         //
         //     {
         //         ret_code => 0,
@@ -658,7 +659,7 @@ class bybit extends Exchange {
         if ($this->options['adjustForTimeDifference']) {
             yield $this->load_time_difference();
         }
-        $response = yield $this->v2PublicGetSymbols ($params);
+        $response = yield $this->publicGetV2PublicSymbols ($params);
         //
         //     {
         //         "ret_code":0,
@@ -714,7 +715,7 @@ class bybit extends Exchange {
             $type = 'swap';
             if ($baseQuote !== $id) {
                 $symbol = $id;
-                $type = 'futures';
+                $type = 'future';
             }
             $lotSizeFilter = $this->safe_value($market, 'lot_size_filter', array());
             $priceFilter = $this->safe_value($market, 'price_filter', array());
@@ -730,7 +731,7 @@ class bybit extends Exchange {
             }
             $spot = ($type === 'spot');
             $swap = ($type === 'swap');
-            $futures = ($type === 'futures');
+            $future = ($type === 'future');
             $option = ($type === 'option');
             $result[] = array(
                 'id' => $id,
@@ -744,7 +745,8 @@ class bybit extends Exchange {
                 'type' => $type,
                 'spot' => $spot,
                 'swap' => $swap,
-                'futures' => $futures,
+                'future' => $future,
+                'futures' => $future, // * Deprecated, use $future
                 'option' => $option,
                 'linear' => $linear,
                 'inverse' => $inverse,
@@ -1584,7 +1586,7 @@ class bybit extends Exchange {
             } else if ($market['inverse']) {
                 $method = 'v2PrivateGetOrder';
             }
-        } else if ($market['futures']) {
+        } else if ($market['future']) {
             $method = 'futuresPrivateGetOrder';
         }
         $stopOrderId = $this->safe_string($params, 'stop_order_id');
@@ -1600,7 +1602,7 @@ class bybit extends Exchange {
                 } else if ($market['inverse']) {
                     $method = 'v2PrivateGetStopOrder';
                 }
-            } else if ($market['futures']) {
+            } else if ($market['future']) {
                 $method = 'futuresPrivateGetStopOrder';
             }
         }
@@ -1734,7 +1736,7 @@ class bybit extends Exchange {
             } else if ($market['inverse']) {
                 $method = 'v2PrivatePostOrderCreate';
             }
-        } else if ($market['futures']) {
+        } else if ($market['future']) {
             $method = 'futuresPrivatePostOrderCreate';
         }
         if ($stopPx !== null) {
@@ -1747,7 +1749,7 @@ class bybit extends Exchange {
                     } else if ($market['inverse']) {
                         $method = 'v2PrivatePostStopOrderCreate';
                     }
-                } else if ($market['futures']) {
+                } else if ($market['future']) {
                     $method = 'futuresPrivatePostStopOrderCreate';
                 }
                 $request['stop_px'] = floatval($this->price_to_precision($symbol, $stopPx));
@@ -1863,7 +1865,7 @@ class bybit extends Exchange {
             } else if ($market['inverse']) {
                 $method = 'v2PrivatePostOrderReplace';
             }
-        } else if ($market['futures']) {
+        } else if ($market['future']) {
             $method = 'futuresPrivatePostOrderReplace';
         }
         $stopOrderId = $this->safe_string($params, 'stop_order_id');
@@ -1874,7 +1876,7 @@ class bybit extends Exchange {
                 } else if ($market['inverse']) {
                     $method = 'v2PrivatePostStopOrderReplace';
                 }
-            } else if ($market['futures']) {
+            } else if ($market['future']) {
                 $method = 'futuresPrivatePostStopOrderReplace';
             }
             $request['stop_order_id'] = $stopOrderId;
@@ -1951,7 +1953,7 @@ class bybit extends Exchange {
             } else if ($market['inverse']) {
                 $method = 'v2PrivatePostOrderCancel';
             }
-        } else if ($market['futures']) {
+        } else if ($market['future']) {
             $method = 'futuresPrivatePostOrderCancel';
         }
         $stopOrderId = $this->safe_string($params, 'stop_order_id');
@@ -1967,7 +1969,7 @@ class bybit extends Exchange {
                 } else if ($market['inverse']) {
                     $method = 'v2PrivatePostStopOrderCancel';
                 }
-            } else if ($market['futures']) {
+            } else if ($market['future']) {
                 $method = 'futuresPrivatePostStopOrderCancel';
             }
         }
@@ -1993,7 +1995,7 @@ class bybit extends Exchange {
             } else if ($market['inverse']) {
                 $defaultMethod = 'v2PrivatePostOrderCancelAll';
             }
-        } else if ($market['futures']) {
+        } else if ($market['future']) {
             $defaultMethod = 'futuresPrivatePostOrderCancelAll';
         }
         $method = $this->safe_string($options, 'method', $defaultMethod);
@@ -2032,12 +2034,12 @@ class bybit extends Exchange {
         $marketDefined = ($market !== null);
         $linear = ($marketDefined && $market['linear']) || ($marketType === 'linear');
         $inverse = ($marketDefined && $market['swap'] && $market['inverse']) || ($marketType === 'inverse');
-        $futures = ($marketDefined && $market['futures']) || ($marketType === 'futures');
+        $future = ($marketDefined && $market['future']) || (($marketType === 'future') || ($marketType === 'futures')); // * ($marketType === 'futures') deprecated, use ($marketType === 'future')
         if ($linear) {
             $defaultMethod = 'privateLinearGetOrderList';
         } else if ($inverse) {
             $defaultMethod = 'v2PrivateGetOrderList';
-        } else if ($futures) {
+        } else if ($future) {
             $defaultMethod = 'futuresPrivateGetOrderList';
         }
         $query = $params;
@@ -2054,7 +2056,7 @@ class bybit extends Exchange {
                 $defaultMethod = 'privateLinearGetStopOrderList';
             } else if ($inverse) {
                 $defaultMethod = 'v2PrivateGetStopOrderList';
-            } else if ($futures) {
+            } else if ($future) {
                 $defaultMethod = 'futuresPrivateGetStopOrderList';
             }
         }
@@ -2241,13 +2243,13 @@ class bybit extends Exchange {
         $marketDefined = ($market !== null);
         $linear = ($marketDefined && $market['linear']) || ($marketType === 'linear');
         $inverse = ($marketDefined && $market['swap'] && $market['inverse']) || ($marketType === 'inverse');
-        $futures = ($marketDefined && $market['futures']) || ($marketType === 'futures');
+        $future = ($marketDefined && $market['future']) || (($marketType === 'future') || ($marketType === 'futures')); // * ($marketType === 'futures') deprecated, use ($marketType === 'future')
         $method = null;
         if ($linear) {
             $method = 'privateLinearGetTradeExecutionList';
         } else if ($inverse) {
             $method = 'v2PrivateGetExecutionList';
-        } else if ($futures) {
+        } else if ($future) {
             $method = 'futuresPrivateGetExecutionList';
         }
         $response = yield $this->$method (array_merge($request, $params));
@@ -2721,12 +2723,12 @@ class bybit extends Exchange {
         $marketType = $this->safe_string($marketTypes, $symbol, $defaultType);
         $linear = $market['linear'] || ($marketType === 'linear');
         $inverse = ($market['swap'] && $market['inverse']) || ($marketType === 'inverse');
-        $futures = $market['futures'] || ($marketType === 'futures');
+        $future = $market['future'] || (($marketType === 'future') || ($marketType === 'futures')); // * ($marketType === 'futures') deprecated, use ($marketType === 'future')
         if ($linear) {
             $method = 'privateLinearPostPositionSwitchIsolated';
         } else if ($inverse) {
             $method = 'v2PrivatePostPositionSwitchIsolated';
-        } else if ($futures) {
+        } else if ($future) {
             $method = 'privateFuturesPostPositionSwitchIsolated';
         }
         $isIsolated = ($marginType === 'ISOLATED');
@@ -2752,13 +2754,13 @@ class bybit extends Exchange {
         $marketType = $this->safe_string($marketTypes, $symbol, $defaultType);
         $linear = $market['linear'] || ($marketType === 'linear');
         $inverse = ($market['swap'] && $market['inverse']) || ($marketType === 'inverse');
-        $futures = $market['futures'] || ($marketType === 'futures');
+        $future = $market['future'] || (($marketType === 'future') || ($marketType === 'futures')); // * ($marketType === 'futures') deprecated, use ($marketType === 'future')
         $method = null;
         if ($linear) {
             $method = 'privateLinearPostPositionSetLeverage';
         } else if ($inverse) {
             $method = 'v2PrivatePostPositionLeverageSave';
-        } else if ($futures) {
+        } else if ($future) {
             $method = 'privateFuturesPostPositionLeverageSave';
         }
         $buy_leverage = $leverage;
@@ -2770,7 +2772,7 @@ class bybit extends Exchange {
             if ($linear) {
                 throw new ArgumentsRequired($this->id . ' setLeverage() requires either the parameter $leverage or $params["buy_leverage"] and $params["sell_leverage"] for $linear contracts');
             } else {
-                throw new ArgumentsRequired($this->id . ' setLeverage() requires parameter $leverage for $inverse and $futures contracts');
+                throw new ArgumentsRequired($this->id . ' setLeverage() requires parameter $leverage for $inverse and futures contracts');
             }
         }
         if (($buy_leverage < 1) || ($buy_leverage > 100) || ($sell_leverage < 1) || ($sell_leverage > 100)) {

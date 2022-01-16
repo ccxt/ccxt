@@ -317,6 +317,7 @@ class bybit(Exchange):
                         ],
                     },
                 },
+                # new endpoints ------------------------------------------
                 'private': {
                     'get': {
                         # inverse swap
@@ -653,7 +654,7 @@ class bybit(Exchange):
         return self.milliseconds() - self.options['timeDifference']
 
     def fetch_time(self, params={}):
-        response = self.v2PublicGetTime(params)
+        response = self.publicGetV2PublicTime(params)
         #
         #     {
         #         ret_code: 0,
@@ -669,7 +670,7 @@ class bybit(Exchange):
     def fetch_markets(self, params={}):
         if self.options['adjustForTimeDifference']:
             self.load_time_difference()
-        response = self.v2PublicGetSymbols(params)
+        response = self.publicGetV2PublicSymbols(params)
         #
         #     {
         #         "ret_code":0,
@@ -725,7 +726,7 @@ class bybit(Exchange):
             type = 'swap'
             if baseQuote != id:
                 symbol = id
-                type = 'futures'
+                type = 'future'
             lotSizeFilter = self.safe_value(market, 'lot_size_filter', {})
             priceFilter = self.safe_value(market, 'price_filter', {})
             precision = {
@@ -739,7 +740,7 @@ class bybit(Exchange):
                 active = (status == 'Trading')
             spot = (type == 'spot')
             swap = (type == 'swap')
-            futures = (type == 'futures')
+            future = (type == 'future')
             option = (type == 'option')
             result.append({
                 'id': id,
@@ -753,7 +754,8 @@ class bybit(Exchange):
                 'type': type,
                 'spot': spot,
                 'swap': swap,
-                'futures': futures,
+                'future': future,
+                'futures': future,  # * Deprecated, use future
                 'option': option,
                 'linear': linear,
                 'inverse': inverse,
@@ -1550,7 +1552,7 @@ class bybit(Exchange):
                 method = 'privateLinearGetOrderSearch'
             elif market['inverse']:
                 method = 'v2PrivateGetOrder'
-        elif market['futures']:
+        elif market['future']:
             method = 'futuresPrivateGetOrder'
         stopOrderId = self.safe_string(params, 'stop_order_id')
         if stopOrderId is None:
@@ -1563,7 +1565,7 @@ class bybit(Exchange):
                     method = 'privateLinearGetStopOrderSearch'
                 elif market['inverse']:
                     method = 'v2PrivateGetStopOrder'
-            elif market['futures']:
+            elif market['future']:
                 method = 'futuresPrivateGetStopOrder'
         response = getattr(self, method)(self.extend(request, params))
         #
@@ -1688,7 +1690,7 @@ class bybit(Exchange):
                 request['close_on_trigger'] = False
             elif market['inverse']:
                 method = 'v2PrivatePostOrderCreate'
-        elif market['futures']:
+        elif market['future']:
             method = 'futuresPrivatePostOrderCreate'
         if stopPx is not None:
             if basePrice is None:
@@ -1699,7 +1701,7 @@ class bybit(Exchange):
                         method = 'privateLinearPostStopOrderCreate'
                     elif market['inverse']:
                         method = 'v2PrivatePostStopOrderCreate'
-                elif market['futures']:
+                elif market['future']:
                     method = 'futuresPrivatePostStopOrderCreate'
                 request['stop_px'] = float(self.price_to_precision(symbol, stopPx))
                 request['base_price'] = float(self.price_to_precision(symbol, basePrice))
@@ -1809,7 +1811,7 @@ class bybit(Exchange):
                 method = 'privateLinearPostOrderReplace'
             elif market['inverse']:
                 method = 'v2PrivatePostOrderReplace'
-        elif market['futures']:
+        elif market['future']:
             method = 'futuresPrivatePostOrderReplace'
         stopOrderId = self.safe_string(params, 'stop_order_id')
         if stopOrderId is not None:
@@ -1818,7 +1820,7 @@ class bybit(Exchange):
                     method = 'privateLinearPostStopOrderReplace'
                 elif market['inverse']:
                     method = 'v2PrivatePostStopOrderReplace'
-            elif market['futures']:
+            elif market['future']:
                 method = 'futuresPrivatePostStopOrderReplace'
             request['stop_order_id'] = stopOrderId
             params = self.omit(params, ['stop_order_id'])
@@ -1887,7 +1889,7 @@ class bybit(Exchange):
                 method = 'privateLinearPostOrderCancel'
             elif market['inverse']:
                 method = 'v2PrivatePostOrderCancel'
-        elif market['futures']:
+        elif market['future']:
             method = 'futuresPrivatePostOrderCancel'
         stopOrderId = self.safe_string(params, 'stop_order_id')
         if stopOrderId is None:
@@ -1900,7 +1902,7 @@ class bybit(Exchange):
                     method = 'privateLinearPostStopOrderCancel'
                 elif market['inverse']:
                     method = 'v2PrivatePostStopOrderCancel'
-            elif market['futures']:
+            elif market['future']:
                 method = 'futuresPrivatePostStopOrderCancel'
         response = getattr(self, method)(self.extend(request, params))
         result = self.safe_value(response, 'result', {})
@@ -1921,7 +1923,7 @@ class bybit(Exchange):
                 defaultMethod = 'privateLinearPostOrderCancelAll'
             elif market['inverse']:
                 defaultMethod = 'v2PrivatePostOrderCancelAll'
-        elif market['futures']:
+        elif market['future']:
             defaultMethod = 'futuresPrivatePostOrderCancelAll'
         method = self.safe_string(options, 'method', defaultMethod)
         response = getattr(self, method)(self.extend(request, params))
@@ -1956,12 +1958,12 @@ class bybit(Exchange):
         marketDefined = (market is not None)
         linear = (marketDefined and market['linear']) or (marketType == 'linear')
         inverse = (marketDefined and market['swap'] and market['inverse']) or (marketType == 'inverse')
-        futures = (marketDefined and market['futures']) or (marketType == 'futures')
+        future = (marketDefined and market['future']) or ((marketType == 'future') or (marketType == 'futures'))  # * (marketType == 'futures') deprecated, use(marketType == 'future')
         if linear:
             defaultMethod = 'privateLinearGetOrderList'
         elif inverse:
             defaultMethod = 'v2PrivateGetOrderList'
-        elif futures:
+        elif future:
             defaultMethod = 'futuresPrivateGetOrderList'
         query = params
         if ('stop_order_id' in params) or ('stop_order_status' in params):
@@ -1975,7 +1977,7 @@ class bybit(Exchange):
                 defaultMethod = 'privateLinearGetStopOrderList'
             elif inverse:
                 defaultMethod = 'v2PrivateGetStopOrderList'
-            elif futures:
+            elif future:
                 defaultMethod = 'futuresPrivateGetStopOrderList'
         method = self.safe_string(options, 'method', defaultMethod)
         response = getattr(self, method)(self.extend(request, query))
@@ -2148,13 +2150,13 @@ class bybit(Exchange):
         marketDefined = (market is not None)
         linear = (marketDefined and market['linear']) or (marketType == 'linear')
         inverse = (marketDefined and market['swap'] and market['inverse']) or (marketType == 'inverse')
-        futures = (marketDefined and market['futures']) or (marketType == 'futures')
+        future = (marketDefined and market['future']) or ((marketType == 'future') or (marketType == 'futures'))  # * (marketType == 'futures') deprecated, use(marketType == 'future')
         method = None
         if linear:
             method = 'privateLinearGetTradeExecutionList'
         elif inverse:
             method = 'v2PrivateGetExecutionList'
-        elif futures:
+        elif future:
             method = 'futuresPrivateGetExecutionList'
         response = getattr(self, method)(self.extend(request, params))
         #
@@ -2601,12 +2603,12 @@ class bybit(Exchange):
         marketType = self.safe_string(marketTypes, symbol, defaultType)
         linear = market['linear'] or (marketType == 'linear')
         inverse = (market['swap'] and market['inverse']) or (marketType == 'inverse')
-        futures = market['futures'] or (marketType == 'futures')
+        future = market['future'] or ((marketType == 'future') or (marketType == 'futures'))  # * (marketType == 'futures') deprecated, use(marketType == 'future')
         if linear:
             method = 'privateLinearPostPositionSwitchIsolated'
         elif inverse:
             method = 'v2PrivatePostPositionSwitchIsolated'
-        elif futures:
+        elif future:
             method = 'privateFuturesPostPositionSwitchIsolated'
         isIsolated = (marginType == 'ISOLATED')
         request = {
@@ -2629,13 +2631,13 @@ class bybit(Exchange):
         marketType = self.safe_string(marketTypes, symbol, defaultType)
         linear = market['linear'] or (marketType == 'linear')
         inverse = (market['swap'] and market['inverse']) or (marketType == 'inverse')
-        futures = market['futures'] or (marketType == 'futures')
+        future = market['future'] or ((marketType == 'future') or (marketType == 'futures'))  # * (marketType == 'futures') deprecated, use(marketType == 'future')
         method = None
         if linear:
             method = 'privateLinearPostPositionSetLeverage'
         elif inverse:
             method = 'v2PrivatePostPositionLeverageSave'
-        elif futures:
+        elif future:
             method = 'privateFuturesPostPositionLeverageSave'
         buy_leverage = leverage
         sell_leverage = leverage
