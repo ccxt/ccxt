@@ -2146,13 +2146,13 @@ class Exchange {
             // $timestamp and $symbol operations don't belong in safeTicker
             // they should be done in the derived classes
             return array_merge($ticker, array(
-                'open' => $open,
-                'close' => $close,
-                'last' => $last,
-                'change' => $change,
-                'percentage' => $percentage,
-                'average' => $average,
-                'vwap' => $vwap,
+                'open' => $this->parse_number($open),
+                'close' =>$this->parse_number($close),
+                'last' => $this->parse_number($last),
+                'change' => $this->parse_number($change),
+                'percentage' => $this->parse_number($percentage),
+                'average' => $this->parse_number($average),
+                'vwap' => $this->parse_number($vwap),
             ));
         }
     }
