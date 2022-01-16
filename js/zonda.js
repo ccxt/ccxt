@@ -467,7 +467,7 @@ module.exports = class zonda extends Exchange {
             'asks': this.parseBidsAsks (rawAsks, 'ra', 'ca'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'nonce': this.safeInteger (response, 'seqNo');
+            'nonce': this.safeInteger (response, 'seqNo'),
         };
     }
 
