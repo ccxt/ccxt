@@ -18,7 +18,6 @@
   "scripts": {
     "docker": "docker-compose run --rm ccxt",
     "build": "npm run pre-transpile && npm run transpile && npm run post-transpile && npm run update-badges",
-    "order-build": "npm run pre-transpile && npm run order-transpile && npm run post-transpile && npm run update-badges",
     "force-build": "npm run pre-transpile && npm run force-transpile && npm run post-transpile && npm run update-badges",
     "pre-transpile": "npm run export-exchanges && npm run vss && npm run copy-python-files && npm run check-js-syntax && npm run browserify",
     "post-transpile": "npm run check-python-syntax && npm run check-php-syntax",
@@ -39,7 +38,6 @@
     "update-badges": "node build/update-badges",
     "update-links": "node build/update-links",
     "transpile": "node build/transpile",
-    "order-transpile": "node build/transpile --order",
     "force-transpile": "node build/transpile --force",
     "vss": "node build/vss",
     "lint": "eslint",
