@@ -687,28 +687,20 @@ class Transpiler {
     
     orderExchangeCapabilities(code) {
         const lineBreak = '\n';
-        const capabilitiesPrefix = "'has': {" + lineBreak;
-        const capabilitiesSufix = '}';
-        const initHasObjectIndex = code.indexOf (capabilitiesPrefix);
-        if (initHasObjectIndex === -1) {
+        const capabilitiesObjectRegex = /(?<='has': {[\r\n])([^}]*)(?=})/;
+        const found = capabilitiesObjectRegex.exec(code);
+        if (found === undefined) {
             return null; // capabilities not found
         }
-        const initExchangeCapabilities = code.substring (initHasObjectIndex).replace (capabilitiesPrefix, '');
-        const lastHasObjectIndex = initExchangeCapabilities.indexOf (capabilitiesSufix);
-        const exchangeCapabilitiesOnly = initExchangeCapabilities.substring (0, lastHasObjectIndex);
-        let capabilities = exchangeCapabilitiesOnly.split (lineBreak);
-        capabilities = capabilities.filter(item=>item != lineBreak)
-        const lastSpace = capabilities.pop();
+        let capabilities = found[0].split('\n'); 
         if (this.areCapabilitiesAlreadySorted(capabilities)) {
             return null;
         }
         capabilities.sort(function (a, b) {
             return a.localeCompare(b);
         });
-        const orderedCapabilities = capabilities.join (lineBreak);
-        const newCapabilitiesObject = capabilitiesPrefix + orderedCapabilities + lineBreak + lastSpace;
-        const currentCapabilitiesObject = capabilitiesPrefix + exchangeCapabilitiesOnly;
-        const finalResult = code.replace (currentCapabilitiesObject, newCapabilitiesObject);
+        sortedCapabilities = capabilities.join ('\n');
+        const finalResult = code.replace(capabilitiesObjectRegex, sortedCapabilities)
         if (finalResult.length !== code.length) {
             return null; // something went wrong
         }
