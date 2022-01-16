@@ -359,6 +359,8 @@ class mexc extends Exchange {
             $currencyWithdrawMax = null;
             $networks = array();
             $chains = $this->safe_value($currency, 'coins', array());
+            $depositEnabled = false;
+            $withdrawEnabled = false;
             for ($j = 0; $j < count($chains); $j++) {
                 $chain = $chains[$j];
                 $networkId = $this->safe_string($chain, 'chain');
@@ -379,11 +381,19 @@ class mexc extends Exchange {
                 if (Precise::string_lt($currencyWithdrawMax, $withdrawMax)) {
                     $currencyWithdrawMax = $withdrawMax;
                 }
+                if ($isDepositEnabled) {
+                    $depositEnabled = true;
+                }
+                if ($isWithdrawEnabled) {
+                    $withdrawEnabled = true;
+                }
                 $networks[$network] = array(
                     'info' => $chain,
                     'id' => $networkId,
                     'network' => $network,
                     'active' => $active,
+                    'deposit' => $isDepositEnabled,
+                    'withdraw' => $isWithdrawEnabled,
                     'fee' => $this->safe_number($chain, 'fee'),
                     'precision' => $precision,
                     'limits' => array(
@@ -409,6 +419,8 @@ class mexc extends Exchange {
                 'info' => $currency,
                 'name' => $name,
                 'active' => $currencyActive,
+                'deposit' => $depositEnabled,
+                'withdraw' => $withdrawEnabled,
                 'fee' => $currencyFee,
                 'precision' => $currencyPrecision,
                 'limits' => array(

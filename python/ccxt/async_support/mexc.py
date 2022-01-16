@@ -364,6 +364,8 @@ class mexc(Exchange):
             currencyWithdrawMax = None
             networks = {}
             chains = self.safe_value(currency, 'coins', [])
+            depositEnabled = False
+            withdrawEnabled = False
             for j in range(0, len(chains)):
                 chain = chains[j]
                 networkId = self.safe_string(chain, 'chain')
@@ -382,11 +384,17 @@ class mexc(Exchange):
                     currencyWithdrawMin = withdrawMin
                 if Precise.string_lt(currencyWithdrawMax, withdrawMax):
                     currencyWithdrawMax = withdrawMax
+                if isDepositEnabled:
+                    depositEnabled = True
+                if isWithdrawEnabled:
+                    withdrawEnabled = True
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
                     'network': network,
                     'active': active,
+                    'deposit': isDepositEnabled,
+                    'withdraw': isWithdrawEnabled,
                     'fee': self.safe_number(chain, 'fee'),
                     'precision': precision,
                     'limits': {
@@ -409,6 +417,8 @@ class mexc(Exchange):
                 'info': currency,
                 'name': name,
                 'active': currencyActive,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': currencyFee,
                 'precision': currencyPrecision,
                 'limits': {
