@@ -689,7 +689,7 @@ class Transpiler {
         const lineBreak = '\n';
         const capabilitiesObjectRegex = /(?<='has': {[\n])([^|})]*)(?=\n([ ]+}))/;
         const found = capabilitiesObjectRegex.exec (code);
-        if (found === undefined) {
+        if (found === null) {
             return null; // capabilities not found
         }
         let capabilities = found[0].split (lineBreak); 
