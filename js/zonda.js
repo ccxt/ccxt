@@ -440,18 +440,34 @@ module.exports = class zonda extends Exchange {
         const request = {
             'symbol': this.marketId (symbol),
         };
-        const orderbook = await this.v1_01PublicGetTradingOrderbookSymbol (this.extend (request, params));
-        const rawBids = this.safeValue (orderbook, 'buy');
-        const rawAsks = this.safeValue (orderbook, 'sell');
-        const bids = this.parseBidsAsks (rawBids, 'ra', 'ca');
-        const asks = this.parseBidsAsks (rawAsks, 'ra', 'ca');
-        const timestamp = this.safeInteger (orderbook, 'timestamp');
+        const response = await this.v1_01PublicGetTradingOrderbookSymbol (this.extend (request, params));
+        //
+        //     {
+        //         "status":"Ok",
+        //         "sell":[
+        //             {"ra":"43988.93","ca":"0.00100525","sa":"0.00100525","pa":"0.00100525","co":1},
+        //             {"ra":"43988.94","ca":"0.00114136","sa":"0.00114136","pa":"0.00114136","co":1},
+        //             {"ra":"43989","ca":"0.010578","sa":"0.010578","pa":"0.010578","co":1},
+        //         ],
+        //         "buy":[
+        //             {"ra":"42157.33","ca":"2.83147881","sa":"2.83147881","pa":"2.83147881","co":2},
+        //             {"ra":"42096.0","ca":"0.00011878","sa":"0.00011878","pa":"0.00011878","co":1},
+        //             {"ra":"42022.0","ca":"0.00011899","sa":"0.00011899","pa":"0.00011899","co":1},
+        //         ],
+        //         "timestamp":"1642299886122",
+        //         "seqNo":"27641254"
+        //     }
+        //
+        const rawBids = this.safeValue (response, 'buy', []);
+        const rawAsks = this.safeValue (response, 'sell', []);
+        const timestamp = this.safeInteger (response, 'timestamp');
         return {
             'symbol': symbol,
-            'bids': bids,
-            'asks': asks,
+            'bids': this.parseBidsAsks (rawBids, 'ra', 'ca'),
+            'asks': this.parseBidsAsks (rawAsks, 'ra', 'ca'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'nonce': this.safeInteger (response, 'seqNo');
         };
     }
 
