@@ -212,15 +212,25 @@ module.exports = class tidebit extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         "at":1398410899,
+        //         "ticker": {
+        //             "buy": "3000.0",
+        //             "sell":"3100.0",
+        //             "low":"3000.0",
+        //             "high":"3000.0",
+        //             "last":"3000.0",
+        //             "vol":"0.11"
+        //         }
+        //     }
+        //
         const timestamp = this.safeTimestamp (ticker, 'at');
         ticker = this.safeValue (ticker, 'ticker', {});
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (undefined, market);
         const last = this.safeNumber (ticker, 'last');
-        return {
-            'symbol': symbol,
+        return this.safeTicker ({
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeNumber (ticker, 'high'),
@@ -240,7 +250,7 @@ module.exports = class tidebit extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -265,6 +275,19 @@ module.exports = class tidebit extends Exchange {
             'market': market['id'],
         };
         const response = await this.publicGetTickersMarket (this.extend (request, params));
+        //
+        //     {
+        //         "at":1398410899,
+        //         "ticker": {
+        //             "buy": "3000.0",
+        //             "sell":"3100.0",
+        //             "low":"3000.0",
+        //             "high":"3000.0",
+        //             "last":"3000.0",
+        //             "vol":"0.11"
+        //         }
+        //     }
+        //
         return this.parseTicker (response, market);
     }
 
