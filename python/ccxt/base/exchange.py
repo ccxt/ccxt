@@ -1921,13 +1921,13 @@ class Exchange(object):
             # timestamp and symbol operations don't belong in safeTicker
             # they should be done in the derived classes
             return self.extend(ticker, {
-                'open': open,
-                'close': close,
-                'last': last,
-                'change': change,
-                'percentage': percentage,
-                'average': average,
-                'vwap': vwap,
+                'open': self.parse_number(open),
+                'close': self.parse_number(close),
+                'last': self.parse_number(last),
+                'change': self.parse_number(change),
+                'percentage': self.parse_number(percentage),
+                'average': self.parse_number(average),
+                'vwap': self.parse_number(vwap),
             })
 
     def parse_tickers(self, tickers, symbols=None, params={}):
