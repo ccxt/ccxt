@@ -676,31 +676,31 @@ class Transpiler {
     // ========================================================================
     // exchange capabilities ordering
 
-    areCapabilitiesAlreadySorted(capabilities) {
+    areCapabilitiesAlreadySorted (capabilities) {
         let secondIndex;
         for(let firstIndex = 0; firstIndex < capabilities.length; firstIndex++){
             secondIndex = firstIndex + 1;
-            if (capabilities[firstIndex].localeCompare(capabilities[secondIndex]) > 0) return false;
+            if (capabilities[firstIndex].localeCompare (capabilities[secondIndex]) > 0) return false;
         }
         return true;
     }
     
-    orderExchangeCapabilities(code) {
+    orderExchangeCapabilities (code) {
         const lineBreak = '\n';
         const capabilitiesObjectRegex = /(?<='has': {[\r\n])([^}]*)(?=})/;
-        const found = capabilitiesObjectRegex.exec(code);
+        const found = capabilitiesObjectRegex.exec (code);
         if (found === undefined) {
             return null; // capabilities not found
         }
-        let capabilities = found[0].split('\n'); 
-        if (this.areCapabilitiesAlreadySorted(capabilities)) {
+        let capabilities = found[0].split ('\n'); 
+        if (this.areCapabilitiesAlreadySorted (capabilities)) {
             return null;
         }
-        capabilities.sort(function (a, b) {
-            return a.localeCompare(b);
+        capabilities.sort (function (a, b) {
+            return a.localeCompare (b);
         });
         sortedCapabilities = capabilities.join ('\n');
-        const finalResult = code.replace(capabilitiesObjectRegex, sortedCapabilities)
+        const finalResult = code.replace (capabilitiesObjectRegex, sortedCapabilities)
         if (finalResult.length !== code.length) {
             return null; // something went wrong
         }
@@ -1099,7 +1099,7 @@ class Transpiler {
 
             let orderedContent = null
             if (order) {
-                orderedContent = this.orderExchangeCapabilities(contents)
+                orderedContent = this.orderExchangeCapabilities (contents)
                 if (orderedContent !== null) {
                     contents = orderedContent
                     fs.writeFileSync(jsPath, contents, {encoding:'utf8',flag:'w'})
