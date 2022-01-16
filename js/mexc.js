@@ -355,6 +355,8 @@ module.exports = class mexc extends Exchange {
             let currencyWithdrawMax = undefined;
             const networks = {};
             const chains = this.safeValue (currency, 'coins', []);
+            let depositEnabled = false;
+            let withdrawEnabled = false;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'chain');
@@ -375,11 +377,19 @@ module.exports = class mexc extends Exchange {
                 if (Precise.stringLt (currencyWithdrawMax, withdrawMax)) {
                     currencyWithdrawMax = withdrawMax;
                 }
+                if (isDepositEnabled) {
+                    depositEnabled = true;
+                }
+                if (isWithdrawEnabled) {
+                    withdrawEnabled = true;
+                }
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
                     'network': network,
                     'active': active,
+                    'deposit': isDepositEnabled,
+                    'withdraw': isWithdrawEnabled,
                     'fee': this.safeNumber (chain, 'fee'),
                     'precision': precision,
                     'limits': {
@@ -405,6 +415,8 @@ module.exports = class mexc extends Exchange {
                 'info': currency,
                 'name': name,
                 'active': currencyActive,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': currencyFee,
                 'precision': currencyPrecision,
                 'limits': {
