@@ -408,15 +408,17 @@ class yobit extends Exchange {
 
     public function parse_ticker($ticker, $market = null) {
         //
-        //   {    high => 0.03497582,
+        //     {
+        //         high => 0.03497582,
         //         low => 0.03248474,
         //         avg => 0.03373028,
         //         vol => 120.11485715062999,
-        //     vol_cur => 3572.24914074,
-        //        $last => 0.0337611,
+        //         vol_cur => 3572.24914074,
+        //         $last => 0.0337611,
         //         buy => 0.0337442,
-        //        sell => 0.03377798,
-        //     updated => 1537522009          }
+        //         sell => 0.03377798,
+        //         updated => 1537522009
+        //     }
         //
         $timestamp = $this->safe_timestamp($ticker, 'updated');
         $last = $this->safe_number($ticker, 'last');
