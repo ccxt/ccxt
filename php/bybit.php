@@ -667,7 +667,7 @@ class bybit extends Exchange {
         }
         $response = $this->publicGetV2PublicSymbols ($params);
         //
-        // $linear and $inverse swaps
+        // $linear swaps and $inverse swaps and futures
         // $swapsResponse = $this->publicGetV2PublicSymbols ($params);
         //
         //     {
@@ -676,6 +676,7 @@ class bybit extends Exchange {
         //         "ext_code":"",
         //         "ext_info":"",
         //         "result":array(
+        //             // $inverse $swap
         //             array(
         //                 "name":"BTCUSD",
         //                 "alias":"BTCUSD",
@@ -689,6 +690,7 @@ class bybit extends Exchange {
         //                 "price_filter":array("min_price":"0.5","max_price":"999999","tick_size":"0.5"),
         //                 "lot_size_filter":array("max_trading_qty":1000000,"min_trading_qty":1,"qty_step":1)
         //             ),
+        //             // $linear $swap
         //             array(
         //                 "name":"BTCUSDT",
         //                 "alias":"BTCUSDT",
@@ -702,6 +704,33 @@ class bybit extends Exchange {
         //                 "price_filter":array("min_price":"0.5","max_price":"999999","tick_size":"0.5"),
         //                 "lot_size_filter":array("max_trading_qty":100,"min_trading_qty":0.001, "qty_step":0.001)
         //             ),
+        //             // $inverse futures
+        //             array(
+        //                 "name":"BTCUSDM22",
+        //                 "alias":"BTCUSD0624",
+        //                 "status":"Trading",
+        //                 "base_currency":"BTC",
+        //                 "quote_currency":"USD",
+        //                 "price_scale":2,
+        //                 "taker_fee":"0.00075",
+        //                 "maker_fee":"-0.00025",
+        //                 "leverage_filter":array("min_leverage":1,"max_leverage":100,"leverage_step":"0.01"),
+        //                 "price_filter":array("min_price":"0.5","max_price":"999999","tick_size":"0.5"),
+        //                 "lot_size_filter":array("max_trading_qty":1000000,"min_trading_qty":1,"qty_step":1)
+        //             ),
+        //             {
+        //                 "name":"BTCUSDH22",
+        //                 "alias":"BTCUSD0325",
+        //                 "status":"Trading",
+        //                 "base_currency":"BTC",
+        //                 "quote_currency":"USD",
+        //                 "price_scale":2,
+        //                 "taker_fee":"0.00075",
+        //                 "maker_fee":"-0.00025",
+        //                 "leverage_filter":array("min_leverage":1,"max_leverage":100,"leverage_step":"0.01")
+        //                 "price_filter":array("min_price":"0.5","max_price":"999999","tick_size":"0.5"),
+        //                 "lot_size_filter":array("max_trading_qty":1000000,"min_trading_qty":1,"qty_step":1)
+        //             }
         //         ),
         //         "time_now":"1642369942.072113"
         //     }

@@ -679,7 +679,7 @@ class bybit(Exchange):
             await self.load_time_difference()
         response = await self.publicGetV2PublicSymbols(params)
         #
-        # linear and inverse swaps
+        # linear swaps and inverse swaps and futures
         # swapsResponse = await self.publicGetV2PublicSymbols(params)
         #
         #     {
@@ -688,6 +688,7 @@ class bybit(Exchange):
         #         "ext_code":"",
         #         "ext_info":"",
         #         "result":[
+        #             # inverse swap
         #             {
         #                 "name":"BTCUSD",
         #                 "alias":"BTCUSD",
@@ -701,6 +702,7 @@ class bybit(Exchange):
         #                 "price_filter":{"min_price":"0.5","max_price":"999999","tick_size":"0.5"},
         #                 "lot_size_filter":{"max_trading_qty":1000000,"min_trading_qty":1,"qty_step":1}
         #             },
+        #             # linear swap
         #             {
         #                 "name":"BTCUSDT",
         #                 "alias":"BTCUSDT",
@@ -714,6 +716,33 @@ class bybit(Exchange):
         #                 "price_filter":{"min_price":"0.5","max_price":"999999","tick_size":"0.5"},
         #                 "lot_size_filter":{"max_trading_qty":100,"min_trading_qty":0.001, "qty_step":0.001}
         #             },
+        #             # inverse futures
+        #             {
+        #                 "name":"BTCUSDM22",
+        #                 "alias":"BTCUSD0624",
+        #                 "status":"Trading",
+        #                 "base_currency":"BTC",
+        #                 "quote_currency":"USD",
+        #                 "price_scale":2,
+        #                 "taker_fee":"0.00075",
+        #                 "maker_fee":"-0.00025",
+        #                 "leverage_filter":{"min_leverage":1,"max_leverage":100,"leverage_step":"0.01"},
+        #                 "price_filter":{"min_price":"0.5","max_price":"999999","tick_size":"0.5"},
+        #                 "lot_size_filter":{"max_trading_qty":1000000,"min_trading_qty":1,"qty_step":1}
+        #             },
+        #             {
+        #                 "name":"BTCUSDH22",
+        #                 "alias":"BTCUSD0325",
+        #                 "status":"Trading",
+        #                 "base_currency":"BTC",
+        #                 "quote_currency":"USD",
+        #                 "price_scale":2,
+        #                 "taker_fee":"0.00075",
+        #                 "maker_fee":"-0.00025",
+        #                 "leverage_filter":{"min_leverage":1,"max_leverage":100,"leverage_step":"0.01"}
+        #                 "price_filter":{"min_price":"0.5","max_price":"999999","tick_size":"0.5"},
+        #                 "lot_size_filter":{"max_trading_qty":1000000,"min_trading_qty":1,"qty_step":1}
+        #             }
         #         ],
         #         "time_now":"1642369942.072113"
         #     }
