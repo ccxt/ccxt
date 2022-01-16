@@ -46,7 +46,7 @@ class zonda extends Exchange {
                 '3d' => '259200',
                 '1w' => '604800',
             ),
-            'hostname' => 'zondaglobal.com',
+            'hostname' => 'zonda.exchange',
             'urls' => array(
                 'referral' => 'https://auth.zondaglobal.com/ref/jHlbB4mIkdS1',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
@@ -92,6 +92,7 @@ class zonda extends Exchange {
                         'trading/ticker',
                         'trading/ticker/{symbol}',
                         'trading/stats',
+                        'trading/stats/{symbol}',
                         'trading/orderbook/{symbol}',
                         'trading/transactions/{symbol}',
                         'trading/candle/history/{symbol}/{resolution}',
@@ -248,14 +249,13 @@ class zonda extends Exchange {
         $items = $this->safe_value($response, 'items');
         $keys = is_array($items) ? array_keys($items) : array();
         for ($i = 0; $i < count($keys); $i++) {
-            $key = $keys[$i];
-            $item = $items[$key];
+            $id = $keys[$i];
+            $item = $items[$id];
             $market = $this->safe_value($item, 'market', array());
             $first = $this->safe_value($market, 'first', array());
             $second = $this->safe_value($market, 'second', array());
             $baseId = $this->safe_string($first, 'currency');
             $quoteId = $this->safe_string($second, 'currency');
-            $id = $baseId . $quoteId;
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
@@ -281,6 +281,20 @@ class zonda extends Exchange {
                 'precision' => $precision,
                 'type' => 'spot',
                 'spot' => true,
+                'margin' => false,
+                'future' => false,
+                'swap' => false,
+                'option' => false,
+                'linear' => null,
+                'inverse' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'contract' => false,
+                'contractSize' => null,
+                'optionType' => null,
+                'strike' => null,
+                'settle' => null,
+                'settleId' => null,
                 'active' => null,
                 'maker' => $maker,
                 'taker' => $taker,
@@ -426,54 +440,101 @@ class zonda extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array(
-            'id' => $this->market_id($symbol),
+            'symbol' => $this->market_id($symbol),
         );
-        $orderbook = $this->publicGetIdOrderbook (array_merge($request, $params));
-        return $this->parse_order_book($orderbook, $symbol);
+        $response = $this->v1_01PublicGetTradingOrderbookSymbol (array_merge($request, $params));
+        //
+        //     {
+        //         "status":"Ok",
+        //         "sell":array(
+        //             array("ra":"43988.93","ca":"0.00100525","sa":"0.00100525","pa":"0.00100525","co":1),
+        //             array("ra":"43988.94","ca":"0.00114136","sa":"0.00114136","pa":"0.00114136","co":1),
+        //             array("ra":"43989","ca":"0.010578","sa":"0.010578","pa":"0.010578","co":1),
+        //         ),
+        //         "buy":array(
+        //             array("ra":"42157.33","ca":"2.83147881","sa":"2.83147881","pa":"2.83147881","co":2),
+        //             array("ra":"42096.0","ca":"0.00011878","sa":"0.00011878","pa":"0.00011878","co":1),
+        //             array("ra":"42022.0","ca":"0.00011899","sa":"0.00011899","pa":"0.00011899","co":1),
+        //         ),
+        //         "timestamp":"1642299886122",
+        //         "seqNo":"27641254"
+        //     }
+        //
+        $rawBids = $this->safe_value($response, 'buy', array());
+        $rawAsks = $this->safe_value($response, 'sell', array());
+        $timestamp = $this->safe_integer($response, 'timestamp');
+        return array(
+            'symbol' => $symbol,
+            'bids' => $this->parse_bids_asks($rawBids, 'ra', 'ca'),
+            'asks' => $this->parse_bids_asks($rawAsks, 'ra', 'ca'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'nonce' => $this->safe_integer($response, 'seqNo'),
+        );
     }
 
     public function parse_ticker($ticker, $market = null) {
-        $symbol = $this->safe_symbol(null, $market);
-        $timestamp = $this->milliseconds();
-        $baseVolume = $this->safe_number($ticker, 'volume');
-        $vwap = $this->safe_number($ticker, 'vwap');
-        $quoteVolume = null;
-        if ($baseVolume !== null && $vwap !== null) {
-            $quoteVolume = $baseVolume * $vwap;
-        }
-        $last = $this->safe_number($ticker, 'last');
+        //
+        //     {
+        //         m => 'ETH-PLN',
+        //         h => '13485.13',
+        //         l => '13100.01',
+        //         v => '126.10710939',
+        //         r24h => '13332.72'
+        //       }
+        //
+        $open = $this->safe_string($ticker, 'r24h');
+        $high = $this->safe_number($ticker, 'h');
+        $low = $this->safe_number($ticker, 'l');
+        $volume = $this->safe_number($ticker, 'v');
+        $marketId = $this->safe_string($ticker, 'm');
+        $market = $this->safe_market($marketId, $market, '-');
+        $symbol = $market['symbol'];
         return $this->safe_ticker(array(
             'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'max'),
-            'low' => $this->safe_number($ticker, 'min'),
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'timestamp' => null,
+            'datetime' => null,
+            'high' => $high,
+            'low' => $low,
+            'bid' => null,
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => null,
             'askVolume' => null,
-            'vwap' => $vwap,
-            'open' => null,
-            'close' => $last,
-            'last' => $last,
+            'vwap' => null,
+            'open' => $open,
+            'close' => null,
+            'last' => null,
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
-            'average' => $this->safe_number($ticker, 'average'),
-            'baseVolume' => $baseVolume,
-            'quoteVolume' => $quoteVolume,
+            'average' => null,
+            'baseVolume' => $volume,
+            'quoteVolume' => null,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'id' => $market['id'],
+            'symbol' => $market['id'],
         );
-        $response = $this->publicGetIdTicker (array_merge($request, $params));
-        return $this->parse_ticker($response, $market);
+        $response = $this->v1_01PublicGetTradingStatsSymbol (array_merge($request, $params));
+        //
+        //     {
+        //       status => 'Ok',
+        //       $stats => {
+        //         m => 'ETH-PLN',
+        //         h => '13485.13',
+        //         l => '13100.01',
+        //         v => '126.10710939',
+        //         r24h => '13332.72'
+        //       }
+        //     }
+        //
+        $stats = $this->safe_value($response, 'stats');
+        return $this->parse_ticker($stats, $market);
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {

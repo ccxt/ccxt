@@ -57,7 +57,7 @@ class zonda(Exchange):
                 '3d': '259200',
                 '1w': '604800',
             },
-            'hostname': 'zondaglobal.com',
+            'hostname': 'zonda.exchange',
             'urls': {
                 'referral': 'https://auth.zondaglobal.com/ref/jHlbB4mIkdS1',
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
@@ -103,6 +103,7 @@ class zonda(Exchange):
                         'trading/ticker',
                         'trading/ticker/{symbol}',
                         'trading/stats',
+                        'trading/stats/{symbol}',
                         'trading/orderbook/{symbol}',
                         'trading/transactions/{symbol}',
                         'trading/candle/history/{symbol}/{resolution}',
@@ -258,14 +259,13 @@ class zonda(Exchange):
         items = self.safe_value(response, 'items')
         keys = list(items.keys())
         for i in range(0, len(keys)):
-            key = keys[i]
-            item = items[key]
+            id = keys[i]
+            item = items[id]
             market = self.safe_value(item, 'market', {})
             first = self.safe_value(market, 'first', {})
             second = self.safe_value(market, 'second', {})
             baseId = self.safe_string(first, 'currency')
             quoteId = self.safe_string(second, 'currency')
-            id = baseId + quoteId
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
@@ -290,6 +290,20 @@ class zonda(Exchange):
                 'precision': precision,
                 'type': 'spot',
                 'spot': True,
+                'margin': False,
+                'future': False,
+                'swap': False,
+                'option': False,
+                'linear': None,
+                'inverse': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'contract': False,
+                'contractSize': None,
+                'optionType': None,
+                'strike': None,
+                'settle': None,
+                'settleId': None,
                 'active': None,
                 'maker': maker,
                 'taker': taker,
@@ -424,51 +438,99 @@ class zonda(Exchange):
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         request = {
-            'id': self.market_id(symbol),
+            'symbol': self.market_id(symbol),
         }
-        orderbook = self.publicGetIdOrderbook(self.extend(request, params))
-        return self.parse_order_book(orderbook, symbol)
-
-    def parse_ticker(self, ticker, market=None):
-        symbol = self.safe_symbol(None, market)
-        timestamp = self.milliseconds()
-        baseVolume = self.safe_number(ticker, 'volume')
-        vwap = self.safe_number(ticker, 'vwap')
-        quoteVolume = None
-        if baseVolume is not None and vwap is not None:
-            quoteVolume = baseVolume * vwap
-        last = self.safe_number(ticker, 'last')
-        return self.safe_ticker({
+        response = self.v1_01PublicGetTradingOrderbookSymbol(self.extend(request, params))
+        #
+        #     {
+        #         "status":"Ok",
+        #         "sell":[
+        #             {"ra":"43988.93","ca":"0.00100525","sa":"0.00100525","pa":"0.00100525","co":1},
+        #             {"ra":"43988.94","ca":"0.00114136","sa":"0.00114136","pa":"0.00114136","co":1},
+        #             {"ra":"43989","ca":"0.010578","sa":"0.010578","pa":"0.010578","co":1},
+        #         ],
+        #         "buy":[
+        #             {"ra":"42157.33","ca":"2.83147881","sa":"2.83147881","pa":"2.83147881","co":2},
+        #             {"ra":"42096.0","ca":"0.00011878","sa":"0.00011878","pa":"0.00011878","co":1},
+        #             {"ra":"42022.0","ca":"0.00011899","sa":"0.00011899","pa":"0.00011899","co":1},
+        #         ],
+        #         "timestamp":"1642299886122",
+        #         "seqNo":"27641254"
+        #     }
+        #
+        rawBids = self.safe_value(response, 'buy', [])
+        rawAsks = self.safe_value(response, 'sell', [])
+        timestamp = self.safe_integer(response, 'timestamp')
+        return {
             'symbol': symbol,
+            'bids': self.parse_bids_asks(rawBids, 'ra', 'ca'),
+            'asks': self.parse_bids_asks(rawAsks, 'ra', 'ca'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'max'),
-            'low': self.safe_number(ticker, 'min'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'nonce': self.safe_integer(response, 'seqNo'),
+        }
+
+    def parse_ticker(self, ticker, market=None):
+        #
+        #     {
+        #         m: 'ETH-PLN',
+        #         h: '13485.13',
+        #         l: '13100.01',
+        #         v: '126.10710939',
+        #         r24h: '13332.72'
+        #       }
+        #
+        open = self.safe_string(ticker, 'r24h')
+        high = self.safe_number(ticker, 'h')
+        low = self.safe_number(ticker, 'l')
+        volume = self.safe_number(ticker, 'v')
+        marketId = self.safe_string(ticker, 'm')
+        market = self.safe_market(marketId, market, '-')
+        symbol = market['symbol']
+        return self.safe_ticker({
+            'symbol': symbol,
+            'timestamp': None,
+            'datetime': None,
+            'high': high,
+            'low': low,
+            'bid': None,
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': None,
             'askVolume': None,
-            'vwap': vwap,
-            'open': None,
-            'close': last,
-            'last': last,
+            'vwap': None,
+            'open': open,
+            'close': None,
+            'last': None,
             'previousClose': None,
             'change': None,
             'percentage': None,
-            'average': self.safe_number(ticker, 'average'),
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'average': None,
+            'baseVolume': volume,
+            'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'id': market['id'],
+            'symbol': market['id'],
         }
-        response = self.publicGetIdTicker(self.extend(request, params))
-        return self.parse_ticker(response, market)
+        response = self.v1_01PublicGetTradingStatsSymbol(self.extend(request, params))
+        #
+        #     {
+        #       status: 'Ok',
+        #       stats: {
+        #         m: 'ETH-PLN',
+        #         h: '13485.13',
+        #         l: '13100.01',
+        #         v: '126.10710939',
+        #         r24h: '13332.72'
+        #       }
+        #     }
+        #
+        stats = self.safe_value(response, 'stats')
+        return self.parse_ticker(stats, market)
 
     def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         balanceCurrencies = []
