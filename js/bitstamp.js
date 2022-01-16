@@ -21,7 +21,7 @@ module.exports = class bitstamp extends Exchange {
             'has': {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': false,
+                'CORS': true,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
