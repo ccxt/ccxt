@@ -687,7 +687,7 @@ class Transpiler {
     
     orderExchangeCapabilities (code) {
         const lineBreak = '\n';
-        const capabilitiesObjectRegex = /(?<='has': {[\r\n])([^}]*)(?=})/;
+        const capabilitiesObjectRegex = /(?<='has': {[\n])([^|})]*)(?=\n([ ]+}))/;
         const found = capabilitiesObjectRegex.exec (code);
         if (found === undefined) {
             return null; // capabilities not found
@@ -699,7 +699,7 @@ class Transpiler {
         capabilities.sort (function (a, b) {
             return a.localeCompare (b);
         });
-        sortedCapabilities = capabilities.join (lineBreak);
+        const sortedCapabilities = capabilities.join (lineBreak);
         const finalResult = code.replace (capabilitiesObjectRegex, sortedCapabilities)
         if (finalResult.length !== code.length) {
             return null; // something went wrong
