@@ -128,6 +128,8 @@ class binance extends Exchange {
                 'test' => array(
                     'dapiPublic' => 'https://testnet.binancefuture.com/dapi/v1',
                     'dapiPrivate' => 'https://testnet.binancefuture.com/dapi/v1',
+                    'vapiPublic' => 'https://testnet.binanceops.com/vapi/v1',
+                    'vapiPrivate' => 'https://testnet.binanceops.com/vapi/v1',
                     'fapiPublic' => 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivate' => 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivateV2' => 'https://testnet.binancefuture.com/fapi/v2',
@@ -140,6 +142,8 @@ class binance extends Exchange {
                     'sapi' => 'https://api.binance.com/sapi/v1',
                     'dapiPublic' => 'https://dapi.binance.com/dapi/v1',
                     'dapiPrivate' => 'https://dapi.binance.com/dapi/v1',
+                    'vapiPublic' => 'https://vapi.binance.com/vapi/v1',
+                    'vapiPrivate' => 'https://vapi.binance.com/vapi/v1',
                     'dapiPrivateV2' => 'https://dapi.binance.com/dapi/v2',
                     'dapiData' => 'https://dapi.binance.com/futures/data',
                     'fapiPublic' => 'https://fapi.binance.com/fapi/v1',
@@ -594,6 +598,47 @@ class binance extends Exchange {
                         'positionRisk' => 1,
                     ),
                 ),
+                'vapiPublic' => array(
+                    'get' => array(
+                        'ping',
+                        'time',
+                        'optionInfo',
+                        'exchangeInfo',
+                        'index',
+                        'ticker',
+                        'mark',
+                        'depth',
+                        'klines',
+                        'trades',
+                        'historicalTrades',
+                    ),
+                ),
+                'vapiPrivate' => array(
+                    'get' => array(
+                        'account',
+                        'position',
+                        'order',
+                        'openOrders',
+                        'historyOrders',
+                        'userTrades',
+                    ),
+                    'post' => array(
+                        'transfer',
+                        'bill',
+                        'order',
+                        'batchOrders',
+                        'userDataStream',
+                    ),
+                    'put' => array(
+                        'userDataStream',
+                    ),
+                    'delete' => array(
+                        'order',
+                        'batchOrders',
+                        'allOpenOrders',
+                        'userDataStream',
+                    ),
+                ),
                 'public' => array(
                     'get' => array(
                         'ping' => 1,
@@ -720,6 +765,7 @@ class binance extends Exchange {
                         ),
                     ),
                 ),
+                'option' => array(),
             ),
             'commonCurrencies' => array(
                 'BCC' => 'BCC', // kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
