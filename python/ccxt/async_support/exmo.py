@@ -599,13 +599,24 @@ class exmo(Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
+        #
+        #     {
+        #         "buy_price":"0.00002996",
+        #         "sell_price":"0.00003002",
+        #         "last_trade":"0.00002992",
+        #         "high":"0.00003028",
+        #         "low":"0.00002935",
+        #         "avg":"0.00002963",
+        #         "vol":"1196546.3163222",
+        #         "vol_curr":"35.80066578",
+        #         "updated":1642291733
+        #     }
+        #
         timestamp = self.safe_timestamp(ticker, 'updated')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        market = self.safe_market(None, market)
         last = self.safe_number(ticker, 'last_trade')
-        return {
-            'symbol': symbol,
+        return self.safe_ticker({
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_number(ticker, 'high'),
@@ -625,18 +636,33 @@ class exmo(Exchange):
             'baseVolume': self.safe_number(ticker, 'vol'),
             'quoteVolume': self.safe_number(ticker, 'vol_curr'),
             'info': ticker,
-        }
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
         response = await self.publicGetTicker(params)
+        #
+        #     {
+        #         "ADA_BTC":{
+        #             "buy_price":"0.00002996",
+        #             "sell_price":"0.00003002",
+        #             "last_trade":"0.00002992",
+        #             "high":"0.00003028",
+        #             "low":"0.00002935",
+        #             "avg":"0.00002963",
+        #             "vol":"1196546.3163222",
+        #             "vol_curr":"35.80066578",
+        #             "updated":1642291733
+        #         }
+        #     }
+        #
         result = {}
-        ids = list(response.keys())
-        for i in range(0, len(ids)):
-            id = ids[i]
-            market = self.markets_by_id[id]
+        marketIds = list(response.keys())
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            market = self.safe_market(marketId, None, '_')
             symbol = market['symbol']
-            ticker = response[id]
+            ticker = self.safe_value(response, marketId)
             result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array(result, 'symbol', symbols)
 

@@ -333,7 +333,7 @@ class latoken1(Exchange):
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market)
         close = self.safe_number(ticker, 'close')
-        timestamp = self.nonce()
+        timestamp = self.milliseconds()
         return self.safe_ticker({
             'symbol': market['symbol'],
             'timestamp': timestamp,

@@ -419,13 +419,9 @@ class yobit extends Exchange {
         //     updated => 1537522009          }
         //
         $timestamp = $this->safe_timestamp($ticker, 'updated');
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
         $last = $this->safe_number($ticker, 'last');
-        return array(
-            'symbol' => $symbol,
+        return $this->safe_ticker(array(
+            'symbol' => $this->safe_symbol(null, $market),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_number($ticker, 'high'),
@@ -445,7 +441,7 @@ class yobit extends Exchange {
             'baseVolume' => $this->safe_number($ticker, 'vol_cur'),
             'quoteVolume' => $this->safe_number($ticker, 'vol'),
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

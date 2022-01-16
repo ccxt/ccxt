@@ -420,12 +420,9 @@ class yobit(Exchange):
         #     updated: 1537522009          }
         #
         timestamp = self.safe_timestamp(ticker, 'updated')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
         last = self.safe_number(ticker, 'last')
-        return {
-            'symbol': symbol,
+        return self.safe_ticker({
+            'symbol': self.safe_symbol(None, market),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_number(ticker, 'high'),
@@ -445,7 +442,7 @@ class yobit(Exchange):
             'baseVolume': self.safe_number(ticker, 'vol_cur'),
             'quoteVolume': self.safe_number(ticker, 'vol'),
             'info': ticker,
-        }
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()

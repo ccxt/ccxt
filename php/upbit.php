@@ -538,7 +538,7 @@ class upbit extends Exchange {
         //                     low_price =>  0.02934283,
         //                   trade_price =>  0.02947773,
         //            prev_closing_price =>  0.02966,
-        //                        $change => "FALL",
+        //                        change => "FALL",
         //                  change_price =>  0.00018227,
         //                   change_rate =>  0.0061453136,
         //           signed_change_price =>  -0.00018227,
@@ -556,13 +556,10 @@ class upbit extends Exchange {
         //
         $timestamp = $this->safe_integer($ticker, 'trade_timestamp');
         $marketId = $this->safe_string_2($ticker, 'market', 'code');
-        $symbol = $this->safe_symbol($marketId, $market, '-');
-        $previous = $this->safe_number($ticker, 'prev_closing_price');
+        $market = $this->safe_market($marketId, $market, '-');
         $last = $this->safe_number($ticker, 'trade_price');
-        $change = $this->safe_number($ticker, 'signed_change_price');
-        $percentage = $this->safe_number($ticker, 'signed_change_rate');
-        return array(
-            'symbol' => $symbol,
+        return $this->safe_ticker(array(
+            'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_number($ticker, 'high_price'),
@@ -575,14 +572,14 @@ class upbit extends Exchange {
             'open' => $this->safe_number($ticker, 'opening_price'),
             'close' => $last,
             'last' => $last,
-            'previousClose' => $previous,
-            'change' => $change,
-            'percentage' => $percentage,
+            'previousClose' => $this->safe_number($ticker, 'prev_closing_price'),
+            'change' => $this->safe_number($ticker, 'signed_change_price'),
+            'percentage' => $this->safe_number($ticker, 'signed_change_rate'),
             'average' => null,
             'baseVolume' => $this->safe_number($ticker, 'acc_trade_volume_24h'),
             'quoteVolume' => $this->safe_number($ticker, 'acc_trade_price_24h'),
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

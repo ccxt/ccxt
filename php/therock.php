@@ -240,14 +240,26 @@ class therock extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
-        $timestamp = $this->parse8601($ticker['date']);
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        //
+        //     {
+        //         "date":"2022-01-16T00:05:08.192Z",
+        //         "fund_id":"ETHBTC",
+        //         "bid":0.07707802,
+        //         "ask":0.07733404,
+        //         "last":0.07739053,
+        //         "open":0.07628192,
+        //         "close":0.07687651,
+        //         "low":0.07612047,
+        //         "high":0.07703306,
+        //         "volume":1.10179665,
+        //         "volume_traded":14.273
+        //     }
+        //
+        $timestamp = $this->parse8601($this->safe_string($ticker, 'date'));
+        $market = $this->safe_market(null, $market);
         $last = $this->safe_number($ticker, 'last');
-        return array(
-            'symbol' => $symbol,
+        return $this->safe_ticker(array(
+            'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_number($ticker, 'high'),
@@ -267,7 +279,7 @@ class therock extends Exchange {
             'baseVolume' => $this->safe_number($ticker, 'volume_traded'),
             'quoteVolume' => $this->safe_number($ticker, 'volume'),
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -289,10 +301,26 @@ class therock extends Exchange {
     public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
-        $ticker = $this->publicGetFundsIdTicker (array_merge(array(
+        $request = array(
             'id' => $market['id'],
-        ), $params));
-        return $this->parse_ticker($ticker, $market);
+        );
+        $response = $this->publicGetFundsIdTicker (array_merge($request, $params));
+        //
+        //     {
+        //         "date":"2022-01-16T00:05:08.192Z",
+        //         "fund_id":"ETHBTC",
+        //         "bid":0.07707802,
+        //         "ask":0.07733404,
+        //         "last":0.07739053,
+        //         "open":0.07628192,
+        //         "close":0.07687651,
+        //         "low":0.07612047,
+        //         "high":0.07703306,
+        //         "volume":1.10179665,
+        //         "volume_traded":14.273
+        //     }
+        //
+        return $this->parse_ticker($response, $market);
     }
 
     public function parse_trade($trade, $market = null) {

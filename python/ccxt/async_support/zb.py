@@ -614,12 +614,9 @@ class zb(Exchange):
         #     }
         #
         timestamp = self.safe_integer(ticker, 'date', self.milliseconds())
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
         last = self.safe_number(ticker, 'last')
-        return {
-            'symbol': symbol,
+        return self.safe_ticker({
+            'symbol': self.safe_symbol(None, market),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_number(ticker, 'high'),
@@ -629,7 +626,7 @@ class zb(Exchange):
             'ask': self.safe_number(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
-            'open': None,
+            'open': self.safe_number(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
@@ -639,7 +636,7 @@ class zb(Exchange):
             'baseVolume': self.safe_number(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market)
 
     def parse_ohlcv(self, ohlcv, market=None):
         return [

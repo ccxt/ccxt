@@ -236,13 +236,26 @@ class therock(Exchange):
         return self.parse_order_book(orderbook, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.parse8601(ticker['date'])
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        #
+        #     {
+        #         "date":"2022-01-16T00:05:08.192Z",
+        #         "fund_id":"ETHBTC",
+        #         "bid":0.07707802,
+        #         "ask":0.07733404,
+        #         "last":0.07739053,
+        #         "open":0.07628192,
+        #         "close":0.07687651,
+        #         "low":0.07612047,
+        #         "high":0.07703306,
+        #         "volume":1.10179665,
+        #         "volume_traded":14.273
+        #     }
+        #
+        timestamp = self.parse8601(self.safe_string(ticker, 'date'))
+        market = self.safe_market(None, market)
         last = self.safe_number(ticker, 'last')
-        return {
-            'symbol': symbol,
+        return self.safe_ticker({
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_number(ticker, 'high'),
@@ -262,7 +275,7 @@ class therock(Exchange):
             'baseVolume': self.safe_number(ticker, 'volume_traded'),
             'quoteVolume': self.safe_number(ticker, 'volume'),
             'info': ticker,
-        }
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
@@ -281,10 +294,26 @@ class therock(Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        ticker = self.publicGetFundsIdTicker(self.extend({
+        request = {
             'id': market['id'],
-        }, params))
-        return self.parse_ticker(ticker, market)
+        }
+        response = self.publicGetFundsIdTicker(self.extend(request, params))
+        #
+        #     {
+        #         "date":"2022-01-16T00:05:08.192Z",
+        #         "fund_id":"ETHBTC",
+        #         "bid":0.07707802,
+        #         "ask":0.07733404,
+        #         "last":0.07739053,
+        #         "open":0.07628192,
+        #         "close":0.07687651,
+        #         "low":0.07612047,
+        #         "high":0.07703306,
+        #         "volume":1.10179665,
+        #         "volume_traded":14.273
+        #     }
+        #
+        return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market=None):
         #

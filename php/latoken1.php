@@ -339,7 +339,7 @@ class latoken1 extends Exchange {
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $close = $this->safe_number($ticker, 'close');
-        $timestamp = $this->nonce();
+        $timestamp = $this->milliseconds();
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
