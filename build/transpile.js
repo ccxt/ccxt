@@ -1097,13 +1097,10 @@ class Transpiler {
             const jsPath = jsFolder + filename
             let contents = fs.readFileSync (jsPath, 'utf8')
 
-            let orderedContent = null
-            if (order) {
-                orderedContent = this.orderExchangeCapabilities (contents)
-                if (orderedContent !== null) {
-                    contents = orderedContent
-                    overwriteFile (jsPath, contents)
-                }
+            let orderedContent = this.orderExchangeCapabilities (contents)
+            if (orderedContent !== null) {
+                contents = orderedContent
+                overwriteFile (jsPath, contents)
             }
 
             if (orderedContent !==null || 
