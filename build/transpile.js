@@ -1072,7 +1072,7 @@ class Transpiler {
 
     // ========================================================================
 
-    transpileDerivedExchangeFile (jsFolder, filename, options, force = false, order = false) {
+    transpileDerivedExchangeFile (jsFolder, filename, options, force = false) {
 
         // todo normalize jsFolder and other arguments
 
@@ -1146,7 +1146,7 @@ class Transpiler {
 
     //-------------------------------------------------------------------------
 
-    transpileDerivedExchangeFiles (jsFolder, options, pattern = '.js', force = false, order = false) {
+    transpileDerivedExchangeFiles (jsFolder, options, pattern = '.js', force = false) {
 
         // todo normalize jsFolder and other arguments
 
@@ -1163,7 +1163,7 @@ class Transpiler {
 
         const classNames = fs.readdirSync (jsFolder)
             .filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.js'))))
-            .map (file => this.transpileDerivedExchangeFile (jsFolder, file, options, force, order))
+            .map (file => this.transpileDerivedExchangeFile (jsFolder, file, options, force))
 
         const classes = {}
 
@@ -1640,7 +1640,7 @@ class Transpiler {
 
     // ============================================================================
 
-    transpileEverything (force = false, order = false) {
+    transpileEverything (force = false) {
 
         // default pattern is '.js'
         const [ /* node */, /* script */, pattern ] = process.argv.filter (x => !x.startsWith ('--'))
@@ -1657,7 +1657,7 @@ class Transpiler {
 
         //*
 
-        const classes = this.transpileDerivedExchangeFiles ('./js/', options, pattern, force, order)
+        const classes = this.transpileDerivedExchangeFiles ('./js/', options, pattern, force)
 
         if (classes === null) {
             log.bright.yellow ('0 files transpiled.')
@@ -1693,7 +1693,6 @@ if (require.main === module) { // called directly like `node module`
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests')
     const errors = process.argv.includes ('--error') || process.argv.includes ('--errors')
     const force = process.argv.includes ('--force')
-    const order = process.argv.includes('--order')
     log.bright.green ({ force })
     log.bright.green ({ order })
     if (test) {
@@ -1701,7 +1700,7 @@ if (require.main === module) { // called directly like `node module`
     } else if (errors) {
         transpiler.transpileErrorHierarchy ()
     } else {
-        transpiler.transpileEverything (force, order)
+        transpiler.transpileEverything (force)
     }
 
 } else { // if required as a module
