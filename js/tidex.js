@@ -395,7 +395,7 @@ module.exports = class tidex extends Exchange {
         //     }
         //
         const timestamp = this.safeTimestamp (ticker, 'updated');
-        market = this.safeSymbol (undefined, market);
+        market = this.safeMarket (undefined, market);
         const last = this.safeNumber (ticker, 'last');
         return this.safeTicker ({
             'symbol': market['symbol'],
