@@ -692,14 +692,14 @@ class Transpiler {
         if (found === undefined) {
             return null; // capabilities not found
         }
-        let capabilities = found[0].split ('\n'); 
+        let capabilities = found[0].split (lineBreak); 
         if (this.areCapabilitiesAlreadySorted (capabilities)) {
             return null;
         }
         capabilities.sort (function (a, b) {
             return a.localeCompare (b);
         });
-        sortedCapabilities = capabilities.join ('\n');
+        sortedCapabilities = capabilities.join (lineBreak);
         const finalResult = code.replace (capabilitiesObjectRegex, sortedCapabilities)
         if (finalResult.length !== code.length) {
             return null; // something went wrong
@@ -1102,7 +1102,7 @@ class Transpiler {
                 orderedContent = this.orderExchangeCapabilities (contents)
                 if (orderedContent !== null) {
                     contents = orderedContent
-                    fs.writeFileSync(jsPath, contents, {encoding:'utf8',flag:'w'})
+                    overwriteFile (jsPath, contents)
                 }
             }
 
