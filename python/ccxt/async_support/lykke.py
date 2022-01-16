@@ -393,10 +393,10 @@ class lykke(Exchange):
         # }
         timestamp = self.milliseconds()
         marketId = self.safe_string(ticker, 'assetPair')
-        symbol = self.safe_symbol(marketId, market)
+        market = self.safe_market(marketId, market)
         close = self.safe_number(ticker, 'lastPrice')
         return self.safe_ticker({
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
