@@ -100,6 +100,7 @@ module.exports = class binance extends Exchange {
                 'withdraw': true,
                 'createCode': true,
                 'redeemCode': true,
+                'verifyCode': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -316,6 +317,7 @@ module.exports = class binance extends Exchange {
                         'nft/history/withdraw': 1,
                         'nft/user/getAsset': 1,
                         'pay/transactions': 1,
+                        'giftcard/verify': 1,
                     },
                     'post': {
                         'asset/dust': 1,
@@ -390,7 +392,6 @@ module.exports = class binance extends Exchange {
                         'broker/subAccountApi/permission/vanillaOptions': 1,
                         'giftcard/createCode': 1,
                         'giftcard/redeemCode': 1,
-                        'giftcard/verify': 1,
                     },
                     'put': {
                         'userDataStream': 1,
@@ -5018,7 +5019,7 @@ module.exports = class binance extends Exchange {
                 throw new AuthenticationError (this.id + ' historicalTrades endpoint requires `apiKey` credential');
             }
         }
-        const giftcard = (api === 'sapi') && (path.slice (0, 8) === 'giftcard');
+        const giftcard = (api === 'sapi') && (path.slice (0, 8) === 'giftcard') && (method === 'POST');
         const userDataStream = (path === 'userDataStream') || (path === 'listenKey');
         if (userDataStream) {
             if (this.apiKey) {
@@ -5353,6 +5354,23 @@ module.exports = class binance extends Exchange {
         //         referenceNo: '0033002404219823',
         //         identityNo: '10316431732801474560'
         //       },
+        //       success: true
+        //     }
+        //
+        return response;
+    }
+
+    async verifyCode (id, params = {}) {
+        const request = {
+            'type': 'CODE',
+            'value': id,
+        };
+        const response = await this.sapiGetGiftcardVerify (this.extend (request, params));
+        //
+        //     {
+        //       code: '000000',
+        //       message: 'success',
+        //       data: { valid: true },
         //       success: true
         //     }
         //
