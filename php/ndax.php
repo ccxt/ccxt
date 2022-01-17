@@ -337,7 +337,16 @@ class ndax extends Exchange {
                 'deposit' => null,
                 'withdraw' => null,
                 'fee' => null,
-                'limits' => $this->limits,
+                'limits' => array(
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
             );
         }
         return $result;

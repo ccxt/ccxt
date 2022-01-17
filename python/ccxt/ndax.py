@@ -336,7 +336,16 @@ class ndax(Exchange):
                 'deposit': None,
                 'withdraw': None,
                 'fee': None,
-                'limits': self.limits,
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
             }
         return result
 
