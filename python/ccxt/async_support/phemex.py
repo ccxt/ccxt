@@ -137,6 +137,7 @@ class phemex(Exchange):
                         'phemex-user/users/children',  # ?offset=<offset>&limit=<limit>&withCount=<withCount>
                         'phemex-user/wallets/v2/depositAddress',  # ?_t=1592722635531&currency=USDT
                         'phemex-user/wallets/tradeAccountDetail',  # ?bizCode=&currency=&end=1642443347321&limit=10&offset=0&side=&start=1&type=4&withCount=true
+                        'phemex-user/order/closedPositionList',  # ?currency=USD&limit=10&offset=0&symbol=&withCount=true
                         'exchange/margins/transfer',  # ?start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount>
                         'exchange/wallets/confirm/withdraw',  # ?code=<withdrawConfirmCode>
                         'exchange/wallets/withdrawList',  # ?currency=<currency>&limit=<limit>&offset=<offset>&withCount=<withCount>
