@@ -2356,7 +2356,6 @@ module.exports = class ftx extends Exchange {
         //       "openInterest": "48307.96"
         //     }
         //
-        const fundingRate = this.safeNumber (fundingRate, 'nextFundingRate');
         const fundingRateDatetimeRaw = this.safeString (fundingRate, 'nextFundingTime');
         const fundingRateTimestamp = this.parse8601 (fundingRateDatetimeRaw);
         const estimatedSettlePrice = this.safeNumber (fundingRate, 'predictedExpirationPrice');
@@ -2369,7 +2368,7 @@ module.exports = class ftx extends Exchange {
             'estimatedSettlePrice': estimatedSettlePrice,
             'timestamp': undefined,
             'datetime': undefined,
-            'fundingRate': fundingRate,
+            'fundingRate': this.safeNumber (fundingRate, 'nextFundingRate'),
             'fundingTimestamp': fundingRateTimestamp,
             'fundingDatetime': this.iso8601 (fundingRateTimestamp),
             'nextFundingRate': undefined,
