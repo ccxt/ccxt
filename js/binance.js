@@ -1333,7 +1333,7 @@ module.exports = class binance extends Exchange {
                 isWithdrawEnabled = isWithdrawEnabled || withdrawEnable;
                 fees[network] = withdrawFee;
                 const isDefault = this.safeValue (networkItem, 'isDefault');
-                if (isDefault || fee === undefined) {
+                if (isDefault || (fee === undefined)) {
                     fee = withdrawFee;
                 }
             }
@@ -5542,12 +5542,13 @@ module.exports = class binance extends Exchange {
         // }
         //
         const rows = this.safeValue (response, 'rows');
-        const interestHistory = [];
+        const interest = [];
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
             const timestamp = this.safeNumber (row, 'interestAccuredTime');
-            interestHistory.push ({
-                'account': this.safeString (row, 'isolatedSymbol', 'CROSS'), // isolated symbol, will not be returned for crossed margin
+            const account = (symbol === undefined) ? 'CROSS' : symbol;
+            interest.push ({
+                'account': account,
                 'currency': this.safeCurrencyCode (this.safeString (row, 'asset')),
                 'interest': this.safeNumber (row, 'interest'),
                 'interestRate': this.safeNumber (row, 'interestRate'),
@@ -5557,10 +5558,6 @@ module.exports = class binance extends Exchange {
                 'info': row,
             });
         }
-<<<<<<< HEAD
-        return interestHistory;
-=======
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
->>>>>>> c3e056a745 (fetchBorrowInterestAccrued with filterByCurrencySinceLimit)
     }
 };
