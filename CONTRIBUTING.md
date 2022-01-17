@@ -10,7 +10,7 @@
 If you want to submit an issue and you want your issue to be resolved quickly, here's a checklist for you:
 
 - Ensure you are using recent version of ccxt.
-- Read the [Manual](https://github.com/ccxt/ccxt/wiki/Manual), and especially carefully read the following sections:
+- Read the [Manual](https://github.com/ccxt/ccxt/wiki/Manual), and especially these sections:
   - [Exchange Properties](https://github.com/ccxt/ccxt/wiki/Manual#exchange-properties)
   - [Rate Limit](https://github.com/ccxt/ccxt/wiki/Manual#rate-limit)
   - [DDoS Protection](https://github.com/ccxt/ccxt/wiki/Manual#ddos-protection-by-cloudflare--incapsula)
