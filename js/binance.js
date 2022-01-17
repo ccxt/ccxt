@@ -98,6 +98,8 @@ module.exports = class binance extends Exchange {
                 'signIn': false,
                 'transfer': true,
                 'withdraw': true,
+                'createCode': true,
+                'redeemCode': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -386,6 +388,9 @@ module.exports = class binance extends Exchange {
                         'broker/universalTransfer': 1,
                         'broker/subAccountApi/permission/universalTransfer': 1,
                         'broker/subAccountApi/permission/vanillaOptions': 1,
+                        'giftcard/createCode': 1,
+                        'giftcard/redeemCode': 1,
+                        'giftcard/verify': 1,
                     },
                     'put': {
                         'userDataStream': 1,
@@ -5041,6 +5046,10 @@ module.exports = class binance extends Exchange {
                     'timestamp': this.nonce (),
                     'recvWindow': recvWindow,
                 }, params));
+            } else if (path.indexOf ('giftcard') >= 0) {
+                query = this.urlencode ({
+                    'timestamp': this.nonce (),
+                });
             } else {
                 query = this.urlencode (this.extend ({
                     'timestamp': this.nonce (),
@@ -5054,6 +5063,10 @@ module.exports = class binance extends Exchange {
             };
             if ((method === 'GET') || (method === 'DELETE') || (api === 'wapi')) {
                 url += '?' + query;
+            } else if ((api === 'sapi') && (path.indexOf ('giftcard') >= 0)) {
+                url += '?' + query;
+                headers['Content-Type'] = 'application/json';
+                body = this.json (params);
             } else {
                 body = query;
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -5294,5 +5307,54 @@ module.exports = class binance extends Exchange {
             });
         }
         return result;
+    }
+
+    async createCode (code, amount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        // ensure you have enough token in your funding account before calling this code
+        const request = {
+            'token': currency['id'],
+            'amount': amount,
+        };
+        const response = await this.sapiPostGiftcardCreateCode (this.extend (request, params));
+        //
+        //     {
+        //       code: '000000',
+        //       message: 'success',
+        //       data: { referenceNo: '0033002404219823', code: 'AP6EXTLKNHM6CEX7' },
+        //       success: true
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        const giftcardCode = this.safeString (data, 'code');
+        const id = this.safeString (data, 'id');
+        return {
+            'info': response,
+            'id': id,
+            'code': giftcardCode,
+            'currency': code,
+            'amount': amount,
+        };
+    }
+
+    async redeemCode (id, params = {}) {
+        // id can be either referenceNo or code
+        const request = {
+            'code': id,
+        };
+        const response = await this.sapiPostGiftcardRedeemCode (this.extend (request, params));
+        //
+        //     {
+        //       code: '000000',
+        //       message: 'success',
+        //       data: {
+        //         referenceNo: '0033002404219823',
+        //         identityNo: '10316431732801474560'
+        //       },
+        //       success: true
+        //     }
+        //
+        return response;
     }
 };
