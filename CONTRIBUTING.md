@@ -28,7 +28,7 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
   - paste the **full verbose output** of the failing method without your keys, it should include request & response from the exchange (not just an error information)
   - if exchange & called method is not visible in logs, mention it
   - **surround code and output with triple backticks: &#096;&#096;&#096;GOOD&#096;&#096;&#096;**, and don't confuse it with the quote symbol (\'); neither confuse a single backtick (&#096;) with triple backticks (&#096;&#096;&#096;);
-  - write your programming language **and version** (i.e. `Python 3.6` / `PHP 7.4` / etc ) and ccxt library version
+  - write your programming language **and version** (i.e. `Python 3.6`) and ccxt library version
 
 ### Reporting Vulnerabilities And Critical Issues
 
