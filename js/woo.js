@@ -6,7 +6,7 @@ const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder } = require ('./base/errors'); // Permission-Denied, Arguments-Required, OrderNot-Found
 const Precise = require ('./base/Precise');
 const { TICK_SIZE } = require ('./base/functions/number');
-function c(o){console.log(o);} function x(o){c(o);process.exit();}
+
 // ---------------------------------------------------------------------------
 
 module.exports = class woo extends Exchange {
@@ -154,9 +154,12 @@ module.exports = class woo extends Exchange {
                 'createMarketBuyOrderRequiresPrice': true,
                 'network-aliases': {
                     'ALGO': 'ALGO',
+                    'ATOM': 'ATOM',
                     'AVAXC': 'AVAXC',
                     'BNB': 'BEP2',
                     'BSC': 'BEP20',
+                    'BTC': 'BTC',
+                    'BCHSV': 'BSV',
                     'EOS': 'EOS',
                     'ETH': 'ERC20',
                     'HECO': 'HRC20',
@@ -165,35 +168,56 @@ module.exports = class woo extends Exchange {
                     'SOL': 'SPL',
                     'TERRA': 'TERRA',
                     'TRON': 'TRC20',
-                    // from 'token_network' endpoint
+                },
+                'network-aliases-for-protocol': {
+                    'ALGO': 'ALGO',
+                    'ATOM': 'ATOM',
+                    'C Chain': 'AVAXC',
+                    'BEP2': 'BEP2',
+                    'BEP20': 'BEP20',
+                    'BTC': 'BTC',
+                    'BSV': 'BSV',
+                    'EOS': 'EOS',
+                    'ERC20': 'ERC20',
+                    'HECO': 'HRC20',
+                    'Polygon': 'POLYGON',
+                    'ONT': 'ONT',
+                    'SOL': 'SPL',
+                    'TERRA': 'TERRA',
+                    'TRON': 'TRC20',
+                },
+                'network-aliases-for-titles': {
                     'Algorand': 'ALGO',
+                    'Cosmos': 'ATOM',
                     'Avalanche C-Chain': 'AVAXC',
-                    'C Chain': 'AVAXC', // need to be renamed the protocol name itself
                     'Binance Chain': 'BEP2',
                     'Binance Smart Chain': 'BEP20',
-                    // EOS not needed, as matches token's protocol name
+                    'Bitcoin': 'BTC',
+                    'BSV': 'BSV',
+                    'EOS': 'EOS',
                     'Ethereum': 'ERC20',
                     'Huobi ECO Chain': 'HRC20',
-                    // 'HECO': 'HRC20', // need to be renamed the protocol name itself (atm, the key is duplicate in this object, so comment it.)
-                    'Polygon': 'POLYGON', // need to be renamed the protocol name itself
+                    'Polygon': 'POLYGON',
                     'Ontology': 'ONT',
                     'Solana': 'SPL',
                     'Terra Protocol': 'TERRA',
-                    'Tron': 'TRC20',
+                    'Tron': 'TERRA',
                 },
-                'networks': {
-                    'ERC20': 'ETH',
-                    'TRC20': 'TRX',
-                    'BSC20': 'BSC',
+                // these are exclusions, only manually can be linked to their supported network
+                'network-aliases-for-tokens': {
+                    'HT': 'ERC20',
+                    'OMG': 'ERC20',
+                    'UATOM': 'ATOM',
+                    'ZRX': 'ZRX',
                 },
-                // the below can be unified approach
-                'defaultNetworksPriorities': [
-                    'ERC20',
+                // TODO: can be unified, as overridable property in base
+                'defaultNetworkCodePriorities': [
                     'TRC20',
+                    'ERC20',
                     'BSC20',
                 ],
-                // if needed to change default network for specific token (as opposed to 'defaultNetworksPriorities' priorities) then list here
-                'defaultNetworksForCodes': {
+                // if needed to change default network for specific token (as opposed to 'defaultNetworkCodePriorities' priorities) then list here (TODO: can be unified, as overridable property in base)
+                'defaultNetworkCodeForCurrencies': {
                     'USDT': 'TRC20',
                     'BTC': 'BTC',
                 },
@@ -419,9 +443,8 @@ module.exports = class woo extends Exchange {
         const side = this.safeStringLower (trade, 'side');
         let id = this.safeString (trade, 'id');
         if (id === undefined) { // reconstruct artificially, if it doesn't exist
-            id = timestamp;
-            if (id !== undefined) {
-                id += '-' + market['id'] + '-' + amount;
+            if (timestamp !== undefined) {
+                id += this.numberToString (timestamp) + '-' + market['id'] + '-' + amount + '-' + price;
             }
         }
         let takerOrMaker = undefined;
@@ -449,9 +472,29 @@ module.exports = class woo extends Exchange {
         }, market);
     }
 
+    networkTitleAliases () {
+        // from 'token_network' endpoint
+        return {
+            'Algorand': 'ALGO',
+            'Avalanche C-Chain': 'AVAXC',
+            'C Chain': 'AVAXC', // need to be renamed the protocol name itself
+            'Binance Chain': 'BEP2',
+            'Binance Smart Chain': 'BEP20',
+            // EOS not needed, as matches token's protocol name
+            'Ethereum': 'ERC20',
+            'Huobi ECO Chain': 'HRC20',
+            // 'HECO': 'HRC20', // need to be renamed the protocol name itself (atm, the key is duplicate in this object, so comment it.)
+            'Polygon': 'POLYGON', // need to be renamed the protocol name itself
+            'Ontology': 'ONT',
+            'Solana': 'SPL',
+            'Terra Protocol': 'TERRA',
+            'Tron': 'TRC20',
+        };
+    }
+
     async fetchCurrencies (params = {}) {
         let method = undefined;
-        let result = {};
+        const result = {};
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchCurrencies', undefined, params);
         method = this.getSupportedMapping (marketType, {
             'spot': 'v1PublicGetToken',
@@ -526,204 +569,79 @@ module.exports = class woo extends Exchange {
             const currency = tokenRows[i];
             const id = this.safeString (currency, 'balance_token');
             const code = this.safeCurrencyCode (id);
+            const name = this.safeString (currency, 'fullname');
+            const decimals = this.safeInteger (currency, 'decimals');
+            const chainedTokenCode = this.safeString (currency, 'token');
+            const parts = chainedTokenCode.split ('_');
+            const chainNameId = this.safeString (parts, 0, chainedTokenCode);
+            const chainCode = this.safeNetworkCode (chainNameId);
             if (!(code in result)) {
                 const networks = this.safeValue (networksByCurrencyId, id, []);
                 const resultingNetworks = {};
                 for (let j = 0; j < networks.length; j++) {
-                    const networkEntry = networks[i];
+                    const networkEntry = networks[j];
                     const networkId = this.safeString (networkEntry, 'protocol');
-                    const networkCode = this.safeNetworkCode (networkId);
-                    c(networkId); 
-                    c(networkCode); continue;
-                    resultingNetworks[network] = {
-                        'info': chain,
+                    const networkCode = this.safeNetworkCode (networkId, 'network-aliases-for-protocol');
+                    const depositEnabled = this.safeInteger (networkEntry, 'allow_deposit', 0);
+                    const withdrawEnabled = this.safeInteger (networkEntry, 'allow_withdraw', 0);
+                    resultingNetworks[networkCode] = {
                         'id': networkId,
-                        'network': network,
+                        'network': networkCode,
                         'limits': {
                             'withdraw': {
-                                'min': minWithdraw,
-                                'max': maxWithdraw,
+                                'min': this.safeNumber (networkEntry, 'minimum_withdrawal'),
+                                'max': undefined,
+                            },
+                            'deposit': {
+                                'min': undefined,
+                                'max': undefined,
                             },
                         },
-                        'active': active,
+                        'active': undefined,
                         'deposit': depositEnabled,
                         'withdraw': withdrawEnabled,
-                        'fee': fee,
-                        'precision': precision,
+                        'fee': this.safeNumber (networkEntry, 'withdrawal_fee'),
+                        'precision': undefined, // will be filled down below
+                        'info': networkEntry,
                     };
                 }
+                const networksKeys = Object.keys (resultingNetworks);
+                const firstNetworkKey = networksKeys[0];
+                const networkLength = networksKeys.length;
                 result[code] = {
-                    // currency structure
-                    // ...
+                    'id': id,
+                    'name': name,
+                    'code': code,
+                    'precision': (networkLength === 1) ? decimals : undefined, // will be filled down below
+                    'active': undefined,
+                    'fee': (networkLength === 1) ? resultingNetworks[firstNetworkKey]['fee'] : undefined,
                     'networks': resultingNetworks,
-                    // ...
+                    'limits': {
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': (networkLength === 1) ? resultingNetworks[firstNetworkKey]['limits']['withdraw']['min'] : undefined,
+                            'max': undefined,
+                        },
+                    },
+                    'info': {}, // will be filled down below
                 };
-            } else {
-                
             }
+            const networkKeys = Object.keys (result[code]['networks']);
+            const firstNetworkKey = this.safeString (networkKeys, 0);
+            // now add the precision info from token-object
+            if (chainCode in result[code]['networks']) {
+                result[code]['networks'][chainCode]['precision'] = decimals;
+            } else {
+                // else chainCode will be the only token slug, which has only 1 supported network
+                result[code]['networks'][firstNetworkKey]['precision'] = decimals;
+            }
+            // now add the info object specifically for the item
+            result[code]['info'][chainedTokenCode] = currency;
         }
         return result;
-
-        
-                        // if (method < 34) {
-                        //     const derivedCurrenciesData = {};
-                        //     for (let i = 0; i < data1.length; i++) {
-                        //         const item = data1[i];
-                        //         const tokenCode = this.safeString (item, 'balance_token');
-                        //         const code = this.safeCurrencyCode (tokenCode);
-                        //         if (!(code in derivedCurrenciesData)) {
-                        //             derivedCurrenciesData[code] = {
-                        //                 'fullname': this.safeString (item, 'fullname'),
-                        //                 'networks': {},
-                        //             };
-                        //         }
-                        //         const chainedTokenCode = this.safeString (item, 'token');
-                        //         const parts = chainedTokenCode.split ('_');
-                        //         const networkId = (parts.length === 2) ? this.safeString (parts, 0) : chainedTokenCode;
-                        //         const networkUnifiedSlug = this.safeString (this.options['network-aliases'], networkId, networkId);
-                        //         derivedCurrenciesData[code]['networks'][networkId] = {
-                        //             'chained_currency_code': chainedTokenCode,
-                        //             'network_exchangeslug': networkUnifiedSlug,
-                        //             'decimals': this.safeString (item, 'decimals'),
-                        //             'info': { 'currencyInfo': item },
-                        //         };
-                        //     }
-                        // }
-
-                        
-                        // if (method < 34) {
-                        //     const derivedNetworksData = {};
-                        //     for (let i = 0; i < tokenNetworks.length; i++) {
-                        //         const item = tokenNetworks[i];
-                        //         const tokenCode = this.safeString (item, 'token');
-                        //         const code = this.safeCurrencyCode (tokenCode);
-                        //         if (!(code in derivedNetworksData)) {
-                        //             derivedNetworksData[code] = {
-                        //                 'networks': {},
-                        //             };
-                        //         }
-                        //         const protocol = this.safeString (item, 'protocol', '');
-                        //         const networkUnifiedSlug = this.safeString (this.options['network-aliases'], protocol, protocol);
-                        //         derivedNetworksData[code]['networks'][networkUnifiedSlug] = {
-                        //             'network_title': this.safeString (item, 'name'),
-                        //             'allow_deposit': this.safeString (item, 'allow_deposit'),
-                        //             'allow_withdraw': this.safeString (item, 'allow_withdraw'),
-                        //             'withdrawal_fee': this.safeString (item, 'withdrawal_fee'),
-                        //             'minimum_withdrawal': this.safeString (item, 'minimum_withdrawal'),
-                        //             'info': { 'networkInfo': item },
-                        //         };
-                        //     }
-                        //     // combine as final step.
-                        //     const keys = Object.keys (derivedCurrenciesData); // keys and items amount in derivedCurrenciesData and derivedNetworksData are same
-                        //     for (let i = 0; i < keys.length; i++) {
-                        //         const code = keys[i]; // keys are alraedy safeCurrencyCode-d
-                        //         const currencyInfo = derivedCurrenciesData[code];
-                        //         const currencyNetworks = derivedNetworksData[code];
-                        //         const currencyMerged = this.deepExtend (currencyInfo, currencyNetworks);
-                        //         // if tokenResponse each item contains only one child, then they are the same network . Quite bad behavior of their API for this matter, but as-is: the only solution is this as I think at this moment.
-                        //         const name = this.safeString (currencyMerged, 'fullname');
-                        //         const isActive = this.hasChildWithKeyValue (currencyNetworks, 'allow_deposit', 1) && this.hasChildWithKeyValue (currencyNetworks, 'allow_withdraw', 1);
-                        //         const networks = this.parseTokenNetworks (code, currencyMerged['networks']);
-                        //         result[code] = {
-                        //             'id': code,
-                        //             'name': name,
-                        //             'code': code,
-                        //             'precision': undefined,
-                        //             'info': { 'currencyInfo': currencyInfo, 'networkInfo': currencyNetworks },
-                        //             'active': isActive,
-                        //             'fee': undefined, // TO_DO
-                        //             'networks': networks,
-                        //             'limits': {
-                        //                 'deposit': {
-                        //                     'min': undefined,
-                        //                     'max': undefined,
-                        //                 },
-                        //                 'withdraw': {
-                        //                     'min': undefined, // TO_DO
-                        //                     'max': undefined, // TO_DO
-                        //                 },
-                        //             },
-                        //         };
-                        //     }
-                        // }
-                        // return result;
-
-    }
-
-    parseTokenNetworks (code, chains) {
-        //
-        // i.e. for USDT code:
-        // {
-        //     ALGO: {
-        //       chained_currency_code: 'ALGO_USDT',
-        //       network_exchangeslug: 'ALGO',
-        //       decimals: '6',
-        //       network_title: 'Algorand',
-        //       allow_deposit: '1',
-        //       allow_withdraw: '1',
-        //       withdrawal_fee: '0.50000000',
-        //       minimum_withdrawal: '10.00000000',
-        //       info: { currencyInfo: [Object], networkInfo: [Object] },
-        //     },
-        //     BEP20: {
-        //       chained_currency_code: 'BSC_USDT',
-        //       network_exchangeslug: 'BSC',
-        //       decimals: '18',
-        //       network_title: 'Binance Smart Chain',
-        //       allow_deposit: '1',
-        //       allow_withdraw: '1',
-        //       withdrawal_fee: '1.00000000',
-        //       minimum_withdrawal: '15.00000000',
-        //       info: { currencyInfo: [Object], networkInfo: [Object] },
-        //     },
-        //     ERC20: {
-        //       chained_currency_code: 'ETH_USDT',
-        //       network_exchangeslug: 'ETH',
-        //       decimals: '6',
-        //       network_title: 'Ethereum',
-        //       allow_deposit: '1',
-        //       allow_withdraw: '1',
-        //       withdrawal_fee: '35.00000000',
-        //       minimum_withdrawal: '50.00000000',
-        //       info: { currencyInfo: [Object], networkInfo: [Object] },
-        //     },
-        //     TRC20: {
-        //       chained_currency_code: 'TRON_USDT',
-        //       network_exchangeslug: 'TRON',
-        //       decimals: '6',
-        //       network_title: 'Tron',
-        //       allow_deposit: '1',
-        //       allow_withdraw: '1',
-        //       withdrawal_fee: '1.00000000',
-        //       minimum_withdrawal: '30.00000000',
-        //       info: { currencyInfo: [Object], networkInfo: [Object] },
-        //     }
-        // }
-        const networks = {};
-        const keys = Object.keys (chains);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const chain = chains[key];
-            const networkId = this.safeString (chain, 'network_exchangeslug');
-            const networkUnifiedSlug = this.safeString (this.options['network-aliases'], key, key);
-            const withdrawAllowed = this.safeInteger (chain, 'allow_withdraw', 0) === 1;
-            const depositAllowed = this.safeInteger (chain, 'allow_deposit', 0) === 1;
-            networks[networkUnifiedSlug] = {
-                'id': networkId,
-                'network': networkUnifiedSlug,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber (chain, 'minimum_withdrawal'),
-                        'max': undefined,
-                    },
-                },
-                'active': withdrawAllowed && depositAllowed,
-                'fee': this.safeNumber (chain, 'withdrawal_fee'),
-                'precision': this.safeInteger (chain, 'decimals'),
-                'info': chain,
-            };
-        }
-        return networks;
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -895,7 +813,6 @@ module.exports = class woo extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // TODO : is this https://docs.woo.org/#get-orders correclty implemented by me? Maybe I missed some things (like end-time handing?)
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -1211,9 +1128,10 @@ module.exports = class woo extends Exchange {
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const networkCode = this.safeValue (params, 'network');
+        const networkCodeDefault = this.defaultNetworkCodeForCurrency (code);
+        const networkCode = this.safeValue (params, 'network', networkCodeDefault);
         params = this.omit (params, 'network');
-        const [ codeForExchange, networkId ] = this.currencyCodeWithNetwork (currency['code'], networkCode, '_', true);
+        const codeForExchange = this.currencyCodeWithNetwork (currency['code'], networkCode, '_', true);
         const request = {
             'token': codeForExchange,
         };
@@ -1237,7 +1155,7 @@ module.exports = class woo extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': networkId,
+            'network': networkCode,
             'info': response,
         };
     }
@@ -1309,8 +1227,8 @@ module.exports = class woo extends Exchange {
         //         confirming_threshold: '27',
         //         audit_tag: '1',
         //         audit_result: '0',
-        //         balance_token: null, // TODO -write to support, that this seems broken
-        //         network_name: null // TODO -write to support, that this seems broken
+        //         balance_token: null, // TODO -write to support, that this seems broken. here should be the token id
+        //         network_name: null // TODO -write to support, that this seems broken. here should be the network id
         //       }
         //     ],
         //     meta: { total: '1', records_per_page: '25', current_page: '1' },
@@ -1511,7 +1429,7 @@ module.exports = class woo extends Exchange {
                 url += '?' + this.urlencode (params);
             }
             auth += '|' + ts;
-            const signature = this.hmac (auth, this.encode (this.secret), 'sha256');
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
             headers = {
                 'x-api-key': this.apiKey,
                 'x-api-signature': signature,
@@ -1538,101 +1456,77 @@ module.exports = class woo extends Exchange {
         }
     }
 
-    getDefaultNetworkPairForCurrency (code, networkCode) {
+    defaultNetworkCodeForCurrency (code) { // TODO: can be moved into base as an unified method
         // at first, try to find if user or exchange has defined default networks for the specific currency
-        const userChosenNetork = networkCode;
-        const defaultNetworksForCodes = this.safeValue (this.options, 'defaultNetworksForCodes');
-        if (defaultNetworksForCodes !== undefined) {
-            const defaultNetworkCode = this.safeStringUpper (defaultNetworksForCodes, code);
+        const defaultNetworkCodeForCurrencies = this.safeValue (this.options, 'defaultNetworkCodeForCurrencies');
+        if (defaultNetworkCodeForCurrencies !== undefined) {
+            const defaultNetworkCode = this.safeStringUpper (defaultNetworkCodeForCurrencies, code);
             if (defaultNetworkCode !== undefined) {
-                const networks = this.safeValue (this.options, 'networks');
-                if (networks !== undefined) {
-                    const unifiedNetworkCode = (userChosenNetork !== undefined) ? this.safeDetectChainSlug (userChosenNetork) : defaultNetworkCode;
-                    const exchangeNetworkSlug = this.safeString (networks, unifiedNetworkCode, defaultNetworkCode);
-                    if (exchangeNetworkSlug !== undefined) {
-                        return {
-                            'id': exchangeNetworkSlug,
-                            'code': unifiedNetworkCode,
-                        };
+                return defaultNetworkCode;
+            }
+        }
+        // if not found by above 'defaultNetworkCodeForCurrencies' for specific currency, then try with `defaultNetworkCodePriorities`
+        const currencyItem = this.currency (code);
+        const networks = currencyItem['networks'];
+        const defaultNetworkCodePriorities = this.safeValue (this.options, 'defaultNetworkCodePriorities');
+        if (defaultNetworkCodePriorities !== undefined) {
+            // itterate according to priority networks
+            const networksKeys = Object.keys (networks);
+            if (networksKeys.length > 0) {
+                for (let i = 0; i < defaultNetworkCodePriorities.length; i++) {
+                    const networkCode = defaultNetworkCodePriorities[i];
+                    if (networkCode in networks) {
+                        return networkCode;
                     }
                 }
             }
         }
-        // if not found by above 'defaultNetworks' for specific currency, then try with global priorities
-        const priorityNetworks = this.safeValue (this.options, 'defaultNetworksPriorities');
-        const currencyItem = this.currencies[code];
-        const networks = currencyItem['networks'];
-        // itterate according to priority networks
-        if (priorityNetworks !== undefined) {
-            for (let j = 0; j < priorityNetworks.length; j++) {
-                const networkId = priorityNetworks[j];
-                if (networkId in networks) {
-                    const networkItem = networks[networkId];
-                    return {
-                        'id': networkItem['network_exchangeslug'],
-                        'code': networkId,
-                    };
-                }
-            }
-        }
-        return undefined;
+        // if it was not returned according to above options, then return the first network of currency
+        const networkKeys = Object.keys (networks);
+        return this.safeValue (networkKeys, 0);
     }
 
-    currencyCodeWithNetwork (code, networkCode, divider = '_', beforOrAfter = true) {
-        // at first, try to get according to default networks
-        const defaultNetworkPair = this.getDefaultNetworkPairForCurrency (code, networkCode);
-        if (defaultNetworkPair !== undefined) {
-            const id = defaultNetworkPair['id'];
-            let networkizedCode = undefined;
-            if (code === id) { // if there was no dash between pair, then its same
-                networkizedCode = code;
-            } else { // if there was dash, then needs to be joined
-                if (beforOrAfter) {
-                    networkizedCode = id + divider + code;
-                } else {
-                    networkizedCode = code + divider + id;
-                }
-            }
-            const networkCode = defaultNetworkPair['code'];
-            return [ networkizedCode, networkCode ];
+    currencyCodeWithNetwork (code, networkCode, divider = '_', beforeOrAfter = true) { // TODO: can be moved into base as an unified method
+        const networkAliases = this.safeValue (this.options, 'network-aliases', {});
+        const networkId = this.getKeyByValue (networkAliases, networkCode);
+        if (beforeOrAfter) {
+            return networkId + divider + code;
         } else {
-            // if it was not returned above according to defaults & options, then return the first network
-            const currencyItem = this.currencies[code];
-            const networks = currencyItem['networks'];
-            const networkKeys = Object.keys (networks);
-            for (let j = 0; j < networkKeys.length; j++) {
-                const networkCode = networkKeys[j];
-                const networkItem = networks[networkCode];
-                const networkizedCode = this.safeString (networkItem, 'chained_currency_code');
-                if (networkizedCode !== undefined) {
-                    return [ networkizedCode, networkCode ];
-                }
-            }
+            return code + divider + networkId;
         }
-        return undefined;
     }
 
-    getCurrencyByNetworkizedCode (chainedCode) { // This method is not needed for all exchanges, but only for those exchange classes, which has composited ids (like "ETH_USDT", "TRC_USDT" ...)
-        const keys = Object.keys (this.currencies);
+    getKeyByValue (object, value) { // TODO: can be moved into base-helpers as an unified method
+        const keys = Object.keys (object);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const currencyItem = this.currencies[key];
-            const currencyCode = currencyItem['code'];
-            if (chainedCode === currencyCode) {
-                return chainedCode;
-            } else {
-                const networks = currencyItem['networks'];
-                const networkKeys = Object.keys (networks);
-                for (let j = 0; j < networkKeys.length; j++) {
-                    const networkKey = networkKeys[j];
-                    const networkItem = networks[networkKey];
-                    if (networkItem['chained_currency_code'] === chainedCode) {
-                        return currencyItem;
-                    }
-                }
+            if (object[key] === value) {
+                return key;
             }
         }
         return undefined;
+    }
+
+    getCurrencyByNetworkizedCode (chainedTokenCode) {  // TODO: can be moved into base as an unified method (This method is useful to return network_combined ids , like "ETH_USDT", "TRON_USDT" ...)
+        if (chainedTokenCode in this.currencies) {
+            return this.currencies[chainedTokenCode];
+        } else {
+            let tokenCode = undefined;
+            const delimiter = '_';
+            const parts = chainedTokenCode.split (delimiter);
+            if (parts.length === 1) {
+                tokenCode = chainedTokenCode;
+            } else if (parts.length === 2) {
+                tokenCode = this.safeString (parts, 1);
+            } else {
+                tokenCode = this.safeString (parts, 1) + '_' + this.safeString (parts, 2);
+            }
+            if (tokenCode in this.currencies) {
+                return this.currencies[tokenCode];
+            } else {
+                return undefined;
+            }
+        }
     }
 
     hasChildWithKeyValue (obj, targetKey, targetValue) { // TODO: This can be moved into base, because it's useful in analog cases, when you want to find if any from i.e.'3-4-5 networks children properties' of this currency has a key (i.e. 'allow_deposits') set to specific value (i.e. '1'). Please see how this method is implemented above, and lmk.
@@ -1648,7 +1542,7 @@ module.exports = class woo extends Exchange {
         return false;
     }
 
-    safeNetworkCode (networkId) {
-        return this.safeString (this.options['network-aliases'], networkId, networkId);
+    safeNetworkCode (networkId, networkPart = 'network-aliases') { // TODO: can be moved into base as an unified method
+        return this.safeString (this.options[networkPart], networkId, networkId);
     }
 };
