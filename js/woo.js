@@ -456,26 +456,6 @@ module.exports = class woo extends Exchange {
         }, market);
     }
 
-    networkTitleAliases () {
-        // from 'token_network' endpoint
-        return {
-            'Algorand': 'ALGO',
-            'Avalanche C-Chain': 'AVAXC',
-            'C Chain': 'AVAXC', // need to be renamed the protocol name itself
-            'Binance Chain': 'BEP2',
-            'Binance Smart Chain': 'BEP20',
-            // EOS not needed, as matches token's protocol name
-            'Ethereum': 'ERC20',
-            'Huobi ECO Chain': 'HRC20',
-            // 'HECO': 'HRC20', // need to be renamed the protocol name itself (atm, the key is duplicate in this object, so comment it.)
-            'Polygon': 'POLYGON', // need to be renamed the protocol name itself
-            'Ontology': 'ONT',
-            'Solana': 'SPL',
-            'Terra Protocol': 'TERRA',
-            'Tron': 'TRC20',
-        };
-    }
-
     async fetchCurrencies (params = {}) {
         let method = undefined;
         const result = {};
@@ -565,7 +545,8 @@ module.exports = class woo extends Exchange {
                 for (let j = 0; j < networks.length; j++) {
                     const networkEntry = networks[j];
                     const networkId = this.safeString (networkEntry, 'protocol');
-                    const networkCode = this.safeString (this.options['network-aliases-for-protocol'], chainNameId, chainNameId);
+                    const networkIdManualMatched = this.safeString (this.options['network-aliases-for-tokens'], networkId, networkId);
+                    const networkCode = this.safeString2 (this.options['network-aliases-for-protocol'], chainNameId, chainNameId, networkIdManualMatched);
                     const depositEnabled = this.safeInteger (networkEntry, 'allow_deposit', 0);
                     const withdrawEnabled = this.safeInteger (networkEntry, 'allow_withdraw', 0);
                     resultingNetworks[networkCode] = {
