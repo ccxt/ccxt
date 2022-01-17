@@ -1899,9 +1899,9 @@ class Exchange(object):
             percentage = self.safe_value(ticker, 'percentage')
             average = self.safe_value(ticker, 'average')
             vwap = self.safe_value(ticker, 'vwap')
+            baseVolume = self.safe_value(ticker, 'baseVolume')
+            quoteVolume = self.safe_value(ticker, 'quoteVolume')
             if vwap is None:
-                baseVolume = self.safe_value(ticker, 'baseVolume')
-                quoteVolume = self.safe_value(ticker, 'quoteVolume')
                 vwap = Precise.string_div(quoteVolume, baseVolume)
             if (last is not None) and (close is None):
                 close = last
@@ -1928,6 +1928,8 @@ class Exchange(object):
                 'percentage': self.parse_number(percentage),
                 'average': self.parse_number(average),
                 'vwap': self.parse_number(vwap),
+                'baseVolume': self.parse_number(baseVolume),
+                'quoteVolume': self.parse_number(quoteVolume),
             })
 
     def parse_tickers(self, tickers, symbols=None, params={}):
