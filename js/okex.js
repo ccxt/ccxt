@@ -3329,10 +3329,11 @@ module.exports = class okex extends Exchange {
         //
         // in the response above nextFundingRate is actually two funding rates from now
         //
-        const nextFundingRateTimestamp = this.safeInteger (fundingRate, 'fundingTime');
+        const nextFundingRateTimestamp = this.safeInteger (fundingRate, 'nextFundingTime');
         const marketId = this.safeString (fundingRate, 'instId');
         const symbol = this.safeSymbol (marketId, market);
-        const nextFundingRate = this.safeNumber (fundingRate, 'fundingRate');
+        const nextFundingRate = this.safeNumber (fundingRate, 'nextFundingRate');
+        const fundingTime = this.safeInteger (fundingRate, 'fundingTime');
         // https://www.okex.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
         // > The current interest is 0.
         return {
@@ -3344,11 +3345,11 @@ module.exports = class okex extends Exchange {
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'previousFundingRate': undefined,
+            'fundingRate': this.safeNumber (fundingRate, 'fundingRate'),
+            'fundingTimestamp': fundingTime,
+            'fundingDatetime': this.iso8601 (fundingTime),
             'nextFundingRate': nextFundingRate,
-            'previousFundingTimestamp': undefined,
             'nextFundingTimestamp': nextFundingRateTimestamp,
-            'previousFundingDatetime': undefined,
             'nextFundingDatetime': this.iso8601 (nextFundingRateTimestamp),
         };
     }

@@ -2356,9 +2356,9 @@ module.exports = class ftx extends Exchange {
         //       "openInterest": "48307.96"
         //     }
         //
-        const nextFundingRate = this.safeNumber (fundingRate, 'nextFundingRate');
-        const nextFundingRateDatetimeRaw = this.safeString (fundingRate, 'nextFundingTime');
-        const nextFundingRateTimestamp = this.parse8601 (nextFundingRateDatetimeRaw);
+        const fundingRate = this.safeNumber (fundingRate, 'nextFundingRate');
+        const fundingRateDatetimeRaw = this.safeString (fundingRate, 'nextFundingTime');
+        const fundingRateTimestamp = this.parse8601 (fundingRateDatetimeRaw);
         const estimatedSettlePrice = this.safeNumber (fundingRate, 'predictedExpirationPrice');
         return {
             'info': fundingRate,
@@ -2369,12 +2369,12 @@ module.exports = class ftx extends Exchange {
             'estimatedSettlePrice': estimatedSettlePrice,
             'timestamp': undefined,
             'datetime': undefined,
-            'previousFundingRate': undefined,
-            'nextFundingRate': nextFundingRate,
-            'previousFundingTimestamp': undefined,
-            'nextFundingTimestamp': nextFundingRateTimestamp,
-            'previousFundingDatetime': undefined,
-            'nextFundingDatetime': this.iso8601 (nextFundingRateTimestamp),
+            'fundingRate': fundingRate,
+            'fundingTimestamp': fundingRateTimestamp,
+            'fundingDatetime': this.iso8601 (fundingRateTimestamp),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
         };
     }
 

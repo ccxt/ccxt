@@ -4406,7 +4406,7 @@ module.exports = class huobi extends Exchange {
         // }
         //
         const nextFundingRate = this.safeNumber (fundingRate, 'estimated_rate');
-        const previousFundingTimestamp = this.safeInteger (fundingRate, 'funding_time');
+        const fundingTimestamp = this.safeInteger (fundingRate, 'funding_time');
         const nextFundingTimestamp = this.safeInteger (fundingRate, 'next_funding_time');
         const marketId = this.safeString (fundingRate, 'contract_code');
         const symbol = this.safeSymbol (marketId, market);
@@ -4419,11 +4419,11 @@ module.exports = class huobi extends Exchange {
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'previousFundingRate': this.safeNumber (fundingRate, 'funding_rate'),
+            'fundingRate': this.safeNumber (fundingRate, 'funding_rate'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601 (fundingTimestamp),
             'nextFundingRate': nextFundingRate,
-            'previousFundingTimestamp': previousFundingTimestamp,
             'nextFundingTimestamp': nextFundingTimestamp,
-            'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
             'nextFundingDatetime': this.iso8601 (nextFundingTimestamp),
         };
     }

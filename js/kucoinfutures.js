@@ -1202,7 +1202,7 @@ module.exports = class kucoinfutures extends kucoin {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const timestamp = this.safeNumber (data, 'timePoint');
+        const fundingTimestamp = this.safeNumber (data, 'timePoint');
         return {
             'info': data,
             'symbol': symbol,
@@ -1212,11 +1212,11 @@ module.exports = class kucoinfutures extends kucoin {
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'previousFundingRate': this.safeNumber (data, 'value'),
+            'fundingRate': this.safeNumber (data, 'value'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601 (fundingTimestamp),
             'nextFundingRate': this.safeNumber (data, 'predictedValue'),
-            'previousFundingTimestamp': timestamp,
             'nextFundingTimestamp': undefined,
-            'previousFundingDatetime': this.iso8601 (timestamp),
             'nextFundingDatetime': undefined,
         };
     }
