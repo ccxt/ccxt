@@ -757,10 +757,10 @@ module.exports = class ascendex extends Exchange {
         const type = this.safeString (ticker, 'type');
         const delimiter = (type === 'spot') ? '/' : undefined;
         const symbol = this.safeSymbol (marketId, market, delimiter);
-        const close = this.safeNumber (ticker, 'close');
+        const close = this.safeString (ticker, 'close');
         const bid = this.safeValue (ticker, 'bid', []);
         const ask = this.safeValue (ticker, 'ask', []);
-        const open = this.safeNumber (ticker, 'open');
+        const open = this.safeString (ticker, 'open');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -779,10 +779,10 @@ module.exports = class ascendex extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'volume'),
+            'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
