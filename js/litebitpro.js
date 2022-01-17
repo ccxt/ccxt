@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InvalidNonce, ExchangeError, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, BadRequest, RateLimitExceeded, PermissionDenied, OnMaintenance, ExchangeNotAvailable, NotSupported } = require ('./base/errors');
+const { DDoSProtection, InvalidNonce, ExchangeError, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, BadRequest, RateLimitExceeded, PermissionDenied, OnMaintenance, ExchangeNotAvailable, NotSupported } = require ('./base/errors');
 const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 

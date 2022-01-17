@@ -13,9 +13,11 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
+from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -114,11 +116,11 @@ class litebitpro(Exchange):
                     '10000': BadRequest,  # This error code is used for validation errors. See message for more information about the validation error.
                     '10001': InvalidOrder,  # The notional value of your order is too low. Use GET /market's minimum_amount_quote to retrieve the market's minimum notional value.
                     '10002': InvalidOrder,  # Order time in force is missing.
-                    '10003': InvalidOrder,  # Post-only is only allowed for limit orders.
+                    '10003': OnMaintenance,  # Post-only is only allowed for limit orders.
                     '10004': InvalidOrder,  # Price must be higher than zero.
                     '10005': InvalidOrder,  # Price is required for limit orders.
                     '10006': InvalidOrder,  # Type is required for orders.
-                    '10007': AuthenticationError,  # Time window cannot be smaller than 1 or larger than 60000 milliseconds.
+                    '10007': InvalidNonce,  # Time window cannot be smaller than 1 or larger than 60000 milliseconds.
                     '10008': AuthenticationError,  # Unauthenticated.
                     '10009': PermissionDenied,  # Unauthorized.
                     '10010': BadRequest,  # Invalid JSON.
@@ -126,18 +128,18 @@ class litebitpro(Exchange):
                     '10012': BadRequest,  # Invalid channel.
                     '10013': AuthenticationError,  # Any of: Could not derive authentication method. Invalid API key and/or signature. Invalid timestamp. Invalid API key. Invalid signature. Connection is already authenticated.
                     '20000': InsufficientFunds,  # Insufficient funds.
-                    '20001': ExchangeError,  # Maximum of open orders allowed per user per market.
+                    '20001': DDoSProtection,  # Maximum of open orders allowed per user per market.
                     '20002': ExchangeError,  # Insufficient liquidity.
                     '20003': RateLimitExceeded,  # Rate limit exceeded.
-                    '20004': ExchangeError,  # Transient request error without any available public information.
+                    '20004': ExchangeNotAvailable,  # Transient request error without any available public information.
                     '30000': OnMaintenance,  # Exchange is in maintenance mode.
                     '30001': ExchangeError,  # An unexpected error occurred. The execution status of your request is unknown.
-                    '40000': ExchangeError,  # Only post-only orders are currently accepted by the matching engine.
-                    '40001': ExchangeError,  # Only cancel order requests are currently accepted by the matching engine.
+                    '40000': OnMaintenance,  # Only post-only orders are currently accepted by the matching engine.
+                    '40001': OnMaintenance,  # Only cancel order requests are currently accepted by the matching engine.
                     '40002': ExchangeError,  # Order book limit reached, only taker orders are allowed.
                     '40003': ExchangeNotAvailable,  # Market overloaded.
-                    '40004': ExchangeError,  # Market is halted.
-                    '40005': ExchangeError,  # Market is inactive.
+                    '40004': OnMaintenance,  # Market is halted.
+                    '40005': OnMaintenance,  # Market is inactive.
                     '50000': AuthenticationError,  # Your request was rejected, because it was received outside the allowed time window.
                 },
                 'broad': {
@@ -614,10 +616,10 @@ class litebitpro(Exchange):
                 if expireAt is None:
                     raise ArgumentsRequired(self.id + ' createOrder requires a expireAt parameter for a ' + timeInForce + ' order')
                 request['expire_at'] = expireAt
-        clientId = self.safe_string_2(params, 'clientId', 'client_id')
+        clientId = self.safe_string_2(params, 'client_id', 'clientOrderId')
         if clientId is not None:
             request['client_id'] = clientId
-        params = self.omit(params, ['stop', 'stopPrice', 'stop_price', 'postOnly', 'post_only', 'timeInForce', 'time_in_force', 'expireAt', 'expire_at', 'clientId', 'client_id'])
+        params = self.omit(params, ['stop', 'stopPrice', 'stop_price', 'postOnly', 'post_only', 'timeInForce', 'time_in_force', 'expireAt', 'expire_at', 'client_id', 'clientOrderId'])
         if type == 'market':
             cost = None
             if price is not None:

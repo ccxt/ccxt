@@ -103,11 +103,11 @@ class litebitpro extends Exchange {
                     '10000' => '\\ccxt\\BadRequest', // This error code is used for validation errors. See message for more information about the validation error.
                     '10001' => '\\ccxt\\InvalidOrder', // The notional value of your order is too low. Use GET /market's minimum_amount_quote to retrieve the market's minimum notional value.
                     '10002' => '\\ccxt\\InvalidOrder', // Order time in force is missing.
-                    '10003' => '\\ccxt\\InvalidOrder', // Post-only is only allowed for limit orders.
+                    '10003' => '\\ccxt\\OnMaintenance', // Post-only is only allowed for limit orders.
                     '10004' => '\\ccxt\\InvalidOrder', // Price must be higher than zero.
                     '10005' => '\\ccxt\\InvalidOrder', // Price is required for limit orders.
                     '10006' => '\\ccxt\\InvalidOrder', // Type is required for orders.
-                    '10007' => '\\ccxt\\AuthenticationError', // Time window cannot be smaller than 1 or larger than 60000 milliseconds.
+                    '10007' => '\\ccxt\\InvalidNonce', // Time window cannot be smaller than 1 or larger than 60000 milliseconds.
                     '10008' => '\\ccxt\\AuthenticationError', // Unauthenticated.
                     '10009' => '\\ccxt\\PermissionDenied', // Unauthorized.
                     '10010' => '\\ccxt\\BadRequest', // Invalid JSON.
@@ -115,18 +115,18 @@ class litebitpro extends Exchange {
                     '10012' => '\\ccxt\\BadRequest', // Invalid channel.
                     '10013' => '\\ccxt\\AuthenticationError', // Any of => Could not derive authentication method. Invalid API key and/or signature. Invalid timestamp. Invalid API key. Invalid signature. Connection is already authenticated.
                     '20000' => '\\ccxt\\InsufficientFunds', // Insufficient funds.
-                    '20001' => '\\ccxt\\ExchangeError', // Maximum of open orders allowed per user per market.
+                    '20001' => '\\ccxt\\DDoSProtection', // Maximum of open orders allowed per user per market.
                     '20002' => '\\ccxt\\ExchangeError', // Insufficient liquidity.
                     '20003' => '\\ccxt\\RateLimitExceeded', // Rate limit exceeded.
-                    '20004' => '\\ccxt\\ExchangeError', // Transient request error without any available public information.
+                    '20004' => '\\ccxt\\ExchangeNotAvailable', // Transient request error without any available public information.
                     '30000' => '\\ccxt\\OnMaintenance', // Exchange is in maintenance mode.
                     '30001' => '\\ccxt\\ExchangeError', // An unexpected error occurred. The execution status of your request is unknown.
-                    '40000' => '\\ccxt\\ExchangeError', // Only post-only orders are currently accepted by the matching engine.
-                    '40001' => '\\ccxt\\ExchangeError', // Only cancel order requests are currently accepted by the matching engine.
+                    '40000' => '\\ccxt\\OnMaintenance', // Only post-only orders are currently accepted by the matching engine.
+                    '40001' => '\\ccxt\\OnMaintenance', // Only cancel order requests are currently accepted by the matching engine.
                     '40002' => '\\ccxt\\ExchangeError', // Order book limit reached, only taker orders are allowed.
                     '40003' => '\\ccxt\\ExchangeNotAvailable', // Market overloaded.
-                    '40004' => '\\ccxt\\ExchangeError', // Market is halted.
-                    '40005' => '\\ccxt\\ExchangeError', // Market is inactive.
+                    '40004' => '\\ccxt\\OnMaintenance', // Market is halted.
+                    '40005' => '\\ccxt\\OnMaintenance', // Market is inactive.
                     '50000' => '\\ccxt\\AuthenticationError', // Your request was rejected, because it was received outside the allowed time window.
                 ),
                 'broad' => array(
@@ -639,11 +639,11 @@ class litebitpro extends Exchange {
                 $request['expire_at'] = $expireAt;
             }
         }
-        $clientId = $this->safe_string_2($params, 'clientId', 'client_id');
+        $clientId = $this->safe_string_2($params, 'client_id', 'clientOrderId');
         if ($clientId !== null) {
             $request['client_id'] = $clientId;
         }
-        $params = $this->omit($params, ['stop', 'stopPrice', 'stop_price', 'postOnly', 'post_only', 'timeInForce', 'time_in_force', 'expireAt', 'expire_at', 'clientId', 'client_id' ]);
+        $params = $this->omit($params, ['stop', 'stopPrice', 'stop_price', 'postOnly', 'post_only', 'timeInForce', 'time_in_force', 'expireAt', 'expire_at', 'client_id', 'clientOrderId' ]);
         if ($type === 'market') {
             $cost = null;
             if ($price !== null) {
