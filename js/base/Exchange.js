@@ -1301,6 +1301,12 @@ module.exports = class Exchange {
             // timestamp and symbol operations don't belong in safeTicker
             // they should be done in the derived classes
             return this.extend (ticker, {
+                'bid': this.safeNumber (ticker, 'buy'),
+                'bidVolume': this.safeNumber (ticker, 'bidVolume'),
+                'ask': this.safeNumber (ticker, 'ask'),
+                'askVolume': this.safeNumber (ticker, 'askVolume'),
+                'high': this.safeNumber (ticker, 'high'),
+                'low': this.safeNumber (ticker, 'low'),
                 'open': this.parseNumber (open),
                 'close': this.parseNumber (close),
                 'last': this.parseNumber (last),
