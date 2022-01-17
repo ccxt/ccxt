@@ -30,7 +30,7 @@ module.exports = class woo extends Exchange {
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': false,
                 'fetchCurrencies': true,
-                'fetchDepositAddress': true,
+                'fetchDepositAddress': false,
                 'fetchDeposits': true,
                 'fetchFundingRateHistory': false,
                 'fetchMarkets': true,
@@ -169,6 +169,7 @@ module.exports = class woo extends Exchange {
                     'TERRA': 'TERRA',
                     'TRON': 'TRC20',
                 },
+                // network-aliases for titles are removed (just in case, if needed: pastebin.com/raw/BvgKViPN )
                 'network-aliases-for-protocol': {
                     'ALGO': 'ALGO',
                     'ATOM': 'ATOM',
@@ -185,23 +186,6 @@ module.exports = class woo extends Exchange {
                     'SOL': 'SPL',
                     'TERRA': 'TERRA',
                     'TRON': 'TRC20',
-                },
-                'network-aliases-for-titles': {
-                    'Algorand': 'ALGO',
-                    'Cosmos': 'ATOM',
-                    'Avalanche C-Chain': 'AVAXC',
-                    'Binance Chain': 'BEP2',
-                    'Binance Smart Chain': 'BEP20',
-                    'Bitcoin': 'BTC',
-                    'BSV': 'BSV',
-                    'EOS': 'EOS',
-                    'Ethereum': 'ERC20',
-                    'Huobi ECO Chain': 'HRC20',
-                    'Polygon': 'POLYGON',
-                    'Ontology': 'ONT',
-                    'Solana': 'SPL',
-                    'Terra Protocol': 'TERRA',
-                    'Tron': 'TERRA',
                 },
                 // these are exclusions, only manually can be linked to their supported network
                 'network-aliases-for-tokens': {
@@ -574,14 +558,14 @@ module.exports = class woo extends Exchange {
             const chainedTokenCode = this.safeString (currency, 'token');
             const parts = chainedTokenCode.split ('_');
             const chainNameId = this.safeString (parts, 0, chainedTokenCode);
-            const chainCode = this.safeNetworkCode (chainNameId);
+            const chainCode = this.safeString (this.options['network-aliases'], chainNameId, chainNameId);
             if (!(code in result)) {
                 const networks = this.safeValue (networksByCurrencyId, id, []);
                 const resultingNetworks = {};
                 for (let j = 0; j < networks.length; j++) {
                     const networkEntry = networks[j];
                     const networkId = this.safeString (networkEntry, 'protocol');
-                    const networkCode = this.safeNetworkCode (networkId, 'network-aliases-for-protocol');
+                    const networkCode = this.safeString (this.options['network-aliases-for-protocol'], chainNameId, chainNameId);
                     const depositEnabled = this.safeInteger (networkEntry, 'allow_deposit', 0);
                     const withdrawEnabled = this.safeInteger (networkEntry, 'allow_withdraw', 0);
                     resultingNetworks[networkCode] = {
@@ -1123,12 +1107,15 @@ module.exports = class woo extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        // this method is TODO because of networks unification
         await this.loadMarkets ();
         const currency = this.currency (code);
         const networkCodeDefault = this.defaultNetworkCodeForCurrency (code);
         const networkCode = this.safeValue (params, 'network', networkCodeDefault);
         params = this.omit (params, 'network');
-        const codeForExchange = this.currencyCodeWithNetwork (currency['code'], networkCode, '_', true);
+        const networkAliases = this.safeValue (this.options, 'network-aliases', {});
+        const networkId = this.getKeyByValue (networkAliases, networkCode);
+        const codeForExchange = networkId + '_' + currency['code'];
         const request = {
             'token': codeForExchange,
         };
@@ -1238,16 +1225,17 @@ module.exports = class woo extends Exchange {
     parseTransaction (transaction, currency = undefined) {
         // example in fetchTransactions
         const networkizedCode = this.safeString (transaction, 'token');
-        if (currency === undefined) {
-            currency = this.getCurrencyByNetworkizedCode (networkizedCode);
-        }
         let code = undefined;
         if (currency !== undefined) {
             code = currency['code'];
         } else {
             const parts = networkizedCode.split ('_');
-            const firstPart = this.safeValue (parts, 0);
-            const currencyId = this.safeValue (parts, 1, firstPart);
+            const partsLength = parts.length;
+            const firstPart = this.safeString (parts, 0);
+            let currencyId = this.safeString (parts, 1, firstPart);
+            if (partsLength > 2) {
+                currencyId += '_' + this.safeString (parts, 2);
+            }
             code = this.safeCurrencyCode (currencyId);
         }
         let movementDirection = this.safeStringLower (transaction, 'token_side');
@@ -1480,66 +1468,5 @@ module.exports = class woo extends Exchange {
         // if it was not returned according to above options, then return the first network of currency
         const networkKeys = Object.keys (networks);
         return this.safeValue (networkKeys, 0);
-    }
-
-    currencyCodeWithNetwork (code, networkCode, divider = '_', beforeOrAfter = true) { // TODO: can be moved into base as an unified method
-        const networkAliases = this.safeValue (this.options, 'network-aliases', {});
-        const networkId = this.getKeyByValue (networkAliases, networkCode);
-        if (beforeOrAfter) {
-            return networkId + divider + code;
-        } else {
-            return code + divider + networkId;
-        }
-    }
-
-    getKeyByValue (object, value) { // TODO: can be moved into base-helpers as an unified method
-        const keys = Object.keys (object);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            if (object[key] === value) {
-                return key;
-            }
-        }
-        return undefined;
-    }
-
-    getCurrencyByNetworkizedCode (chainedTokenCode) {  // TODO: can be moved into base as an unified method (This method is useful to return network_combined ids , like "ETH_USDT", "TRON_USDT" ...)
-        if (chainedTokenCode in this.currencies) {
-            return this.currencies[chainedTokenCode];
-        } else {
-            let tokenCode = undefined;
-            const delimiter = '_';
-            const parts = chainedTokenCode.split (delimiter);
-            const partsLength = parts.length;
-            if (partsLength === 1) {
-                tokenCode = chainedTokenCode;
-            } else if (partsLength === 2) {
-                tokenCode = this.safeString (parts, 1);
-            } else {
-                tokenCode = this.safeString (parts, 1) + '_' + this.safeString (parts, 2);
-            }
-            if (tokenCode in this.currencies) {
-                return this.currencies[tokenCode];
-            } else {
-                return undefined;
-            }
-        }
-    }
-
-    hasChildWithKeyValue (obj, targetKey, targetValue) { // TODO: This can be moved into base, because it's useful in analog cases, when you want to find if any from i.e.'3-4-5 networks children properties' of this currency has a key (i.e. 'allow_deposits') set to specific value (i.e. '1'). Please see how this method is implemented above, and lmk.
-        const keys = Object.keys (obj);
-        for (let i = 0; i < keys.length; i++) {
-            const currentKey = keys[i];
-            const childMember = obj[currentKey];
-            const value = this.safeInteger (childMember, targetKey, undefined);
-            if (value === targetValue) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    safeNetworkCode (networkId, networkPart = 'network-aliases') { // TODO: can be moved into base as an unified method
-        return this.safeString (this.options[networkPart], networkId, networkId);
     }
 };
