@@ -5051,6 +5051,7 @@ module.exports = class binance extends Exchange {
             } else if (giftcard) {
                 query = this.urlencode ({
                     'timestamp': this.nonce (),
+                    'recvWindow': recvWindow,
                 });
             } else {
                 query = this.urlencode (this.extend ({
@@ -5340,10 +5341,9 @@ module.exports = class binance extends Exchange {
         };
     }
 
-    async redeemCode (id, params = {}) {
-        // id can be either referenceNo or code
+    async redeemCode (giftcardCode, params = {}) {
         const request = {
-            'code': id,
+            'code': giftcardCode,
         };
         const response = await this.sapiPostGiftcardRedeemCode (this.extend (request, params));
         //
