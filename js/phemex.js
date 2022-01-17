@@ -130,6 +130,7 @@ module.exports = class phemex extends Exchange {
                         'exchange/wallets/v2/depositAddress', // ?currency=<currency>
                         'api-data/spots/funds', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/convert', // ?startTime=<startTime>&endTime=<endTime>&limit=<limit>&offset=<offset>
+                        'assets/transfer', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                     ],
                     'post': [
                         // spot
