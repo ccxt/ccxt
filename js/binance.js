@@ -5018,6 +5018,7 @@ module.exports = class binance extends Exchange {
                 throw new AuthenticationError (this.id + ' historicalTrades endpoint requires `apiKey` credential');
             }
         }
+        const giftcard = (api === 'sapi') && (path.slice (0, 8) === 'giftcard');
         const userDataStream = (path === 'userDataStream') || (path === 'listenKey');
         if (userDataStream) {
             if (this.apiKey) {
@@ -5046,7 +5047,7 @@ module.exports = class binance extends Exchange {
                     'timestamp': this.nonce (),
                     'recvWindow': recvWindow,
                 }, params));
-            } else if (path.indexOf ('giftcard') >= 0) {
+            } else if (giftcard) {
                 query = this.urlencode ({
                     'timestamp': this.nonce (),
                 });
@@ -5063,7 +5064,7 @@ module.exports = class binance extends Exchange {
             };
             if ((method === 'GET') || (method === 'DELETE') || (api === 'wapi')) {
                 url += '?' + query;
-            } else if ((api === 'sapi') && (path.indexOf ('giftcard') >= 0)) {
+            } else if (giftcard) {
                 url += '?' + query;
                 headers['Content-Type'] = 'application/json';
                 body = this.json (params);
@@ -5328,7 +5329,7 @@ module.exports = class binance extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         const giftcardCode = this.safeString (data, 'code');
-        const id = this.safeString (data, 'id');
+        const id = this.safeString (data, 'referenceNo');
         return {
             'info': response,
             'id': id,
