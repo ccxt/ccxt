@@ -432,7 +432,7 @@ module.exports = class woo extends Exchange {
         const isFromFetchOrder = ('id' in trade);
         const timestamp = this.safeTimestamp (trade, 'executed_timestamp');
         const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market, '_');
+        market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const price = this.safeString (trade, 'executed_price');
         const amount = this.safeString (trade, 'executed_quantity');
@@ -843,19 +843,17 @@ module.exports = class woo extends Exchange {
         const timestamp = this.safeTimestamp2 (order, 'timestamp', 'created_time');
         const orderId = this.safeInteger (order, 'order_id');
         const clientOrderId = this.safeTimestamp (order, 'client_order_id'); // Somehow, this always returns 0 for limit order
-        if (market === undefined) {
-            const marketId = this.safeString (order, 'symbol');
-            market = this.safeMarket (marketId, market);
-        }
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const price = this.safeString2 (order, 'order_price', 'price');
-        const quantity = this.safeString2 (order, 'order_quantity', 'quantity'); // This is base amount
-        const amount = this.safeString2 (order, 'order_amount', 'amount'); // This is quote amount
+        const amount = this.safeString2 (order, 'order_quantity', 'quantity'); // This is base amount
+        const cost = this.safeString2 (order, 'order_amount', 'amount'); // This is quote amount
         const orderType = this.safeStringLower2 (order, 'order_type', 'type');
         const status = this.safeValue (order, 'status');
         const side = this.safeStringLower2 (order, 'side');
         const filled = this.safeValue (order, 'executed');
-        const remaining = Precise.stringSub (amount, filled);
+        const remaining = Precise.stringSub (cost, filled);
         const fee = this.safeValue (order, 'total_fee');
         const feeCurrency = this.safeString (order, 'fee_asset');
         const transactions = this.safeValue (order, 'Transactions');
@@ -874,10 +872,10 @@ module.exports = class woo extends Exchange {
             'price': price,
             'stopPrice': undefined,
             'average': undefined,
-            'amount': quantity, // TO_DO
+            'amount': amount,
             'filled': filled,
             'remaining': remaining, // TO_DO
-            'cost': amount, // TO_DO
+            'cost': cost,
             'trades': transactions,
             'fee': {
                 'cost': fee,
@@ -1119,7 +1117,6 @@ module.exports = class woo extends Exchange {
             const account = this.account ();
             account['total'] = this.safeString (balance, 'holding');
             account['used'] = this.safeString (balance, 'outstanding_holding');
-            account['free'] = Precise.stringAdd (account['total'], account['used']);
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -1145,11 +1142,11 @@ module.exports = class woo extends Exchange {
         //     address: '3Jmtjx5544T4smrit9Eroe4PCrRkpDeKjP',
         //     extra: ''
         // }
-        let tag = this.safeValue (response, 'extra');
+        let tag = this.safeString (response, 'extra');
         if (tag === '') {
             tag = undefined;
         }
-        const address = this.safeValue (response, 'address');
+        const address = this.safeString (response, 'address');
         this.checkAddress (address);
         return {
             'currency': code,
@@ -1249,12 +1246,8 @@ module.exports = class woo extends Exchange {
             code = currency['code'];
         } else {
             const parts = networkizedCode.split ('_');
-            let currencyId = undefined;
-            if (parts.length > 1) {
-                currencyId = parts[1];
-            } else {
-                currencyId = parts[0];
-            }
+            const firstPart = this.safeValue (parts, 0);
+            const currencyId = this.safeValue (parts, 1, firstPart);
             code = this.safeCurrencyCode (currencyId);
         }
         let movementDirection = this.safeStringLower (transaction, 'token_side');
@@ -1413,7 +1406,9 @@ module.exports = class woo extends Exchange {
         params = this.keysort (params);
         if (privateOrPublic === 'public') {
             url += privateOrPublic + '/' + path;
-            if (Object.keys (params).length) {
+            const keys = Object.keys (params);
+            const keysLength = keys.length;
+            if (keysLength > 0) {
                 url += '?' + this.urlencode (params);
             }
         } else {
@@ -1472,7 +1467,8 @@ module.exports = class woo extends Exchange {
         if (defaultNetworkCodePriorities !== undefined) {
             // itterate according to priority networks
             const networksKeys = Object.keys (networks);
-            if (networksKeys.length > 0) {
+            const networksKeysLength = networksKeys.length;
+            if (networksKeysLength > 0) {
                 for (let i = 0; i < defaultNetworkCodePriorities.length; i++) {
                     const networkCode = defaultNetworkCodePriorities[i];
                     if (networkCode in networks) {
@@ -1514,9 +1510,10 @@ module.exports = class woo extends Exchange {
             let tokenCode = undefined;
             const delimiter = '_';
             const parts = chainedTokenCode.split (delimiter);
-            if (parts.length === 1) {
+            const partsLength = parts.length;
+            if (partsLength === 1) {
                 tokenCode = chainedTokenCode;
-            } else if (parts.length === 2) {
+            } else if (partsLength === 2) {
                 tokenCode = this.safeString (parts, 1);
             } else {
                 tokenCode = this.safeString (parts, 1) + '_' + this.safeString (parts, 2);
