@@ -615,9 +615,9 @@ module.exports = class aax extends Exchange {
         const timestamp = this.safeInteger (ticker, 't');
         const marketId = this.safeString (ticker, 's');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeNumber (ticker, 'c');
-        const open = this.safeNumber (ticker, 'o');
-        const quoteVolume = this.safeNumber (ticker, 'v');
+        const last = this.safeString (ticker, 'c');
+        const open = this.safeString (ticker, 'o');
+        const quoteVolume = this.safeString (ticker, 'v');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -639,7 +639,7 @@ module.exports = class aax extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
