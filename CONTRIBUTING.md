@@ -16,9 +16,10 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
   - [DDoS Protection](https://github.com/ccxt/ccxt/wiki/Manual#ddos-protection-by-cloudflare--incapsula)
   - [Authentication](https://github.com/ccxt/ccxt/wiki/Manual#authentication)
   - [API Keys Setup](https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup)
-- Read the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section and follow troubleshooting steps.
-- Read the [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) for most frequently asked questions.
-- Read the [API docs](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) for your exchange.
+- Read the:
+- - [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section and follow troubleshooting steps.
+- - [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) for most frequently asked questions.
+- - [API docs](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) for your exchange.
 - [Search for similar issues](https://github.com/ccxt/ccxt/issues?q=is%3Aissue+in%3Atitle+) first to avoid duplicates.
 - If your issue is unique, the following **IS REQUIRED**:
   - a basic description of the failure.
