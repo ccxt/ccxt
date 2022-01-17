@@ -98,9 +98,9 @@ module.exports = class binance extends Exchange {
                 'signIn': false,
                 'transfer': true,
                 'withdraw': true,
-                'createCode': true,
-                'redeemCode': true,
-                'verifyCode': true,
+                'createGiftCode': true,
+                'redeemGiftCode': true,
+                'verifyGiftCode': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -5312,7 +5312,7 @@ module.exports = class binance extends Exchange {
         return result;
     }
 
-    async createCode (code, amount, params = {}) {
+    async createGiftCode (code, amount, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
         // ensure you have enough token in your funding account before calling this code
@@ -5341,7 +5341,7 @@ module.exports = class binance extends Exchange {
         };
     }
 
-    async redeemCode (giftcardCode, params = {}) {
+    async redeemGiftCode (giftcardCode, params = {}) {
         const request = {
             'code': giftcardCode,
         };
@@ -5360,7 +5360,7 @@ module.exports = class binance extends Exchange {
         return response;
     }
 
-    async verifyCode (id, params = {}) {
+    async verifyGiftCode (id, params = {}) {
         const request = {
             'type': 'CODE',
             'value': id,
