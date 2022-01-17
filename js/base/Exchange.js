@@ -1271,9 +1271,9 @@ module.exports = class Exchange {
             let percentage = this.safeValue (ticker, 'percentage');
             let average = this.safeValue (ticker, 'average');
             let vwap = this.safeValue (ticker, 'vwap');
+            const baseVolume = this.safeValue (ticker, 'baseVolume');
+            const quoteVolume = this.safeValue (ticker, 'quoteVolume');
             if (vwap === undefined) {
-                const baseVolume = this.safeValue (ticker, 'baseVolume');
-                const quoteVolume = this.safeValue (ticker, 'quoteVolume');
                 vwap = Precise.stringDiv (quoteVolume, baseVolume);
             }
             if ((last !== undefined) && (close === undefined)) {
@@ -1308,6 +1308,8 @@ module.exports = class Exchange {
                 'percentage': this.parseNumber (percentage),
                 'average': this.parseNumber (average),
                 'vwap': this.parseNumber (vwap),
+                'baseVolume': this.parseNumber (baseVolume),
+                'quoteVolume': this.parseNumber (quoteVolume),
             });
         }
     }

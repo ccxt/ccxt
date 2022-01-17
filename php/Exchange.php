@@ -2116,9 +2116,9 @@ class Exchange {
             $percentage = $this->safe_value($ticker, 'percentage');
             $average = $this->safe_value($ticker, 'average');
             $vwap = $this->safe_value($ticker, 'vwap');
+            $baseVolume = $this->safe_value($ticker, 'baseVolume');
+            $quoteVolume = $this->safe_value($ticker, 'quoteVolume');
             if ($vwap === null) {
-                $baseVolume = $this->safe_value($ticker, 'baseVolume');
-                $quoteVolume = $this->safe_value($ticker, 'quoteVolume');
                 $vwap = Precise::string_div($quoteVolume, $baseVolume);
             }
             if (($last !== null) && ($close === null)) {
@@ -2153,6 +2153,8 @@ class Exchange {
                 'percentage' => $this->parse_number($percentage),
                 'average' => $this->parse_number($average),
                 'vwap' => $this->parse_number($vwap),
+                'baseVolume' => $this->parse_number($baseVolume),
+                'quoteVolume' => $this->parse_number($quoteVolume),
             ));
         }
     }
