@@ -14,7 +14,8 @@ module.exports = class bytetrade extends Exchange {
             'id': 'bytetrade',
             'name': 'ByteTrade',
             'countries': [ 'HK' ],
-            'rateLimit': 500,
+            // 10 requests per second => ( 1000ms / 10 ) = 100
+            'rateLimit': 100,
             'requiresWeb3': true,
             'certified': false,
             // new metainfo interface
@@ -68,34 +69,34 @@ module.exports = class bytetrade extends Exchange {
             },
             'api': {
                 'market': {
-                    'get': [
-                        'klines',        // Kline of a symbol
-                        'depth',         // Market Depth of a symbol
-                        'trades',        // Trade records of a symbol
-                        'tickers',
-                    ],
+                    'get': {
+                        'klines': 1,        // Kline of a symbol
+                        'depth': 1,         // Market Depth of a symbol
+                        'trades': 1,        // Trade records of a symbol
+                        'tickers': 1,
+                    },
                 },
                 'public': {
-                    'get': [
-                        'symbols',        // Reference information of trading instrument, including base currency, quote precision, etc.
-                        'currencies',     // The list of currencies available
-                        'balance',        // Get the balance of an account
-                        'orders/open',    // Get the open orders of an account
-                        'orders/closed',  // Get the closed orders of an account
-                        'orders/all',     // Get the open and closed orders of an account
-                        'orders',         // Get the details of an order of an account
-                        'orders/trades',  // Get detail match results
-                        'depositaddress', // Get deposit address
-                        'withdrawals',    // Get withdrawals info
-                        'deposits',       // Get deposit info
-                        'transfers',      // Get transfer info
-                    ],
-                    'post': [
-                        'transaction/createorder',    // Post create order transaction to blockchain
-                        'transaction/cancelorder',    // Post cancel order transaction to blockchain
-                        'transaction/withdraw',       // Post withdraw transaction to blockchain
-                        'transaction/transfer',       // Post transfer transaction to blockchain
-                    ],
+                    'get': {
+                        'symbols': 1,        // Reference information of trading instrument, including base currency, quote precision, etc.
+                        'currencies': 1,     // The list of currencies available
+                        'balance': 1,        // Get the balance of an account
+                        'orders/open': 1,    // Get the open orders of an account
+                        'orders/closed': 1,  // Get the closed orders of an account
+                        'orders/all': 1,     // Get the open and closed orders of an account
+                        'orders': 1,         // Get the details of an order of an account
+                        'orders/trades': 1,  // Get detail match results
+                        'depositaddress': 1, // Get deposit address
+                        'withdrawals': 1,    // Get withdrawals info
+                        'deposits': 1,       // Get deposit info
+                        'transfers': 1,      // Get transfer info
+                    },
+                    'post': {
+                        'transaction/createorder': 1,    // Post create order transaction to blockchain
+                        'transaction/cancelorder': 1,    // Post cancel order transaction to blockchain
+                        'transaction/withdraw': 1,       // Post withdraw transaction to blockchain
+                        'transaction/transfer': 1,       // Post transfer transaction to blockchain
+                    },
                 },
             },
             'fees': {
