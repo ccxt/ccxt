@@ -726,29 +726,29 @@ class bitfinex2(bitfinex):
         timestamp = self.milliseconds()
         symbol = self.safe_symbol(None, market)
         length = len(ticker)
-        last = self.safe_number(ticker, length - 4)
+        last = self.safe_string(ticker, length - 4)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, length - 2),
-            'low': self.safe_number(ticker, length - 1),
-            'bid': self.safe_number(ticker, length - 10),
+            'high': self.safe_string(ticker, length - 2),
+            'low': self.safe_string(ticker, length - 1),
+            'bid': self.safe_string(ticker, length - 10),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, length - 8),
+            'ask': self.safe_string(ticker, length - 8),
             'askVolume': None,
             'vwap': None,
             'open': None,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_number(ticker, length - 6),
-            'percentage': self.safe_number(ticker, length - 5) * 100,
+            'change': self.safe_string(ticker, length - 6),
+            'percentage': self.safe_string(ticker, length - 5) * 100,
             'average': None,
-            'baseVolume': self.safe_number(ticker, length - 3),
+            'baseVolume': self.safe_string(ticker, length - 3),
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
