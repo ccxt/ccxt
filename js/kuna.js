@@ -297,22 +297,39 @@ module.exports = class kuna extends Exchange {
                     const baseId = id[0] + slicedId.replace (quoteId, '');
                     const base = this.safeCurrencyCode (baseId);
                     const quote = this.safeCurrencyCode (quoteId);
-                    const symbol = base + '/' + quote;
                     markets.push ({
                         'id': id,
-                        'symbol': symbol,
+                        'symbol': base + '/' + quote,
                         'base': base,
                         'quote': quote,
+                        'settle': undefined,
                         'baseId': baseId,
                         'quoteId': quoteId,
+                        'settleId': undefined,
                         'type': 'spot',
                         'spot': true,
+                        'margin': false,
+                        'swap': false,
+                        'future': false,
+                        'option': false,
                         'active': undefined,
+                        'contract': false,
+                        'linear': undefined,
+                        'inverse': undefined,
+                        'contractSize': undefined,
+                        'expiry': undefined,
+                        'expiryDatetime': undefined,
+                        'strike': undefined,
+                        'optionType': undefined,
                         'precision': {
                             'amount': undefined,
                             'price': undefined,
                         },
                         'limits': {
+                            'leverage': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
                             'amount': {
                                 'min': undefined,
                                 'max': undefined,
