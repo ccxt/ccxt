@@ -18,33 +18,52 @@ module.exports = class blockchaincom extends Exchange {
             'rateLimit': 10000,
             'version': 'v3',
             'has': {
-                'fetchDepositAddress': true,
-                'CORS': false,
-                'fetchTrades': false,
-                'fetchOHLCV': false,
-                'fetchLedger': false,
-                'fetchMarkets': true,
-                'fetchTickers': true,
-                'fetchTicker': true,
-                'fetchOrderBook': true,
-                'fetchL2OrderBook': true,
-                'fetchL3OrderBook': true,
-                'fetchOrder': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
-                'fetchCanceledOrders': true,
-                'fetchBalance': true,
-                'createOrder': true,
+                'spot': true,
+                'margin': undefined, // on exchange but not implemented in CCXT
+                'swap': false,
+                'future': false,
+                'option': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
-                'fetchWithdrawals': true,
-                'fetchWithdrawal': true,
-                'fetchDeposits': true,
+                'CORS': false,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchCanceledOrders': true,
+                'fetchClosedOrders': true,
                 'fetchDeposit': true,
-                'withdraw': true,
-                'fetchTradingFees': true,
-                'fetchWithdrawalWhitelist': true, // fetches exchange specific benficiary-ids needed for withdrawals
+                'fetchDepositAddress': true,
+                'fetchDeposits': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchL2OrderBook': true,
+                'fetchL3OrderBook': true,
+                'fetchLedger': false,
+                'fetchLeverage': false,
+                'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
+                'fetchOHLCV': false,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': false,
+                'fetchTradingFees': true,
+                'fetchWithdrawal': true,
+                'fetchWithdrawals': true,
+                'fetchWithdrawalWhitelist': true, // fetches exchange specific benficiary-ids needed for withdrawals
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setPositionMode': false,
+                'withdraw': true,
             },
             'timeframes': undefined,
             'urls': {
@@ -207,11 +226,6 @@ module.exports = class blockchaincom extends Exchange {
             const lotSizeScalePrecisionString = this.parsePrecision (lotSizeScaleString);
             const amountPrecisionString = Precise.stringMul (lotSizeString, lotSizeScalePrecisionString);
             const amountPrecision = this.parseNumber (amountPrecisionString);
-            // precision
-            const precision = {
-                'price': pricePrecision,
-                'amount': amountPrecision,
-            };
             // minimum order size
             const minOrderSizeString = this.safeString (market, 'min_order_size');
             const minOrderSizeScaleString = this.safeString (market, 'min_order_size_scale');
@@ -229,33 +243,54 @@ module.exports = class blockchaincom extends Exchange {
             } else {
                 maxOrderSize = undefined;
             }
-            const limits = {
-                'amount': {
-                    'min': minOrderSize,
-                    'max': maxOrderSize,
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            };
-            const symbol = base + '/' + quote;
             result.push ({
                 'id': marketId,
                 'numericId': numericId,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'precision': precision,
-                'limits': limits,
+                'settleId': undefined,
+                'type': 'spot',
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'active': active,
-                'info': market,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': pricePrecision,
+                    'amount': amountPrecision,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': minOrderSize,
+                        'max': maxOrderSize,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+
             });
         }
         return result;
