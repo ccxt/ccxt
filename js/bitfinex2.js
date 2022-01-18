@@ -32,7 +32,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
-                'fetchOrder': false,
+                'fetchOrder': true,
                 'fetchOpenOrder': true,
                 'fetchClosedOrder': true,
                 'fetchOrderTrades': true,
@@ -74,6 +74,9 @@ module.exports = class bitfinex2 extends bitfinex {
             },
             'api': {
                 'v1': {
+                    'post': [
+                        'private/order/status',
+                    ],
                     'get': [
                         'symbols',
                         'symbols_details',
@@ -871,6 +874,65 @@ module.exports = class bitfinex2 extends bitfinex {
         return this.parseOrders (response, market, since, limit);
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'order_id': parseInt (id),
+        };
+        const response = await this.v1PostPrivateOrderStatus (this.extend (request, params));
+        const side = this.safeString (response, 'side');
+        const open = this.safeValue (response, 'is_live');
+        const canceled = this.safeValue (response, 'is_cancelled');
+        let status = undefined;
+        if (open) {
+            status = 'open';
+        } else if (canceled) {
+            status = 'canceled';
+        } else {
+            status = 'closed';
+        }
+        let symbol_copy = undefined;
+        let market = undefined;
+        let marketId = this.safeStringUpper (response, 'symbol');
+        marketId = 't' + marketId;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            }
+        }
+        if (market !== undefined) {
+            symbol_copy = market['symbol'];
+        }
+        let orderType = response['type'];
+        const exchange = orderType.indexOf ('exchange ') >= 0;
+        if (exchange) {
+            const parts = response['type'].split (' ');
+            orderType = parts[1];
+        }
+        let timestamp = this.safeFloat (response, 'timestamp');
+        if (timestamp !== undefined) {
+            timestamp = parseInt (timestamp) * 1000;
+        }
+        const order_id = this.safeString (response, 'id');
+        return {
+            'info': order_id,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol_copy,
+            'type': orderType,
+            'side': side,
+            'price': this.safeFloat (response, 'price'),
+            'average': this.safeFloat (response, 'avg_execution_price'),
+            'amount': this.safeFloat (response, 'original_amount'),
+            'remaining': this.safeFloat (response, 'remaining_amount'),
+            'filled': this.safeFloat (response, 'executed_amount'),
+            'status': status,
+            'fee': undefined,
+        };
+    }
+
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         // returns the most recent closed or canceled orders up to circa two weeks ago
         await this.loadMarkets ();
@@ -1101,9 +1163,31 @@ module.exports = class bitfinex2 extends bitfinex {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
+        let query = this.omit (params, this.extractParams (path));
         if (api === 'v1') {
             request = api + request;
+            if (request.indexOf ('/private') >= 0) {
+                request = '/' + request;
+                request = request.replace ('/private', '');
+                const url = this.urls['api']['private'] + request;
+                this.checkRequiredCredentials ();
+                const nonce = this.nonce ();
+                query = this.extend ({
+                    'nonce': nonce.toString (),
+                    'request': request,
+                }, query);
+                body = this.json (query);
+                query = this.encode (body);
+                const payload = this.stringToBase64 (query);
+                const secret = this.encode (this.secret);
+                const signature = this.hmac (payload, secret, 'sha384');
+                headers = {
+                    'X-BFX-APIKEY': this.apiKey,
+                    'X-BFX-PAYLOAD': this.decode (payload),
+                    'X-BFX-SIGNATURE': signature,
+                };
+                return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+            }
         } else {
             request = this.version + request;
         }

@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.bitfinex import bitfinex
+import base64
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
@@ -45,7 +46,7 @@ class bitfinex2(bitfinex):
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
-                'fetchOrder': False,
+                'fetchOrder': True,
                 'fetchOpenOrder': True,
                 'fetchClosedOrder': True,
                 'fetchOrderTrades': True,
@@ -87,6 +88,9 @@ class bitfinex2(bitfinex):
             },
             'api': {
                 'v1': {
+                    'post': [
+                        'private/order/status',
+                    ],
                     'get': [
                         'symbols',
                         'symbols_details',
@@ -826,6 +830,58 @@ class bitfinex2(bitfinex):
             response = await self.privatePostAuthROrdersSymbol(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
+    async def fetch_order(self, id, symbol=None, params={}):
+        await self.load_markets()
+        request = {
+            'order_id': int(id),
+        }
+        response = await self.v1PostPrivateOrderStatus(self.extend(request, params))
+        side = self.safe_string(response, 'side')
+        open = self.safe_value(response, 'is_live')
+        canceled = self.safe_value(response, 'is_cancelled')
+        status = None
+        if open:
+            status = 'open'
+        elif canceled:
+            status = 'canceled'
+        else:
+            status = 'closed'
+        symbol_copy = None
+        market = None
+        marketId = self.safe_string_upper(response, 'symbol')
+        marketId = 't' + marketId
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+        if market is not None:
+            symbol_copy = market['symbol']
+        orderType = response['type']
+        exchange = orderType.find('exchange ') >= 0
+        if exchange:
+            parts = response['type'].split(' ')
+            orderType = parts[1]
+        timestamp = self.safe_float(response, 'timestamp')
+        if timestamp is not None:
+            timestamp = int(timestamp) * 1000
+        order_id = self.safe_string(response, 'id')
+        return {
+            'info': order_id,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'symbol': symbol_copy,
+            'type': orderType,
+            'side': side,
+            'price': self.safe_float(response, 'price'),
+            'average': self.safe_float(response, 'avg_execution_price'),
+            'amount': self.safe_float(response, 'original_amount'),
+            'remaining': self.safe_float(response, 'remaining_amount'),
+            'filled': self.safe_float(response, 'executed_amount'),
+            'status': status,
+            'fee': None,
+        }
+
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         # returns the most recent closed or canceled orders up to circa two weeks ago
         await self.load_markets()
@@ -1039,6 +1095,27 @@ class bitfinex2(bitfinex):
         query = self.omit(params, self.extract_params(path))
         if api == 'v1':
             request = api + request
+            if request.find('/private') >= 0:
+                request = '/' + request
+                request = request.replace('/private', '')
+                url = self.urls['api']['private'] + request
+                self.check_required_credentials()
+                nonce = self.nonce()
+                query = self.extend({
+                    'nonce': str(nonce),
+                    'request': request,
+                }, query)
+                body = self.json(query)
+                query = self.encode(body)
+                payload = base64.b64encode(query)
+                secret = self.encode(self.secret)
+                signature = self.hmac(payload, secret, hashlib.sha384)
+                headers = {
+                    'X-BFX-APIKEY': self.apiKey,
+                    'X-BFX-PAYLOAD': self.decode(payload),
+                    'X-BFX-SIGNATURE': signature,
+                }
+                return {'url': url, 'method': method, 'body': body, 'headers': headers}
         else:
             request = self.version + request
         url = self.urls['api'][api] + '/' + request
