@@ -737,29 +737,29 @@ module.exports = class bitfinex2 extends bitfinex {
         const timestamp = this.milliseconds ();
         const symbol = this.safeSymbol (undefined, market);
         const length = ticker.length;
-        const last = this.safeNumber (ticker, length - 4);
+        const last = this.safeString (ticker, length - 4);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, length - 2),
-            'low': this.safeNumber (ticker, length - 1),
-            'bid': this.safeNumber (ticker, length - 10),
+            'high': this.safeString (ticker, length - 2),
+            'low': this.safeString (ticker, length - 1),
+            'bid': this.safeString (ticker, length - 10),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, length - 8),
+            'ask': this.safeString (ticker, length - 8),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeNumber (ticker, length - 6),
-            'percentage': this.safeNumber (ticker, length - 5) * 100,
+            'change': this.safeString (ticker, length - 6),
+            'percentage': this.safeString (ticker, length - 5) * 100,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, length - 3),
+            'baseVolume': this.safeString (ticker, length - 3),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
