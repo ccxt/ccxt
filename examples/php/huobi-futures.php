@@ -7,8 +7,8 @@ include $root . '/ccxt.php';
 date_default_timezone_set ('UTC');
 
 $exchange = new \ccxt\huobipro (array (
-    'apiKey' => 'ez2xc4vb6n-da8c4c7d-76cbde5b-7cc77', // ←------------ replace with your keys
-    'secret' => '03454cfd-cf15e71b-fe87eadf-16a79',
+    'apiKey' => 'YOUR_API_KEY', // ←------------ replace with your keys
+    'secret' => 'YOUR_SECRET_KEY',
     'options' => array(
         'defaultType' => 'future',
     )
@@ -35,10 +35,10 @@ try {
         'client_order_id' => $cli_order_id
     );
 
-    $order = $exchange->create_order($symbol, $order_type, $side, $amount, $price, $params);
-    var_dump($order);
-    $cancel = $exchange->cancel_order($order['id'], $symbol);
-    var_dump($cancel);
+    $order = $exchange->create_order ($symbol, $order_type, $side, $amount, $price, $params);
+    var_dump ($order);
+    $cancel = $exchange->cancel_order ($order['id'], $symbol);
+    var_dump ($cancel);
 
 } catch (\ccxt\NetworkError $e) {
     echo '[Network Error] ' . $e->getMessage () . "\n";
