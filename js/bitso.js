@@ -155,27 +155,8 @@ module.exports = class bitso extends Exchange {
             let quote = quoteId.toUpperCase ();
             base = this.safeCurrencyCode (base);
             quote = this.safeCurrencyCode (quote);
-            const symbol = base + '/' + quote;
-            const limits = {
-                'amount': {
-                    'min': this.safeNumber (market, 'minimum_amount'),
-                    'max': this.safeNumber (market, 'maximum_amount'),
-                },
-                'price': {
-                    'min': this.safeNumber (market, 'minimum_price'),
-                    'max': this.safeNumber (market, 'maximum_price'),
-                },
-                'cost': {
-                    'min': this.safeNumber (market, 'minimum_value'),
-                    'max': this.safeNumber (market, 'maximum_value'),
-                },
-            };
             const defaultPricePrecision = this.safeNumber (this.options['precision'], quote, this.options['defaultPrecision']);
             const pricePrecision = this.safeNumber (market, 'tick_size', defaultPricePrecision);
-            const precision = {
-                'amount': this.safeNumber (this.options['precision'], base, this.options['defaultPrecision']),
-                'price': pricePrecision,
-            };
             const fees = this.safeValue (market, 'fees', {});
             const flatRate = this.safeValue (fees, 'flat_rate', {});
             const makerString = this.safeString (flatRate, 'maker');
@@ -210,17 +191,53 @@ module.exports = class bitso extends Exchange {
             fee['tiers'] = tiers;
             result.push (this.extend ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
-                'limits': limits,
-                'precision': precision,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'active': undefined,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': taker,
+                'maker': maker,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeNumber (this.options['precision'], base, this.options['defaultPrecision']),
+                    'price': pricePrecision,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (market, 'minimum_amount'),
+                        'max': this.safeNumber (market, 'maximum_amount'),
+                    },
+                    'price': {
+                        'min': this.safeNumber (market, 'minimum_price'),
+                        'max': this.safeNumber (market, 'maximum_price'),
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'minimum_value'),
+                        'max': this.safeNumber (market, 'maximum_value'),
+                    },
+                },
+                'info': market,
             }, fee));
         }
         return result;
