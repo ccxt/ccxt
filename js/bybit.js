@@ -2383,9 +2383,8 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 20, max 50
         }
-        const defaultType = this.safeString (this.options, 'defaultType', 'linear');
-        const marketTypes = this.safeValue (this.options, 'marketTypes', {});
-        const marketType = this.safeString (marketTypes, symbol, defaultType);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const marketDefined = (market !== undefined);
         const linear = (marketDefined && market['linear']) || (marketType === 'linear');
         const inverse = (marketDefined && market['swap'] && market['inverse']) || (marketType === 'inverse');
