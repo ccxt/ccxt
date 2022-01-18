@@ -676,11 +676,7 @@ module.exports = class bitfinex extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.safeNumber (ticker, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
-        timestamp = parseInt (timestamp);
+        const timestamp = this.safeTimestamp (ticker, 'timestamp');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -699,16 +695,16 @@ module.exports = class bitfinex extends Exchange {
                 }
             }
         }
-        const last = this.safeNumber (ticker, 'last_price');
+        const last = this.safeString (ticker, 'last_price');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -717,11 +713,11 @@ module.exports = class bitfinex extends Exchange {
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': this.safeNumber (ticker, 'mid'),
-            'baseVolume': this.safeNumber (ticker, 'volume'),
+            'average': this.safeString (ticker, 'mid'),
+            'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     parseTrade (trade, market = undefined) {
