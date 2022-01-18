@@ -26,20 +26,19 @@ markets = exchange.load_markets()
 
 # exchange.verbose = True  # uncomment for debugging purposes if necessary
 
-# edit for your values below
 
-symbol = 'ADA/USD:ADA'
+## Create a inverse future order that will 
+symbol = 'ADA/USD:ADA-220121'
 order_type = 'limit'
 side = 'buy'
 offset = 'open'
-contract_type = 'this_week'
-# cli_order_id = 12323213
+# contract_type = 'this_week'
+cli_order_id = randint(0,1000)
 leverage = 1 
-amount = 30
-price = 0.30
+amount = 1
+price = 1
 
-params = {'offset': offset, 'lever_rate': leverage, 'contract_type': contract_type, 'client_order_id': 3434}
-# 'client_order_id': cli_order_id
+params = {'offset': offset, 'lever_rate': leverage, 'client_order_id': cli_order_id}
 
 try:
     order = exchange.create_order(symbol, order_type, side, amount, price, params)
