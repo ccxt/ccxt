@@ -1084,7 +1084,8 @@ module.exports = class woo extends Exchange {
             const code = this.safeCurrencyCode (this.safeString (balance, 'token'));
             const account = this.account ();
             account['total'] = this.safeString (balance, 'holding');
-            account['used'] = this.safeString (balance, 'outstanding_holding');
+            const used = this.safeString (balance, 'outstanding_holding');
+            account['used'] = Precise.stringNeg (used);
             result[code] = account;
         }
         return this.safeBalance (result);
