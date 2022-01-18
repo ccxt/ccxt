@@ -53,8 +53,8 @@ module.exports = class woo extends Exchange {
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
                 'deposit': false,
-                'withdraw': false, // implemented in ccxt, but exchange have that endpoint disabled atm: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
-                'cancelWithdraw': false, // implemented in ccxt, but exchange have that endpoint disabled atm: https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
+                'withdraw': false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                'cancelWithdraw': false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
                 'addMargin': false,
                 'reduceMargin': false,
                 'setLeverage': false,
@@ -431,7 +431,11 @@ module.exports = class woo extends Exchange {
         let id = this.safeString (trade, 'id');
         if (id === undefined) { // reconstruct artificially, if it doesn't exist
             if (timestamp !== undefined) {
-                id += this.numberToString (timestamp) + '-' + market['id'] + '-' + amount + '-' + price;
+                const amountStr = (amount === undefined) ? '' : amount;
+                const sideStr = (side === undefined) ? '' : side;
+                const priceStr = (price === undefined) ? '' : price;
+                const marketIdStr = this.safeString (market, 'id', '');
+                id = this.numberToString (timestamp) + '-' + marketIdStr + '-' + sideStr + '-' + amountStr + '-' + priceStr;
             }
         }
         let takerOrMaker = undefined;
@@ -1314,55 +1318,6 @@ module.exports = class woo extends Exchange {
 
     parseTransferStatus (status) {
         return this.parseTransactionStatus (status);
-    }
-
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
-        this.checkAddress (address);
-        let networkCode = this.safeStringUpper (params, 'network');
-        const networks = this.safeValue (this.options, 'networks', {});
-        networkCode = this.safeStringLower (networks, networkCode, networkCode);
-        if (networkCode === undefined) {
-            throw new ArgumentsRequired (this.id + ' withdraw() requires a network parameter');
-        } else {
-            params = this.omit (params, 'network');
-        }
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const currencyId = currency['id'];
-        const request = {
-            'amount': amount,
-        };
-        const method = 'v1PrivatePostAssetWithdraw';
-        request['token'] = this.currencyCodeWithNetwork (currencyId, networkCode);
-        request['address'] = address;
-        const response = await this[method] (this.extend (request, params));
-        // {
-        //     "success": true,
-        //     "withdraw_id": "20200119145703654"
-        // }
-        const id = this.safeString (response, 'withdraw_id');
-        return {
-            'id': id,
-            'info': response,
-        };
-    }
-
-    async cancelWithdraw (id, params = {}) {
-        const request = {
-            'id': id,
-        };
-        const method = 'v1PrivateDeleteAssetWithdraw';
-        const response = await this[method] (this.extend (request, params));
-        //
-        // {
-        //     "success": true
-        // }
-        //
-        const success = this.safeValue (response, 'success', false);
-        return {
-            'success': success,
-            'info': response,
-        };
     }
 
     nonce () {
