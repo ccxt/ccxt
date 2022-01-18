@@ -238,14 +238,26 @@ module.exports = class therock extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        const timestamp = this.parse8601 (ticker['date']);
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        //
+        //     {
+        //         "date":"2022-01-16T00:05:08.192Z",
+        //         "fund_id":"ETHBTC",
+        //         "bid":0.07707802,
+        //         "ask":0.07733404,
+        //         "last":0.07739053,
+        //         "open":0.07628192,
+        //         "close":0.07687651,
+        //         "low":0.07612047,
+        //         "high":0.07703306,
+        //         "volume":1.10179665,
+        //         "volume_traded":14.273
+        //     }
+        //
+        const timestamp = this.parse8601 (this.safeString (ticker, 'date'));
+        market = this.safeMarket (undefined, market);
         const last = this.safeNumber (ticker, 'last');
-        return {
-            'symbol': symbol,
+        return this.safeTicker ({
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeNumber (ticker, 'high'),
@@ -265,7 +277,7 @@ module.exports = class therock extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'volume_traded'),
             'quoteVolume': this.safeNumber (ticker, 'volume'),
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -287,10 +299,26 @@ module.exports = class therock extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const ticker = await this.publicGetFundsIdTicker (this.extend ({
+        const request = {
             'id': market['id'],
-        }, params));
-        return this.parseTicker (ticker, market);
+        };
+        const response = await this.publicGetFundsIdTicker (this.extend (request, params));
+        //
+        //     {
+        //         "date":"2022-01-16T00:05:08.192Z",
+        //         "fund_id":"ETHBTC",
+        //         "bid":0.07707802,
+        //         "ask":0.07733404,
+        //         "last":0.07739053,
+        //         "open":0.07628192,
+        //         "close":0.07687651,
+        //         "low":0.07612047,
+        //         "high":0.07703306,
+        //         "volume":1.10179665,
+        //         "volume_traded":14.273
+        //     }
+        //
+        return this.parseTicker (response, market);
     }
 
     parseTrade (trade, market = undefined) {

@@ -725,8 +725,8 @@ class bitmart(Exchange):
         #
         timestamp = self.safe_timestamp_2(ticker, 'timestamp', 's_t', self.milliseconds())
         marketId = self.safe_string_2(ticker, 'symbol', 'contract_id')
-        marketId = self.safe_string(ticker, 'contract_symbol', marketId)
-        symbol = self.safe_symbol(marketId, market)
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         last = self.safe_number_2(ticker, 'close_24h', 'last_price')
         percentage = self.safe_number_2(ticker, 'fluctuation', 'rise_fall_rate')
         if percentage is not None:
@@ -736,13 +736,9 @@ class bitmart(Exchange):
         baseVolume = self.safe_number_2(ticker, 'base_coin_volume', 'base_volume_24h')
         quoteVolume = self.safe_number_2(ticker, 'quote_coin_volume', 'quote_volume_24h')
         quoteVolume = self.safe_number(ticker, 'volume_24h', quoteVolume)
-        open = self.safe_number_2(ticker, 'open_24h', 'open')
-        average = None
-        if (last is not None) and (open is not None):
-            average = self.sum(last, open) / 2
-        average = self.safe_number(ticker, 'avg_price', average)
+        average = self.safe_number(ticker, 'avg_price')
         price = self.safe_value(ticker, 'depth_price', ticker)
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -763,7 +759,7 @@ class bitmart(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

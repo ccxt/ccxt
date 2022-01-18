@@ -347,6 +347,8 @@ class exmo extends Exchange {
                 ),
             );
             $fee = null;
+            $depositEnabled = null;
+            $withdrawEnabled = null;
             if ($providers === null) {
                 $active = true;
                 $type = 'fiat';
@@ -360,6 +362,19 @@ class exmo extends Exchange {
                         $maxValue = null;
                     }
                     $activeProvider = $this->safe_value($provider, 'enabled');
+                    if ($type === 'deposit') {
+                        if ($activeProvider && !$depositEnabled) {
+                            $depositEnabled = true;
+                        } else if (!$activeProvider) {
+                            $depositEnabled = false;
+                        }
+                    } else if ($type === 'withdraw') {
+                        if ($activeProvider && !$withdrawEnabled) {
+                            $withdrawEnabled = true;
+                        } else if (!$activeProvider) {
+                            $withdrawEnabled = false;
+                        }
+                    }
                     if ($activeProvider) {
                         $active = true;
                         if (($limits[$type]['min'] === null) || ($minValue < $limits[$type]['min'])) {
@@ -380,6 +395,8 @@ class exmo extends Exchange {
                 'name' => $name,
                 'type' => $type,
                 'active' => $active,
+                'deposit' => $depositEnabled,
+                'withdraw' => $withdrawEnabled,
                 'fee' => $fee,
                 'precision' => 8,
                 'limits' => $limits,
@@ -611,14 +628,24 @@ class exmo extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
+        //
+        //     {
+        //         "buy_price":"0.00002996",
+        //         "sell_price":"0.00003002",
+        //         "last_trade":"0.00002992",
+        //         "high":"0.00003028",
+        //         "low":"0.00002935",
+        //         "avg":"0.00002963",
+        //         "vol":"1196546.3163222",
+        //         "vol_curr":"35.80066578",
+        //         "updated":1642291733
+        //     }
+        //
         $timestamp = $this->safe_timestamp($ticker, 'updated');
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market(null, $market);
         $last = $this->safe_number($ticker, 'last_trade');
-        return array(
-            'symbol' => $symbol,
+        return $this->safe_ticker(array(
+            'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_number($ticker, 'high'),
@@ -638,19 +665,34 @@ class exmo extends Exchange {
             'baseVolume' => $this->safe_number($ticker, 'vol'),
             'quoteVolume' => $this->safe_number($ticker, 'vol_curr'),
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         yield $this->load_markets();
         $response = yield $this->publicGetTicker ($params);
+        //
+        //     {
+        //         "ADA_BTC":{
+        //             "buy_price":"0.00002996",
+        //             "sell_price":"0.00003002",
+        //             "last_trade":"0.00002992",
+        //             "high":"0.00003028",
+        //             "low":"0.00002935",
+        //             "avg":"0.00002963",
+        //             "vol":"1196546.3163222",
+        //             "vol_curr":"35.80066578",
+        //             "updated":1642291733
+        //         }
+        //     }
+        //
         $result = array();
-        $ids = is_array($response) ? array_keys($response) : array();
-        for ($i = 0; $i < count($ids); $i++) {
-            $id = $ids[$i];
-            $market = $this->markets_by_id[$id];
+        $marketIds = is_array($response) ? array_keys($response) : array();
+        for ($i = 0; $i < count($marketIds); $i++) {
+            $marketId = $marketIds[$i];
+            $market = $this->safe_market($marketId, null, '_');
             $symbol = $market['symbol'];
-            $ticker = $response[$id];
+            $ticker = $this->safe_value($response, $marketId);
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
         return $this->filter_by_array($result, 'symbol', $symbols);

@@ -354,12 +354,20 @@ class luno(Exchange):
         return await self.fetch_orders_by_state('COMPLETE', symbol, since, limit, params)
 
     def parse_ticker(self, ticker, market=None):
+        # {
+        #     "pair":"XBTAUD",
+        #     "timestamp":1642201439301,
+        #     "bid":"59972.30000000",
+        #     "ask":"59997.99000000",
+        #     "last_trade":"59997.99000000",
+        #     "rolling_24_hour_volume":"1.89510000",
+        #     "status":"ACTIVE"
+        # }
         timestamp = self.safe_integer(ticker, 'timestamp')
-        symbol = None
-        if market:
-            symbol = market['symbol']
+        marketId = self.safe_string(ticker, 'pair')
+        symbol = self.safe_symbol(marketId, market)
         last = self.safe_number(ticker, 'last_trade')
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -380,7 +388,7 @@ class luno(Exchange):
             'baseVolume': self.safe_number(ticker, 'rolling_24_hour_volume'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
@@ -403,6 +411,15 @@ class luno(Exchange):
             'pair': market['id'],
         }
         response = await self.publicGetTicker(self.extend(request, params))
+        # {
+        #     "pair":"XBTAUD",
+        #     "timestamp":1642201439301,
+        #     "bid":"59972.30000000",
+        #     "ask":"59997.99000000",
+        #     "last_trade":"59997.99000000",
+        #     "rolling_24_hour_volume":"1.89510000",
+        #     "status":"ACTIVE"
+        # }
         return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market):

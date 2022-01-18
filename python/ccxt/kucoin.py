@@ -307,6 +307,7 @@ class kucoin(Exchange):
                     '400100': BadRequest,
                     '400350': InvalidOrder,  # {"code":"400350","msg":"Upper limit for holding: 10,000USDT, you can still buy 10,000USDT worth of coin."}
                     '400500': InvalidOrder,  # {"code":"400500","msg":"Your located country/region is currently not supported for the trading of self token"}
+                    '401000': BadRequest,  # {"code":"401000","msg":"The interface has been deprecated"}
                     '411100': AccountSuspended,
                     '415000': BadRequest,  # {"code":"415000","msg":"Unsupported Media Type"}
                     '500000': ExchangeNotAvailable,  # {"code":"500000","msg":"Internal Server Error"}
@@ -420,6 +421,7 @@ class kucoin(Exchange):
                     'margin': 'margin',
                     'main': 'main',
                     'funding': 'main',
+                    'future': 'contract',
                     'futures': 'contract',
                     'contract': 'contract',
                     'pool': 'pool',
@@ -635,6 +637,8 @@ class kucoin(Exchange):
                 'precision': precision,
                 'info': entry,
                 'active': active,
+                'deposit': isDepositEnabled,
+                'withdraw': isWithdrawEnabled,
                 'fee': fee,
                 'limits': self.limits,
             }
@@ -712,7 +716,7 @@ class kucoin(Exchange):
             keys = list(accountsByType.keys())
             raise ExchangeError(self.id + ' type must be one of ' + ', '.join(keys))
         params = self.omit(params, 'type')
-        return(type == 'contract') or (type == 'futures')
+        return(type == 'contract') or (type == 'future') or (type == 'futures')  # * (type == 'futures') deprecated, use(type == 'future')
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -2228,5 +2232,7 @@ class kucoin(Exchange):
         #
         errorCode = self.safe_string(response, 'code')
         message = self.safe_string(response, 'msg', '')
-        self.throw_exactly_matched_exception(self.exceptions['exact'], message, self.id + ' ' + message)
-        self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, self.id + ' ' + message)
+        feedback = self.id + ' ' + message
+        self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+        self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+        self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)

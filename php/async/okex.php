@@ -104,7 +104,6 @@ class okex extends Exchange {
                 'setPositionMode' => true,
                 'signIn' => null,
                 'transfer' => true,
-                'transferOut' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -338,8 +337,8 @@ class okex extends Exchange {
                     '51009' => '\\ccxt\\AccountSuspended', // Order placement function is blocked by the platform
                     '51010' => '\\ccxt\\InsufficientFunds', // Account level too low
                     '51011' => '\\ccxt\\InvalidOrder', // Duplicated order ID
-                    '51012' => '\\ccxt\\ExchangeError', // Token does not exist
-                    '51014' => '\\ccxt\\ExchangeError', // Index does not exist
+                    '51012' => '\\ccxt\\BadSymbol', // Token does not exist
+                    '51014' => '\\ccxt\\BadSymbol', // Index does not exist
                     '51015' => '\\ccxt\\BadSymbol', // Instrument ID does not match instrument type
                     '51016' => '\\ccxt\\InvalidOrder', // Duplicated client order ID
                     '51017' => '\\ccxt\\ExchangeError', // Borrow amount exceeds the limit
@@ -943,6 +942,8 @@ class okex extends Exchange {
             $chains = $dataByCurrencyId[$currencyId];
             $networks = array();
             $currencyActive = false;
+            $depositEnabled = null;
+            $withdrawEnabled = null;
             for ($j = 0; $j < count($chains); $j++) {
                 $chain = $chains[$j];
                 $canDeposit = $this->safe_value($chain, 'canDep');
@@ -951,6 +952,16 @@ class okex extends Exchange {
                 $active = ($canDeposit && $canWithdraw && $canInternal) ? true : false;
                 $currencyActive = ($currencyActive === null) ? $active : $currencyActive;
                 $networkId = $this->safe_string($chain, 'chain');
+                if ($canDeposit && !$depositEnabled) {
+                    $depositEnabled = true;
+                } else if (!$canDeposit) {
+                    $depositEnabled = false;
+                }
+                if ($canWithdraw && !$withdrawEnabled) {
+                    $withdrawEnabled = true;
+                } else if (!$canWithdraw) {
+                    $withdrawEnabled = false;
+                }
                 if (mb_strpos($networkId, '-') !== false) {
                     $parts = explode('-', $networkId);
                     $chainPart = $this->safe_string($parts, 1, $networkId);
@@ -969,6 +980,8 @@ class okex extends Exchange {
                         'id' => $networkId,
                         'network' => $network,
                         'active' => $active,
+                        'deposit' => $canDeposit,
+                        'withdraw' => $canWithdraw,
                         'fee' => $this->safe_number($chain, 'minFee'),
                         'precision' => null,
                         'limits' => array(
@@ -986,6 +999,8 @@ class okex extends Exchange {
                 'id' => $currencyId,
                 'name' => null,
                 'active' => $currencyActive,
+                'deposit' => $depositEnabled,
+                'withdraw' => $withdrawEnabled,
                 'fee' => null,
                 'precision' => $precision,
                 'limits' => array(
@@ -1068,7 +1083,7 @@ class okex extends Exchange {
         $quoteVolume = $this->safe_number($ticker, 'volCcy24h');
         $baseVolume = $this->safe_number($ticker, 'vol24h');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -1089,7 +1104,7 @@ class okex extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

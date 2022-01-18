@@ -1014,6 +1014,8 @@ module.exports = class okex3 extends Exchange {
                 const name = this.safeString (currency, 'name');
                 const canDeposit = this.safeInteger (currency, 'can_deposit');
                 const canWithdraw = this.safeInteger (currency, 'can_withdraw');
+                const depositEnabled = (canDeposit === 1);
+                const withdrawEnabled = (canWithdraw === 1);
                 const active = (canDeposit && canWithdraw) ? true : false;
                 result[code] = {
                     'id': id,
@@ -1022,6 +1024,8 @@ module.exports = class okex3 extends Exchange {
                     'type': undefined,
                     'name': name,
                     'active': active,
+                    'deposit': depositEnabled,
+                    'withdraw': withdrawEnabled,
                     'fee': undefined, // todo: redesign
                     'precision': precision,
                     'limits': {
@@ -1097,29 +1101,12 @@ module.exports = class okex3 extends Exchange {
         //       quote_volume_24h: "15094.86831261"            }
         //
         const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
-        let symbol = undefined;
         const marketId = this.safeString (ticker, 'instrument_id');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        } else if (marketId !== undefined) {
-            const parts = marketId.split ('-');
-            const numParts = parts.length;
-            if (numParts === 2) {
-                const [ baseId, quoteId ] = parts;
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            } else {
-                symbol = marketId;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
         const last = this.safeNumber (ticker, 'last');
         const open = this.safeNumber (ticker, 'open_24h');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1140,7 +1127,7 @@ module.exports = class okex3 extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'base_volume_24h'),
             'quoteVolume': this.safeNumber (ticker, 'quote_volume_24h'),
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {

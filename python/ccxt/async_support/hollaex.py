@@ -236,6 +236,41 @@ class hollaex(Exchange):
 
     async def fetch_currencies(self, params={}):
         response = await self.publicGetConstants(params)
+        #
+        #     {
+        #         "coins":{
+        #             "bch":{
+        #                 "id":4,
+        #                 "fullname":"Bitcoin Cash",
+        #                 "symbol":"bch",
+        #                 "active":true,
+        #                 "verified":true,
+        #                 "allow_deposit":true,
+        #                 "allow_withdrawal":true,
+        #                 "withdrawal_fee":0.0001,
+        #                 "min":0.001,
+        #                 "max":100000,
+        #                 "increment_unit":0.001,
+        #                 "logo":"https://bitholla.s3.ap-northeast-2.amazonaws.com/icon/BCH-hollaex-asset-01.svg",
+        #                 "code":"bch",
+        #                 "is_public":true,
+        #                 "meta":{},
+        #                 "estimated_price":null,
+        #                 "description":null,
+        #                 "type":"blockchain",
+        #                 "network":null,
+        #                 "standard":null,
+        #                 "issuer":"HollaEx",
+        #                 "withdrawal_fees":null,
+        #                 "created_at":"2019-08-09T10:45:43.367Z",
+        #                 "updated_at":"2021-12-13T03:08:32.372Z",
+        #                 "created_by":1,
+        #                 "owner_id":1
+        #             },
+        #         },
+        #         "network":"https://api.hollaex.network"
+        #     }
+        #
         coins = self.safe_value(response, 'coins', {})
         keys = list(coins.keys())
         result = {}
@@ -246,7 +281,10 @@ class hollaex(Exchange):
             numericId = self.safe_integer(currency, 'id')
             code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'fullname')
-            active = self.safe_value(currency, 'active')
+            depositEnabled = self.safe_value(currency, 'allow_deposit')
+            withdrawEnabled = self.safe_value(currency, 'allow_withdrawal')
+            isActive = self.safe_value(currency, 'active')
+            active = isActive and depositEnabled and withdrawEnabled
             fee = self.safe_number(currency, 'withdrawal_fee')
             precision = self.safe_number(currency, 'increment_unit')
             withdrawalLimits = self.safe_value(currency, 'withdrawal_limits', [])
@@ -257,6 +295,8 @@ class hollaex(Exchange):
                 'info': currency,
                 'name': name,
                 'active': active,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': fee,
                 'precision': precision,
                 'limits': {
@@ -395,10 +435,11 @@ class hollaex(Exchange):
         #     }
         #
         marketId = self.safe_string(ticker, 'symbol')
-        symbol = self.safe_symbol(marketId, market, '-')
+        market = self.safe_market(marketId, market, '-')
+        symbol = market['symbol']
         timestamp = self.parse8601(self.safe_string_2(ticker, 'time', 'timestamp'))
         close = self.safe_number(ticker, 'close')
-        result = {
+        return self.safe_ticker({
             'symbol': symbol,
             'info': ticker,
             'timestamp': timestamp,
@@ -419,8 +460,7 @@ class hollaex(Exchange):
             'average': None,
             'baseVolume': self.safe_number(ticker, 'volume'),
             'quoteVolume': None,
-        }
-        return result
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()

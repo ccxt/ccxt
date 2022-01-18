@@ -247,6 +247,8 @@ class ripio(Exchange):
                 'name': name,
                 'info': currency,  # the original payload
                 'active': active,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
                 'precision': precision,
                 'limits': {
@@ -281,10 +283,11 @@ class ripio(Exchange):
         #
         timestamp = self.parse8601(self.safe_string(ticker, 'created_at'))
         marketId = self.safe_string(ticker, 'pair')
-        symbol = self.safe_symbol(marketId, market)
+        market = self.safe_market(marketId, market, '_')
+        symbol = market['symbol']
         last = self.safe_number(ticker, 'last_price')
         average = self.safe_number(ticker, 'avg')
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -305,7 +308,7 @@ class ripio(Exchange):
             'baseVolume': None,
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

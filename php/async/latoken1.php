@@ -338,17 +338,11 @@ class latoken1 extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market);
-        $open = $this->safe_number($ticker, 'open');
+        $market = $this->safe_market($marketId, $market);
         $close = $this->safe_number($ticker, 'close');
-        $change = null;
-        if ($open !== null && $close !== null) {
-            $change = $close - $open;
-        }
-        $percentage = $this->safe_number($ticker, 'priceChange');
-        $timestamp = $this->nonce();
-        return array(
-            'symbol' => $symbol,
+        $timestamp = $this->milliseconds();
+        return $this->safe_ticker(array(
+            'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'low' => $this->safe_number($ticker, 'low'),
@@ -358,17 +352,17 @@ class latoken1 extends Exchange {
             'ask' => null,
             'askVolume' => null,
             'vwap' => null,
-            'open' => $open,
+            'open' => $this->safe_number($ticker, 'open'),
             'close' => $close,
             'last' => $close,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => $percentage,
+            'change' => null,
+            'percentage' => $this->safe_number($ticker, 'priceChange'),
             'average' => null,
             'baseVolume' => null,
             'quoteVolume' => $this->safe_number($ticker, 'volume'),
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

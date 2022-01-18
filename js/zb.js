@@ -377,6 +377,8 @@ module.exports = class zb extends Exchange {
                 'precision': precision,
                 'info': currency,
                 'active': active,
+                'deposit': isDepositEnabled,
+                'withdraw': isWithdrawEnabled,
                 'fee': undefined,
                 'fees': fees,
                 'limits': this.limits,
@@ -616,13 +618,9 @@ module.exports = class zb extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (ticker, 'date', this.milliseconds ());
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
         const last = this.safeNumber (ticker, 'last');
-        return {
-            'symbol': symbol,
+        return this.safeTicker ({
+            'symbol': this.safeSymbol (undefined, market),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeNumber (ticker, 'high'),
@@ -632,7 +630,7 @@ module.exports = class zb extends Exchange {
             'ask': this.safeNumber (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': undefined,
+            'open': this.safeNumber (ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
@@ -642,7 +640,7 @@ module.exports = class zb extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market);
     }
 
     parseOHLCV (ohlcv, market = undefined) {

@@ -667,10 +667,7 @@ class kraken extends Exchange {
 
     public function parse_ticker($ticker, $market = null) {
         $timestamp = $this->milliseconds();
-        $symbol = null;
-        if ($market) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol(null, $market);
         $baseVolume = floatval($ticker['v'][1]);
         $vwap = floatval($ticker['p'][1]);
         $quoteVolume = null;
@@ -678,7 +675,7 @@ class kraken extends Exchange {
             $quoteVolume = $baseVolume * $vwap;
         }
         $last = floatval($ticker['c'][0]);
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -699,7 +696,7 @@ class kraken extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -1245,11 +1242,18 @@ class kraken extends Exchange {
 
     public function parse_order($order, $market = null) {
         //
-        // createOrder
+        // createOrder for regular orders
         //
         //     {
         //         descr => array( $order => 'buy 0.02100000 ETHUSDT @ limit 330.00' ),
         //         $txid => array( 'OEKVV2-IH52O-TPL6GZ' )
+        //     }
+        //
+        // createOrder for stop orders
+        //
+        //     {
+        //         "txid":["OSILNC-VQI5Q-775ZDQ"],
+        //         "descr":array("order":"sell 167.28002676 ADAXBT @ stop loss 0.00003280 -> limit 0.00003212")
         //     }
         //
         $description = $this->safe_value($order, 'descr', array());
@@ -1261,11 +1265,12 @@ class kraken extends Exchange {
         $amount = null;
         if ($orderDescription !== null) {
             $parts = explode(' ', $orderDescription);
+            $partsLength = is_array($parts) ? count($parts) : 0;
             $side = $this->safe_string($parts, 0);
             $amount = $this->safe_string($parts, 1);
             $marketId = $this->safe_string($parts, 2);
-            $type = $this->safe_string($parts, 4);
-            $price = $this->safe_string($parts, 5);
+            $type = $this->safe_string($parts, $partsLength - 2);
+            $price = $this->safe_string($parts, $partsLength - 1);
         }
         $side = $this->safe_string($description, 'type', $side);
         $type = $this->safe_string($description, 'ordertype', $type);

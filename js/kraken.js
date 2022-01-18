@@ -658,10 +658,7 @@ module.exports = class kraken extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         const timestamp = this.milliseconds ();
-        let symbol = undefined;
-        if (market) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (undefined, market);
         const baseVolume = parseFloat (ticker['v'][1]);
         const vwap = parseFloat (ticker['p'][1]);
         let quoteVolume = undefined;
@@ -669,7 +666,7 @@ module.exports = class kraken extends Exchange {
             quoteVolume = baseVolume * vwap;
         }
         const last = parseFloat (ticker['c'][0]);
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -690,7 +687,7 @@ module.exports = class kraken extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -1236,11 +1233,18 @@ module.exports = class kraken extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // createOrder
+        // createOrder for regular orders
         //
         //     {
         //         descr: { order: 'buy 0.02100000 ETHUSDT @ limit 330.00' },
         //         txid: [ 'OEKVV2-IH52O-TPL6GZ' ]
+        //     }
+        //
+        // createOrder for stop orders
+        //
+        //     {
+        //         "txid":["OSILNC-VQI5Q-775ZDQ"],
+        //         "descr":{"order":"sell 167.28002676 ADAXBT @ stop loss 0.00003280 -> limit 0.00003212"}
         //     }
         //
         const description = this.safeValue (order, 'descr', {});
@@ -1252,11 +1256,12 @@ module.exports = class kraken extends Exchange {
         let amount = undefined;
         if (orderDescription !== undefined) {
             const parts = orderDescription.split (' ');
+            const partsLength = parts.length;
             side = this.safeString (parts, 0);
             amount = this.safeString (parts, 1);
             marketId = this.safeString (parts, 2);
-            type = this.safeString (parts, 4);
-            price = this.safeString (parts, 5);
+            type = this.safeString (parts, partsLength - 2);
+            price = this.safeString (parts, partsLength - 1);
         }
         side = this.safeString (description, 'type', side);
         type = this.safeString (description, 'ordertype', type);

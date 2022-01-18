@@ -383,6 +383,8 @@ class zb extends Exchange {
                 'precision' => $precision,
                 'info' => $currency,
                 'active' => $active,
+                'deposit' => $isDepositEnabled,
+                'withdraw' => $isWithdrawEnabled,
                 'fee' => null,
                 'fees' => $fees,
                 'limits' => $this->limits,
@@ -622,13 +624,9 @@ class zb extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($ticker, 'date', $this->milliseconds());
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
         $last = $this->safe_number($ticker, 'last');
-        return array(
-            'symbol' => $symbol,
+        return $this->safe_ticker(array(
+            'symbol' => $this->safe_symbol(null, $market),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_number($ticker, 'high'),
@@ -638,7 +636,7 @@ class zb extends Exchange {
             'ask' => $this->safe_number($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => null,
+            'open' => $this->safe_number($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
@@ -648,7 +646,7 @@ class zb extends Exchange {
             'baseVolume' => $this->safe_number($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {

@@ -923,7 +923,10 @@ class timex(Exchange):
         code = self.safe_currency_code(id)
         name = self.safe_string(currency, 'name')
         precision = self.safe_integer(currency, 'decimals')
-        active = self.safe_value(currency, 'active')
+        depositEnabled = self.safe_value(currency, 'depositEnabled')
+        withdrawEnabled = self.safe_value(currency, 'withdrawalEnabled')
+        isActive = self.safe_value(currency, 'active')
+        active = depositEnabled and withdrawEnabled and isActive
         # fee = self.safe_number(currency, 'withdrawalFee')
         feeString = self.safe_string(currency, 'withdrawalFee')
         tradeDecimals = self.safe_integer(currency, 'tradeDecimals')
@@ -947,6 +950,8 @@ class timex(Exchange):
             'type': None,
             'name': name,
             'active': active,
+            'deposit': depositEnabled,
+            'withdraw': withdrawEnabled,
             'fee': fee,
             'precision': precision,
             'limits': {

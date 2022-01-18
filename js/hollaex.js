@@ -233,6 +233,41 @@ module.exports = class hollaex extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetConstants (params);
+        //
+        //     {
+        //         "coins":{
+        //             "bch":{
+        //                 "id":4,
+        //                 "fullname":"Bitcoin Cash",
+        //                 "symbol":"bch",
+        //                 "active":true,
+        //                 "verified":true,
+        //                 "allow_deposit":true,
+        //                 "allow_withdrawal":true,
+        //                 "withdrawal_fee":0.0001,
+        //                 "min":0.001,
+        //                 "max":100000,
+        //                 "increment_unit":0.001,
+        //                 "logo":"https://bitholla.s3.ap-northeast-2.amazonaws.com/icon/BCH-hollaex-asset-01.svg",
+        //                 "code":"bch",
+        //                 "is_public":true,
+        //                 "meta":{},
+        //                 "estimated_price":null,
+        //                 "description":null,
+        //                 "type":"blockchain",
+        //                 "network":null,
+        //                 "standard":null,
+        //                 "issuer":"HollaEx",
+        //                 "withdrawal_fees":null,
+        //                 "created_at":"2019-08-09T10:45:43.367Z",
+        //                 "updated_at":"2021-12-13T03:08:32.372Z",
+        //                 "created_by":1,
+        //                 "owner_id":1
+        //             },
+        //         },
+        //         "network":"https://api.hollaex.network"
+        //     }
+        //
         const coins = this.safeValue (response, 'coins', {});
         const keys = Object.keys (coins);
         const result = {};
@@ -243,7 +278,10 @@ module.exports = class hollaex extends Exchange {
             const numericId = this.safeInteger (currency, 'id');
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'fullname');
-            const active = this.safeValue (currency, 'active');
+            const depositEnabled = this.safeValue (currency, 'allow_deposit');
+            const withdrawEnabled = this.safeValue (currency, 'allow_withdrawal');
+            const isActive = this.safeValue (currency, 'active');
+            const active = isActive && depositEnabled && withdrawEnabled;
             const fee = this.safeNumber (currency, 'withdrawal_fee');
             const precision = this.safeNumber (currency, 'increment_unit');
             const withdrawalLimits = this.safeValue (currency, 'withdrawal_limits', []);
@@ -254,6 +292,8 @@ module.exports = class hollaex extends Exchange {
                 'info': currency,
                 'name': name,
                 'active': active,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': fee,
                 'precision': precision,
                 'limits': {
@@ -401,10 +441,11 @@ module.exports = class hollaex extends Exchange {
         //     }
         //
         const marketId = this.safeString (ticker, 'symbol');
-        const symbol = this.safeSymbol (marketId, market, '-');
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
         const timestamp = this.parse8601 (this.safeString2 (ticker, 'time', 'timestamp'));
         const close = this.safeNumber (ticker, 'close');
-        const result = {
+        return this.safeTicker ({
             'symbol': symbol,
             'info': ticker,
             'timestamp': timestamp,
@@ -425,8 +466,7 @@ module.exports = class hollaex extends Exchange {
             'average': undefined,
             'baseVolume': this.safeNumber (ticker, 'volume'),
             'quoteVolume': undefined,
-        };
-        return result;
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {

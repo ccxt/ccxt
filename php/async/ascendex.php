@@ -288,6 +288,7 @@ class ascendex extends Exchange {
                 'BTCBEAR' => 'BEAR',
                 'BTCBULL' => 'BULL',
                 'BYN' => 'BeyondFi',
+                'PLN' => 'Pollen',
             ),
         ));
     }
@@ -638,20 +639,23 @@ class ascendex extends Exchange {
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
         yield $this->load_accounts();
-        $defaultAccountCategory = $this->safe_string($this->options, 'account-category', 'cash');
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $options = $this->safe_value($this->options, 'fetchBalance', array());
-        $accountCategory = $this->safe_string($options, 'account-category', $defaultAccountCategory);
-        $accountCategory = $this->safe_string($params, 'account-category', $accountCategory);
-        $params = $this->omit($params, 'account-category');
+        $accountCategories = $this->safe_value($this->options, 'accountCategories', array());
+        $accountCategory = $this->safe_string($accountCategories, $marketType, 'cash');
         $account = $this->safe_value($this->accounts, 0, array());
         $accountGroup = $this->safe_string($account, 'id');
         $request = array(
             'account-group' => $accountGroup,
         );
-        $method = 'v1PrivateAccountCategoryGetBalance';
-        if ($accountCategory === 'futures') {
-            $method = 'v1PrivateAccountGroupGetFuturesCollateralBalance';
-        } else {
+        $defaultMethod = $this->safe_string($options, 'method', 'v1PrivateAccountCategoryGetBalance');
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => $defaultMethod,
+            'margin' => $defaultMethod,
+            'swap' => 'v1PrivateAccountGroupGetFuturesCollateralBalance',
+        ));
+        if ($accountCategory === 'cash') {
             $request['account-category'] = $accountCategory;
         }
         $response = yield $this->$method (array_merge($request, $params));

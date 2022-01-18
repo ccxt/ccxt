@@ -442,22 +442,27 @@ class poloniex extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
+        // {
+        //     id => '121',
+        //     $last => '43196.31469670',
+        //     lowestAsk => '43209.61843169',
+        //     highestBid => '43162.41965234',
+        //     percentChange => '0.00963340',
+        //     baseVolume => '13444643.33799658',
+        //     quoteVolume => '315.84780115',
+        //     isFrozen => '0',
+        //     postOnly => '0',
+        //     marginTradingEnabled => '1',
+        //     high24hr => '43451.84481934',
+        //     low24hr => '41749.89529736'
+        // }
         $timestamp = $this->milliseconds();
-        $symbol = null;
-        if ($market) {
-            $symbol = $market['symbol'];
-        }
-        $open = null;
-        $change = null;
-        $average = null;
+        $symbol = $this->safe_symbol(null, $market);
         $last = $this->safe_number($ticker, 'last');
-        $relativeChange = $this->safe_number($ticker, 'percentChange');
-        if ($relativeChange !== -1) {
-            $open = $last / $this->sum(1, $relativeChange);
-            $change = $last - $open;
-            $average = $this->sum($last, $open) / 2;
-        }
-        return array(
+        $relativeChange = $this->safe_string($ticker, 'percentChange');
+        $percentage = Precise::string_mul($relativeChange, '100');
+        $percentage = $this->parse_number($percentage);
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -468,17 +473,17 @@ class poloniex extends Exchange {
             'ask' => $this->safe_number($ticker, 'lowestAsk'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $open,
+            'open' => null,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => $relativeChange * 100,
-            'average' => $average,
+            'change' => null,
+            'percentage' => $percentage,
+            'average' => null,
             'baseVolume' => $this->safe_number($ticker, 'quoteVolume'),
             'quoteVolume' => $this->safe_number($ticker, 'baseVolume'),
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -508,6 +513,7 @@ class poloniex extends Exchange {
 
     public function fetch_currencies($params = array ()) {
         $response = yield $this->publicGetReturnCurrencies ($params);
+        //
         //     {
         //       "id" => "293",
         //       "name" => "0x",
@@ -523,6 +529,7 @@ class poloniex extends Exchange {
         //       "delisted" => "0",
         //       "isGeofenced" => 0
         //     }
+        //
         $ids = is_array($response) ? array_keys($response) : array();
         $result = array();
         for ($i = 0; $i < count($ids); $i++) {
@@ -531,7 +538,11 @@ class poloniex extends Exchange {
             $precision = 8; // default $precision, todo => fix "magic constants"
             $amountLimit = '1e-8';
             $code = $this->safe_currency_code($id);
-            $active = ($currency['delisted'] === 0) && !$currency['disabled'];
+            $delisted = $this->safe_integer($currency, 'delisted', 0);
+            $disabled = $this->safe_integer($currency, 'disabled', 0);
+            $listed = !$delisted;
+            $enabled = !$disabled;
+            $active = $enabled && $listed;
             $numericId = $this->safe_integer($currency, 'id');
             $fee = $this->safe_number($currency, 'txFee');
             $result[$code] = array(
@@ -541,6 +552,8 @@ class poloniex extends Exchange {
                 'info' => $currency,
                 'name' => $currency['name'],
                 'active' => $active,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => $fee,
                 'precision' => $precision,
                 'limits' => array(
@@ -562,6 +575,23 @@ class poloniex extends Exchange {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $response = yield $this->publicGetReturnTicker ($params);
+        // {
+        //     "BTC_BTS":array(
+        //        "id":14,
+        //        "last":"0.00000073",
+        //        "lowestAsk":"0.00000075",
+        //        "highestBid":"0.00000073",
+        //        "percentChange":"0.01388888",
+        //        "baseVolume":"0.01413528",
+        //        "quoteVolume":"19431.16872167",
+        //        "isFrozen":"0",
+        //        "postOnly":"0",
+        //        "marginTradingEnabled":"0",
+        //        "high24hr":"0.00000074",
+        //        "low24hr":"0.00000071"
+        //     ),
+        //     ...
+        // }
         $ticker = $response[$market['id']];
         return $this->parse_ticker($ticker, $market);
     }

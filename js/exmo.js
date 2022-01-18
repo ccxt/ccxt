@@ -342,6 +342,8 @@ module.exports = class exmo extends Exchange {
                 },
             };
             let fee = undefined;
+            let depositEnabled = undefined;
+            let withdrawEnabled = undefined;
             if (providers === undefined) {
                 active = true;
                 type = 'fiat';
@@ -355,6 +357,19 @@ module.exports = class exmo extends Exchange {
                         maxValue = undefined;
                     }
                     const activeProvider = this.safeValue (provider, 'enabled');
+                    if (type === 'deposit') {
+                        if (activeProvider && !depositEnabled) {
+                            depositEnabled = true;
+                        } else if (!activeProvider) {
+                            depositEnabled = false;
+                        }
+                    } else if (type === 'withdraw') {
+                        if (activeProvider && !withdrawEnabled) {
+                            withdrawEnabled = true;
+                        } else if (!activeProvider) {
+                            withdrawEnabled = false;
+                        }
+                    }
                     if (activeProvider) {
                         active = true;
                         if ((limits[type]['min'] === undefined) || (minValue < limits[type]['min'])) {
@@ -375,6 +390,8 @@ module.exports = class exmo extends Exchange {
                 'name': name,
                 'type': type,
                 'active': active,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': fee,
                 'precision': 8,
                 'limits': limits,
@@ -606,14 +623,24 @@ module.exports = class exmo extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         "buy_price":"0.00002996",
+        //         "sell_price":"0.00003002",
+        //         "last_trade":"0.00002992",
+        //         "high":"0.00003028",
+        //         "low":"0.00002935",
+        //         "avg":"0.00002963",
+        //         "vol":"1196546.3163222",
+        //         "vol_curr":"35.80066578",
+        //         "updated":1642291733
+        //     }
+        //
         const timestamp = this.safeTimestamp (ticker, 'updated');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (undefined, market);
         const last = this.safeNumber (ticker, 'last_trade');
-        return {
-            'symbol': symbol,
+        return this.safeTicker ({
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeNumber (ticker, 'high'),
@@ -633,19 +660,34 @@ module.exports = class exmo extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'vol'),
             'quoteVolume': this.safeNumber (ticker, 'vol_curr'),
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.publicGetTicker (params);
+        //
+        //     {
+        //         "ADA_BTC":{
+        //             "buy_price":"0.00002996",
+        //             "sell_price":"0.00003002",
+        //             "last_trade":"0.00002992",
+        //             "high":"0.00003028",
+        //             "low":"0.00002935",
+        //             "avg":"0.00002963",
+        //             "vol":"1196546.3163222",
+        //             "vol_curr":"35.80066578",
+        //             "updated":1642291733
+        //         }
+        //     }
+        //
         const result = {};
-        const ids = Object.keys (response);
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const market = this.markets_by_id[id];
+        const marketIds = Object.keys (response);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const market = this.safeMarket (marketId, undefined, '_');
             const symbol = market['symbol'];
-            const ticker = response[id];
+            const ticker = this.safeValue (response, marketId);
             result[symbol] = this.parseTicker (ticker, market);
         }
         return this.filterByArray (result, 'symbol', symbols);

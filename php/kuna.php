@@ -354,12 +354,9 @@ class kuna extends Exchange {
     public function parse_ticker($ticker, $market = null) {
         $timestamp = $this->safe_timestamp($ticker, 'at');
         $ticker = $ticker['ticker'];
-        $symbol = null;
-        if ($market) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol(null, $market);
         $last = $this->safe_number($ticker, 'last');
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -380,7 +377,7 @@ class kuna extends Exchange {
             'baseVolume' => $this->safe_number($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

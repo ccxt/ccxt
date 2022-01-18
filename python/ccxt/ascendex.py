@@ -292,6 +292,7 @@ class ascendex(Exchange):
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
                 'BYN': 'BeyondFi',
+                'PLN': 'Pollen',
             },
         })
 
@@ -631,20 +632,23 @@ class ascendex(Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         self.load_accounts()
-        defaultAccountCategory = self.safe_string(self.options, 'account-category', 'cash')
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
         options = self.safe_value(self.options, 'fetchBalance', {})
-        accountCategory = self.safe_string(options, 'account-category', defaultAccountCategory)
-        accountCategory = self.safe_string(params, 'account-category', accountCategory)
-        params = self.omit(params, 'account-category')
+        accountCategories = self.safe_value(self.options, 'accountCategories', {})
+        accountCategory = self.safe_string(accountCategories, marketType, 'cash')
         account = self.safe_value(self.accounts, 0, {})
         accountGroup = self.safe_string(account, 'id')
         request = {
             'account-group': accountGroup,
         }
-        method = 'v1PrivateAccountCategoryGetBalance'
-        if accountCategory == 'futures':
-            method = 'v1PrivateAccountGroupGetFuturesCollateralBalance'
-        else:
+        defaultMethod = self.safe_string(options, 'method', 'v1PrivateAccountCategoryGetBalance')
+        method = self.get_supported_mapping(marketType, {
+            'spot': defaultMethod,
+            'margin': defaultMethod,
+            'swap': 'v1PrivateAccountGroupGetFuturesCollateralBalance',
+        })
+        if accountCategory == 'cash':
             request['account-category'] = accountCategory
         response = getattr(self, method)(self.extend(request, params))
         #

@@ -718,8 +718,8 @@ class bitmart extends Exchange {
         //
         $timestamp = $this->safe_timestamp_2($ticker, 'timestamp', 's_t', $this->milliseconds());
         $marketId = $this->safe_string_2($ticker, 'symbol', 'contract_id');
-        $marketId = $this->safe_string($ticker, 'contract_symbol', $marketId);
-        $symbol = $this->safe_symbol($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $last = $this->safe_number_2($ticker, 'close_24h', 'last_price');
         $percentage = $this->safe_number_2($ticker, 'fluctuation', 'rise_fall_rate');
         if ($percentage !== null) {
@@ -731,14 +731,9 @@ class bitmart extends Exchange {
         $baseVolume = $this->safe_number_2($ticker, 'base_coin_volume', 'base_volume_24h');
         $quoteVolume = $this->safe_number_2($ticker, 'quote_coin_volume', 'quote_volume_24h');
         $quoteVolume = $this->safe_number($ticker, 'volume_24h', $quoteVolume);
-        $open = $this->safe_number_2($ticker, 'open_24h', 'open');
-        $average = null;
-        if (($last !== null) && ($open !== null)) {
-            $average = $this->sum($last, $open) / 2;
-        }
-        $average = $this->safe_number($ticker, 'avg_price', $average);
+        $average = $this->safe_number($ticker, 'avg_price');
         $price = $this->safe_value($ticker, 'depth_price', $ticker);
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -759,7 +754,7 @@ class bitmart extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

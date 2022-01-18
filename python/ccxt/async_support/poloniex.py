@@ -434,20 +434,27 @@ class poloniex(Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
+        # {
+        #     id: '121',
+        #     last: '43196.31469670',
+        #     lowestAsk: '43209.61843169',
+        #     highestBid: '43162.41965234',
+        #     percentChange: '0.00963340',
+        #     baseVolume: '13444643.33799658',
+        #     quoteVolume: '315.84780115',
+        #     isFrozen: '0',
+        #     postOnly: '0',
+        #     marginTradingEnabled: '1',
+        #     high24hr: '43451.84481934',
+        #     low24hr: '41749.89529736'
+        # }
         timestamp = self.milliseconds()
-        symbol = None
-        if market:
-            symbol = market['symbol']
-        open = None
-        change = None
-        average = None
+        symbol = self.safe_symbol(None, market)
         last = self.safe_number(ticker, 'last')
-        relativeChange = self.safe_number(ticker, 'percentChange')
-        if relativeChange != -1:
-            open = last / self.sum(1, relativeChange)
-            change = last - open
-            average = self.sum(last, open) / 2
-        return {
+        relativeChange = self.safe_string(ticker, 'percentChange')
+        percentage = Precise.string_mul(relativeChange, '100')
+        percentage = self.parse_number(percentage)
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -458,17 +465,17 @@ class poloniex(Exchange):
             'ask': self.safe_number(ticker, 'lowestAsk'),
             'askVolume': None,
             'vwap': None,
-            'open': open,
+            'open': None,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
-            'percentage': relativeChange * 100,
-            'average': average,
+            'change': None,
+            'percentage': percentage,
+            'average': None,
             'baseVolume': self.safe_number(ticker, 'quoteVolume'),
             'quoteVolume': self.safe_number(ticker, 'baseVolume'),
             'info': ticker,
-        }
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
@@ -494,6 +501,7 @@ class poloniex(Exchange):
 
     async def fetch_currencies(self, params={}):
         response = await self.publicGetReturnCurrencies(params)
+        #
         #     {
         #       "id": "293",
         #       "name": "0x",
@@ -509,6 +517,7 @@ class poloniex(Exchange):
         #       "delisted": "0",
         #       "isGeofenced": 0
         #     }
+        #
         ids = list(response.keys())
         result = {}
         for i in range(0, len(ids)):
@@ -517,7 +526,11 @@ class poloniex(Exchange):
             precision = 8  # default precision, todo: fix "magic constants"
             amountLimit = '1e-8'
             code = self.safe_currency_code(id)
-            active = (currency['delisted'] == 0) and not currency['disabled']
+            delisted = self.safe_integer(currency, 'delisted', 0)
+            disabled = self.safe_integer(currency, 'disabled', 0)
+            listed = not delisted
+            enabled = not disabled
+            active = enabled and listed
             numericId = self.safe_integer(currency, 'id')
             fee = self.safe_number(currency, 'txFee')
             result[code] = {
@@ -527,6 +540,8 @@ class poloniex(Exchange):
                 'info': currency,
                 'name': currency['name'],
                 'active': active,
+                'deposit': None,
+                'withdraw': None,
                 'fee': fee,
                 'precision': precision,
                 'limits': {
@@ -546,6 +561,23 @@ class poloniex(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         response = await self.publicGetReturnTicker(params)
+        # {
+        #     "BTC_BTS":{
+        #        "id":14,
+        #        "last":"0.00000073",
+        #        "lowestAsk":"0.00000075",
+        #        "highestBid":"0.00000073",
+        #        "percentChange":"0.01388888",
+        #        "baseVolume":"0.01413528",
+        #        "quoteVolume":"19431.16872167",
+        #        "isFrozen":"0",
+        #        "postOnly":"0",
+        #        "marginTradingEnabled":"0",
+        #        "high24hr":"0.00000074",
+        #        "low24hr":"0.00000071"
+        #     },
+        #     ...
+        # }
         ticker = response[market['id']]
         return self.parse_ticker(ticker, market)
 

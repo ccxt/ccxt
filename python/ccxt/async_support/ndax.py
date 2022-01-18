@@ -20,11 +20,15 @@ class ndax(Exchange):
         return self.deep_extend(super(ndax, self).describe(), {
             'id': 'ndax',
             'name': 'NDAX',
-            'countries': ['US'],  # United States
+            'countries': ['CA'],  # Canada
             'rateLimit': 1000,
             'pro': True,
             'has': {
-                'withdraw': True,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createDepositAddress': True,
@@ -32,11 +36,22 @@ class ndax(Exchange):
                 'editOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
                 'fetchLedger': True,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -44,10 +59,17 @@ class ndax(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setPositionMode': False,
                 'signIn': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '60',
@@ -311,8 +333,19 @@ class ndax(Exchange):
                 'precision': precision,
                 'info': currency,
                 'active': active,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
-                'limits': self.limits,
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
             }
         return result
 
@@ -377,28 +410,43 @@ class ndax(Exchange):
             quoteId = self.safe_string(market, 'Product2')
             base = self.safe_currency_code(self.safe_string(market, 'Product1Symbol'))
             quote = self.safe_currency_code(self.safe_string(market, 'Product2Symbol'))
-            symbol = base + '/' + quote
-            precision = {
-                'amount': self.safe_number(market, 'QuantityIncrement'),
-                'price': self.safe_number(market, 'PriceIncrement'),
-            }
             sessionStatus = self.safe_string(market, 'SessionStatus')
             isDisable = self.safe_value(market, 'IsDisable')
             sessionRunning = (sessionStatus == 'Running')
-            active = True if (sessionRunning and not isDisable) else False
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'info': market,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
-                'precision': precision,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': (sessionRunning and not isDisable),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_number(market, 'QuantityIncrement'),
+                    'price': self.safe_number(market, 'PriceIncrement'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(market, 'MinimumQuantity'),
                         'max': None,
@@ -518,18 +566,16 @@ class ndax(Exchange):
         #
         timestamp = self.safe_integer(ticker, 'TimeStamp')
         marketId = self.safe_string(ticker, 'InstrumentId')
+        market = self.safe_market(marketId, market)
         symbol = self.safe_symbol(marketId, market)
         last = self.safe_number(ticker, 'LastTradedPx')
         percentage = self.safe_number(ticker, 'Rolling24HrPxChangePercent')
         change = self.safe_number(ticker, 'Rolling24HrPxChange')
         open = self.safe_number(ticker, 'SessionOpen')
-        average = None
-        if (last is not None) and (change is not None):
-            average = self.sum(last, open) / 2
         baseVolume = self.safe_number(ticker, 'Rolling24HrVolume')
         quoteVolume = self.safe_number(ticker, 'Rolling24HrNotional')
         vwap = self.vwap(baseVolume, quoteVolume)
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -546,11 +592,11 @@ class ndax(Exchange):
             'previousClose': None,
             'change': change,
             'percentage': percentage,
-            'average': average,
+            'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     async def fetch_ticker(self, symbol, params={}):
         omsId = self.safe_integer(self.options, 'omsId', 1)

@@ -557,15 +557,11 @@ class currencycom extends Exchange {
         //
         $timestamp = $this->safe_integer($ticker, 'closeTime');
         $marketId = $this->safe_string($ticker, 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market);
+        $market = $this->safe_market($marketId, $market, '/');
         $last = $this->safe_number($ticker, 'lastPrice');
         $open = $this->safe_number($ticker, 'openPrice');
-        $average = null;
-        if (($open !== null) && ($last !== null)) {
-            $average = $this->sum($open, $last) / 2;
-        }
-        return array(
-            'symbol' => $symbol,
+        return $this->safe_ticker(array(
+            'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_number($ticker, 'highPrice'),
@@ -581,11 +577,11 @@ class currencycom extends Exchange {
             'previousClose' => $this->safe_number($ticker, 'prevClosePrice'), // previous day close
             'change' => $this->safe_number($ticker, 'priceChange'),
             'percentage' => $this->safe_number($ticker, 'priceChangePercent'),
-            'average' => $average,
+            'average' => null,
             'baseVolume' => $this->safe_number($ticker, 'volume'),
             'quoteVolume' => $this->safe_number($ticker, 'quoteVolume'),
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

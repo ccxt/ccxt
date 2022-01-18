@@ -239,6 +239,7 @@ class mexc extends Exchange {
                 'COFI' => 'COFIX', // conflict with CoinFi
                 'DFT' => 'dFuture',
                 'DRK' => 'DRK',
+                'EGC' => 'Egoras Credit',
                 'FLUX1' => 'FLUX', // switched places
                 'FLUX' => 'FLUX1', // switched places
                 'FREE' => 'FreeRossDAO', // conflict with FREE Coin
@@ -278,14 +279,13 @@ class mexc extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
-        $defaultType = $this->safe_string_2($this->options, 'fetchMarkets', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $query = $this->omit($params, 'type');
-        $method = 'spotPublicGetCommonTimestamp';
-        if ($type === 'contract') {
-            $method = 'contractPublicGetPing';
-        }
-        $response = yield $this->$method ($query);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchTime', null, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'spotPublicGetCommonTimestamp',
+            'swap' => 'contractPublicGetPing',
+        ));
+        $response = yield $this->$method (array_merge($params));
         //
         // spot
         //
@@ -360,6 +360,8 @@ class mexc extends Exchange {
             $currencyWithdrawMax = null;
             $networks = array();
             $chains = $this->safe_value($currency, 'coins', array());
+            $depositEnabled = false;
+            $withdrawEnabled = false;
             for ($j = 0; $j < count($chains); $j++) {
                 $chain = $chains[$j];
                 $networkId = $this->safe_string($chain, 'chain');
@@ -380,11 +382,19 @@ class mexc extends Exchange {
                 if (Precise::string_lt($currencyWithdrawMax, $withdrawMax)) {
                     $currencyWithdrawMax = $withdrawMax;
                 }
+                if ($isDepositEnabled) {
+                    $depositEnabled = true;
+                }
+                if ($isWithdrawEnabled) {
+                    $withdrawEnabled = true;
+                }
                 $networks[$network] = array(
                     'info' => $chain,
                     'id' => $networkId,
                     'network' => $network,
                     'active' => $active,
+                    'deposit' => $isDepositEnabled,
+                    'withdraw' => $isWithdrawEnabled,
                     'fee' => $this->safe_number($chain, 'fee'),
                     'precision' => $precision,
                     'limits' => array(
@@ -410,6 +420,8 @@ class mexc extends Exchange {
                 'info' => $currency,
                 'name' => $name,
                 'active' => $currencyActive,
+                'deposit' => $depositEnabled,
+                'withdraw' => $withdrawEnabled,
                 'fee' => $currencyFee,
                 'precision' => $currencyPrecision,
                 'limits' => array(
@@ -657,14 +669,13 @@ class mexc extends Exchange {
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         yield $this->load_markets();
-        $defaultType = $this->safe_string_2($this->options, 'fetchTickers', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $query = $this->omit($params, 'type');
-        $method = 'spotPublicGetMarketTicker';
-        if ($type === 'swap') {
-            $method = 'contractPublicGetTicker';
-        }
-        $response = yield $this->$method (array_merge($query));
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', null, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'spotPublicGetMarketTicker',
+            'swap' => 'contractPublicGetTicker',
+        ));
+        $response = yield $this->$method (array_merge($params));
         //
         //     {
         //         "success":true,
@@ -1005,12 +1016,6 @@ class mexc extends Exchange {
         $amountString = $this->safe_string_2($trade, 'quantity', 'trade_quantity');
         $amountString = $this->safe_string($trade, 'v', $amountString);
         $costString = $this->safe_string($trade, 'amount');
-        if ($costString === null) {
-            $costString = Precise::string_mul($priceString, $amountString);
-        }
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number($costString);
         $side = $this->safe_string_2($trade, 'trade_type', 'T');
         if (($side === 'BID') || ($side === '1')) {
             $side = 'buy';
@@ -1024,20 +1029,20 @@ class mexc extends Exchange {
                 $id .= '-' . $market['id'] . '-' . $amountString;
             }
         }
-        $feeCost = $this->safe_number($trade, 'fee');
+        $feeCostString = $this->safe_string($trade, 'fee');
         $fee = null;
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'fee_currency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
             );
         }
         $orderId = $this->safe_string($trade, 'order_id');
         $isTaker = $this->safe_value($trade, 'is_taker', true);
         $takerOrMaker = $isTaker ? 'taker' : 'maker';
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'order' => $orderId,
@@ -1047,11 +1052,11 @@ class mexc extends Exchange {
             'type' => null,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => $costString,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -1147,18 +1152,14 @@ class mexc extends Exchange {
 
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
-        $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $spot = ($type === 'spot');
-        $swap = ($type === 'swap');
-        $method = null;
-        if ($spot) {
-            $method = 'spotPrivateGetAccountInfo';
-        } else if ($swap) {
-            $method = 'contractPrivateGetAccountAssets';
-        }
-        $query = $this->omit($params, 'type');
-        $response = yield $this->$method ($query);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'spotPrivateGetAccountInfo',
+            'swap' => 'contractPrivateGetAccountAssets',
+        ));
+        $spot = ($marketType === 'spot');
+        $response = yield $this->$method ($params);
         //
         // $spot
         //
@@ -1169,7 +1170,7 @@ class mexc extends Exchange {
         //         }
         //     }
         //
-        // $swap / contract
+        // swap / contract
         //
         //     {
         //         "success":true,
@@ -1182,10 +1183,11 @@ class mexc extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
+        $currentTime = $this->milliseconds();
         $result = array(
             'info' => $response,
-            'timestamp' => null,
-            'datetime' => null,
+            'timestamp' => $currentTime,
+            'datetime' => $this->iso8601($currentTime),
         );
         if ($spot) {
             $currencyIds = is_array($data) ? array_keys($data) : array();

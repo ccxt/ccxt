@@ -15,7 +15,6 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import PAD_WITH_ZERO
-from ccxt.base.precise import Precise
 
 
 class idex(Exchange):
@@ -25,7 +24,9 @@ class idex(Exchange):
             'id': 'idex',
             'name': 'IDEX',
             'countries': ['US'],
-            'rateLimit': 1500,
+            # public data endpoints 5 requests a second => 1000ms / 5 = 200ms between requests roughly(without Authentication)
+            # all endpoints 10 requests a second =>(1000ms / rateLimit) / 10 => 1 / 2(with Authentication)
+            'rateLimit': 200,
             'version': 'v2',
             'pro': True,
             'certified': True,
@@ -75,38 +76,38 @@ class idex(Exchange):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'ping',
-                        'time',
-                        'exchange',
-                        'assets',
-                        'markets',
-                        'tickers',
-                        'candles',
-                        'trades',
-                        'orderbook',
-                        'wsToken',
-                    ],
+                    'get': {
+                        'ping': 1,
+                        'time': 1,
+                        'exchange': 1,
+                        'assets': 1,
+                        'markets': 1,
+                        'tickers': 1,
+                        'candles': 1,
+                        'trades': 1,
+                        'orderbook': 1,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'user',
-                        'wallets',
-                        'balances',
-                        'orders',
-                        'fills',
-                        'deposits',
-                        'withdrawals',
-                    ],
-                    'post': [
-                        'wallets',
-                        'orders',
-                        'orders/test',
-                        'withdrawals',
-                    ],
-                    'delete': [
-                        'orders',
-                    ],
+                    'get': {
+                        'user': 1,
+                        'wallets': 1,
+                        'balances': 1,
+                        'orders': 1,
+                        'fills': 1,
+                        'deposits': 1,
+                        'withdrawals': 1,
+                        'wsToken': 1,
+                    },
+                    'post': {
+                        'wallets': 1,
+                        'orders': 1,
+                        'orders/test': 1,
+                        'withdrawals': 1,
+                    },
+                    'delete': {
+                        'orders': 1,
+                    },
                 },
             },
             'options': {
@@ -131,11 +132,6 @@ class idex(Exchange):
             },
             'paddingMode': PAD_WITH_ZERO,
             'commonCurrencies': {},
-            'requireCredentials': {
-                'privateKey': True,
-                'apiKey': True,
-                'secret': True,
-            },
         })
 
     async def fetch_markets(self, params={}):
@@ -314,38 +310,28 @@ class idex(Exchange):
         marketId = self.safe_string(ticker, 'market')
         market = self.safe_market(marketId, market, '-')
         symbol = market['symbol']
-        baseVolume = self.safe_number(ticker, 'baseVolume')
-        quoteVolume = self.safe_number(ticker, 'quoteVolume')
         timestamp = self.safe_integer(ticker, 'time')
-        open = self.safe_number(ticker, 'open')
-        high = self.safe_number(ticker, 'high')
-        low = self.safe_number(ticker, 'low')
         close = self.safe_number(ticker, 'close')
-        ask = self.safe_number(ticker, 'ask')
-        bid = self.safe_number(ticker, 'bid')
-        percentage = self.safe_number(ticker, 'percentChange')
-        if percentage is not None:
-            percentage = 1 + percentage / 100
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': high,
-            'low': low,
-            'bid': bid,
+            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_number(ticker, 'low'),
+            'bid': self.safe_number(ticker, 'bid'),
             'bidVolume': None,
-            'ask': ask,
+            'ask': self.safe_number(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
-            'open': open,
+            'open': self.safe_number(ticker, 'open'),
             'close': close,
             'last': close,
             'previousClose': None,
             'change': None,
-            'percentage': percentage,
+            'percentage': self.safe_number(ticker, 'percentChange'),
             'average': None,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'baseVolume': self.safe_number(ticker, 'baseVolume'),
+            'quoteVolume': self.safe_number(ticker, 'quoteVolume'),
             'info': ticker,
         }, market)
 
@@ -421,43 +407,48 @@ class idex(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def parse_trade(self, trade, market=None):
+        #
         # public trades
-        # {
-        #   fillId: 'b5467d00-b13e-3fa9-8216-dd66735550fc',
-        #   price: '0.09771286',
-        #   quantity: '1.45340410',
-        #   quoteQuantity: '0.14201627',
-        #   time: 1598345638994,
-        #   makerSide: 'buy',
-        #   sequence: 3853
-        # }
+        #  {
+        #      "fillId":"a4883704-850b-3c4b-8588-020b5e4c62f1",
+        #      "price":"0.20377008",
+        #      "quantity":"47.58448728",
+        #      "quoteQuantity":"9.69629509",
+        #      "time":1642091300873,
+        #      "makerSide":"buy",
+        #      "type":"hybrid",        # one of either: "orderBook", "hybrid", or "pool"
+        #      "sequence":31876
+        #  }
+        #
         # private trades
-        # {
-        #   fillId: '48582d10-b9bb-3c4b-94d3-e67537cf2472',
-        #   price: '0.09905990',
-        #   quantity: '0.40000000',
-        #   quoteQuantity: '0.03962396',
-        #   time: 1598873478762,
-        #   makerSide: 'sell',
-        #   sequence: 5053,
-        #   market: 'DIL-ETH',
-        #   orderId: '7cdc8e90-eb7d-11ea-9e60-4118569f6e63',
-        #   side: 'buy',
-        #   fee: '0.00080000',
-        #   feeAsset: 'DIL',
-        #   gas: '0.00857497',
-        #   liquidity: 'taker',
-        #   txId: '0xeaa02b112c0b8b61bc02fa1776a2b39d6c614e287c1af90df0a2e591da573e65',
-        #   txStatus: 'mined'
-        # }
+        #  {
+        #      "fillId":"83429066-9334-3582-b710-78858b2f0d6b",
+        #      "price":"0.20717368",
+        #      "quantity":"15.00000000",
+        #      "quoteQuantity":"3.10760523",
+        #      "orderBookQuantity":"0.00000003",
+        #      "orderBookQuoteQuantity":"0.00000001",
+        #      "poolQuantity":"14.99999997",
+        #      "poolQuoteQuantity":"3.10760522",
+        #      "time":1642083351215,
+        #      "makerSide":"sell",
+        #      "sequence":31795,
+        #      "market":"IDEX-USDC",
+        #      "orderId":"4fe993f0-747b-11ec-bd08-79d4a0b6e47c",
+        #      "side":"buy",
+        #      "fee":"0.03749989",
+        #      "feeAsset":"IDEX",
+        #      "gas":"0.40507261",
+        #      "liquidity":"taker",
+        #      "type":"hybrid",
+        #      "txId":"0x69f6d82a762d12e3201efd0b3e9cc1969351e3c6ea3cf07c47c66bf24a459815",
+        #      "txStatus":"mined"
+        #  }
+        #
         id = self.safe_string(trade, 'fillId')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'quantity')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.safe_number(trade, 'quoteQuantity')
-        if cost is None:
-            cost = self.parse_number(Precise.string_mul(priceString, amountString))
+        costString = self.safe_string(trade, 'quoteQuantity')
         timestamp = self.safe_integer(trade, 'time')
         marketId = self.safe_string(trade, 'market')
         symbol = self.safe_symbol(marketId, market, '-')
@@ -466,16 +457,16 @@ class idex(Exchange):
         oppositeSide = 'sell' if (makerSide == 'buy') else 'buy'
         side = self.safe_string(trade, 'side', oppositeSide)
         takerOrMaker = self.safe_string(trade, 'liquidity', 'taker')
-        feeCost = self.safe_number(trade, 'fee')
+        feeCostString = self.safe_string(trade, 'fee')
         fee = None
-        if feeCost is not None:
+        if feeCostString is not None:
             feeCurrencyId = self.safe_string(trade, 'feeAsset')
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': self.safe_currency_code(feeCurrencyId),
             }
         orderId = self.safe_string(trade, 'orderId')
-        return {
+        return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -485,11 +476,11 @@ class idex(Exchange):
             'type': 'limit',
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        }
+        }, market)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -1003,11 +994,12 @@ class idex(Exchange):
                 'side': side,
                 'type': type,
                 'wallet': self.walletAddress,
-                'timeInForce': timeInForce,
                 'selfTradePrevention': selfTradePrevention,
             },
             'signature': signature,
         }
+        if type != 'market':
+            request['parameters']['timeInForce'] = timeInForce
         if limitOrder:
             request['parameters']['price'] = priceString
         if type in stopLossTypeEnums:
@@ -1242,6 +1234,15 @@ class idex(Exchange):
             'updated': updated,
             'fee': fee,
         }
+
+    def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
+        hasApiKey = (self.apiKey is not None)
+        hasSecret = (self.secret is not None)
+        hasWalletAddress = (self.walletAddress is not None)
+        hasPrivateKey = (self.privateKey is not None)
+        defaultCost = self.safe_value(config, 'cost', 1)
+        authenticated = hasApiKey and hasSecret and hasWalletAddress and hasPrivateKey
+        return(defaultCost / 2) if authenticated else defaultCost
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         network = self.safe_string(self.options, 'network', 'ETH')

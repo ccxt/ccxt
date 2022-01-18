@@ -540,14 +540,11 @@ class currencycom(Exchange):
         #
         timestamp = self.safe_integer(ticker, 'closeTime')
         marketId = self.safe_string(ticker, 'symbol')
-        symbol = self.safe_symbol(marketId, market)
+        market = self.safe_market(marketId, market, '/')
         last = self.safe_number(ticker, 'lastPrice')
         open = self.safe_number(ticker, 'openPrice')
-        average = None
-        if (open is not None) and (last is not None):
-            average = self.sum(open, last) / 2
-        return {
-            'symbol': symbol,
+        return self.safe_ticker({
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_number(ticker, 'highPrice'),
@@ -563,11 +560,11 @@ class currencycom(Exchange):
             'previousClose': self.safe_number(ticker, 'prevClosePrice'),  # previous day close
             'change': self.safe_number(ticker, 'priceChange'),
             'percentage': self.safe_number(ticker, 'priceChangePercent'),
-            'average': average,
+            'average': None,
             'baseVolume': self.safe_number(ticker, 'volume'),
             'quoteVolume': self.safe_number(ticker, 'quoteVolume'),
             'info': ticker,
-        }
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

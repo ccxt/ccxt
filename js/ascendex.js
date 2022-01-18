@@ -283,6 +283,7 @@ module.exports = class ascendex extends Exchange {
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
                 'BYN': 'BeyondFi',
+                'PLN': 'Pollen',
             },
         });
     }
@@ -633,20 +634,23 @@ module.exports = class ascendex extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const defaultAccountCategory = this.safeString (this.options, 'account-category', 'cash');
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const options = this.safeValue (this.options, 'fetchBalance', {});
-        let accountCategory = this.safeString (options, 'account-category', defaultAccountCategory);
-        accountCategory = this.safeString (params, 'account-category', accountCategory);
-        params = this.omit (params, 'account-category');
+        const accountCategories = this.safeValue (this.options, 'accountCategories', {});
+        const accountCategory = this.safeString (accountCategories, marketType, 'cash');
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeString (account, 'id');
         const request = {
             'account-group': accountGroup,
         };
-        let method = 'v1PrivateAccountCategoryGetBalance';
-        if (accountCategory === 'futures') {
-            method = 'v1PrivateAccountGroupGetFuturesCollateralBalance';
-        } else {
+        const defaultMethod = this.safeString (options, 'method', 'v1PrivateAccountCategoryGetBalance');
+        const method = this.getSupportedMapping (marketType, {
+            'spot': defaultMethod,
+            'margin': defaultMethod,
+            'swap': 'v1PrivateAccountGroupGetFuturesCollateralBalance',
+        });
+        if (accountCategory === 'cash') {
             request['account-category'] = accountCategory;
         }
         const response = await this[method] (this.extend (request, params));

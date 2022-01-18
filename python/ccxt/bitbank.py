@@ -24,17 +24,35 @@ class bitbank(Exchange):
             'countries': ['JP'],
             'version': 'v1',
             'has': {
+                'spot': True,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchDepositAddress': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -151,47 +169,61 @@ class bitbank(Exchange):
             quoteId = self.safe_string(entry, 'quote_asset')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
             maker = self.safe_number(entry, 'maker_fee_rate_quote')
             taker = self.safe_number(entry, 'taker_fee_rate_quote')
             pricePrecisionString = self.safe_string(entry, 'price_digits')
             priceLimit = self.parse_precision(pricePrecisionString)
-            precision = {
-                'price': int(pricePrecisionString),
-                'amount': self.safe_integer(entry, 'amount_digits'),
-            }
-            active = self.safe_value(entry, 'is_enabled')
             minAmountString = self.safe_string(entry, 'unit_amount')
             minCost = Precise.string_mul(minAmountString, priceLimit)
-            limits = {
-                'amount': {
-                    'min': self.safe_number(entry, 'unit_amount'),
-                    'max': self.safe_number(entry, 'limit_max_amount'),
-                },
-                'price': {
-                    'min': self.parse_number(priceLimit),
-                    'max': None,
-                },
-                'cost': {
-                    'min': self.parse_number(minCost),
-                    'max': None,
-                },
-            }
             result.append({
-                'info': entry,
                 'id': id,
-                'symbol': symbol,
-                'baseId': baseId,
-                'quoteId': quoteId,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
-                'precision': precision,
-                'limits': limits,
+                'settle': None,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': self.safe_value(entry, 'is_enabled'),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
                 'maker': maker,
                 'taker': taker,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': int(pricePrecisionString),
+                    'amount': self.safe_integer(entry, 'amount_digits'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': self.safe_number(entry, 'unit_amount'),
+                        'max': self.safe_number(entry, 'limit_max_amount'),
+                    },
+                    'price': {
+                        'min': self.parse_number(priceLimit),
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': self.parse_number(minCost),
+                        'max': None,
+                    },
+                },
+                'info': entry,
             })
         return result
 

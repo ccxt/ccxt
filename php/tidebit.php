@@ -215,15 +215,25 @@ class tidebit extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
+        //
+        //     {
+        //         "at":1398410899,
+        //         "ticker" => {
+        //             "buy" => "3000.0",
+        //             "sell":"3100.0",
+        //             "low":"3000.0",
+        //             "high":"3000.0",
+        //             "last":"3000.0",
+        //             "vol":"0.11"
+        //         }
+        //     }
+        //
         $timestamp = $this->safe_timestamp($ticker, 'at');
         $ticker = $this->safe_value($ticker, 'ticker', array());
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market(null, $market);
         $last = $this->safe_number($ticker, 'last');
-        return array(
-            'symbol' => $symbol,
+        return $this->safe_ticker(array(
+            'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_number($ticker, 'high'),
@@ -243,7 +253,7 @@ class tidebit extends Exchange {
             'baseVolume' => $this->safe_number($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -268,6 +278,19 @@ class tidebit extends Exchange {
             'market' => $market['id'],
         );
         $response = $this->publicGetTickersMarket (array_merge($request, $params));
+        //
+        //     {
+        //         "at":1398410899,
+        //         "ticker" => {
+        //             "buy" => "3000.0",
+        //             "sell":"3100.0",
+        //             "low":"3000.0",
+        //             "high":"3000.0",
+        //             "last":"3000.0",
+        //             "vol":"0.11"
+        //         }
+        //     }
+        //
         return $this->parse_ticker($response, $market);
     }
 

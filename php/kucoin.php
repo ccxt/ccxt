@@ -293,6 +293,7 @@ class kucoin extends Exchange {
                     '400100' => '\\ccxt\\BadRequest',
                     '400350' => '\\ccxt\\InvalidOrder', // array("code":"400350","msg":"Upper limit for holding => 10,000USDT, you can still buy 10,000USDT worth of coin.")
                     '400500' => '\\ccxt\\InvalidOrder', // array("code":"400500","msg":"Your located country/region is currently not supported for the trading of this token")
+                    '401000' => '\\ccxt\\BadRequest', // array("code":"401000","msg":"The interface has been deprecated")
                     '411100' => '\\ccxt\\AccountSuspended',
                     '415000' => '\\ccxt\\BadRequest', // array("code":"415000","msg":"Unsupported Media Type")
                     '500000' => '\\ccxt\\ExchangeNotAvailable', // array("code":"500000","msg":"Internal Server Error")
@@ -406,6 +407,7 @@ class kucoin extends Exchange {
                     'margin' => 'margin',
                     'main' => 'main',
                     'funding' => 'main',
+                    'future' => 'contract',
                     'futures' => 'contract',
                     'contract' => 'contract',
                     'pool' => 'pool',
@@ -629,6 +631,8 @@ class kucoin extends Exchange {
                 'precision' => $precision,
                 'info' => $entry,
                 'active' => $active,
+                'deposit' => $isDepositEnabled,
+                'withdraw' => $isWithdrawEnabled,
                 'fee' => $fee,
                 'limits' => $this->limits,
             );
@@ -712,7 +716,7 @@ class kucoin extends Exchange {
             throw new ExchangeError($this->id . ' $type must be one of ' . implode(', ', $keys));
         }
         $params = $this->omit($params, 'type');
-        return ($type === 'contract') || ($type === 'futures');
+        return ($type === 'contract') || ($type === 'future') || ($type === 'futures'); // * ($type === 'futures') deprecated, use ($type === 'future')
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -2335,7 +2339,9 @@ class kucoin extends Exchange {
         //
         $errorCode = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'msg', '');
-        $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $this->id . ' ' . $message);
-        $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $this->id . ' ' . $message);
+        $feedback = $this->id . ' ' . $message;
+        $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+        $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+        $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
     }
 }

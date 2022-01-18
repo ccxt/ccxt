@@ -386,25 +386,23 @@ class tidex(Exchange):
 
     def parse_ticker(self, ticker, market=None):
         #
-        #   {   high: 0.03497582,
+        #     {
+        #         high: 0.03497582,
         #         low: 0.03248474,
         #         avg: 0.03373028,
         #         vol: 120.11485715062999,
-        #     vol_cur: 3572.24914074,
-        #        last: 0.0337611,
+        #         vol_cur: 3572.24914074,
+        #         last: 0.0337611,
         #         buy: 0.0337442,
-        #        sell: 0.03377798,
-        #     updated: 1537522009          }
+        #         sell: 0.03377798,
+        #         updated: 1537522009
+        #     }
         #
         timestamp = self.safe_timestamp(ticker, 'updated')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-            if not market['active']:
-                timestamp = None
+        market = self.safe_market(None, market)
         last = self.safe_number(ticker, 'last')
-        return {
-            'symbol': symbol,
+        return self.safe_ticker({
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_number(ticker, 'high'),
@@ -424,7 +422,7 @@ class tidex(Exchange):
             'baseVolume': self.safe_number(ticker, 'vol_cur'),
             'quoteVolume': self.safe_number(ticker, 'vol'),
             'info': ticker,
-        }
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()

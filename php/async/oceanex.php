@@ -264,8 +264,9 @@ class oceanex extends Exchange {
         //
         $ticker = $this->safe_value($data, 'ticker', array());
         $timestamp = $this->safe_timestamp($data, 'at');
-        return array(
-            'symbol' => $market['symbol'],
+        $symbol = $this->safe_symbol(null, $market);
+        return $this->safe_ticker(array(
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_number($ticker, 'high'),
@@ -285,7 +286,7 @@ class oceanex extends Exchange {
             'baseVolume' => $this->safe_number($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

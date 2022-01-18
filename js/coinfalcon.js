@@ -132,19 +132,34 @@ module.exports = class coinfalcon extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         "name":"ETH-BTC",
+        //         "precision":6,
+        //         "min_volume":"0.00000001",
+        //         "min_price":"0.000001",
+        //         "volume":"0.000452",
+        //         "last_price":"0.079059",
+        //         "highest_bid":"0.073472",
+        //         "lowest_ask":"0.079059",
+        //         "change_in_24h":"8.9",
+        //         "size_precision":8,
+        //         "price_precision":6
+        //     }
+        //
         const marketId = this.safeString (ticker, 'name');
-        const symbol = this.safeSymbol (marketId, market, '-');
+        market = this.safeMarket (marketId, market, '-');
         const timestamp = this.milliseconds ();
         const last = this.safeNumber (ticker, 'last_price');
-        return {
-            'symbol': symbol,
+        return this.safeTicker ({
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': undefined,
+            'bid': this.safeNumber (ticker, 'highest_bid'),
             'bidVolume': undefined,
-            'ask': undefined,
+            'ask': this.safeNumber (ticker, 'lowest_ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -157,18 +172,37 @@ module.exports = class coinfalcon extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': this.safeNumber (ticker, 'volume'),
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        const tickers = await this.fetchTickers (params);
+        const tickers = await this.fetchTickers ([ symbol ], params);
         return tickers[symbol];
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.publicGetMarkets (params);
+        //
+        //     {
+        //         "data":[
+        //             {
+        //                 "name":"ETH-BTC",
+        //                 "precision":6,
+        //                 "min_volume":"0.00000001",
+        //                 "min_price":"0.000001",
+        //                 "volume":"0.000452",
+        //                 "last_price":"0.079059",
+        //                 "highest_bid":"0.073472",
+        //                 "lowest_ask":"0.079059",
+        //                 "change_in_24h":"8.9",
+        //                 "size_precision":8,
+        //                 "price_precision":6
+        //             }
+        //         ]
+        //     }
+        //
         const tickers = this.safeValue (response, 'data');
         const result = {};
         for (let i = 0; i < tickers.length; i++) {

@@ -658,16 +658,14 @@ class kraken(Exchange):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
-        symbol = None
-        if market:
-            symbol = market['symbol']
+        symbol = self.safe_symbol(None, market)
         baseVolume = float(ticker['v'][1])
         vwap = float(ticker['p'][1])
         quoteVolume = None
         if baseVolume is not None and vwap is not None:
             quoteVolume = baseVolume * vwap
         last = float(ticker['c'][0])
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -688,7 +686,7 @@ class kraken(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
@@ -1185,11 +1183,18 @@ class kraken(Exchange):
 
     def parse_order(self, order, market=None):
         #
-        # createOrder
+        # createOrder for regular orders
         #
         #     {
         #         descr: {order: 'buy 0.02100000 ETHUSDT @ limit 330.00'},
         #         txid: ['OEKVV2-IH52O-TPL6GZ']
+        #     }
+        #
+        # createOrder for stop orders
+        #
+        #     {
+        #         "txid":["OSILNC-VQI5Q-775ZDQ"],
+        #         "descr":{"order":"sell 167.28002676 ADAXBT @ stop loss 0.00003280 -> limit 0.00003212"}
         #     }
         #
         description = self.safe_value(order, 'descr', {})
@@ -1201,11 +1206,12 @@ class kraken(Exchange):
         amount = None
         if orderDescription is not None:
             parts = orderDescription.split(' ')
+            partsLength = len(parts)
             side = self.safe_string(parts, 0)
             amount = self.safe_string(parts, 1)
             marketId = self.safe_string(parts, 2)
-            type = self.safe_string(parts, 4)
-            price = self.safe_string(parts, 5)
+            type = self.safe_string(parts, partsLength - 2)
+            price = self.safe_string(parts, partsLength - 1)
         side = self.safe_string(description, 'type', side)
         type = self.safe_string(description, 'ordertype', type)
         marketId = self.safe_string(description, 'pair', marketId)

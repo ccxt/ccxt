@@ -97,7 +97,6 @@ module.exports = class binance extends Exchange {
                 'setPositionMode': true,
                 'signIn': false,
                 'transfer': true,
-                'transferOut': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -122,6 +121,8 @@ module.exports = class binance extends Exchange {
                 'test': {
                     'dapiPublic': 'https://testnet.binancefuture.com/dapi/v1',
                     'dapiPrivate': 'https://testnet.binancefuture.com/dapi/v1',
+                    'vapiPublic': 'https://testnet.binanceops.com/vapi/v1',
+                    'vapiPrivate': 'https://testnet.binanceops.com/vapi/v1',
                     'fapiPublic': 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivate': 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivateV2': 'https://testnet.binancefuture.com/fapi/v2',
@@ -134,6 +135,8 @@ module.exports = class binance extends Exchange {
                     'sapi': 'https://api.binance.com/sapi/v1',
                     'dapiPublic': 'https://dapi.binance.com/dapi/v1',
                     'dapiPrivate': 'https://dapi.binance.com/dapi/v1',
+                    'vapiPublic': 'https://vapi.binance.com/vapi/v1',
+                    'vapiPrivate': 'https://vapi.binance.com/vapi/v1',
                     'dapiPrivateV2': 'https://dapi.binance.com/dapi/v2',
                     'dapiData': 'https://dapi.binance.com/futures/data',
                     'fapiPublic': 'https://fapi.binance.com/fapi/v1',
@@ -145,10 +148,10 @@ module.exports = class binance extends Exchange {
                     'v1': 'https://api.binance.com/api/v1',
                 },
                 'www': 'https://www.binance.com',
-                // 'referral': {
-                //     'url': 'https://www.binance.com/en/register?ref=BLEJC98C',
-                //     'discount': 0.2,
-                // },
+                'referral': {
+                    'url': 'https://www.binance.com/en/register?ref=D7YA7CLY',
+                    'discount': 0.1,
+                },
                 'doc': [
                     'https://binance-docs.github.io/apidocs/spot/en',
                 ],
@@ -257,6 +260,7 @@ module.exports = class binance extends Exchange {
                         'mining/payment/list': 5,
                         'mining/statistics/user/status': 5,
                         'mining/statistics/user/list': 5,
+                        'mining/payment/uid': 5,
                         // liquid swap endpoints
                         'bswap/pools': 1,
                         'bswap/liquidity': { 'cost': 1, 'noPoolId': 10 },
@@ -266,6 +270,8 @@ module.exports = class binance extends Exchange {
                         'bswap/poolConfigure': 1,
                         'bswap/addLiquidityPreview': 1,
                         'bswap/removeLiquidityPreview': 1,
+                        'bswap/unclaimedRewards': 1,
+                        'bswap/claimedHistory': 1,
                         // leveraged token endpoints
                         'blvt/tokenInfo': 1,
                         'blvt/subscribe/record': 1,
@@ -352,6 +358,7 @@ module.exports = class binance extends Exchange {
                         'bswap/liquidityAdd': 2,
                         'bswap/liquidityRemove': 2,
                         'bswap/swap': 2,
+                        'bswap/claimRewards': 1,
                         // leveraged token endpoints
                         'blvt/subscribe': 1,
                         'blvt/redeem': 1,
@@ -584,6 +591,47 @@ module.exports = class binance extends Exchange {
                         'positionRisk': 1,
                     },
                 },
+                'vapiPublic': {
+                    'get': [
+                        'ping',
+                        'time',
+                        'optionInfo',
+                        'exchangeInfo',
+                        'index',
+                        'ticker',
+                        'mark',
+                        'depth',
+                        'klines',
+                        'trades',
+                        'historicalTrades',
+                    ],
+                },
+                'vapiPrivate': {
+                    'get': [
+                        'account',
+                        'position',
+                        'order',
+                        'openOrders',
+                        'historyOrders',
+                        'userTrades',
+                    ],
+                    'post': [
+                        'transfer',
+                        'bill',
+                        'order',
+                        'batchOrders',
+                        'userDataStream',
+                    ],
+                    'put': [
+                        'userDataStream',
+                    ],
+                    'delete': [
+                        'order',
+                        'batchOrders',
+                        'allOpenOrders',
+                        'userDataStream',
+                    ],
+                },
                 'public': {
                     'get': {
                         'ping': 1,
@@ -710,6 +758,7 @@ module.exports = class binance extends Exchange {
                         },
                     },
                 },
+                'option': {},
             },
             'commonCurrencies': {
                 'BCC': 'BCC', // kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
@@ -912,6 +961,7 @@ module.exports = class binance extends Exchange {
                     "You don't have permission.": PermissionDenied, // {"msg":"You don't have permission.","success":false}
                     'Market is closed.': ExchangeNotAvailable, // {"code":-1013,"msg":"Market is closed."}
                     'Too many requests. Please try again later.': DDoSProtection, // {"msg":"Too many requests. Please try again later.","success":false}
+                    'This action disabled is on this account.': AccountSuspended, // {"code":-2010,"msg":"This action disabled is on this account."}
                     '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
                     '-1001': ExchangeNotAvailable, // {"code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'"}
                     '-1002': AuthenticationError, // {"code":-1002,"msg":"'You are not authorized to execute this request.'"}

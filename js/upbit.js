@@ -553,13 +553,10 @@ module.exports = class upbit extends Exchange {
         //
         const timestamp = this.safeInteger (ticker, 'trade_timestamp');
         const marketId = this.safeString2 (ticker, 'market', 'code');
-        const symbol = this.safeSymbol (marketId, market, '-');
-        const previous = this.safeNumber (ticker, 'prev_closing_price');
+        market = this.safeMarket (marketId, market, '-');
         const last = this.safeNumber (ticker, 'trade_price');
-        const change = this.safeNumber (ticker, 'signed_change_price');
-        const percentage = this.safeNumber (ticker, 'signed_change_rate');
-        return {
-            'symbol': symbol,
+        return this.safeTicker ({
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeNumber (ticker, 'high_price'),
@@ -572,14 +569,14 @@ module.exports = class upbit extends Exchange {
             'open': this.safeNumber (ticker, 'opening_price'),
             'close': last,
             'last': last,
-            'previousClose': previous,
-            'change': change,
-            'percentage': percentage,
+            'previousClose': this.safeNumber (ticker, 'prev_closing_price'),
+            'change': this.safeNumber (ticker, 'signed_change_price'),
+            'percentage': this.safeNumber (ticker, 'signed_change_rate'),
             'average': undefined,
             'baseVolume': this.safeNumber (ticker, 'acc_trade_volume_24h'),
             'quoteVolume': this.safeNumber (ticker, 'acc_trade_price_24h'),
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
