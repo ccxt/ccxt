@@ -272,6 +272,7 @@ module.exports = class woo extends Exchange {
             const marketId = this.safeString (market, 'symbol');
             const parts = marketId.split ('_');
             const marketTypeVal = this.safeStringLower (parts, 0);
+            const isSpot = marketTypeVal === 'spot';
             const baseId = this.safeString (parts, 1);
             const quoteId = this.safeString (parts, 2);
             const base = this.safeCurrencyCode (baseId);
@@ -294,15 +295,15 @@ module.exports = class woo extends Exchange {
                 'quoteId': quoteId,
                 'settleId': undefined,
                 'type': marketTypeVal,
-                'spot': true,
+                'spot': isSpot,
                 'margin': false,
                 'swap': false,
                 'future': false,
                 'option': false,
                 'active': undefined,
                 'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
+                'linear': false,
+                'inverse': false,
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -1050,11 +1051,11 @@ module.exports = class woo extends Exchange {
         //     holding: [
         //       {
         //         token: 'USDT',
-        //         holding: '123.758485',
-        //         frozen: '22.0', // i.e. withdrawal
+        //         holding: '23.56', // free balance
+        //         frozen: '888.0', // i.e. if in processing withdrawal
         //         interest: '0.0',
-        //         outstanding_holding: '-56.4', // whatever in pending/limit orders
-        //         pending_exposure: '0.0', // this value is set when a pending order is waiting to get this token
+        //         outstanding_holding: '-56.7', // this value is set (negative number) if there is an open limit order, and this is QUOTE currency of order
+        //         pending_exposure: '333.45', //  this value is set  (positive number) if there is an open limit order, and this is BASE currency of order
         //         opening_cost: '0.00000000',
         //         holding_cost: '0.00000000',
         //         realised_pnl: '0.00000000',
@@ -1288,11 +1289,11 @@ module.exports = class woo extends Exchange {
         let fromAccount = undefined;
         let toAccount = undefined;
         if (movementDirection === 'withdraw') {
-            fromAccount = 'derivatives';
+            fromAccount = undefined;
             toAccount = 'spot';
         } else {
             fromAccount = 'spot';
-            toAccount = 'derivatives';
+            toAccount = undefined;
         }
         const timestamp = this.safeTimestamp (transfer, 'created_time');
         return {
