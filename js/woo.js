@@ -272,6 +272,9 @@ module.exports = class woo extends Exchange {
             const parts = marketId.split ('_');
             const marketTypeVal = this.safeStringLower (parts, 0);
             const isSpot = marketTypeVal === 'spot';
+            const isSwap = false;
+            const isFuture = false;
+            const isOption = false;
             const baseId = this.safeString (parts, 1);
             const quoteId = this.safeString (parts, 2);
             const base = this.safeCurrencyCode (baseId);
@@ -300,7 +303,7 @@ module.exports = class woo extends Exchange {
                 'future': false,
                 'option': false,
                 'active': undefined,
-                'contract': false,
+                'contract': isSwap || isFuture || isOption,
                 'linear': false,
                 'inverse': false,
                 'contractSize': undefined,
