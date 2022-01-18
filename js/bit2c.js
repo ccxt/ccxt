@@ -185,7 +185,6 @@ module.exports = class bit2c extends Exchange {
         const timestamp = this.milliseconds ();
         const averagePrice = this.safeString (ticker, 'av');
         const baseVolume = this.safeString (ticker, 'a');
-        const quoteVolume = undefined;
         const last = this.safeString (ticker, 'll');
         return this.safeTicker ({
             'symbol': symbol,
@@ -206,7 +205,7 @@ module.exports = class bit2c extends Exchange {
             'percentage': undefined,
             'average': averagePrice,
             'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'quoteVolume': undefined,
             'info': ticker,
         }, market, false);
     }
