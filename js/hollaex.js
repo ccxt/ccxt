@@ -231,8 +231,6 @@ module.exports = class hollaex extends Exchange {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'taker': this.fees['trading']['maker'],
-                'maker': this.fees['trading']['taker'],
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
