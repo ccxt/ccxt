@@ -1333,7 +1333,7 @@ module.exports = class binance extends Exchange {
                 isWithdrawEnabled = isWithdrawEnabled || withdrawEnable;
                 fees[network] = withdrawFee;
                 const isDefault = this.safeValue (networkItem, 'isDefault');
-                if (isDefault || fee === undefined) {
+                if (isDefault || (fee === undefined)) {
                     fee = withdrawFee;
                 }
             }
@@ -5547,7 +5547,7 @@ module.exports = class binance extends Exchange {
             const row = rows[i];
             const timestamp = this.safeNumber (row, 'interestAccuredTime');
             interest.push ({
-                'account': symbol === undefined ? 'CROSS' : symbol,
+                'account': (symbol === undefined) ? 'CROSS' : symbol,
                 'currency': this.safeCurrencyCode (this.safeString (row, 'asset')),
                 'interest': this.safeNumber (row, 'interest'),
                 'interestRate': this.safeNumber (row, 'interestRate'),
