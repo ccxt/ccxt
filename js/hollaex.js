@@ -189,30 +189,45 @@ module.exports = class hollaex extends Exchange {
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const market = pairs[key];
-            const id = this.safeString (market, 'name');
             const baseId = this.safeString (market, 'pair_base');
             const quoteId = this.safeString (market, 'pair_2');
             const base = this.commonCurrencyCode (baseId.toUpperCase ());
             const quote = this.commonCurrencyCode (quoteId.toUpperCase ());
-            const symbol = base + '/' + quote;
-            const active = this.safeValue (market, 'active');
-            const maker = this.fees['trading']['maker'];
-            const taker = this.fees['trading']['taker'];
             result.push ({
-                'id': id,
-                'symbol': symbol,
+                'id': this.safeString (market, 'name'),
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': this.safeValue (market, 'active'),
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': this.fees['trading']['maker'],
+                'maker': this.fees['trading']['taker'],
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
                 'precision': {
                     'price': this.safeNumber (market, 'increment_price'),
                     'amount': this.safeNumber (market, 'increment_size'),
                 },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'min_size'),
                         'max': this.safeNumber (market, 'max_size'),
@@ -221,10 +236,11 @@ module.exports = class hollaex extends Exchange {
                         'min': this.safeNumber (market, 'min_price'),
                         'max': this.safeNumber (market, 'max_price'),
                     },
-                    'cost': { 'min': undefined, 'max': undefined },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                 },
-                'taker': taker,
-                'maker': maker,
                 'info': market,
             });
         }
