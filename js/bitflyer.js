@@ -19,9 +19,9 @@ module.exports = class bitflyer extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined, // has but unimplemented
-                'swap': undefined, // has but unimplemented
-                'future': undefined, // has but unimplemented
+                'margin': false,
+                'swap': undefined, // has but not fully implemented
+                'future': undefined, // has but not fully implemented
                 'option': false,
                 'cancelOrder': true,
                 'createOrder': true,
@@ -101,8 +101,40 @@ module.exports = class bitflyer extends Exchange {
 
     async fetchMarkets (params = {}) {
         const jp_markets = await this.publicGetGetmarkets (params);
+        //
+        //  SPOT
+        //    {
+        //        "product_code": "BTC_JPY",
+        //        "market_type": "Spot"
+        //    },
+        //    { 
+        //        "product_code": "BCH_BTC", 
+        //        "market_type": "Spot"
+        //    },
+        //
+        //  SWAP
+        //    { 
+        //        "product_code": "FX_BTC_JPY", 
+        //        "market_type": "FX"
+        //    },
+        //
+        //  FUTURE
+        //    {
+        //        "product_code": "BTCJPY11FEB2022",
+        //        "alias": "BTCJPY_MAT1WK",
+        //        "market_type": "Futures"
+        //    },
+        //
         const us_markets = await this.publicGetGetmarketsUsa (params);
+        //
+        //    {"product_code": "BTC_USD", "market_type": "Spot"},
+        //    {"product_code": "BTC_JPY", "market_type": "Spot"}
+        //
         const eu_markets = await this.publicGetGetmarketsEu (params);
+        //
+        //    {"product_code": "BTC_EUR", "market_type": "Spot"},
+        //    {"product_code": "BTC_JPY", "market_type": "Spot"}
+        //
         let markets = this.arrayConcat (jp_markets, us_markets);
         markets = this.arrayConcat (markets, eu_markets);
         const result = [];
@@ -110,49 +142,92 @@ module.exports = class bitflyer extends Exchange {
             const market = markets[i];
             const id = this.safeString (market, 'product_code');
             const currencies = id.split ('_');
-            let baseId = undefined;
-            let quoteId = undefined;
-            let base = undefined;
-            let quote = undefined;
-            const numCurrencies = currencies.length;
-            if (numCurrencies === 1) {
-                baseId = id.slice (0, 3);
-                quoteId = id.slice (3, 6);
-            } else if (numCurrencies === 2) {
-                baseId = currencies[0];
-                quoteId = currencies[1];
-            } else {
-                baseId = currencies[1];
-                quoteId = currencies[2];
-            }
-            base = this.safeCurrencyCode (baseId);
-            quote = this.safeCurrencyCode (quoteId);
-            const symbol = (numCurrencies === 2) ? (base + '/' + quote) : id;
-            const fees = this.safeValue (this.fees, symbol, this.fees['trading']);
-            let maker = this.safeValue (fees, 'maker', this.fees['trading']['maker']);
-            let taker = this.safeValue (fees, 'taker', this.fees['trading']['taker']);
-            let spot = true;
-            let future = false;
+            const marketType = this.safeString (market, 'market_type');
+            let swap = (marketType === 'FX');
+            let future = (marketType === 'Futures');
+            let spot = !swap && !future;
             let type = 'spot';
-            if (('alias' in market) || (currencies[0] === 'FX')) {
+            let settle = undefined;
+            let baseId = currencies[0];
+            let quoteId = currencies[1];
+            let expiry = undefined;
+            if (swap) {
+                type = 'swap';
+                baseId = currencies[1]
+                quoteId = currencies[2]
+            } else if (future) {
+                const alias = this.safeString(market, 'alias');
+                const currencyId = this.safeString (alias.split('_'), 0);
+                baseId = currencyId.slice (0,-3);
+                quoteId = currencyId.slice (-3);
+                const date = this.safeString (id.split(currencyId), 1);
+                const rfc2616 = this.rfc2616(date);
+                expiry = this.parseDate(rfc2616);
                 type = 'future';
-                future = true;
-                spot = false;
+            }
+            let base = this.safeCurrencyCode (baseId);
+            let quote = this.safeCurrencyCode (quoteId);
+            let symbol = base + '/' + quote;
+            let taker = this.fees['trading']['taker'];
+            let maker = this.fees['trading']['maker'];
+            const contract = swap || future;
+            if (contract){
                 maker = 0.0;
                 taker = 0.0;
+                settle = 'JPY';
+                symbol = symbol + ':' + settle
+                if (future) {
+                    symbol = symbol + '-' + this.yymmdd (expiry);
+                }
             }
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'maker': maker,
-                'taker': taker,
+                'settleId': undefined,
                 'type': type,
                 'spot': spot,
+                'margin': false,
+                'swap': swap,
                 'future': future,
+                'option': false,
+                'active': true,
+                'contract': contract,
+                'linear': spot ? undefined : true,
+                'inverse': spot ? undefined : false,
+                'taker': taker,
+                'maker': maker,
+                'contractSize': undefined,
+                'expiry': expiry,
+                'expiryDatetime': this.iso8601 (expiry),
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': undefined,
+                    'amount': undefined,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
                 'info': market,
             });
         }
