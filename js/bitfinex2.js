@@ -864,13 +864,10 @@ module.exports = class bitfinex2 extends bitfinex {
         const priceString = this.safeString (trade, priceIndex);
         if (amountString[0] === '-') {
             side = 'sell';
-            amountString = amountString.slice (1);
+            amountString = Precise.stringAbs (amountString);
         } else {
             side = 'buy';
         }
-        const amount = this.parseNumber (amountString);
-        const price = this.parseNumber (priceString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let orderId = undefined;
         let takerOrMaker = undefined;
         let type = undefined;
@@ -891,11 +888,10 @@ module.exports = class bitfinex2 extends bitfinex {
             takerOrMaker = (maker === 1) ? 'maker' : 'taker';
             let feeCostString = this.safeString (trade, 9);
             feeCostString = Precise.stringNeg (feeCostString);
-            const feeCost = this.parseNumber (feeCostString);
             const feeCurrencyId = this.safeString (trade, 10);
             const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrency,
             };
             const orderType = trade[6];
@@ -906,7 +902,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 symbol = market['symbol'];
             }
         }
-        return {
+        return this.safeTrade ({
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -915,12 +911,12 @@ module.exports = class bitfinex2 extends bitfinex {
             'side': side,
             'type': type,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
             'info': trade,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
