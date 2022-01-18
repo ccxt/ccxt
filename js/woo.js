@@ -187,23 +187,22 @@ module.exports = class woo extends Exchange {
                     'TERRA': 'TERRA',
                     'TRON': 'TRC20',
                 },
-                // these are exclusions, only manually can be linked to their supported network
+                // these network aliases require manual mapping here
                 'network-aliases-for-tokens': {
                     'HT': 'ERC20',
                     'OMG': 'ERC20',
                     'UATOM': 'ATOM',
                     'ZRX': 'ZRX',
                 },
-                // TODO: can be unified, as overridable property in base
                 'defaultNetworkCodePriorities': [
                     'TRC20',
                     'ERC20',
                     'BSC20',
                 ],
-                // if needed to change default network for specific token (as opposed to 'defaultNetworkCodePriorities' priorities) then list here (TODO: can be unified, as overridable property in base)
+                // override defaultNetworkCodePriorities for a specific currency
                 'defaultNetworkCodeForCurrencies': {
-                    'USDT': 'TRC20',
-                    'BTC': 'BTC',
+                    // 'USDT': 'TRC20',
+                    // 'BTC': 'BTC',
                 },
             },
             'commonCurrencies': {},
@@ -1318,7 +1317,7 @@ module.exports = class woo extends Exchange {
         const networks = this.safeValue (this.options, 'networks', {});
         networkCode = this.safeStringLower (networks, networkCode, networkCode);
         if (networkCode === undefined) {
-            throw new ArgumentsRequired (this.id + ' withdraw() requires a network property in params');
+            throw new ArgumentsRequired (this.id + ' withdraw() requires a network parameter');
         } else {
             params = this.omit (params, 'network');
         }
