@@ -1707,22 +1707,18 @@ module.exports = class bitget extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType');
-        const type = this.safeString (params, 'type', defaultType);
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " fetchBalance() requires a 'type' parameter, one of 'spot', 'swap'");
-        }
-        let method = undefined;
-        const query = this.omit (params, 'type');
-        if (type === 'spot') {
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'apiGetAccountsAccountIdBalance',
+            'swap': 'swapGetAccountAccounts',
+        });
+        if (marketType === 'spot') {
             const accountId = await this.getAccountId (params);
-            method = 'apiGetAccountsAccountIdBalance';
-            query['account_id'] = accountId;
-            query['method'] = 'balance';
-        } else if (type === 'swap') {
-            method = 'swapGetAccountAccounts';
+            params['account_id'] = accountId;
+            params['method'] = 'balance';
         }
-        const response = await this[method] (query);
+        const response = await this[method] (params);
         //
         // spot
         //
@@ -1749,7 +1745,7 @@ module.exports = class bitget extends Exchange {
         //         {"equity":"0","fixed_balance":"0","total_avail_balance":"0","margin":"0","realized_pnl":"0","unrealized_pnl":"0","symbol":"cmt_btcsusdt","margin_frozen":"0","timestamp":"1595673431577","margin_mode":"fixed","forwardContractFlag":true},
         //     ]
         //
-        return this.parseBalanceByType (type, response);
+        return this.parseBalanceByType (marketType, response);
     }
 
     parseBalanceByType (type, response) {
