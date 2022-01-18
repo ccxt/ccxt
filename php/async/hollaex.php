@@ -952,13 +952,14 @@ class hollaex extends Exchange {
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . " cancelAllOrders() requires a 'symbol' argument");
+        }
         yield $this->load_markets();
         $request = array();
         $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
-        }
+        $market = $this->market($symbol);
+        $request['symbol'] = $market['id'];
         $response = yield $this->privateDeleteOrderAll (array_merge($request, $params));
         //
         //     array(

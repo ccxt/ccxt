@@ -917,12 +917,13 @@ class hollaex(Exchange):
         return self.parse_order(response)
 
     def cancel_all_orders(self, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + " cancelAllOrders() requires a 'symbol' argument")
         self.load_markets()
         request = {}
         market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            request['symbol'] = market['id']
+        market = self.market(symbol)
+        request['symbol'] = market['id']
         response = self.privateDeleteOrderAll(self.extend(request, params))
         #
         #     [
