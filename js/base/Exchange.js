@@ -1289,7 +1289,7 @@ module.exports = class Exchange {
                     average = Precise.stringDiv (Precise.stringAdd (last, open), '2');
                 }
             }
-            if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && (open > 0)) {
+            if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && (Precise.stringGt (open, '0'))) {
                 percentage = Precise.stringMul (Precise.stringDiv (change, open), '100');
             }
             if ((change === undefined) && (percentage !== undefined) && (last !== undefined)) {
