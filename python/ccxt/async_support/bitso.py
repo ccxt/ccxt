@@ -29,19 +29,38 @@ class bitso(Exchange):
             'rateLimit': 2000,  # 30 requests per minute
             'version': 'v3',
             'has': {
+                'spot': True,
+                'margin': None,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'cancelOrder': True,
                 'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchDepositAddress': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderTrades': True,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'urls': {
@@ -165,27 +184,8 @@ class bitso(Exchange):
             quote = quoteId.upper()
             base = self.safe_currency_code(base)
             quote = self.safe_currency_code(quote)
-            symbol = base + '/' + quote
-            limits = {
-                'amount': {
-                    'min': self.safe_number(market, 'minimum_amount'),
-                    'max': self.safe_number(market, 'maximum_amount'),
-                },
-                'price': {
-                    'min': self.safe_number(market, 'minimum_price'),
-                    'max': self.safe_number(market, 'maximum_price'),
-                },
-                'cost': {
-                    'min': self.safe_number(market, 'minimum_value'),
-                    'max': self.safe_number(market, 'maximum_value'),
-                },
-            }
             defaultPricePrecision = self.safe_number(self.options['precision'], quote, self.options['defaultPrecision'])
             pricePrecision = self.safe_number(market, 'tick_size', defaultPricePrecision)
-            precision = {
-                'amount': self.safe_number(self.options['precision'], base, self.options['defaultPrecision']),
-                'price': pricePrecision,
-            }
             fees = self.safe_value(market, 'fees', {})
             flatRate = self.safe_value(fees, 'flat_rate', {})
             makerString = self.safe_string(flatRate, 'maker')
@@ -218,17 +218,53 @@ class bitso(Exchange):
             fee['tiers'] = tiers
             result.append(self.extend({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
-                'limits': limits,
-                'precision': precision,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'active': None,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'taker': taker,
+                'maker': maker,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_number(self.options['precision'], base, self.options['defaultPrecision']),
+                    'price': pricePrecision,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': self.safe_number(market, 'minimum_amount'),
+                        'max': self.safe_number(market, 'maximum_amount'),
+                    },
+                    'price': {
+                        'min': self.safe_number(market, 'minimum_price'),
+                        'max': self.safe_number(market, 'maximum_price'),
+                    },
+                    'cost': {
+                        'min': self.safe_number(market, 'minimum_value'),
+                        'max': self.safe_number(market, 'maximum_value'),
+                    },
+                },
+                'info': market,
             }, fee))
         return result
 
