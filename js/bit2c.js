@@ -183,22 +183,19 @@ module.exports = class bit2c extends Exchange {
     parseTicker (ticker, market = undefined) {
         const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.milliseconds ();
-        const averagePrice = this.safeNumber (ticker, 'av');
-        const baseVolume = this.safeNumber (ticker, 'a');
+        const averagePrice = this.safeString (ticker, 'av');
+        const baseVolume = this.safeString (ticker, 'a');
         let quoteVolume = undefined;
-        if (baseVolume !== undefined && averagePrice !== undefined) {
-            quoteVolume = baseVolume * averagePrice;
-        }
-        const last = this.safeNumber (ticker, 'll');
+        const last = this.safeString (ticker, 'll');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': this.safeNumber (ticker, 'h'),
+            'bid': this.safeString (ticker, 'h'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'l'),
+            'ask': this.safeString (ticker, 'l'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -211,7 +208,7 @@ module.exports = class bit2c extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
