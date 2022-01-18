@@ -333,29 +333,29 @@ class bitbns extends Exchange {
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $last = $this->safe_number($ticker, 'last');
+        $last = $this->safe_string($ticker, 'last');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'bid'),
-            'bidVolume' => $this->safe_number($ticker, 'bidVolume'),
-            'ask' => $this->safe_number($ticker, 'ask'),
-            'askVolume' => $this->safe_number($ticker, 'askVolume'),
-            'vwap' => $this->safe_number($ticker, 'vwap'),
-            'open' => $this->safe_number($ticker, 'open'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'bid'),
+            'bidVolume' => $this->safe_string($ticker, 'bidVolume'),
+            'ask' => $this->safe_string($ticker, 'ask'),
+            'askVolume' => $this->safe_string($ticker, 'askVolume'),
+            'vwap' => $this->safe_string($ticker, 'vwap'),
+            'open' => $this->safe_string($ticker, 'open'),
             'close' => $last,
             'last' => $last,
-            'previousClose' => $this->safe_number($ticker, 'previousClose'), // previous day close
-            'change' => $this->safe_number($ticker, 'change'),
-            'percentage' => $this->safe_number($ticker, 'percentage'),
-            'average' => $this->safe_number($ticker, 'average'),
-            'baseVolume' => $this->safe_number($ticker, 'baseVolume'),
-            'quoteVolume' => $this->safe_number($ticker, 'quoteVolume'),
+            'previousClose' => $this->safe_string($ticker, 'previousClose'), // previous day close
+            'change' => $this->safe_string($ticker, 'change'),
+            'percentage' => $this->safe_string($ticker, 'percentage'),
+            'average' => $this->safe_string($ticker, 'average'),
+            'baseVolume' => $this->safe_string($ticker, 'baseVolume'),
+            'quoteVolume' => $this->safe_string($ticker, 'quoteVolume'),
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
