@@ -34,7 +34,7 @@ async function b4yTest () {
         // console.log(await exchange.fetchMyTrades())
 
         // fetchBalance
-        // console.log(await exchange.fetchTransactions())
+        console.log(await exchange.fetchBalance())
 
         // createOrder
         // symbol, type, side, amount, price = undefined, params = {}
@@ -47,7 +47,7 @@ async function b4yTest () {
         // console.log(await exchange.cancelOrder('28ce0de2fe1c4a42a84bc36162f66ce4', null))
 
         // fetchOpenOrders
-        console.log(await exchange.fetchOrders())
+        // console.log(await exchange.fetchOrders())
 
         // fetchOrders
         // console.log(await exchange.fetchOrder('5aaa14cec86a49deb1f7d2c6a8c68c98'))

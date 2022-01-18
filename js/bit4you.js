@@ -46,10 +46,8 @@
 
 //  ---------------------------------------------------------------------------
 const Exchange = require ('./base/Exchange');
-const {BadRequest, DDoSProtection, ExchangeError } = require ('./base/errors');
+const { BadRequest, DDoSProtection, ExchangeError } = require ('./base/errors');
 // const { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
-
 //  ---------------------------------------------------------------------------
 
 module.exports = class bit4you extends Exchange {
@@ -282,7 +280,6 @@ module.exports = class bit4you extends Exchange {
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         const request = {};
-        request.simulation = params.simulation;
         request.iso = code;
         request.quantity = amount;
         request.address = tag ? address + ':' + tag : address;
@@ -358,7 +355,6 @@ module.exports = class bit4you extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         // since is currently not implemented in our api, we use pagination index default is 0
         const request = {};
-        request.simulation = params.simulation;
         request.market = symbol || '';
         request.page = since;
         request.limit = limit;
@@ -401,7 +397,6 @@ module.exports = class bit4you extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         const request = {};
-        request.simulation = params.simulation;
         request.txid = id;
 
         try {
@@ -460,7 +455,6 @@ module.exports = class bit4you extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         // side type be limit or Market
         const request = {};
-        request.simulation = params.simulation; // demo mode
         request.txid = id;
       
         try {
@@ -483,7 +477,6 @@ module.exports = class bit4you extends Exchange {
             request.rate = price;
         }
 
-        request.simulation = params.simulation; // demo mode
         request.market = iso;
         request.type = side; // ENUM Buy or sell
         request.quantity = amount;
@@ -503,7 +496,7 @@ module.exports = class bit4you extends Exchange {
         const request = params;
         try {
             const response = await this.privatePostWalletBalances(this.extend (request));
-            return response || [];
+            return response.filter((e) => e.balance > 0) || [];
         } catch (error) {
             return error;
         }
@@ -528,9 +521,7 @@ module.exports = class bit4you extends Exchange {
 
         if (method === 'POST') {
             body = JSON.parse(this.json(query));
-            if (body && body.simulation === undefined) {
-                body.simulation = this.simulation;
-            }
+            body.simulation = this.simulation;
         }
 
         headers = {
