@@ -98,9 +98,6 @@ module.exports = class binance extends Exchange {
                 'signIn': false,
                 'transfer': true,
                 'withdraw': true,
-                'createGiftCode': true,
-                'redeemGiftCode': true,
-                'verifyGiftCode': true,
             },
             'timeframes': {
                 '1m': '1m',
