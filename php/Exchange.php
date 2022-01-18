@@ -2134,7 +2134,7 @@ class Exchange {
                     $average = Precise::string_div(Precise::string_add($last, $open), '2');
                 }
             }
-            if (($percentage === null) && ($change !== null) && ($open !== null) && ($open > 0)) {
+            if (($percentage === null) && ($change !== null) && ($open !== null) && (Precise::string_gt($open, '0'))) {
                 $percentage = Precise::string_mul(Precise::string_div($change, $open), '100');
             }
             if (($change === null) && ($percentage !== null) && ($last !== null)) {
