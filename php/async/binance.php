@@ -321,6 +321,7 @@ class binance extends Exchange {
                         'nft/history/withdraw' => 1,
                         'nft/user/getAsset' => 1,
                         'pay/transactions' => 1,
+                        'giftcard/verify' => 1,
                     ),
                     'post' => array(
                         'asset/dust' => 1,
@@ -393,6 +394,8 @@ class binance extends Exchange {
                         'broker/universalTransfer' => 1,
                         'broker/subAccountApi/permission/universalTransfer' => 1,
                         'broker/subAccountApi/permission/vanillaOptions' => 1,
+                        'giftcard/createCode' => 1,
+                        'giftcard/redeemCode' => 1,
                     ),
                     'put' => array(
                         'userDataStream' => 1,
@@ -5020,6 +5023,7 @@ class binance extends Exchange {
                 throw new AuthenticationError($this->id . ' historicalTrades endpoint requires `apiKey` credential');
             }
         }
+        $giftcard = ($api === 'sapi') && (mb_strpos($path, 'gift') !== false) && ($method === 'POST');
         $userDataStream = ($path === 'userDataStream') || ($path === 'listenKey');
         if ($userDataStream) {
             if ($this->apiKey) {
@@ -5048,6 +5052,11 @@ class binance extends Exchange {
                     'timestamp' => $this->nonce(),
                     'recvWindow' => $recvWindow,
                 ), $params));
+            } else if ($giftcard) {
+                $query = $this->urlencode(array(
+                    'timestamp' => $this->nonce(),
+                    'recvWindow' => $recvWindow,
+                ));
             } else {
                 $query = $this->urlencode(array_merge(array(
                     'timestamp' => $this->nonce(),
@@ -5061,6 +5070,10 @@ class binance extends Exchange {
             );
             if (($method === 'GET') || ($method === 'DELETE') || ($api === 'wapi')) {
                 $url .= '?' . $query;
+            } else if ($giftcard) {
+                $url .= '?' . $query;
+                $headers['Content-Type'] = 'application/json';
+                $body = $this->json($params);
             } else {
                 $body = $query;
                 $headers['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -5301,5 +5314,70 @@ class binance extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function create_gift_code($code, $amount, $params = array ()) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        // ensure you have enough token in your funding account before calling this $code
+        $request = array(
+            'token' => $currency['id'],
+            'amount' => $amount,
+        );
+        $response = yield $this->sapiPostGiftcardCreateCode (array_merge($request, $params));
+        //
+        //     {
+        //       $code => '000000',
+        //       message => 'success',
+        //       $data => array( referenceNo => '0033002404219823', $code => 'AP6EXTLKNHM6CEX7' ),
+        //       success => true
+        //     }
+        //
+        $data = $this->safe_value($response, 'data');
+        $giftcardCode = $this->safe_string($data, 'code');
+        $id = $this->safe_string($data, 'referenceNo');
+        return array(
+            'info' => $response,
+            'id' => $id,
+            'code' => $giftcardCode,
+            'currency' => $code,
+            'amount' => $amount,
+        );
+    }
+
+    public function redeem_gift_code($giftcardCode, $params = array ()) {
+        $request = array(
+            'code' => $giftcardCode,
+        );
+        $response = yield $this->sapiPostGiftcardRedeemCode (array_merge($request, $params));
+        //
+        //     {
+        //       code => '000000',
+        //       message => 'success',
+        //       data => array(
+        //         referenceNo => '0033002404219823',
+        //         identityNo => '10316431732801474560'
+        //       ),
+        //       success => true
+        //     }
+        //
+        return $response;
+    }
+
+    public function verify_gift_code($id, $params = array ()) {
+        $request = array(
+            'type' => 'CODE',
+            'value' => $id,
+        );
+        $response = yield $this->sapiGetGiftcardVerify (array_merge($request, $params));
+        //
+        //     {
+        //       code => '000000',
+        //       message => 'success',
+        //       data => array( valid => true ),
+        //       success => true
+        //     }
+        //
+        return $response;
     }
 }
