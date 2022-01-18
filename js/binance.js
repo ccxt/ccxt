@@ -314,6 +314,7 @@ module.exports = class binance extends Exchange {
                         'nft/history/withdraw': 1,
                         'nft/user/getAsset': 1,
                         'pay/transactions': 1,
+                        'giftcard/verify': 1,
                     },
                     'post': {
                         'asset/dust': 1,
@@ -386,6 +387,8 @@ module.exports = class binance extends Exchange {
                         'broker/universalTransfer': 1,
                         'broker/subAccountApi/permission/universalTransfer': 1,
                         'broker/subAccountApi/permission/vanillaOptions': 1,
+                        'giftcard/createCode': 1,
+                        'giftcard/redeemCode': 1,
                     },
                     'put': {
                         'userDataStream': 1,
@@ -5013,6 +5016,7 @@ module.exports = class binance extends Exchange {
                 throw new AuthenticationError (this.id + ' historicalTrades endpoint requires `apiKey` credential');
             }
         }
+        const giftcard = (api === 'sapi') && (path.indexOf ('gift') >= 0) && (method === 'POST');
         const userDataStream = (path === 'userDataStream') || (path === 'listenKey');
         if (userDataStream) {
             if (this.apiKey) {
@@ -5041,6 +5045,11 @@ module.exports = class binance extends Exchange {
                     'timestamp': this.nonce (),
                     'recvWindow': recvWindow,
                 }, params));
+            } else if (giftcard) {
+                query = this.urlencode ({
+                    'timestamp': this.nonce (),
+                    'recvWindow': recvWindow,
+                });
             } else {
                 query = this.urlencode (this.extend ({
                     'timestamp': this.nonce (),
@@ -5054,6 +5063,10 @@ module.exports = class binance extends Exchange {
             };
             if ((method === 'GET') || (method === 'DELETE') || (api === 'wapi')) {
                 url += '?' + query;
+            } else if (giftcard) {
+                url += '?' + query;
+                headers['Content-Type'] = 'application/json';
+                body = this.json (params);
             } else {
                 body = query;
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -5294,5 +5307,70 @@ module.exports = class binance extends Exchange {
             });
         }
         return result;
+    }
+
+    async createGiftCode (code, amount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        // ensure you have enough token in your funding account before calling this code
+        const request = {
+            'token': currency['id'],
+            'amount': amount,
+        };
+        const response = await this.sapiPostGiftcardCreateCode (this.extend (request, params));
+        //
+        //     {
+        //       code: '000000',
+        //       message: 'success',
+        //       data: { referenceNo: '0033002404219823', code: 'AP6EXTLKNHM6CEX7' },
+        //       success: true
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        const giftcardCode = this.safeString (data, 'code');
+        const id = this.safeString (data, 'referenceNo');
+        return {
+            'info': response,
+            'id': id,
+            'code': giftcardCode,
+            'currency': code,
+            'amount': amount,
+        };
+    }
+
+    async redeemGiftCode (giftcardCode, params = {}) {
+        const request = {
+            'code': giftcardCode,
+        };
+        const response = await this.sapiPostGiftcardRedeemCode (this.extend (request, params));
+        //
+        //     {
+        //       code: '000000',
+        //       message: 'success',
+        //       data: {
+        //         referenceNo: '0033002404219823',
+        //         identityNo: '10316431732801474560'
+        //       },
+        //       success: true
+        //     }
+        //
+        return response;
+    }
+
+    async verifyGiftCode (id, params = {}) {
+        const request = {
+            'type': 'CODE',
+            'value': id,
+        };
+        const response = await this.sapiGetGiftcardVerify (this.extend (request, params));
+        //
+        //     {
+        //       code: '000000',
+        //       message: 'success',
+        //       data: { valid: true },
+        //       success: true
+        //     }
+        //
+        return response;
     }
 };
