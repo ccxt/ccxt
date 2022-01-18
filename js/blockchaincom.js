@@ -174,27 +174,26 @@ module.exports = class blockchaincom extends Exchange {
 
     async fetchMarkets (params = {}) {
         //
-        // },
-        // "USDC-GBP": {
-        // "base_currency": "USDC",
-        // "base_currency_scale": 6,
-        // "counter_currency": "GBP",
-        // "counter_currency_scale": 2,
-        // "min_price_increment": 10000,
-        // "min_price_increment_scale": 8,
-        // "min_order_size": 500000000,
-        // "min_order_size_scale": 8,
-        // "max_order_size": 0,
-        // "max_order_size_scale": 8,
-        // "lot_size": 10000,
-        // "lot_size_scale": 8,
-        // "status": "open",
-        // "id": 68,
-        // "auction_price": 0,
-        // "auction_size": 0,
-        // "auction_time": "",
-        // "imbalance": 0
-        // }, ...
+        //     "USDC-GBP": {
+        //         "base_currency": "USDC",
+        //         "base_currency_scale": 6,
+        //         "counter_currency": "GBP",
+        //         "counter_currency_scale": 2,
+        //         "min_price_increment": 10000,
+        //         "min_price_increment_scale": 8,
+        //         "min_order_size": 500000000,
+        //         "min_order_size_scale": 8,
+        //         "max_order_size": 0,
+        //         "max_order_size_scale": 8,
+        //         "lot_size": 10000,
+        //         "lot_size_scale": 8,
+        //         "status": "open",
+        //         "id": 68,
+        //         "auction_price": 0,
+        //         "auction_size": 0,
+        //         "auction_time": "",
+        //         "imbalance": 0
+        //     }
         //
         const markets = await this.publicGetSymbols (params);
         const marketIds = Object.keys (markets);
@@ -290,7 +289,6 @@ module.exports = class blockchaincom extends Exchange {
                         'max': undefined,
                     },
                 },
-
             });
         }
         return result;
