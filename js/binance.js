@@ -5016,7 +5016,7 @@ module.exports = class binance extends Exchange {
                 throw new AuthenticationError (this.id + ' historicalTrades endpoint requires `apiKey` credential');
             }
         }
-        const giftcard = (api === 'sapi') && (path.slice (0, 8) === 'giftcard') && (method === 'POST');
+        const giftcard = (api === 'sapi') && (path.indexOf ('gift') >= 0) && (method === 'POST');
         const userDataStream = (path === 'userDataStream') || (path === 'listenKey');
         if (userDataStream) {
             if (this.apiKey) {
