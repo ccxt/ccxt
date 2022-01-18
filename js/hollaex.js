@@ -950,12 +950,12 @@ module.exports = class hollaex extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {};
-        let market = undefined;
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + " cancelAllOrders() requires a 'symbol' argument");
         }
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
         market = this.market (symbol);
         request['symbol'] = market['id'];
         const response = await this.privateDeleteOrderAll (this.extend (request, params));
