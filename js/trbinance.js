@@ -3,9 +3,9 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadRequest } = require ('./base/errors');
+const { BadRequest, ArgumentsRequired, NotSupported } = require ('./base/errors');
 // const { TRUNCATE, DECIMAL_PLACES, TICK_SIZE } = require ('./base/functions/number');
-// const Precise = require ('./base/Precise');
+const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
 
@@ -30,6 +30,11 @@ module.exports = class trbinance extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchOHLCV': true,
+                'fetchOrders': true,
+                'fetchOrder': true,
+                'fetchOrderTrades': true,
+                'fetchMyTrades': true,
+                'fetchAccountSpot': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -728,29 +733,298 @@ module.exports = class trbinance extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            'NEW': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'FILLED': 'closed',
+            'CANCELED': 'canceled',
+            'PENDING_CANCEL': 'canceling', // currently unused
+            'REJECTED': 'rejected',
+            'EXPIRED': 'expired',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrder (order, market = undefined) {
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const marketId = this.safeString (order, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const filled = this.safeString (order, 'executedQty', '0');
+        let timestamp = undefined;
+        let lastTradeTimestamp = undefined;
+        if ('time' in order) {
+            timestamp = this.safeInteger (order, 'time');
+        } else if ('transactTime' in order) {
+            timestamp = this.safeInteger (order, 'transactTime');
+        } else if ('updateTime' in order) {
+            if (status === 'open') {
+                if (Precise.stringGt (filled, '0')) {
+                    lastTradeTimestamp = this.safeInteger (order, 'updateTime');
+                } else {
+                    timestamp = this.safeInteger (order, 'updateTime');
+                }
+            }
+        }
+        const average = this.safeString (order, 'avgPrice');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'origQty');
+        // - Spot/Margin market: cummulativeQuoteQty
+        // - Futures market: cumQuote.
+        //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
+        let cost = this.safeString2 (order, 'cummulativeQuoteQty', 'cumQuote');
+        cost = this.safeString (order, 'cumBase', cost);
+        const id = this.safeString (order, 'orderId');
+        let type = this.safeStringLower (order, 'type');
+        const side = this.safeStringLower (order, 'side');
+        const fills = this.safeValue (order, 'fills', []);
+        const clientOrderId = this.safeString (order, 'clientOrderId');
+        const timeInForce = this.safeString (order, 'timeInForce');
+        const postOnly = (type === 'limit_maker') || (timeInForce === 'GTX');
+        if (type === 'limit_maker') {
+            type = 'limit';
+        }
+        const stopPriceString = this.safeString (order, 'stopPrice');
+        const stopPrice = this.parseNumber (this.omitZero (stopPriceString));
+        return this.safeOrder ({
+            'info': order,
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
+            'side': side,
+            'price': price,
+            'stopPrice': stopPrice,
+            'amount': amount,
+            'cost': cost,
+            'average': average,
+            'filled': filled,
+            'remaining': undefined,
+            'status': status,
+            'fee': undefined,
+            'trades': fills,
+        }, market);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        // console.log('id >>>>>>', id);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        // const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', 'spot');
+        // const type = this.safeString (params, 'type', defaultType);
+        const method = 'privateGetOrdersDetail';
+        const request = {
+            'symbol': market['id'],
+        };
+        const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['origClientOrderId'] = clientOrderId;
+        } else {
+            request['orderId'] = id;
+        }
+        const query = this.omit (params, [ 'type', 'clientOrderId', 'origClientOrderId' ]);
+        const response = await this[method] (this.extend (request, query));
+        return this.parseOrder (response, market);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const defaultType = this.safeString2 (this.options, 'fetchOrders', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const method = 'privateGetOrders';
+        const request = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const query = this.omit (params, type);
+        const response = await this[method] (this.extend (request, query));
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const type = this.safeString (params, 'type', market['type']);
+        params = this.omit (params, 'type');
+        if (type !== 'spot') {
+            throw new NotSupported (this.id + ' fetchOrderTrades() supports spot markets only');
+        }
+        const request = {
+            'orderId': id,
+        };
+        return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const type = this.safeString (params, 'type', market['type']);
+        params = this.omit (params, type);
+        const method = 'privateGetOrdersDetail';
+        const request = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this[method] (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    parseAccountSpot (response, type = undefined) {
+        const result = {
+            'info': response,
+        };
+        let timestamp = undefined;
+        if ((type === 'spot') || (type === 'margin')) {
+            timestamp = this.safeInteger (response, 'updateTime');
+            const balances = this.safeValue2 (response, 'balances', 'accountAssets', []);
+            for (let i = 0; i < balances.length; i++) {
+                const balance = balances[i];
+                const currencyId = this.safeString (balance, 'asset');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString (balance, 'free');
+                account['used'] = this.safeString (balance, 'locked');
+                result[code] = account;
+            }
+        } else {
+            let balances = response;
+            if (!Array.isArray (response)) {
+                balances = this.safeValue (response, 'assets', []);
+            }
+            for (let i = 0; i < balances.length; i++) {
+                const balance = balances[i];
+                const currencyId = this.safeString (balance, 'asset');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString (balance, 'availableBalance');
+                account['used'] = this.safeString (balance, 'initialMargin');
+                account['total'] = this.safeString2 (balance, 'marginBalance', 'balance');
+                result[code] = account;
+            }
+        }
+        result['timestamp'] = timestamp;
+        result['datetime'] = this.iso8601 (timestamp);
+        return this.safeBalance (result);
+    }
+
+    async fetchAccountSpot (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const defaultType = this.safeString2 (this.options, 'fetchAccountSpot', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        const method = 'privateGetAccountSpot';
+        const query = this.omit (params, 'type');
+        const response = await this[method] (query);
+        // {
+        //     "code": 0,
+        //     "msg": "success",
+        //     "data": {
+        //         "makerCommission": "10.00000000",
+        //         "takerCommission": "10.00000000",
+        //         "buyerCommission": "0.00000000",
+        //         "sellerCommission": "0.00000000",
+        //         "canTrade": 1,
+        //         "canWithdraw": 1,
+        //         "canDeposit": 1,
+        //         "accountAssets": [
+        //             {
+        //                 "asset": "ADA",
+        //                 "free": "272.5550000000000000",
+        //                 "locked": "3.0000000000000000"
+        //             }
+        //         ]
+        //     },
+        //     "timestamp": 1572514387348
+        // }
+        return this.parseAccountSpot (response, type);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + this.version + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
-        }
-        if (api === 'public' && path === 'aggTrades') {
-            url = this.urls['api']['public3'] + path;
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
+        } else if (api === 'private') {
+            this.checkRequiredCredentials ();
+            let query = undefined;
+            const recvWindow = this.safeInteger (this.options, 'recvWindow', 5000);
+            // if ((api === 'sapi') && (path === 'asset/dust')) {
+            //     query = this.urlencodeWithArrayRepeat (this.extend ({
+            //         'timestamp': this.nonce (),
+            //         'recvWindow': recvWindow,
+            //     }, params));
+            // } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0)) {
+            //     query = this.rawencode (this.extend ({
+            //         'timestamp': this.nonce (),
+            //         'recvWindow': recvWindow,
+            //     }, params));
+            // } else {
+            //     query = this.urlencode (this.extend ({
+            //         'timestamp': this.nonce (),
+            //         'recvWindow': recvWindow,
+            //     }, params));
+            // }
+            query = this.urlencode (this.extend ({
+                'timestamp': this.nonce (),
+                'recvWindow': recvWindow,
+            }, params));
+            const signature = this.hmac (this.encode (query), this.encode (this.secret));
+            query += '&' + 'signature=' + signature;
+            headers = {
+                'X-MBX-APIKEY': this.apiKey,
+            };
+            if ((method === 'GET') || (method === 'DELETE') || (api === 'wapi')) {
+                url += '?' + query;
+            } else {
+                body = query;
+                headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
-        }
-        if (api === 'public' && path === 'klines') {
-            url = this.urls['api']['public3'] + path;
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
+        } else {
+            if (api === 'public' && path === 'aggTrades') {
+                url = this.urls['api']['public3'] + path;
+                if (Object.keys (params).length) {
+                    url += '?' + this.urlencode (params);
+                }
             }
-        }
-        if (api === 'public' && path === 'ticker/24hr') {
-            url = this.urls['api']['public3'] + path;
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
+            if (api === 'public' && path === 'klines') {
+                url = this.urls['api']['public3'] + path;
+                if (Object.keys (params).length) {
+                    url += '?' + this.urlencode (params);
+                }
+            }
+            if (api === 'public' && path === 'ticker/24hr') {
+                url = this.urls['api']['public3'] + path;
+                if (Object.keys (params).length) {
+                    url += '?' + this.urlencode (params);
+                }
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
