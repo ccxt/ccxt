@@ -97,7 +97,6 @@ module.exports = class binance extends Exchange {
                 'setPositionMode': true,
                 'signIn': false,
                 'transfer': true,
-                'transferOut': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -122,6 +121,8 @@ module.exports = class binance extends Exchange {
                 'test': {
                     'dapiPublic': 'https://testnet.binancefuture.com/dapi/v1',
                     'dapiPrivate': 'https://testnet.binancefuture.com/dapi/v1',
+                    'vapiPublic': 'https://testnet.binanceops.com/vapi/v1',
+                    'vapiPrivate': 'https://testnet.binanceops.com/vapi/v1',
                     'fapiPublic': 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivate': 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivateV2': 'https://testnet.binancefuture.com/fapi/v2',
@@ -134,6 +135,8 @@ module.exports = class binance extends Exchange {
                     'sapi': 'https://api.binance.com/sapi/v1',
                     'dapiPublic': 'https://dapi.binance.com/dapi/v1',
                     'dapiPrivate': 'https://dapi.binance.com/dapi/v1',
+                    'vapiPublic': 'https://vapi.binance.com/vapi/v1',
+                    'vapiPrivate': 'https://vapi.binance.com/vapi/v1',
                     'dapiPrivateV2': 'https://dapi.binance.com/dapi/v2',
                     'dapiData': 'https://dapi.binance.com/futures/data',
                     'fapiPublic': 'https://fapi.binance.com/fapi/v1',
@@ -145,10 +148,10 @@ module.exports = class binance extends Exchange {
                     'v1': 'https://api.binance.com/api/v1',
                 },
                 'www': 'https://www.binance.com',
-                // 'referral': {
-                //     'url': 'https://www.binance.com/en/register?ref=BLEJC98C',
-                //     'discount': 0.2,
-                // },
+                'referral': {
+                    'url': 'https://www.binance.com/en/register?ref=D7YA7CLY',
+                    'discount': 0.1,
+                },
                 'doc': [
                     'https://binance-docs.github.io/apidocs/spot/en',
                 ],
@@ -311,6 +314,7 @@ module.exports = class binance extends Exchange {
                         'nft/history/withdraw': 1,
                         'nft/user/getAsset': 1,
                         'pay/transactions': 1,
+                        'giftcard/verify': 1,
                     },
                     'post': {
                         'asset/dust': 1,
@@ -383,6 +387,8 @@ module.exports = class binance extends Exchange {
                         'broker/universalTransfer': 1,
                         'broker/subAccountApi/permission/universalTransfer': 1,
                         'broker/subAccountApi/permission/vanillaOptions': 1,
+                        'giftcard/createCode': 1,
+                        'giftcard/redeemCode': 1,
                     },
                     'put': {
                         'userDataStream': 1,
@@ -588,6 +594,47 @@ module.exports = class binance extends Exchange {
                         'positionRisk': 1,
                     },
                 },
+                'vapiPublic': {
+                    'get': [
+                        'ping',
+                        'time',
+                        'optionInfo',
+                        'exchangeInfo',
+                        'index',
+                        'ticker',
+                        'mark',
+                        'depth',
+                        'klines',
+                        'trades',
+                        'historicalTrades',
+                    ],
+                },
+                'vapiPrivate': {
+                    'get': [
+                        'account',
+                        'position',
+                        'order',
+                        'openOrders',
+                        'historyOrders',
+                        'userTrades',
+                    ],
+                    'post': [
+                        'transfer',
+                        'bill',
+                        'order',
+                        'batchOrders',
+                        'userDataStream',
+                    ],
+                    'put': [
+                        'userDataStream',
+                    ],
+                    'delete': [
+                        'order',
+                        'batchOrders',
+                        'allOpenOrders',
+                        'userDataStream',
+                    ],
+                },
                 'public': {
                     'get': {
                         'ping': 1,
@@ -714,6 +761,7 @@ module.exports = class binance extends Exchange {
                         },
                     },
                 },
+                'option': {},
             },
             'commonCurrencies': {
                 'BCC': 'BCC', // kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
@@ -4968,6 +5016,7 @@ module.exports = class binance extends Exchange {
                 throw new AuthenticationError (this.id + ' historicalTrades endpoint requires `apiKey` credential');
             }
         }
+        const giftcard = (api === 'sapi') && (path.indexOf ('gift') >= 0) && (method === 'POST');
         const userDataStream = (path === 'userDataStream') || (path === 'listenKey');
         if (userDataStream) {
             if (this.apiKey) {
@@ -4996,6 +5045,11 @@ module.exports = class binance extends Exchange {
                     'timestamp': this.nonce (),
                     'recvWindow': recvWindow,
                 }, params));
+            } else if (giftcard) {
+                query = this.urlencode ({
+                    'timestamp': this.nonce (),
+                    'recvWindow': recvWindow,
+                });
             } else {
                 query = this.urlencode (this.extend ({
                     'timestamp': this.nonce (),
@@ -5009,6 +5063,10 @@ module.exports = class binance extends Exchange {
             };
             if ((method === 'GET') || (method === 'DELETE') || (api === 'wapi')) {
                 url += '?' + query;
+            } else if (giftcard) {
+                url += '?' + query;
+                headers['Content-Type'] = 'application/json';
+                body = this.json (params);
             } else {
                 body = query;
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -5249,5 +5307,70 @@ module.exports = class binance extends Exchange {
             });
         }
         return result;
+    }
+
+    async createGiftCode (code, amount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        // ensure you have enough token in your funding account before calling this code
+        const request = {
+            'token': currency['id'],
+            'amount': amount,
+        };
+        const response = await this.sapiPostGiftcardCreateCode (this.extend (request, params));
+        //
+        //     {
+        //       code: '000000',
+        //       message: 'success',
+        //       data: { referenceNo: '0033002404219823', code: 'AP6EXTLKNHM6CEX7' },
+        //       success: true
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        const giftcardCode = this.safeString (data, 'code');
+        const id = this.safeString (data, 'referenceNo');
+        return {
+            'info': response,
+            'id': id,
+            'code': giftcardCode,
+            'currency': code,
+            'amount': amount,
+        };
+    }
+
+    async redeemGiftCode (giftcardCode, params = {}) {
+        const request = {
+            'code': giftcardCode,
+        };
+        const response = await this.sapiPostGiftcardRedeemCode (this.extend (request, params));
+        //
+        //     {
+        //       code: '000000',
+        //       message: 'success',
+        //       data: {
+        //         referenceNo: '0033002404219823',
+        //         identityNo: '10316431732801474560'
+        //       },
+        //       success: true
+        //     }
+        //
+        return response;
+    }
+
+    async verifyGiftCode (id, params = {}) {
+        const request = {
+            'type': 'CODE',
+            'value': id,
+        };
+        const response = await this.sapiGetGiftcardVerify (this.extend (request, params));
+        //
+        //     {
+        //       code: '000000',
+        //       message: 'success',
+        //       data: { valid: true },
+        //       success: true
+        //     }
+        //
+        return response;
     }
 };

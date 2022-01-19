@@ -15,18 +15,37 @@ module.exports = class independentreserve extends Exchange {
             'countries': [ 'AU', 'NZ' ], // Australia, New Zealand
             'rateLimit': 1000,
             'has': {
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'cancelOrder': true,
                 'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setPositionMode': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87182090-1e9e9080-c2ec-11ea-8e49-563db9a38f37.jpg',
@@ -117,22 +136,50 @@ module.exports = class independentreserve extends Exchange {
                 const quoteId = quoteCurrencies[j];
                 const quote = this.safeCurrencyCode (quoteId);
                 const id = baseId + '/' + quoteId;
-                const symbol = base + '/' + quote;
                 result.push ({
                     'id': id,
-                    'symbol': symbol,
+                    'symbol': base + '/' + quote,
                     'base': base,
                     'quote': quote,
+                    'settle': undefined,
                     'baseId': baseId,
                     'quoteId': quoteId,
-                    'info': id,
+                    'settleId': undefined,
                     'type': 'spot',
                     'spot': true,
+                    'margin': false,
+                    'swap': false,
+                    'future': false,
+                    'option': false,
                     'active': undefined,
+                    'contract': false,
+                    'linear': undefined,
+                    'inverse': undefined,
+                    'contractSize': undefined,
+                    'expiry': undefined,
+                    'expiryDatetime': undefined,
+                    'strike': undefined,
+                    'optionType': undefined,
                     'precision': this.precision,
                     'limits': {
-                        'amount': { 'min': minAmount, 'max': undefined },
+                        'leverage': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'amount': {
+                            'min': minAmount,
+                            'max': undefined,
+                        },
+                        'price': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'cost': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
+                    'info': id,
                 });
             }
         }
@@ -172,13 +219,30 @@ module.exports = class independentreserve extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        // {
+        //     "DayHighestPrice":43489.49,
+        //     "DayLowestPrice":41998.32,
+        //     "DayAvgPrice":42743.9,
+        //     "DayVolumeXbt":44.54515625000,
+        //     "DayVolumeXbtInSecondaryCurrrency":0.12209818,
+        //     "CurrentLowestOfferPrice":43619.64,
+        //     "CurrentHighestBidPrice":43153.58,
+        //     "LastPrice":43378.43,
+        //     "PrimaryCurrencyCode":"Xbt",
+        //     "SecondaryCurrencyCode":"Usd",
+        //     "CreatedTimestampUtc":"2022-01-14T22:52:29.5029223Z"
+        // }
         const timestamp = this.parse8601 (this.safeString (ticker, 'CreatedTimestampUtc'));
-        let symbol = undefined;
-        if (market) {
-            symbol = market['symbol'];
+        const baseId = this.safeString (ticker, 'PrimaryCurrencyCode');
+        const quoteId = this.safeString (ticker, 'SecondaryCurrencyCode');
+        let defaultMarketId = undefined;
+        if ((baseId !== undefined) && (quoteId !== undefined)) {
+            defaultMarketId = baseId + '/' + quoteId;
         }
+        market = this.safeMarket (defaultMarketId, market, '/');
+        const symbol = market['symbol'];
         const last = this.safeNumber (ticker, 'LastPrice');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -199,7 +263,7 @@ module.exports = class independentreserve extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -210,6 +274,19 @@ module.exports = class independentreserve extends Exchange {
             'secondaryCurrencyCode': market['quoteId'],
         };
         const response = await this.publicGetGetMarketSummary (this.extend (request, params));
+        // {
+        //     "DayHighestPrice":43489.49,
+        //     "DayLowestPrice":41998.32,
+        //     "DayAvgPrice":42743.9,
+        //     "DayVolumeXbt":44.54515625000,
+        //     "DayVolumeXbtInSecondaryCurrrency":0.12209818,
+        //     "CurrentLowestOfferPrice":43619.64,
+        //     "CurrentHighestBidPrice":43153.58,
+        //     "LastPrice":43378.43,
+        //     "PrimaryCurrencyCode":"Xbt",
+        //     "SecondaryCurrencyCode":"Usd",
+        //     "CreatedTimestampUtc":"2022-01-14T22:52:29.5029223Z"
+        // }
         return this.parseTicker (response, market);
     }
 

@@ -16,18 +16,37 @@ class independentreserve(Exchange):
             'countries': ['AU', 'NZ'],  # Australia, New Zealand
             'rateLimit': 1000,
             'has': {
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'cancelOrder': True,
                 'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setPositionMode': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87182090-1e9e9080-c2ec-11ea-8e49-563db9a38f37.jpg',
@@ -117,22 +136,50 @@ class independentreserve(Exchange):
                 quoteId = quoteCurrencies[j]
                 quote = self.safe_currency_code(quoteId)
                 id = baseId + '/' + quoteId
-                symbol = base + '/' + quote
                 result.append({
                     'id': id,
-                    'symbol': symbol,
+                    'symbol': base + '/' + quote,
                     'base': base,
                     'quote': quote,
+                    'settle': None,
                     'baseId': baseId,
                     'quoteId': quoteId,
-                    'info': id,
+                    'settleId': None,
                     'type': 'spot',
                     'spot': True,
+                    'margin': False,
+                    'swap': False,
+                    'future': False,
+                    'option': False,
                     'active': None,
+                    'contract': False,
+                    'linear': None,
+                    'inverse': None,
+                    'contractSize': None,
+                    'expiry': None,
+                    'expiryDatetime': None,
+                    'strike': None,
+                    'optionType': None,
                     'precision': self.precision,
                     'limits': {
-                        'amount': {'min': minAmount, 'max': None},
+                        'leverage': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'amount': {
+                            'min': minAmount,
+                            'max': None,
+                        },
+                        'price': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'cost': {
+                            'min': None,
+                            'max': None,
+                        },
                     },
+                    'info': id,
                 })
         return result
 
@@ -165,12 +212,29 @@ class independentreserve(Exchange):
         return self.parse_order_book(response, symbol, timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume')
 
     def parse_ticker(self, ticker, market=None):
+        # {
+        #     "DayHighestPrice":43489.49,
+        #     "DayLowestPrice":41998.32,
+        #     "DayAvgPrice":42743.9,
+        #     "DayVolumeXbt":44.54515625000,
+        #     "DayVolumeXbtInSecondaryCurrrency":0.12209818,
+        #     "CurrentLowestOfferPrice":43619.64,
+        #     "CurrentHighestBidPrice":43153.58,
+        #     "LastPrice":43378.43,
+        #     "PrimaryCurrencyCode":"Xbt",
+        #     "SecondaryCurrencyCode":"Usd",
+        #     "CreatedTimestampUtc":"2022-01-14T22:52:29.5029223Z"
+        # }
         timestamp = self.parse8601(self.safe_string(ticker, 'CreatedTimestampUtc'))
-        symbol = None
-        if market:
-            symbol = market['symbol']
+        baseId = self.safe_string(ticker, 'PrimaryCurrencyCode')
+        quoteId = self.safe_string(ticker, 'SecondaryCurrencyCode')
+        defaultMarketId = None
+        if (baseId is not None) and (quoteId is not None):
+            defaultMarketId = baseId + '/' + quoteId
+        market = self.safe_market(defaultMarketId, market, '/')
+        symbol = market['symbol']
         last = self.safe_number(ticker, 'LastPrice')
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -191,7 +255,7 @@ class independentreserve(Exchange):
             'baseVolume': self.safe_number(ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -201,6 +265,19 @@ class independentreserve(Exchange):
             'secondaryCurrencyCode': market['quoteId'],
         }
         response = self.publicGetGetMarketSummary(self.extend(request, params))
+        # {
+        #     "DayHighestPrice":43489.49,
+        #     "DayLowestPrice":41998.32,
+        #     "DayAvgPrice":42743.9,
+        #     "DayVolumeXbt":44.54515625000,
+        #     "DayVolumeXbtInSecondaryCurrrency":0.12209818,
+        #     "CurrentLowestOfferPrice":43619.64,
+        #     "CurrentHighestBidPrice":43153.58,
+        #     "LastPrice":43378.43,
+        #     "PrimaryCurrencyCode":"Xbt",
+        #     "SecondaryCurrencyCode":"Usd",
+        #     "CreatedTimestampUtc":"2022-01-14T22:52:29.5029223Z"
+        # }
         return self.parse_ticker(response, market)
 
     def parse_order(self, order, market=None):

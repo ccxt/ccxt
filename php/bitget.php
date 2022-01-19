@@ -1710,22 +1710,18 @@ class bitget extends Exchange {
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         $this->load_accounts();
-        $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        if ($type === null) {
-            throw new ArgumentsRequired($this->id . " fetchBalance() requires a 'type' parameter, one of 'spot', 'swap'");
-        }
-        $method = null;
-        $query = $this->omit($params, 'type');
-        if ($type === 'spot') {
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'apiGetAccountsAccountIdBalance',
+            'swap' => 'swapGetAccountAccounts',
+        ));
+        if ($marketType === 'spot') {
             $accountId = $this->get_account_id($params);
-            $method = 'apiGetAccountsAccountIdBalance';
-            $query['account_id'] = $accountId;
-            $query['method'] = 'balance';
-        } else if ($type === 'swap') {
-            $method = 'swapGetAccountAccounts';
+            $params['account_id'] = $accountId;
+            $params['method'] = 'balance';
         }
-        $response = $this->$method ($query);
+        $response = $this->$method ($params);
         //
         // spot
         //
@@ -1752,7 +1748,7 @@ class bitget extends Exchange {
         //         array("equity":"0","fixed_balance":"0","total_avail_balance":"0","margin":"0","realized_pnl":"0","unrealized_pnl":"0","symbol":"cmt_btcsusdt","margin_frozen":"0","timestamp":"1595673431577","margin_mode":"fixed","forwardContractFlag":true),
         //     )
         //
-        return $this->parse_balance_by_type($type, $response);
+        return $this->parse_balance_by_type($marketType, $response);
     }
 
     public function parse_balance_by_type($type, $response) {

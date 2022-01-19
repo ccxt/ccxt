@@ -639,20 +639,23 @@ class ascendex extends Exchange {
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         $this->load_accounts();
-        $defaultAccountCategory = $this->safe_string($this->options, 'account-category', 'cash');
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $options = $this->safe_value($this->options, 'fetchBalance', array());
-        $accountCategory = $this->safe_string($options, 'account-category', $defaultAccountCategory);
-        $accountCategory = $this->safe_string($params, 'account-category', $accountCategory);
-        $params = $this->omit($params, 'account-category');
+        $accountCategories = $this->safe_value($this->options, 'accountCategories', array());
+        $accountCategory = $this->safe_string($accountCategories, $marketType, 'cash');
         $account = $this->safe_value($this->accounts, 0, array());
         $accountGroup = $this->safe_string($account, 'id');
         $request = array(
             'account-group' => $accountGroup,
         );
-        $method = 'v1PrivateAccountCategoryGetBalance';
-        if ($accountCategory === 'futures') {
-            $method = 'v1PrivateAccountGroupGetFuturesCollateralBalance';
-        } else {
+        $defaultMethod = $this->safe_string($options, 'method', 'v1PrivateAccountCategoryGetBalance');
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => $defaultMethod,
+            'margin' => $defaultMethod,
+            'swap' => 'v1PrivateAccountGroupGetFuturesCollateralBalance',
+        ));
+        if ($accountCategory === 'cash') {
             $request['account-category'] = $accountCategory;
         }
         $response = $this->$method (array_merge($request, $params));
@@ -759,20 +762,20 @@ class ascendex extends Exchange {
         $type = $this->safe_string($ticker, 'type');
         $delimiter = ($type === 'spot') ? '/' : null;
         $symbol = $this->safe_symbol($marketId, $market, $delimiter);
-        $close = $this->safe_number($ticker, 'close');
+        $close = $this->safe_string($ticker, 'close');
         $bid = $this->safe_value($ticker, 'bid', array());
         $ask = $this->safe_value($ticker, 'ask', array());
-        $open = $this->safe_number($ticker, 'open');
+        $open = $this->safe_string($ticker, 'open');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => null,
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($bid, 0),
-            'bidVolume' => $this->safe_number($bid, 1),
-            'ask' => $this->safe_number($ask, 0),
-            'askVolume' => $this->safe_number($ask, 1),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($bid, 0),
+            'bidVolume' => $this->safe_string($bid, 1),
+            'ask' => $this->safe_string($ask, 0),
+            'askVolume' => $this->safe_string($ask, 1),
             'vwap' => null,
             'open' => $open,
             'close' => $close,
@@ -781,10 +784,10 @@ class ascendex extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'volume'),
+            'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

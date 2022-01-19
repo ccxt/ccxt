@@ -1659,20 +1659,17 @@ class bitget(Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         self.load_accounts()
-        defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType')
-        type = self.safe_string(params, 'type', defaultType)
-        if type is None:
-            raise ArgumentsRequired(self.id + " fetchBalance() requires a 'type' parameter, one of 'spot', 'swap'")
-        method = None
-        query = self.omit(params, 'type')
-        if type == 'spot':
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'apiGetAccountsAccountIdBalance',
+            'swap': 'swapGetAccountAccounts',
+        })
+        if marketType == 'spot':
             accountId = self.get_account_id(params)
-            method = 'apiGetAccountsAccountIdBalance'
-            query['account_id'] = accountId
-            query['method'] = 'balance'
-        elif type == 'swap':
-            method = 'swapGetAccountAccounts'
-        response = getattr(self, method)(query)
+            params['account_id'] = accountId
+            params['method'] = 'balance'
+        response = getattr(self, method)(params)
         #
         # spot
         #
@@ -1699,7 +1696,7 @@ class bitget(Exchange):
         #         {"equity":"0","fixed_balance":"0","total_avail_balance":"0","margin":"0","realized_pnl":"0","unrealized_pnl":"0","symbol":"cmt_btcsusdt","margin_frozen":"0","timestamp":"1595673431577","margin_mode":"fixed","forwardContractFlag":true},
         #     ]
         #
-        return self.parse_balance_by_type(type, response)
+        return self.parse_balance_by_type(marketType, response)
 
     def parse_balance_by_type(self, type, response):
         if type == 'spot':

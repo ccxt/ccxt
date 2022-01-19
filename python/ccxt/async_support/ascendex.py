@@ -632,20 +632,23 @@ class ascendex(Exchange):
     async def fetch_balance(self, params={}):
         await self.load_markets()
         await self.load_accounts()
-        defaultAccountCategory = self.safe_string(self.options, 'account-category', 'cash')
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
         options = self.safe_value(self.options, 'fetchBalance', {})
-        accountCategory = self.safe_string(options, 'account-category', defaultAccountCategory)
-        accountCategory = self.safe_string(params, 'account-category', accountCategory)
-        params = self.omit(params, 'account-category')
+        accountCategories = self.safe_value(self.options, 'accountCategories', {})
+        accountCategory = self.safe_string(accountCategories, marketType, 'cash')
         account = self.safe_value(self.accounts, 0, {})
         accountGroup = self.safe_string(account, 'id')
         request = {
             'account-group': accountGroup,
         }
-        method = 'v1PrivateAccountCategoryGetBalance'
-        if accountCategory == 'futures':
-            method = 'v1PrivateAccountGroupGetFuturesCollateralBalance'
-        else:
+        defaultMethod = self.safe_string(options, 'method', 'v1PrivateAccountCategoryGetBalance')
+        method = self.get_supported_mapping(marketType, {
+            'spot': defaultMethod,
+            'margin': defaultMethod,
+            'swap': 'v1PrivateAccountGroupGetFuturesCollateralBalance',
+        })
+        if accountCategory == 'cash':
             request['account-category'] = accountCategory
         response = await getattr(self, method)(self.extend(request, params))
         #
@@ -749,20 +752,20 @@ class ascendex(Exchange):
         type = self.safe_string(ticker, 'type')
         delimiter = '/' if (type == 'spot') else None
         symbol = self.safe_symbol(marketId, market, delimiter)
-        close = self.safe_number(ticker, 'close')
+        close = self.safe_string(ticker, 'close')
         bid = self.safe_value(ticker, 'bid', [])
         ask = self.safe_value(ticker, 'ask', [])
-        open = self.safe_number(ticker, 'open')
+        open = self.safe_string(ticker, 'open')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': None,
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(bid, 0),
-            'bidVolume': self.safe_number(bid, 1),
-            'ask': self.safe_number(ask, 0),
-            'askVolume': self.safe_number(ask, 1),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(bid, 0),
+            'bidVolume': self.safe_string(bid, 1),
+            'ask': self.safe_string(ask, 0),
+            'askVolume': self.safe_string(ask, 1),
             'vwap': None,
             'open': open,
             'close': close,
@@ -771,10 +774,10 @@ class ascendex(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'volume'),
+            'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

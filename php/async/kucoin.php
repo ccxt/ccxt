@@ -632,6 +632,8 @@ class kucoin extends Exchange {
                 'precision' => $precision,
                 'info' => $entry,
                 'active' => $active,
+                'deposit' => $isDepositEnabled,
+                'withdraw' => $isWithdrawEnabled,
                 'fee' => $fee,
                 'limits' => $this->limits,
             );
@@ -2338,7 +2340,9 @@ class kucoin extends Exchange {
         //
         $errorCode = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'msg', '');
-        $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $this->id . ' ' . $message);
-        $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $this->id . ' ' . $message);
+        $feedback = $this->id . ' ' . $message;
+        $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+        $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+        $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
     }
 }

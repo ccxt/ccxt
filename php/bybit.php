@@ -255,7 +255,6 @@ class bybit extends Exchange {
                         'public/linear/mark-price-kline' => 1,
                         'public/linear/index-price-kline' => 1,
                         'public/linear/premium-index-kline' => 1,
-                        'public/linear/symbols' => 1,
                         // spot
                         'spot/v1/time' => 1,
                         'spot/v1/symbols' => 1,
@@ -301,6 +300,7 @@ class bybit extends Exchange {
                         ),
                     ),
                 ),
+                // new endpoints ------------------------------------------
                 'private' => array(
                     'get' => array(
                         // inverse swap
@@ -609,6 +609,14 @@ class bybit extends Exchange {
                     'XRP/USD' => 'inverse',
                 ),
                 'defaultType' => 'linear',  // linear, inverse, futures
+                //
+                // ^
+                // |
+                // | this will be replaced with the following soon |
+                //                                                 |
+                //                                                 v
+                //
+                // 'defaultType' => 'swap', // swap, spot, future, option
                 'code' => 'BTC',
                 'cancelAllOrders' => array(
                     // 'method' => 'v2PrivatePostOrderCancelAll', // v2PrivatePostStopOrderCancelAll
@@ -639,7 +647,7 @@ class bybit extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
-        $response = $this->v2PublicGetTime ($params);
+        $response = $this->publicGetV2PublicTime ($params);
         //
         //     {
         //         ret_code => 0,
@@ -657,7 +665,10 @@ class bybit extends Exchange {
         if ($this->options['adjustForTimeDifference']) {
             $this->load_time_difference();
         }
-        $response = $this->v2PublicGetSymbols ($params);
+        $response = $this->publicGetV2PublicSymbols ($params);
+        //
+        // $linear swaps and $inverse swaps and futures
+        // $swapsResponse = $this->publicGetV2PublicSymbols ($params);
         //
         //     {
         //         "ret_code":0,
@@ -665,6 +676,7 @@ class bybit extends Exchange {
         //         "ext_code":"",
         //         "ext_info":"",
         //         "result":array(
+        //             // $inverse $swap
         //             array(
         //                 "name":"BTCUSD",
         //                 "alias":"BTCUSD",
@@ -675,9 +687,10 @@ class bybit extends Exchange {
         //                 "taker_fee":"0.00075",
         //                 "maker_fee":"-0.00025",
         //                 "leverage_filter":array("min_leverage":1,"max_leverage":100,"leverage_step":"0.01"),
-        //                 "price_filter":array("min_price":"0.5","max_price":"999999.5","tick_size":"0.5"),
+        //                 "price_filter":array("min_price":"0.5","max_price":"999999","tick_size":"0.5"),
         //                 "lot_size_filter":array("max_trading_qty":1000000,"min_trading_qty":1,"qty_step":1)
         //             ),
+        //             // $linear $swap
         //             array(
         //                 "name":"BTCUSDT",
         //                 "alias":"BTCUSDT",
@@ -688,11 +701,148 @@ class bybit extends Exchange {
         //                 "taker_fee":"0.00075",
         //                 "maker_fee":"-0.00025",
         //                 "leverage_filter":array("min_leverage":1,"max_leverage":100,"leverage_step":"0.01"),
-        //                 "price_filter":array("min_price":"0.5","max_price":"999999.5","tick_size":"0.5"),
-        //                 "lot_size_filter":array("max_trading_qty":100,"min_trading_qty":0.001,"qty_step":0.001)
+        //                 "price_filter":array("min_price":"0.5","max_price":"999999","tick_size":"0.5"),
+        //                 "lot_size_filter":array("max_trading_qty":100,"min_trading_qty":0.001, "qty_step":0.001)
         //             ),
+        //             // $inverse futures
+        //             array(
+        //                 "name":"BTCUSDM22",
+        //                 "alias":"BTCUSD0624",
+        //                 "status":"Trading",
+        //                 "base_currency":"BTC",
+        //                 "quote_currency":"USD",
+        //                 "price_scale":2,
+        //                 "taker_fee":"0.00075",
+        //                 "maker_fee":"-0.00025",
+        //                 "leverage_filter":array("min_leverage":1,"max_leverage":100,"leverage_step":"0.01"),
+        //                 "price_filter":array("min_price":"0.5","max_price":"999999","tick_size":"0.5"),
+        //                 "lot_size_filter":array("max_trading_qty":1000000,"min_trading_qty":1,"qty_step":1)
+        //             ),
+        //             {
+        //                 "name":"BTCUSDH22",
+        //                 "alias":"BTCUSD0325",
+        //                 "status":"Trading",
+        //                 "base_currency":"BTC",
+        //                 "quote_currency":"USD",
+        //                 "price_scale":2,
+        //                 "taker_fee":"0.00075",
+        //                 "maker_fee":"-0.00025",
+        //                 "leverage_filter":array("min_leverage":1,"max_leverage":100,"leverage_step":"0.01")
+        //                 "price_filter":array("min_price":"0.5","max_price":"999999","tick_size":"0.5"),
+        //                 "lot_size_filter":array("max_trading_qty":1000000,"min_trading_qty":1,"qty_step":1)
+        //             }
         //         ),
-        //         "time_now":"1610539664.818033"
+        //         "time_now":"1642369942.072113"
+        //     }
+        //
+        // $spot $markets
+        // $spotResponse = $this->publicGetSpotV1Symbols ($params);
+        //
+        //     {
+        //         "ret_code":0,
+        //         "ret_msg":"",
+        //         "ext_code":null,
+        //         "ext_info":null,
+        //         "result":array(
+        //             array(
+        //                 "name":"BTCUSDT",
+        //                 "alias":"BTCUSDT",
+        //                 "baseCurrency":"BTC",
+        //                 "quoteCurrency":"USDT",
+        //                 "basePrecision":"0.000001",
+        //                 "quotePrecision":"0.00000001",
+        //                 "minTradeQuantity":"0.000158",
+        //                 "minTradeAmount":"10",
+        //                 "maxTradeQuantity":"4",
+        //                 "maxTradeAmount":"100000",
+        //                 "minPricePrecision":"0.01",
+        //                 "category":1,
+        //                 "showStatus":true
+        //             ),
+        //         )
+        //     }
+        //
+        // USDC $linear $options $response
+        // $linearOptionsResponse = $this->publicGetOptionUsdcOpenapiPublicV1Symbols ($params);
+        //
+        //     {
+        //         "retCode":0,
+        //         "retMsg":"success",
+        //         "result":{
+        //             "resultTotalSize":424,
+        //             "cursor":"0%2C500",
+        //             "dataList":array(
+        //                 array(
+        //                     "symbol":"BTC-24JUN22-300000-C",
+        //                     "status":"ONLINE",
+        //                     "baseCoin":"BTC",
+        //                     "quoteCoin":"USD",
+        //                     "settleCoin":"USDC",
+        //                     "takerFee":"0.0003",
+        //                     "makerFee":"0.0003",
+        //                     "minLeverage":"",
+        //                     "maxLeverage":"",
+        //                     "leverageStep":"",
+        //                     "minOrderPrice":"0.5",
+        //                     "maxOrderPrice":"10000000",
+        //                     "minOrderSize":"0.01",
+        //                     "maxOrderSize":"200",
+        //                     "tickSize":"0.5",
+        //                     "minOrderSizeIncrement":"0.01",
+        //                     "basicDeliveryFeeRate":"0.00015",
+        //                     "deliveryTime":"1656057600000"
+        //                 ),
+        //                 array(
+        //                     "symbol":"BTC-24JUN22-300000-P",
+        //                     "status":"ONLINE",
+        //                     "baseCoin":"BTC",
+        //                     "quoteCoin":"USD",
+        //                     "settleCoin":"USDC",
+        //                     "takerFee":"0.0003",
+        //                     "makerFee":"0.0003",
+        //                     "minLeverage":"",
+        //                     "maxLeverage":"",
+        //                     "leverageStep":"",
+        //                     "minOrderPrice":"0.5",
+        //                     "maxOrderPrice":"10000000",
+        //                     "minOrderSize":"0.01",
+        //                     "maxOrderSize":"200",
+        //                     "tickSize":"0.5",
+        //                     "minOrderSizeIncrement":"0.01",
+        //                     "basicDeliveryFeeRate":"0.00015",
+        //                     "deliveryTime":"1656057600000"
+        //                 ),
+        //             )
+        //         }
+        //     }
+        //
+        // USDC $linear perpetual swaps
+        // $usdcLinearPerpetualSwaps = $this->publicGetPerpetualUsdcOpenapiPublicV1Symbols ($params);
+        //
+        //     {
+        //         "retCode":0,
+        //         "retMsg":"",
+        //         "result":array(
+        //             {
+        //                 "symbol":"BTCPERP",
+        //                 "status":"ONLINE",
+        //                 "baseCoin":"BTC",
+        //                 "quoteCoin":"USD",
+        //                 "takerFeeRate":"0.00075",
+        //                 "makerFeeRate":"-0.00025",
+        //                 "minLeverage":"1",
+        //                 "maxLeverage":"100",
+        //                 "leverageStep":"0.01",
+        //                 "minPrice":"0.50",
+        //                 "maxPrice":"999999.00",
+        //                 "tickSize":"0.50",
+        //                 "maxTradingQty":"5.000",
+        //                 "minTradingQty":"0.001",
+        //                 "qtyStep":"0.001",
+        //                 "deliveryFeeRate":"",
+        //                 "deliveryTime":"0"
+        //             }
+        //         )
         //     }
         //
         $markets = $this->safe_value($response, 'result', array());
@@ -713,7 +863,7 @@ class bybit extends Exchange {
             $type = 'swap';
             if ($baseQuote !== $id) {
                 $symbol = $id;
-                $type = 'futures';
+                $type = 'future';
             }
             $lotSizeFilter = $this->safe_value($market, 'lot_size_filter', array());
             $priceFilter = $this->safe_value($market, 'price_filter', array());
@@ -729,7 +879,7 @@ class bybit extends Exchange {
             }
             $spot = ($type === 'spot');
             $swap = ($type === 'swap');
-            $futures = ($type === 'futures');
+            $future = ($type === 'future');
             $option = ($type === 'option');
             $result[] = array(
                 'id' => $id,
@@ -743,7 +893,8 @@ class bybit extends Exchange {
                 'type' => $type,
                 'spot' => $spot,
                 'swap' => $swap,
-                'futures' => $futures,
+                'future' => $future,
+                'futures' => $future, // * Deprecated, use $future
                 'option' => $option,
                 'linear' => $linear,
                 'inverse' => $inverse,
@@ -1583,7 +1734,7 @@ class bybit extends Exchange {
             } else if ($market['inverse']) {
                 $method = 'v2PrivateGetOrder';
             }
-        } else if ($market['futures']) {
+        } else if ($market['future']) {
             $method = 'futuresPrivateGetOrder';
         }
         $stopOrderId = $this->safe_string($params, 'stop_order_id');
@@ -1599,7 +1750,7 @@ class bybit extends Exchange {
                 } else if ($market['inverse']) {
                     $method = 'v2PrivateGetStopOrder';
                 }
-            } else if ($market['futures']) {
+            } else if ($market['future']) {
                 $method = 'futuresPrivateGetStopOrder';
             }
         }
@@ -1733,7 +1884,7 @@ class bybit extends Exchange {
             } else if ($market['inverse']) {
                 $method = 'v2PrivatePostOrderCreate';
             }
-        } else if ($market['futures']) {
+        } else if ($market['future']) {
             $method = 'futuresPrivatePostOrderCreate';
         }
         if ($stopPx !== null) {
@@ -1746,7 +1897,7 @@ class bybit extends Exchange {
                     } else if ($market['inverse']) {
                         $method = 'v2PrivatePostStopOrderCreate';
                     }
-                } else if ($market['futures']) {
+                } else if ($market['future']) {
                     $method = 'futuresPrivatePostStopOrderCreate';
                 }
                 $request['stop_px'] = floatval($this->price_to_precision($symbol, $stopPx));
@@ -1862,7 +2013,7 @@ class bybit extends Exchange {
             } else if ($market['inverse']) {
                 $method = 'v2PrivatePostOrderReplace';
             }
-        } else if ($market['futures']) {
+        } else if ($market['future']) {
             $method = 'futuresPrivatePostOrderReplace';
         }
         $stopOrderId = $this->safe_string($params, 'stop_order_id');
@@ -1873,7 +2024,7 @@ class bybit extends Exchange {
                 } else if ($market['inverse']) {
                     $method = 'v2PrivatePostStopOrderReplace';
                 }
-            } else if ($market['futures']) {
+            } else if ($market['future']) {
                 $method = 'futuresPrivatePostStopOrderReplace';
             }
             $request['stop_order_id'] = $stopOrderId;
@@ -1950,7 +2101,7 @@ class bybit extends Exchange {
             } else if ($market['inverse']) {
                 $method = 'v2PrivatePostOrderCancel';
             }
-        } else if ($market['futures']) {
+        } else if ($market['future']) {
             $method = 'futuresPrivatePostOrderCancel';
         }
         $stopOrderId = $this->safe_string($params, 'stop_order_id');
@@ -1966,7 +2117,7 @@ class bybit extends Exchange {
                 } else if ($market['inverse']) {
                     $method = 'v2PrivatePostStopOrderCancel';
                 }
-            } else if ($market['futures']) {
+            } else if ($market['future']) {
                 $method = 'futuresPrivatePostStopOrderCancel';
             }
         }
@@ -1992,7 +2143,7 @@ class bybit extends Exchange {
             } else if ($market['inverse']) {
                 $defaultMethod = 'v2PrivatePostOrderCancelAll';
             }
-        } else if ($market['futures']) {
+        } else if ($market['future']) {
             $defaultMethod = 'futuresPrivatePostOrderCancelAll';
         }
         $method = $this->safe_string($options, 'method', $defaultMethod);
@@ -2031,12 +2182,12 @@ class bybit extends Exchange {
         $marketDefined = ($market !== null);
         $linear = ($marketDefined && $market['linear']) || ($marketType === 'linear');
         $inverse = ($marketDefined && $market['swap'] && $market['inverse']) || ($marketType === 'inverse');
-        $futures = ($marketDefined && $market['futures']) || ($marketType === 'futures');
+        $future = ($marketDefined && $market['future']) || (($marketType === 'future') || ($marketType === 'futures')); // * ($marketType === 'futures') deprecated, use ($marketType === 'future')
         if ($linear) {
             $defaultMethod = 'privateLinearGetOrderList';
         } else if ($inverse) {
             $defaultMethod = 'v2PrivateGetOrderList';
-        } else if ($futures) {
+        } else if ($future) {
             $defaultMethod = 'futuresPrivateGetOrderList';
         }
         $query = $params;
@@ -2053,7 +2204,7 @@ class bybit extends Exchange {
                 $defaultMethod = 'privateLinearGetStopOrderList';
             } else if ($inverse) {
                 $defaultMethod = 'v2PrivateGetStopOrderList';
-            } else if ($futures) {
+            } else if ($future) {
                 $defaultMethod = 'futuresPrivateGetStopOrderList';
             }
         }
@@ -2240,13 +2391,13 @@ class bybit extends Exchange {
         $marketDefined = ($market !== null);
         $linear = ($marketDefined && $market['linear']) || ($marketType === 'linear');
         $inverse = ($marketDefined && $market['swap'] && $market['inverse']) || ($marketType === 'inverse');
-        $futures = ($marketDefined && $market['futures']) || ($marketType === 'futures');
+        $future = ($marketDefined && $market['future']) || (($marketType === 'future') || ($marketType === 'futures')); // * ($marketType === 'futures') deprecated, use ($marketType === 'future')
         $method = null;
         if ($linear) {
             $method = 'privateLinearGetTradeExecutionList';
         } else if ($inverse) {
             $method = 'v2PrivateGetExecutionList';
-        } else if ($futures) {
+        } else if ($future) {
             $method = 'futuresPrivateGetExecutionList';
         }
         $response = $this->$method (array_merge($request, $params));
@@ -2720,12 +2871,12 @@ class bybit extends Exchange {
         $marketType = $this->safe_string($marketTypes, $symbol, $defaultType);
         $linear = $market['linear'] || ($marketType === 'linear');
         $inverse = ($market['swap'] && $market['inverse']) || ($marketType === 'inverse');
-        $futures = $market['futures'] || ($marketType === 'futures');
+        $future = $market['future'] || (($marketType === 'future') || ($marketType === 'futures')); // * ($marketType === 'futures') deprecated, use ($marketType === 'future')
         if ($linear) {
             $method = 'privateLinearPostPositionSwitchIsolated';
         } else if ($inverse) {
             $method = 'v2PrivatePostPositionSwitchIsolated';
-        } else if ($futures) {
+        } else if ($future) {
             $method = 'privateFuturesPostPositionSwitchIsolated';
         }
         $isIsolated = ($marginType === 'ISOLATED');
@@ -2751,13 +2902,13 @@ class bybit extends Exchange {
         $marketType = $this->safe_string($marketTypes, $symbol, $defaultType);
         $linear = $market['linear'] || ($marketType === 'linear');
         $inverse = ($market['swap'] && $market['inverse']) || ($marketType === 'inverse');
-        $futures = $market['futures'] || ($marketType === 'futures');
+        $future = $market['future'] || (($marketType === 'future') || ($marketType === 'futures')); // * ($marketType === 'futures') deprecated, use ($marketType === 'future')
         $method = null;
         if ($linear) {
             $method = 'privateLinearPostPositionSetLeverage';
         } else if ($inverse) {
             $method = 'v2PrivatePostPositionLeverageSave';
-        } else if ($futures) {
+        } else if ($future) {
             $method = 'privateFuturesPostPositionLeverageSave';
         }
         $buy_leverage = $leverage;
@@ -2769,7 +2920,7 @@ class bybit extends Exchange {
             if ($linear) {
                 throw new ArgumentsRequired($this->id . ' setLeverage() requires either the parameter $leverage or $params["buy_leverage"] and $params["sell_leverage"] for $linear contracts');
             } else {
-                throw new ArgumentsRequired($this->id . ' setLeverage() requires parameter $leverage for $inverse and $futures contracts');
+                throw new ArgumentsRequired($this->id . ' setLeverage() requires parameter $leverage for $inverse and futures contracts');
             }
         }
         if (($buy_leverage < 1) || ($buy_leverage > 100) || ($sell_leverage < 1) || ($sell_leverage > 100)) {
@@ -2885,7 +3036,13 @@ class bybit extends Exchange {
         //         time_now => '1583934106.590436'
         //     }
         //
-        $errorCode = $this->safe_string($response, 'ret_code');
+        //     {
+        //         "retCode":10001,
+        //         "retMsg":"symbol params err",
+        //         "result":array("symbol":"","bid":"","bidIv":"","bidSize":"","ask":"","askIv":"","askSize":"","lastPrice":"","openInterest":"","indexPrice":"","markPrice":"","markPriceIv":"","change24h":"","high24h":"","low24h":"","volume24h":"","turnover24h":"","totalVolume":"","totalTurnover":"","fundingRate":"","predictedFundingRate":"","nextFundingTime":"","countdownHour":"0","predictedDeliveryPrice":"","underlyingPrice":"","delta":"","gamma":"","vega":"","theta":"")
+        //     }
+        //
+        $errorCode = $this->safe_string_2($response, 'ret_code', 'retCode');
         if ($errorCode !== '0') {
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);

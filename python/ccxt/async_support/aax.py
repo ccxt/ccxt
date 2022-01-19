@@ -120,7 +120,6 @@ class aax(Exchange):
                 'setPositionMode': None,
                 'signIn': None,
                 'transfer': None,
-                'transferOut': False,
                 'withdraw': None,
             },
             'timeframes': {
@@ -625,15 +624,15 @@ class aax(Exchange):
         timestamp = self.safe_integer(ticker, 't')
         marketId = self.safe_string(ticker, 's')
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_number(ticker, 'c')
-        open = self.safe_number(ticker, 'o')
-        quoteVolume = self.safe_number(ticker, 'v')
+        last = self.safe_string(ticker, 'c')
+        open = self.safe_string(ticker, 'o')
+        quoteVolume = self.safe_string(ticker, 'v')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': None,
-            'high': self.safe_number(ticker, 'h'),
-            'low': self.safe_number(ticker, 'l'),
+            'high': self.safe_string(ticker, 'h'),
+            'low': self.safe_string(ticker, 'l'),
             'bid': None,
             'bidVolume': None,
             'ask': None,
@@ -649,7 +648,7 @@ class aax(Exchange):
             'baseVolume': None,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()

@@ -286,13 +286,13 @@ class mexc(Exchange):
         })
 
     def fetch_time(self, params={}):
-        defaultType = self.safe_string_2(self.options, 'fetchMarkets', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
-        query = self.omit(params, 'type')
-        method = 'spotPublicGetCommonTimestamp'
-        if type == 'contract':
-            method = 'contractPublicGetPing'
-        response = getattr(self, method)(query)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchTime', None, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'spotPublicGetCommonTimestamp',
+            'swap': 'contractPublicGetPing',
+        })
+        response = getattr(self, method)(self.extend(params))
         #
         # spot
         #
@@ -364,6 +364,8 @@ class mexc(Exchange):
             currencyWithdrawMax = None
             networks = {}
             chains = self.safe_value(currency, 'coins', [])
+            depositEnabled = False
+            withdrawEnabled = False
             for j in range(0, len(chains)):
                 chain = chains[j]
                 networkId = self.safe_string(chain, 'chain')
@@ -382,11 +384,17 @@ class mexc(Exchange):
                     currencyWithdrawMin = withdrawMin
                 if Precise.string_lt(currencyWithdrawMax, withdrawMax):
                     currencyWithdrawMax = withdrawMax
+                if isDepositEnabled:
+                    depositEnabled = True
+                if isWithdrawEnabled:
+                    withdrawEnabled = True
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
                     'network': network,
                     'active': active,
+                    'deposit': isDepositEnabled,
+                    'withdraw': isWithdrawEnabled,
                     'fee': self.safe_number(chain, 'fee'),
                     'precision': precision,
                     'limits': {
@@ -409,6 +417,8 @@ class mexc(Exchange):
                 'info': currency,
                 'name': name,
                 'active': currencyActive,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': currencyFee,
                 'precision': currencyPrecision,
                 'limits': {
@@ -981,11 +991,6 @@ class mexc(Exchange):
         amountString = self.safe_string_2(trade, 'quantity', 'trade_quantity')
         amountString = self.safe_string(trade, 'v', amountString)
         costString = self.safe_string(trade, 'amount')
-        if costString is None:
-            costString = Precise.string_mul(priceString, amountString)
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(costString)
         side = self.safe_string_2(trade, 'trade_type', 'T')
         if (side == 'BID') or (side == '1'):
             side = 'buy'
@@ -996,19 +1001,19 @@ class mexc(Exchange):
             id = self.safe_string(trade, 't', id)
             if id is not None:
                 id += '-' + market['id'] + '-' + amountString
-        feeCost = self.safe_number(trade, 'fee')
+        feeCostString = self.safe_string(trade, 'fee')
         fee = None
-        if feeCost is not None:
+        if feeCostString is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_currency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
         orderId = self.safe_string(trade, 'order_id')
         isTaker = self.safe_value(trade, 'is_taker', True)
         takerOrMaker = 'taker' if isTaker else 'maker'
-        return {
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'order': orderId,
@@ -1018,11 +1023,11 @@ class mexc(Exchange):
             'type': None,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
@@ -1110,17 +1115,14 @@ class mexc(Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
-        spot = (type == 'spot')
-        swap = (type == 'swap')
-        method = None
-        if spot:
-            method = 'spotPrivateGetAccountInfo'
-        elif swap:
-            method = 'contractPrivateGetAccountAssets'
-        query = self.omit(params, 'type')
-        response = getattr(self, method)(query)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'spotPrivateGetAccountInfo',
+            'swap': 'contractPrivateGetAccountAssets',
+        })
+        spot = (marketType == 'spot')
+        response = getattr(self, method)(params)
         #
         # spot
         #
@@ -1144,10 +1146,11 @@ class mexc(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', {})
+        currentTime = self.milliseconds()
         result = {
             'info': response,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': currentTime,
+            'datetime': self.iso8601(currentTime),
         }
         if spot:
             currencyIds = list(data.keys())

@@ -118,7 +118,6 @@ class binance(Exchange):
                 'setPositionMode': True,
                 'signIn': False,
                 'transfer': True,
-                'transferOut': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -143,6 +142,8 @@ class binance(Exchange):
                 'test': {
                     'dapiPublic': 'https://testnet.binancefuture.com/dapi/v1',
                     'dapiPrivate': 'https://testnet.binancefuture.com/dapi/v1',
+                    'vapiPublic': 'https://testnet.binanceops.com/vapi/v1',
+                    'vapiPrivate': 'https://testnet.binanceops.com/vapi/v1',
                     'fapiPublic': 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivate': 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivateV2': 'https://testnet.binancefuture.com/fapi/v2',
@@ -155,6 +156,8 @@ class binance(Exchange):
                     'sapi': 'https://api.binance.com/sapi/v1',
                     'dapiPublic': 'https://dapi.binance.com/dapi/v1',
                     'dapiPrivate': 'https://dapi.binance.com/dapi/v1',
+                    'vapiPublic': 'https://vapi.binance.com/vapi/v1',
+                    'vapiPrivate': 'https://vapi.binance.com/vapi/v1',
                     'dapiPrivateV2': 'https://dapi.binance.com/dapi/v2',
                     'dapiData': 'https://dapi.binance.com/futures/data',
                     'fapiPublic': 'https://fapi.binance.com/fapi/v1',
@@ -166,10 +169,10 @@ class binance(Exchange):
                     'v1': 'https://api.binance.com/api/v1',
                 },
                 'www': 'https://www.binance.com',
-                # 'referral': {
-                #     'url': 'https://www.binance.com/en/register?ref=BLEJC98C',
-                #     'discount': 0.2,
-                # },
+                'referral': {
+                    'url': 'https://www.binance.com/en/register?ref=D7YA7CLY',
+                    'discount': 0.1,
+                },
                 'doc': [
                     'https://binance-docs.github.io/apidocs/spot/en',
                 ],
@@ -332,6 +335,7 @@ class binance(Exchange):
                         'nft/history/withdraw': 1,
                         'nft/user/getAsset': 1,
                         'pay/transactions': 1,
+                        'giftcard/verify': 1,
                     },
                     'post': {
                         'asset/dust': 1,
@@ -404,6 +408,8 @@ class binance(Exchange):
                         'broker/universalTransfer': 1,
                         'broker/subAccountApi/permission/universalTransfer': 1,
                         'broker/subAccountApi/permission/vanillaOptions': 1,
+                        'giftcard/createCode': 1,
+                        'giftcard/redeemCode': 1,
                     },
                     'put': {
                         'userDataStream': 1,
@@ -609,6 +615,47 @@ class binance(Exchange):
                         'positionRisk': 1,
                     },
                 },
+                'vapiPublic': {
+                    'get': [
+                        'ping',
+                        'time',
+                        'optionInfo',
+                        'exchangeInfo',
+                        'index',
+                        'ticker',
+                        'mark',
+                        'depth',
+                        'klines',
+                        'trades',
+                        'historicalTrades',
+                    ],
+                },
+                'vapiPrivate': {
+                    'get': [
+                        'account',
+                        'position',
+                        'order',
+                        'openOrders',
+                        'historyOrders',
+                        'userTrades',
+                    ],
+                    'post': [
+                        'transfer',
+                        'bill',
+                        'order',
+                        'batchOrders',
+                        'userDataStream',
+                    ],
+                    'put': [
+                        'userDataStream',
+                    ],
+                    'delete': [
+                        'order',
+                        'batchOrders',
+                        'allOpenOrders',
+                        'userDataStream',
+                    ],
+                },
                 'public': {
                     'get': {
                         'ping': 1,
@@ -735,6 +782,7 @@ class binance(Exchange):
                         },
                     },
                 },
+                'option': {},
             },
             'commonCurrencies': {
                 'BCC': 'BCC',  # kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
@@ -4706,6 +4754,7 @@ class binance(Exchange):
                 }
             else:
                 raise AuthenticationError(self.id + ' historicalTrades endpoint requires `apiKey` credential')
+        giftcard = (api == 'sapi') and (path.find('gift') >= 0) and (method == 'POST')
         userDataStream = (path == 'userDataStream') or (path == 'listenKey')
         if userDataStream:
             if self.apiKey:
@@ -4732,6 +4781,11 @@ class binance(Exchange):
                     'timestamp': self.nonce(),
                     'recvWindow': recvWindow,
                 }, params))
+            elif giftcard:
+                query = self.urlencode({
+                    'timestamp': self.nonce(),
+                    'recvWindow': recvWindow,
+                })
             else:
                 query = self.urlencode(self.extend({
                     'timestamp': self.nonce(),
@@ -4744,6 +4798,10 @@ class binance(Exchange):
             }
             if (method == 'GET') or (method == 'DELETE') or (api == 'wapi'):
                 url += '?' + query
+            elif giftcard:
+                url += '?' + query
+                headers['Content-Type'] = 'application/json'
+                body = self.json(params)
             else:
                 body = query
                 headers['Content-Type'] = 'application/x-www-form-urlencoded'
@@ -4948,3 +5006,65 @@ class binance(Exchange):
                 'info': item,
             })
         return result
+
+    def create_gift_code(self, code, amount, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        # ensure you have enough token in your funding account before calling self code
+        request = {
+            'token': currency['id'],
+            'amount': amount,
+        }
+        response = self.sapiPostGiftcardCreateCode(self.extend(request, params))
+        #
+        #     {
+        #       code: '000000',
+        #       message: 'success',
+        #       data: {referenceNo: '0033002404219823', code: 'AP6EXTLKNHM6CEX7'},
+        #       success: True
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        giftcardCode = self.safe_string(data, 'code')
+        id = self.safe_string(data, 'referenceNo')
+        return {
+            'info': response,
+            'id': id,
+            'code': giftcardCode,
+            'currency': code,
+            'amount': amount,
+        }
+
+    def redeem_gift_code(self, giftcardCode, params={}):
+        request = {
+            'code': giftcardCode,
+        }
+        response = self.sapiPostGiftcardRedeemCode(self.extend(request, params))
+        #
+        #     {
+        #       code: '000000',
+        #       message: 'success',
+        #       data: {
+        #         referenceNo: '0033002404219823',
+        #         identityNo: '10316431732801474560'
+        #       },
+        #       success: True
+        #     }
+        #
+        return response
+
+    def verify_gift_code(self, id, params={}):
+        request = {
+            'type': 'CODE',
+            'value': id,
+        }
+        response = self.sapiGetGiftcardVerify(self.extend(request, params))
+        #
+        #     {
+        #       code: '000000',
+        #       message: 'success',
+        #       data: {valid: True},
+        #       success: True
+        #     }
+        #
+        return response

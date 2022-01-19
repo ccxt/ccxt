@@ -27,22 +27,41 @@ class bitbns(Exchange):
             'version': 'v2',
             # new metainfo interface
             'has': {
+                'spot': True,
+                'margin': None,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': None,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': 'emulated',
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setPositionMode': False,
             },
             'timeframes': {
             },
@@ -189,12 +208,7 @@ class bitbns(Exchange):
             quoteId = self.safe_string(market, 'quote')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
             marketPrecision = self.safe_value(market, 'precision', {})
-            precision = {
-                'amount': self.safe_integer(marketPrecision, 'amount'),
-                'price': self.safe_integer(marketPrecision, 'price'),
-            }
             marketLimits = self.safe_value(market, 'limits', {})
             amountLimits = self.safe_value(marketLimits, 'amount', {})
             priceLimits = self.safe_value(marketLimits, 'price', {})
@@ -205,17 +219,37 @@ class bitbns(Exchange):
             result.append({
                 'id': id,
                 'uppercaseId': uppercaseId,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
                 'active': None,
-                'precision': precision,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_integer(marketPrecision, 'amount'),
+                    'price': self.safe_integer(marketPrecision, 'price'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(amountLimits, 'min'),
                         'max': self.safe_number(amountLimits, 'max'),
@@ -229,6 +263,7 @@ class bitbns(Exchange):
                         'max': self.safe_number(costLimits, 'max'),
                     },
                 },
+                'info': market,
             })
         return result
 
@@ -295,29 +330,29 @@ class bitbns(Exchange):
         timestamp = self.safe_integer(ticker, 'timestamp')
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_number(ticker, 'last')
+        last = self.safe_string(ticker, 'last')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bid'),
-            'bidVolume': self.safe_number(ticker, 'bidVolume'),
-            'ask': self.safe_number(ticker, 'ask'),
-            'askVolume': self.safe_number(ticker, 'askVolume'),
-            'vwap': self.safe_number(ticker, 'vwap'),
-            'open': self.safe_number(ticker, 'open'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
+            'bidVolume': self.safe_string(ticker, 'bidVolume'),
+            'ask': self.safe_string(ticker, 'ask'),
+            'askVolume': self.safe_string(ticker, 'askVolume'),
+            'vwap': self.safe_string(ticker, 'vwap'),
+            'open': self.safe_string(ticker, 'open'),
             'close': last,
             'last': last,
-            'previousClose': self.safe_number(ticker, 'previousClose'),  # previous day close
-            'change': self.safe_number(ticker, 'change'),
-            'percentage': self.safe_number(ticker, 'percentage'),
-            'average': self.safe_number(ticker, 'average'),
-            'baseVolume': self.safe_number(ticker, 'baseVolume'),
-            'quoteVolume': self.safe_number(ticker, 'quoteVolume'),
+            'previousClose': self.safe_string(ticker, 'previousClose'),  # previous day close
+            'change': self.safe_string(ticker, 'change'),
+            'percentage': self.safe_string(ticker, 'percentage'),
+            'average': self.safe_string(ticker, 'average'),
+            'baseVolume': self.safe_string(ticker, 'baseVolume'),
+            'quoteVolume': self.safe_string(ticker, 'quoteVolume'),
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()

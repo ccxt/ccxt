@@ -545,13 +545,10 @@ class upbit(Exchange):
         #
         timestamp = self.safe_integer(ticker, 'trade_timestamp')
         marketId = self.safe_string_2(ticker, 'market', 'code')
-        symbol = self.safe_symbol(marketId, market, '-')
-        previous = self.safe_number(ticker, 'prev_closing_price')
+        market = self.safe_market(marketId, market, '-')
         last = self.safe_number(ticker, 'trade_price')
-        change = self.safe_number(ticker, 'signed_change_price')
-        percentage = self.safe_number(ticker, 'signed_change_rate')
-        return {
-            'symbol': symbol,
+        return self.safe_ticker({
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_number(ticker, 'high_price'),
@@ -564,14 +561,14 @@ class upbit(Exchange):
             'open': self.safe_number(ticker, 'opening_price'),
             'close': last,
             'last': last,
-            'previousClose': previous,
-            'change': change,
-            'percentage': percentage,
+            'previousClose': self.safe_number(ticker, 'prev_closing_price'),
+            'change': self.safe_number(ticker, 'signed_change_price'),
+            'percentage': self.safe_number(ticker, 'signed_change_rate'),
             'average': None,
             'baseVolume': self.safe_number(ticker, 'acc_trade_volume_24h'),
             'quoteVolume': self.safe_number(ticker, 'acc_trade_price_24h'),
             'info': ticker,
-        }
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()

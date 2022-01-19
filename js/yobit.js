@@ -405,24 +405,22 @@ module.exports = class yobit extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        //   {    high: 0.03497582,
+        //     {
+        //         high: 0.03497582,
         //         low: 0.03248474,
         //         avg: 0.03373028,
         //         vol: 120.11485715062999,
-        //     vol_cur: 3572.24914074,
-        //        last: 0.0337611,
+        //         vol_cur: 3572.24914074,
+        //         last: 0.0337611,
         //         buy: 0.0337442,
-        //        sell: 0.03377798,
-        //     updated: 1537522009          }
+        //         sell: 0.03377798,
+        //         updated: 1537522009
+        //     }
         //
         const timestamp = this.safeTimestamp (ticker, 'updated');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
         const last = this.safeNumber (ticker, 'last');
-        return {
-            'symbol': symbol,
+        return this.safeTicker ({
+            'symbol': this.safeSymbol (undefined, market),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeNumber (ticker, 'high'),
@@ -442,7 +440,7 @@ module.exports = class yobit extends Exchange {
             'baseVolume': this.safeNumber (ticker, 'vol_cur'),
             'quoteVolume': this.safeNumber (ticker, 'vol'),
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

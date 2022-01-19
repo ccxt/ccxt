@@ -20,22 +20,41 @@ module.exports = class bitbns extends Exchange {
             'version': 'v2',
             // new metainfo interface
             'has': {
+                'spot': true,
+                'margin': undefined,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': undefined,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
                 'fetchTicker': 'emulated',
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setPositionMode': false,
             },
             'timeframes': {
             },
@@ -185,12 +204,7 @@ module.exports = class bitbns extends Exchange {
             const quoteId = this.safeString (market, 'quote');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
             const marketPrecision = this.safeValue (market, 'precision', {});
-            const precision = {
-                'amount': this.safeInteger (marketPrecision, 'amount'),
-                'price': this.safeInteger (marketPrecision, 'price'),
-            };
             const marketLimits = this.safeValue (market, 'limits', {});
             const amountLimits = this.safeValue (marketLimits, 'amount', {});
             const priceLimits = this.safeValue (marketLimits, 'price', {});
@@ -201,17 +215,37 @@ module.exports = class bitbns extends Exchange {
             result.push ({
                 'id': id,
                 'uppercaseId': uppercaseId,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
                 'active': undefined,
-                'precision': precision,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeInteger (marketPrecision, 'amount'),
+                    'price': this.safeInteger (marketPrecision, 'price'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (amountLimits, 'min'),
                         'max': this.safeNumber (amountLimits, 'max'),
@@ -225,6 +259,7 @@ module.exports = class bitbns extends Exchange {
                         'max': this.safeNumber (costLimits, 'max'),
                     },
                 },
+                'info': market,
             });
         }
         return result;
@@ -295,29 +330,29 @@ module.exports = class bitbns extends Exchange {
         const timestamp = this.safeInteger (ticker, 'timestamp');
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeNumber (ticker, 'last');
+        const last = this.safeString (ticker, 'last');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
-            'bidVolume': this.safeNumber (ticker, 'bidVolume'),
-            'ask': this.safeNumber (ticker, 'ask'),
-            'askVolume': this.safeNumber (ticker, 'askVolume'),
-            'vwap': this.safeNumber (ticker, 'vwap'),
-            'open': this.safeNumber (ticker, 'open'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
+            'bidVolume': this.safeString (ticker, 'bidVolume'),
+            'ask': this.safeString (ticker, 'ask'),
+            'askVolume': this.safeString (ticker, 'askVolume'),
+            'vwap': this.safeString (ticker, 'vwap'),
+            'open': this.safeString (ticker, 'open'),
             'close': last,
             'last': last,
-            'previousClose': this.safeNumber (ticker, 'previousClose'), // previous day close
-            'change': this.safeNumber (ticker, 'change'),
-            'percentage': this.safeNumber (ticker, 'percentage'),
-            'average': this.safeNumber (ticker, 'average'),
-            'baseVolume': this.safeNumber (ticker, 'baseVolume'),
-            'quoteVolume': this.safeNumber (ticker, 'quoteVolume'),
+            'previousClose': this.safeString (ticker, 'previousClose'), // previous day close
+            'change': this.safeString (ticker, 'change'),
+            'percentage': this.safeString (ticker, 'percentage'),
+            'average': this.safeString (ticker, 'average'),
+            'baseVolume': this.safeString (ticker, 'baseVolume'),
+            'quoteVolume': this.safeString (ticker, 'quoteVolume'),
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

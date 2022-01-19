@@ -342,7 +342,9 @@ class probit extends Exchange {
             $precision = $this->safe_integer($platform, 'precision');
             $depositSuspended = $this->safe_value($platform, 'deposit_suspended');
             $withdrawalSuspended = $this->safe_value($platform, 'withdrawal_suspended');
-            $active = !($depositSuspended && $withdrawalSuspended);
+            $deposit = !$depositSuspended;
+            $withdraw = !$withdrawalSuspended;
+            $active = $deposit && $withdraw;
             $withdrawalFees = $this->safe_value($platform, 'withdrawal_fee', array());
             $fees = array();
             // sometimes the withdrawal $fee is an empty object
@@ -364,12 +366,14 @@ class probit extends Exchange {
                 'info' => $currency,
                 'name' => $name,
                 'active' => $active,
+                'deposit' => $deposit,
+                'withdraw' => $withdraw,
                 'fee' => $fee,
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
+                        'min' => null,
+                        'max' => null,
                     ),
                     'deposit' => array(
                         'min' => $this->safe_number($platform, 'min_deposit_amount'),

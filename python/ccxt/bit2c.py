@@ -190,21 +190,18 @@ class bit2c(Exchange):
     def parse_ticker(self, ticker, market=None):
         symbol = self.safe_symbol(None, market)
         timestamp = self.milliseconds()
-        averagePrice = self.safe_number(ticker, 'av')
-        baseVolume = self.safe_number(ticker, 'a')
-        quoteVolume = None
-        if baseVolume is not None and averagePrice is not None:
-            quoteVolume = baseVolume * averagePrice
-        last = self.safe_number(ticker, 'll')
+        averagePrice = self.safe_string(ticker, 'av')
+        baseVolume = self.safe_string(ticker, 'a')
+        last = self.safe_string(ticker, 'll')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': self.safe_number(ticker, 'h'),
+            'bid': self.safe_string(ticker, 'h'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'l'),
+            'ask': self.safe_string(ticker, 'l'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -215,9 +212,9 @@ class bit2c(Exchange):
             'percentage': None,
             'average': averagePrice,
             'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

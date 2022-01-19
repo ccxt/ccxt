@@ -637,6 +637,8 @@ class kucoin(Exchange):
                 'precision': precision,
                 'info': entry,
                 'active': active,
+                'deposit': isDepositEnabled,
+                'withdraw': isWithdrawEnabled,
                 'fee': fee,
                 'limits': self.limits,
             }
@@ -2230,5 +2232,7 @@ class kucoin(Exchange):
         #
         errorCode = self.safe_string(response, 'code')
         message = self.safe_string(response, 'msg', '')
-        self.throw_exactly_matched_exception(self.exceptions['exact'], message, self.id + ' ' + message)
-        self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, self.id + ' ' + message)
+        feedback = self.id + ' ' + message
+        self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+        self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+        self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)

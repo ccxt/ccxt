@@ -321,37 +321,49 @@ module.exports = class bitstamp extends Exchange {
             const quoteId = quote.toLowerCase ();
             base = this.safeCurrencyCode (base);
             quote = this.safeCurrencyCode (quote);
-            const symbol = base + '/' + quote;
-            const marketId = baseId + '_' + quoteId;
-            const id = this.safeString (market, 'url_symbol');
             const amountPrecisionString = this.safeString (market, 'base_decimals');
             const pricePrecisionString = this.safeString (market, 'counter_decimals');
             const amountLimit = this.parsePrecision (amountPrecisionString);
             const priceLimit = this.parsePrecision (pricePrecisionString);
-            const precision = {
-                'amount': parseInt (amountPrecisionString),
-                'price': parseInt (pricePrecisionString),
-            };
             const minimumOrder = this.safeString (market, 'minimum_order');
             const parts = minimumOrder.split (' ');
             const cost = parts[0];
             // let [ cost, currency ] = market['minimum_order'].split (' ');
             const trading = this.safeString (market, 'trading');
-            const active = (trading === 'Enabled');
             result.push ({
-                'id': id,
-                'symbol': symbol,
+                'id': this.safeString (market, 'url_symbol'),
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'marketId': marketId,
-                'info': market,
+                'settleId': undefined,
+                'marketId': baseId + '_' + quoteId,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
-                'precision': precision,
+                'margin': false,
+                'future': false,
+                'swap': false,
+                'option': false,
+                'active': (trading === 'Enabled'),
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': parseInt (pricePrecisionString),
+                    'amount': parseInt (amountPrecisionString),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.parseNumber (amountLimit),
                         'max': undefined,
@@ -365,6 +377,7 @@ module.exports = class bitstamp extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': market,
             });
         }
         return result;

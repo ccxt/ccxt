@@ -22,22 +22,41 @@ class bitbns extends Exchange {
             'version' => 'v2',
             // new metainfo interface
             'has' => array(
+                'spot' => true,
+                'margin' => null,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => null,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
                 'fetchTicker' => 'emulated',
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setPositionMode' => false,
             ),
             'timeframes' => array(
             ),
@@ -187,12 +206,7 @@ class bitbns extends Exchange {
             $quoteId = $this->safe_string($market, 'quote');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
             $marketPrecision = $this->safe_value($market, 'precision', array());
-            $precision = array(
-                'amount' => $this->safe_integer($marketPrecision, 'amount'),
-                'price' => $this->safe_integer($marketPrecision, 'price'),
-            );
             $marketLimits = $this->safe_value($market, 'limits', array());
             $amountLimits = $this->safe_value($marketLimits, 'amount', array());
             $priceLimits = $this->safe_value($marketLimits, 'price', array());
@@ -203,17 +217,37 @@ class bitbns extends Exchange {
             $result[] = array(
                 'id' => $id,
                 'uppercaseId' => $uppercaseId,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'info' => $market,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
                 'active' => null,
-                'precision' => $precision,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->safe_integer($marketPrecision, 'amount'),
+                    'price' => $this->safe_integer($marketPrecision, 'price'),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->safe_number($amountLimits, 'min'),
                         'max' => $this->safe_number($amountLimits, 'max'),
@@ -227,6 +261,7 @@ class bitbns extends Exchange {
                         'max' => $this->safe_number($costLimits, 'max'),
                     ),
                 ),
+                'info' => $market,
             );
         }
         return $result;
@@ -297,29 +332,29 @@ class bitbns extends Exchange {
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $last = $this->safe_number($ticker, 'last');
+        $last = $this->safe_string($ticker, 'last');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'bid'),
-            'bidVolume' => $this->safe_number($ticker, 'bidVolume'),
-            'ask' => $this->safe_number($ticker, 'ask'),
-            'askVolume' => $this->safe_number($ticker, 'askVolume'),
-            'vwap' => $this->safe_number($ticker, 'vwap'),
-            'open' => $this->safe_number($ticker, 'open'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'bid'),
+            'bidVolume' => $this->safe_string($ticker, 'bidVolume'),
+            'ask' => $this->safe_string($ticker, 'ask'),
+            'askVolume' => $this->safe_string($ticker, 'askVolume'),
+            'vwap' => $this->safe_string($ticker, 'vwap'),
+            'open' => $this->safe_string($ticker, 'open'),
             'close' => $last,
             'last' => $last,
-            'previousClose' => $this->safe_number($ticker, 'previousClose'), // previous day close
-            'change' => $this->safe_number($ticker, 'change'),
-            'percentage' => $this->safe_number($ticker, 'percentage'),
-            'average' => $this->safe_number($ticker, 'average'),
-            'baseVolume' => $this->safe_number($ticker, 'baseVolume'),
-            'quoteVolume' => $this->safe_number($ticker, 'quoteVolume'),
+            'previousClose' => $this->safe_string($ticker, 'previousClose'), // previous day close
+            'change' => $this->safe_string($ticker, 'change'),
+            'percentage' => $this->safe_string($ticker, 'percentage'),
+            'average' => $this->safe_string($ticker, 'average'),
+            'baseVolume' => $this->safe_string($ticker, 'baseVolume'),
+            'quoteVolume' => $this->safe_string($ticker, 'quoteVolume'),
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

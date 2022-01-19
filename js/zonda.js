@@ -44,7 +44,7 @@ module.exports = class zonda extends Exchange {
                 '3d': '259200',
                 '1w': '604800',
             },
-            'hostname': 'zondaglobal.com',
+            'hostname': 'zonda.exchange',
             'urls': {
                 'referral': 'https://auth.zondaglobal.com/ref/jHlbB4mIkdS1',
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
@@ -90,6 +90,7 @@ module.exports = class zonda extends Exchange {
                         'trading/ticker',
                         'trading/ticker/{symbol}',
                         'trading/stats',
+                        'trading/stats/{symbol}',
                         'trading/orderbook/{symbol}',
                         'trading/transactions/{symbol}',
                         'trading/candle/history/{symbol}/{resolution}',
@@ -246,14 +247,13 @@ module.exports = class zonda extends Exchange {
         const items = this.safeValue (response, 'items');
         const keys = Object.keys (items);
         for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const item = items[key];
+            const id = keys[i];
+            const item = items[id];
             const market = this.safeValue (item, 'market', {});
             const first = this.safeValue (market, 'first', {});
             const second = this.safeValue (market, 'second', {});
             const baseId = this.safeString (first, 'currency');
             const quoteId = this.safeString (second, 'currency');
-            const id = baseId + quoteId;
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
@@ -279,6 +279,20 @@ module.exports = class zonda extends Exchange {
                 'precision': precision,
                 'type': 'spot',
                 'spot': true,
+                'margin': false,
+                'future': false,
+                'swap': false,
+                'option': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'contract': false,
+                'contractSize': undefined,
+                'optionType': undefined,
+                'strike': undefined,
+                'settle': undefined,
+                'settleId': undefined,
                 'active': undefined,
                 'maker': maker,
                 'taker': taker,
@@ -424,54 +438,101 @@ module.exports = class zonda extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            'id': this.marketId (symbol),
+            'symbol': this.marketId (symbol),
         };
-        const orderbook = await this.publicGetIdOrderbook (this.extend (request, params));
-        return this.parseOrderBook (orderbook, symbol);
+        const response = await this.v1_01PublicGetTradingOrderbookSymbol (this.extend (request, params));
+        //
+        //     {
+        //         "status":"Ok",
+        //         "sell":[
+        //             {"ra":"43988.93","ca":"0.00100525","sa":"0.00100525","pa":"0.00100525","co":1},
+        //             {"ra":"43988.94","ca":"0.00114136","sa":"0.00114136","pa":"0.00114136","co":1},
+        //             {"ra":"43989","ca":"0.010578","sa":"0.010578","pa":"0.010578","co":1},
+        //         ],
+        //         "buy":[
+        //             {"ra":"42157.33","ca":"2.83147881","sa":"2.83147881","pa":"2.83147881","co":2},
+        //             {"ra":"42096.0","ca":"0.00011878","sa":"0.00011878","pa":"0.00011878","co":1},
+        //             {"ra":"42022.0","ca":"0.00011899","sa":"0.00011899","pa":"0.00011899","co":1},
+        //         ],
+        //         "timestamp":"1642299886122",
+        //         "seqNo":"27641254"
+        //     }
+        //
+        const rawBids = this.safeValue (response, 'buy', []);
+        const rawAsks = this.safeValue (response, 'sell', []);
+        const timestamp = this.safeInteger (response, 'timestamp');
+        return {
+            'symbol': symbol,
+            'bids': this.parseBidsAsks (rawBids, 'ra', 'ca'),
+            'asks': this.parseBidsAsks (rawAsks, 'ra', 'ca'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'nonce': this.safeInteger (response, 'seqNo'),
+        };
     }
 
     parseTicker (ticker, market = undefined) {
-        const symbol = this.safeSymbol (undefined, market);
-        const timestamp = this.milliseconds ();
-        const baseVolume = this.safeNumber (ticker, 'volume');
-        const vwap = this.safeNumber (ticker, 'vwap');
-        let quoteVolume = undefined;
-        if (baseVolume !== undefined && vwap !== undefined) {
-            quoteVolume = baseVolume * vwap;
-        }
-        const last = this.safeNumber (ticker, 'last');
+        //
+        //     {
+        //         m: 'ETH-PLN',
+        //         h: '13485.13',
+        //         l: '13100.01',
+        //         v: '126.10710939',
+        //         r24h: '13332.72'
+        //       }
+        //
+        const open = this.safeString (ticker, 'r24h');
+        const high = this.safeNumber (ticker, 'h');
+        const low = this.safeNumber (ticker, 'l');
+        const volume = this.safeNumber (ticker, 'v');
+        const marketId = this.safeString (ticker, 'm');
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
         return this.safeTicker ({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'max'),
-            'low': this.safeNumber (ticker, 'min'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'high': high,
+            'low': low,
+            'bid': undefined,
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': undefined,
             'askVolume': undefined,
-            'vwap': vwap,
-            'open': undefined,
-            'close': last,
-            'last': last,
+            'vwap': undefined,
+            'open': open,
+            'close': undefined,
+            'last': undefined,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': this.safeNumber (ticker, 'average'),
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'average': undefined,
+            'baseVolume': volume,
+            'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'id': market['id'],
+            'symbol': market['id'],
         };
-        const response = await this.publicGetIdTicker (this.extend (request, params));
-        return this.parseTicker (response, market);
+        const response = await this.v1_01PublicGetTradingStatsSymbol (this.extend (request, params));
+        //
+        //     {
+        //       status: 'Ok',
+        //       stats: {
+        //         m: 'ETH-PLN',
+        //         h: '13485.13',
+        //         l: '13100.01',
+        //         v: '126.10710939',
+        //         r24h: '13332.72'
+        //       }
+        //     }
+        //
+        const stats = this.safeValue (response, 'stats');
+        return this.parseTicker (stats, market);
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {

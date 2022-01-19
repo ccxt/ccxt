@@ -110,7 +110,6 @@ class huobi extends Exchange {
                 'setPositionMode' => null,
                 'signIn' => null,
                 'transfer' => true,
-                'transferOut' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
