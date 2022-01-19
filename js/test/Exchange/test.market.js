@@ -98,4 +98,13 @@ module.exports = (exchange, market, method) => {
     } else if (market['option']) {
         assert ((market['future'] === false) && (market['swap'] === false));
     }
+    if (market['linear']) {
+        assert (market['inverse'] === false);
+    } else if (market['inverse']) {
+        assert (market['linear'] === false);
+    }
+    if (market['future']) {
+        assert (market['expiry'] !== undefined);
+        assert (market['expiryDatetime'] !== undefined);
+    }
 }
