@@ -2172,8 +2172,10 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
+        const options = this.safeValue (this.options, 'fetchOrders', {});
+        const defaultType = this.safeString (this.options, 'defaultType', 'linear');
+        const marketTypes = this.safeValue (this.options, 'marketTypes', {});
+        const marketType = this.safeString (marketTypes, symbol, defaultType);
         let defaultMethod = undefined;
         const marketDefined = (market !== undefined);
         const linear = (marketDefined && market['linear']) || (marketType === 'linear');
@@ -2204,7 +2206,8 @@ module.exports = class bybit extends Exchange {
                 defaultMethod = 'futuresPrivateGetStopOrderList';
             }
         }
-        const response = await this[defaultMethod] (this.extend (request, query));
+        const method = this.safeString (options, 'method', defaultMethod);
+        const response = await this[method] (this.extend (request, query));
         //
         //     {
         //         "ret_code": 0,
