@@ -304,7 +304,7 @@ If the transpiling process finishes successfully, but generates incorrect Python
 And structurally:
 
 - if you need another base method you will have to implement it in all three languages
-- do not issue more than one HTTP request from a unified method
+- try not to issue more than one HTTP request from a unified method
 - try to reduce syntax to basic one-liner expressions
 - multiple lines are ok, but you should avoid deep nesting with lots of brackets
 - avoid changing the contents of the arguments and params passed by reference into function calls
