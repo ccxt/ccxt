@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId } = require ('./base/errors');
+const { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId, RateLimitExceeded } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -309,6 +309,7 @@ module.exports = class phemex extends Exchange {
                     '11115': InvalidOrder, // TE_ORDER_VALUE_TOO_SMALL Order value is too small
                     // not documented
                     '30018': BadRequest, // {"code":30018,"msg":"phemex.data.size.uplimt","data":null}
+                    '39995': RateLimitExceeded, // {"code": "39995","msg": "Too many requests."}
                     '39996': PermissionDenied, // {"code": "39996","msg": "Access denied."}
                 },
                 'broad': {
