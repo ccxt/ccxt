@@ -175,7 +175,7 @@ module.exports = class zaif extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': true, // can trade or not
+                'active': undefined, // can trade or not
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
