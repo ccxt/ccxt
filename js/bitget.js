@@ -1076,33 +1076,33 @@ module.exports = class bitget extends Exchange {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        const last = this.safeNumber2 (ticker, 'last', 'close');
-        const open = this.safeNumber (ticker, 'open');
+        const last = this.safeString2 (ticker, 'last', 'close');
+        const open = this.safeString (ticker, 'open');
         let bidVolume = undefined;
         let askVolume = undefined;
-        let bid = this.safeValue (ticker, 'bid');
+        let bid = this.safeString (ticker, 'bid');
         if (bid === undefined) {
-            bid = this.safeNumber (ticker, 'best_bid');
+            bid = this.safeString (ticker, 'best_bid');
         } else {
-            bidVolume = this.safeNumber (bid, 1);
-            bid = this.safeNumber (bid, 0);
+            bidVolume = this.safeString (bid, 1);
+            bid = this.safeString (bid, 0);
         }
-        let ask = this.safeValue (ticker, 'ask');
+        let ask = this.safeString (ticker, 'ask');
         if (ask === undefined) {
-            ask = this.safeNumber (ticker, 'best_ask');
+            ask = this.safeString (ticker, 'best_ask');
         } else {
-            askVolume = this.safeNumber (ask, 1);
-            ask = this.safeNumber (ask, 0);
+            askVolume = this.safeString (ask, 1);
+            ask = this.safeString (ask, 0);
         }
-        const baseVolume = this.safeNumber2 (ticker, 'amount', 'volume_24h');
-        const quoteVolume = this.safeNumber (ticker, 'vol');
+        const baseVolume = this.safeString2 (ticker, 'amount', 'volume_24h');
+        const quoteVolume = this.safeString (ticker, 'vol');
         const vwap = this.vwap (baseVolume, quoteVolume);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber2 (ticker, 'high', 'high_24h'),
-            'low': this.safeNumber2 (ticker, 'low', 'low_24h'),
+            'high': this.safeString2 (ticker, 'high', 'high_24h'),
+            'low': this.safeString2 (ticker, 'low', 'low_24h'),
             'bid': bid,
             'bidVolume': bidVolume,
             'ask': ask,
@@ -1118,7 +1118,7 @@ module.exports = class bitget extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
