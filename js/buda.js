@@ -388,21 +388,21 @@ module.exports = class buda extends Exchange {
         const timestamp = this.milliseconds ();
         const marketId = this.safeString (ticker, 'market_id');
         const symbol = this.safeSymbol (marketId, market, '-');
-        const lastPrice = this.safeValue (ticker, 'last_price', []);
-        const last = this.safeNumber (lastPrice, 0);
-        const percentage = this.safeNumber (ticker, 'price_variation_24h');
-        const maxBid = this.safeValue (ticker, 'max_bid', []);
-        const minAsk = this.safeValue (ticker, 'min_ask', []);
-        const baseVolume = this.safeValue (ticker, 'volume', []);
+        const lastPrice = this.safeString (ticker, 'last_price', []);
+        const last = this.safeString (lastPrice, 0);
+        const percentage = this.safeString (ticker, 'price_variation_24h');
+        const maxBid = this.safeString (ticker, 'max_bid', []);
+        const minAsk = this.safeString (ticker, 'min_ask', []);
+        const baseVolume = this.safeString (ticker, 'volume', []);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': this.safeNumber (maxBid, 0),
+            'bid': this.safeString (maxBid, 0),
             'bidVolume': undefined,
-            'ask': this.safeNumber (minAsk, 0),
+            'ask': this.safeString (minAsk, 0),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -410,12 +410,12 @@ module.exports = class buda extends Exchange {
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': percentage * 100,
+            'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeNumber (baseVolume, 0),
+            'baseVolume': this.safeString (baseVolume, 0),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
