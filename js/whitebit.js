@@ -77,7 +77,7 @@ module.exports = class whitebit extends Exchange {
                     },
                 },
                 'www': 'https://www.whitebit.com',
-                'doc': 'https://documenter.getpostman.com/view/7473075/Szzj8dgv?version=latest',
+                'doc': 'https://github.com/whitebit-exchange/api-docs',
                 'fees': 'https://whitebit.com/fee-schedule',
                 'referral': 'https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963',
             },
