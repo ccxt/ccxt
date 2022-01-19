@@ -81,7 +81,8 @@ class bitfinex2(bitfinex):
                 '2w': '14D',
                 '1M': '1M',
             },
-            'rateLimit': 1500,
+            # cheapest endpoint is 240 requests per minute => ~ 4 requests per second =>( 1000ms / 4 ) = 250ms between requests on average
+            'rateLimit': 250,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
                 'api': {
@@ -104,139 +105,149 @@ class bitfinex2(bitfinex):
                     ],
                 },
                 'public': {
-                    'get': [
-                        'conf/{config}',
-                        'conf/pub:{action}:{object}',
-                        'conf/pub:{action}:{object}:{detail}',
-                        'conf/pub:map:{object}',
-                        'conf/pub:map:{object}:{detail}',
-                        'conf/pub:map:currency:{detail}',
-                        'conf/pub:map:currency:sym',  # maps symbols to their API symbols, BAB > BCH
-                        'conf/pub:map:currency:label',  # verbose friendly names, BNT > Bancor
-                        'conf/pub:map:currency:unit',  # maps symbols to unit of measure where applicable
-                        'conf/pub:map:currency:undl',  # maps derivatives symbols to their underlying currency
-                        'conf/pub:map:currency:pool',  # maps symbols to underlying network/protocol they operate on
-                        'conf/pub:map:currency:explorer',  # maps symbols to their recognised block explorer URLs
-                        'conf/pub:map:currency:tx:fee',  # maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745
-                        'conf/pub:map:tx:method',
-                        'conf/pub:list:{object}',
-                        'conf/pub:list:{object}:{detail}',
-                        'conf/pub:list:currency',
-                        'conf/pub:list:pair:exchange',
-                        'conf/pub:list:pair:margin',
-                        'conf/pub:list:pair:futures',
-                        'conf/pub:list:competitions',
-                        'conf/pub:info:{object}',
-                        'conf/pub:info:{object}:{detail}',
-                        'conf/pub:info:pair',
-                        'conf/pub:info:tx:status',  # [deposit, withdrawal] statuses 1 = active, 0 = maintenance
-                        'conf/pub:fees',
-                        'platform/status',
-                        'tickers',
-                        'ticker/{symbol}',
-                        'trades/{symbol}/hist',
-                        'book/{symbol}/{precision}',
-                        'book/{symbol}/P0',
-                        'book/{symbol}/P1',
-                        'book/{symbol}/P2',
-                        'book/{symbol}/P3',
-                        'book/{symbol}/R0',
-                        'stats1/{key}:{size}:{symbol}:{side}/{section}',
-                        'stats1/{key}:{size}:{symbol}:{side}/last',
-                        'stats1/{key}:{size}:{symbol}:{side}/hist',
-                        'stats1/{key}:{size}:{symbol}/{section}',
-                        'stats1/{key}:{size}:{symbol}/last',
-                        'stats1/{key}:{size}:{symbol}/hist',
-                        'stats1/{key}:{size}:{symbol}:long/last',
-                        'stats1/{key}:{size}:{symbol}:long/hist',
-                        'stats1/{key}:{size}:{symbol}:short/last',
-                        'stats1/{key}:{size}:{symbol}:short/hist',
-                        'candles/trade:{timeframe}:{symbol}:{period}/{section}',
-                        'candles/trade:{timeframe}:{symbol}/{section}',
-                        'candles/trade:{timeframe}:{symbol}/last',
-                        'candles/trade:{timeframe}:{symbol}/hist',
-                        'status/{type}',
-                        'status/deriv',
-                        'liquidations/hist',
-                        'rankings/{key}:{timeframe}:{symbol}/{section}',
-                        'rankings/{key}:{timeframe}:{symbol}/hist',
-                        'pulse/hist',
-                        'pulse/profile/{nickname}',
-                        'funding/stats/{symbol}/hist',
-                    ],
-                    'post': [
-                        'calc/trade/avg',
-                        'calc/fx',
-                    ],
+                    'get': {
+                        'conf/{config}': 2.66,  # 90 requests a minute
+                        'conf/pub:{action}:{object}': 2.66,
+                        'conf/pub:{action}:{object}:{detail}': 2.66,
+                        'conf/pub:map:{object}': 2.66,
+                        'conf/pub:map:{object}:{detail}': 2.66,
+                        'conf/pub:map:currency:{detail}': 2.66,
+                        'conf/pub:map:currency:sym': 2.66,  # maps symbols to their API symbols, BAB > BCH
+                        'conf/pub:map:currency:label': 2.66,  # verbose friendly names, BNT > Bancor
+                        'conf/pub:map:currency:unit': 2.66,  # maps symbols to unit of measure where applicable
+                        'conf/pub:map:currency:undl': 2.66,  # maps derivatives symbols to their underlying currency
+                        'conf/pub:map:currency:pool': 2.66,  # maps symbols to underlying network/protocol they operate on
+                        'conf/pub:map:currency:explorer': 2.66,  # maps symbols to their recognised block explorer URLs
+                        'conf/pub:map:currency:tx:fee': 2.66,  # maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745
+                        'conf/pub:map:tx:method': 2.66,
+                        'conf/pub:list:{object}': 2.66,
+                        'conf/pub:list:{object}:{detail}': 2.66,
+                        'conf/pub:list:currency': 2.66,
+                        'conf/pub:list:pair:exchange': 2.66,
+                        'conf/pub:list:pair:margin': 2.66,
+                        'conf/pub:list:pair:futures': 2.66,
+                        'conf/pub:list:competitions': 2.66,
+                        'conf/pub:info:{object}': 2.66,
+                        'conf/pub:info:{object}:{detail}': 2.66,
+                        'conf/pub:info:pair': 2.66,
+                        'conf/pub:info:tx:status': 2.66,  # [deposit, withdrawal] statuses 1 = active, 0 = maintenance
+                        'conf/pub:fees': 2.66,
+                        'platform/status': 8,  # 30 requests per minute = 0.5 requests per second =>( 1000ms / rateLimit ) / 0.5 = 8
+                        'tickers': 2.66,  # 90 requests a minute = 1.5 requests per second =>( 1000 / rateLimit ) / 1.5 = 2.666666666
+                        'ticker/{symbol}': 2.66,
+                        'tickers/hist': 2.66,
+                        'trades/{symbol}/hist': 2.66,
+                        'book/{symbol}/{precision}': 1,  # 240 requests a minute
+                        'book/{symbol}/P0': 1,
+                        'book/{symbol}/P1': 1,
+                        'book/{symbol}/P2': 1,
+                        'book/{symbol}/P3': 1,
+                        'book/{symbol}/R0': 1,
+                        'stats1/{key}:{size}:{symbol}:{side}/{section}': 2.66,
+                        'stats1/{key}:{size}:{symbol}:{side}/last': 2.66,
+                        'stats1/{key}:{size}:{symbol}:{side}/hist': 2.66,
+                        'stats1/{key}:{size}:{symbol}/{section}': 2.66,
+                        'stats1/{key}:{size}:{symbol}/last': 2.66,
+                        'stats1/{key}:{size}:{symbol}/hist': 2.66,
+                        'stats1/{key}:{size}:{symbol}:long/last': 2.66,
+                        'stats1/{key}:{size}:{symbol}:long/hist': 2.66,
+                        'stats1/{key}:{size}:{symbol}:short/last': 2.66,
+                        'stats1/{key}:{size}:{symbol}:short/hist': 2.66,
+                        'candles/trade:{timeframe}:{symbol}:{period}/{section}': 2.66,
+                        'candles/trade:{timeframe}:{symbol}/{section}': 2.66,
+                        'candles/trade:{timeframe}:{symbol}/last': 2.66,
+                        'candles/trade:{timeframe}:{symbol}/hist': 2.66,
+                        'status/{type}': 2.66,
+                        'status/deriv': 2.66,
+                        'liquidations/hist': 80,  # 3 requests a minute = 0.05 requests a second =>( 1000ms / rateLimit ) / 0.05 = 80
+                        'rankings/{key}:{timeframe}:{symbol}/{section}': 2.66,
+                        'rankings/{key}:{timeframe}:{symbol}/hist': 2.66,
+                        'pulse/hist': 2.66,
+                        'pulse/profile/{nickname}': 2.66,
+                        'funding/stats/{symbol}/hist': 10,  # ratelimit not in docs
+                    },
+                    'post': {
+                        'calc/trade/avg': 2.66,
+                        'calc/fx': 2.66,
+                    },
                 },
                 'private': {
-                    'post': [
+                    'post': {
                         # 'auth/r/orders/{symbol}/new',  # outdated
                         # 'auth/r/stats/perf:{timeframe}/hist',  # outdated
-                        'auth/r/wallets',
-                        'auth/r/wallets/hist',
-                        'auth/r/orders',
-                        'auth/r/orders/{symbol}',
-                        'auth/w/order/submit',
-                        'auth/w/order/update',
-                        'auth/w/order/cancel',
-                        'auth/w/order/multi',
-                        'auth/w/order/cancel/multi',
-                        'auth/r/orders/{symbol}/hist',
-                        'auth/r/orders/hist',
-                        'auth/r/order/{symbol}:{id}/trades',
-                        'auth/r/trades/{symbol}/hist',
-                        'auth/r/trades/hist',
-                        'auth/r/ledgers/{currency}/hist',
-                        'auth/r/ledgers/hist',
-                        'auth/r/info/margin/{key}',
-                        'auth/r/info/margin/base',
-                        'auth/r/info/margin/sym_all',
-                        'auth/r/positions',
-                        'auth/w/position/claim',
-                        'auth/r/positions/hist',
-                        'auth/r/positions/audit',
-                        'auth/r/positions/snap',
-                        'auth/w/deriv/collateral/set',
-                        'auth/w/deriv/collateral/limits',
-                        'auth/r/funding/offers',
-                        'auth/r/funding/offers/{symbol}',
-                        'auth/w/funding/offer/submit',
-                        'auth/w/funding/offer/cancel',
-                        'auth/w/funding/offer/cancel/all',
-                        'auth/w/funding/close',
-                        'auth/w/funding/auto',
-                        'auth/w/funding/keep',
-                        'auth/r/funding/offers/{symbol}/hist',
-                        'auth/r/funding/offers/hist',
-                        'auth/r/funding/loans',
-                        'auth/r/funding/loans/hist',
-                        'auth/r/funding/loans/{symbol}',
-                        'auth/r/funding/loans/{symbol}/hist',
-                        'auth/r/funding/credits',
-                        'auth/r/funding/credits/hist',
-                        'auth/r/funding/credits/{symbol}',
-                        'auth/r/funding/credits/{symbol}/hist',
-                        'auth/r/funding/trades/{symbol}/hist',
-                        'auth/r/funding/trades/hist',
-                        'auth/r/info/funding/{key}',
-                        'auth/r/info/user',
-                        'auth/r/logins/hist',
-                        'auth/w/transfer',
-                        'auth/w/deposit/address',
-                        'auth/w/deposit/invoice',
-                        'auth/w/withdraw',
-                        'auth/r/movements/{currency}/hist',
-                        'auth/r/movements/hist',
-                        'auth/r/alerts',
-                        'auth/w/alert/set',
-                        'auth/w/alert/price:{symbol}:{price}/del',
-                        'auth/w/alert/{type}:{symbol}:{price}/del',
-                        'auth/calc/order/avail',
-                        'auth/w/settings/set',
-                        'auth/r/settings',
-                        'auth/w/settings/del',
-                    ],
+                        'auth/r/wallets': 2.66,
+                        'auth/r/wallets/hist': 2.66,
+                        'auth/r/orders': 2.66,
+                        'auth/r/orders/{symbol}': 2.66,
+                        'auth/w/order/submit': 2.66,
+                        'auth/w/order/update': 2.66,
+                        'auth/w/order/cancel': 2.66,
+                        'auth/w/order/multi': 2.66,
+                        'auth/w/order/cancel/multi': 2.66,
+                        'auth/r/orders/{symbol}/hist': 2.66,
+                        'auth/r/orders/hist': 2.66,
+                        'auth/r/order/{symbol}:{id}/trades': 2.66,
+                        'auth/r/trades/{symbol}/hist': 2.66,
+                        'auth/r/trades/hist': 2.66,
+                        'auth/r/ledgers/{currency}/hist': 2.66,
+                        'auth/r/ledgers/hist': 2.66,
+                        'auth/r/info/margin/{key}': 2.66,
+                        'auth/r/info/margin/base': 2.66,
+                        'auth/r/info/margin/sym_all': 2.66,
+                        'auth/r/positions': 2.66,
+                        'auth/w/position/claim': 2.66,
+                        'auth/w/position/increase:': 2.66,
+                        'auth/r/position/increase/info': 2.66,
+                        'auth/r/positions/hist': 2.66,
+                        'auth/r/positions/audit': 2.66,
+                        'auth/r/positions/snap': 2.66,
+                        'auth/w/deriv/collateral/set': 2.66,
+                        'auth/w/deriv/collateral/limits': 2.66,
+                        'auth/r/funding/offers': 2.66,
+                        'auth/r/funding/offers/{symbol}': 2.66,
+                        'auth/w/funding/offer/submit': 2.66,
+                        'auth/w/funding/offer/cancel': 2.66,
+                        'auth/w/funding/offer/cancel/all': 2.66,
+                        'auth/w/funding/close': 2.66,
+                        'auth/w/funding/auto': 2.66,
+                        'auth/w/funding/keep': 2.66,
+                        'auth/r/funding/offers/{symbol}/hist': 2.66,
+                        'auth/r/funding/offers/hist': 2.66,
+                        'auth/r/funding/loans': 2.66,
+                        'auth/r/funding/loans/hist': 2.66,
+                        'auth/r/funding/loans/{symbol}': 2.66,
+                        'auth/r/funding/loans/{symbol}/hist': 2.66,
+                        'auth/r/funding/credits': 2.66,
+                        'auth/r/funding/credits/hist': 2.66,
+                        'auth/r/funding/credits/{symbol}': 2.66,
+                        'auth/r/funding/credits/{symbol}/hist': 2.66,
+                        'auth/r/funding/trades/{symbol}/hist': 2.66,
+                        'auth/r/funding/trades/hist': 2.66,
+                        'auth/r/info/funding/{key}': 2.66,
+                        'auth/r/info/user': 2.66,
+                        'auth/r/summary': 2.66,
+                        'auth/r/logins/hist': 2.66,
+                        'auth/r/permissions': 2.66,
+                        'auth/w/token': 2.66,
+                        'auth/r/audit/hist': 2.66,
+                        'auth/w/transfer': 2.66,  # ratelimit not in docs...
+                        'auth/w/deposit/address': 24,  # 10 requests a minute = 0.166 requests per second =>( 1000ms / rateLimit ) / 0.166 = 24
+                        'auth/w/deposit/invoice': 24,  # ratelimit not in docs
+                        'auth/w/withdraw': 24,  # ratelimit not in docs
+                        'auth/r/movements/{currency}/hist': 2.66,
+                        'auth/r/movements/hist': 2.66,
+                        'auth/r/alerts': 5.33,  # 45 requests a minute = 0.75 requests per second =>( 1000ms / rateLimit ) / 0.75 => 5.33
+                        'auth/w/alert/set': 2.66,
+                        'auth/w/alert/price:{symbol}:{price}/del': 2.66,
+                        'auth/w/alert/{type}:{symbol}:{price}/del': 2.66,
+                        'auth/calc/order/avail': 2.66,
+                        'auth/w/settings/set': 2.66,
+                        'auth/r/settings': 2.66,
+                        'auth/w/settings/del': 2.66,
+                        'auth/r/pulse/hist': 2.66,
+                        'auth/w/pulse/add': 16,  # 15 requests a minute = 0.25 requests per second =>( 1000ms / rateLimit ) / 0.25 => 16
+                        'auth/w/pulse/del': 2.66,
+                    },
                 },
             },
             'fees': {
@@ -833,12 +844,9 @@ class bitfinex2(bitfinex):
         priceString = self.safe_string(trade, priceIndex)
         if amountString[0] == '-':
             side = 'sell'
-            amountString = amountString[1:]
+            amountString = Precise.string_abs(amountString)
         else:
             side = 'buy'
-        amount = self.parse_number(amountString)
-        price = self.parse_number(priceString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         orderId = None
         takerOrMaker = None
         type = None
@@ -858,11 +866,10 @@ class bitfinex2(bitfinex):
             takerOrMaker = 'maker' if (maker == 1) else 'taker'
             feeCostString = self.safe_string(trade, 9)
             feeCostString = Precise.string_neg(feeCostString)
-            feeCost = self.parse_number(feeCostString)
             feeCurrencyId = self.safe_string(trade, 10)
             feeCurrency = self.safe_currency_code(feeCurrencyId)
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrency,
             }
             orderType = trade[6]
@@ -870,7 +877,7 @@ class bitfinex2(bitfinex):
         if symbol is None:
             if market is not None:
                 symbol = market['symbol']
-        return {
+        return self.safe_trade({
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -879,12 +886,12 @@ class bitfinex2(bitfinex):
             'side': side,
             'type': type,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
             'info': trade,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
