@@ -39,6 +39,9 @@ module.exports = class trbinance extends Exchange {
                 'fetchWithdrawals': true,
                 'fetchDeposits': true,
                 'fetchDepositAddress': true,
+                'createOrder': true,
+                'cancelOrder': true,
+                'createOcoOrder': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -1150,6 +1153,114 @@ module.exports = class trbinance extends Exchange {
         };
         // return this.parseTransactions (response, currency, since, limit);
         return response;
+    }
+
+    async createOrder (symbol, type, side, quantity = undefined, price = undefined, stopPrice = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        side = (side === 'buy') ? '1' : '0';
+        const request = {
+            'symbol': symbol,
+            'side': side,
+            'type': type.toString (),
+        };
+        if (type === 1) {
+            request['price'] = this.priceToPrecision (symbol, price);
+            request['quantity'] = this.amountToPrecision (symbol, quantity);
+        } else if (type === 2) {
+            // request['price'] = this.priceToPrecision (symbol, price);
+            request['quantity'] = this.amountToPrecision (symbol, quantity);
+        } else if (type === 4) {
+            request['price'] = this.priceToPrecision (symbol, price);
+            request['quantity'] = this.amountToPrecision (symbol, quantity);
+            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+        } else {
+            request['price'] = this.priceToPrecision (symbol, price);
+            request['quantity'] = this.amountToPrecision (symbol, quantity);
+            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+        }
+        // const response = await this.privatePostOrders (this.extend (request, params));
+        // const order = this.safeValue (response, 'order');
+        const response = {
+            'orderId': '4',
+            'createTime': 1550130502385,
+            'requestData': request,
+        };
+        return this.parseOrder (response);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        // const request = {
+        //     'orderId': parseInt (id),
+        // };
+        // const response = await this.privatePostOrderCancel (this.extend (request, params));
+        // const order = this.safeValue (response, 'order');
+        // return this.parseOrder (order);
+        const response = {
+            'orderId': 4,
+            'orderListId': -1,
+            'clientId': 'myOrder1',
+            'symbol': 'BTC_USDT',
+            'side': 1,
+            'type': 1,
+            'price': 1,
+            'status': 0,
+            'origQty': 10.88,
+            'origQuoteQty': 0,
+            'executedQty': 0,
+            'executedPrice': 0,
+            'executedQuoteQty': 0,
+            'createTime': 1550130502000,
+        };
+        return this.parseOrder (response);
+    }
+
+    async withdraw (code, amount, address = undefined, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        // const currency = this.currency (code);
+        // const request = {
+        //     'asset': code,
+        //     'amount': amount,
+        //     'address': address,
+        // };
+        // const response = await this.privatePostWithdraws (this.extend (request, params));
+        // const result = this.safeValue (response, 'result', {});
+        const response = {
+            'withdrawId': '12',
+        };
+        const id = this.safeString (response, 'withdrawId');
+        return {
+            'info': response,
+            'id': id,
+        };
+    }
+
+    async createOcoOrder (symbol, side, quantity, price, stopPrice, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOcoOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        side = (side === 'buy') ? '1' : '0';
+        const request = {
+            'symbol': symbol,
+            'side': side,
+            'quantity': this.amountToPrecision (symbol, quantity),
+            'price': this.priceToPrecision (symbol, price),
+            'stopPrice': this.priceToPrecision (symbol, stopPrice),
+        };
+        // const response = await this.privatePostOrderOco (this.extend (request, params));
+        // const order = this.safeValue (response, 'order');
+        const response = {
+            'orderId': '4',
+            'createTime': 1550130502385,
+            'requestData': request,
+        };
+        return this.parseOrder (response);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
