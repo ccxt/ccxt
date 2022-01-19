@@ -952,24 +952,21 @@ module.exports = class bybit extends Exchange {
         const timestamp = undefined;
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeNumber (ticker, 'last_price');
-        const open = this.safeNumber (ticker, 'prev_price_24h');
-        let percentage = this.safeNumber (ticker, 'price_24h_pcnt');
-        if (percentage !== undefined) {
-            percentage *= 100;
-        }
-        const baseVolume = this.safeNumber (ticker, 'turnover_24h');
-        const quoteVolume = this.safeNumber (ticker, 'volume_24h');
+        const last = this.safeString (ticker, 'last_price');
+        const open = this.safeString (ticker, 'prev_price_24h');
+        const percentage = this.safeString (ticker, 'price_24h_pcnt');
+        const baseVolume = this.safeString (ticker, 'turnover_24h');
+        const quoteVolume = this.safeString (ticker, 'volume_24h');
         const vwap = this.vwap (baseVolume, quoteVolume);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high_price_24h'),
-            'low': this.safeNumber (ticker, 'low_price_24h'),
-            'bid': this.safeNumber (ticker, 'bid_price'),
+            'high': this.safeString (ticker, 'high_price_24h'),
+            'low': this.safeString (ticker, 'low_price_24h'),
+            'bid': this.safeString (ticker, 'bid_price'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask_price'),
+            'ask': this.safeString (ticker, 'ask_price'),
             'askVolume': undefined,
             'vwap': vwap,
             'open': open,
@@ -982,7 +979,7 @@ module.exports = class bybit extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
