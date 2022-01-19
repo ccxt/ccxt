@@ -199,7 +199,7 @@ module.exports = class bw extends Exchange {
                 'margin': false,
                 'future': false,
                 'swap': false,
-                'option': undefined,
+                'option': false,
                 'optionType': undefined,
                 'strike': undefined,
                 'linear': undefined,
