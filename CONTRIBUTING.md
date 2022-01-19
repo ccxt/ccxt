@@ -296,18 +296,19 @@ If the transpiling process finishes successfully, but generates incorrect Python
 - do not use language-specific code syntax sugar, even if you really want to
 - unfold all maps and comprehensions to basic for-loops
 - don't change the arguments of overridden inherited methods, keep them uniform across all exchanges
-- do everything with base class methods only (for example, use `this.json ()` for converting objects to json).
+- everything should be done using base class methods only (for example, use `this.json ()` for converting objects to json)
 - always put a semicolon `;` at the end of each statement, as in PHP/C-style
-- all associative keys must be single-quoted strings everywhere, `array['good'], array.bad`
-- variables should be declared with `const` or `let` keywords semantically (no `var`!), prefer `const` everywhere
+- all associative keys must be single-quoted strings everywhere (`array['good']`), do not use the dot notation (`array.bad`)
+- never use the `var` keyword, instead use `const` for constants or `let` for variables
 
 And structurally:
 
 - if you need another base method you will have to implement it in all three languages
-- do not issue more than one HTTP request from a unified method
-- try to reduce syntax to basic one-liner expressions
-- multiple lines are ok, but you should avoid deep nesting with lots of brackets
+- try not to issue more than one HTTP request from a unified method
 - avoid changing the contents of the arguments and params passed by reference into function calls
+- keep it simple, don't do more than one statement in one line
+- try to reduce syntax & logic (if possible) to basic one-liner expressions
+- multiple lines are ok, but you should avoid deep nesting with lots of brackets
 - do not use conditional statements that are too complex (heavy if-bracketing)
 - do not use heavy ternary conditionals
 - avoid operators clutter (**don't do this**: `a && b || c ? d + 80 : e ** f`)
@@ -317,7 +318,6 @@ And structurally:
 - do not use the `in` operator to check if a value is in a non-associative array (list)
 - don't add custom currency or symbol/pair conversions and formatting, copy from existing code instead
 - **don't access non-existent keys, `array['key'] || {}` won't work in other languages!**
-- keep it simple, don't do more than one statement in one line
 
 #### Sending Market Ids
 
