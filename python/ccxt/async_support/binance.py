@@ -4108,8 +4108,8 @@ class binance(Exchange):
         indexPrice = self.safe_number(premiumIndex, 'indexPrice')
         interestRate = self.safe_number(premiumIndex, 'interestRate')
         estimatedSettlePrice = self.safe_number(premiumIndex, 'estimatedSettlePrice')
-        nextFundingRate = self.safe_number(premiumIndex, 'lastFundingRate')
-        nextFundingTime = self.safe_integer(premiumIndex, 'nextFundingTime')
+        fundingRate = self.safe_number(premiumIndex, 'lastFundingRate')
+        fundingTime = self.safe_integer(premiumIndex, 'nextFundingTime')
         return {
             'info': premiumIndex,
             'symbol': symbol,
@@ -4119,12 +4119,15 @@ class binance(Exchange):
             'estimatedSettlePrice': estimatedSettlePrice,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'fundingRate': fundingRate,
+            'fundingTimestamp': fundingTime,
+            'fundingDatetime': self.iso8601(fundingTime),
+            'nextFundingRate': None,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
             'previousFundingRate': None,
-            'nextFundingRate': nextFundingRate,
             'previousFundingTimestamp': None,
-            'nextFundingTimestamp': nextFundingTime,
             'previousFundingDatetime': None,
-            'nextFundingDatetime': self.iso8601(nextFundingTime),
         }
 
     def parse_account_positions(self, account):

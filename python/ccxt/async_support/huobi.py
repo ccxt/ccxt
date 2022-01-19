@@ -4165,7 +4165,7 @@ class huobi(Exchange):
         # }
         #
         nextFundingRate = self.safe_number(fundingRate, 'estimated_rate')
-        previousFundingTimestamp = self.safe_integer(fundingRate, 'funding_time')
+        fundingTimestamp = self.safe_integer(fundingRate, 'funding_time')
         nextFundingTimestamp = self.safe_integer(fundingRate, 'next_funding_time')
         marketId = self.safe_string(fundingRate, 'contract_code')
         symbol = self.safe_symbol(marketId, market)
@@ -4178,12 +4178,15 @@ class huobi(Exchange):
             'estimatedSettlePrice': None,
             'timestamp': None,
             'datetime': None,
-            'previousFundingRate': self.safe_number(fundingRate, 'funding_rate'),
+            'fundingRate': self.safe_number(fundingRate, 'funding_rate'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': self.iso8601(fundingTimestamp),
             'nextFundingRate': nextFundingRate,
-            'previousFundingTimestamp': previousFundingTimestamp,
             'nextFundingTimestamp': nextFundingTimestamp,
-            'previousFundingDatetime': self.iso8601(previousFundingTimestamp),
             'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
         }
 
     async def fetch_funding_rate(self, symbol, params={}):

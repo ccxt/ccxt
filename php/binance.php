@@ -4312,8 +4312,8 @@ class binance extends Exchange {
         $indexPrice = $this->safe_number($premiumIndex, 'indexPrice');
         $interestRate = $this->safe_number($premiumIndex, 'interestRate');
         $estimatedSettlePrice = $this->safe_number($premiumIndex, 'estimatedSettlePrice');
-        $nextFundingRate = $this->safe_number($premiumIndex, 'lastFundingRate');
-        $nextFundingTime = $this->safe_integer($premiumIndex, 'nextFundingTime');
+        $fundingRate = $this->safe_number($premiumIndex, 'lastFundingRate');
+        $fundingTime = $this->safe_integer($premiumIndex, 'nextFundingTime');
         return array(
             'info' => $premiumIndex,
             'symbol' => $symbol,
@@ -4323,12 +4323,15 @@ class binance extends Exchange {
             'estimatedSettlePrice' => $estimatedSettlePrice,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'fundingRate' => $fundingRate,
+            'fundingTimestamp' => $fundingTime,
+            'fundingDatetime' => $this->iso8601($fundingTime),
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
             'previousFundingRate' => null,
-            'nextFundingRate' => $nextFundingRate,
             'previousFundingTimestamp' => null,
-            'nextFundingTimestamp' => $nextFundingTime,
             'previousFundingDatetime' => null,
-            'nextFundingDatetime' => $this->iso8601($nextFundingTime),
         );
     }
 

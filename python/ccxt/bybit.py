@@ -1236,9 +1236,9 @@ class bybit(Exchange):
         # }
         #
         result = self.safe_value(response, 'result')
-        nextFundingRate = self.safe_number(result, 'funding_rate')
-        previousFundingTime = self.safe_integer(result, 'funding_rate_timestamp') * 1000
-        nextFundingTime = previousFundingTime + (8 * 3600000)
+        fundingRate = self.safe_number(result, 'funding_rate')
+        fundingTime = self.safe_integer(result, 'funding_rate_timestamp') * 1000
+        nextFundingTime = self.sum(fundingTime, 8 * 3600000)
         currentTime = self.milliseconds()
         return {
             'info': result,
@@ -1249,12 +1249,15 @@ class bybit(Exchange):
             'estimatedSettlePrice': None,
             'timestamp': currentTime,
             'datetime': self.iso8601(currentTime),
-            'previousFundingRate': None,
-            'nextFundingRate': nextFundingRate,
-            'previousFundingTimestamp': previousFundingTime,
+            'fundingRate': fundingRate,
+            'fundingTimestamp': fundingTime,
+            'fundingDatetime': self.iso8601(fundingTime),
+            'nextFundingRate': None,
             'nextFundingTimestamp': nextFundingTime,
-            'previousFundingDatetime': self.iso8601(previousFundingTime),
             'nextFundingDatetime': self.iso8601(nextFundingTime),
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
         }
 
     def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):

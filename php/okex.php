@@ -3334,10 +3334,11 @@ class okex extends Exchange {
         //
         // in the response above $nextFundingRate is actually two funding rates from now
         //
-        $nextFundingRateTimestamp = $this->safe_integer($fundingRate, 'fundingTime');
+        $nextFundingRateTimestamp = $this->safe_integer($fundingRate, 'nextFundingTime');
         $marketId = $this->safe_string($fundingRate, 'instId');
         $symbol = $this->safe_symbol($marketId, $market);
-        $nextFundingRate = $this->safe_number($fundingRate, 'fundingRate');
+        $nextFundingRate = $this->safe_number($fundingRate, 'nextFundingRate');
+        $fundingTime = $this->safe_integer($fundingRate, 'fundingTime');
         // https://www.okex.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
         // > The current interest is 0.
         return array(
@@ -3349,12 +3350,15 @@ class okex extends Exchange {
             'estimatedSettlePrice' => null,
             'timestamp' => null,
             'datetime' => null,
-            'previousFundingRate' => null,
+            'fundingRate' => $this->safe_number($fundingRate, 'fundingRate'),
+            'fundingTimestamp' => $fundingTime,
+            'fundingDatetime' => $this->iso8601($fundingTime),
             'nextFundingRate' => $nextFundingRate,
-            'previousFundingTimestamp' => null,
             'nextFundingTimestamp' => $nextFundingRateTimestamp,
-            'previousFundingDatetime' => null,
             'nextFundingDatetime' => $this->iso8601($nextFundingRateTimestamp),
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
         );
     }
 

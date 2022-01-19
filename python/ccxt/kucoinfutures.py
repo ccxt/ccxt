@@ -1158,7 +1158,7 @@ class kucoinfutures(kucoin):
         #    }
         #
         data = self.safe_value(response, 'data')
-        timestamp = self.safe_number(data, 'timePoint')
+        fundingTimestamp = self.safe_number(data, 'timePoint')
         return {
             'info': data,
             'symbol': symbol,
@@ -1168,12 +1168,15 @@ class kucoinfutures(kucoin):
             'estimatedSettlePrice': None,
             'timestamp': None,
             'datetime': None,
-            'previousFundingRate': self.safe_number(data, 'value'),
+            'fundingRate': self.safe_number(data, 'value'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': self.iso8601(fundingTimestamp),
             'nextFundingRate': self.safe_number(data, 'predictedValue'),
-            'previousFundingTimestamp': timestamp,
             'nextFundingTimestamp': None,
-            'previousFundingDatetime': self.iso8601(timestamp),
             'nextFundingDatetime': None,
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
         }
 
     def parse_balance(self, response):

@@ -4415,7 +4415,7 @@ class huobi extends Exchange {
         // }
         //
         $nextFundingRate = $this->safe_number($fundingRate, 'estimated_rate');
-        $previousFundingTimestamp = $this->safe_integer($fundingRate, 'funding_time');
+        $fundingTimestamp = $this->safe_integer($fundingRate, 'funding_time');
         $nextFundingTimestamp = $this->safe_integer($fundingRate, 'next_funding_time');
         $marketId = $this->safe_string($fundingRate, 'contract_code');
         $symbol = $this->safe_symbol($marketId, $market);
@@ -4428,12 +4428,15 @@ class huobi extends Exchange {
             'estimatedSettlePrice' => null,
             'timestamp' => null,
             'datetime' => null,
-            'previousFundingRate' => $this->safe_number($fundingRate, 'funding_rate'),
+            'fundingRate' => $this->safe_number($fundingRate, 'funding_rate'),
+            'fundingTimestamp' => $fundingTimestamp,
+            'fundingDatetime' => $this->iso8601($fundingTimestamp),
             'nextFundingRate' => $nextFundingRate,
-            'previousFundingTimestamp' => $previousFundingTimestamp,
             'nextFundingTimestamp' => $nextFundingTimestamp,
-            'previousFundingDatetime' => $this->iso8601($previousFundingTimestamp),
             'nextFundingDatetime' => $this->iso8601($nextFundingTimestamp),
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
         );
     }
 

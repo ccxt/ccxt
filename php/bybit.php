@@ -1239,9 +1239,9 @@ class bybit extends Exchange {
         // }
         //
         $result = $this->safe_value($response, 'result');
-        $nextFundingRate = $this->safe_number($result, 'funding_rate');
-        $previousFundingTime = $this->safe_integer($result, 'funding_rate_timestamp') * 1000;
-        $nextFundingTime = $previousFundingTime . (8 * 3600000);
+        $fundingRate = $this->safe_number($result, 'funding_rate');
+        $fundingTime = $this->safe_integer($result, 'funding_rate_timestamp') * 1000;
+        $nextFundingTime = $this->sum($fundingTime, 8 * 3600000);
         $currentTime = $this->milliseconds();
         return array(
             'info' => $result,
@@ -1252,12 +1252,15 @@ class bybit extends Exchange {
             'estimatedSettlePrice' => null,
             'timestamp' => $currentTime,
             'datetime' => $this->iso8601($currentTime),
-            'previousFundingRate' => null,
-            'nextFundingRate' => $nextFundingRate,
-            'previousFundingTimestamp' => $previousFundingTime,
+            'fundingRate' => $fundingRate,
+            'fundingTimestamp' => $fundingTime,
+            'fundingDatetime' => $this->iso8601($fundingTime),
+            'nextFundingRate' => null,
             'nextFundingTimestamp' => $nextFundingTime,
-            'previousFundingDatetime' => $this->iso8601($previousFundingTime),
             'nextFundingDatetime' => $this->iso8601($nextFundingTime),
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
         );
     }
 
