@@ -14,7 +14,7 @@ print('CCXT Version:', ccxt.__version__)
 
 exchange = ccxt.huobi({
     'apiKey': 'YOUR_API_KEY',
-    'secret': 'YOUR_SECRET_KEY',
+    'secret': 'YOUR_SECRET',
     'options': {
         'defaultType': 'future',
     },
@@ -32,7 +32,7 @@ side = 'buy'
 offset = 'open'
 cli_order_id = randint(0,1000)
 leverage = 1 
-amount = 1 # 1 contract = 10 usd
+amount = 1
 price = 1
 
 params = {'offset': offset, 'lever_rate': leverage, 'client_order_id': cli_order_id}
@@ -40,7 +40,7 @@ params = {'offset': offset, 'lever_rate': leverage, 'client_order_id': cli_order
 try:
     # Current Balance
     balance = exchange.fetch_balance()
-    # print(balance)
+    print(balance)
 
     # Order creation
     order = exchange.create_order(symbol, order_type, side, amount, price, params)
