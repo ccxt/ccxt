@@ -3414,6 +3414,7 @@ class huobi(Exchange):
             elif market['inverse']:
                 if market['future']:
                     method = 'contractPrivatePostApiV1ContractCancel'
+                    request['symbol'] = market['settleId']
                 elif market['swap']:
                     method = 'contractPrivatePostSwapApiV1SwapCancel'
             else:

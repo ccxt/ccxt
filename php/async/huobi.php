@@ -3590,6 +3590,7 @@ class huobi extends Exchange {
             } else if ($market['inverse']) {
                 if ($market['future']) {
                     $method = 'contractPrivatePostApiV1ContractCancel';
+                    $request['symbol'] = $market['settleId'];
                 } else if ($market['swap']) {
                     $method = 'contractPrivatePostSwapApiV1SwapCancel';
                 }

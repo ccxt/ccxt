@@ -199,16 +199,16 @@ class bitflyer(Exchange):
     def parse_ticker(self, ticker, market=None):
         symbol = self.safe_symbol(None, market)
         timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
-        last = self.safe_number(ticker, 'ltp')
+        last = self.safe_string(ticker, 'ltp')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': self.safe_number(ticker, 'best_bid'),
+            'bid': self.safe_string(ticker, 'best_bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'best_ask'),
+            'ask': self.safe_string(ticker, 'best_ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -218,10 +218,10 @@ class bitflyer(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'volume_by_product'),
+            'baseVolume': self.safe_string(ticker, 'volume_by_product'),
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
