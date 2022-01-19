@@ -2174,10 +2174,8 @@ class bybit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $options = $this->safe_value($this->options, 'fetchOrders', array());
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'linear');
-        $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
-        $marketType = $this->safe_string($marketTypes, $symbol, $defaultType);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
         $defaultMethod = null;
         $marketDefined = ($market !== null);
         $linear = ($marketDefined && $market['linear']) || ($marketType === 'linear');
@@ -2208,8 +2206,7 @@ class bybit extends Exchange {
                 $defaultMethod = 'futuresPrivateGetStopOrderList';
             }
         }
-        $method = $this->safe_string($options, 'method', $defaultMethod);
-        $response = $this->$method (array_merge($request, $query));
+        $response = $this->$defaultMethod (array_merge($request, $query));
         //
         //     {
         //         "ret_code" => 0,
