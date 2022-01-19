@@ -150,29 +150,29 @@ module.exports = class coinfalcon extends Exchange {
         const marketId = this.safeString (ticker, 'name');
         market = this.safeMarket (marketId, market, '-');
         const timestamp = this.milliseconds ();
-        const last = this.safeNumber (ticker, 'last_price');
+        const last = this.safeString (ticker, 'last_price');
         return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': this.safeNumber (ticker, 'highest_bid'),
+            'bid': this.safeString (ticker, 'highest_bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'lowest_ask'),
+            'ask': this.safeString (ticker, 'lowest_ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeNumber (ticker, 'change_in_24h'),
+            'change': this.safeString (ticker, 'change_in_24h'),
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': this.safeNumber (ticker, 'volume'),
+            'quoteVolume': this.safeString (ticker, 'volume'),
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
