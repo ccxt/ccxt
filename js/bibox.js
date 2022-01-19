@@ -238,6 +238,8 @@ module.exports = class bibox extends Exchange {
                 'inverse': undefined,
                 'contract': false,
                 'contractSize': undefined,
+                'settle': undefined,
+                'settleId': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'active': undefined,
