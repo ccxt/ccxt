@@ -306,6 +306,7 @@ And structurally:
 - if you need another base method you will have to implement it in all three languages
 - try not to issue more than one HTTP request from a unified method
 - avoid changing the contents of the arguments and params passed by reference into function calls
+- keep it simple, don't do more than one statement in one line
 - try to reduce syntax to basic one-liner expressions
 - multiple lines are ok, but you should avoid deep nesting with lots of brackets
 - do not use conditional statements that are too complex (heavy if-bracketing)
@@ -317,7 +318,6 @@ And structurally:
 - do not use the `in` operator to check if a value is in a non-associative array (list)
 - don't add custom currency or symbol/pair conversions and formatting, copy from existing code instead
 - **don't access non-existent keys, `array['key'] || {}` won't work in other languages!**
-- keep it simple, don't do more than one statement in one line
 
 #### Sending Market Ids
 
