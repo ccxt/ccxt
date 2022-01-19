@@ -133,6 +133,12 @@ module.exports = class phemex extends Exchange {
                         'api-data/spots/funds', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/convert', // ?startTime=<startTime>&endTime=<endTime>&limit=<limit>&offset=<offset>
                         'assets/transfer', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        // transfer
+                        'assets/transfer',
+                        'assets/spots/sub-accounts/transfer',
+                        'assets/spots/sub-accounts/transfer',
+                        'assets/quote',
+                        'assets/convert',
                     ],
                     'post': [
                         // spot
@@ -146,6 +152,12 @@ module.exports = class phemex extends Exchange {
                         'exchange/wallets/createWithdraw', // ?otpCode=<otpCode>
                         'exchange/wallets/cancelWithdraw',
                         'exchange/wallets/createWithdrawAddress', // ?otpCode={optCode}
+                        // transfer
+                        'assets/transfer',
+                        'assets/spots/sub-accounts/transfer', // for sub-account only
+                        'assets/futures/sub-accounts/transfer', // for sub-account only
+                        'assets/universal-transfer', // for Main account only
+                        'assets/convert',
                     ],
                     'put': [
                         // spot
@@ -308,11 +320,16 @@ module.exports = class phemex extends Exchange {
                     '11114': InvalidOrder, // TE_ORDER_VALUE_TOO_LARGE Order value is too large
                     '11115': InvalidOrder, // TE_ORDER_VALUE_TOO_SMALL Order value is too small
                     // not documented
+                    '30000': BadRequest, // {"code":30000,"msg":"Please double check input arguments","data":null}
                     '30018': BadRequest, // {"code":30018,"msg":"phemex.data.size.uplimt","data":null}
+                    '34003': PermissionDenied, // {"code":34003,"msg":"Access forbidden","data":null}
+                    '35104': InsufficientFunds, // {"code":35104,"msg":"phemex.spot.wallet.balance.notenough","data":null}
                     '39995': RateLimitExceeded, // {"code": "39995","msg": "Too many requests."}
                     '39996': PermissionDenied, // {"code": "39996","msg": "Access denied."}
                 },
                 'broad': {
+                    '401 Insufficient privilege': PermissionDenied, // {"code": "401","msg": "401 Insufficient privilege."}
+                    '401 Request IP mismatch': PermissionDenied, // {"code": "401","msg": "401 Request IP mismatch."}
                     'Failed to find api-key': AuthenticationError, // {"msg":"Failed to find api-key 1c5ec63fd-660d-43ea-847a-0d3ba69e106e","code":10500}
                     'Missing required parameter': BadRequest, // {"msg":"Missing required parameter","code":10500}
                     'API Signature verification failed': AuthenticationError, // {"msg":"API Signature verification failed.","code":10500}
