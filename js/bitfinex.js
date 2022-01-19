@@ -500,7 +500,7 @@ module.exports = class bitfinex extends Exchange {
                 'margin': margin,
                 'future': false,
                 'swap': false,
-                'option': undefined,
+                'option': false,
                 'optionType': undefined,
                 'strike': undefined,
                 'linear': undefined,
