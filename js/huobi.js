@@ -3508,7 +3508,8 @@ module.exports = class huobi extends Exchange {
         }
         let method = undefined;
         if (market['linear']) {
-            const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
+            const defaultMargin = market['future'] ? 'cross' : 'isolated';
+            const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', defaultMargin);
             if (marginType === 'isolated') {
                 method = 'contractPrivatePostLinearSwapApiV1SwapOrder';
             } else if (marginType === 'cross') {
