@@ -261,7 +261,7 @@ These files containing derived exchange classes are transpiled from JS into PHP:
 
 These PHP base classes and files are not transpiled:
 
-- `php/Exchange.php php/ExchangeError.php php/Precise.php ...
+- `php/Exchange.php php/ExchangeError.php php/Precise.php ...`
 
 #### Typescript
 
