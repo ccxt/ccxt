@@ -24,6 +24,11 @@ class hollaex(Exchange):
             'rateLimit': 333,
             'version': 'v2',
             'has': {
+                'spot': True,
+                'margin': None,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'CORS': None,
@@ -38,7 +43,15 @@ class hollaex(Exchange):
                 'fetchDepositAddress': 'emulated',
                 'fetchDepositAddresses': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrder': True,
@@ -47,11 +60,17 @@ class hollaex(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrderBooks': True,
                 'fetchOrders': True,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTransactions': None,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -194,30 +213,43 @@ class hollaex(Exchange):
         for i in range(0, len(keys)):
             key = keys[i]
             market = pairs[key]
-            id = self.safe_string(market, 'name')
             baseId = self.safe_string(market, 'pair_base')
             quoteId = self.safe_string(market, 'pair_2')
             base = self.common_currency_code(baseId.upper())
             quote = self.common_currency_code(quoteId.upper())
-            symbol = base + '/' + quote
-            active = self.safe_value(market, 'active')
-            maker = self.fees['trading']['maker']
-            taker = self.fees['trading']['taker']
             result.append({
-                'id': id,
-                'symbol': symbol,
+                'id': self.safe_string(market, 'name'),
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': self.safe_value(market, 'active'),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
                 'precision': {
                     'price': self.safe_number(market, 'increment_price'),
                     'amount': self.safe_number(market, 'increment_size'),
                 },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(market, 'min_size'),
                         'max': self.safe_number(market, 'max_size'),
@@ -226,10 +258,11 @@ class hollaex(Exchange):
                         'min': self.safe_number(market, 'min_price'),
                         'max': self.safe_number(market, 'max_price'),
                     },
-                    'cost': {'min': None, 'max': None},
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
                 },
-                'taker': taker,
-                'maker': maker,
                 'info': market,
             })
         return result
@@ -917,12 +950,13 @@ class hollaex(Exchange):
         return self.parse_order(response)
 
     async def cancel_all_orders(self, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + " cancelAllOrders() requires a 'symbol' argument")
         await self.load_markets()
         request = {}
         market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            request['symbol'] = market['id']
+        market = self.market(symbol)
+        request['symbol'] = market['id']
         response = await self.privateDeleteOrderAll(self.extend(request, params))
         #
         #     [

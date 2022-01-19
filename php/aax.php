@@ -617,15 +617,15 @@ class aax extends Exchange {
         $timestamp = $this->safe_integer($ticker, 't');
         $marketId = $this->safe_string($ticker, 's');
         $symbol = $this->safe_symbol($marketId, $market);
-        $last = $this->safe_number($ticker, 'c');
-        $open = $this->safe_number($ticker, 'o');
-        $quoteVolume = $this->safe_number($ticker, 'v');
+        $last = $this->safe_string($ticker, 'c');
+        $open = $this->safe_string($ticker, 'o');
+        $quoteVolume = $this->safe_string($ticker, 'v');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => null,
-            'high' => $this->safe_number($ticker, 'h'),
-            'low' => $this->safe_number($ticker, 'l'),
+            'high' => $this->safe_string($ticker, 'h'),
+            'low' => $this->safe_string($ticker, 'l'),
             'bid' => null,
             'bidVolume' => null,
             'ask' => null,
@@ -641,7 +641,7 @@ class aax extends Exchange {
             'baseVolume' => null,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

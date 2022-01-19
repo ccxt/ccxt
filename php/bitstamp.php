@@ -325,51 +325,49 @@ class bitstamp extends Exchange {
             $quoteId = strtolower($quote);
             $base = $this->safe_currency_code($base);
             $quote = $this->safe_currency_code($quote);
-            $symbol = $base . '/' . $quote;
-            $marketId = $baseId . '_' . $quoteId;
-            $id = $this->safe_string($market, 'url_symbol');
             $amountPrecisionString = $this->safe_string($market, 'base_decimals');
             $pricePrecisionString = $this->safe_string($market, 'counter_decimals');
             $amountLimit = $this->parse_precision($amountPrecisionString);
             $priceLimit = $this->parse_precision($pricePrecisionString);
-            $precision = array(
-                'amount' => intval($amountPrecisionString),
-                'price' => intval($pricePrecisionString),
-            );
             $minimumOrder = $this->safe_string($market, 'minimum_order');
             $parts = explode(' ', $minimumOrder);
             $cost = $parts[0];
             // list($cost, $currency) = explode(' ', $market['minimum_order']);
             $trading = $this->safe_string($market, 'trading');
-            $active = ($trading === 'Enabled');
             $result[] = array(
-                'id' => $id,
-                'symbol' => $symbol,
+                'id' => $this->safe_string($market, 'url_symbol'),
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'marketId' => $marketId,
-                'info' => $market,
+                'settleId' => null,
+                'marketId' => $baseId . '_' . $quoteId,
                 'type' => 'spot',
                 'spot' => true,
                 'margin' => false,
                 'future' => false,
                 'swap' => false,
                 'option' => false,
+                'active' => ($trading === 'Enabled'),
+                'contract' => false,
                 'linear' => null,
                 'inverse' => null,
+                'contractSize' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
-                'contract' => false,
-                'contractSize' => null,
-                'optionType' => null,
                 'strike' => null,
-                'settle' => null,
-                'settleId' => null,
-                'active' => $active,
-                'precision' => $precision,
+                'optionType' => null,
+                'precision' => array(
+                    'price' => intval($pricePrecisionString),
+                    'amount' => intval($amountPrecisionString),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->parse_number($amountLimit),
                         'max' => null,
@@ -383,6 +381,7 @@ class bitstamp extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'info' => $market,
             );
         }
         return $result;

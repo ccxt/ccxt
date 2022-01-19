@@ -665,10 +665,7 @@ class bitfinex(Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.safe_number(ticker, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
-        timestamp = int(timestamp)
+        timestamp = self.safe_timestamp(ticker, 'timestamp')
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -684,16 +681,16 @@ class bitfinex(Exchange):
                     base = self.safe_currency_code(baseId)
                     quote = self.safe_currency_code(quoteId)
                     symbol = base + '/' + quote
-        last = self.safe_number(ticker, 'last_price')
+        last = self.safe_string(ticker, 'last_price')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -702,11 +699,11 @@ class bitfinex(Exchange):
             'previousClose': None,
             'change': None,
             'percentage': None,
-            'average': self.safe_number(ticker, 'mid'),
-            'baseVolume': self.safe_number(ticker, 'volume'),
+            'average': self.safe_string(ticker, 'mid'),
+            'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def parse_trade(self, trade, market=None):
         #

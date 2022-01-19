@@ -274,31 +274,31 @@ class bigone(Exchange):
         marketId = self.safe_string(ticker, 'asset_pair_name')
         symbol = self.safe_symbol(marketId, market, '-')
         timestamp = None
-        close = self.safe_number(ticker, 'close')
+        close = self.safe_string(ticker, 'close')
         bid = self.safe_value(ticker, 'bid', {})
         ask = self.safe_value(ticker, 'ask', {})
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(bid, 'price'),
-            'bidVolume': self.safe_number(bid, 'quantity'),
-            'ask': self.safe_number(ask, 'price'),
-            'askVolume': self.safe_number(ask, 'quantity'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(bid, 'price'),
+            'bidVolume': self.safe_string(bid, 'quantity'),
+            'ask': self.safe_string(ask, 'price'),
+            'askVolume': self.safe_string(ask, 'quantity'),
             'vwap': None,
-            'open': self.safe_number(ticker, 'open'),
+            'open': self.safe_string(ticker, 'open'),
             'close': close,
             'last': close,
             'previousClose': None,
-            'change': self.safe_number(ticker, 'daily_change'),
+            'change': self.safe_string(ticker, 'daily_change'),
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'volume'),
+            'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

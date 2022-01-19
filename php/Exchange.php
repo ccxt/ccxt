@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.68.25';
+$version = '1.68.48';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.68.25';
+    const VERSION = '1.68.48';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2134,7 +2134,7 @@ class Exchange {
                     $average = Precise::string_div(Precise::string_add($last, $open), '2');
                 }
             }
-            if (($percentage === null) && ($change !== null) && ($open !== null) && ($open > 0)) {
+            if (($percentage === null) && ($change !== null) && ($open !== null) && (Precise::string_gt($open, '0'))) {
                 $percentage = Precise::string_mul(Precise::string_div($change, $open), '100');
             }
             if (($change === null) && ($percentage !== null) && ($last !== null)) {

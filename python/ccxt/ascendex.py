@@ -752,20 +752,20 @@ class ascendex(Exchange):
         type = self.safe_string(ticker, 'type')
         delimiter = '/' if (type == 'spot') else None
         symbol = self.safe_symbol(marketId, market, delimiter)
-        close = self.safe_number(ticker, 'close')
+        close = self.safe_string(ticker, 'close')
         bid = self.safe_value(ticker, 'bid', [])
         ask = self.safe_value(ticker, 'ask', [])
-        open = self.safe_number(ticker, 'open')
+        open = self.safe_string(ticker, 'open')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': None,
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(bid, 0),
-            'bidVolume': self.safe_number(bid, 1),
-            'ask': self.safe_number(ask, 0),
-            'askVolume': self.safe_number(ask, 1),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(bid, 0),
+            'bidVolume': self.safe_string(bid, 1),
+            'ask': self.safe_string(ask, 0),
+            'askVolume': self.safe_string(ask, 1),
             'vwap': None,
             'open': open,
             'close': close,
@@ -774,10 +774,10 @@ class ascendex(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'volume'),
+            'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

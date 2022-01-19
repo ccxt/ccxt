@@ -335,6 +335,7 @@ class binance(Exchange):
                         'nft/history/withdraw': 1,
                         'nft/user/getAsset': 1,
                         'pay/transactions': 1,
+                        'giftcard/verify': 1,
                     },
                     'post': {
                         'asset/dust': 1,
@@ -407,6 +408,8 @@ class binance(Exchange):
                         'broker/universalTransfer': 1,
                         'broker/subAccountApi/permission/universalTransfer': 1,
                         'broker/subAccountApi/permission/vanillaOptions': 1,
+                        'giftcard/createCode': 1,
+                        'giftcard/redeemCode': 1,
                     },
                     'put': {
                         'userDataStream': 1,
@@ -4751,6 +4754,7 @@ class binance(Exchange):
                 }
             else:
                 raise AuthenticationError(self.id + ' historicalTrades endpoint requires `apiKey` credential')
+        giftcard = (api == 'sapi') and (path.find('gift') >= 0) and (method == 'POST')
         userDataStream = (path == 'userDataStream') or (path == 'listenKey')
         if userDataStream:
             if self.apiKey:
@@ -4777,6 +4781,11 @@ class binance(Exchange):
                     'timestamp': self.nonce(),
                     'recvWindow': recvWindow,
                 }, params))
+            elif giftcard:
+                query = self.urlencode({
+                    'timestamp': self.nonce(),
+                    'recvWindow': recvWindow,
+                })
             else:
                 query = self.urlencode(self.extend({
                     'timestamp': self.nonce(),
@@ -4789,6 +4798,10 @@ class binance(Exchange):
             }
             if (method == 'GET') or (method == 'DELETE') or (api == 'wapi'):
                 url += '?' + query
+            elif giftcard:
+                url += '?' + query
+                headers['Content-Type'] = 'application/json'
+                body = self.json(params)
             else:
                 body = query
                 headers['Content-Type'] = 'application/x-www-form-urlencoded'
@@ -4993,3 +5006,65 @@ class binance(Exchange):
                 'info': item,
             })
         return result
+
+    def create_gift_code(self, code, amount, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        # ensure you have enough token in your funding account before calling self code
+        request = {
+            'token': currency['id'],
+            'amount': amount,
+        }
+        response = self.sapiPostGiftcardCreateCode(self.extend(request, params))
+        #
+        #     {
+        #       code: '000000',
+        #       message: 'success',
+        #       data: {referenceNo: '0033002404219823', code: 'AP6EXTLKNHM6CEX7'},
+        #       success: True
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        giftcardCode = self.safe_string(data, 'code')
+        id = self.safe_string(data, 'referenceNo')
+        return {
+            'info': response,
+            'id': id,
+            'code': giftcardCode,
+            'currency': code,
+            'amount': amount,
+        }
+
+    def redeem_gift_code(self, giftcardCode, params={}):
+        request = {
+            'code': giftcardCode,
+        }
+        response = self.sapiPostGiftcardRedeemCode(self.extend(request, params))
+        #
+        #     {
+        #       code: '000000',
+        #       message: 'success',
+        #       data: {
+        #         referenceNo: '0033002404219823',
+        #         identityNo: '10316431732801474560'
+        #       },
+        #       success: True
+        #     }
+        #
+        return response
+
+    def verify_gift_code(self, id, params={}):
+        request = {
+            'type': 'CODE',
+            'value': id,
+        }
+        response = self.sapiGetGiftcardVerify(self.extend(request, params))
+        #
+        #     {
+        #       code: '000000',
+        #       message: 'success',
+        #       data: {valid: True},
+        #       success: True
+        #     }
+        #
+        return response

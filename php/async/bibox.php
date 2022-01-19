@@ -268,24 +268,23 @@ class bibox extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
         }
-        $last = $this->safe_number($ticker, 'last');
-        $change = $this->safe_number($ticker, 'change');
-        $baseVolume = $this->safe_number_2($ticker, 'vol', 'vol24H');
+        $last = $this->safe_string($ticker, 'last');
+        $change = $this->safe_string($ticker, 'change');
+        $baseVolume = $this->safe_string_2($ticker, 'vol', 'vol24H');
         $percentage = $this->safe_string($ticker, 'percent');
         if ($percentage !== null) {
             $percentage = str_replace('%', '', $percentage);
-            $percentage = $this->parse_number($percentage);
         }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'buy'),
-            'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'sell'),
-            'askVolume' => null,
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'buy'),
+            'bidVolume' => $this->safe_string($ticker, 'buy_amount'),
+            'ask' => $this->safe_string($ticker, 'sell'),
+            'askVolume' => $this->safe_string($ticker, 'sell_amount'),
             'vwap' => null,
             'open' => null,
             'close' => $last,
@@ -295,9 +294,9 @@ class bibox extends Exchange {
             'percentage' => $percentage,
             'average' => null,
             'baseVolume' => $baseVolume,
-            'quoteVolume' => $this->safe_number($ticker, 'amount'),
+            'quoteVolume' => $this->safe_string($ticker, 'amount'),
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

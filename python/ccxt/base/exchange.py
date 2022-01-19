@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.68.25'
+__version__ = '1.68.48'
 
 # -----------------------------------------------------------------------------
 
@@ -1912,7 +1912,7 @@ class Exchange(object):
                     change = Precise.string_sub(last, open)
                 if average is None:
                     average = Precise.string_div(Precise.string_add(last, open), '2')
-            if (percentage is None) and (change is not None) and (open is not None) and (open > 0):
+            if (percentage is None) and (change is not None) and (open is not None) and (Precise.string_gt(open, '0')):
                 percentage = Precise.string_mul(Precise.string_div(change, open), '100')
             if (change is None) and (percentage is not None) and (last is not None):
                 change = Precise.string_div(Precise.string_mul(percentage, last), '100')

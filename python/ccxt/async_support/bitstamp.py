@@ -341,51 +341,49 @@ class bitstamp(Exchange):
             quoteId = quote.lower()
             base = self.safe_currency_code(base)
             quote = self.safe_currency_code(quote)
-            symbol = base + '/' + quote
-            marketId = baseId + '_' + quoteId
-            id = self.safe_string(market, 'url_symbol')
             amountPrecisionString = self.safe_string(market, 'base_decimals')
             pricePrecisionString = self.safe_string(market, 'counter_decimals')
             amountLimit = self.parse_precision(amountPrecisionString)
             priceLimit = self.parse_precision(pricePrecisionString)
-            precision = {
-                'amount': int(amountPrecisionString),
-                'price': int(pricePrecisionString),
-            }
             minimumOrder = self.safe_string(market, 'minimum_order')
             parts = minimumOrder.split(' ')
             cost = parts[0]
             # cost, currency = market['minimum_order'].split(' ')
             trading = self.safe_string(market, 'trading')
-            active = (trading == 'Enabled')
             result.append({
-                'id': id,
-                'symbol': symbol,
+                'id': self.safe_string(market, 'url_symbol'),
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'marketId': marketId,
-                'info': market,
+                'settleId': None,
+                'marketId': baseId + '_' + quoteId,
                 'type': 'spot',
                 'spot': True,
                 'margin': False,
                 'future': False,
                 'swap': False,
                 'option': False,
+                'active': (trading == 'Enabled'),
+                'contract': False,
                 'linear': None,
                 'inverse': None,
+                'contractSize': None,
                 'expiry': None,
                 'expiryDatetime': None,
-                'contract': False,
-                'contractSize': None,
-                'optionType': None,
                 'strike': None,
-                'settle': None,
-                'settleId': None,
-                'active': active,
-                'precision': precision,
+                'optionType': None,
+                'precision': {
+                    'price': int(pricePrecisionString),
+                    'amount': int(amountPrecisionString),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.parse_number(amountLimit),
                         'max': None,
@@ -399,6 +397,7 @@ class bitstamp(Exchange):
                         'max': None,
                     },
                 },
+                'info': market,
             })
         return result
 

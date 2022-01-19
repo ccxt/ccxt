@@ -18,7 +18,8 @@ class bytetrade extends Exchange {
             'id' => 'bytetrade',
             'name' => 'ByteTrade',
             'countries' => array( 'HK' ),
-            'rateLimit' => 500,
+            // 10 requests per second => ( 1000ms / 10 ) = 100
+            'rateLimit' => 100,
             'requiresWeb3' => true,
             'certified' => false,
             // new metainfo interface
@@ -73,32 +74,32 @@ class bytetrade extends Exchange {
             'api' => array(
                 'market' => array(
                     'get' => array(
-                        'klines',        // Kline of a symbol
-                        'depth',         // Market Depth of a symbol
-                        'trades',        // Trade records of a symbol
-                        'tickers',
+                        'klines' => 1,        // Kline of a symbol
+                        'depth' => 1,         // Market Depth of a symbol
+                        'trades' => 1,        // Trade records of a symbol
+                        'tickers' => 1,
                     ),
                 ),
                 'public' => array(
                     'get' => array(
-                        'symbols',        // Reference information of trading instrument, including base currency, quote precision, etc.
-                        'currencies',     // The list of currencies available
-                        'balance',        // Get the balance of an account
-                        'orders/open',    // Get the open orders of an account
-                        'orders/closed',  // Get the closed orders of an account
-                        'orders/all',     // Get the open and closed orders of an account
-                        'orders',         // Get the details of an order of an account
-                        'orders/trades',  // Get detail match results
-                        'depositaddress', // Get deposit address
-                        'withdrawals',    // Get withdrawals info
-                        'deposits',       // Get deposit info
-                        'transfers',      // Get transfer info
+                        'symbols' => 1,        // Reference information of trading instrument, including base currency, quote precision, etc.
+                        'currencies' => 1,     // The list of currencies available
+                        'balance' => 1,        // Get the balance of an account
+                        'orders/open' => 1,    // Get the open orders of an account
+                        'orders/closed' => 1,  // Get the closed orders of an account
+                        'orders/all' => 1,     // Get the open and closed orders of an account
+                        'orders' => 1,         // Get the details of an order of an account
+                        'orders/trades' => 1,  // Get detail match results
+                        'depositaddress' => 1, // Get deposit address
+                        'withdrawals' => 1,    // Get withdrawals info
+                        'deposits' => 1,       // Get deposit info
+                        'transfers' => 1,      // Get transfer info
                     ),
                     'post' => array(
-                        'transaction/createorder',    // Post create order transaction to blockchain
-                        'transaction/cancelorder',    // Post cancel order transaction to blockchain
-                        'transaction/withdraw',       // Post withdraw transaction to blockchain
-                        'transaction/transfer',       // Post transfer transaction to blockchain
+                        'transaction/createorder' => 1,    // Post create order transaction to blockchain
+                        'transaction/cancelorder' => 1,    // Post cancel order transaction to blockchain
+                        'transaction/withdraw' => 1,       // Post withdraw transaction to blockchain
+                        'transaction/transfer' => 1,       // Post transfer transaction to blockchain
                     ),
                 ),
             ),
@@ -481,10 +482,46 @@ class bytetrade extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        // public trades
+        //  {
+        //      "id":"d38a5bc4b651106f9d6abf9ced671961909be215",
+        //      "timestamp":1642522255864,
+        //      "symbol":"122406567940",
+        //      "side":"sell",
+        //      "price":"0.12",
+        //      "amount":"0.5747"
+        //  }
+        //
+        // private trades
+        //  {
+        //      "id":"905b6ff62b6c90eb5b8c0f7ad0f6bccf018d15e4",
+        //      "timestamp":1642525375299,
+        //      "datetime":"2022-01-18T17:02:55.299Z",
+        //      "symbol":"122406567940",
+        //      "userid":"slimmjimm@gmail.com",
+        //      "otherUserid":"nakamoto@gmail.com",
+        //      "takerOrMaker":"maker",
+        //      "side":"sell",
+        //      "txid":"036a89648352732f26a2b6680331dd7887a5c800",
+        //      "type":"market",
+        //      "order":"84749f1ca91541d97e400f628d5bb7b1e418a738",
+        //      "fee" => array(
+        //          "cost":"0.000611176192",
+        //          "rate":"0.0008",
+        //          "code":57,"name":"USDT"
+        //          ),
+        //      "cost":"0.76397024",
+        //      "price":"0.01216",
+        //      "amount":"62.8265",
+        //      "average":"0.01216",
+        //      "name":"DOGE/USDT"
+        //  }
+        //
         $timestamp = $this->safe_integer($trade, 'timestamp');
-        $price = $this->safe_number($trade, 'price');
-        $amount = $this->safe_number($trade, 'amount');
-        $cost = $this->safe_number($trade, 'cost');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'amount');
+        $costString = $this->safe_string($trade, 'cost');
         $id = $this->safe_string($trade, 'id');
         $type = $this->safe_string($trade, 'type');
         $takerOrMaker = $this->safe_string($trade, 'takerOrMaker');
@@ -500,16 +537,16 @@ class bytetrade extends Exchange {
             $symbol = $market['symbol'];
         }
         $feeData = $this->safe_value($trade, 'fee');
-        $feeCost = $this->safe_number($feeData, 'cost');
-        $feeRate = $this->safe_number($feeData, 'rate');
+        $feeCostString = $this->safe_string($feeData, 'cost');
+        $feeRateString = $this->safe_string($feeData, 'rate');
         $feeCode = $this->safe_string($feeData, 'code');
         $feeCurrency = $this->safe_currency_code($feeCode);
         $fee = array(
             'currency' => $feeCurrency,
-            'cost' => $feeCost,
-            'rate' => $feeRate,
+            'cost' => $feeCostString,
+            'rate' => $feeRateString,
         );
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $datetime,
@@ -519,11 +556,11 @@ class bytetrade extends Exchange {
             'type' => $type,
             'takerOrMaker' => $takerOrMaker,
             'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => $costString,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
