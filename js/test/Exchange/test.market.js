@@ -85,4 +85,17 @@ module.exports = (exchange, market, method) => {
     };
     const type = market['type'];
     assert (type in validTypes);
+    const types = Object.keys (validTypes);
+    for (let i = 0; i < types.length; i++) {
+        const entry = types[i];
+        const value = market[entry];
+        assert ((value === false) || (value === true));
+    }
+    if (market['future']) {
+        assert ((market['swap'] === false) && (market['option'] === false));
+    } else if (market['swap']) {
+        assert ((market['future'] === false) && (market['option'] === false));
+    } else if (market['option']) {
+        assert ((market['future'] === false) && (market['swap'] === false));
+    }
 }
