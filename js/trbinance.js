@@ -731,17 +731,17 @@ module.exports = class trbinance extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
+        // const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
+        // const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
-        let defaultMethod = undefined;
-        if (type === 'future') {
-            defaultMethod = 'fapiPublicGetTicker24hr';
-        } else if (type === 'delivery') {
-            defaultMethod = 'dapiPublicGetTicker24hr';
-        } else {
-            defaultMethod = 'publicGetTicker24hr';
-        }
+        const defaultMethod = 'publicGetTicker24hr';
+        // if (type === 'future') {
+        //     defaultMethod = 'fapiPublicGetTicker24hr';
+        // } else if (type === 'delivery') {
+        //     defaultMethod = 'dapiPublicGetTicker24hr';
+        // } else {
+        //     defaultMethod = 'publicGetTicker24hr';
+        // }
         const method = this.safeString (this.options, 'fetchTickersMethod', defaultMethod);
         const response = await this[method] (query);
         return this.parseTickers (response, symbols);
@@ -1265,11 +1265,7 @@ module.exports = class trbinance extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + this.version + '/' + path;
-        if (api === 'public') {
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
-            }
-        } else if (api === 'private') {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             let query = undefined;
             const recvWindow = this.safeInteger (this.options, 'recvWindow', 5000);
@@ -1305,6 +1301,9 @@ module.exports = class trbinance extends Exchange {
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
         } else {
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            }
             if (api === 'public' && path === 'aggTrades') {
                 url = this.urls['api']['public3'] + path;
                 if (Object.keys (params).length) {
