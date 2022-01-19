@@ -1218,6 +1218,9 @@ module.exports = class kucoinfutures extends kucoin {
             'nextFundingRate': this.safeNumber (data, 'predictedValue'),
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
         };
     }
 

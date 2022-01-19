@@ -1256,6 +1256,9 @@ module.exports = class bybit extends Exchange {
             'nextFundingRate': undefined,
             'nextFundingTimestamp': nextFundingTime,
             'nextFundingDatetime': this.iso8601 (nextFundingTime),
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
         };
     }
 

@@ -1106,6 +1106,9 @@ module.exports = class gateio extends Exchange {
             'nextFundingRate': fundingRateIndicative,
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
         };
     }
 

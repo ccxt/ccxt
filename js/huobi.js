@@ -4425,6 +4425,9 @@ module.exports = class huobi extends Exchange {
             'nextFundingRate': nextFundingRate,
             'nextFundingTimestamp': nextFundingTimestamp,
             'nextFundingDatetime': this.iso8601 (nextFundingTimestamp),
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
         };
     }
 

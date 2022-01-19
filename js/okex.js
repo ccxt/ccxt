@@ -3351,6 +3351,9 @@ module.exports = class okex extends Exchange {
             'nextFundingRate': nextFundingRate,
             'nextFundingTimestamp': nextFundingRateTimestamp,
             'nextFundingDatetime': this.iso8601 (nextFundingRateTimestamp),
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
         };
     }
 

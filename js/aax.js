@@ -2141,6 +2141,9 @@ module.exports = class aax extends Exchange {
             'nextFundingRate': undefined,
             'nextFundingTimestamp': this.parse8601 (nextFundingDatetime),
             'nextFundingDatetime': nextFundingDatetime,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
         };
     }
 
