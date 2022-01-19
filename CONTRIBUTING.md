@@ -296,10 +296,10 @@ If the transpiling process finishes successfully, but generates incorrect Python
 - do not use language-specific code syntax sugar, even if you really want to
 - unfold all maps and comprehensions to basic for-loops
 - don't change the arguments of overridden inherited methods, keep them uniform across all exchanges
-- everything should be done using base class methods only (for example, use `this.json ()` for converting objects to json).
+- everything should be done using base class methods only (for example, use `this.json ()` for converting objects to json)
 - always put a semicolon `;` at the end of each statement, as in PHP/C-style
-- all associative keys must be single-quoted strings everywhere, like: `array['good'],` instead of using dot: `array.bad`
-- for variable declarations, never use `var`! use `const` keyword if variable is not re-assigned afterwards. Otherwise use `let`.
+- all associative keys must be single-quoted strings everywhere (`array['good']`), do not use the dot notation (`array.bad`)
+- never use the `var` keyword, instead use `const` for constants or `let` for variables
 
 And structurally:
 
