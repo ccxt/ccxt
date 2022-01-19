@@ -678,11 +678,7 @@ class bitfinex extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
-        $timestamp = $this->safe_number($ticker, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
-        $timestamp = intval($timestamp);
+        $timestamp = $this->safe_timestamp($ticker, 'timestamp');
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -701,16 +697,16 @@ class bitfinex extends Exchange {
                 }
             }
         }
-        $last = $this->safe_number($ticker, 'last_price');
+        $last = $this->safe_string($ticker, 'last_price');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -719,11 +715,11 @@ class bitfinex extends Exchange {
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
-            'average' => $this->safe_number($ticker, 'mid'),
-            'baseVolume' => $this->safe_number($ticker, 'volume'),
+            'average' => $this->safe_string($ticker, 'mid'),
+            'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function parse_trade($trade, $market = null) {

@@ -743,29 +743,29 @@ class bitfinex2 extends bitfinex {
         $timestamp = $this->milliseconds();
         $symbol = $this->safe_symbol(null, $market);
         $length = is_array($ticker) ? count($ticker) : 0;
-        $last = $this->safe_number($ticker, $length - 4);
+        $last = $this->safe_string($ticker, $length - 4);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, $length - 2),
-            'low' => $this->safe_number($ticker, $length - 1),
-            'bid' => $this->safe_number($ticker, $length - 10),
+            'high' => $this->safe_string($ticker, $length - 2),
+            'low' => $this->safe_string($ticker, $length - 1),
+            'bid' => $this->safe_string($ticker, $length - 10),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, $length - 8),
+            'ask' => $this->safe_string($ticker, $length - 8),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_number($ticker, $length - 6),
-            'percentage' => $this->safe_number($ticker, $length - 5) * 100,
+            'change' => $this->safe_string($ticker, $length - 6),
+            'percentage' => $this->safe_string($ticker, $length - 5) * 100,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, $length - 3),
+            'baseVolume' => $this->safe_string($ticker, $length - 3),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

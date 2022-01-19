@@ -186,22 +186,18 @@ class bit2c extends Exchange {
     public function parse_ticker($ticker, $market = null) {
         $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->milliseconds();
-        $averagePrice = $this->safe_number($ticker, 'av');
-        $baseVolume = $this->safe_number($ticker, 'a');
-        $quoteVolume = null;
-        if ($baseVolume !== null && $averagePrice !== null) {
-            $quoteVolume = $baseVolume * $averagePrice;
-        }
-        $last = $this->safe_number($ticker, 'll');
+        $averagePrice = $this->safe_string($ticker, 'av');
+        $baseVolume = $this->safe_string($ticker, 'a');
+        $last = $this->safe_string($ticker, 'll');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => $this->safe_number($ticker, 'h'),
+            'bid' => $this->safe_string($ticker, 'h'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'l'),
+            'ask' => $this->safe_string($ticker, 'l'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -212,9 +208,9 @@ class bit2c extends Exchange {
             'percentage' => null,
             'average' => $averagePrice,
             'baseVolume' => $baseVolume,
-            'quoteVolume' => $quoteVolume,
+            'quoteVolume' => null,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
