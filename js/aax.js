@@ -1359,25 +1359,23 @@ module.exports = class aax extends Exchange {
             // 'side': 'undefined', // BUY, SELL
             // 'clOrdID': clientOrderId,
         };
-        const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
-        let type = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
         let market = undefined;
+        let marketType = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
-            type = market['type'];
+            marketType = market['type'];
         }
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateGetSpotOpenOrders',
+            'swap': 'privateGetFuturesOpenOrders',
+            'future': 'privateGetFuturesOpenOrders',
+        });
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clOrdID'] = clientOrderId;
             params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
-        }
-        let method = undefined;
-        if (type === 'spot') {
-            method = 'privateGetSpotOpenOrders';
-        } else if (type === 'swap' || type === 'future' || type === 'futures') { // type === 'futures' deprecated, use type === 'swap'
-            method = 'privateGetFuturesOpenOrders';
         }
         if (limit !== undefined) {
             request['pageSize'] = limit; // default 10
