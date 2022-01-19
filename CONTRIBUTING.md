@@ -307,7 +307,7 @@ And structurally:
 - try not to issue more than one HTTP request from a unified method
 - avoid changing the contents of the arguments and params passed by reference into function calls
 - keep it simple, don't do more than one statement in one line
-- try to reduce syntax & logic to basic one-liner expressions
+- try to reduce syntax & logic (if possible) to basic one-liner expressions
 - multiple lines are ok, but you should avoid deep nesting with lots of brackets
 - do not use conditional statements that are too complex (heavy if-bracketing)
 - do not use heavy ternary conditionals
