@@ -305,48 +305,58 @@ module.exports = class yobit extends Exchange {
             let quote = quoteId.toUpperCase ();
             base = this.safeCurrencyCode (base);
             quote = this.safeCurrencyCode (quote);
-            const symbol = base + '/' + quote;
-            const precision = {
-                'amount': this.safeInteger (market, 'decimal_places'),
-                'price': this.safeInteger (market, 'decimal_places'),
-            };
-            const amountLimits = {
-                'min': this.safeNumber (market, 'min_amount'),
-                'max': this.safeNumber (market, 'max_amount'),
-            };
-            const priceLimits = {
-                'min': this.safeNumber (market, 'min_price'),
-                'max': this.safeNumber (market, 'max_price'),
-            };
-            const costLimits = {
-                'min': this.safeNumber (market, 'min_total'),
-            };
-            const limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-                'cost': costLimits,
-            };
             const hidden = this.safeInteger (market, 'hidden');
-            const active = (hidden === 0);
             let feeString = this.safeString (market, 'fee');
             feeString = Precise.stringDiv (feeString, '100');
             // yobit maker = taker
-            const takerFee = this.parseNumber (feeString);
-            const makerFee = this.parseNumber (feeString);
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
-                'taker': takerFee,
-                'maker': makerFee,
-                'precision': precision,
-                'limits': limits,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': (hidden === 0),
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': this.parseNumber (feeString),
+                'maker': this.parseNumber (feeString),
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeInteger (market, 'decimal_places'),
+                    'price': this.safeInteger (market, 'decimal_places'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (market, 'min_amount'),
+                        'max': this.safeNumber (market, 'max_amount'),
+                    },
+                    'price': {
+                        'min': this.safeNumber (market, 'min_price'),
+                        'max': this.safeNumber (market, 'max_price'),
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'min_total'),
+                        'max': undefined,
+                    },
+                },
                 'info': market,
             });
         }
