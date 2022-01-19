@@ -158,27 +158,43 @@ module.exports = class zaif extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const precision = {
-                'amount': -Math.log10 (this.safeNumber (market, 'item_unit_step')),
-                'price': this.safeInteger (market, 'aux_unit_point'),
-            };
             const fees = this.safeValue (this.options['fees'], symbol, this.fees['trading']);
-            const taker = fees['taker'];
-            const maker = fees['maker'];
+            const itemUnitStep = this.safeString (market, 'item_unit_step');
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'margin': undefined,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'active': true, // can trade or not
-                'precision': precision,
-                'taker': taker,
-                'maker': maker,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': fees['taker'],
+                'maker': fees['maker'],
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': Precise.stringMul (itemUnitStep, '-1e10'),
+                    'price': this.safeInteger (market, 'aux_unit_point'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'item_unit_min'),
                         'max': undefined,
