@@ -232,7 +232,7 @@ module.exports = class bibox extends Exchange {
                 'future': false,
                 'swap': false,
                 'option': undefined,
-                'optionType': undefined,
+                'optionType': false,
                 'strike': undefined,
                 'linear': undefined,
                 'inverse': undefined,
