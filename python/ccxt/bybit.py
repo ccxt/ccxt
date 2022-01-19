@@ -2102,8 +2102,10 @@ class bybit(Exchange):
             request['symbol'] = market['id']
         if limit is not None:
             request['limit'] = limit
-        marketType = None
-        marketType, params = self.handle_market_type_and_params('fetchOrders', market, params)
+        options = self.safe_value(self.options, 'fetchOrders', {})
+        defaultType = self.safe_string(self.options, 'defaultType', 'linear')
+        marketTypes = self.safe_value(self.options, 'marketTypes', {})
+        marketType = self.safe_string(marketTypes, symbol, defaultType)
         defaultMethod = None
         marketDefined = (market is not None)
         linear = (marketDefined and market['linear']) or (marketType == 'linear')
@@ -2129,7 +2131,8 @@ class bybit(Exchange):
                 defaultMethod = 'v2PrivateGetStopOrderList'
             elif future:
                 defaultMethod = 'futuresPrivateGetStopOrderList'
-        response = getattr(self, defaultMethod)(self.extend(request, query))
+        method = self.safe_string(options, 'method', defaultMethod)
+        response = getattr(self, method)(self.extend(request, query))
         #
         #     {
         #         "ret_code": 0,
