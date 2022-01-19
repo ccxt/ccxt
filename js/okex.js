@@ -1551,13 +1551,10 @@ module.exports = class okex extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const defaultType = this.safeString (this.options, 'defaultType');
-        const options = this.safeValue (this.options, 'fetchBalance', {});
-        let type = this.safeString (options, 'type', defaultType);
-        type = this.safeString (params, 'type', type);
-        params = this.omit (params, 'type');
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let method = undefined;
-        if (type === 'funding') {
+        if (marketType === 'funding') {
             method = 'privateGetAssetBalances';
         } else {
             method = 'privateGetAccountBalance';
@@ -1668,7 +1665,7 @@ module.exports = class okex extends Exchange {
         //         "msg":""
         //     }
         //
-        return this.parseBalanceByType (type, response);
+        return this.parseBalanceByType (marketType, response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
