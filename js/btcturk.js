@@ -289,29 +289,29 @@ module.exports = class btcturk extends Exchange {
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (ticker, 'timestamp');
-        const last = this.safeNumber (ticker, 'last');
+        const last = this.safeString (ticker, 'last');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeNumber (ticker, 'open'),
+            'open': this.safeString (ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeNumber (ticker, 'daily'),
-            'percentage': this.safeNumber (ticker, 'dailyPercent'),
-            'average': this.safeNumber (ticker, 'average'),
-            'baseVolume': this.safeNumber (ticker, 'volume'),
+            'change': this.safeString (ticker, 'daily'),
+            'percentage': this.safeString (ticker, 'dailyPercent'),
+            'average': this.safeString (ticker, 'average'),
+            'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
