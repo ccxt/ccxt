@@ -715,31 +715,31 @@ module.exports = class bitmart extends Exchange {
         const marketId = this.safeString2 (ticker, 'symbol', 'contract_id');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const last = this.safeNumber2 (ticker, 'close_24h', 'last_price');
-        let percentage = this.safeNumber2 (ticker, 'fluctuation', 'rise_fall_rate');
+        const last = this.safeString2 (ticker, 'close_24h', 'last_price');
+        let percentage = this.safeString2 (ticker, 'fluctuation', 'rise_fall_rate');
         if (percentage !== undefined) {
             percentage *= 100;
         }
         if (percentage === undefined) {
-            percentage = this.safeNumber (ticker, 'price_change_percent_24h');
+            percentage = this.safeString (ticker, 'price_change_percent_24h');
         }
-        const baseVolume = this.safeNumber2 (ticker, 'base_coin_volume', 'base_volume_24h');
-        let quoteVolume = this.safeNumber2 (ticker, 'quote_coin_volume', 'quote_volume_24h');
-        quoteVolume = this.safeNumber (ticker, 'volume_24h', quoteVolume);
-        const average = this.safeNumber (ticker, 'avg_price');
-        const price = this.safeValue (ticker, 'depth_price', ticker);
+        const baseVolume = this.safeString2 (ticker, 'base_coin_volume', 'base_volume_24h');
+        let quoteVolume = this.safeString2 (ticker, 'quote_coin_volume', 'quote_volume_24h');
+        quoteVolume = this.safeString (ticker, 'volume_24h', quoteVolume);
+        const average = this.safeString (ticker, 'avg_price');
+        const price = this.safeString (ticker, 'depth_price', ticker);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber2 (ticker, 'high', 'high_24h'),
-            'low': this.safeNumber2 (ticker, 'low', 'low_24h'),
-            'bid': this.safeNumber2 (price, 'best_bid', 'bid_price'),
-            'bidVolume': this.safeNumber (ticker, 'best_bid_size'),
-            'ask': this.safeNumber2 (price, 'best_ask', 'ask_price'),
-            'askVolume': this.safeNumber (ticker, 'best_ask_size'),
+            'high': this.safeString2 (ticker, 'high', 'high_24h'),
+            'low': this.safeString2 (ticker, 'low', 'low_24h'),
+            'bid': this.safeString2 (price, 'best_bid', 'bid_price'),
+            'bidVolume': this.safeString (ticker, 'best_bid_size'),
+            'ask': this.safeString2 (price, 'best_ask', 'ask_price'),
+            'askVolume': this.safeString (ticker, 'best_ask_size'),
             'vwap': undefined,
-            'open': this.safeNumber (ticker, 'open_24h'),
+            'open': this.safeString (ticker, 'open_24h'),
             'close': last,
             'last': last,
             'previousClose': undefined,
@@ -749,7 +749,7 @@ module.exports = class bitmart extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
