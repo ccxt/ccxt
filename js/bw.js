@@ -335,31 +335,31 @@ module.exports = class bw extends Exchange {
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const timestamp = this.milliseconds ();
-        const close = this.safeNumber (ticker, 1);
-        const bid = this.safeValue (ticker, 'bid', {});
-        const ask = this.safeValue (ticker, 'ask', {});
+        const close = this.safeString (ticker, 1);
+        const bid = this.safeString (ticker, 'bid', {});
+        const ask = this.safeString (ticker, 'ask', {});
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 2),
-            'low': this.safeNumber (ticker, 3),
-            'bid': this.safeNumber (ticker, 7),
-            'bidVolume': this.safeNumber (bid, 'quantity'),
-            'ask': this.safeNumber (ticker, 8),
-            'askVolume': this.safeNumber (ask, 'quantity'),
+            'high': this.safeString (ticker, 2),
+            'low': this.safeString (ticker, 3),
+            'bid': this.safeString (ticker, 7),
+            'bidVolume': this.safeString (bid, 'quantity'),
+            'ask': this.safeString (ticker, 8),
+            'askVolume': this.safeString (ask, 'quantity'),
             'vwap': undefined,
             'open': undefined,
             'close': close,
             'last': close,
             'previousClose': undefined,
-            'change': this.safeNumber (ticker, 5),
+            'change': this.safeString (ticker, 5),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 4),
-            'quoteVolume': this.safeNumber (ticker, 9),
+            'baseVolume': this.safeString (ticker, 4),
+            'quoteVolume': this.safeString (ticker, 9),
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
