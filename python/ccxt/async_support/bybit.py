@@ -2293,9 +2293,8 @@ class bybit(Exchange):
             request['start_time'] = since
         if limit is not None:
             request['limit'] = limit  # default 20, max 50
-        defaultType = self.safe_string(self.options, 'defaultType', 'linear')
-        marketTypes = self.safe_value(self.options, 'marketTypes', {})
-        marketType = self.safe_string(marketTypes, symbol, defaultType)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
         marketDefined = (market is not None)
         linear = (marketDefined and market['linear']) or (marketType == 'linear')
         inverse = (marketDefined and market['swap'] and market['inverse']) or (marketType == 'inverse')

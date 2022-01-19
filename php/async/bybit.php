@@ -2386,9 +2386,8 @@ class bybit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 20, max 50
         }
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'linear');
-        $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
-        $marketType = $this->safe_string($marketTypes, $symbol, $defaultType);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
         $marketDefined = ($market !== null);
         $linear = ($marketDefined && $market['linear']) || ($marketType === 'linear');
         $inverse = ($marketDefined && $market['swap'] && $market['inverse']) || ($marketType === 'inverse');
