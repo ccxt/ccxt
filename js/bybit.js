@@ -1239,7 +1239,7 @@ module.exports = class bybit extends Exchange {
         const result = this.safeValue (response, 'result');
         const fundingRate = this.safeNumber (result, 'funding_rate');
         const fundingTime = this.safeInteger (result, 'funding_rate_timestamp') * 1000;
-        const nextFundingTime = fundingTime + (8 * 3600000);
+        const nextFundingTime = this.sum (fundingTime, 8 * 3600000);
         const currentTime = this.milliseconds ();
         return {
             'info': result,
