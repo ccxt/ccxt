@@ -4603,7 +4603,6 @@ module.exports = class huobi extends Exchange {
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marginType = this.getMarginType (market['future']);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchFundingHistory', market, params);
         let method = undefined;
         const request = {
@@ -4632,6 +4631,7 @@ module.exports = class huobi extends Exchange {
             //   },
             //   ts: '1641189898425'
             // }
+            const marginType = this.getMarginType (market['future']);
             if (marginType === 'isolated') {
                 request['margin_account'] = market['id'];
             } else {
