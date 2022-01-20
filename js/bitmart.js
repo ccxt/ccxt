@@ -1456,8 +1456,7 @@ module.exports = class bitmart extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'privateSpotGetWallet',
             'swap': 'privateContractGetAccounts',
@@ -1465,7 +1464,7 @@ module.exports = class bitmart extends Exchange {
             'contract': 'privateContractGetAccounts',
             'account': 'privateAccountGetWallet',
         });
-        const response = await this[method] (params);
+        const response = await this[method] (query);
         //
         // spot
         //
