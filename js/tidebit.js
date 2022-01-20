@@ -228,15 +228,15 @@ module.exports = class tidebit extends Exchange {
         const timestamp = this.safeTimestamp (ticker, 'at');
         ticker = this.safeValue (ticker, 'ticker', {});
         market = this.safeMarket (undefined, market);
-        const last = this.safeNumber (ticker, 'last');
+        const last = this.safeString (ticker, 'last');
         return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'buy'),
-            'ask': this.safeNumber (ticker, 'sell'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'buy'),
+            'ask': this.safeString (ticker, 'sell'),
             'bidVolume': undefined,
             'askVolume': undefined,
             'vwap': undefined,
@@ -247,10 +247,10 @@ module.exports = class tidebit extends Exchange {
             'percentage': undefined,
             'previousClose': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'vol'),
+            'baseVolume': this.safeString (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
