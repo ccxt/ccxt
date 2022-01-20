@@ -666,7 +666,7 @@ module.exports = class kucoinfutures extends kucoin {
         //          }
         //     }
         //
-        const last = this.safeNumber (ticker, 'price');
+        const last = this.safeString (ticker, 'price');
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market, '-');
         const timestamp = Precise.stringDiv (this.safeString (ticker, 'ts'), '1000000');
@@ -676,10 +676,10 @@ module.exports = class kucoinfutures extends kucoin {
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': this.safeNumber (ticker, 'bestBidPrice'),
-            'bidVolume': this.safeNumber (ticker, 'bestBidSize'),
-            'ask': this.safeNumber (ticker, 'bestAskPrice'),
-            'askVolume': this.safeNumber (ticker, 'bestAskSize'),
+            'bid': this.safeString (ticker, 'bestBidPrice'),
+            'bidVolume': this.safeString (ticker, 'bestBidSize'),
+            'ask': this.safeString (ticker, 'bestAskPrice'),
+            'askVolume': this.safeString (ticker, 'bestAskSize'),
             'vwap': undefined,
             'open': undefined,
             'close': last,
@@ -691,7 +691,7 @@ module.exports = class kucoinfutures extends kucoin {
             'baseVolume': undefined,
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
