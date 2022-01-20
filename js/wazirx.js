@@ -398,13 +398,13 @@ module.exports = class wazirx extends Exchange {
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const last = this.safeNumber (ticker, 'lastPrice');
-        const open = this.safeNumber (ticker, 'openPrice');
-        const high = this.safeNumber (ticker, 'highPrice');
-        const low = this.safeNumber (ticker, 'lowPrice');
-        const baseVolume = this.safeNumber (ticker, 'volume');
-        const bid = this.safeNumber (ticker, 'bidPrice');
-        const ask = this.safeNumber (ticker, 'askPrice');
+        const last = this.safeString (ticker, 'lastPrice');
+        const open = this.safeString (ticker, 'openPrice');
+        const high = this.safeString (ticker, 'highPrice');
+        const low = this.safeString (ticker, 'lowPrice');
+        const baseVolume = this.safeString (ticker, 'volume');
+        const bid = this.safeString (ticker, 'bidPrice');
+        const ask = this.safeString (ticker, 'askPrice');
         const timestamp = this.safeString (ticker, 'at');
         return this.safeTicker ({
             'symbol': symbol,
@@ -427,7 +427,7 @@ module.exports = class wazirx extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     parseBalance (response) {
