@@ -131,10 +131,13 @@ class latoken(Exchange):
             },
             'commonCurrencies': {
                 'CTC': 'CyberTronchain',
+                'GDX': 'GoldenX',
+                'IMC': 'IMCoin',
                 'MT': 'Monarch',
                 'TPAY': 'Tetra Pay',
                 'TRADE': 'Smart Trade Coin',
                 'TSL': 'Treasure SL',
+                'WAR': 'Warrior Token',
             },
             'exceptions': {
                 'exact': {

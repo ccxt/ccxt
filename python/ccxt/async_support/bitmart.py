@@ -1771,7 +1771,7 @@ class bitmart(Exchange):
             raise ArgumentsRequired(self.id + ' canelOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if not market['contract']:
             raise NotSupported(self.id + ' cancelOrders() does not support ' + market['type'] + ' orders, only contract orders are accepted')
         orders = []
         for i in range(0, len(ids)):

@@ -1834,7 +1834,7 @@ class bitmart extends Exchange {
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
-        if (!$market['spot']) {
+        if (!$market['contract']) {
             throw new NotSupported($this->id . ' cancelOrders() does not support ' . $market['type'] . ' $orders, only contract $orders are accepted');
         }
         $orders = array();

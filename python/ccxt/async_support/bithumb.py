@@ -282,22 +282,21 @@ class bithumb(Exchange):
         #
         timestamp = self.safe_integer(ticker, 'date')
         symbol = self.safe_symbol(None, market)
-        open = self.safe_number(ticker, 'opening_price')
-        close = self.safe_number(ticker, 'closing_price')
-        baseVolume = self.safe_number(ticker, 'units_traded_24H')
-        quoteVolume = self.safe_number(ticker, 'acc_trade_value_24H')
-        vwap = self.vwap(baseVolume, quoteVolume)
+        open = self.safe_string(ticker, 'opening_price')
+        close = self.safe_string(ticker, 'closing_price')
+        baseVolume = self.safe_string(ticker, 'units_traded_24H')
+        quoteVolume = self.safe_string(ticker, 'acc_trade_value_24H')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'max_price'),
-            'low': self.safe_number(ticker, 'min_price'),
-            'bid': self.safe_number(ticker, 'buy_price'),
+            'high': self.safe_string(ticker, 'max_price'),
+            'low': self.safe_string(ticker, 'min_price'),
+            'bid': self.safe_string(ticker, 'buy_price'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'sell_price'),
+            'ask': self.safe_string(ticker, 'sell_price'),
             'askVolume': None,
-            'vwap': vwap,
+            'vwap': None,
             'open': open,
             'close': close,
             'last': close,
@@ -308,7 +307,7 @@ class bithumb(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
