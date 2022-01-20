@@ -3627,8 +3627,8 @@ module.exports = class huobi extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', undefined, params);
         const request = {
             // spot -----------------------------------------------------------
-            'order-ids': '', // max 50 ids separated by ","
-            'client-order-ids': '', // max 50 ids separated by ","
+            // 'order-ids': ids.jsoin (','), // max 50
+            // 'client-order-ids': ids.join (','), // max 50
             // contracts ------------------------------------------------------
             // 'order_id': id, // comma separated, max 10
             // 'client_order_id': clientOrderId, // comma separated, max 10
@@ -3637,12 +3637,20 @@ module.exports = class huobi extends Exchange {
         };
         let method = undefined;
         if (marketType === 'spot') {
-            let clientOrderIds = this.safeString2 (params, 'client-order-id', 'clientOrderId');
-            clientOrderIds = this.safeString2 (params, 'client-order-ids', 'clientOrderIds', clientOrderIds);
+            let clientOrderIds = this.safeValue2 (params, 'client-order-id', 'clientOrderId');
+            clientOrderIds = this.safeValue2 (params, 'client-order-ids', 'clientOrderIds', clientOrderIds);
             if (clientOrderIds === undefined) {
-                request['order-ids'] = ids.join (',');
+                if (typeof clientOrderIds === 'string') {
+                    request['order-ids'] = ids;
+                } else {
+                    request['order-ids'] = ids.join (',');
+                }
             } else {
-                request['client-order-ids'] = clientOrderIds;
+                if (typeof clientOrderIds === 'string') {
+                    request['client-order-ids'] = clientOrderIds;
+                } else {
+                    request['client-order-ids'] = clientOrderIds.join (',');
+                }
                 params = this.omit (params, [ 'client-order-id', 'client-order-ids', 'clientOrderId', 'clientOrderIds' ]);
             }
             method = 'spotPrivatePostV1OrderOrdersBatchcancel';
