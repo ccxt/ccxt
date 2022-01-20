@@ -843,10 +843,10 @@ module.exports = class mexc extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPublicGetMarketDepth',
+            'margin': 'spotPublicGetMarketDepth',
             'swap': 'contractPublicGetDepthSymbol',
         });
         if (market['spot']) {
@@ -859,7 +859,7 @@ module.exports = class mexc extends Exchange {
                 request['limit'] = limit;
             }
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         // spot
         //
