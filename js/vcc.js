@@ -441,7 +441,6 @@ module.exports = class vcc extends Exchange {
         const quoteVolume = this.safeString (ticker, 'quote_volume');
         const open = this.safeString (ticker, 'open_price');
         const last = this.safeString (ticker, 'last_price');
-        const vwap = this.vwap (baseVolume, quoteVolume);
         const symbol = this.safeSymbol (undefined, market);
         return this.safeTicker ({
             'symbol': symbol,
@@ -453,7 +452,7 @@ module.exports = class vcc extends Exchange {
             'bidVolume': undefined,
             'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': open,
             'close': last,
             'last': last,
