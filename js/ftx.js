@@ -373,6 +373,9 @@ module.exports = class ftx extends Exchange {
                     'BSC': 'bsc',
                 },
             },
+            'commonCurrencies': {
+                'STARS': 'StarLaunch',
+            },
         });
     }
 
