@@ -456,7 +456,8 @@ module.exports = class poloniex extends Exchange {
         const timestamp = this.milliseconds ();
         const symbol = this.safeSymbol (undefined, market);
         const last = this.safeString (ticker, 'last');
-        const percentage = this.safeString (ticker, 'percentChange');
+        const relativeChange = this.safeString (ticker, 'percentChange');
+        const percentage = Precise.stringMul (relativeChange, '100');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
