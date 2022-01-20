@@ -18,7 +18,7 @@ class blockchaincom extends Exchange {
             'secret' => null,
             'name' => 'Blockchain.com',
             'countries' => array( 'LX' ),
-            'rateLimit' => 10000,
+            'rateLimit' => 1000,
             'version' => 'v3',
             'has' => array(
                 'spot' => true,
@@ -246,6 +246,7 @@ class blockchaincom extends Exchange {
                 $maxOrderSize = null;
             }
             $result[] = array(
+                'info' => $market,
                 'id' => $marketId,
                 'numericId' => $numericId,
                 'symbol' => $base . '/' . $quote,
@@ -424,7 +425,7 @@ class blockchaincom extends Exchange {
         $datetime = $this->iso8601($timestamp);
         $filled = $this->safe_string($order, 'cumQty');
         $remaining = $this->safe_string($order, 'leavesQty');
-        $result = $this->safeOrder2 (array(
+        $result = $this->safe_order(array(
             'id' => $exchangeOrderId,
             'clientOrderId' => $clientOrderId,
             'datetime' => $datetime,
@@ -879,7 +880,7 @@ class blockchaincom extends Exchange {
             $account['total'] = $this->safe_string($entry, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
