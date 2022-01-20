@@ -1512,13 +1512,11 @@ module.exports = class aax extends Exchange {
             // 'clOrdID': clientOrderId,
         };
         let market = undefined;
-        let marketType = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
-            marketType = market['type'];
         }
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'privateGetSpotOrders',
             'swap': 'privateGetFuturesOrders',
@@ -1535,7 +1533,7 @@ module.exports = class aax extends Exchange {
         if (since !== undefined) {
             request['startDate'] = this.yyyymmdd (since);
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         // spot
         //
