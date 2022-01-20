@@ -40,9 +40,21 @@ price = 1
 params = {'offset': offset, 'lever_rate': leverage, 'client_order_id': cli_order_id}
 
 try:
+    # Current Balance
+    balance = exchange.fetch_balance()
+    # print(balance)
+    
+    # Order creation
     order = exchange.create_order(symbol, order_type, side, amount, price, params)
-    print(order)
+    # print(order)
+
+    # List open positions
+    open_orders = exchange.fetch_open_orders(symbol)
+    # print(open_orders)
+
+    #Order cancelation
     cancelOrder = exchange.cancel_order(order['id'], symbol)
+    print(cancelOrder)
 except Exception as e:
     print(type(e).__name__, str(e))
 
@@ -60,8 +72,19 @@ price = 1
 params = {'offset': offset, 'lever_rate': leverage, 'client_order_id': cli_order_id}
 
 try:
+    # Current Balance
+    balance = exchange.fetch_balance()
+    # print(balance)
+
+    # Order creation
     order = exchange.create_order(symbol, order_type, side, amount, price, params)
     print(order)
+
+    # List open positions
+    open_orders = exchange.fetch_open_orders(symbol)
+    # print(open_orders)
+
+    #Order cancelation
     cancelOrder = exchange.cancel_order(order['id'], symbol)
 except Exception as e:
     print(type(e).__name__, str(e))

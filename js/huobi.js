@@ -2955,22 +2955,21 @@ module.exports = class huobi extends Exchange {
             }
             const market = this.market (symbol);
             request['contract_code'] = market['id'];
-            if (marketType === 'future') {
-                method = 'contractPrivatePostApiV1ContractOpenorders';
-                request['symbol'] = market['settleId'];
-            } else if (marketType === 'swap') {
-                if (market['linear']) {
-                    const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
-                    if (marginType === 'isolated') {
-                        method = 'contractPrivatePostLinearSwapApiV1SwapOpenorders';
-                    } else if (marginType === 'cross') {
-                        method = 'contractPrivatePostLinearSwapApiV1SwapCrossOpenorders';
-                    }
-                } else if (market['inverse']) {
+            if (market['linear']) {
+                const defaultMargin = market['future'] ? 'cross' : 'isolated';
+                const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', defaultMargin);
+                if (marginType === 'isolated') {
+                    method = 'contractPrivatePostLinearSwapApiV1SwapOpenorders';
+                } else if (marginType === 'cross') {
+                    method = 'contractPrivatePostLinearSwapApiV1SwapCrossOpenorders';
+                }
+            } else if (market['inverse']) {
+                if (market['future']) {
+                    method = 'contractPrivatePostApiV1ContractOpenorders';
+                    request['symbol'] = market['settleId'];
+                } else if (market['swap']) {
                     method = 'contractPrivatePostSwapApiV1SwapOpenorders';
                 }
-            } else {
-                throw new NotSupported (this.id + ' fetchOpenOrders() does not support ' + marketType + ' markets');
             }
             if (limit !== undefined) {
                 request['page_size'] = limit;
@@ -3508,7 +3507,8 @@ module.exports = class huobi extends Exchange {
         }
         let method = undefined;
         if (market['linear']) {
-            const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
+            const defaultMargin = market['future'] ? 'cross' : 'isolated';
+            const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', defaultMargin);
             if (marginType === 'isolated') {
                 method = 'contractPrivatePostLinearSwapApiV1SwapOrder';
             } else if (marginType === 'cross') {
@@ -3573,7 +3573,8 @@ module.exports = class huobi extends Exchange {
             market = this.market (symbol);
             request['contract_code'] = market['id'];
             if (market['linear']) {
-                const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
+                const defaultMargin = market['future'] ? 'cross' : 'isolated';
+                const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', defaultMargin);
                 if (marginType === 'isolated') {
                     method = 'contractPrivatePostLinearSwapApiV1SwapCancel';
                 } else if (marginType === 'cross') {
