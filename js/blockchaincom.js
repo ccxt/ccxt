@@ -421,7 +421,7 @@ module.exports = class blockchaincom extends Exchange {
         const datetime = this.iso8601 (timestamp);
         const filled = this.safeString (order, 'cumQty');
         const remaining = this.safeString (order, 'leavesQty');
-        const result = this.safeOrder2 ({
+        const result = this.safeOrder ({
             'id': exchangeOrderId,
             'clientOrderId': clientOrderId,
             'datetime': datetime,
