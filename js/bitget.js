@@ -1707,8 +1707,7 @@ module.exports = class bitget extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'apiGetAccountsAccountIdBalance',
             'swap': 'swapGetAccountAccounts',
@@ -1718,7 +1717,7 @@ module.exports = class bitget extends Exchange {
             params['account_id'] = accountId;
             params['method'] = 'balance';
         }
-        const response = await this[method] (params);
+        const response = await this[method] (query);
         //
         // spot
         //
