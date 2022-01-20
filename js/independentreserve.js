@@ -241,16 +241,16 @@ module.exports = class independentreserve extends Exchange {
         }
         market = this.safeMarket (defaultMarketId, market, '/');
         const symbol = market['symbol'];
-        const last = this.safeNumber (ticker, 'LastPrice');
+        const last = this.safeString (ticker, 'LastPrice');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'DayHighestPrice'),
-            'low': this.safeNumber (ticker, 'DayLowestPrice'),
-            'bid': this.safeNumber (ticker, 'CurrentHighestBidPrice'),
+            'high': this.safeString (ticker, 'DayHighestPrice'),
+            'low': this.safeString (ticker, 'DayLowestPrice'),
+            'bid': this.safeString (ticker, 'CurrentHighestBidPrice'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'CurrentLowestOfferPrice'),
+            'ask': this.safeString (ticker, 'CurrentLowestOfferPrice'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -259,11 +259,11 @@ module.exports = class independentreserve extends Exchange {
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': this.safeNumber (ticker, 'DayAvgPrice'),
-            'baseVolume': this.safeNumber (ticker, 'DayVolumeXbtInSecondaryCurrrency'),
+            'average': this.safeString (ticker, 'DayAvgPrice'),
+            'baseVolume': this.safeString (ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
