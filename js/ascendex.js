@@ -2212,6 +2212,9 @@ module.exports = class ascendex extends Exchange {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
+            headers = {
+                'Content-Type': 'application/json',
+            };
         } else {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
