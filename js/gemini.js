@@ -504,22 +504,22 @@ module.exports = class gemini extends Exchange {
             base = market['base'];
             quote = market['quote'];
         }
-        const price = this.safeNumber (ticker, 'price');
-        const last = this.safeNumber2 (ticker, 'last', 'close', price);
-        const percentage = this.safeNumber (ticker, 'percentChange24h');
-        const open = this.safeNumber (ticker, 'open');
-        const baseVolume = this.safeNumber (volume, baseId);
-        const quoteVolume = this.safeNumber (volume, quoteId);
+        const price = this.safeString (ticker, 'price');
+        const last = this.safeString2 (ticker, 'last', 'close', price);
+        const percentage = this.safeString (ticker, 'percentChange24h');
+        const open = this.safeString (ticker, 'open');
+        const baseVolume = this.safeString (volume, baseId);
+        const quoteVolume = this.safeString (volume, quoteId);
         const vwap = this.vwap (baseVolume, quoteVolume);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': vwap,
             'open': open,
@@ -532,7 +532,7 @@ module.exports = class gemini extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
