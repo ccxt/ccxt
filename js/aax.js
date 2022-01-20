@@ -1360,13 +1360,11 @@ module.exports = class aax extends Exchange {
             // 'clOrdID': clientOrderId,
         };
         let market = undefined;
-        let marketType = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
-            marketType = market['type'];
         }
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'privateGetSpotOpenOrders',
             'swap': 'privateGetFuturesOpenOrders',
@@ -1380,7 +1378,7 @@ module.exports = class aax extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit; // default 10
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         // spot
         //
