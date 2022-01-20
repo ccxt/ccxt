@@ -666,7 +666,10 @@ module.exports = class ftx extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const last = this.safeString (ticker, 'last');
         const timestamp = this.safeTimestamp (ticker, 'time', this.milliseconds ());
-        const percentage = this.safeString (ticker, 'change24h');
+        let percentage = this.safeString (ticker, 'change24h');
+        if (percentage !== undefined) {
+            percentage = Precise.stringMul (percentage, '100');
+        }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
