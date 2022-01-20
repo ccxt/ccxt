@@ -510,7 +510,6 @@ module.exports = class gemini extends Exchange {
         const open = this.safeString (ticker, 'open');
         const baseVolume = this.safeString (volume, baseId);
         const quoteVolume = this.safeString (volume, quoteId);
-        const vwap = this.vwap (baseVolume, quoteVolume);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -521,7 +520,7 @@ module.exports = class gemini extends Exchange {
             'bidVolume': undefined,
             'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': open,
             'close': last,
             'last': last,
