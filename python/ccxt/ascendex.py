@@ -213,7 +213,7 @@ class ascendex(Exchange):
                 'fetchClosedOrders': {
                     'method': 'v1PrivateAccountGroupGetOrderHist',  # 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
                 },
-                'defaultType': 'spot',  # 'spot', 'margin', 'swap'
+                'swap': False,  # https://github.com/ccxt/ccxt/issues/11503
                 'accountCategories': {
                     'spot': 'cash',
                     'swap': 'futures',
@@ -452,7 +452,12 @@ class ascendex(Exchange):
         #         ]
         #     }
         #
-        perpetuals = self.v2PublicGetFuturesContract(params)
+        # self endpoint works intermittently
+        # https://github.com/ccxt/ccxt/issues/11503
+        swap = self.safe_value(self.options, 'swap', False)
+        perpetuals = {}
+        if swap:
+            perpetuals = self.v2PublicGetFuturesContract(params)
         #
         #     {
         #         "code":0,
@@ -481,10 +486,10 @@ class ascendex(Exchange):
         #         ]
         #     }
         #
+        perpetualsData = self.safe_value(perpetuals, 'data', [])
         productsData = self.safe_value(products, 'data', [])
         productsById = self.index_by(productsData, 'symbol')
         cashData = self.safe_value(cash, 'data', [])
-        perpetualsData = self.safe_value(perpetuals, 'data', [])
         cashAndPerpetualsData = self.array_concat(cashData, perpetualsData)
         cashAndPerpetualsById = self.index_by(cashAndPerpetualsData, 'symbol')
         dataById = self.deep_extend(productsById, cashAndPerpetualsById)
