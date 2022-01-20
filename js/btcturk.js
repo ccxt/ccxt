@@ -143,7 +143,6 @@ module.exports = class btcturk extends Exchange {
             const quoteId = this.safeString (entry, 'denominator');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
             const filters = this.safeValue (entry, 'filters');
             let minPrice = undefined;
             let maxPrice = undefined;
@@ -162,52 +161,53 @@ module.exports = class btcturk extends Exchange {
                 }
             }
             const status = this.safeString (entry, 'status');
-            const active = status === 'TRADING';
-            const limits = {
-                'price': {
-                    'min': minPrice,
-                    'max': maxPrice,
-                },
-                'amount': {
-                    'min': minAmount,
-                    'max': maxAmount,
-                },
-                'cost': {
-                    'min': minCost,
-                    'max': undefined,
-                },
-            };
-            const precision = {
-                'price': this.safeInteger (entry, 'denominatorScale'),
-                'amount': this.safeInteger (entry, 'numeratorScale'),
-            };
             result.push ({
-                'info': entry,
-                'symbol': symbol,
                 'id': id,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'limits': limits,
-                'precision': precision,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
                 'margin': false,
-                'future': false,
                 'swap': false,
+                'future': false,
                 'option': false,
-                'optionType': undefined,
-                'strike': undefined,
+                'active': (status === 'TRADING'),
+                'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'contract': false,
                 'contractSize': undefined,
-                'settle': undefined,
-                'settleId': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
-                'active': active,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': this.safeInteger (entry, 'denominatorScale'),
+                    'amount': this.safeInteger (entry, 'numeratorScale'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': minAmount,
+                        'max': maxAmount,
+                    },
+                    'price': {
+                        'min': minPrice,
+                        'max': maxPrice,
+                    },
+                    'cost': {
+                        'min': minCost,
+                        'max': undefined,
+                    },
+                },
+                'info': entry,
             });
         }
         return result;
