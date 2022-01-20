@@ -954,10 +954,12 @@ module.exports = class bybit extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const last = this.safeString (ticker, 'last_price');
         const open = this.safeString (ticker, 'prev_price_24h');
-        const percentage = this.safeString (ticker, 'price_24h_pcnt');
+        let percentage = this.safeString (ticker, 'price_24h_pcnt');
+        if (percentage !== undefined) {
+            percentage = Precise.stringMul (percentage, '100');
+        }
         const baseVolume = this.safeString (ticker, 'turnover_24h');
         const quoteVolume = this.safeString (ticker, 'volume_24h');
-        const vwap = this.vwap (baseVolume, quoteVolume);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -968,7 +970,7 @@ module.exports = class bybit extends Exchange {
             'bidVolume': undefined,
             'ask': this.safeString (ticker, 'ask_price'),
             'askVolume': undefined,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': open,
             'close': last,
             'last': last,
