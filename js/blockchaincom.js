@@ -877,7 +877,7 @@ module.exports = class blockchaincom extends Exchange {
             account['total'] = this.safeString (entry, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
