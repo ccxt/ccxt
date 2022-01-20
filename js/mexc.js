@@ -814,24 +814,22 @@ module.exports = class mexc extends Exchange {
         const timestamp = this.safeInteger2 (ticker, 'time', 'timestamp');
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const baseVolume = this.safeNumber2 (ticker, 'volume', 'volume24');
-        const quoteVolume = this.safeNumber (ticker, 'amount24');
-        const open = this.safeNumber (ticker, 'open');
-        const lastString = this.safeString2 (ticker, 'last', 'lastPrice');
-        const last = this.parseNumber (lastString);
-        const change = this.safeNumber (ticker, 'riseFallValue');
+        const baseVolume = this.safeString2 (ticker, 'volume', 'volume24');
+        const quoteVolume = this.safeString (ticker, 'amount24');
+        const open = this.safeString (ticker, 'open');
+        const last = this.safeString2 (ticker, 'last', 'lastPrice');
+        const change = this.safeString (ticker, 'riseFallValue');
         const riseFallRate = this.safeString (ticker, 'riseFallRate');
-        const percentageString = Precise.stringAdd (riseFallRate, '1');
-        const percentage = this.parseNumber (percentageString);
+        const percentage = Precise.stringAdd (riseFallRate, '1');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber2 (ticker, 'high', 'high24Price'),
-            'low': this.safeNumber2 (ticker, 'low', 'lower24Price'),
-            'bid': this.safeNumber2 (ticker, 'bid', 'bid1'),
+            'high': this.safeString2 (ticker, 'high', 'high24Price'),
+            'low': this.safeString2 (ticker, 'low', 'lower24Price'),
+            'bid': this.safeString2 (ticker, 'bid', 'bid1'),
             'bidVolume': undefined,
-            'ask': this.safeNumber2 (ticker, 'ask', 'ask1'),
+            'ask': this.safeString2 (ticker, 'ask', 'ask1'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
@@ -844,7 +842,7 @@ module.exports = class mexc extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
