@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ExchangeNotAvailable, AccountSuspended, PermissionDenied, RateLimitExceeded, InvalidNonce, InvalidAddress, ArgumentsRequired, ExchangeError, InvalidOrder, InsufficientFunds, BadRequest, OrderNotFound, BadSymbol, NotSupported } = require ('./base/errors');
 const { ROUND, TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -718,7 +719,7 @@ module.exports = class bitmart extends Exchange {
         const last = this.safeString2 (ticker, 'close_24h', 'last_price');
         let percentage = this.safeString2 (ticker, 'fluctuation', 'rise_fall_rate');
         if (percentage !== undefined) {
-            percentage *= 100;
+            percentage = Precise.stringMul(percentage, '100');
         }
         if (percentage === undefined) {
             percentage = this.safeString (ticker, 'price_change_percent_24h');
