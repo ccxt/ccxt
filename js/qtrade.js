@@ -409,30 +409,24 @@ module.exports = class qtrade extends Exchange {
         const marketId = this.safeString (ticker, 'id_hr');
         const symbol = this.safeSymbol (marketId, market, '_');
         const timestamp = this.safeIntegerProduct (ticker, 'last_change', 0.001);
-        const previous = this.safeNumber (ticker, 'day_open');
-        const last = this.safeNumber (ticker, 'last');
-        const day_change = this.safeNumber (ticker, 'day_change');
-        let percentage = undefined;
-        let change = undefined;
-        const average = this.safeNumber (ticker, 'day_avg_price');
-        if (day_change !== undefined) {
-            percentage = day_change * 100;
-            if (previous !== undefined) {
-                change = day_change * previous;
-            }
-        }
-        const baseVolume = this.safeNumber (ticker, 'day_volume_market');
-        const quoteVolume = this.safeNumber (ticker, 'day_volume_base');
+        const previous = this.safeString (ticker, 'day_open');
+        const last = this.safeString (ticker, 'last');
+        const day_change = this.safeString (ticker, 'day_change');
+        const percentage = undefined;
+        const change = undefined;
+        const average = this.safeString (ticker, 'day_avg_price');
+        const baseVolume = this.safeString (ticker, 'day_volume_market');
+        const quoteVolume = this.safeString (ticker, 'day_volume_base');
         const vwap = this.vwap (baseVolume, quoteVolume);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'day_high'),
-            'low': this.safeNumber (ticker, 'day_low'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeString (ticker, 'day_high'),
+            'low': this.safeString (ticker, 'day_low'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': vwap,
             'open': previous,
@@ -445,7 +439,7 @@ module.exports = class qtrade extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
