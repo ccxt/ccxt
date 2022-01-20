@@ -281,18 +281,18 @@ module.exports = class ripio extends Exchange {
         const marketId = this.safeString (ticker, 'pair');
         market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
-        const last = this.safeNumber (ticker, 'last_price');
-        const average = this.safeNumber (ticker, 'avg');
+        const last = this.safeString (ticker, 'last_price');
+        const average = this.safeString (ticker, 'avg');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
-            'bidVolume': this.safeNumber (ticker, 'bid_volume'),
-            'ask': this.safeNumber (ticker, 'ask'),
-            'askVolume': this.safeNumber (ticker, 'ask_volume'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
+            'bidVolume': this.safeString (ticker, 'bid_volume'),
+            'ask': this.safeString (ticker, 'ask'),
+            'askVolume': this.safeString (ticker, 'ask_volume'),
             'vwap': undefined,
             'open': undefined,
             'close': last,
@@ -304,7 +304,7 @@ module.exports = class ripio extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
