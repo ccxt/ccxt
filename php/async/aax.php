@@ -2127,7 +2127,7 @@ class aax extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $markPrice = $this->safe_number($contract, 'markPrice');
         $fundingRate = $this->safe_number($contract, 'fundingRate');
-        $prevFundingDatetime = $this->safe_string($contract, 'fundingTime');
+        $fundingDatetime = $this->safe_string($contract, 'fundingTime');
         $nextFundingDatetime = $this->safe_string($contract, 'nextFundingTime');
         return array(
             'info' => $contract,
@@ -2138,12 +2138,15 @@ class aax extends Exchange {
             'estimatedSettlePrice' => null,
             'timestamp' => null,
             'datetime' => null,
-            'previousFundingRate' => $fundingRate,
+            'fundingRate' => $fundingRate,
+            'fundingTimestamp' => $this->parse8601($fundingDatetime),
+            'fundingDatetime' => $fundingDatetime,
             'nextFundingRate' => null,
-            'previousFundingTimestamp' => $this->parse8601($prevFundingDatetime),
             'nextFundingTimestamp' => $this->parse8601($nextFundingDatetime),
-            'previousFundingDatetime' => $prevFundingDatetime,
             'nextFundingDatetime' => $nextFundingDatetime,
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
         );
     }
 

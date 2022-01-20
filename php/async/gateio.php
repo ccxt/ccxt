@@ -1094,8 +1094,8 @@ class gateio extends Exchange {
         $markPrice = $this->safe_number($contract, 'mark_price');
         $indexPrice = $this->safe_number($contract, 'index_price');
         $interestRate = $this->safe_number($contract, 'interest_rate');
-        $fundingRate = $this->safe_string($contract, 'funding_rate');
-        $nextFundingTime = $this->safe_integer($contract, 'funding_next_apply') * 1000;
+        $fundingRate = $this->safe_number($contract, 'funding_rate');
+        $fundingTime = $this->safe_integer($contract, 'funding_next_apply') * 1000;
         $fundingRateIndicative = $this->safe_number($contract, 'funding_rate_indicative');
         return array(
             'info' => $contract,
@@ -1106,12 +1106,15 @@ class gateio extends Exchange {
             'estimatedSettlePrice' => null,
             'timestamp' => null,
             'datetime' => null,
-            'previousFundingRate' => $fundingRate,
+            'fundingRate' => $fundingRate,
+            'fundingTimestamp' => $fundingTime,
+            'fundingDatetime' => $this->iso8601($fundingTime),
             'nextFundingRate' => $fundingRateIndicative,
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
+            'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
-            'nextFundingTimestamp' => $nextFundingTime,
             'previousFundingDatetime' => null,
-            'nextFundingDatetime' => $this->iso8601($nextFundingTime),
         );
     }
 

@@ -1205,7 +1205,7 @@ class kucoinfutures extends kucoin {
         //    }
         //
         $data = $this->safe_value($response, 'data');
-        $timestamp = $this->safe_number($data, 'timePoint');
+        $fundingTimestamp = $this->safe_number($data, 'timePoint');
         return array(
             'info' => $data,
             'symbol' => $symbol,
@@ -1215,12 +1215,15 @@ class kucoinfutures extends kucoin {
             'estimatedSettlePrice' => null,
             'timestamp' => null,
             'datetime' => null,
-            'previousFundingRate' => $this->safe_number($data, 'value'),
+            'fundingRate' => $this->safe_number($data, 'value'),
+            'fundingTimestamp' => $fundingTimestamp,
+            'fundingDatetime' => $this->iso8601($fundingTimestamp),
             'nextFundingRate' => $this->safe_number($data, 'predictedValue'),
-            'previousFundingTimestamp' => $timestamp,
             'nextFundingTimestamp' => null,
-            'previousFundingDatetime' => $this->iso8601($timestamp),
             'nextFundingDatetime' => null,
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
         );
     }
 

@@ -2359,9 +2359,8 @@ class ftx extends Exchange {
         //       "openInterest" => "48307.96"
         //     }
         //
-        $nextFundingRate = $this->safe_number($fundingRate, 'nextFundingRate');
-        $nextFundingRateDatetimeRaw = $this->safe_string($fundingRate, 'nextFundingTime');
-        $nextFundingRateTimestamp = $this->parse8601($nextFundingRateDatetimeRaw);
+        $fundingRateDatetimeRaw = $this->safe_string($fundingRate, 'nextFundingTime');
+        $fundingRateTimestamp = $this->parse8601($fundingRateDatetimeRaw);
         $estimatedSettlePrice = $this->safe_number($fundingRate, 'predictedExpirationPrice');
         return array(
             'info' => $fundingRate,
@@ -2372,12 +2371,15 @@ class ftx extends Exchange {
             'estimatedSettlePrice' => $estimatedSettlePrice,
             'timestamp' => null,
             'datetime' => null,
+            'fundingRate' => $this->safe_number($fundingRate, 'nextFundingRate'),
+            'fundingTimestamp' => $fundingRateTimestamp,
+            'fundingDatetime' => $this->iso8601($fundingRateTimestamp),
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
             'previousFundingRate' => null,
-            'nextFundingRate' => $nextFundingRate,
             'previousFundingTimestamp' => null,
-            'nextFundingTimestamp' => $nextFundingRateTimestamp,
             'previousFundingDatetime' => null,
-            'nextFundingDatetime' => $this->iso8601($nextFundingRateTimestamp),
         );
     }
 

@@ -1236,9 +1236,9 @@ class bybit(Exchange):
         # }
         #
         result = self.safe_value(response, 'result')
-        nextFundingRate = self.safe_number(result, 'funding_rate')
-        previousFundingTime = self.safe_integer(result, 'funding_rate_timestamp') * 1000
-        nextFundingTime = previousFundingTime + (8 * 3600000)
+        fundingRate = self.safe_number(result, 'funding_rate')
+        fundingTime = self.safe_integer(result, 'funding_rate_timestamp') * 1000
+        nextFundingTime = self.sum(fundingTime, 8 * 3600000)
         currentTime = self.milliseconds()
         return {
             'info': result,
@@ -1249,12 +1249,15 @@ class bybit(Exchange):
             'estimatedSettlePrice': None,
             'timestamp': currentTime,
             'datetime': self.iso8601(currentTime),
-            'previousFundingRate': None,
-            'nextFundingRate': nextFundingRate,
-            'previousFundingTimestamp': previousFundingTime,
+            'fundingRate': fundingRate,
+            'fundingTimestamp': fundingTime,
+            'fundingDatetime': self.iso8601(fundingTime),
+            'nextFundingRate': None,
             'nextFundingTimestamp': nextFundingTime,
-            'previousFundingDatetime': self.iso8601(previousFundingTime),
             'nextFundingDatetime': self.iso8601(nextFundingTime),
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
         }
 
     async def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -2293,9 +2296,8 @@ class bybit(Exchange):
             request['start_time'] = since
         if limit is not None:
             request['limit'] = limit  # default 20, max 50
-        defaultType = self.safe_string(self.options, 'defaultType', 'linear')
-        marketTypes = self.safe_value(self.options, 'marketTypes', {})
-        marketType = self.safe_string(marketTypes, symbol, defaultType)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
         marketDefined = (market is not None)
         linear = (marketDefined and market['linear']) or (marketType == 'linear')
         inverse = (marketDefined and market['swap'] and market['inverse']) or (marketType == 'inverse')

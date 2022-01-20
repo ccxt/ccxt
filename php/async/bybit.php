@@ -1240,9 +1240,9 @@ class bybit extends Exchange {
         // }
         //
         $result = $this->safe_value($response, 'result');
-        $nextFundingRate = $this->safe_number($result, 'funding_rate');
-        $previousFundingTime = $this->safe_integer($result, 'funding_rate_timestamp') * 1000;
-        $nextFundingTime = $previousFundingTime . (8 * 3600000);
+        $fundingRate = $this->safe_number($result, 'funding_rate');
+        $fundingTime = $this->safe_integer($result, 'funding_rate_timestamp') * 1000;
+        $nextFundingTime = $this->sum($fundingTime, 8 * 3600000);
         $currentTime = $this->milliseconds();
         return array(
             'info' => $result,
@@ -1253,12 +1253,15 @@ class bybit extends Exchange {
             'estimatedSettlePrice' => null,
             'timestamp' => $currentTime,
             'datetime' => $this->iso8601($currentTime),
-            'previousFundingRate' => null,
-            'nextFundingRate' => $nextFundingRate,
-            'previousFundingTimestamp' => $previousFundingTime,
+            'fundingRate' => $fundingRate,
+            'fundingTimestamp' => $fundingTime,
+            'fundingDatetime' => $this->iso8601($fundingTime),
+            'nextFundingRate' => null,
             'nextFundingTimestamp' => $nextFundingTime,
-            'previousFundingDatetime' => $this->iso8601($previousFundingTime),
             'nextFundingDatetime' => $this->iso8601($nextFundingTime),
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
         );
     }
 
@@ -2386,9 +2389,8 @@ class bybit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 20, max 50
         }
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'linear');
-        $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
-        $marketType = $this->safe_string($marketTypes, $symbol, $defaultType);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
         $marketDefined = ($market !== null);
         $linear = ($marketDefined && $market['linear']) || ($marketType === 'linear');
         $inverse = ($marketDefined && $market['swap'] && $market['inverse']) || ($marketType === 'inverse');

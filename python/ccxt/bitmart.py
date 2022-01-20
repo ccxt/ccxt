@@ -831,14 +831,13 @@ class bitmart(Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
-        params = self.omit(params, 'type')
-        method = None
-        if (type == 'swap') or (type == 'future'):
-            method = 'publicContractGetTickers'
-        elif type == 'spot':
-            method = 'publicSpotGetTicker'
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchTickers', None, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'publicSpotGetTicker',
+            'swap': 'publicContractGetTickers',
+            'future': 'publicContractGetTickers',
+        })
         response = getattr(self, method)(params)
         data = self.safe_value(response, 'data', {})
         tickers = self.safe_value(data, 'tickers', [])

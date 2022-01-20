@@ -2259,9 +2259,8 @@ class ftx(Exchange):
         #       "openInterest": "48307.96"
         #     }
         #
-        nextFundingRate = self.safe_number(fundingRate, 'nextFundingRate')
-        nextFundingRateDatetimeRaw = self.safe_string(fundingRate, 'nextFundingTime')
-        nextFundingRateTimestamp = self.parse8601(nextFundingRateDatetimeRaw)
+        fundingRateDatetimeRaw = self.safe_string(fundingRate, 'nextFundingTime')
+        fundingRateTimestamp = self.parse8601(fundingRateDatetimeRaw)
         estimatedSettlePrice = self.safe_number(fundingRate, 'predictedExpirationPrice')
         return {
             'info': fundingRate,
@@ -2272,12 +2271,15 @@ class ftx(Exchange):
             'estimatedSettlePrice': estimatedSettlePrice,
             'timestamp': None,
             'datetime': None,
+            'fundingRate': self.safe_number(fundingRate, 'nextFundingRate'),
+            'fundingTimestamp': fundingRateTimestamp,
+            'fundingDatetime': self.iso8601(fundingRateTimestamp),
+            'nextFundingRate': None,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
             'previousFundingRate': None,
-            'nextFundingRate': nextFundingRate,
             'previousFundingTimestamp': None,
-            'nextFundingTimestamp': nextFundingRateTimestamp,
             'previousFundingDatetime': None,
-            'nextFundingDatetime': self.iso8601(nextFundingRateTimestamp),
         }
 
     async def fetch_funding_rate(self, symbol, params={}):

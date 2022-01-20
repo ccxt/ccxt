@@ -1087,8 +1087,8 @@ class gateio(Exchange):
         markPrice = self.safe_number(contract, 'mark_price')
         indexPrice = self.safe_number(contract, 'index_price')
         interestRate = self.safe_number(contract, 'interest_rate')
-        fundingRate = self.safe_string(contract, 'funding_rate')
-        nextFundingTime = self.safe_integer(contract, 'funding_next_apply') * 1000
+        fundingRate = self.safe_number(contract, 'funding_rate')
+        fundingTime = self.safe_integer(contract, 'funding_next_apply') * 1000
         fundingRateIndicative = self.safe_number(contract, 'funding_rate_indicative')
         return {
             'info': contract,
@@ -1099,12 +1099,15 @@ class gateio(Exchange):
             'estimatedSettlePrice': None,
             'timestamp': None,
             'datetime': None,
-            'previousFundingRate': fundingRate,
+            'fundingRate': fundingRate,
+            'fundingTimestamp': fundingTime,
+            'fundingDatetime': self.iso8601(fundingTime),
             'nextFundingRate': fundingRateIndicative,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
+            'previousFundingRate': None,
             'previousFundingTimestamp': None,
-            'nextFundingTimestamp': nextFundingTime,
             'previousFundingDatetime': None,
-            'nextFundingDatetime': self.iso8601(nextFundingTime),
         }
 
     def fetch_network_deposit_address(self, code, params={}):

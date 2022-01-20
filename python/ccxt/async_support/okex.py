@@ -3188,10 +3188,11 @@ class okex(Exchange):
         #
         # in the response above nextFundingRate is actually two funding rates from now
         #
-        nextFundingRateTimestamp = self.safe_integer(fundingRate, 'fundingTime')
+        nextFundingRateTimestamp = self.safe_integer(fundingRate, 'nextFundingTime')
         marketId = self.safe_string(fundingRate, 'instId')
         symbol = self.safe_symbol(marketId, market)
-        nextFundingRate = self.safe_number(fundingRate, 'fundingRate')
+        nextFundingRate = self.safe_number(fundingRate, 'nextFundingRate')
+        fundingTime = self.safe_integer(fundingRate, 'fundingTime')
         # https://www.okex.com/support/hc/en-us/articles/360053909272-Ⅸ-Introduction-to-perpetual-swap-funding-fee
         # > The current interest is 0.
         return {
@@ -3203,12 +3204,15 @@ class okex(Exchange):
             'estimatedSettlePrice': None,
             'timestamp': None,
             'datetime': None,
-            'previousFundingRate': None,
+            'fundingRate': self.safe_number(fundingRate, 'fundingRate'),
+            'fundingTimestamp': fundingTime,
+            'fundingDatetime': self.iso8601(fundingTime),
             'nextFundingRate': nextFundingRate,
-            'previousFundingTimestamp': None,
             'nextFundingTimestamp': nextFundingRateTimestamp,
-            'previousFundingDatetime': None,
             'nextFundingDatetime': self.iso8601(nextFundingRateTimestamp),
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
         }
 
     async def fetch_funding_rate(self, symbol, params={}):
