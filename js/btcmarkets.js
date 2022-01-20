@@ -484,7 +484,6 @@ module.exports = class btcmarkets extends Exchange {
         const last = this.safeString (ticker, 'lastPrice');
         const baseVolume = this.safeString (ticker, 'volume24h');
         const quoteVolume = this.safeString (ticker, 'volumeQte24h');
-        const vwap = this.vwap (baseVolume, quoteVolume);
         const change = this.safeString (ticker, 'price24h');
         const percentage = this.safeString (ticker, 'pricePct24h');
         return this.safeTicker ({
@@ -497,7 +496,7 @@ module.exports = class btcmarkets extends Exchange {
             'bidVolume': undefined,
             'ask': this.safeString (ticker, 'bestAsk'),
             'askVolume': undefined,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
