@@ -215,8 +215,8 @@ class bibox extends Exchange {
             $spot = true;
             $areaId = $this->safe_integer($market, 'area_id');
             if ($areaId === 16) {
-                $type = null;
-                $spot = false;
+                // TODO => update to v3 api
+                continue;
             }
             $precision = array(
                 'amount' => $this->safe_number($market, 'amount_scale'),
@@ -232,7 +232,21 @@ class bibox extends Exchange {
                 'quoteId' => $quoteId,
                 'type' => $type,
                 'spot' => $spot,
-                'active' => true,
+                'margin' => false,
+                'future' => false,
+                'swap' => false,
+                'option' => false,
+                'optionType' => null,
+                'strike' => null,
+                'linear' => null,
+                'inverse' => null,
+                'contract' => false,
+                'contractSize' => null,
+                'settle' => null,
+                'settleId' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'active' => null,
                 'info' => $market,
                 'precision' => $precision,
                 'limits' => array(
