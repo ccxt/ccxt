@@ -1198,18 +1198,16 @@ module.exports = class aax extends Exchange {
             'orderID': id,
         };
         let market = undefined;
-        let marketType = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            marketType = market['type'];
         }
-        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'privateDeleteSpotOrdersCancelOrderID',
             'swap': 'privateDeleteFuturesOrdersCancelOrderID',
             'future': 'privateDeleteFuturesOrdersCancelOrderID',
         });
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         // spot
         //
