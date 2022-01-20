@@ -1436,14 +1436,14 @@ class gateio(Exchange):
         #
         marketId = self.safe_string_2(ticker, 'currency_pair', 'contract')
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_number(ticker, 'last')
-        ask = self.safe_number(ticker, 'lowest_ask')
-        bid = self.safe_number(ticker, 'highest_bid')
-        high = self.safe_number(ticker, 'high_24h')
-        low = self.safe_number(ticker, 'low_24h')
-        baseVolume = self.safe_number_2(ticker, 'base_volume', 'volume_24h_base')
-        quoteVolume = self.safe_number_2(ticker, 'quote_volume', 'volume_24h_quote')
-        percentage = self.safe_number(ticker, 'change_percentage')
+        last = self.safe_string(ticker, 'last')
+        ask = self.safe_string(ticker, 'lowest_ask')
+        bid = self.safe_string(ticker, 'highest_bid')
+        high = self.safe_string(ticker, 'high_24h')
+        low = self.safe_string(ticker, 'low_24h')
+        baseVolume = self.safe_string_2(ticker, 'base_volume', 'volume_24h_base')
+        quoteVolume = self.safe_string_2(ticker, 'quote_volume', 'volume_24h_quote')
+        percentage = self.safe_string(ticker, 'change_percentage')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
@@ -1465,7 +1465,7 @@ class gateio(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
