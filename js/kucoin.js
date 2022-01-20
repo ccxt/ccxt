@@ -773,41 +773,38 @@ module.exports = class kucoin extends Exchange {
         //         time: 1634641777363
         //     }
         //
-        let percentage = this.safeNumber (ticker, 'changeRate');
-        if (percentage !== undefined) {
-            percentage = percentage * 100;
-        }
-        let last = this.safeNumber2 (ticker, 'last', 'lastTradedPrice');
-        last = this.safeNumber (ticker, 'price', last);
+        const percentage = this.safeString (ticker, 'changeRate');
+        let last = this.safeString2 (ticker, 'last', 'lastTradedPrice');
+        last = this.safeString (ticker, 'price', last);
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];
-        const baseVolume = this.safeNumber (ticker, 'vol');
-        const quoteVolume = this.safeNumber (ticker, 'volValue');
+        const baseVolume = this.safeString (ticker, 'vol');
+        const quoteVolume = this.safeString (ticker, 'volValue');
         const vwap = this.vwap (baseVolume, quoteVolume);
         const timestamp = this.safeInteger2 (ticker, 'time', 'datetime');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber2 (ticker, 'buy', 'bestBid'),
-            'bidVolume': this.safeNumber (ticker, 'bestBidSize'),
-            'ask': this.safeNumber2 (ticker, 'sell', 'bestAsk'),
-            'askVolume': this.safeNumber (ticker, 'bestAskSize'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString2 (ticker, 'buy', 'bestBid'),
+            'bidVolume': this.safeString (ticker, 'bestBidSize'),
+            'ask': this.safeString2 (ticker, 'sell', 'bestAsk'),
+            'askVolume': this.safeString (ticker, 'bestAskSize'),
             'vwap': vwap,
-            'open': this.safeNumber (ticker, 'open'),
+            'open': this.safeString (ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeNumber (ticker, 'changePrice'),
+            'change': this.safeString (ticker, 'changePrice'),
             'percentage': percentage,
-            'average': this.safeNumber (ticker, 'averagePrice'),
+            'average': this.safeString (ticker, 'averagePrice'),
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
