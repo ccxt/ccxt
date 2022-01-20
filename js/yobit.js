@@ -159,6 +159,7 @@ module.exports = class yobit extends Exchange {
                 'PLAY': 'PlayCoin',
                 'PIVX': 'Darknet',
                 'PRS': 'PRE',
+                'PURE': 'PurePOS',
                 'PUTIN': 'PutinCoin',
                 'SPACE': 'Spacecoin',
                 'STK': 'StakeCoin',
