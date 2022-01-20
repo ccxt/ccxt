@@ -659,25 +659,22 @@ module.exports = class kraken extends Exchange {
     parseTicker (ticker, market = undefined) {
         const timestamp = this.milliseconds ();
         const symbol = this.safeSymbol (undefined, market);
-        const baseVolume = parseFloat (ticker['v'][1]);
-        const vwap = parseFloat (ticker['p'][1]);
-        let quoteVolume = undefined;
-        if (baseVolume !== undefined && vwap !== undefined) {
-            quoteVolume = baseVolume * vwap;
-        }
-        const last = parseFloat (ticker['c'][0]);
+        const baseVolume = ticker['v'][1];
+        const vwap = ticker['p'][1];
+        const quoteVolume = undefined;
+        const last = ticker['c'][0];
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['h'][1]),
-            'low': parseFloat (ticker['l'][1]),
-            'bid': parseFloat (ticker['b'][0]),
+            'high': ticker['h'][1],
+            'low': ticker['l'][1],
+            'bid': ticker['b'][0],
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['a'][0]),
+            'ask': ticker['a'][0],
             'askVolume': undefined,
             'vwap': vwap,
-            'open': this.safeNumber (ticker, 'o'),
+            'open': this.safeString (ticker, 'o'),
             'close': last,
             'last': last,
             'previousClose': undefined,
@@ -687,7 +684,7 @@ module.exports = class kraken extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
