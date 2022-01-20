@@ -464,7 +464,6 @@ module.exports = class bitvavo extends Exchange {
         const last = this.safeString (ticker, 'last');
         const baseVolume = this.safeString (ticker, 'volume');
         const quoteVolume = this.safeString (ticker, 'volumeQuote');
-        const vwap = this.vwap (baseVolume, quoteVolume);
         const open = this.safeString (ticker, 'open');
         return this.safeTicker ({
             'symbol': symbol,
@@ -476,7 +475,7 @@ module.exports = class bitvavo extends Exchange {
             'bidVolume': this.safeString (ticker, 'bidSize'),
             'ask': this.safeString (ticker, 'ask'),
             'askVolume': this.safeString (ticker, 'askSize'),
-            'vwap': vwap,
+            'vwap': undefined,
             'open': open,
             'close': last,
             'last': last,
