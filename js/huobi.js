@@ -3631,8 +3631,8 @@ module.exports = class huobi extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', undefined, params);
         const request = {
             // spot -----------------------------------------------------------
-            'order-ids': [], // max 50 ids
-            'client-order-ids': [], // max 50 ids
+            'order-ids': '', // max 50 ids separated by ","
+            'client-order-ids': '', // max 50 ids separated by ","
             // contracts ------------------------------------------------------
             // 'order_id': id, // comma separated, max 10
             // 'client_order_id': clientOrderId, // comma separated, max 10
@@ -3644,7 +3644,7 @@ module.exports = class huobi extends Exchange {
             let clientOrderIds = this.safeString2 (params, 'client-order-id', 'clientOrderId');
             clientOrderIds = this.safeString2 (params, 'client-order-ids', 'clientOrderIds', clientOrderIds);
             if (clientOrderIds === undefined) {
-                request['order-ids'] = ids;
+                request['order-ids'] = ids.join (',');
             } else {
                 request['client-order-ids'] = clientOrderIds;
                 params = this.omit (params, [ 'client-order-id', 'client-order-ids', 'clientOrderId', 'clientOrderIds' ]);
@@ -3657,7 +3657,8 @@ module.exports = class huobi extends Exchange {
             const market = this.market (symbol);
             request['contract_code'] = market['id'];
             if (market['linear']) {
-                const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
+                const defaultMargin = market['future'] ? 'cross' : 'isolated';
+                const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', defaultMargin);
                 if (marginType === 'isolated') {
                     method = 'contractPrivatePostLinearSwapApiV1SwapCancel';
                 } else if (marginType === 'cross') {
@@ -3676,7 +3677,7 @@ module.exports = class huobi extends Exchange {
             let clientOrderIds = this.safeString2 (params, 'client_order_id', 'clientOrderId');
             clientOrderIds = this.safeString2 (params, 'client_order_ids', 'clientOrderIds', clientOrderIds);
             if (clientOrderIds === undefined) {
-                request['order_id'] = ids;
+                request['order_id'] = ids.join (',');
             } else {
                 request['client_order_id'] = clientOrderIds;
                 params = this.omit (params, [ 'client_order_id', 'client_order_ids', 'clientOrderId', 'clientOrderIds' ]);
