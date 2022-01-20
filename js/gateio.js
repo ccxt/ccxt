@@ -1458,14 +1458,14 @@ module.exports = class gateio extends Exchange {
         //
         const marketId = this.safeString2 (ticker, 'currency_pair', 'contract');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeNumber (ticker, 'last');
-        const ask = this.safeNumber (ticker, 'lowest_ask');
-        const bid = this.safeNumber (ticker, 'highest_bid');
-        const high = this.safeNumber (ticker, 'high_24h');
-        const low = this.safeNumber (ticker, 'low_24h');
-        const baseVolume = this.safeNumber2 (ticker, 'base_volume', 'volume_24h_base');
-        const quoteVolume = this.safeNumber2 (ticker, 'quote_volume', 'volume_24h_quote');
-        const percentage = this.safeNumber (ticker, 'change_percentage');
+        const last = this.safeString (ticker, 'last');
+        const ask = this.safeString (ticker, 'lowest_ask');
+        const bid = this.safeString (ticker, 'highest_bid');
+        const high = this.safeString (ticker, 'high_24h');
+        const low = this.safeString (ticker, 'low_24h');
+        const baseVolume = this.safeString2 (ticker, 'base_volume', 'volume_24h_base');
+        const quoteVolume = this.safeString2 (ticker, 'quote_volume', 'volume_24h_quote');
+        const percentage = this.safeString (ticker, 'change_percentage');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
@@ -1487,7 +1487,7 @@ module.exports = class gateio extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
