@@ -562,17 +562,17 @@ module.exports = class stex extends Exchange {
         const timestamp = this.safeInteger (ticker, 'timestamp');
         const marketId = this.safeString2 (ticker, 'id', 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const last = this.safeNumber (ticker, 'last');
-        const open = this.safeNumber (ticker, 'open');
+        const last = this.safeString (ticker, 'last');
+        const open = this.safeString (ticker, 'open');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
@@ -582,10 +582,10 @@ module.exports = class stex extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'volumeQuote'),
-            'quoteVolume': this.safeNumber (ticker, 'volume'),
+            'baseVolume': this.safeString (ticker, 'volumeQuote'),
+            'quoteVolume': this.safeString (ticker, 'volume'),
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
