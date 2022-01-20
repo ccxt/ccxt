@@ -667,7 +667,6 @@ module.exports = class hitbtc3 extends Exchange {
         const quoteVolume = this.safeString (ticker, 'volume_quote');
         const open = this.safeString (ticker, 'open');
         const last = this.safeString (ticker, 'last');
-        const vwap = this.vwap (baseVolume, quoteVolume);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -678,7 +677,7 @@ module.exports = class hitbtc3 extends Exchange {
             'bidVolume': undefined,
             'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': open,
             'close': last,
             'last': last,
