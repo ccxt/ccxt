@@ -15,7 +15,7 @@ module.exports = class blockchaincom extends Exchange {
             'secret': undefined,
             'name': 'Blockchain.com',
             'countries': [ 'LX' ],
-            'rateLimit': 10000,
+            'rateLimit': 1000,
             'version': 'v3',
             'has': {
                 'spot': true,
@@ -243,6 +243,7 @@ module.exports = class blockchaincom extends Exchange {
                 maxOrderSize = undefined;
             }
             result.push ({
+                'info': market,
                 'id': marketId,
                 'numericId': numericId,
                 'symbol': base + '/' + quote,
@@ -421,7 +422,7 @@ module.exports = class blockchaincom extends Exchange {
         const datetime = this.iso8601 (timestamp);
         const filled = this.safeString (order, 'cumQty');
         const remaining = this.safeString (order, 'leavesQty');
-        const result = this.safeOrder2 ({
+        const result = this.safeOrder ({
             'id': exchangeOrderId,
             'clientOrderId': clientOrderId,
             'datetime': datetime,
@@ -876,7 +877,7 @@ module.exports = class blockchaincom extends Exchange {
             account['total'] = this.safeString (entry, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

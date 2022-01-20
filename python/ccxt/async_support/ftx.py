@@ -394,6 +394,9 @@ class ftx(Exchange):
                     'BSC': 'bsc',
                 },
             },
+            'commonCurrencies': {
+                'STARS': 'StarLaunch',
+            },
         })
 
     async def fetch_currencies(self, params={}):

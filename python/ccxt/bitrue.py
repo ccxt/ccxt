@@ -736,16 +736,16 @@ class bitrue(Exchange):
         #     }
         #
         symbol = self.safe_symbol(None, market)
-        last = self.safe_number(ticker, 'last')
+        last = self.safe_string(ticker, 'last')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
             'datetime': None,
-            'high': self.safe_number(ticker, 'high24hr'),
-            'low': self.safe_number(ticker, 'low24hr'),
-            'bid': self.safe_number(ticker, 'highestBid'),
+            'high': self.safe_string(ticker, 'high24hr'),
+            'low': self.safe_string(ticker, 'low24hr'),
+            'bid': self.safe_string(ticker, 'highestBid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'lowestAsk'),
+            'ask': self.safe_string(ticker, 'lowestAsk'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -753,12 +753,12 @@ class bitrue(Exchange):
             'last': last,
             'previousClose': None,
             'change': None,
-            'percentage': self.safe_number(ticker, 'percentChange'),
+            'percentage': self.safe_string(ticker, 'percentChange'),
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'baseVolume'),
-            'quoteVolume': self.safe_number(ticker, 'quoteVolume'),
+            'baseVolume': self.safe_string(ticker, 'baseVolume'),
+            'quoteVolume': self.safe_string(ticker, 'quoteVolume'),
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

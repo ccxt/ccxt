@@ -470,6 +470,7 @@ class kraken(Exchange):
             minAmount = self.safe_number(market, 'ordermin')
             leverageBuy = self.safe_value(market, 'leverage_buy', [])
             leverageBuyLength = len(leverageBuy)
+            margin = leverageBuyLength > 0
             maxLeverage = self.safe_value(leverageBuy, leverageBuyLength - 1, 1)
             result.append({
                 'id': id,
@@ -485,6 +486,20 @@ class kraken(Exchange):
                 'taker': taker,
                 'type': 'spot',
                 'spot': True,
+                'margin': margin,
+                'future': False,
+                'swap': False,
+                'option': False,
+                'optionType': None,
+                'strike': None,
+                'linear': None,
+                'inverse': None,
+                'contract': False,
+                'contractSize': None,
+                'settle': None,
+                'settleId': None,
+                'expiry': None,
+                'expiryDatetime': None,
                 'active': True,
                 'precision': precision,
                 'limits': {

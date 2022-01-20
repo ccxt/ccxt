@@ -20,7 +20,7 @@ class blockchaincom(Exchange):
             'secret': None,
             'name': 'Blockchain.com',
             'countries': ['LX'],
-            'rateLimit': 10000,
+            'rateLimit': 1000,
             'version': 'v3',
             'has': {
                 'spot': True,
@@ -245,6 +245,7 @@ class blockchaincom(Exchange):
             else:
                 maxOrderSize = None
             result.append({
+                'info': market,
                 'id': marketId,
                 'numericId': numericId,
                 'symbol': base + '/' + quote,
@@ -412,7 +413,7 @@ class blockchaincom(Exchange):
         datetime = self.iso8601(timestamp)
         filled = self.safe_string(order, 'cumQty')
         remaining = self.safe_string(order, 'leavesQty')
-        result = self.safeOrder2({
+        result = self.safe_order({
             'id': exchangeOrderId,
             'clientOrderId': clientOrderId,
             'datetime': datetime,
@@ -827,7 +828,7 @@ class blockchaincom(Exchange):
             account['free'] = self.safe_string(entry, 'available')
             account['total'] = self.safe_string(entry, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def fetch_order(self, id, symbol=None, params={}):
         # note: only works with exchange-order-id
