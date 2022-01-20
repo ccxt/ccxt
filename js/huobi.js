@@ -4715,7 +4715,7 @@ module.exports = class huobi extends Exchange {
             'lever_rate': leverage,
         };
         if (marketType === 'future' && market['inverse']) {
-            request['symbol'] = market['settle'];
+            request['symbol'] = market['settleId'];
         } else {
             request['contract_code'] = market['id'];
         }
