@@ -146,6 +146,7 @@ module.exports = class crex24 extends Exchange {
                 'ONE': 'One Hundred Coin',
                 'PUT': 'PutinCoin',
                 'SBTC': 'SBTCT', // SiamBitcoin
+                'SPH': 'SapphireCoin',
                 'SUPER': 'SuperCoin',
                 'UNI': 'Universe',
                 'YOYO': 'YOYOW',

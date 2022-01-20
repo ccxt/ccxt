@@ -209,7 +209,7 @@ class ascendex extends Exchange {
                 'fetchClosedOrders' => array(
                     'method' => 'v1PrivateAccountGroupGetOrderHist', // 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
                 ),
-                'defaultType' => 'spot', // 'spot', 'margin', 'swap'
+                'swap' => false, // https://github.com/ccxt/ccxt/issues/11503
                 'accountCategories' => array(
                     'spot' => 'cash',
                     'swap' => 'futures',
@@ -452,7 +452,13 @@ class ascendex extends Exchange {
         //         )
         //     }
         //
-        $perpetuals = yield $this->v2PublicGetFuturesContract ($params);
+        // this endpoint works intermittently
+        // https://github.com/ccxt/ccxt/issues/11503
+        $swap = $this->safe_value($this->options, 'swap', false);
+        $perpetuals = array();
+        if ($swap) {
+            $perpetuals = yield $this->v2PublicGetFuturesContract ($params);
+        }
         //
         //     {
         //         "code":0,
@@ -481,10 +487,10 @@ class ascendex extends Exchange {
         //         )
         //     }
         //
+        $perpetualsData = $this->safe_value($perpetuals, 'data', array());
         $productsData = $this->safe_value($products, 'data', array());
         $productsById = $this->index_by($productsData, 'symbol');
         $cashData = $this->safe_value($cash, 'data', array());
-        $perpetualsData = $this->safe_value($perpetuals, 'data', array());
         $cashAndPerpetualsData = $this->array_concat($cashData, $perpetualsData);
         $cashAndPerpetualsById = $this->index_by($cashAndPerpetualsData, 'symbol');
         $dataById = $this->deep_extend($productsById, $cashAndPerpetualsById);

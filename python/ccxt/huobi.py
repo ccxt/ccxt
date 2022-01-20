@@ -2833,20 +2833,19 @@ class huobi(Exchange):
                 raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol for ' + marketType + ' orders')
             market = self.market(symbol)
             request['contract_code'] = market['id']
-            if marketType == 'future':
-                method = 'contractPrivatePostApiV1ContractOpenorders'
-                request['symbol'] = market['settleId']
-            elif marketType == 'swap':
-                if market['linear']:
-                    marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', 'isolated')
-                    if marginType == 'isolated':
-                        method = 'contractPrivatePostLinearSwapApiV1SwapOpenorders'
-                    elif marginType == 'cross':
-                        method = 'contractPrivatePostLinearSwapApiV1SwapCrossOpenorders'
-                elif market['inverse']:
+            if market['linear']:
+                defaultMargin = 'cross' if market['future'] else 'isolated'
+                marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', defaultMargin)
+                if marginType == 'isolated':
+                    method = 'contractPrivatePostLinearSwapApiV1SwapOpenorders'
+                elif marginType == 'cross':
+                    method = 'contractPrivatePostLinearSwapApiV1SwapCrossOpenorders'
+            elif market['inverse']:
+                if market['future']:
+                    method = 'contractPrivatePostApiV1ContractOpenorders'
+                    request['symbol'] = market['settleId']
+                elif market['swap']:
                     method = 'contractPrivatePostSwapApiV1SwapOpenorders'
-            else:
-                raise NotSupported(self.id + ' fetchOpenOrders() does not support ' + marketType + ' markets')
             if limit is not None:
                 request['page_size'] = limit
         response = getattr(self, method)(self.extend(request, params))
@@ -3347,7 +3346,8 @@ class huobi(Exchange):
             params = self.omit(params, ['clientOrderId', 'client_order_id'])
         method = None
         if market['linear']:
-            marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', 'isolated')
+            defaultMargin = 'cross' if market['future'] else 'isolated'
+            marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', defaultMargin)
             if marginType == 'isolated':
                 method = 'contractPrivatePostLinearSwapApiV1SwapOrder'
             elif marginType == 'cross':
@@ -3406,7 +3406,8 @@ class huobi(Exchange):
             market = self.market(symbol)
             request['contract_code'] = market['id']
             if market['linear']:
-                marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', 'isolated')
+                defaultMargin = 'cross' if market['future'] else 'isolated'
+                marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', defaultMargin)
                 if marginType == 'isolated':
                     method = 'contractPrivatePostLinearSwapApiV1SwapCancel'
                 elif marginType == 'cross':
