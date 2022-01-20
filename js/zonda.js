@@ -482,9 +482,9 @@ module.exports = class zonda extends Exchange {
         //       }
         //
         const open = this.safeString (ticker, 'r24h');
-        const high = this.safeNumber (ticker, 'h');
-        const low = this.safeNumber (ticker, 'l');
-        const volume = this.safeNumber (ticker, 'v');
+        const high = this.safeString (ticker, 'h');
+        const low = this.safeString (ticker, 'l');
+        const volume = this.safeString (ticker, 'v');
         const marketId = this.safeString (ticker, 'm');
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];
