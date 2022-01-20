@@ -4635,7 +4635,7 @@ module.exports = class huobi extends Exchange {
             if (marginType === 'isolated') {
                 request['margin_account'] = market['id'];
             } else {
-                request['margin_account'] = market['quote'];
+                request['margin_account'] = market['quoteId'];
             }
         } else {
             if (marketType === 'swap') {
