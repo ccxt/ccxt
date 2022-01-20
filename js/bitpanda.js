@@ -521,7 +521,6 @@ module.exports = class bitpanda extends Exchange {
         const change = this.safeString (ticker, 'price_change');
         const baseVolume = this.safeString (ticker, 'base_volume');
         const quoteVolume = this.safeString (ticker, 'quote_volume');
-        const vwap = this.vwap (baseVolume, quoteVolume);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -532,7 +531,7 @@ module.exports = class bitpanda extends Exchange {
             'bidVolume': undefined,
             'ask': this.safeString (ticker, 'best_ask'),
             'askVolume': undefined,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
