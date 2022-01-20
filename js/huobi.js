@@ -1052,8 +1052,8 @@ module.exports = class huobi extends Exchange {
         const contract = (type !== 'spot');
         const future = (type === 'future');
         const swap = (type === 'swap');
-        let linear = undefined;
-        let inverse = undefined;
+        let linear;
+        let inverse;
         const request = {};
         if (contract) {
             linear = (subType === 'linear');
@@ -1070,6 +1070,9 @@ module.exports = class huobi extends Exchange {
                     method = 'contractPublicGetSwapApiV1SwapContractInfo';
                 }
             }
+        } else {
+            linear = true;
+            inverse = false;
         }
         const response = await this[method] (this.extend (request, query));
         //
