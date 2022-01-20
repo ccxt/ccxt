@@ -288,7 +288,6 @@ module.exports = class bithumb extends Exchange {
         const close = this.safeString (ticker, 'closing_price');
         const baseVolume = this.safeString (ticker, 'units_traded_24H');
         const quoteVolume = this.safeString (ticker, 'acc_trade_value_24H');
-        const vwap = this.vwap (baseVolume, quoteVolume);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -299,7 +298,7 @@ module.exports = class bithumb extends Exchange {
             'bidVolume': undefined,
             'ask': this.safeString (ticker, 'sell_price'),
             'askVolume': undefined,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': open,
             'close': close,
             'last': close,
