@@ -1829,7 +1829,7 @@ module.exports = class bitmart extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['spot']) {
+        if (!market['contract']) {
             throw new NotSupported (this.id + ' cancelOrders() does not support ' + market['type'] + ' orders, only contract orders are accepted');
         }
         const orders = [];
