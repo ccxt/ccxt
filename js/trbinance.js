@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { BadRequest, ArgumentsRequired, NotSupported } = require ('./base/errors');
-// const { TRUNCATE, DECIMAL_PLACES, TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
@@ -311,99 +310,6 @@ module.exports = class trbinance extends Exchange {
         if ('isDustTrade' in trade) {
             return this.parseDustTrade (trade, market);
         }
-        //
-        // aggregate trades
-        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
-        //
-        //     {
-        //         "a": 26129,         // Aggregate tradeId
-        //         "p": "0.01633102",  // Price
-        //         "q": "4.70443515",  // Quantity
-        //         "f": 27781,         // First tradeId
-        //         "l": 27781,         // Last tradeId
-        //         "T": 1498793709153, // Timestamp
-        //         "m": true,          // Was the buyer the maker?
-        //         "M": true           // Was the trade the best price match?
-        //     }
-        //
-        // recent public trades and old public trades
-        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#recent-trades-list
-        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#old-trade-lookup-market_data
-        //
-        //     {
-        //         "id": 28457,
-        //         "price": "4.00000100",
-        //         "qty": "12.00000000",
-        //         "time": 1499865549590,
-        //         "isBuyerMaker": true,
-        //         "isBestMatch": true
-        //     }
-        //
-        // private trades
-        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#account-trade-list-user_data
-        //
-        //     {
-        //         "symbol": "BNBBTC",
-        //         "id": 28457,
-        //         "orderId": 100234,
-        //         "price": "4.00000100",
-        //         "qty": "12.00000000",
-        //         "commission": "10.10000000",
-        //         "commissionAsset": "BNB",
-        //         "time": 1499865549590,
-        //         "isBuyer": true,
-        //         "isMaker": false,
-        //         "isBestMatch": true
-        //     }
-        //
-        // futures trades
-        // https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
-        //
-        //     {
-        //       "accountId": 20,
-        //       "buyer": False,
-        //       "commission": "-0.07819010",
-        //       "commissionAsset": "USDT",
-        //       "counterPartyId": 653,
-        //       "id": 698759,
-        //       "maker": False,
-        //       "orderId": 25851813,
-        //       "price": "7819.01",
-        //       "qty": "0.002",
-        //       "quoteQty": "0.01563",
-        //       "realizedPnl": "-0.91539999",
-        //       "side": "SELL",
-        //       "symbol": "BTCUSDT",
-        //       "time": 1569514978020
-        //     }
-        //     {
-        //       "symbol": "BTCUSDT",
-        //       "id": 477128891,
-        //       "orderId": 13809777875,
-        //       "side": "SELL",
-        //       "price": "38479.55",
-        //       "qty": "0.001",
-        //       "realizedPnl": "-0.00009534",
-        //       "marginAsset": "USDT",
-        //       "quoteQty": "38.47955",
-        //       "commission": "-0.00076959",
-        //       "commissionAsset": "USDT",
-        //       "time": 1612733566708,
-        //       "positionSide": "BOTH",
-        //       "maker": true,
-        //       "buyer": false
-        //     }
-        //
-        // { respType: FULL }
-        //
-        //     {
-        //       "price": "4000.00000000",
-        //       "qty": "1.00000000",
-        //       "commission": "4.00000000",
-        //       "commissionAsset": "USDT",
-        //       "tradeId": "1234",
-        //     }
-        //
         const timestamp = this.safeInteger2 (trade, 'T', 'time');
         const price = this.safeString2 (trade, 'p', 'price');
         const amount = this.safeString2 (trade, 'q', 'qty');
@@ -488,85 +394,13 @@ module.exports = class trbinance extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            // 'symbol': market['id'],
-            'symbol': market['base'] + market['quote'], // Symbol needs to be without underscore for the endpoint
-            // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
-            // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
-            // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
-            // 'limit': 500,     // default = 500, maximum = 1000
+            'symbol': market['baseId'] + market['quoteId'], // Symbol needs to be without underscore for the endpoint
         };
-        const defaultType = this.safeString2 (this.options, 'fetchTrades', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
-        let defaultMethod = undefined;
-        if (type === 'future') {
-            defaultMethod = 'fapiPublicGetAggTrades';
-        } else if (type === 'delivery') {
-            defaultMethod = 'dapiPublicGetAggTrades';
-        } else {
-            defaultMethod = 'publicGetAggTrades';
-        }
-        let method = this.safeString (this.options, 'fetchTradesMethod', defaultMethod);
-        if (method === 'publicGetAggTrades') {
-            if (since !== undefined) {
-                request['startTime'] = since;
-                request['endTime'] = this.sum (since, 3600000);
-            }
-            if (type === 'future') {
-                method = 'fapiPublicGetAggTrades';
-            } else if (type === 'delivery') {
-                method = 'dapiPublicGetAggTrades';
-            }
-        } else if (method === 'publicGetHistoricalTrades') {
-            if (type === 'future') {
-                method = 'fapiPublicGetHistoricalTrades';
-            } else if (type === 'delivery') {
-                method = 'dapiPublicGetHistoricalTrades';
-            }
-        }
         if (limit !== undefined) {
             request['limit'] = limit; // default: 500
         }
-        // Notes:
-        // - default limit (500) applies only if no other parameters set, trades up
-        //   to the maximum limit may be returned to satisfy other parameters
-        // - if both limit and time window is set and time window contains more
-        //   trades than the limit then the last trades from the window are returned
-        // - 'tradeId' accepted and returned by this method is "aggregate" trade id
-        //   which is different from actual trade id
-        // - setting both fromId and time window results in error
-        const response = await this[method] (this.extend (request, query));
-        //
-        // aggregate trades
-        //
-        //     [
-        //         {
-        //             "a": 26129,         // Aggregate tradeId
-        //             "p": "0.01633102",  // Price
-        //             "q": "4.70443515",  // Quantity
-        //             "f": 27781,         // First tradeId
-        //             "l": 27781,         // Last tradeId
-        //             "T": 1498793709153, // Timestamp
-        //             "m": true,          // Was the buyer the maker?
-        //             "M": true           // Was the trade the best price match?
-        //         }
-        //     ]
-        //
-        // recent public trades and historical public trades
-        //
-        //     [
-        //         {
-        //             "id": 28457,
-        //             "price": "4.00000100",
-        //             "qty": "12.00000000",
-        //             "time": 1499865549590,
-        //             "isBuyerMaker": true,
-        //             "isBestMatch": true
-        //         }
-        //     ]
-        //
-        // const data = this.safeValue (response, []);
-        //
+        const response = await this.publicGetAggTrades (this.extend (request, query));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -599,78 +433,16 @@ module.exports = class trbinance extends Exchange {
             request['pair'] = market['id'];   // Index price takes this argument instead of symbol
         } else {
             // request['symbol'] = market['id'];
-            request['symbol'] = market['base'] + market['quote']; // Symbol needs to be without underscore for the endpoint
+            request['symbol'] = market['baseId'] + market['quoteId']; // Symbol needs to be without underscore for the endpoint
         }
         if (since !== undefined) {
             request['startTime'] = since;
-            // if (market['inverse']) {
-            //     if (since > 0) {
-            //         const duration = this.parseTimeframe (timeframe);
-            //         const endTime = this.sum (since, limit * duration * 1000 - 1);
-            //         const now = this.milliseconds ();
-            //         request['endTime'] = Math.min (now, endTime);
-            //     }
-            // }
         }
-        const method = 'publicGetKlines';
-        const response = await this[method] (this.extend (request, params));
-        //
-        //     [
-        //         [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
-        //         [1591478580000,"0.02499600","0.02500900","0.02499400","0.02500300","21.34700000",1591478639999,"0.53370468",24,"7.53800000","0.18850725","0"],
-        //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
-        //     ]
-        //
+        const response = await this.publicGetKlines (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     parseTicker (ticker, market = undefined) {
-        //
-        //     {
-        //         symbol: 'ETHBTC',
-        //         priceChange: '0.00068700',
-        //         priceChangePercent: '2.075',
-        //         weightedAvgPrice: '0.03342681',
-        //         prevClosePrice: '0.03310300',
-        //         lastPrice: '0.03378900',
-        //         lastQty: '0.07700000',
-        //         bidPrice: '0.03378900',
-        //         bidQty: '7.16800000',
-        //         askPrice: '0.03379000',
-        //         askQty: '24.00000000',
-        //         openPrice: '0.03310200',
-        //         highPrice: '0.03388900',
-        //         lowPrice: '0.03306900',
-        //         volume: '205478.41000000',
-        //         quoteVolume: '6868.48826294',
-        //         openTime: 1601469986932,
-        //         closeTime: 1601556386932,
-        //         firstId: 196098772,
-        //         lastId: 196186315,
-        //         count: 87544
-        //     }
-        //
-        // coinm
-        //     {
-        //         baseVolume: '214549.95171161',
-        //         closeTime: '1621965286847',
-        //         count: '1283779',
-        //         firstId: '152560106',
-        //         highPrice: '39938.3',
-        //         lastId: '153843955',
-        //         lastPrice: '37993.4',
-        //         lastQty: '1',
-        //         lowPrice: '36457.2',
-        //         openPrice: '37783.4',
-        //         openTime: '1621878840000',
-        //         pair: 'BTCUSD',
-        //         priceChange: '210.0',
-        //         priceChangePercent: '0.556',
-        //         symbol: 'BTCUSD_PERP',
-        //         volume: '81990451',
-        //         weightedAvgPrice: '38215.08713747'
-        //     }
-        //
         const timestamp = this.safeInteger (ticker, 'closeTime');
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
@@ -715,13 +487,7 @@ module.exports = class trbinance extends Exchange {
         const request = {
             'symbol': market['id'].replace ('_', ''),
         };
-        const method = 'publicGetTicker24hr';
-        // if (market['linear']) {
-        //     method = 'fapiPublicGetTicker24hr';
-        // } else if (market['inverse']) {
-        //     method = 'dapiPublicGetTicker24hr';
-        // }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.publicGetTicker24hr (this.extend (request, params));
         if (Array.isArray (response)) {
             const firstTicker = this.safeValue (response, 0, {});
             return this.parseTicker (firstTicker, market);
@@ -731,19 +497,8 @@ module.exports = class trbinance extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        // const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
-        // const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
-        const defaultMethod = 'publicGetTicker24hr';
-        // if (type === 'future') {
-        //     defaultMethod = 'fapiPublicGetTicker24hr';
-        // } else if (type === 'delivery') {
-        //     defaultMethod = 'dapiPublicGetTicker24hr';
-        // } else {
-        //     defaultMethod = 'publicGetTicker24hr';
-        // }
-        const method = this.safeString (this.options, 'fetchTickersMethod', defaultMethod);
-        const response = await this[method] (query);
+        const response = await this.publicGetTicker24hr (query);
         return this.parseTickers (response, symbols);
     }
 
@@ -784,8 +539,6 @@ module.exports = class trbinance extends Exchange {
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'origQty');
         // - Spot/Margin market: cummulativeQuoteQty
-        // - Futures market: cumQuote.
-        //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
         let cost = this.safeString2 (order, 'cummulativeQuoteQty', 'cumQuote');
         cost = this.safeString (order, 'cumBase', cost);
         const id = this.safeString (order, 'orderId');
@@ -832,9 +585,6 @@ module.exports = class trbinance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', 'spot');
-        // const type = this.safeString (params, 'type', defaultType);
-        // const method = 'privateGetOrdersDetail';
         // const request = {
         //     'symbol': market['id'],
         // };
@@ -845,7 +595,7 @@ module.exports = class trbinance extends Exchange {
         //     request['orderId'] = id;
         // }
         // const query = this.omit (params, [ 'type', 'clientOrderId', 'origClientOrderId' ]);
-        // const response = await this[method] (this.extend (request, query));
+        // const response = await this.privateGetOrdersDetail (this.extend (request, query));
         const response = {
             'orderId': 4,
             'orderListId': -1,
@@ -871,9 +621,6 @@ module.exports = class trbinance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // const defaultType = this.safeString2 (this.options, 'fetchOrders', 'defaultType', 'spot');
-        // const type = this.safeString (params, 'type', defaultType);
-        // const method = 'privateGetOrders';
         // const request = {
         //     'symbol': market['id'],
         // };
@@ -884,7 +631,7 @@ module.exports = class trbinance extends Exchange {
         //     request['limit'] = limit;
         // }
         // const query = this.omit (params, type);
-        // const response = await this[method] (this.extend (request, query));
+        // const response = await this.privateGetOrders (this.extend (request, query));
         const response = [
             {
                 'orderId': '21',
@@ -1008,9 +755,8 @@ module.exports = class trbinance extends Exchange {
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchAccountSpot', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        // const method = 'privateGetAccountSpot';
         // const query = this.omit (params, 'type');
-        // const response = await this[method] (query);
+        // const response = await this.privateGetAccountSpot (query);
         const response = {
             'code': 0,
             'msg': 'success',
@@ -1072,10 +818,8 @@ module.exports = class trbinance extends Exchange {
         const feeCurrency = transaction['network'];
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const type = ('deposit_data' in transaction) ? 'deposit' : 'withdrawal';
-        // const data = this.safeValue (transaction, type + '_data', {});
         const address = transaction['address'];
         const txid = transaction['txId'];
-        // const updated = this.parse8601 (this.safeString (data, 'updated_at'));
         return {
             'info': transaction,
             'id': id,
@@ -1269,22 +1013,6 @@ module.exports = class trbinance extends Exchange {
             this.checkRequiredCredentials ();
             let query = undefined;
             const recvWindow = this.safeInteger (this.options, 'recvWindow', 5000);
-            // if ((api === 'sapi') && (path === 'asset/dust')) {
-            //     query = this.urlencodeWithArrayRepeat (this.extend ({
-            //         'timestamp': this.nonce (),
-            //         'recvWindow': recvWindow,
-            //     }, params));
-            // } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0)) {
-            //     query = this.rawencode (this.extend ({
-            //         'timestamp': this.nonce (),
-            //         'recvWindow': recvWindow,
-            //     }, params));
-            // } else {
-            //     query = this.urlencode (this.extend ({
-            //         'timestamp': this.nonce (),
-            //         'recvWindow': recvWindow,
-            //     }, params));
-            // }
             query = this.urlencode (this.extend ({
                 'timestamp': this.nonce (),
                 'recvWindow': recvWindow,
