@@ -449,6 +449,7 @@ module.exports = class kraken extends Exchange {
             const minAmount = this.safeNumber (market, 'ordermin');
             const leverageBuy = this.safeValue (market, 'leverage_buy', []);
             const leverageBuyLength = leverageBuy.length;
+            const margin = leverageBuyLength > 0;
             const maxLeverage = this.safeValue (leverageBuy, leverageBuyLength - 1, 1);
             result.push ({
                 'id': id,
@@ -464,6 +465,20 @@ module.exports = class kraken extends Exchange {
                 'taker': taker,
                 'type': 'spot',
                 'spot': true,
+                'margin': margin,
+                'future': false,
+                'swap': false,
+                'option': false,
+                'optionType': undefined,
+                'strike': undefined,
+                'linear': undefined,
+                'inverse': undefined,
+                'contract': false,
+                'contractSize': undefined,
+                'settle': undefined,
+                'settleId': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
                 'active': true,
                 'precision': precision,
                 'limits': {
