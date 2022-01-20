@@ -204,7 +204,7 @@ module.exports = class ascendex extends Exchange {
                 'fetchClosedOrders': {
                     'method': 'v1PrivateAccountGroupGetOrderHist', // 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
                 },
-                'defaultType': 'spot', // 'spot', 'margin', 'swap'
+                'swap': false, // https://github.com/ccxt/ccxt/issues/11503
                 'accountCategories': {
                     'spot': 'cash',
                     'swap': 'futures',
@@ -447,7 +447,13 @@ module.exports = class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const perpetuals = await this.v2PublicGetFuturesContract (params);
+        // this endpoint works intermittently
+        // https://github.com/ccxt/ccxt/issues/11503
+        const swap = this.safeValue (this.options, 'swap', false);
+        let perpetuals = {};
+        if (swap) {
+            perpetuals = await this.v2PublicGetFuturesContract (params);
+        }
         //
         //     {
         //         "code":0,
@@ -476,10 +482,10 @@ module.exports = class ascendex extends Exchange {
         //         ]
         //     }
         //
+        const perpetualsData = this.safeValue (perpetuals, 'data', []);
         const productsData = this.safeValue (products, 'data', []);
         const productsById = this.indexBy (productsData, 'symbol');
         const cashData = this.safeValue (cash, 'data', []);
-        const perpetualsData = this.safeValue (perpetuals, 'data', []);
         const cashAndPerpetualsData = this.arrayConcat (cashData, perpetualsData);
         const cashAndPerpetualsById = this.indexBy (cashAndPerpetualsData, 'symbol');
         const dataById = this.deepExtend (productsById, cashAndPerpetualsById);
