@@ -473,7 +473,6 @@ module.exports = class delta extends Exchange {
         const open = this.safeString (ticker, 'open');
         const baseVolume = this.safeString (ticker, 'volume');
         const quoteVolume = this.safeString (ticker, 'turnover');
-        const vwap = this.vwap (baseVolume, quoteVolume);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -484,7 +483,7 @@ module.exports = class delta extends Exchange {
             'bidVolume': undefined,
             'ask': undefined,
             'askVolume': undefined,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': open,
             'close': last,
             'last': last,
