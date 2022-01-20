@@ -255,29 +255,29 @@ module.exports = class therock extends Exchange {
         //
         const timestamp = this.parse8601 (this.safeString (ticker, 'date'));
         market = this.safeMarket (undefined, market);
-        const last = this.safeNumber (ticker, 'last');
+        const last = this.safeString (ticker, 'last');
         return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeNumber (ticker, 'open'),
+            'open': this.safeString (ticker, 'open'),
             'close': last,
             'last': last,
-            'previousClose': this.safeNumber (ticker, 'close'), // previous day close, if any
+            'previousClose': this.safeString (ticker, 'close'), // previous day close, if any
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'volume_traded'),
-            'quoteVolume': this.safeNumber (ticker, 'volume'),
+            'baseVolume': this.safeString (ticker, 'volume_traded'),
+            'quoteVolume': this.safeString (ticker, 'volume'),
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
