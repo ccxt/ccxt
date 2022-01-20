@@ -519,7 +519,6 @@ module.exports = class probit extends Exchange {
         const change = this.safeString (ticker, 'change');
         const baseVolume = this.safeString (ticker, 'base_volume');
         const quoteVolume = this.safeString (ticker, 'quote_volume');
-        const vwap = this.vwap (baseVolume, quoteVolume);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -530,7 +529,7 @@ module.exports = class probit extends Exchange {
             'bidVolume': undefined,
             'ask': undefined,
             'askVolume': undefined,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': undefined,
             'close': close,
             'last': close,
