@@ -1080,14 +1080,14 @@ module.exports = class bitget extends Exchange {
         const open = this.safeString (ticker, 'open');
         let bidVolume = undefined;
         let askVolume = undefined;
-        let bid = this.safeString (ticker, 'bid');
+        let bid = this.safeValue (ticker, 'bid');
         if (bid === undefined) {
             bid = this.safeString (ticker, 'best_bid');
         } else {
             bidVolume = this.safeString (bid, 1);
             bid = this.safeString (bid, 0);
         }
-        let ask = this.safeString (ticker, 'ask');
+        let ask = this.safeValue (ticker, 'ask');
         if (ask === undefined) {
             ask = this.safeString (ticker, 'best_ask');
         } else {
