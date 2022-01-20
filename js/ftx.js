@@ -664,22 +664,19 @@ module.exports = class ftx extends Exchange {
             market = this.markets_by_id[marketId];
         }
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeNumber (ticker, 'last');
+        const last = this.safeString (ticker, 'last');
         const timestamp = this.safeTimestamp (ticker, 'time', this.milliseconds ());
-        let percentage = this.safeNumber (ticker, 'change24h');
-        if (percentage !== undefined) {
-            percentage *= 100;
-        }
+        const percentage = this.safeString (ticker, 'change24h');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
-            'bidVolume': this.safeNumber (ticker, 'bidSize'),
-            'ask': this.safeNumber (ticker, 'ask'),
-            'askVolume': this.safeNumber (ticker, 'askSize'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
+            'bidVolume': this.safeString (ticker, 'bidSize'),
+            'ask': this.safeString (ticker, 'ask'),
+            'askVolume': this.safeString (ticker, 'askSize'),
             'vwap': undefined,
             'open': undefined,
             'close': last,
@@ -689,9 +686,9 @@ module.exports = class ftx extends Exchange {
             'percentage': percentage,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': this.safeNumber (ticker, 'quoteVolume24h'),
+            'quoteVolume': this.safeString (ticker, 'quoteVolume24h'),
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
