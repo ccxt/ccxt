@@ -376,6 +376,9 @@ class ftx extends Exchange {
                     'BSC' => 'bsc',
                 ),
             ),
+            'commonCurrencies' => array(
+                'STARS' => 'StarLaunch',
+            ),
         ));
     }
 
