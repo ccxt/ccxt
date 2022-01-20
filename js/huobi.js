@@ -1385,7 +1385,6 @@ module.exports = class huobi extends Exchange {
         const close = this.safeString (ticker, 'close');
         const baseVolume = this.safeString (ticker, 'amount');
         const quoteVolume = this.safeString (ticker, 'vol');
-        const vwap = this.vwap (baseVolume, quoteVolume);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1396,7 +1395,7 @@ module.exports = class huobi extends Exchange {
             'bidVolume': bidVolume,
             'ask': ask,
             'askVolume': askVolume,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': open,
             'close': close,
             'last': close,
