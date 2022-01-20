@@ -1551,8 +1551,7 @@ module.exports = class okex extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let method = undefined;
         if (marketType === 'funding') {
             method = 'privateGetAssetBalances';
@@ -1562,7 +1561,7 @@ module.exports = class okex extends Exchange {
         const request = {
             // 'ccy': 'BTC,ETH', // comma-separated list of currency ids
         };
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         //     {
         //         "code":"0",
