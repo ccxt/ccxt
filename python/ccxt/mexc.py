@@ -76,7 +76,6 @@ class mexc(Exchange):
                 '30m': '30m',
                 '1h': '1h',
                 '1d': '1d',
-                '1w': '1w',
                 '1M': '1M',
             },
             'urls': {
