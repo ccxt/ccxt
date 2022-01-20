@@ -2127,6 +2127,9 @@ class ascendex(Exchange):
         if access == 'public':
             if params:
                 url += '?' + self.urlencode(params)
+            headers = {
+                'Content-Type': 'application/json',
+            }
         else:
             self.check_required_credentials()
             timestamp = str(self.milliseconds())

@@ -2217,6 +2217,9 @@ class ascendex extends Exchange {
             if ($params) {
                 $url .= '?' . $this->urlencode($params);
             }
+            $headers = array(
+                'Content-Type' => 'application/json',
+            );
         } else {
             $this->check_required_credentials();
             $timestamp = (string) $this->milliseconds();
