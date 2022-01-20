@@ -4674,13 +4674,14 @@ module.exports = class huobi extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchPosition', market, params);
         let method = undefined;
         if (market['linear']) {
+            const defaultMargin = market['future'] ? 'cross' : 'isolated';
+            const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', defaultMargin);
             method = this.getSupportedMapping (marginType, {
                 'isolated': 'contractPrivatePostLinearSwapApiV1SwapSwitchLeverRate',
-                'cross': 'contractPrivatePostLinearSwapCrossApiV1SwapSwitchLeverRate',
+                'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossSwitchLeverRate',
             });
             //
             //     {
@@ -4718,7 +4719,7 @@ module.exports = class huobi extends Exchange {
         const request = {
             'lever_rate': leverage,
         };
-        if (marketType === 'future') {
+        if (marketType === 'future' && market['inverse']) {
             request['symbol'] = market['settle'];
         } else {
             request['contract_code'] = market['id'];
