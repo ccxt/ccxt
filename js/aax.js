@@ -1799,13 +1799,11 @@ module.exports = class aax extends Exchange {
             // 'side': 'undefined', // BUY, SELL
         };
         let market = undefined;
-        let marketType = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
-            marketType = market['type'];
         }
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'privateGetSpotTrades',
             'swap': 'privateGetFuturesTrades',
@@ -1817,7 +1815,7 @@ module.exports = class aax extends Exchange {
         if (since !== undefined) {
             request['startDate'] = this.yyyymmdd (since);
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         //     {
         //         "code":1,
