@@ -1076,7 +1076,6 @@ module.exports = class okex extends Exchange {
         const open = this.safeString (ticker, 'open24h');
         const quoteVolume = this.safeString (ticker, 'volCcy24h');
         const baseVolume = this.safeString (ticker, 'vol24h');
-        const vwap = this.vwap (baseVolume, quoteVolume);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1087,7 +1086,7 @@ module.exports = class okex extends Exchange {
             'bidVolume': this.safeString (ticker, 'bidSz'),
             'ask': this.safeString (ticker, 'askPx'),
             'askVolume': this.safeString (ticker, 'askSz'),
-            'vwap': vwap,
+            'vwap': undefined,
             'open': open,
             'close': last,
             'last': last,
