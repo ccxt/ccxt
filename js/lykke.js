@@ -411,16 +411,16 @@ module.exports = class lykke extends Exchange {
         const timestamp = this.milliseconds ();
         const marketId = this.safeString (ticker, 'assetPair');
         market = this.safeMarket (marketId, market);
-        const close = this.safeNumber (ticker, 'lastPrice');
+        const close = this.safeString (ticker, 'lastPrice');
         return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': this.safeNumber (ticker, 'bid'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -431,9 +431,9 @@ module.exports = class lykke extends Exchange {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': this.safeNumber (ticker, 'volume24H'),
+            'quoteVolume': this.safeString (ticker, 'volume24H'),
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
