@@ -173,6 +173,7 @@ module.exports = class yobit extends Exchange {
                 'SBTC': 'Super Bitcoin',
                 'SMC': 'SmartCoin',
                 'SOLO': 'SoloCoin',
+                'STAR': 'StarCoin',
                 'SUPER': 'SuperCoin',
                 'TTC': 'TittieCoin',
                 'UNI': 'Universe',
