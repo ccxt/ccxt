@@ -277,7 +277,6 @@ module.exports = class mexc extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPublicGetCommonTimestamp',
-            'margin': 'spotPublicGetCommonTimestamp',
             'swap': 'contractPublicGetPing',
         });
         const response = await this[method] (this.extend (query));
