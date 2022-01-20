@@ -773,7 +773,10 @@ module.exports = class kucoin extends Exchange {
         //         time: 1634641777363
         //     }
         //
-        const percentage = this.safeString (ticker, 'changeRate');
+        let percentage = this.safeString (ticker, 'changeRate');
+        if (percentage !== undefined) {
+            percentage = Precise.stringMul (percentage, '100');
+        }
         let last = this.safeString2 (ticker, 'last', 'lastTradedPrice');
         last = this.safeString (ticker, 'price', last);
         const marketId = this.safeString (ticker, 'symbol');
@@ -781,7 +784,6 @@ module.exports = class kucoin extends Exchange {
         const symbol = market['symbol'];
         const baseVolume = this.safeString (ticker, 'vol');
         const quoteVolume = this.safeString (ticker, 'volValue');
-        const vwap = this.vwap (baseVolume, quoteVolume);
         const timestamp = this.safeInteger2 (ticker, 'time', 'datetime');
         return this.safeTicker ({
             'symbol': symbol,
@@ -793,7 +795,7 @@ module.exports = class kucoin extends Exchange {
             'bidVolume': this.safeString (ticker, 'bestBidSize'),
             'ask': this.safeString2 (ticker, 'sell', 'bestAsk'),
             'askVolume': this.safeString (ticker, 'bestAskSize'),
-            'vwap': vwap,
+            'vwap': undefined,
             'open': this.safeString (ticker, 'open'),
             'close': last,
             'last': last,
