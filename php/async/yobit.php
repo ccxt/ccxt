@@ -90,6 +90,7 @@ class yobit extends Exchange {
                 'ASN' => 'Ascension',
                 'AST' => 'Astral',
                 'ATM' => 'Autumncoin',
+                'BAB' => 'Babel',
                 'BCC' => 'BCH',
                 'BCS' => 'BitcoinStake',
                 'BITS' => 'Bitstar',
