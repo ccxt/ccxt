@@ -1104,18 +1104,18 @@ module.exports = class okex3 extends Exchange {
         const marketId = this.safeString (ticker, 'instrument_id');
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];
-        const last = this.safeNumber (ticker, 'last');
-        const open = this.safeNumber (ticker, 'open_24h');
+        const last = this.safeString (ticker, 'last');
+        const open = this.safeString (ticker, 'open_24h');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high_24h'),
-            'low': this.safeNumber (ticker, 'low_24h'),
-            'bid': this.safeNumber (ticker, 'best_bid'),
-            'bidVolume': this.safeNumber (ticker, 'best_bid_size'),
-            'ask': this.safeNumber (ticker, 'best_ask'),
-            'askVolume': this.safeNumber (ticker, 'best_ask_size'),
+            'high': this.safeString (ticker, 'high_24h'),
+            'low': this.safeString (ticker, 'low_24h'),
+            'bid': this.safeString (ticker, 'best_bid'),
+            'bidVolume': this.safeString (ticker, 'best_bid_size'),
+            'ask': this.safeString (ticker, 'best_ask'),
+            'askVolume': this.safeString (ticker, 'best_ask_size'),
             'vwap': undefined,
             'open': open,
             'close': last,
@@ -1124,10 +1124,10 @@ module.exports = class okex3 extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'base_volume_24h'),
-            'quoteVolume': this.safeNumber (ticker, 'quote_volume_24h'),
+            'baseVolume': this.safeString (ticker, 'base_volume_24h'),
+            'quoteVolume': this.safeString (ticker, 'quote_volume_24h'),
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
