@@ -29,12 +29,18 @@ class kraken extends Exchange {
             'certified' => false,
             'pro' => true,
             'has' => array(
+                'spot' => true,
                 'margin' => true,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'CORS' => null,
                 'createDepositAddress' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRateHistory' => false,
@@ -43,9 +49,16 @@ class kraken extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchLedger' => true,
                 'fetchLedgerEntry' => true,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -53,6 +66,7 @@ class kraken extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrderTrades' => 'emulated',
                 'fetchPositions' => true,
+                'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -60,7 +74,10 @@ class kraken extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFees' => true,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
                 'setMarginMode' => false, // Kraken only supports cross margin
+                'setPositionMode' => false,
                 'withdraw' => true,
             ),
             'marketsByAltname' => array(),
@@ -436,7 +453,6 @@ class kraken extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $darkpool = mb_strpos($id, '.d') !== false;
             $altname = $this->safe_string($market, 'altname');
-            $symbol = $darkpool ? $altname : ($base . '/' . $quote);
             $makerFees = $this->safe_value($market, 'fees_maker', array());
             $firstMakerFee = $this->safe_value($makerFees, 0, array());
             $firstMakerFeeRate = $this->safe_number($firstMakerFee, 1);
@@ -451,62 +467,60 @@ class kraken extends Exchange {
             if ($firstTakerFeeRate !== null) {
                 $taker = floatval($firstTakerFeeRate) / 100;
             }
-            $precision = array(
-                'amount' => $this->safe_integer($market, 'lot_decimals'),
-                'price' => $this->safe_integer($market, 'pair_decimals'),
-            );
-            $minAmount = $this->safe_number($market, 'ordermin');
             $leverageBuy = $this->safe_value($market, 'leverage_buy', array());
             $leverageBuyLength = is_array($leverageBuy) ? count($leverageBuy) : 0;
-            $margin = $leverageBuyLength > 0;
-            $maxLeverage = $this->safe_value($leverageBuy, $leverageBuyLength - 1, 1);
+            $precisionPrice = $this->safe_string($market, 'pair_decimals');
             $result[] = array(
                 'id' => $id,
-                'symbol' => $symbol,
+                'symbol' => $darkpool ? $altname : ($base . '/' . $quote),
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'darkpool' => $darkpool,
-                'info' => $market,
                 'altname' => $market['altname'],
-                'maker' => $maker,
-                'taker' => $taker,
                 'type' => 'spot',
                 'spot' => true,
-                'margin' => $margin,
-                'future' => false,
+                'margin' => ($leverageBuyLength > 0),
                 'swap' => false,
+                'future' => false,
                 'option' => false,
-                'optionType' => null,
-                'strike' => null,
+                'active' => true,
+                'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                'contract' => false,
+                'maker' => $maker,
+                'taker' => $taker,
                 'contractSize' => null,
-                'settle' => null,
-                'settleId' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
-                'active' => true,
-                'precision' => $precision,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'price' => $this->safe_integer($market, 'pair_decimals'),
+                    'amount' => $this->safe_integer($market, 'lot_decimals'),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => $this->parse_number('1'),
+                        'max' => $this->safe_value($leverageBuy, $leverageBuyLength - 1, 1),
+                    ),
                     'amount' => array(
-                        'min' => $minAmount,
+                        'min' => $this->safe_number($market, 'ordermin'),
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision['price']),
+                        'min' => $this->parse_precision($precisionPrice),
                         'max' => null,
                     ),
                     'cost' => array(
                         'min' => null,
                         'max' => null,
                     ),
-                    'leverage' => array(
-                        'max' => $maxLeverage,
-                    ),
                 ),
+                'info' => $market,
             );
         }
         $result = $this->append_inactive_markets($result);
