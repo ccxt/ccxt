@@ -1516,8 +1516,10 @@ module.exports = class binance extends Exchange {
             const lowercaseId = this.safeStringLower (market, 'symbol');
             const baseId = this.safeString (market, 'baseAsset');
             const quoteId = this.safeString (market, 'quoteAsset');
+            const settleId = this.safeString (market, 'marginAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            const settle = this.safeCurrencyCode (settleId);
             const contractType = this.safeString (market, 'contractType');
             const idSymbol = (future || delivery) && (contractType !== 'PERPETUAL');
             let symbol = undefined;
@@ -1530,51 +1532,52 @@ module.exports = class binance extends Exchange {
             }
             const filters = this.safeValue (market, 'filters', []);
             const filtersByType = this.indexBy (filters, 'filterType');
-            const precision = {
-                'base': this.safeInteger (market, 'baseAssetPrecision'),
-                'quote': this.safeInteger (market, 'quotePrecision'),
-                'amount': this.safeInteger (market, 'quantityPrecision'),
-                'price': this.safeInteger (market, 'pricePrecision'),
-            };
             const status = this.safeString2 (market, 'status', 'contractStatus');
-            const active = (status === 'TRADING');
-            const margin = this.safeValue (market, 'isMarginTradingAllowed', false);
+            const contract = future || delivery;
             let contractSize = undefined;
             let fees = this.fees;
-            if (future || delivery) {
+            if (contract) {
                 contractSize = this.safeNumber (market, 'contractSize', this.parseNumber ('1'));
                 fees = this.fees[type];
             }
-            const maker = fees['trading']['maker'];
-            const taker = fees['trading']['taker'];
-            const settleId = this.safeString (market, 'marginAsset');
-            const settle = this.safeCurrencyCode (settleId);
             const entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
-                'spot': spot,
+                'settleId': settleId,
                 'type': type,
-                'margin': margin,
+                'spot': spot,
+                'margin': spot && this.safeValue (market, 'isMarginTradingAllowed', false),
                 'future': future,
                 'delivery': delivery,
-                'linear': future,
-                'inverse': delivery,
+                'option': false,
+                'active': (status === 'TRADING'),
+                'contract': contract,
+                'linear': contract ? future : undefined,
+                'inverse': contract ? delivery : undefined,
+                'taker': fees['trading']['taker'],
+                'maker': fees['trading']['maker'],
+                'contractSize': contractSize,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
-                'settleId': settleId,
-                'settle': settle,
-                'active': active,
-                'precision': precision,
-                'contractSize': contractSize,
-                'maker': maker,
-                'taker': taker,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': this.safeInteger (market, 'pricePrecision'),
+                    'amount': this.safeInteger (market, 'quantityPrecision'),
+                    'base': this.safeInteger (market, 'baseAssetPrecision'),
+                    'quote': this.safeInteger (market, 'quotePrecision'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': undefined,
                         'max': undefined,
@@ -1588,6 +1591,7 @@ module.exports = class binance extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': market,
             };
             if ('PRICE_FILTER' in filtersByType) {
                 const filter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
