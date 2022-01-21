@@ -906,7 +906,6 @@ module.exports = class timex extends Exchange {
         const minAmount = Precise.stringMax (amountIncrement, minBase);
         const priceIncrement = this.safeString (market, 'tickSize');
         const minCost = this.safeString (market, 'quoteMinSize');
-        const amount = Precise.stringMul (minAmount, priceIncrement);
         return {
             'id': id,
             'symbol': base + '/' + quote,
@@ -951,7 +950,7 @@ module.exports = class timex extends Exchange {
                     'max': undefined,
                 },
                 'cost': {
-                    'min': Precise.stringMax (minCost, amount),
+                    'min': minCost,
                     'max': undefined,
                 },
             },
