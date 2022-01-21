@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported } = require ('./base/errors');
+const { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 module.exports = class cryptocom extends Exchange {
@@ -251,6 +251,7 @@ module.exports = class cryptocom extends Exchange {
                     '40005': BadRequest,
                     '40006': BadRequest,
                     '40007': BadRequest,
+					'40101': AuthenticationError,
                     '50001': BadRequest,
                 },
             },
