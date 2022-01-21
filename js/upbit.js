@@ -394,33 +394,49 @@ module.exports = class upbit extends Exchange {
             const [ quoteId, baseId ] = id.split ('-');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const precision = {
-                'amount': 8,
-                'price': 8,
-            };
-            const active = true;
-            const makerFee = this.safeNumber (this.options['tradingFeesByQuoteCurrency'], quote, this.fees['trading']['maker']);
-            const takerFee = this.safeNumber (this.options['tradingFeesByQuoteCurrency'], quote, this.fees['trading']['taker']);
+            const precisionAmount = this.parseNumber ('8');
+            const precisionPrice = this.parseNumber ('8');
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': active,
-                'info': market,
-                'precision': precision,
-                'maker': makerFee,
-                'taker': takerFee,
+                'settleId': undefined,
+                'type': 'spot',
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': true,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': this.safeNumber (this.options['tradingFeesByQuoteCurrency'], quote, this.fees['trading']['taker']),
+                'maker': this.safeNumber (this.options['tradingFeesByQuoteCurrency'], quote, this.fees['trading']['maker']),
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': precisionPrice,
+                    'amount': precisionAmount,
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
+                        'min': this.parseNumber ('-1e' + precisionAmount),
                         'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
+                        'min': this.parseNumber ('-1e' + precisionPrice),
                         'max': undefined,
                     },
                     'cost': {
@@ -428,6 +444,7 @@ module.exports = class upbit extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': market,
             });
         }
         return result;
