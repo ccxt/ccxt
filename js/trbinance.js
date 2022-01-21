@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadRequest, ArgumentsRequired, NotSupported } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, BadRequest, ArgumentsRequired, NotSupported } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
@@ -20,6 +20,7 @@ module.exports = class trbinance extends Exchange {
                 'CORS': undefined,
                 'publicAPI': true,
                 'privateAPI': false,
+                'fetchBalance': false,
                 'fetchCurrencies': false,
                 'fetchMarkets': true,
                 'fetchOrderBook': true,
@@ -112,13 +113,24 @@ module.exports = class trbinance extends Exchange {
                     'taker': this.parseNumber ('0.001'),
                 },
             },
+            // exchange-specific options
             'options': {
-                'networks': {
-                },
+                'fetchCurrencies': true,
+                'defaultTimeInForce': 'GTC',
+                'defaultType': 'spot',
+                'hasAlreadyAuthenticatedSuccessfully': false,
+                'warnOnFetchOpenOrdersWithoutSymbol': true,
+                'fetchPositions': 'positionRisk', // or 'account'
+                'recvWindow': 5 * 1000, // 5 sec, binance default
+                'timeDifference': 0, // the difference between system clock and Binance clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
             },
             'commonCurrencies': {
             },
             'exceptions': {
+                'exact': {
+                    '3700': AuthenticationError,
+                },
             },
         });
     }
@@ -307,9 +319,6 @@ module.exports = class trbinance extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        if ('isDustTrade' in trade) {
-            return this.parseDustTrade (trade, market);
-        }
         const timestamp = this.safeInteger2 (trade, 'T', 'time');
         const price = this.safeString2 (trade, 'p', 'price');
         const amount = this.safeString2 (trade, 'q', 'qty');
@@ -319,9 +328,10 @@ module.exports = class trbinance extends Exchange {
         let id = this.safeString2 (trade, 't', 'a');
         id = this.safeString2 (trade, 'id', 'tradeId', id);
         let side = undefined;
+        let fee = undefined;
+        let takerOrMaker = undefined;
         const orderId = this.safeString (trade, 'orderId');
         if ('m' in trade) {
-            // this is reversed intentionally
             if (trade['m']) {
                 side = 'sell';
             } else {
@@ -344,14 +354,12 @@ module.exports = class trbinance extends Exchange {
                 }
             }
         }
-        let fee = undefined;
         if ('commission' in trade) {
             fee = {
                 'cost': this.safeString (trade, 'commission'),
                 'currency': this.safeCurrencyCode (this.safeString (trade, 'commissionAsset')),
             };
         }
-        let takerOrMaker = undefined;
         if ('m' in trade) {
             if (trade['m']) {
                 takerOrMaker = 'maker';
@@ -579,39 +587,38 @@ module.exports = class trbinance extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        // console.log('id >>>>>>', id);
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // const request = {
-        //     'symbol': market['id'],
-        // };
-        // const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
-        // if (clientOrderId !== undefined) {
-        //     request['origClientOrderId'] = clientOrderId;
-        // } else {
-        //     request['orderId'] = id;
-        // }
-        // const query = this.omit (params, [ 'type', 'clientOrderId', 'origClientOrderId' ]);
-        // const response = await this.privateGetOrdersDetail (this.extend (request, query));
-        const response = {
-            'orderId': 4,
-            'orderListId': -1,
-            'clientId': 'myOrder1',
-            'symbol': 'BTC_USDT',
-            'side': 1,
-            'type': 1,
-            'price': 1,
-            'status': 0,
-            'origQty': 10.88,
-            'origQuoteQty': 0,
-            'executedQty': 0,
-            'executedPrice': 0,
-            'executedQuoteQty': 0,
-            'createTime': 1550130502000,
+        const request = {
+            'symbol': market['id'],
         };
+        const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['origClientOrderId'] = clientOrderId;
+        } else {
+            request['orderId'] = id;
+        }
+        const query = this.omit (params, [ 'type', 'clientOrderId', 'origClientOrderId' ]);
+        const response = await this.privateGetOrdersDetail (this.extend (request, query));
+        // const response = {
+        //     'orderId': 4,
+        //     'orderListId': -1,
+        //     'clientId': 'myOrder1',
+        //     'symbol': 'BTC_USDT',
+        //     'side': 1,
+        //     'type': 1,
+        //     'price': 1,
+        //     'status': 0,
+        //     'origQty': 10.88,
+        //     'origQuoteQty': 0,
+        //     'executedQty': 0,
+        //     'executedPrice': 0,
+        //     'executedQuoteQty': 0,
+        //     'createTime': 1550130502000,
+        // };
         return this.parseOrder (response, market);
     }
 
@@ -621,43 +628,45 @@ module.exports = class trbinance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // const request = {
-        //     'symbol': market['id'],
-        // };
-        // if (since !== undefined) {
-        //     request['startTime'] = since;
-        // }
-        // if (limit !== undefined) {
-        //     request['limit'] = limit;
-        // }
-        // const query = this.omit (params, type);
-        // const response = await this.privateGetOrders (this.extend (request, query));
-        const response = [
-            {
-                'orderId': '21',
-                'clientId': 'uuid',
-                'symbol': 'ADA_USDT',
-                'symbolType': 1,
-                'side': 1,
-                'type': 1,
-                'price': '0.1',
-                'origQty': '10',
-                'origQuoteQty': '1',
-                'executedQty': '0',
-                'executedPrice': '0',
-                'executedQuoteQty': '0',
-                'timeInForce': 1,
-                'stopPrice': '0.0000000000000000',
-                'icebergQty': '0.0000000000000000',
-                'status': 0,
-                'isWorking': 0,
-                'createTime': 1572692016811,
-            },
-        ];
+        // const defaultType = this.safeString2 (this.options, 'fetchOrders', 'defaultType', 'spot');
+        // const type = this.safeString (params, 'type', defaultType);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const query = this.omit (params, 'type');
+        const response = await this.privateGetOrders (this.extend (request, query));
+        // const response = [
+        //     {
+        //         'orderId': '21',
+        //         'clientId': 'uuid',
+        //         'symbol': 'ADA_USDT',
+        //         'symbolType': 1,
+        //         'side': 1,
+        //         'type': 1,
+        //         'price': '0.1',
+        //         'origQty': '10',
+        //         'origQuoteQty': '1',
+        //         'executedQty': '0',
+        //         'executedPrice': '0',
+        //         'executedQuoteQty': '0',
+        //         'timeInForce': 1,
+        //         'stopPrice': '0.0000000000000000',
+        //         'icebergQty': '0.0000000000000000',
+        //         'status': 0,
+        //         'isWorking': 0,
+        //         'createTime': 1572692016811,
+        //     },
+        // ];
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrderTrades (id = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
         }
@@ -680,35 +689,35 @@ module.exports = class trbinance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // const type = this.safeString (params, 'type', market['type']);
-        // params = this.omit (params, type);
+        const type = this.safeString (params, 'type', market['type']);
+        params = this.omit (params, type);
         // const method = 'privateGetOrdersDetail';
-        // const request = {
-        //     'symbol': market['id'],
-        // };
-        // if (since !== undefined) {
-        //     request['startTime'] = since;
-        // }
-        // if (limit !== undefined) {
-        //     request['limit'] = limit;
-        // }
-        // const response = await this[method] (this.extend (request, params));
-        const response = [
-            {
-                'tradeId': '3',
-                'orderId': '2',
-                'symbol': 'ADA_USDT',
-                'price': '0.04398',
-                'qty': '250',
-                'quoteQty': '10.995',
-                'commission': '0.25',
-                'commissionAsset': 'ADA',
-                'isBuyer': 1,
-                'isMaker': 0,
-                'isBestMatch': 1,
-                'time': '1572920872276',
-            },
-        ];
+        const request = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetOrdersTrades (this.extend (request, params));
+        // const response = [
+        //     {
+        //         'tradeId': '3',
+        //         'orderId': '2',
+        //         'symbol': 'ADA_USDT',
+        //         'price': '0.04398',
+        //         'qty': '250',
+        //         'quoteQty': '10.995',
+        //         'commission': '0.25',
+        //         'commissionAsset': 'ADA',
+        //         'isBuyer': 1,
+        //         'isMaker': 0,
+        //         'isBestMatch': 1,
+        //         'time': '1572920872276',
+        //     },
+        // ];
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -755,46 +764,45 @@ module.exports = class trbinance extends Exchange {
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchAccountSpot', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        // const query = this.omit (params, 'type');
-        // const response = await this.privateGetAccountSpot (query);
-        const response = {
-            'code': 0,
-            'msg': 'success',
-            'data': {
-                'makerCommission': '10.00000000',
-                'takerCommission': '10.00000000',
-                'buyerCommission': '0.00000000',
-                'sellerCommission': '0.00000000',
-                'canTrade': 1,
-                'canWithdraw': 1,
-                'canDeposit': 1,
-                'accountAssets': [
-                    {
-                        'asset': 'ADA',
-                        'free': '272.5550000000000000',
-                        'locked': '3.0000000000000000',
-                    },
-                ],
-            },
-            'timestamp': 1572514387348,
-        };
+        const query = this.omit (params, 'type');
+        const response = await this.privateGetAccountSpot (query);
+        // const response = {
+        //     'code': 0,
+        //     'msg': 'success',
+        //     'data': {
+        //         'makerCommission': '10.00000000',
+        //         'takerCommission': '10.00000000',
+        //         'buyerCommission': '0.00000000',
+        //         'sellerCommission': '0.00000000',
+        //         'canTrade': 1,
+        //         'canWithdraw': 1,
+        //         'canDeposit': 1,
+        //         'accountAssets': [
+        //             {
+        //                 'asset': 'ADA',
+        //                 'free': '272.5550000000000000',
+        //                 'locked': '3.0000000000000000',
+        //             },
+        //         ],
+        //     },
+        //     'timestamp': 1572514387348,
+        // };
         return this.parseAccountSpot (response, type);
     }
 
     async fetchAccountSpotAsset (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        // const defaultType = this.safeString2 (this.options, 'fetchAccountSpotAsset', 'defaultType', 'spot');
-        // const type = this.safeString (params, 'type', defaultType);
+        const defaultType = this.safeString2 (this.options, 'fetchAccountSpotAsset', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
         // const method = 'privateGetAccountSpot';
-        // const query = this.omit (params, 'type');
-        // const response = await this[method] (query);
-        const response = {
-            'asset': 'ADA',
-            'free': '272.5550000000000000',
-            'locked': '3.0000000000000000',
-        };
-        // return this.parseAccountSpot (response, type);
-        return response;
+        const query = this.omit (params, 'type');
+        const response = await this.privateGetAccountSpotAsset (query);
+        // const response = {
+        //     'asset': 'ADA',
+        //     'free': '272.5550000000000000',
+        //     'locked': '3.0000000000000000',
+        // };
+        return this.parseAccountSpot (response, type);
     }
 
     parseTransactionStatus (status) {
@@ -841,60 +849,60 @@ module.exports = class trbinance extends Exchange {
 
     async fetchWithdrawals (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        // const request = {};
-        // const response = await this.privateGetwithdraws (this.extend (request, params));
+        const request = {};
+        const response = await this.privateGetwithdraws (this.extend (request, params));
         // const withdrawals = this.safeValue (response, 'withdrawals');
         const currency = undefined;
-        const response = [
-            {
-                'id': 1,
-                'clientId': '1',
-                'asset': 'BTC',
-                'network': 'BTC',
-                'address': '1G58aoKLVd1vHkv7wi6R2rKUrjuk4ZRtY3',
-                'amount': '0.001',
-                'fee': '0.0005',
-                'txId': '',
-                'status': 4,
-                'createTime': 1572359825000,
-            },
-        ];
+        // const response = [
+        //     {
+        //         'id': 1,
+        //         'clientId': '1',
+        //         'asset': 'BTC',
+        //         'network': 'BTC',
+        //         'address': '1G58aoKLVd1vHkv7wi6R2rKUrjuk4ZRtY3',
+        //         'amount': '0.001',
+        //         'fee': '0.0005',
+        //         'txId': '',
+        //         'status': 4,
+        //         'createTime': 1572359825000,
+        //     },
+        // ];
         return this.parseTransactions (response, currency, since, limit);
     }
 
     async fetchDeposits (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const currency = undefined;
-        // const request = {};
-        // const response = await this.privateGetDeposits (this.extend (request, params));
+        const request = {};
+        const response = await this.privateGetDeposits (this.extend (request, params));
         // const deposits = this.safeValue (response, 'deposits');
-        const response = [
-            {
-                'id': 1,
-                'asset': 'BTC',
-                'network': 'BTC',
-                'address': '2',
-                'addressTag': '2',
-                'txId': '1',
-                'amount': '1.000000000000000000000000000000',
-                'status': 1,
-                'insertTime': '0',
-            },
-        ];
+        // const response = [
+        //     {
+        //         'id': 1,
+        //         'asset': 'BTC',
+        //         'network': 'BTC',
+        //         'address': '2',
+        //         'addressTag': '2',
+        //         'txId': '1',
+        //         'amount': '1.000000000000000000000000000000',
+        //         'status': 1,
+        //         'insertTime': '0',
+        //     },
+        // ];
         return this.parseTransactions (response, currency, since, limit);
     }
 
     async fetchDepositAddress (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         // const currency = undefined;
-        // const request = {};
-        // const response = await this.privateGetDepositAddress (this.extend (request, params));
+        const request = {};
+        const response = await this.privateGetDepositAddress (this.extend (request, params));
         // const deposits = this.safeValue (response, 'deposits');
-        const response = {
-            'address': '0x6915f16f8791d0a1cc2bf47c13a6b2a92000504b',
-            'addressTag': '1231212',
-            'asset': 'BNB',
-        };
+        // const response = {
+        //     'address': '0x6915f16f8791d0a1cc2bf47c13a6b2a92000504b',
+        //     'addressTag': '1231212',
+        //     'asset': 'BNB',
+        // };
         // return this.parseTransactions (response, currency, since, limit);
         return response;
     }
@@ -925,58 +933,57 @@ module.exports = class trbinance extends Exchange {
             request['quantity'] = this.amountToPrecision (symbol, quantity);
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
         }
-        // const response = await this.privatePostOrders (this.extend (request, params));
+        const response = await this.privatePostOrders (this.extend (request, params));
         // const order = this.safeValue (response, 'order');
-        const response = {
-            'orderId': '4',
-            'createTime': 1550130502385,
-            'requestData': request,
-        };
+        // const response = {
+        //     'orderId': '4',
+        //     'createTime': 1550130502385,
+        //     'requestData': request,
+        // };
         return this.parseOrder (response);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        // const request = {
-        //     'orderId': parseInt (id),
-        // };
-        // const response = await this.privatePostOrderCancel (this.extend (request, params));
-        // const order = this.safeValue (response, 'order');
-        // return this.parseOrder (order);
-        const response = {
-            'orderId': 4,
-            'orderListId': -1,
-            'clientId': 'myOrder1',
-            'symbol': 'BTC_USDT',
-            'side': 1,
-            'type': 1,
-            'price': 1,
-            'status': 0,
-            'origQty': 10.88,
-            'origQuoteQty': 0,
-            'executedQty': 0,
-            'executedPrice': 0,
-            'executedQuoteQty': 0,
-            'createTime': 1550130502000,
+        const request = {
+            'orderId': parseInt (id),
         };
-        return this.parseOrder (response);
+        const response = await this.privatePostOrderCancel (this.extend (request, params));
+        const order = this.safeValue (response, 'order');
+        return this.parseOrder (order);
+        // const response = {
+        //     'orderId': 4,
+        //     'orderListId': -1,
+        //     'clientId': 'myOrder1',
+        //     'symbol': 'BTC_USDT',
+        //     'side': 1,
+        //     'type': 1,
+        //     'price': 1,
+        //     'status': 0,
+        //     'origQty': 10.88,
+        //     'origQuoteQty': 0,
+        //     'executedQty': 0,
+        //     'executedPrice': 0,
+        //     'executedQuoteQty': 0,
+        //     'createTime': 1550130502000,
+        // };
+        // return this.parseOrder (response);
     }
 
     async withdraw (code, amount, address = undefined, tag = undefined, params = {}) {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
-        // const currency = this.currency (code);
-        // const request = {
-        //     'asset': code,
-        //     'amount': amount,
-        //     'address': address,
-        // };
-        // const response = await this.privatePostWithdraws (this.extend (request, params));
-        // const result = this.safeValue (response, 'result', {});
-        const response = {
-            'withdrawId': '12',
+        const request = {
+            'asset': code,
+            'amount': amount,
+            'address': address,
         };
+        const response = await this.privatePostWithdraws (this.extend (request, params));
+        // const result = this.safeValue (response, 'result', {});
+        // const response = {
+        //     'withdrawId': '12',
+        // };
         const id = this.safeString (response, 'withdrawId');
         return {
             'info': response,
@@ -997,13 +1004,13 @@ module.exports = class trbinance extends Exchange {
             'price': this.priceToPrecision (symbol, price),
             'stopPrice': this.priceToPrecision (symbol, stopPrice),
         };
-        // const response = await this.privatePostOrderOco (this.extend (request, params));
+        const response = await this.privatePostOrderOco (this.extend (request, params));
         // const order = this.safeValue (response, 'order');
-        const response = {
-            'orderId': '4',
-            'createTime': 1550130502385,
-            'requestData': request,
-        };
+        // const response = {
+        //     'orderId': '4',
+        //     'createTime': 1550130502385,
+        //     'requestData': request,
+        // };
         return this.parseOrder (response);
     }
 
@@ -1054,9 +1061,26 @@ module.exports = class trbinance extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
+        const response = await this.fetch2 (path, api, method, params, headers, body, config, context);
+        // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+        if ((api === 'private')) {
+            this.options['hasAlreadyAuthenticatedSuccessfully'] = true;
+        }
+        return response;
+    }
+
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return '1'; // return;
+        } else {
+            // checks against error codes
+            const error = this.safeString (response, 'code');
+            if (error === '3700') {
+                const feedback = this.id + ' ' + body;
+                this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
+                throw new ExchangeError (feedback);
+            }
         }
     }
 };
