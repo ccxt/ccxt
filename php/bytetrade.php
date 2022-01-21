@@ -366,24 +366,24 @@ class bytetrade extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
             'bid' => null,
             'bidVolume' => null,
             'ask' => null,
             'askVolume' => null,
-            'vwap' => $this->safe_number($ticker, 'weightedAvgPrice'),
-            'open' => $this->safe_number($ticker, 'open'),
-            'close' => $this->safe_number($ticker, 'close'),
-            'last' => $this->safe_number($ticker, 'last'),
+            'vwap' => $this->safe_string($ticker, 'weightedAvgPrice'),
+            'open' => $this->safe_string($ticker, 'open'),
+            'close' => $this->safe_string($ticker, 'close'),
+            'last' => $this->safe_string($ticker, 'last'),
             'previousClose' => null, // previous day close
-            'change' => $this->safe_number($ticker, 'change'),
-            'percentage' => $this->safe_number($ticker, 'percentage'),
+            'change' => $this->safe_string($ticker, 'change'),
+            'percentage' => $this->safe_string($ticker, 'percentage'),
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'baseVolume'),
-            'quoteVolume' => $this->safe_number($ticker, 'quoteVolume'),
+            'baseVolume' => $this->safe_string($ticker, 'baseVolume'),
+            'quoteVolume' => $this->safe_string($ticker, 'quoteVolume'),
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
