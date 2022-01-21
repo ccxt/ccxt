@@ -4405,7 +4405,7 @@ module.exports = class binance extends Exchange {
         //
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol');
         const leverageString = this.safeString (position, 'leverage');
         const leverage = parseInt (leverageString);
         const initialMarginString = this.safeString (position, 'initialMargin');
@@ -4430,7 +4430,8 @@ module.exports = class binance extends Exchange {
         let contractsStringAbs = Precise.stringAbs (contractsString);
         if (contractsString === undefined) {
             const entryNotional = Precise.stringMul (Precise.stringMul (leverageString, initialMarginString), entryPriceString);
-            contractsString = Precise.stringDiv (entryNotional, market['contractSize']);
+            const contractSize = this.safeString (market, 'contractSize');
+            contractsString = Precise.stringDiv (entryNotional, contractSize);
             contractsStringAbs = Precise.stringDiv (Precise.stringAdd (contractsString, '0.5'), '1', 0);
         }
         const contracts = this.parseNumber (contractsStringAbs);
