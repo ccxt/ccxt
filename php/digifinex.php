@@ -210,6 +210,7 @@ class digifinex extends Exchange {
             'commonCurrencies' => array(
                 'BHT' => 'Black House Test',
                 'EPS' => 'Epanus',
+                'FREE' => 'FreeRossDAO',
                 'MBN' => 'Mobilian Coin',
                 'TEL' => 'TEL666',
             ),
