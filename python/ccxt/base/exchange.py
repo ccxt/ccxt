@@ -1921,7 +1921,7 @@ class Exchange(object):
             # timestamp and symbol operations don't belong in safeTicker
             # they should be done in the derived classes
             return self.extend(ticker, {
-                'bid': self.safe_number(ticker, 'buy'),
+                'bid': self.safe_number(ticker, 'bid'),
                 'bidVolume': self.safe_number(ticker, 'bidVolume'),
                 'ask': self.safe_number(ticker, 'ask'),
                 'askVolume': self.safe_number(ticker, 'askVolume'),
