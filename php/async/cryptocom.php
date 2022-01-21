@@ -257,6 +257,7 @@ class cryptocom extends Exchange {
                     '40005' => '\\ccxt\\BadRequest',
                     '40006' => '\\ccxt\\BadRequest',
                     '40007' => '\\ccxt\\BadRequest',
+                    '40101' => '\\ccxt\\AuthenticationError',
                     '50001' => '\\ccxt\\BadRequest',
                 ),
             ),

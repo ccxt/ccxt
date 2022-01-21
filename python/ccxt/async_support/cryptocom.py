@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -262,6 +263,7 @@ class cryptocom(Exchange):
                     '40005': BadRequest,
                     '40006': BadRequest,
                     '40007': BadRequest,
+                    '40101': AuthenticationError,
                     '50001': BadRequest,
                 },
             },
