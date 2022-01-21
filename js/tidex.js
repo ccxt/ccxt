@@ -235,42 +235,56 @@ module.exports = class tidex extends Exchange {
             const [ baseId, quoteId ] = id.split ('_');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const precision = {
-                'amount': this.safeInteger (market, 'decimal_places'),
-                'price': this.safeInteger (market, 'decimal_places'),
-            };
-            const limits = {
-                'amount': {
-                    'min': this.safeNumber (market, 'min_amount'),
-                    'max': this.safeNumber (market, 'max_amount'),
-                },
-                'price': {
-                    'min': this.safeNumber (market, 'min_price'),
-                    'max': this.safeNumber (market, 'max_price'),
-                },
-                'cost': {
-                    'min': this.safeNumber (market, 'min_total'),
-                },
-            };
             const hidden = this.safeInteger (market, 'hidden');
-            const active = (hidden === 0);
             let takerFeeString = this.safeString (market, 'fee');
             takerFeeString = Precise.stringDiv (takerFeeString, '100');
-            const takerFee = this.parseNumber (takerFeeString);
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
-                'taker': takerFee,
-                'precision': precision,
-                'limits': limits,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'contract': false,
+                'active': (hidden === 0),
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': this.parseNumber (takerFeeString),
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeInteger (market, 'decimal_places'),
+                    'price': this.safeInteger (market, 'decimal_places'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (market, 'min_amount'),
+                        'max': this.safeNumber (market, 'max_amount'),
+                    },
+                    'price': {
+                        'min': this.safeNumber (market, 'min_price'),
+                        'max': this.safeNumber (market, 'max_price'),
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'min_total'),
+                        'max': undefined,
+                    },
+                },
                 'info': market,
             });
         }
