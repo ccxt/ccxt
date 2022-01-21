@@ -400,9 +400,10 @@ module.exports = class gateio extends ccxt.gateio {
     }
 
     handleBalanceSnapshot (client, message) {
-        const messageHash = message['id'];
-        const result = message['result'];
+        const messageHash = this.safeString (message, 'id');
+        const result = this.safeValue (message, 'result');
         this.handleBalanceMessage (client, messageHash, result);
+        client.resolve (this.balance, 'balance.update');
         if ('balance.query' in client.subscriptions) {
             delete client.subscriptions['balance.query'];
         }
@@ -506,7 +507,7 @@ module.exports = class gateio extends ccxt.gateio {
             // delete authenticate subscribeHash to release the "subscribe lock"
             // allows subsequent calls to subscribe to reauthenticate
             // avoids sending two authentication messages before receiving a reply
-            const error = new AuthenticationError ('not success');
+            const error = new AuthenticationError (this.id + ' handleAuthenticationMessage() error');
             client.reject (error, 'authenticated');
             if ('server.sign' in client.subscriptions) {
                 delete client.subscriptions['server.sign'];
