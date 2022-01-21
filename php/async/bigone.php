@@ -139,6 +139,7 @@ class bigone extends Exchange {
             'commonCurrencies' => array(
                 'CRE' => 'Cybereits',
                 'FXT' => 'FXTTOKEN',
+                'FREE' => 'FreeRossDAO',
                 'MBN' => 'Mobilian Coin',
                 'ONE' => 'BigONE Token',
             ),
