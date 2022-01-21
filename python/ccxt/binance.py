@@ -4202,7 +4202,7 @@ class binance(Exchange):
         #
         marketId = self.safe_string(position, 'symbol')
         market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol')
         leverageString = self.safe_string(position, 'leverage')
         leverage = int(leverageString)
         initialMarginString = self.safe_string(position, 'initialMargin')
@@ -4226,7 +4226,8 @@ class binance(Exchange):
         contractsStringAbs = Precise.string_abs(contractsString)
         if contractsString is None:
             entryNotional = Precise.string_mul(Precise.string_mul(leverageString, initialMarginString), entryPriceString)
-            contractsString = Precise.string_div(entryNotional, market['contractSize'])
+            contractSize = self.safe_string(market, 'contractSize')
+            contractsString = Precise.string_div(entryNotional, contractSize)
             contractsStringAbs = Precise.string_div(Precise.string_add(contractsString, '0.5'), '1', 0)
         contracts = self.parse_number(contractsStringAbs)
         leverageBrackets = self.safe_value(self.options, 'leverageBrackets', {})
