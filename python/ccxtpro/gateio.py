@@ -381,9 +381,10 @@ class gateio(Exchange, ccxt.gateio):
         return await self.watch(url, requestId, subscribeMessage, method, subscription)
 
     def handle_balance_snapshot(self, client, message):
-        messageHash = message['id']
-        result = message['result']
+        messageHash = self.safe_string(message, 'id')
+        result = self.safe_value(message, 'result')
         self.handle_balance_message(client, messageHash, result)
+        client.resolve(self.balance, 'balance.update')
         if 'balance.query' in client.subscriptions:
             del client.subscriptions['balance.query']
 
@@ -474,7 +475,7 @@ class gateio(Exchange, ccxt.gateio):
             # del authenticate subscribeHash to release the "subscribe lock"
             # allows subsequent calls to subscribe to reauthenticate
             # avoids sending two authentication messages before receiving a reply
-            error = AuthenticationError('not success')
+            error = AuthenticationError(self.id + ' handleAuthenticationMessage() error')
             client.reject(error, 'authenticated')
             if 'server.sign' in client.subscriptions:
                 del client.subscriptions['server.sign']

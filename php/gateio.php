@@ -404,9 +404,10 @@ class gateio extends \ccxt\async\gateio {
     }
 
     public function handle_balance_snapshot($client, $message) {
-        $messageHash = $message['id'];
-        $result = $message['result'];
+        $messageHash = $this->safe_string($message, 'id');
+        $result = $this->safe_value($message, 'result');
         $this->handle_balance_message($client, $messageHash, $result);
+        $client->resolve ($this->balance, 'balance.update');
         if (is_array($client->subscriptions) && array_key_exists('balance.query', $client->subscriptions)) {
             unset($client->subscriptions['balance.query']);
         }
@@ -510,7 +511,7 @@ class gateio extends \ccxt\async\gateio {
             // delete authenticate subscribeHash to release the "subscribe lock"
             // allows subsequent calls to subscribe to reauthenticate
             // avoids sending two authentication messages before receiving a reply
-            $error = new AuthenticationError ('not success');
+            $error = new AuthenticationError ($this->id . ' handleAuthenticationMessage() error');
             $client->reject ($error, 'authenticated');
             if (is_array($client->subscriptions) && array_key_exists('server.sign', $client->subscriptions)) {
                 unset($client->subscriptions['server.sign']);
