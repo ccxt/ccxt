@@ -1080,33 +1080,33 @@ class bitget extends Exchange {
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
-        $last = $this->safe_number_2($ticker, 'last', 'close');
-        $open = $this->safe_number($ticker, 'open');
+        $last = $this->safe_string_2($ticker, 'last', 'close');
+        $open = $this->safe_string($ticker, 'open');
         $bidVolume = null;
         $askVolume = null;
         $bid = $this->safe_value($ticker, 'bid');
         if ($bid === null) {
-            $bid = $this->safe_number($ticker, 'best_bid');
+            $bid = $this->safe_string($ticker, 'best_bid');
         } else {
-            $bidVolume = $this->safe_number($bid, 1);
-            $bid = $this->safe_number($bid, 0);
+            $bidVolume = $this->safe_string($bid, 1);
+            $bid = $this->safe_string($bid, 0);
         }
         $ask = $this->safe_value($ticker, 'ask');
         if ($ask === null) {
-            $ask = $this->safe_number($ticker, 'best_ask');
+            $ask = $this->safe_string($ticker, 'best_ask');
         } else {
-            $askVolume = $this->safe_number($ask, 1);
-            $ask = $this->safe_number($ask, 0);
+            $askVolume = $this->safe_string($ask, 1);
+            $ask = $this->safe_string($ask, 0);
         }
-        $baseVolume = $this->safe_number_2($ticker, 'amount', 'volume_24h');
-        $quoteVolume = $this->safe_number($ticker, 'vol');
+        $baseVolume = $this->safe_string_2($ticker, 'amount', 'volume_24h');
+        $quoteVolume = $this->safe_string($ticker, 'vol');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number_2($ticker, 'high', 'high_24h'),
-            'low' => $this->safe_number_2($ticker, 'low', 'low_24h'),
+            'high' => $this->safe_string_2($ticker, 'high', 'high_24h'),
+            'low' => $this->safe_string_2($ticker, 'low', 'low_24h'),
             'bid' => $bid,
             'bidVolume' => $bidVolume,
             'ask' => $ask,
@@ -1122,7 +1122,7 @@ class bitget extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
