@@ -34,7 +34,7 @@ cli_order_id = randint(0,1000)
 amount = 10
 price = 0.5
 stopPrice = 0.6
-operator='lte'
+operator = 'lte'
 
 params = {'offset': offset, 'client_order_id': cli_order_id, 'stopPrice': stopPrice, 'operator': operator}
 
@@ -64,7 +64,7 @@ cli_order_id = randint(0,1000)
 amount = 10
 price = 5
 stopPrice = 5
-operator='gte'
+operator = 'gte'
 
 params = {'offset': offset, 'client_order_id': cli_order_id, 'stopPrice': stopPrice, 'operator': operator}
 
