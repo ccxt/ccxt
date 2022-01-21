@@ -1277,6 +1277,11 @@ class kraken extends Exchange {
         //         descr => array( $order => 'buy 0.02100000 ETHUSDT @ limit 330.00' ),
         //         $txid => array( 'OEKVV2-IH52O-TPL6GZ' )
         //     }
+        //     {
+        //         "txid" => array( "TX_ID_HERE" ),
+        //         "descr" => array( "order":"buy 0.12345678 ETHEUR @ $market" ),
+        //     }
+        //
         //
         // createOrder for stop orders
         //
@@ -1298,8 +1303,10 @@ class kraken extends Exchange {
             $side = $this->safe_string($parts, 0);
             $amount = $this->safe_string($parts, 1);
             $marketId = $this->safe_string($parts, 2);
-            $type = $this->safe_string($parts, $partsLength - 2);
-            $price = $this->safe_string($parts, $partsLength - 1);
+            $type = $this->safe_string($parts, 4);
+            if (($type === 'limit') || ($type === 'stop')) {
+                $price = $this->safe_string($parts, $partsLength - 1);
+            }
         }
         $side = $this->safe_string($description, 'type', $side);
         $type = $this->safe_string($description, 'ordertype', $type);

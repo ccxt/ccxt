@@ -1218,6 +1218,11 @@ class kraken(Exchange):
         #         descr: {order: 'buy 0.02100000 ETHUSDT @ limit 330.00'},
         #         txid: ['OEKVV2-IH52O-TPL6GZ']
         #     }
+        #     {
+        #         "txid": ["TX_ID_HERE"],
+        #         "descr": {"order":"buy 0.12345678 ETHEUR @ market"},
+        #     }
+        #
         #
         # createOrder for stop orders
         #
@@ -1239,8 +1244,9 @@ class kraken(Exchange):
             side = self.safe_string(parts, 0)
             amount = self.safe_string(parts, 1)
             marketId = self.safe_string(parts, 2)
-            type = self.safe_string(parts, partsLength - 2)
-            price = self.safe_string(parts, partsLength - 1)
+            type = self.safe_string(parts, 4)
+            if (type == 'limit') or (type == 'stop'):
+                price = self.safe_string(parts, partsLength - 1)
         side = self.safe_string(description, 'type', side)
         type = self.safe_string(description, 'ordertype', type)
         marketId = self.safe_string(description, 'pair', marketId)
