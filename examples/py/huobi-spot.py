@@ -13,10 +13,9 @@ import ccxt  # noqa: E402
 print('CCXT Version:', ccxt.__version__)
 
 exchange = ccxt.huobi({
-    'apiKey': 'YOUR_API_KEY',
-    'secret': 'YOUR_SECRET',
+
     'options': {
-        'defaultType': 'future',
+        'defaultType': 'spot',
     },
 })
 
@@ -34,8 +33,9 @@ cli_order_id = randint(0,1000)
 amount = 10
 price = 0.5
 stopPrice = 0.6
+operator='lte'
 
-params = {'offset': offset, 'client_order_id': cli_order_id, 'stopPrice': stopPrice}
+params = {'offset': offset, 'client_order_id': cli_order_id, 'stopPrice': stopPrice, 'operator': operator}
 
 try:
 
@@ -44,7 +44,7 @@ try:
     print(order)
 
     # List open positions
-    open_orders = exchange.fetch_open_orders(symbol)
+    open_orders = exchange.fetch_open_orders(symbol, params={"side": "buy"})
     # print(open_orders)
 
     #Order cancelation
