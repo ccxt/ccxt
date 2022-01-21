@@ -310,37 +310,53 @@ module.exports = class upbit extends Exchange {
         const quoteId = this.safeString (bid, 'currency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = base + '/' + quote;
-        const precision = {
-            'amount': 8,
-            'price': 8,
-        };
         const state = this.safeString (marketInfo, 'state');
-        const active = (state === 'active');
         const bidFee = this.safeNumber (response, 'bid_fee');
         const askFee = this.safeNumber (response, 'ask_fee');
         const fee = Math.max (bidFee, askFee);
+        const precisionPrice = '8';
         return {
             'info': response,
             'id': marketId,
-            'symbol': symbol,
+            'symbol': base + '/' + quote,
             'base': base,
             'quote': quote,
+            'settle': undefined,
             'baseId': baseId,
             'quoteId': quoteId,
+            'settleId': undefined,
             'type': 'spot',
             'spot': true,
-            'active': active,
-            'precision': precision,
-            'maker': fee,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': (state === 'active'),
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
             'taker': fee,
+            'maker': fee,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'price': this.parseNumber (precisionPrice),
+                'amount': this.parseNumber (precisionPrice),
+            },
             'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
                 'amount': {
                     'min': this.safeNumber (ask, 'min_total'),
                     'max': undefined,
                 },
                 'price': {
-                    'min': Math.pow (10, -precision['price']),
+                    'min': this.parseNumber ('-1e' + precisionPrice),
                     'max': undefined,
                 },
                 'cost': {
