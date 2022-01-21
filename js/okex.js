@@ -752,8 +752,8 @@ module.exports = class okex extends Exchange {
             baseId = this.safeString (parts, 0);
             quoteId = this.safeString (parts, 1);
         }
-        const inverse = baseId === settleCurrency;
-        const linear = quoteId === settleCurrency;
+        const inverse = contract ? (baseId === settleCurrency) : undefined;
+        const linear = contract ? (quoteId === settleCurrency) : undefined;
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         let symbol = base + '/' + quote;
