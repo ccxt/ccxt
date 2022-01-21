@@ -163,44 +163,45 @@ module.exports = class therock extends Exchange {
                 const quoteId = this.safeString (market, 'base_currency');
                 const base = this.safeCurrencyCode (baseId);
                 const quote = this.safeCurrencyCode (quoteId);
-                const symbol = base + '/' + quote;
                 const buy_fee = this.safeNumber (market, 'buy_fee');
                 const sell_fee = this.safeNumber (market, 'sell_fee');
                 let taker = Math.max (buy_fee, sell_fee);
                 taker = taker / 100;
-                const maker = taker;
                 result.push ({
                     'id': id,
-                    'symbol': symbol,
+                    'symbol': base + '/' + quote,
                     'base': base,
                     'quote': quote,
+                    'settle': undefined,
                     'baseId': baseId,
                     'quoteId': quoteId,
-                    'info': market,
+                    'settleId': undefined,
                     'type': 'spot',
                     'spot': true,
                     'margin': false,
                     'future': false,
                     'swap': false,
                     'option': false,
-                    'optionType': undefined,
-                    'strike': undefined,
+                    'contract': false,
                     'linear': undefined,
                     'inverse': undefined,
-                    'contract': false,
+                    'taker': taker,
+                    'maker': taker,
                     'contractSize': undefined,
-                    'settle': undefined,
-                    'settleId': undefined,
+                    'active': true,
                     'expiry': undefined,
                     'expiryDatetime': undefined,
-                    'active': true,
-                    'maker': maker,
-                    'taker': taker,
+                    'strike': undefined,
+                    'optionType': undefined,
                     'precision': {
                         'amount': this.safeInteger (market, 'trade_currency_decimals'),
                         'price': this.safeInteger (market, 'base_currency_decimals'),
                     },
                     'limits': {
+                        'leverage': {
+                            'min': this.safeNumber (market, 'minimum_quantity_offer'),
+                            'max': undefined,
+                        },
                         'amount': {
                             'min': this.safeNumber (market, 'minimum_quantity_offer'),
                             'max': undefined,
@@ -214,6 +215,7 @@ module.exports = class therock extends Exchange {
                             'max': undefined,
                         },
                     },
+                    'info': market,
                 });
             }
         }
