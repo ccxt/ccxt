@@ -763,8 +763,8 @@ class okex(Exchange):
             parts = underlying.split('-')
             baseId = self.safe_string(parts, 0)
             quoteId = self.safe_string(parts, 1)
-        inverse = baseId == settleCurrency
-        linear = quoteId == settleCurrency
+        inverse = (baseId == settleCurrency) if contract else None
+        linear = (quoteId == settleCurrency) if contract else None
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         symbol = base + '/' + quote

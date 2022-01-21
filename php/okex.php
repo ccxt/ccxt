@@ -757,8 +757,8 @@ class okex extends Exchange {
             $baseId = $this->safe_string($parts, 0);
             $quoteId = $this->safe_string($parts, 1);
         }
-        $inverse = $baseId === $settleCurrency;
-        $linear = $quoteId === $settleCurrency;
+        $inverse = $contract ? ($baseId === $settleCurrency) : null;
+        $linear = $contract ? ($quoteId === $settleCurrency) : null;
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $symbol = $base . '/' . $quote;
