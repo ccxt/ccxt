@@ -474,7 +474,7 @@ module.exports = class kraken extends Exchange {
                 'altname': market['altname'],
                 'type': 'spot',
                 'spot': true,
-                'margin': leverageBuyLength > 0,
+                'margin': (leverageBuyLength > 0),
                 'swap': false,
                 'future': false,
                 'option': false,
@@ -490,7 +490,7 @@ module.exports = class kraken extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': precisionPrice,
+                    'price': this.parseNumber (precisionPrice),
                     'amount': this.safeInteger (market, 'lot_decimals'),
                 },
                 'limits': {
@@ -503,7 +503,7 @@ module.exports = class kraken extends Exchange {
                         'max': undefined,
                     },
                     'price': {
-                        'min': this.parseNumber ('-1e' + precisionPrice),
+                        'min': this.parsePrecision (precisionPrice),
                         'max': undefined,
                     },
                     'cost': {
