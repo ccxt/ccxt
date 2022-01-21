@@ -489,17 +489,17 @@ class bittrex(Exchange):
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market, '-')
         symbol = market['symbol']
-        percentage = self.safe_number(ticker, 'percentChange')
-        last = self.safe_number(ticker, 'lastTradeRate')
+        percentage = self.safe_string(ticker, 'percentChange')
+        last = self.safe_string(ticker, 'lastTradeRate')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bidRate'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bidRate'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'askRate'),
+            'ask': self.safe_string(ticker, 'askRate'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -509,10 +509,10 @@ class bittrex(Exchange):
             'change': None,
             'percentage': percentage,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'volume'),
-            'quoteVolume': self.safe_number(ticker, 'quoteVolume'),
+            'baseVolume': self.safe_string(ticker, 'volume'),
+            'quoteVolume': self.safe_string(ticker, 'quoteVolume'),
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
