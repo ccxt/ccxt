@@ -1268,6 +1268,11 @@ module.exports = class kraken extends Exchange {
         //         descr: { order: 'buy 0.02100000 ETHUSDT @ limit 330.00' },
         //         txid: [ 'OEKVV2-IH52O-TPL6GZ' ]
         //     }
+        //     {
+        //         "txid": [ "TX_ID_HERE" ],
+        //         "descr": { "order":"buy 0.12345678 ETHEUR @ market" },
+        //     }
+        //
         //
         // createOrder for stop orders
         //
@@ -1289,8 +1294,10 @@ module.exports = class kraken extends Exchange {
             side = this.safeString (parts, 0);
             amount = this.safeString (parts, 1);
             marketId = this.safeString (parts, 2);
-            type = this.safeString (parts, partsLength - 2);
-            price = this.safeString (parts, partsLength - 1);
+            type = this.safeString (parts, 4);
+            if ((type === 'limit') || (type === 'stop')) {
+                price = this.safeString (parts, partsLength - 1);
+            }
         }
         side = this.safeString (description, 'type', side);
         type = this.safeString (description, 'ordertype', type);
