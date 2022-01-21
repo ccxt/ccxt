@@ -106,6 +106,7 @@ class yobit(Exchange):
                 'AST': 'Astral',
                 'ATM': 'Autumncoin',
                 'BAB': 'Babel',
+                'BAN': 'BANcoin',
                 'BCC': 'BCH',
                 'BCS': 'BitcoinStake',
                 'BITS': 'Bitstar',
