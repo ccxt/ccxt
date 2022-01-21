@@ -718,9 +718,7 @@ module.exports = class bitmart extends Exchange {
         const symbol = market['symbol'];
         const last = this.safeString2 (ticker, 'close_24h', 'last_price');
         let percentage = this.safeString2 (ticker, 'fluctuation', 'rise_fall_rate');
-        if (percentage !== undefined) {
-            percentage = Precise.stringMul(percentage, '100');
-        }
+        percentage = Precise.stringMul(percentage, '100');
         if (percentage === undefined) {
             percentage = this.safeString (ticker, 'price_change_percent_24h');
         }
