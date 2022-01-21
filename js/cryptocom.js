@@ -251,7 +251,7 @@ module.exports = class cryptocom extends Exchange {
                     '40005': BadRequest,
                     '40006': BadRequest,
                     '40007': BadRequest,
-					'40101': AuthenticationError,
+                    '40101': AuthenticationError,
                     '50001': BadRequest,
                 },
             },
