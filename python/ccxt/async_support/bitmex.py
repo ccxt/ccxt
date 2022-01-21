@@ -916,19 +916,19 @@ class bitmex(Exchange):
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
-        open = self.safe_number(ticker, 'prevPrice24h')
-        last = self.safe_number(ticker, 'lastPrice')
+        open = self.safe_string(ticker, 'prevPrice24h')
+        last = self.safe_string(ticker, 'lastPrice')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'highPrice'),
-            'low': self.safe_number(ticker, 'lowPrice'),
-            'bid': self.safe_number(ticker, 'bidPrice'),
+            'high': self.safe_string(ticker, 'highPrice'),
+            'low': self.safe_string(ticker, 'lowPrice'),
+            'bid': self.safe_string(ticker, 'bidPrice'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'askPrice'),
+            'ask': self.safe_string(ticker, 'askPrice'),
             'askVolume': None,
-            'vwap': self.safe_number(ticker, 'vwap'),
+            'vwap': self.safe_string(ticker, 'vwap'),
             'open': open,
             'close': last,
             'last': last,
@@ -936,10 +936,10 @@ class bitmex(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'homeNotional24h'),
-            'quoteVolume': self.safe_number(ticker, 'foreignNotional24h'),
+            'baseVolume': self.safe_string(ticker, 'homeNotional24h'),
+            'quoteVolume': self.safe_string(ticker, 'foreignNotional24h'),
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #

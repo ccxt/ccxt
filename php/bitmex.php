@@ -961,19 +961,19 @@ class bitmex extends Exchange {
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->parse8601($this->safe_string($ticker, 'timestamp'));
-        $open = $this->safe_number($ticker, 'prevPrice24h');
-        $last = $this->safe_number($ticker, 'lastPrice');
+        $open = $this->safe_string($ticker, 'prevPrice24h');
+        $last = $this->safe_string($ticker, 'lastPrice');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'highPrice'),
-            'low' => $this->safe_number($ticker, 'lowPrice'),
-            'bid' => $this->safe_number($ticker, 'bidPrice'),
+            'high' => $this->safe_string($ticker, 'highPrice'),
+            'low' => $this->safe_string($ticker, 'lowPrice'),
+            'bid' => $this->safe_string($ticker, 'bidPrice'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'askPrice'),
+            'ask' => $this->safe_string($ticker, 'askPrice'),
             'askVolume' => null,
-            'vwap' => $this->safe_number($ticker, 'vwap'),
+            'vwap' => $this->safe_string($ticker, 'vwap'),
             'open' => $open,
             'close' => $last,
             'last' => $last,
@@ -981,10 +981,10 @@ class bitmex extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'homeNotional24h'),
-            'quoteVolume' => $this->safe_number($ticker, 'foreignNotional24h'),
+            'baseVolume' => $this->safe_string($ticker, 'homeNotional24h'),
+            'quoteVolume' => $this->safe_string($ticker, 'foreignNotional24h'),
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
