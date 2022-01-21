@@ -160,6 +160,7 @@ class currencycom(Exchange):
                 'EDU': 'New Oriental Education & Technology Group Inc',
                 'ETN': 'Eaton',
                 'FOX': 'Fox Corporation',
+                'GM': 'General Motors Co',
                 'IQ': 'iQIYI',
                 'PLAY': "Dave & Buster's Entertainment",
             },

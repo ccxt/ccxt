@@ -312,6 +312,7 @@ class bitmart(Exchange):
                 'DMS': 'DimSum',  # conflict with Dragon Mainland Shards
                 'FOX': 'Fox Finance',
                 'GDT': 'Gorilla Diamond',
+                '$GM': 'GOLDMINER',
                 '$HERO': 'Step Hero',
                 '$PAC': 'PAC',
                 'MIM': 'MIM Swarm',

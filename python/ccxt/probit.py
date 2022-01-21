@@ -177,6 +177,7 @@ class probit(Exchange):
                 'EPS': 'Epanus',  # conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
                 'FX': 'Fanzy',
                 'GDT': 'Gorilla Diamond',
+                'GM': 'GM Holding',
                 'GOGOL': 'GOL',
                 'GOL': 'Goldofir',
                 'GRB': 'Global Reward Bank',
