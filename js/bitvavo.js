@@ -461,22 +461,21 @@ module.exports = class bitvavo extends Exchange {
         const marketId = this.safeString (ticker, 'market');
         const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.safeInteger (ticker, 'timestamp');
-        const last = this.safeNumber (ticker, 'last');
-        const baseVolume = this.safeNumber (ticker, 'volume');
-        const quoteVolume = this.safeNumber (ticker, 'volumeQuote');
-        const vwap = this.vwap (baseVolume, quoteVolume);
-        const open = this.safeNumber (ticker, 'open');
+        const last = this.safeString (ticker, 'last');
+        const baseVolume = this.safeString (ticker, 'volume');
+        const quoteVolume = this.safeString (ticker, 'volumeQuote');
+        const open = this.safeString (ticker, 'open');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
-            'bidVolume': this.safeNumber (ticker, 'bidSize'),
-            'ask': this.safeNumber (ticker, 'ask'),
-            'askVolume': this.safeNumber (ticker, 'askSize'),
-            'vwap': vwap,
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
+            'bidVolume': this.safeString (ticker, 'bidSize'),
+            'ask': this.safeString (ticker, 'ask'),
+            'askVolume': this.safeString (ticker, 'askSize'),
+            'vwap': undefined,
             'open': open,
             'close': last,
             'last': last,
@@ -487,7 +486,7 @@ module.exports = class bitvavo extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

@@ -463,22 +463,21 @@ class bitvavo extends Exchange {
         $marketId = $this->safe_string($ticker, 'market');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->safe_integer($ticker, 'timestamp');
-        $last = $this->safe_number($ticker, 'last');
-        $baseVolume = $this->safe_number($ticker, 'volume');
-        $quoteVolume = $this->safe_number($ticker, 'volumeQuote');
-        $vwap = $this->vwap($baseVolume, $quoteVolume);
-        $open = $this->safe_number($ticker, 'open');
+        $last = $this->safe_string($ticker, 'last');
+        $baseVolume = $this->safe_string($ticker, 'volume');
+        $quoteVolume = $this->safe_string($ticker, 'volumeQuote');
+        $open = $this->safe_string($ticker, 'open');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'bid'),
-            'bidVolume' => $this->safe_number($ticker, 'bidSize'),
-            'ask' => $this->safe_number($ticker, 'ask'),
-            'askVolume' => $this->safe_number($ticker, 'askSize'),
-            'vwap' => $vwap,
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'bid'),
+            'bidVolume' => $this->safe_string($ticker, 'bidSize'),
+            'ask' => $this->safe_string($ticker, 'ask'),
+            'askVolume' => $this->safe_string($ticker, 'askSize'),
+            'vwap' => null,
             'open' => $open,
             'close' => $last,
             'last' => $last,
@@ -489,7 +488,7 @@ class bitvavo extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
