@@ -490,7 +490,7 @@ module.exports = class kraken extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.parseNumber (precisionPrice),
+                    'price': this.safeInteger (market, 'pair_decimals'),
                     'amount': this.safeInteger (market, 'lot_decimals'),
                 },
                 'limits': {
