@@ -869,57 +869,65 @@ module.exports = class timex extends Exchange {
         //     }
         //
         const locked = this.safeValue (market, 'locked');
-        const active = !locked;
         const id = this.safeString (market, 'symbol');
         const baseId = this.safeString (market, 'baseCurrency');
         const quoteId = this.safeString (market, 'quoteCurrency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = base + '/' + quote;
-        const precision = {
-            'amount': this.precisionFromString (this.safeString (market, 'quantityIncrement')),
-            'price': this.precisionFromString (this.safeString (market, 'tickSize')),
-        };
-        const amountIncrement = this.safeNumber (market, 'quantityIncrement');
-        const minBase = this.safeNumber (market, 'baseMinSize');
-        const minAmount = Math.max (amountIncrement, minBase);
-        const priceIncrement = this.safeNumber (market, 'tickSize');
-        const minCost = this.safeNumber (market, 'quoteMinSize');
-        const limits = {
-            'amount': { 'min': minAmount, 'max': undefined },
-            'price': { 'min': priceIncrement, 'max': undefined },
-            'cost': { 'min': Math.max (minCost, minAmount * priceIncrement), 'max': undefined },
-        };
-        const taker = this.safeNumber (market, 'takerFee');
-        const maker = this.safeNumber (market, 'makerFee');
+        const amountIncrement = this.safeString (market, 'quantityIncrement');
+        const minBase = this.safeString (market, 'baseMinSize');
+        const minAmount = Precise.stringMax (amountIncrement, minBase);
+        const priceIncrement = this.safeString (market, 'tickSize');
+        const minCost = this.safeString (market, 'quoteMinSize');
+        const amount = Precise.stringMul (minAmount, priceIncrement);
         return {
             'id': id,
-            'symbol': symbol,
+            'symbol': base + '/' + quote,
             'base': base,
             'quote': quote,
+            'settle': undefined,
             'baseId': baseId,
             'quoteId': quoteId,
+            'settleId': undefined,
             'type': 'spot',
             'spot': true,
             'margin': false,
-            'future': false,
             'swap': false,
+            'future': false,
             'option': false,
-            'optionType': undefined,
-            'strike': undefined,
+            'active': !locked,
+            'contract': false,
             'linear': undefined,
             'inverse': undefined,
-            'contract': false,
+            'taker': this.safeNumber (market, 'takerFee'),
+            'maker': this.safeNumber (market, 'makerFee'),
             'contractSize': undefined,
-            'settle': undefined,
-            'settleId': undefined,
             'expiry': undefined,
             'expiryDatetime': undefined,
-            'active': active,
-            'precision': precision,
-            'limits': limits,
-            'taker': taker,
-            'maker': maker,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.precisionFromString (this.safeString (market, 'quantityIncrement')),
+                'price': this.precisionFromString (this.safeString (market, 'tickSize')),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': this.parseNumber (minAmount),
+                    'max': undefined,
+                },
+                'price': {
+                    'min': this.parseNumber (priceIncrement),
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': Precise.stringMax (minCost, amount),
+                    'max': undefined,
+                },
+            },
             'info': market,
         };
     }
