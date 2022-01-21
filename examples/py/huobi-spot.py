@@ -13,7 +13,8 @@ import ccxt  # noqa: E402
 print('CCXT Version:', ccxt.__version__)
 
 exchange = ccxt.huobi({
-
+    'apiKey': 'YOUR_API_KEY',
+    'secret': 'YOUR_API_SECRET',
     'options': {
         'defaultType': 'spot',
     },
@@ -24,9 +25,9 @@ markets = exchange.load_markets()
 
 # exchange.verbose = True  # uncomment for debugging purposes if necessary
 
-# Example 1: Creating/canceling a stop limit order
+# Example 1: Creating/canceling a stop buy-limit order
 symbol = 'ADA/USDT'
-order_type = 'buy-limit'
+order_type = 'limit'
 side = 'buy'
 offset = 'open'
 cli_order_id = randint(0,1000)
@@ -45,7 +46,37 @@ try:
 
     # List open positions
     open_orders = exchange.fetch_open_orders(symbol, params={"side": "buy"})
-    # print(open_orders)
+    print(open_orders)
+
+    #Order cancelation
+    cancelOrder = exchange.cancel_order(order['id'], symbol)
+    print(cancelOrder)
+except Exception as e:
+    print(type(e).__name__, str(e))
+
+
+# Example 2: Creating/canceling a stop sell-limit order
+symbol = 'ADA/USDT'
+order_type = 'limit'
+side = 'sell'
+offset = 'open'
+cli_order_id = randint(0,1000)
+amount = 10
+price = 5
+stopPrice = 5
+operator='gte'
+
+params = {'offset': offset, 'client_order_id': cli_order_id, 'stopPrice': stopPrice, 'operator': operator}
+
+try:
+
+    # Order creation
+    order = exchange.create_order(symbol, order_type, side, amount, price, params)
+    print(order)
+
+    # List open positions
+    open_orders = exchange.fetch_open_orders(symbol, params={"side": "sell"})
+    print(open_orders)
 
     #Order cancelation
     cancelOrder = exchange.cancel_order(order['id'], symbol)
