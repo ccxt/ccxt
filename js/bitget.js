@@ -1713,9 +1713,9 @@ module.exports = class bitget extends Exchange {
             'swap': 'swapGetAccountAccounts',
         });
         if (marketType === 'spot') {
-            const accountId = await this.getAccountId (params);
-            params['account_id'] = accountId;
-            params['method'] = 'balance';
+            const accountId = await this.getAccountId (query);
+            query['account_id'] = accountId;
+            query['method'] = 'balance';
         }
         const response = await this[method] (query);
         //
