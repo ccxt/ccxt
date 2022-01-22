@@ -1371,18 +1371,21 @@ class bitmart extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        $method = null;
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchOrderTrades', $market, $params);
         $request = array();
         if ($market['spot']) {
             $request['symbol'] = $market['id'];
             $request['order_id'] = $id;
-            $method = 'privateSpotGetTrades';
         } else if ($market['swap'] || $market['future']) {
             $request['contractID'] = $market['id'];
             $request['orderID'] = $id;
-            $method = 'privateContractGetOrderTrades';
         }
-        $response = $this->$method (array_merge($request, $params));
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateSpotGetTrades',
+            'swap' => 'privateContractGetOrderTrades',
+            'future' => 'privateContractGetOrderTrades',
+        ));
+        $response = $this->$method (array_merge($request, $query));
         //
         // spot
         //

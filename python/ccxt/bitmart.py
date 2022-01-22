@@ -1341,17 +1341,20 @@ class bitmart(Exchange):
             raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        method = None
+        marketType, query = self.handle_market_type_and_params('fetchOrderTrades', market, params)
         request = {}
         if market['spot']:
             request['symbol'] = market['id']
             request['order_id'] = id
-            method = 'privateSpotGetTrades'
         elif market['swap'] or market['future']:
             request['contractID'] = market['id']
             request['orderID'] = id
-            method = 'privateContractGetOrderTrades'
-        response = getattr(self, method)(self.extend(request, params))
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateSpotGetTrades',
+            'swap': 'privateContractGetOrderTrades',
+            'future': 'privateContractGetOrderTrades',
+        })
+        response = getattr(self, method)(self.extend(request, query))
         #
         # spot
         #
