@@ -246,6 +246,12 @@ class okex(Exchange):
                         'asset/subaccount/bills': 5 / 3,
                         'users/subaccount/list': 10,
                         'users/subaccount/apikey': 10,
+                        # broker
+                        'broker/nd/info': 10,
+                        'broker/nd/subaccount-info': 10,
+                        'asset/broker/nd/subaccount-deposit-address': 4,
+                        'asset/broker/nd/subaccount-deposit-history': 4,
+                        'broker/nd/rebate-daily': 1,
                     },
                     'post': {
                         'account/set-position-mode': 4,
@@ -274,6 +280,12 @@ class okex(Exchange):
                         'users/subaccount/modify-apikey': 10,
                         'users/subaccount/apikey': 10,
                         'asset/subaccount/transfer': 10,
+                        # broker
+                        'broker/nd/create-subaccount': 10,
+                        'broker/nd/delete-subaccount': 10,
+                        'broker/nd/set-subaccount-level': 4,
+                        'broker/nd/set-subaccount-fee-rate': 4,
+                        'asset/broker/nd/subaccount-deposit-address': 4,
                     },
                 },
             },
