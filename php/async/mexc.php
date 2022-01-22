@@ -821,24 +821,22 @@ class mexc extends Exchange {
         $timestamp = $this->safe_integer_2($ticker, 'time', 'timestamp');
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $baseVolume = $this->safe_number_2($ticker, 'volume', 'volume24');
-        $quoteVolume = $this->safe_number($ticker, 'amount24');
-        $open = $this->safe_number($ticker, 'open');
-        $lastString = $this->safe_string_2($ticker, 'last', 'lastPrice');
-        $last = $this->parse_number($lastString);
-        $change = $this->safe_number($ticker, 'riseFallValue');
+        $baseVolume = $this->safe_string_2($ticker, 'volume', 'volume24');
+        $quoteVolume = $this->safe_string($ticker, 'amount24');
+        $open = $this->safe_string($ticker, 'open');
+        $last = $this->safe_string_2($ticker, 'last', 'lastPrice');
+        $change = $this->safe_string($ticker, 'riseFallValue');
         $riseFallRate = $this->safe_string($ticker, 'riseFallRate');
-        $percentageString = Precise::string_add($riseFallRate, '1');
-        $percentage = $this->parse_number($percentageString);
+        $percentage = Precise::string_add($riseFallRate, '1');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number_2($ticker, 'high', 'high24Price'),
-            'low' => $this->safe_number_2($ticker, 'low', 'lower24Price'),
-            'bid' => $this->safe_number_2($ticker, 'bid', 'bid1'),
+            'high' => $this->safe_string_2($ticker, 'high', 'high24Price'),
+            'low' => $this->safe_string_2($ticker, 'low', 'lower24Price'),
+            'bid' => $this->safe_string_2($ticker, 'bid', 'bid1'),
             'bidVolume' => null,
-            'ask' => $this->safe_number_2($ticker, 'ask', 'ask1'),
+            'ask' => $this->safe_string_2($ticker, 'ask', 'ask1'),
             'askVolume' => null,
             'vwap' => null,
             'open' => $open,
@@ -851,7 +849,7 @@ class mexc extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

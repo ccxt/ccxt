@@ -804,24 +804,22 @@ class mexc(Exchange):
         timestamp = self.safe_integer_2(ticker, 'time', 'timestamp')
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
-        baseVolume = self.safe_number_2(ticker, 'volume', 'volume24')
-        quoteVolume = self.safe_number(ticker, 'amount24')
-        open = self.safe_number(ticker, 'open')
-        lastString = self.safe_string_2(ticker, 'last', 'lastPrice')
-        last = self.parse_number(lastString)
-        change = self.safe_number(ticker, 'riseFallValue')
+        baseVolume = self.safe_string_2(ticker, 'volume', 'volume24')
+        quoteVolume = self.safe_string(ticker, 'amount24')
+        open = self.safe_string(ticker, 'open')
+        last = self.safe_string_2(ticker, 'last', 'lastPrice')
+        change = self.safe_string(ticker, 'riseFallValue')
         riseFallRate = self.safe_string(ticker, 'riseFallRate')
-        percentageString = Precise.string_add(riseFallRate, '1')
-        percentage = self.parse_number(percentageString)
+        percentage = Precise.string_add(riseFallRate, '1')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number_2(ticker, 'high', 'high24Price'),
-            'low': self.safe_number_2(ticker, 'low', 'lower24Price'),
-            'bid': self.safe_number_2(ticker, 'bid', 'bid1'),
+            'high': self.safe_string_2(ticker, 'high', 'high24Price'),
+            'low': self.safe_string_2(ticker, 'low', 'lower24Price'),
+            'bid': self.safe_string_2(ticker, 'bid', 'bid1'),
             'bidVolume': None,
-            'ask': self.safe_number_2(ticker, 'ask', 'ask1'),
+            'ask': self.safe_string_2(ticker, 'ask', 'ask1'),
             'askVolume': None,
             'vwap': None,
             'open': open,
@@ -834,7 +832,7 @@ class mexc(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
