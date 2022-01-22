@@ -1060,18 +1060,18 @@ module.exports = class timex extends Exchange {
         const marketId = this.safeString (ticker, 'market');
         const symbol = this.safeSymbol (marketId, market, '/');
         const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
-        const last = this.safeNumber (ticker, 'last');
-        const open = this.safeNumber (ticker, 'open');
+        const last = this.safeString (ticker, 'last');
+        const open = this.safeString (ticker, 'open');
         return this.safeTicker ({
             'symbol': symbol,
             'info': ticker,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
@@ -1081,9 +1081,9 @@ module.exports = class timex extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'volume'),
-            'quoteVolume': this.safeNumber (ticker, 'volumeQuote'),
-        }, market);
+            'baseVolume': this.safeString (ticker, 'volume'),
+            'quoteVolume': this.safeString (ticker, 'volumeQuote'),
+        }, market, false);
     }
 
     parseTrade (trade, market = undefined) {
