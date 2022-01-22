@@ -496,15 +496,15 @@ class latoken(Exchange):
         #
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_number(ticker, 'lastPrice')
-        change = self.safe_number(ticker, 'change24h')
+        last = self.safe_string(ticker, 'lastPrice')
+        change = self.safe_string(ticker, 'change24h')
         timestamp = self.nonce()
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'low': self.safe_number(ticker, 'low'),
-            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'high': self.safe_string(ticker, 'high'),
             'bid': None,
             'bidVolume': None,
             'ask': None,
@@ -518,9 +518,9 @@ class latoken(Exchange):
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': self.safe_number(ticker, 'volume24h'),
+            'quoteVolume': self.safe_string(ticker, 'volume24h'),
             'info': ticker,
-        })
+        }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
