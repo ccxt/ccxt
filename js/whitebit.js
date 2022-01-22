@@ -16,32 +16,49 @@ module.exports = class whitebit extends Exchange {
             'countries': [ 'EE' ],
             'rateLimit': 500,
             'has': {
-                'fetchDepositAddress': true,
+                'spot': true,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
                 'cancelOrder': true,
                 'CORS': undefined,
                 'createDepositAddress': undefined,
                 'createLimitOrder': undefined,
                 'createMarketOrder': undefined,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'deposit': undefined,
                 'editOrder': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDepositAddress': true,
                 'fetchFundingFees': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchOHLCV': true,
+                'fetchOpenOrders': true,
                 'fetchOrderBook': true,
                 'fetchOrderTrades': true,
-                'fetchOpenOrders': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFees': true,
-                'privateAPI': true,
-                'publicAPI': true,
+                'reduceMargin': false,
+                'setPositionMode': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -77,7 +94,7 @@ module.exports = class whitebit extends Exchange {
                     },
                 },
                 'www': 'https://www.whitebit.com',
-                'doc': 'https://documenter.getpostman.com/view/7473075/Szzj8dgv?version=latest',
+                'doc': 'https://github.com/whitebit-exchange/api-docs',
                 'fees': 'https://whitebit.com/fee-schedule',
                 'referral': 'https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963',
             },
@@ -204,23 +221,27 @@ module.exports = class whitebit extends Exchange {
     async fetchMarkets (params = {}) {
         const response = await this.v2PublicGetMarkets (params);
         //
-        //     {
-        //         "success":true,
-        //         "message":"",
-        //         "result":[
-        //             {
-        //                 "name":"BTC_USD",
-        //                 "moneyPrec":"2",
-        //                 "stock":"BTC",
-        //                 "money":"USD",
-        //                 "stockPrec":"6",
-        //                 "feePrec":"4",
-        //                 "minAmount":"0.001",
-        //                 "tradesEnabled":true,
-        //                 "minTotal":"0.001"
-        //             }
-        //         ]
-        //     }
+        //    {
+        //        "success": true,
+        //        "message": "",
+        //        "result": [
+        //            {
+        //                "name":
+        //                "C98_USDT",
+        //                "stock":"C98",
+        //                "money":"USDT",
+        //                "stockPrec":"3",
+        //                "moneyPrec":"5",
+        //                "feePrec":"6",
+        //                "makerFee":"0.001",
+        //                "takerFee":"0.001",
+        //                "minAmount":"2.5",
+        //                "minTotal":"5.05",
+        //                "tradesEnabled":true
+        //            },
+        //            ...
+        //        ]
+        //    }
         //
         const markets = this.safeValue (response, 'result');
         const result = [];
@@ -238,17 +259,36 @@ module.exports = class whitebit extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'margin': undefined,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'active': active,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': this.safeNumber (market, 'makerFee'),
+                'maker': this.safeNumber (market, 'takerFee'),
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
                 'precision': {
                     'amount': this.safeInteger (market, 'stockPrec'),
                     'price': this.safeInteger (market, 'moneyPrec'),
                 },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'minAmount'),
                         'max': undefined,
@@ -262,6 +302,7 @@ module.exports = class whitebit extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': market,
             };
             result.push (entry);
         }
