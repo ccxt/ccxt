@@ -573,29 +573,29 @@ class upbit extends Exchange {
         $timestamp = $this->safe_integer($ticker, 'trade_timestamp');
         $marketId = $this->safe_string_2($ticker, 'market', 'code');
         $market = $this->safe_market($marketId, $market, '-');
-        $last = $this->safe_number($ticker, 'trade_price');
+        $last = $this->safe_string($ticker, 'trade_price');
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high_price'),
-            'low' => $this->safe_number($ticker, 'low_price'),
+            'high' => $this->safe_string($ticker, 'high_price'),
+            'low' => $this->safe_string($ticker, 'low_price'),
             'bid' => null,
             'bidVolume' => null,
             'ask' => null,
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_number($ticker, 'opening_price'),
+            'open' => $this->safe_string($ticker, 'opening_price'),
             'close' => $last,
             'last' => $last,
-            'previousClose' => $this->safe_number($ticker, 'prev_closing_price'),
-            'change' => $this->safe_number($ticker, 'signed_change_price'),
-            'percentage' => $this->safe_number($ticker, 'signed_change_rate'),
+            'previousClose' => $this->safe_string($ticker, 'prev_closing_price'),
+            'change' => $this->safe_string($ticker, 'signed_change_price'),
+            'percentage' => $this->safe_string($ticker, 'signed_change_rate'),
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'acc_trade_volume_24h'),
-            'quoteVolume' => $this->safe_number($ticker, 'acc_trade_price_24h'),
+            'baseVolume' => $this->safe_string($ticker, 'acc_trade_volume_24h'),
+            'quoteVolume' => $this->safe_string($ticker, 'acc_trade_price_24h'),
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
