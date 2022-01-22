@@ -1792,28 +1792,24 @@ class aax extends Exchange {
             // 'orderType' => null, // MARKET, LIMIT, STOP, STOP-LIMIT
             // 'side' => 'null', // BUY, SELL
         );
-        $method = null;
-        $defaultType = $this->safe_string_2($this->options, 'fetchMyTrades', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit($params, 'type');
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
-            $type = $market['type'];
         }
-        if ($type === 'spot') {
-            $method = 'privateGetSpotTrades';
-        } else if ($type === 'swap' || $type === 'future' || $type === 'futures') { // $type === 'futures' deprecated, use $type === 'swap'
-            $method = 'privateGetFuturesTrades';
-        }
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateGetSpotTrades',
+            'swap' => 'privateGetFuturesTrades',
+            'future' => 'privateGetFuturesTrades',
+        ));
         if ($limit !== null) {
             $request['pageSize'] = $limit; // default 10
         }
         if ($since !== null) {
             $request['startDate'] = $this->yyyymmdd($since);
         }
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method (array_merge($request, $query));
         //
         //     {
         //         "code":1,
