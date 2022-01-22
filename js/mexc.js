@@ -1475,7 +1475,7 @@ module.exports = class mexc extends Exchange {
         const feeCostString = this.safeString (transaction, 'fee');
         if (feeCostString !== undefined) {
             fee = {
-                'cost': this.parseNumber (feeCostString);
+                'cost': this.parseNumber (feeCostString),
                 'currency': code,
             };
         }
