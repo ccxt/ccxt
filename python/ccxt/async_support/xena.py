@@ -433,20 +433,20 @@ class xena(Exchange):
         timestamp = self.milliseconds()
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_number(ticker, 'lastPx')
-        open = self.safe_number(ticker, 'firstPx')
-        buyVolume = self.safe_number(ticker, 'buyVolume')
-        sellVolume = self.safe_number(ticker, 'sellVolume')
+        last = self.safe_string(ticker, 'lastPx')
+        open = self.safe_string(ticker, 'firstPx')
+        buyVolume = self.safe_string(ticker, 'buyVolume')
+        sellVolume = self.safe_string(ticker, 'sellVolume')
         baseVolume = self.sum(buyVolume, sellVolume)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'highPx'),
-            'low': self.safe_number(ticker, 'lowPx'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'highPx'),
+            'low': self.safe_string(ticker, 'lowPx'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': open,
@@ -459,7 +459,7 @@ class xena(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

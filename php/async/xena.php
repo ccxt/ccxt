@@ -439,20 +439,20 @@ class xena extends Exchange {
         $timestamp = $this->milliseconds();
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $last = $this->safe_number($ticker, 'lastPx');
-        $open = $this->safe_number($ticker, 'firstPx');
-        $buyVolume = $this->safe_number($ticker, 'buyVolume');
-        $sellVolume = $this->safe_number($ticker, 'sellVolume');
+        $last = $this->safe_string($ticker, 'lastPx');
+        $open = $this->safe_string($ticker, 'firstPx');
+        $buyVolume = $this->safe_string($ticker, 'buyVolume');
+        $sellVolume = $this->safe_string($ticker, 'sellVolume');
         $baseVolume = $this->sum($buyVolume, $sellVolume);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'highPx'),
-            'low' => $this->safe_number($ticker, 'lowPx'),
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'high' => $this->safe_string($ticker, 'highPx'),
+            'low' => $this->safe_string($ticker, 'lowPx'),
+            'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => $open,
@@ -465,7 +465,7 @@ class xena extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
