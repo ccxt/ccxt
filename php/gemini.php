@@ -507,24 +507,23 @@ class gemini extends Exchange {
             $base = $market['base'];
             $quote = $market['quote'];
         }
-        $price = $this->safe_number($ticker, 'price');
-        $last = $this->safe_number_2($ticker, 'last', 'close', $price);
-        $percentage = $this->safe_number($ticker, 'percentChange24h');
-        $open = $this->safe_number($ticker, 'open');
-        $baseVolume = $this->safe_number($volume, $baseId);
-        $quoteVolume = $this->safe_number($volume, $quoteId);
-        $vwap = $this->vwap($baseVolume, $quoteVolume);
+        $price = $this->safe_string($ticker, 'price');
+        $last = $this->safe_string_2($ticker, 'last', 'close', $price);
+        $percentage = $this->safe_string($ticker, 'percentChange24h');
+        $open = $this->safe_string($ticker, 'open');
+        $baseVolume = $this->safe_string($volume, $baseId);
+        $quoteVolume = $this->safe_string($volume, $quoteId);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
-            'vwap' => $vwap,
+            'vwap' => null,
             'open' => $open,
             'close' => $last,
             'last' => $last,
@@ -535,7 +534,7 @@ class gemini extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
