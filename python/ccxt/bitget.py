@@ -2165,26 +2165,26 @@ class bitget(Exchange):
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        type = self.safe_string(params, 'type', market['type'])
+        marketType, query = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         request = {
             'symbol': market['id'],
         }
-        method = None
-        if type == 'spot':
-            method = 'apiGetOrderOrdersOpenOrders'
+        if marketType == 'spot':
             # request['from'] = self.safe_string(params, 'from')  # order id
             # request['direct'] = 'next'  # or 'prev'
             request['method'] = 'openOrders'
             if limit is None:
                 request['size'] = limit  # default 100, max 1000
-        elif type == 'swap':
-            method = 'swapGetOrderOrders'
+        elif marketType == 'swap':
             request['status'] = '3'  # 0 Failed, 1 Partially Filled, 2 Fully Filled 3 = Open + Partially Filled, 4 Canceling
             request['from'] = '1'
             request['to'] = '1'
             if limit is None:
                 request['limit'] = 100  # default 100, max 100
-        query = self.omit(params, 'type')
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'apiGetOrderOrdersOpenOrders',
+            'swap': 'swapGetOrderOrders',
+        })
         response = getattr(self, method)(self.extend(request, query))
         #
         #  spot

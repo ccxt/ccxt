@@ -2253,21 +2253,18 @@ class bitget extends Exchange {
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
-        $type = $this->safe_string($params, 'type', $market['type']);
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
         $request = array(
             'symbol' => $market['id'],
         );
-        $method = null;
-        if ($type === 'spot') {
-            $method = 'apiGetOrderOrdersOpenOrders';
+        if ($marketType === 'spot') {
             // $request['from'] = $this->safe_string($params, 'from'); // order id
             // $request['direct'] = 'next'; // or 'prev'
             $request['method'] = 'openOrders';
             if ($limit === null) {
                 $request['size'] = $limit; // default 100, max 1000
             }
-        } else if ($type === 'swap') {
-            $method = 'swapGetOrderOrders';
+        } else if ($marketType === 'swap') {
             $request['status'] = '3'; // 0 Failed, 1 Partially Filled, 2 Fully Filled 3 = Open . Partially Filled, 4 Canceling
             $request['from'] = '1';
             $request['to'] = '1';
@@ -2275,7 +2272,10 @@ class bitget extends Exchange {
                 $request['limit'] = 100; // default 100, max 100
             }
         }
-        $query = $this->omit($params, 'type');
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'apiGetOrderOrdersOpenOrders',
+            'swap' => 'swapGetOrderOrders',
+        ));
         $response = yield $this->$method (array_merge($request, $query));
         //
         //  spot
