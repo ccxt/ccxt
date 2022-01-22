@@ -430,20 +430,20 @@ module.exports = class xena extends Exchange {
         const timestamp = this.milliseconds ();
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeNumber (ticker, 'lastPx');
-        const open = this.safeNumber (ticker, 'firstPx');
-        const buyVolume = this.safeNumber (ticker, 'buyVolume');
-        const sellVolume = this.safeNumber (ticker, 'sellVolume');
+        const last = this.safeString (ticker, 'lastPx');
+        const open = this.safeString (ticker, 'firstPx');
+        const buyVolume = this.safeString (ticker, 'buyVolume');
+        const sellVolume = this.safeString (ticker, 'sellVolume');
         const baseVolume = this.sum (buyVolume, sellVolume);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'highPx'),
-            'low': this.safeNumber (ticker, 'lowPx'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeString (ticker, 'highPx'),
+            'low': this.safeString (ticker, 'lowPx'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
@@ -456,7 +456,7 @@ module.exports = class xena extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
