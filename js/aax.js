@@ -1507,21 +1507,17 @@ module.exports = class aax extends Exchange {
             // 'side': 'undefined', // BUY, SELL
             // 'clOrdID': clientOrderId,
         };
-        let method = undefined;
-        const defaultType = this.safeString2 (this.options, 'fetchOrders', 'defaultType', 'spot');
-        let type = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
-            type = market['type'];
         }
-        if (type === 'spot') {
-            method = 'privateGetSpotOrders';
-        } else if (type === 'swap' || type === 'future' || type === 'futures') { // type === 'futures' deprecated, use type === 'swap'
-            method = 'privateGetFuturesOrders';
-        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateGetSpotOrders',
+            'swap': 'privateGetFuturesOrders',
+            'future': 'privateGetFuturesOrders',
+        });
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clOrdID'] = clientOrderId;
@@ -1533,7 +1529,7 @@ module.exports = class aax extends Exchange {
         if (since !== undefined) {
             request['startDate'] = this.yyyymmdd (since);
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         // spot
         //
