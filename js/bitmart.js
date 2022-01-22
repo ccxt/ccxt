@@ -1367,18 +1367,21 @@ module.exports = class bitmart extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = undefined;
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderTrades', market, params);
         const request = {};
         if (market['spot']) {
             request['symbol'] = market['id'];
             request['order_id'] = id;
-            method = 'privateSpotGetTrades';
         } else if (market['swap'] || market['future']) {
             request['contractID'] = market['id'];
             request['orderID'] = id;
-            method = 'privateContractGetOrderTrades';
         }
-        const response = await this[method] (this.extend (request, params));
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateSpotGetTrades',
+            'swap': 'privateContractGetOrderTrades',
+            'future': 'privateContractGetOrderTrades',
+        });
+        const response = await this[method] (this.extend (request, query));
         //
         // spot
         //
