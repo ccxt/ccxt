@@ -679,21 +679,21 @@ class ftx(Exchange):
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_number(ticker, 'last')
+        last = self.safe_string(ticker, 'last')
         timestamp = self.safe_timestamp(ticker, 'time', self.milliseconds())
-        percentage = self.safe_number(ticker, 'change24h')
+        percentage = self.safe_string(ticker, 'change24h')
         if percentage is not None:
-            percentage *= 100
+            percentage = Precise.string_mul(percentage, '100')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bid'),
-            'bidVolume': self.safe_number(ticker, 'bidSize'),
-            'ask': self.safe_number(ticker, 'ask'),
-            'askVolume': self.safe_number(ticker, 'askSize'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
+            'bidVolume': self.safe_string(ticker, 'bidSize'),
+            'ask': self.safe_string(ticker, 'ask'),
+            'askVolume': self.safe_string(ticker, 'askSize'),
             'vwap': None,
             'open': None,
             'close': last,
@@ -703,9 +703,9 @@ class ftx(Exchange):
             'percentage': percentage,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': self.safe_number(ticker, 'quoteVolume24h'),
+            'quoteVolume': self.safe_string(ticker, 'quoteVolume24h'),
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
