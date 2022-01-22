@@ -208,6 +208,21 @@ module.exports = class coinone extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         "currency":"xec",
+        //         "first":"0.1069",
+        //         "low":"0.09",
+        //         "high":"0.1069",
+        //         "last":"0.0911",
+        //         "volume":"4591217267.4974",
+        //         "yesterday_first":"0.1128",
+        //         "yesterday_low":"0.1035",
+        //         "yesterday_high":"0.1167",
+        //         "yesterday_last":"0.1069",
+        //         "yesterday_volume":"4014832231.5102"
+        //     }
+        //
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const open = this.safeString (ticker, 'first');
         const last = this.safeString (ticker, 'last');
