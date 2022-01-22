@@ -1870,10 +1870,9 @@ module.exports = class bitmart extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
         const request = {};
-        let method = undefined;
         if (market['spot']) {
-            method = 'privateSpotGetOrders';
             request['symbol'] = market['id'];
             request['offset'] = 1; // max offset * limit < 500
             request['limit'] = 100; // max limit is 100
@@ -1897,7 +1896,6 @@ module.exports = class bitmart extends Exchange {
                 request['status'] = status;
             }
         } else if (market['swap'] || market['future']) {
-            method = 'privateContractGetUserOrders';
             request['contractID'] = market['id'];
             // request['offset'] = 1;
             if (limit !== undefined) {
@@ -1916,7 +1914,12 @@ module.exports = class bitmart extends Exchange {
                 request['status'] = status;
             }
         }
-        const response = await this[method] (this.extend (request, params));
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateSpotGetOrders',
+            'swap': 'privateContractGetUserOrders',
+            'future': 'privateContractGetUserOrders',
+        });
+        const response = await this[method] (this.extend (request, query));
         //
         // spot
         //
