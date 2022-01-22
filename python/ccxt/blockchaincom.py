@@ -329,9 +329,9 @@ class blockchaincom(Exchange):
         #
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market, '-')
-        last = self.safe_number(ticker, 'last_trade_price')
-        baseVolume = self.safe_number(ticker, 'volume_24h')
-        open = self.safe_number(ticker, 'price_24h')
+        last = self.safe_string(ticker, 'last_trade_price')
+        baseVolume = self.safe_string(ticker, 'volume_24h')
+        open = self.safe_string(ticker, 'price_24h')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
@@ -353,7 +353,7 @@ class blockchaincom(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

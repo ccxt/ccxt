@@ -752,8 +752,8 @@ module.exports = class okex extends Exchange {
             baseId = this.safeString (parts, 0);
             quoteId = this.safeString (parts, 1);
         }
-        const inverse = baseId === settleCurrency;
-        const linear = quoteId === settleCurrency;
+        const inverse = contract ? (baseId === settleCurrency) : undefined;
+        const linear = contract ? (quoteId === settleCurrency) : undefined;
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         let symbol = base + '/' + quote;
@@ -1551,13 +1551,9 @@ module.exports = class okex extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const defaultType = this.safeString (this.options, 'defaultType');
-        const options = this.safeValue (this.options, 'fetchBalance', {});
-        let type = this.safeString (options, 'type', defaultType);
-        type = this.safeString (params, 'type', type);
-        params = this.omit (params, 'type');
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let method = undefined;
-        if (type === 'funding') {
+        if (marketType === 'funding') {
             method = 'privateGetAssetBalances';
         } else {
             method = 'privateGetAccountBalance';
@@ -1565,7 +1561,7 @@ module.exports = class okex extends Exchange {
         const request = {
             // 'ccy': 'BTC,ETH', // comma-separated list of currency ids
         };
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         //     {
         //         "code":"0",
@@ -1668,7 +1664,7 @@ module.exports = class okex extends Exchange {
         //         "msg":""
         //     }
         //
-        return this.parseBalanceByType (type, response);
+        return this.parseBalanceByType (marketType, response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

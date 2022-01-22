@@ -141,6 +141,7 @@ module.exports = class crex24 extends Exchange {
                 'EPS': 'Epanus',  // conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
                 'FUND': 'FUNDChains',
                 'GHOST': 'GHOSTPRISM',
+                'GM': 'GM Holding',
                 'GTC': 'GastroCoin', // conflict with Gitcoin and Game.com
                 'IQ': 'IQ.Cash',
                 'ONE': 'One Hundred Coin',
@@ -542,16 +543,16 @@ module.exports = class crex24 extends Exchange {
         const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
         const marketId = this.safeString (ticker, 'instrument');
         const symbol = this.safeSymbol (marketId, market, '-');
-        const last = this.safeNumber (ticker, 'last');
+        const last = this.safeString (ticker, 'last');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -559,12 +560,12 @@ module.exports = class crex24 extends Exchange {
             'last': last,
             'previousClose': undefined, // previous day close
             'change': undefined,
-            'percentage': this.safeNumber (ticker, 'percentChange'),
+            'percentage': this.safeString (ticker, 'percentChange'),
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'baseVolume'),
-            'quoteVolume': this.safeNumber (ticker, 'quoteVolume'),
+            'baseVolume': this.safeString (ticker, 'baseVolume'),
+            'quoteVolume': this.safeString (ticker, 'quoteVolume'),
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {

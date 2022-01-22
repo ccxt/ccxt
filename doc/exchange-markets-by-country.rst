@@ -504,7 +504,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - whitebit
      - `WhiteBit <https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://documenter.getpostman.com/view/7473075/Szzj8dgv?version=latest
+          :target: https://github.com/whitebit-exchange/api-docs
           :alt: API Version 2
      
    * - Estonia

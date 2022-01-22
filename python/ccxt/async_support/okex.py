@@ -763,8 +763,8 @@ class okex(Exchange):
             parts = underlying.split('-')
             baseId = self.safe_string(parts, 0)
             quoteId = self.safe_string(parts, 1)
-        inverse = baseId == settleCurrency
-        linear = quoteId == settleCurrency
+        inverse = (baseId == settleCurrency) if contract else None
+        linear = (quoteId == settleCurrency) if contract else None
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         symbol = base + '/' + quote
@@ -1508,20 +1508,16 @@ class okex(Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        defaultType = self.safe_string(self.options, 'defaultType')
-        options = self.safe_value(self.options, 'fetchBalance', {})
-        type = self.safe_string(options, 'type', defaultType)
-        type = self.safe_string(params, 'type', type)
-        params = self.omit(params, 'type')
+        marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
         method = None
-        if type == 'funding':
+        if marketType == 'funding':
             method = 'privateGetAssetBalances'
         else:
             method = 'privateGetAccountBalance'
         request = {
             # 'ccy': 'BTC,ETH',  # comma-separated list of currency ids
         }
-        response = await getattr(self, method)(self.extend(request, params))
+        response = await getattr(self, method)(self.extend(request, query))
         #
         #     {
         #         "code":"0",
@@ -1624,7 +1620,7 @@ class okex(Exchange):
         #         "msg":""
         #     }
         #
-        return self.parse_balance_by_type(type, response)
+        return self.parse_balance_by_type(marketType, response)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

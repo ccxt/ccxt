@@ -337,9 +337,9 @@ class blockchaincom extends Exchange {
         //
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '-');
-        $last = $this->safe_number($ticker, 'last_trade_price');
-        $baseVolume = $this->safe_number($ticker, 'volume_24h');
-        $open = $this->safe_number($ticker, 'price_24h');
+        $last = $this->safe_string($ticker, 'last_trade_price');
+        $baseVolume = $this->safe_string($ticker, 'volume_24h');
+        $open = $this->safe_string($ticker, 'price_24h');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,
@@ -361,7 +361,7 @@ class blockchaincom extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

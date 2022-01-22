@@ -209,7 +209,7 @@ class ascendex extends Exchange {
                 'fetchClosedOrders' => array(
                     'method' => 'v1PrivateAccountGroupGetOrderHist', // 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
                 ),
-                'swap' => false, // https://github.com/ccxt/ccxt/issues/11503
+                'defaultType' => 'spot', // 'spot', 'margin', 'swap'
                 'accountCategories' => array(
                     'spot' => 'cash',
                     'swap' => 'futures',
@@ -452,13 +452,7 @@ class ascendex extends Exchange {
         //         )
         //     }
         //
-        // this endpoint works intermittently
-        // https://github.com/ccxt/ccxt/issues/11503
-        $swap = $this->safe_value($this->options, 'swap', false);
-        $perpetuals = array();
-        if ($swap) {
-            $perpetuals = $this->v2PublicGetFuturesContract ($params);
-        }
+        $perpetuals = $this->v2PublicGetFuturesContract ($params);
         //
         //     {
         //         "code":0,
@@ -487,10 +481,10 @@ class ascendex extends Exchange {
         //         )
         //     }
         //
-        $perpetualsData = $this->safe_value($perpetuals, 'data', array());
         $productsData = $this->safe_value($products, 'data', array());
         $productsById = $this->index_by($productsData, 'symbol');
         $cashData = $this->safe_value($cash, 'data', array());
+        $perpetualsData = $this->safe_value($perpetuals, 'data', array());
         $cashAndPerpetualsData = $this->array_concat($cashData, $perpetualsData);
         $cashAndPerpetualsById = $this->index_by($cashAndPerpetualsData, 'symbol');
         $dataById = $this->deep_extend($productsById, $cashAndPerpetualsById);
@@ -2223,9 +2217,6 @@ class ascendex extends Exchange {
             if ($params) {
                 $url .= '?' . $this->urlencode($params);
             }
-            $headers = array(
-                'Content-Type' => 'application/json',
-            );
         } else {
             $this->check_required_credentials();
             $timestamp = (string) $this->milliseconds();

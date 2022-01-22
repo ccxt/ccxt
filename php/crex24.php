@@ -149,6 +149,7 @@ class crex24 extends Exchange {
                 'EPS' => 'Epanus',  // conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
                 'FUND' => 'FUNDChains',
                 'GHOST' => 'GHOSTPRISM',
+                'GM' => 'GM Holding',
                 'GTC' => 'GastroCoin', // conflict with Gitcoin and Game.com
                 'IQ' => 'IQ.Cash',
                 'ONE' => 'One Hundred Coin',

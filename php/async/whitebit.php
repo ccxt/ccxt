@@ -22,32 +22,49 @@ class whitebit extends Exchange {
             'countries' => array( 'EE' ),
             'rateLimit' => 500,
             'has' => array(
-                'fetchDepositAddress' => true,
+                'spot' => true,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
                 'cancelOrder' => true,
                 'CORS' => null,
                 'createDepositAddress' => null,
                 'createLimitOrder' => null,
                 'createMarketOrder' => null,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'deposit' => null,
                 'editOrder' => null,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchDepositAddress' => true,
                 'fetchFundingFees' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderTrades' => true,
-                'fetchOpenOrders' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFees' => true,
-                'privateAPI' => true,
-                'publicAPI' => true,
+                'reduceMargin' => false,
+                'setPositionMode' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -83,7 +100,7 @@ class whitebit extends Exchange {
                     ),
                 ),
                 'www' => 'https://www.whitebit.com',
-                'doc' => 'https://documenter.getpostman.com/view/7473075/Szzj8dgv?version=latest',
+                'doc' => 'https://github.com/whitebit-exchange/api-docs',
                 'fees' => 'https://whitebit.com/fee-schedule',
                 'referral' => 'https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963',
             ),
@@ -210,23 +227,27 @@ class whitebit extends Exchange {
     public function fetch_markets($params = array ()) {
         $response = yield $this->v2PublicGetMarkets ($params);
         //
-        //     {
-        //         "success":true,
-        //         "message":"",
-        //         "result":array(
-        //             {
-        //                 "name":"BTC_USD",
-        //                 "moneyPrec":"2",
-        //                 "stock":"BTC",
-        //                 "money":"USD",
-        //                 "stockPrec":"6",
-        //                 "feePrec":"4",
-        //                 "minAmount":"0.001",
-        //                 "tradesEnabled":true,
-        //                 "minTotal":"0.001"
-        //             }
-        //         )
-        //     }
+        //    {
+        //        "success" => true,
+        //        "message" => "",
+        //        "result" => array(
+        //            array(
+        //                "name":
+        //                "C98_USDT",
+        //                "stock":"C98",
+        //                "money":"USDT",
+        //                "stockPrec":"3",
+        //                "moneyPrec":"5",
+        //                "feePrec":"6",
+        //                "makerFee":"0.001",
+        //                "takerFee":"0.001",
+        //                "minAmount":"2.5",
+        //                "minTotal":"5.05",
+        //                "tradesEnabled":true
+        //            ),
+        //            ...
+        //        )
+        //    }
         //
         $markets = $this->safe_value($response, 'result');
         $result = array();
@@ -244,17 +265,36 @@ class whitebit extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'info' => $market,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
+                'margin' => null,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
                 'active' => $active,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'taker' => $this->safe_number($market, 'makerFee'),
+                'maker' => $this->safe_number($market, 'takerFee'),
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
                 'precision' => array(
                     'amount' => $this->safe_integer($market, 'stockPrec'),
                     'price' => $this->safe_integer($market, 'moneyPrec'),
                 ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->safe_number($market, 'minAmount'),
                         'max' => null,
@@ -268,6 +308,7 @@ class whitebit extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'info' => $market,
             );
             $result[] = $entry;
         }

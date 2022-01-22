@@ -730,18 +730,18 @@ module.exports = class deribit extends Exchange {
         const timestamp = this.safeInteger2 (ticker, 'timestamp', 'creation_timestamp');
         const marketId = this.safeString (ticker, 'instrument_name');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeNumber2 (ticker, 'last_price', 'last');
+        const last = this.safeString2 (ticker, 'last_price', 'last');
         const stats = this.safeValue (ticker, 'stats', ticker);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber2 (stats, 'high', 'max_price'),
-            'low': this.safeNumber2 (stats, 'low', 'min_price'),
-            'bid': this.safeNumber2 (ticker, 'best_bid_price', 'bid_price'),
-            'bidVolume': this.safeNumber (ticker, 'best_bid_amount'),
-            'ask': this.safeNumber2 (ticker, 'best_ask_price', 'ask_price'),
-            'askVolume': this.safeNumber (ticker, 'best_ask_amount'),
+            'high': this.safeString2 (stats, 'high', 'max_price'),
+            'low': this.safeString2 (stats, 'low', 'min_price'),
+            'bid': this.safeString2 (ticker, 'best_bid_price', 'bid_price'),
+            'bidVolume': this.safeString (ticker, 'best_bid_amount'),
+            'ask': this.safeString2 (ticker, 'best_ask_price', 'ask_price'),
+            'askVolume': this.safeString (ticker, 'best_ask_amount'),
             'vwap': undefined,
             'open': undefined,
             'close': last,
@@ -751,9 +751,9 @@ module.exports = class deribit extends Exchange {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': this.safeNumber (stats, 'volume'),
+            'quoteVolume': this.safeString (stats, 'volume'),
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {

@@ -206,6 +206,7 @@ module.exports = class digifinex extends Exchange {
             'commonCurrencies': {
                 'BHT': 'Black House Test',
                 'EPS': 'Epanus',
+                'FREE': 'FreeRossDAO',
                 'MBN': 'Mobilian Coin',
                 'TEL': 'TEL666',
             },
@@ -609,17 +610,17 @@ module.exports = class digifinex extends Exchange {
         const marketId = this.safeStringUpper (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
         const timestamp = this.safeTimestamp (ticker, 'date');
-        const last = this.safeNumber (ticker, 'last');
-        const percentage = this.safeNumber (ticker, 'change');
+        const last = this.safeString (ticker, 'last');
+        const percentage = this.safeString (ticker, 'change');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'buy'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'sell'),
+            'ask': this.safeString (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -629,10 +630,10 @@ module.exports = class digifinex extends Exchange {
             'change': undefined,
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'vol'),
-            'quoteVolume': this.safeNumber (ticker, 'base_vol'),
+            'baseVolume': this.safeString (ticker, 'vol'),
+            'quoteVolume': this.safeString (ticker, 'base_vol'),
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     parseTrade (trade, market = undefined) {

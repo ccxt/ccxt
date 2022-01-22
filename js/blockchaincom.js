@@ -334,9 +334,9 @@ module.exports = class blockchaincom extends Exchange {
         //
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '-');
-        const last = this.safeNumber (ticker, 'last_trade_price');
-        const baseVolume = this.safeNumber (ticker, 'volume_24h');
-        const open = this.safeNumber (ticker, 'price_24h');
+        const last = this.safeString (ticker, 'last_trade_price');
+        const baseVolume = this.safeString (ticker, 'volume_24h');
+        const open = this.safeString (ticker, 'price_24h');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
@@ -358,7 +358,7 @@ module.exports = class blockchaincom extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {

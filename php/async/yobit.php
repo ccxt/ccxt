@@ -20,25 +20,52 @@ class yobit extends Exchange {
             'rateLimit' => 3000, // responses are cached every 2 seconds
             'version' => '3',
             'has' => array(
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
                 'cancelOrder' => true,
                 'CORS' => null,
                 'createDepositAddress' => true,
                 'createMarketOrder' => null,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => null,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTransactions' => null,
                 'fetchWithdrawals' => null,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -91,6 +118,7 @@ class yobit extends Exchange {
                 'AST' => 'Astral',
                 'ATM' => 'Autumncoin',
                 'BAB' => 'Babel',
+                'BAN' => 'BANcoin',
                 'BCC' => 'BCH',
                 'BCS' => 'BitcoinStake',
                 'BITS' => 'Bitstar',
@@ -311,48 +339,58 @@ class yobit extends Exchange {
             $quote = strtoupper($quoteId);
             $base = $this->safe_currency_code($base);
             $quote = $this->safe_currency_code($quote);
-            $symbol = $base . '/' . $quote;
-            $precision = array(
-                'amount' => $this->safe_integer($market, 'decimal_places'),
-                'price' => $this->safe_integer($market, 'decimal_places'),
-            );
-            $amountLimits = array(
-                'min' => $this->safe_number($market, 'min_amount'),
-                'max' => $this->safe_number($market, 'max_amount'),
-            );
-            $priceLimits = array(
-                'min' => $this->safe_number($market, 'min_price'),
-                'max' => $this->safe_number($market, 'max_price'),
-            );
-            $costLimits = array(
-                'min' => $this->safe_number($market, 'min_total'),
-            );
-            $limits = array(
-                'amount' => $amountLimits,
-                'price' => $priceLimits,
-                'cost' => $costLimits,
-            );
             $hidden = $this->safe_integer($market, 'hidden');
-            $active = ($hidden === 0);
             $feeString = $this->safe_string($market, 'fee');
             $feeString = Precise::string_div($feeString, '100');
             // yobit maker = taker
-            $takerFee = $this->parse_number($feeString);
-            $makerFee = $this->parse_number($feeString);
             $result[] = array(
                 'id' => $id,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'active' => $active,
-                'taker' => $takerFee,
-                'maker' => $makerFee,
-                'precision' => $precision,
-                'limits' => $limits,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => ($hidden === 0),
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'taker' => $this->parse_number($feeString),
+                'maker' => $this->parse_number($feeString),
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->safe_integer($market, 'decimal_places'),
+                    'price' => $this->safe_integer($market, 'decimal_places'),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => $this->safe_number($market, 'min_amount'),
+                        'max' => $this->safe_number($market, 'max_amount'),
+                    ),
+                    'price' => array(
+                        'min' => $this->safe_number($market, 'min_price'),
+                        'max' => $this->safe_number($market, 'max_price'),
+                    ),
+                    'cost' => array(
+                        'min' => $this->safe_number($market, 'min_total'),
+                        'max' => null,
+                    ),
+                ),
                 'info' => $market,
             );
         }

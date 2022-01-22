@@ -652,16 +652,16 @@ module.exports = class exmo extends Exchange {
         //
         const timestamp = this.safeTimestamp (ticker, 'updated');
         market = this.safeMarket (undefined, market);
-        const last = this.safeNumber (ticker, 'last_trade');
+        const last = this.safeString (ticker, 'last_trade');
         return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'buy_price'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'buy_price'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'sell_price'),
+            'ask': this.safeString (ticker, 'sell_price'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -670,11 +670,11 @@ module.exports = class exmo extends Exchange {
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': this.safeNumber (ticker, 'avg'),
-            'baseVolume': this.safeNumber (ticker, 'vol'),
-            'quoteVolume': this.safeNumber (ticker, 'vol_curr'),
+            'average': this.safeString (ticker, 'avg'),
+            'baseVolume': this.safeString (ticker, 'vol'),
+            'quoteVolume': this.safeString (ticker, 'vol_curr'),
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

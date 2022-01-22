@@ -35,25 +35,52 @@ class yobit(Exchange):
             'rateLimit': 3000,  # responses are cached every 2 seconds
             'version': '3',
             'has': {
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelOrder': True,
                 'CORS': None,
                 'createDepositAddress': True,
                 'createMarketOrder': None,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchDepositAddress': True,
                 'fetchDeposits': None,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTransactions': None,
                 'fetchWithdrawals': None,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'urls': {
@@ -106,6 +133,7 @@ class yobit(Exchange):
                 'AST': 'Astral',
                 'ATM': 'Autumncoin',
                 'BAB': 'Babel',
+                'BAN': 'BANcoin',
                 'BCC': 'BCH',
                 'BCS': 'BitcoinStake',
                 'BITS': 'Bitstar',
@@ -322,48 +350,58 @@ class yobit(Exchange):
             quote = quoteId.upper()
             base = self.safe_currency_code(base)
             quote = self.safe_currency_code(quote)
-            symbol = base + '/' + quote
-            precision = {
-                'amount': self.safe_integer(market, 'decimal_places'),
-                'price': self.safe_integer(market, 'decimal_places'),
-            }
-            amountLimits = {
-                'min': self.safe_number(market, 'min_amount'),
-                'max': self.safe_number(market, 'max_amount'),
-            }
-            priceLimits = {
-                'min': self.safe_number(market, 'min_price'),
-                'max': self.safe_number(market, 'max_price'),
-            }
-            costLimits = {
-                'min': self.safe_number(market, 'min_total'),
-            }
-            limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-                'cost': costLimits,
-            }
             hidden = self.safe_integer(market, 'hidden')
-            active = (hidden == 0)
             feeString = self.safe_string(market, 'fee')
             feeString = Precise.string_div(feeString, '100')
             # yobit maker = taker
-            takerFee = self.parse_number(feeString)
-            makerFee = self.parse_number(feeString)
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
-                'taker': takerFee,
-                'maker': makerFee,
-                'precision': precision,
-                'limits': limits,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': (hidden == 0),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'taker': self.parse_number(feeString),
+                'maker': self.parse_number(feeString),
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_integer(market, 'decimal_places'),
+                    'price': self.safe_integer(market, 'decimal_places'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': self.safe_number(market, 'min_amount'),
+                        'max': self.safe_number(market, 'max_amount'),
+                    },
+                    'price': {
+                        'min': self.safe_number(market, 'min_price'),
+                        'max': self.safe_number(market, 'max_price'),
+                    },
+                    'cost': {
+                        'min': self.safe_number(market, 'min_total'),
+                        'max': None,
+                    },
+                },
                 'info': market,
             })
         return result

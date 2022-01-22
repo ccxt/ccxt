@@ -21,13 +21,18 @@ class xena extends Exchange {
             'countries' => array( 'VC', 'UK' ),
             'rateLimit' => 100,
             'has' => array(
-                'fetchAccounts' => true,
+                'spot' => false,
+                'margin' => false,
+                'swap' => null, // has but not fully implemented
+                'future' => null, // has but not fully implemented
+                'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'CORS' => null,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'editOrder' => true,
+                'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
@@ -179,6 +184,12 @@ class xena extends Exchange {
         $response = yield $this->publicGetCommonInstruments ($params);
         //
         //     array(
+        //         array(
+        //             "type" => "Index",
+        //             "symbol" => ".ADAUSD",
+        //             "tickSize" => 4,
+        //             "enabled" => true
+        //         ),
         //         {
         //             "id":"ETHUSD_3M_250920",
         //             "type":"Margin",
@@ -269,58 +280,75 @@ class xena extends Exchange {
             $marginType = $this->safe_string($market, 'marginType');
             $baseId = $this->safe_string($market, 'baseCurrency');
             $quoteId = $this->safe_string($market, 'quoteCurrency');
+            $settleId = $this->safe_string($market, 'settlCurrency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            $settle = $this->safe_currency_code($settleId);
+            $expiryDate = $this->safe_string($market, 'expiryDate');
+            $expiryTimestamp = $this->parse8601($expiryDate);
             $symbol = $id;
+            $future = false;
+            $swap = false;
             if ($type === 'margin') {
+                $symbol = $base . '/' . $quote . ':' . $settle;
                 if ($marginType === 'XenaFuture') {
+                    $symbol = $symbol . '-' . $this->yymmdd($expiryTimestamp);
                     $type = 'future';
+                    $future = true;
                 } else if ($marginType === 'XenaListedPerpetual') {
                     $type = 'swap';
-                    $symbol = $base . '/' . $quote;
+                    $swap = true;
                 }
             }
-            $future = ($type === 'future');
-            $swap = ($type === 'swap');
-            $pricePrecision = $this->safe_integer_2($market, 'tickSize', 'pricePrecision');
-            $precision = array(
-                'price' => $pricePrecision,
-                'amount' => 0,
-            );
-            $maxCost = $this->safe_number($market, 'maxOrderQty');
-            $minCost = $this->safe_number($market, 'minOrderQuantity');
-            $limits = array(
-                'amount' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-                'price' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-                'cost' => array(
-                    'min' => $minCost,
-                    'max' => $maxCost,
-                ),
-            );
-            $active = $this->safe_value($market, 'enabled', false);
             $inverse = $this->safe_value($market, 'inverse', false);
+            $contract = $swap || $future;
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => $settle,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => $settleId,
                 'numericId' => $numericId,
-                'active' => $active,
                 'type' => $type,
                 'spot' => false,
-                'future' => $future,
+                'margin' => false,
                 'swap' => $swap,
-                'inverse' => $inverse,
-                'precision' => $precision,
-                'limits' => $limits,
+                'future' => $future,
+                'option' => false,
+                'active' => $this->safe_value($market, 'enabled', false),
+                'contract' => $contract,
+                'linear' => $contract ? !$inverse : null,
+                'inverse' => $contract ? $inverse : null,
+                'contractSize' => $this->safe_number($market, 'contractValue'),
+                'expiry' => $expiryTimestamp,
+                'expiryDatetime' => $this->iso8601($expiryTimestamp),
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'price' => $this->safe_integer_2($market, 'tickSize', 'pricePrecision'),
+                    'amount' => 0,
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => $this->safe_number($market, 'minOrderQuantity'),
+                        'max' => $this->safe_number($market, 'maxOrderQty'),
+                    ),
+                ),
                 'info' => $market,
             );
         }

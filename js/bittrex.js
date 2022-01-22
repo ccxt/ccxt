@@ -479,17 +479,17 @@ module.exports = class bittrex extends Exchange {
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];
-        const percentage = this.safeNumber (ticker, 'percentChange');
-        const last = this.safeNumber (ticker, 'lastTradeRate');
+        const percentage = this.safeString (ticker, 'percentChange');
+        const last = this.safeString (ticker, 'lastTradeRate');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bidRate'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bidRate'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'askRate'),
+            'ask': this.safeString (ticker, 'askRate'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -499,10 +499,10 @@ module.exports = class bittrex extends Exchange {
             'change': undefined,
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'volume'),
-            'quoteVolume': this.safeNumber (ticker, 'quoteVolume'),
+            'baseVolume': this.safeString (ticker, 'volume'),
+            'quoteVolume': this.safeString (ticker, 'quoteVolume'),
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

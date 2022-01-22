@@ -487,17 +487,17 @@ class bittrex extends Exchange {
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market, '-');
         $symbol = $market['symbol'];
-        $percentage = $this->safe_number($ticker, 'percentChange');
-        $last = $this->safe_number($ticker, 'lastTradeRate');
+        $percentage = $this->safe_string($ticker, 'percentChange');
+        $last = $this->safe_string($ticker, 'lastTradeRate');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'bidRate'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'bidRate'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'askRate'),
+            'ask' => $this->safe_string($ticker, 'askRate'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -507,10 +507,10 @@ class bittrex extends Exchange {
             'change' => null,
             'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'volume'),
-            'quoteVolume' => $this->safe_number($ticker, 'quoteVolume'),
+            'baseVolume' => $this->safe_string($ticker, 'volume'),
+            'quoteVolume' => $this->safe_string($ticker, 'quoteVolume'),
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

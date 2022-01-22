@@ -204,7 +204,7 @@ module.exports = class ascendex extends Exchange {
                 'fetchClosedOrders': {
                     'method': 'v1PrivateAccountGroupGetOrderHist', // 'v1PrivateAccountGroupGetAccountCategoryOrderHistCurrent'
                 },
-                'swap': false, // https://github.com/ccxt/ccxt/issues/11503
+                'defaultType': 'spot', // 'spot', 'margin', 'swap'
                 'accountCategories': {
                     'spot': 'cash',
                     'swap': 'futures',
@@ -447,13 +447,7 @@ module.exports = class ascendex extends Exchange {
         //         ]
         //     }
         //
-        // this endpoint works intermittently
-        // https://github.com/ccxt/ccxt/issues/11503
-        const swap = this.safeValue (this.options, 'swap', false);
-        let perpetuals = {};
-        if (swap) {
-            perpetuals = await this.v2PublicGetFuturesContract (params);
-        }
+        const perpetuals = await this.v2PublicGetFuturesContract (params);
         //
         //     {
         //         "code":0,
@@ -482,10 +476,10 @@ module.exports = class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const perpetualsData = this.safeValue (perpetuals, 'data', []);
         const productsData = this.safeValue (products, 'data', []);
         const productsById = this.indexBy (productsData, 'symbol');
         const cashData = this.safeValue (cash, 'data', []);
+        const perpetualsData = this.safeValue (perpetuals, 'data', []);
         const cashAndPerpetualsData = this.arrayConcat (cashData, perpetualsData);
         const cashAndPerpetualsById = this.indexBy (cashAndPerpetualsData, 'symbol');
         const dataById = this.deepExtend (productsById, cashAndPerpetualsById);
@@ -2218,9 +2212,6 @@ module.exports = class ascendex extends Exchange {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
-            headers = {
-                'Content-Type': 'application/json',
-            };
         } else {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();

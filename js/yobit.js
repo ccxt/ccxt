@@ -17,25 +17,52 @@ module.exports = class yobit extends Exchange {
             'rateLimit': 3000, // responses are cached every 2 seconds
             'version': '3',
             'has': {
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
                 'cancelOrder': true,
                 'CORS': undefined,
                 'createDepositAddress': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchDepositAddress': true,
                 'fetchDeposits': undefined,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': undefined,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'withdraw': true,
             },
             'urls': {
@@ -88,6 +115,7 @@ module.exports = class yobit extends Exchange {
                 'AST': 'Astral',
                 'ATM': 'Autumncoin',
                 'BAB': 'Babel',
+                'BAN': 'BANcoin',
                 'BCC': 'BCH',
                 'BCS': 'BitcoinStake',
                 'BITS': 'Bitstar',
@@ -308,48 +336,58 @@ module.exports = class yobit extends Exchange {
             let quote = quoteId.toUpperCase ();
             base = this.safeCurrencyCode (base);
             quote = this.safeCurrencyCode (quote);
-            const symbol = base + '/' + quote;
-            const precision = {
-                'amount': this.safeInteger (market, 'decimal_places'),
-                'price': this.safeInteger (market, 'decimal_places'),
-            };
-            const amountLimits = {
-                'min': this.safeNumber (market, 'min_amount'),
-                'max': this.safeNumber (market, 'max_amount'),
-            };
-            const priceLimits = {
-                'min': this.safeNumber (market, 'min_price'),
-                'max': this.safeNumber (market, 'max_price'),
-            };
-            const costLimits = {
-                'min': this.safeNumber (market, 'min_total'),
-            };
-            const limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-                'cost': costLimits,
-            };
             const hidden = this.safeInteger (market, 'hidden');
-            const active = (hidden === 0);
             let feeString = this.safeString (market, 'fee');
             feeString = Precise.stringDiv (feeString, '100');
             // yobit maker = taker
-            const takerFee = this.parseNumber (feeString);
-            const makerFee = this.parseNumber (feeString);
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
-                'taker': takerFee,
-                'maker': makerFee,
-                'precision': precision,
-                'limits': limits,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': (hidden === 0),
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': this.parseNumber (feeString),
+                'maker': this.parseNumber (feeString),
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeInteger (market, 'decimal_places'),
+                    'price': this.safeInteger (market, 'decimal_places'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (market, 'min_amount'),
+                        'max': this.safeNumber (market, 'max_amount'),
+                    },
+                    'price': {
+                        'min': this.safeNumber (market, 'min_price'),
+                        'max': this.safeNumber (market, 'max_price'),
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'min_total'),
+                        'max': undefined,
+                    },
+                },
                 'info': market,
             });
         }

@@ -362,24 +362,24 @@ module.exports = class bytetrade extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
             'askVolume': undefined,
-            'vwap': this.safeNumber (ticker, 'weightedAvgPrice'),
-            'open': this.safeNumber (ticker, 'open'),
-            'close': this.safeNumber (ticker, 'close'),
-            'last': this.safeNumber (ticker, 'last'),
+            'vwap': this.safeString (ticker, 'weightedAvgPrice'),
+            'open': this.safeString (ticker, 'open'),
+            'close': this.safeString (ticker, 'close'),
+            'last': this.safeString (ticker, 'last'),
             'previousClose': undefined, // previous day close
-            'change': this.safeNumber (ticker, 'change'),
-            'percentage': this.safeNumber (ticker, 'percentage'),
+            'change': this.safeString (ticker, 'change'),
+            'percentage': this.safeString (ticker, 'percentage'),
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'baseVolume'),
-            'quoteVolume': this.safeNumber (ticker, 'quoteVolume'),
+            'baseVolume': this.safeString (ticker, 'baseVolume'),
+            'quoteVolume': this.safeString (ticker, 'quoteVolume'),
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
