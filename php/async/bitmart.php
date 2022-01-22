@@ -2019,20 +2019,23 @@ class bitmart extends Exchange {
         yield $this->load_markets();
         $request = array();
         $market = $this->market($symbol);
-        $method = null;
         if (gettype($id) !== 'string') {
             $id = (string) $id;
         }
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
         if ($market['spot']) {
             $request['symbol'] = $market['id'];
             $request['order_id'] = $id;
-            $method = 'privateSpotGetOrderDetail';
         } else if ($market['swap'] || $market['future']) {
             $request['contractID'] = $market['id'];
             $request['orderID'] = $id;
-            $method = 'privateContractGetUserOrderInfo';
         }
-        $response = yield $this->$method (array_merge($request, $params));
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateSpotGetOrderDetail',
+            'swap' => 'privateContractGetUserOrderInfo',
+            'future' => 'privateContractGetUserOrderInfo',
+        ));
+        $response = yield $this->$method (array_merge($request, $query));
         //
         // spot
         //

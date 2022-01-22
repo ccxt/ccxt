@@ -1942,18 +1942,21 @@ class bitmart(Exchange):
         await self.load_markets()
         request = {}
         market = self.market(symbol)
-        method = None
         if not isinstance(id, basestring):
             id = str(id)
+        marketType, query = self.handle_market_type_and_params('fetchOrder', market, params)
         if market['spot']:
             request['symbol'] = market['id']
             request['order_id'] = id
-            method = 'privateSpotGetOrderDetail'
         elif market['swap'] or market['future']:
             request['contractID'] = market['id']
             request['orderID'] = id
-            method = 'privateContractGetUserOrderInfo'
-        response = await getattr(self, method)(self.extend(request, params))
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateSpotGetOrderDetail',
+            'swap': 'privateContractGetUserOrderInfo',
+            'future': 'privateContractGetUserOrderInfo',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
         #
         # spot
         #
