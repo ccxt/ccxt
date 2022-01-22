@@ -539,16 +539,16 @@ class crex24(Exchange):
         timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
         marketId = self.safe_string(ticker, 'instrument')
         symbol = self.safe_symbol(marketId, market, '-')
-        last = self.safe_number(ticker, 'last')
+        last = self.safe_string(ticker, 'last')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -556,12 +556,12 @@ class crex24(Exchange):
             'last': last,
             'previousClose': None,  # previous day close
             'change': None,
-            'percentage': self.safe_number(ticker, 'percentChange'),
+            'percentage': self.safe_string(ticker, 'percentChange'),
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'baseVolume'),
-            'quoteVolume': self.safe_number(ticker, 'quoteVolume'),
+            'baseVolume': self.safe_string(ticker, 'baseVolume'),
+            'quoteVolume': self.safe_string(ticker, 'quoteVolume'),
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

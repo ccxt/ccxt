@@ -17,19 +17,46 @@ class btcturk extends Exchange {
             'countries' => array( 'TR' ), // Turkey
             'rateLimit' => 100,
             'has' => array(
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
                 'cancelOrder' => true,
                 'CORS' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
             ),
             'timeframes' => array(
                 '1d' => '1d',
@@ -144,7 +171,6 @@ class btcturk extends Exchange {
             $quoteId = $this->safe_string($entry, 'denominator');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
             $filters = $this->safe_value($entry, 'filters');
             $minPrice = null;
             $maxPrice = null;
@@ -163,52 +189,53 @@ class btcturk extends Exchange {
                 }
             }
             $status = $this->safe_string($entry, 'status');
-            $active = $status === 'TRADING';
-            $limits = array(
-                'price' => array(
-                    'min' => $minPrice,
-                    'max' => $maxPrice,
-                ),
-                'amount' => array(
-                    'min' => $minAmount,
-                    'max' => $maxAmount,
-                ),
-                'cost' => array(
-                    'min' => $minCost,
-                    'max' => null,
-                ),
-            );
-            $precision = array(
-                'price' => $this->safe_integer($entry, 'denominatorScale'),
-                'amount' => $this->safe_integer($entry, 'numeratorScale'),
-            );
             $result[] = array(
-                'info' => $entry,
-                'symbol' => $symbol,
                 'id' => $id,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'limits' => $limits,
-                'precision' => $precision,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
                 'margin' => false,
-                'future' => false,
                 'swap' => false,
+                'future' => false,
                 'option' => false,
-                'optionType' => null,
-                'strike' => null,
+                'active' => ($status === 'TRADING'),
+                'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                'contract' => false,
                 'contractSize' => null,
-                'settle' => null,
-                'settleId' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
-                'active' => $active,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'price' => $this->safe_integer($entry, 'denominatorScale'),
+                    'amount' => $this->safe_integer($entry, 'numeratorScale'),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => $minAmount,
+                        'max' => $maxAmount,
+                    ),
+                    'price' => array(
+                        'min' => $minPrice,
+                        'max' => $maxPrice,
+                    ),
+                    'cost' => array(
+                        'min' => $minCost,
+                        'max' => null,
+                    ),
+                ),
+                'info' => $entry,
             );
         }
         return $result;
