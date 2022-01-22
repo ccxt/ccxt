@@ -26,7 +26,7 @@ module.exports = class okex extends Exchange {
                 'addMargin': true,
                 'cancelAllOrders': undefined,
                 'cancelOrder': true,
-                'cancelOrders': undefined,
+                'cancelOrders': true,
                 'CORS': undefined,
                 'createDepositAddress': undefined,
                 'createOrder': true,
@@ -1833,6 +1833,67 @@ module.exports = class okex extends Exchange {
         const data = this.safeValue (response, 'data', []);
         const order = this.safeValue (data, 0);
         return this.parseOrder (order, market);
+    }
+
+    async cancelOrders (ids, symbol = undefined, params = {}) { // TODO : the original endpoint signature differs. You can skip individual symbol and assign them in batch
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' canelOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = [];
+        // for ids
+        if (typeof ids === 'string') {
+            const orderIds = ids.split (',');
+            for (let i = 0; i < orderIds.length; i++) {
+                request.push({
+                    "instId": market['id'],
+                    "ordId": orderIds[i]
+                });
+            }
+        } else {
+            for (let i = 0; i < ids.length; i++) {
+                request.push({
+                    "instId": market['id'],
+                    "ordId": ids[i]
+                });
+            }
+        }
+        // for order-ids
+        let orderId = this.safeValue2 (params, 'ordIds', 'orderIds');
+        orderId = this.safeValue2 (params, 'ordId', 'orderId', orderId);
+        if (Array.isArray (orderId)) {
+            for (let i = 0; i < orderId.length; i++) {
+                request.push({
+                    "instId": market['id'],
+                    "ordId": orderId[i]
+                });
+            }
+        } else if (typeof orderId === 'string') {
+            request.push({
+                "instId": market['id'],
+                "ordId": orderId[i]
+            });
+        }
+        // for client-order-ids
+        let clientOrderId = this.safeValue2 (params, 'clOrdIds', 'clientOrderIds');
+        clientOrderId = this.safeValue2 (params, 'clOrdId', 'clientOrderId', clientOrderId);
+        if (Array.isArray (clientOrderId)) {
+            for (let i = 0; i < clientOrderId.length; i++) {
+                request.push({
+                    "instId": market['id'],
+                    "clOrdId": clientOrderId[i]
+                });
+            }
+        } else if (typeof clientOrderId === 'string') {
+            request.push({
+                "instId": market['id'],
+                "clOrdId": orderId[i]
+            });
+        }
+        const response = await this.privatePostTradeCancelBatchOrders (request); // dont extend with params, otherwise ARRAY will be turned into OBJECT
+        const ordersData = this.safeValue (response, 'data', []);
+        return this.parseOrders(ordersData, market, undefined, undefined, params);
     }
 
     parseOrderStatus (status) {
