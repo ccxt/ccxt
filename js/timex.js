@@ -13,24 +13,51 @@ module.exports = class timex extends Exchange {
             'version': 'v1',
             'rateLimit': 1500,
             'has': {
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'CORS': undefined,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'editOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true, // maker fee only
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
             },
             'timeframes': {
                 '1m': 'I1',
@@ -869,57 +896,64 @@ module.exports = class timex extends Exchange {
         //     }
         //
         const locked = this.safeValue (market, 'locked');
-        const active = !locked;
         const id = this.safeString (market, 'symbol');
         const baseId = this.safeString (market, 'baseCurrency');
         const quoteId = this.safeString (market, 'quoteCurrency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = base + '/' + quote;
-        const precision = {
-            'amount': this.precisionFromString (this.safeString (market, 'quantityIncrement')),
-            'price': this.precisionFromString (this.safeString (market, 'tickSize')),
-        };
-        const amountIncrement = this.safeNumber (market, 'quantityIncrement');
-        const minBase = this.safeNumber (market, 'baseMinSize');
-        const minAmount = Math.max (amountIncrement, minBase);
-        const priceIncrement = this.safeNumber (market, 'tickSize');
-        const minCost = this.safeNumber (market, 'quoteMinSize');
-        const limits = {
-            'amount': { 'min': minAmount, 'max': undefined },
-            'price': { 'min': priceIncrement, 'max': undefined },
-            'cost': { 'min': Math.max (minCost, minAmount * priceIncrement), 'max': undefined },
-        };
-        const taker = this.safeNumber (market, 'takerFee');
-        const maker = this.safeNumber (market, 'makerFee');
+        const amountIncrement = this.safeString (market, 'quantityIncrement');
+        const minBase = this.safeString (market, 'baseMinSize');
+        const minAmount = Precise.stringMax (amountIncrement, minBase);
+        const priceIncrement = this.safeString (market, 'tickSize');
+        const minCost = this.safeString (market, 'quoteMinSize');
         return {
             'id': id,
-            'symbol': symbol,
+            'symbol': base + '/' + quote,
             'base': base,
             'quote': quote,
+            'settle': undefined,
             'baseId': baseId,
             'quoteId': quoteId,
+            'settleId': undefined,
             'type': 'spot',
             'spot': true,
             'margin': false,
-            'future': false,
             'swap': false,
+            'future': false,
             'option': false,
-            'optionType': undefined,
-            'strike': undefined,
+            'active': !locked,
+            'contract': false,
             'linear': undefined,
             'inverse': undefined,
-            'contract': false,
+            'taker': this.safeNumber (market, 'takerFee'),
+            'maker': this.safeNumber (market, 'makerFee'),
             'contractSize': undefined,
-            'settle': undefined,
-            'settleId': undefined,
             'expiry': undefined,
             'expiryDatetime': undefined,
-            'active': active,
-            'precision': precision,
-            'limits': limits,
-            'taker': taker,
-            'maker': maker,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.precisionFromString (this.safeString (market, 'quantityIncrement')),
+                'price': this.precisionFromString (this.safeString (market, 'tickSize')),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': this.parseNumber (minAmount),
+                    'max': undefined,
+                },
+                'price': {
+                    'min': this.parseNumber (priceIncrement),
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': minCost,
+                    'max': undefined,
+                },
+            },
             'info': market,
         };
     }
