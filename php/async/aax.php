@@ -1510,21 +1510,17 @@ class aax extends Exchange {
             // 'side' => 'null', // BUY, SELL
             // 'clOrdID' => $clientOrderId,
         );
-        $method = null;
-        $defaultType = $this->safe_string_2($this->options, 'fetchOrders', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit($params, 'type');
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
-            $type = $market['type'];
         }
-        if ($type === 'spot') {
-            $method = 'privateGetSpotOrders';
-        } else if ($type === 'swap' || $type === 'future' || $type === 'futures') { // $type === 'futures' deprecated, use $type === 'swap'
-            $method = 'privateGetFuturesOrders';
-        }
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateGetSpotOrders',
+            'swap' => 'privateGetFuturesOrders',
+            'future' => 'privateGetFuturesOrders',
+        ));
         $clientOrderId = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['clOrdID'] = $clientOrderId;
@@ -1536,7 +1532,7 @@ class aax extends Exchange {
         if ($since !== null) {
             $request['startDate'] = $this->yyyymmdd($since);
         }
-        $response = yield $this->$method (array_merge($request, $params));
+        $response = yield $this->$method (array_merge($request, $query));
         //
         // spot
         //
