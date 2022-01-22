@@ -299,18 +299,18 @@ class ripio(Exchange):
         marketId = self.safe_string(ticker, 'pair')
         market = self.safe_market(marketId, market, '_')
         symbol = market['symbol']
-        last = self.safe_number(ticker, 'last_price')
-        average = self.safe_number(ticker, 'avg')
+        last = self.safe_string(ticker, 'last_price')
+        average = self.safe_string(ticker, 'avg')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bid'),
-            'bidVolume': self.safe_number(ticker, 'bid_volume'),
-            'ask': self.safe_number(ticker, 'ask'),
-            'askVolume': self.safe_number(ticker, 'ask_volume'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
+            'bidVolume': self.safe_string(ticker, 'bid_volume'),
+            'ask': self.safe_string(ticker, 'ask'),
+            'askVolume': self.safe_string(ticker, 'ask_volume'),
             'vwap': None,
             'open': None,
             'close': last,
@@ -322,7 +322,7 @@ class ripio(Exchange):
             'baseVolume': None,
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
