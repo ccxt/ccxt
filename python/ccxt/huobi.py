@@ -1358,34 +1358,33 @@ class huobi(Exchange):
         askVolume = None
         if 'bid' in ticker:
             if isinstance(ticker['bid'], list):
-                bid = self.safe_number(ticker['bid'], 0)
-                bidVolume = self.safe_number(ticker['bid'], 1)
+                bid = self.safe_string(ticker['bid'], 0)
+                bidVolume = self.safe_string(ticker['bid'], 1)
             else:
-                bid = self.safe_number(ticker, 'bid')
-                bidVolume = self.safe_value(ticker, 'bidSize')
+                bid = self.safe_string(ticker, 'bid')
+                bidVolume = self.safe_string(ticker, 'bidSize')
         if 'ask' in ticker:
             if isinstance(ticker['ask'], list):
-                ask = self.safe_number(ticker['ask'], 0)
-                askVolume = self.safe_number(ticker['ask'], 1)
+                ask = self.safe_string(ticker['ask'], 0)
+                askVolume = self.safe_string(ticker['ask'], 1)
             else:
-                ask = self.safe_number(ticker, 'ask')
-                askVolume = self.safe_value(ticker, 'askSize')
-        open = self.safe_number(ticker, 'open')
-        close = self.safe_number(ticker, 'close')
-        baseVolume = self.safe_number(ticker, 'amount')
-        quoteVolume = self.safe_number(ticker, 'vol')
-        vwap = self.vwap(baseVolume, quoteVolume)
+                ask = self.safe_string(ticker, 'ask')
+                askVolume = self.safe_string(ticker, 'askSize')
+        open = self.safe_string(ticker, 'open')
+        close = self.safe_string(ticker, 'close')
+        baseVolume = self.safe_string(ticker, 'amount')
+        quoteVolume = self.safe_string(ticker, 'vol')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
             'bid': bid,
             'bidVolume': bidVolume,
             'ask': ask,
             'askVolume': askVolume,
-            'vwap': vwap,
+            'vwap': None,
             'open': open,
             'close': close,
             'last': close,
@@ -1396,7 +1395,7 @@ class huobi(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
