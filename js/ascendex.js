@@ -2135,6 +2135,52 @@ module.exports = class ascendex extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
+    async modifyMarginHelper (symbol, amount, type, params = {}) {
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const market = this.market (symbol);
+        const account = this.safeValue (this.accounts, 0, {});
+        const accountGroup = this.safeString (account, 'id');
+        amount = this.numberToString (amount);
+        const request = {
+            'account-group': accountGroup,
+            'symbol': market['id'],
+            'amount': amount,
+        };
+        const response = await this.v2PrivateAccountGroupPostFuturesIsolatedPositionMargin (this.extend (request, params));
+        //
+        // Can only change margin for perpetual futures isolated margin positions
+        //
+        //     {
+        //          "code": 0
+        //     }
+        //
+        const errorCode = this.safeString (response, 'code');
+        const status = (errorCode === '0') ? 'ok' : 'failed';
+        return {
+            'info': response,
+            'type': type,
+            'amount': amount,
+            'code': market['quote'],
+            'symbol': market['symbol'],
+            'status': status,
+        };
+    }
+
+    async reduceMargin (symbol, amount, params = {}) {
+        if (amount >= 1) {
+            throw new BadRequest (this.id + ' reduceMargin() amount argument must be a negative number');
+        }
+        return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
+    }
+
+    async addMargin (symbol, amount, params = {}) {
+        if (amount < 1) {
+            throw new BadRequest (this.id + ' addMargin() amount argument must be a positive number');
+        }
+        return await this.modifyMarginHelper (symbol, amount, 'add', params);
+    }
+
     async setLeverage (leverage, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
