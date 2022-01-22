@@ -61,7 +61,7 @@ class Client(object):
     def future(self, message_hash):
         if isinstance(message_hash, list):
             first_hash = message_hash[0]
-            if first_hash not in self.futures:
+            if first_hash not in self.futures or self.futures[first_hash].cancelled():
                 future = Future()
                 self.futures[first_hash] = future
                 i = 1
@@ -72,7 +72,7 @@ class Client(object):
                     i += 1
             return self.futures[first_hash]
         else:
-            if message_hash not in self.futures:
+            if message_hash not in self.futures or self.futures[message_hash].cancelled():
                 self.futures[message_hash] = Future()
             return self.futures[message_hash]
 
