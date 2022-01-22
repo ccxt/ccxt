@@ -377,6 +377,9 @@ class ftx extends Exchange {
                     'BSC' => 'bsc',
                 ),
             ),
+            'commonCurrencies' => array(
+                'STARS' => 'StarLaunch',
+            ),
         ));
     }
 
@@ -555,7 +558,7 @@ class ftx extends Exchange {
             $settle = $this->safe_currency_code($settleId);
             $spot = !$contract;
             $margin = !$contract;
-            $perpetual = $this->safe_value($future, 'perpetual');
+            $perpetual = $this->safe_value($future, 'perpetual', false);
             $swap = $perpetual;
             $option = false;
             $isFuture = $contract && !$swap;

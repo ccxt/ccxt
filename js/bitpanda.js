@@ -543,23 +543,22 @@ module.exports = class bitpanda extends Exchange {
         const timestamp = this.parse8601 (this.safeString (ticker, 'time'));
         const marketId = this.safeString (ticker, 'instrument_code');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const last = this.safeNumber (ticker, 'last_price');
-        const percentage = this.safeNumber (ticker, 'price_change_percentage');
-        const change = this.safeNumber (ticker, 'price_change');
-        const baseVolume = this.safeNumber (ticker, 'base_volume');
-        const quoteVolume = this.safeNumber (ticker, 'quote_volume');
-        const vwap = this.vwap (baseVolume, quoteVolume);
+        const last = this.safeString (ticker, 'last_price');
+        const percentage = this.safeString (ticker, 'price_change_percentage');
+        const change = this.safeString (ticker, 'price_change');
+        const baseVolume = this.safeString (ticker, 'base_volume');
+        const quoteVolume = this.safeString (ticker, 'quote_volume');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'best_bid'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'best_bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'best_ask'),
+            'ask': this.safeString (ticker, 'best_ask'),
             'askVolume': undefined,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
@@ -570,7 +569,7 @@ module.exports = class bitpanda extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {

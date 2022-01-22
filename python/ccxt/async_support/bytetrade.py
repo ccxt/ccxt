@@ -352,24 +352,24 @@ class bytetrade(Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
             'bid': None,
             'bidVolume': None,
             'ask': None,
             'askVolume': None,
-            'vwap': self.safe_number(ticker, 'weightedAvgPrice'),
-            'open': self.safe_number(ticker, 'open'),
-            'close': self.safe_number(ticker, 'close'),
-            'last': self.safe_number(ticker, 'last'),
+            'vwap': self.safe_string(ticker, 'weightedAvgPrice'),
+            'open': self.safe_string(ticker, 'open'),
+            'close': self.safe_string(ticker, 'close'),
+            'last': self.safe_string(ticker, 'last'),
             'previousClose': None,  # previous day close
-            'change': self.safe_number(ticker, 'change'),
-            'percentage': self.safe_number(ticker, 'percentage'),
+            'change': self.safe_string(ticker, 'change'),
+            'percentage': self.safe_string(ticker, 'percentage'),
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'baseVolume'),
-            'quoteVolume': self.safe_number(ticker, 'quoteVolume'),
+            'baseVolume': self.safe_string(ticker, 'baseVolume'),
+            'quoteVolume': self.safe_string(ticker, 'quoteVolume'),
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

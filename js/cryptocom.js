@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported } = require ('./base/errors');
+const { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 module.exports = class cryptocom extends Exchange {
@@ -251,6 +251,7 @@ module.exports = class cryptocom extends Exchange {
                     '40005': BadRequest,
                     '40006': BadRequest,
                     '40007': BadRequest,
+                    '40101': AuthenticationError,
                     '50001': BadRequest,
                 },
             },
@@ -322,8 +323,12 @@ module.exports = class cryptocom extends Exchange {
                 'margin': margin,
                 'future': false,
                 'swap': false,
+                'option': false,
+                'optionType': undefined,
+                'strike': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
+                'contract': false,
                 'contractSize': undefined,
                 'active': undefined,
                 'precision': precision,
@@ -422,8 +427,12 @@ module.exports = class cryptocom extends Exchange {
                 'margin': false,
                 'future': future,
                 'swap': swap,
+                'option': false,
+                'optionType': undefined,
+                'strike': undefined,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
+                'contract': true,
                 'contractSize': contractSize,
                 'active': active,
                 'precision': {
@@ -1420,17 +1429,17 @@ module.exports = class cryptocom extends Exchange {
         const marketId = this.safeString (ticker, 'i');
         market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
-        const last = this.safeNumber (ticker, 'a');
-        const relativeChange = this.safeNumber (ticker, 'c');
+        const last = this.safeString (ticker, 'a');
+        const relativeChange = this.safeString (ticker, 'c');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'h'),
-            'low': this.safeNumber (ticker, 'l'),
-            'bid': this.safeNumber (ticker, 'b'),
+            'high': this.safeString (ticker, 'h'),
+            'low': this.safeString (ticker, 'l'),
+            'bid': this.safeString (ticker, 'b'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'k'),
+            'ask': this.safeString (ticker, 'k'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -1438,12 +1447,12 @@ module.exports = class cryptocom extends Exchange {
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': relativeChange * 100,
+            'percentage': relativeChange,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'v'),
+            'baseVolume': this.safeString (ticker, 'v'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     parseTrade (trade, market = undefined) {

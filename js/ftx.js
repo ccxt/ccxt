@@ -373,6 +373,9 @@ module.exports = class ftx extends Exchange {
                     'BSC': 'bsc',
                 },
             },
+            'commonCurrencies': {
+                'STARS': 'StarLaunch',
+            },
         });
     }
 
@@ -551,7 +554,7 @@ module.exports = class ftx extends Exchange {
             const settle = this.safeCurrencyCode (settleId);
             const spot = !contract;
             const margin = !contract;
-            const perpetual = this.safeValue (future, 'perpetual');
+            const perpetual = this.safeValue (future, 'perpetual', false);
             const swap = perpetual;
             const option = false;
             const isFuture = contract && !swap;

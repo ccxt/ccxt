@@ -1076,31 +1076,31 @@ class bitget(Exchange):
                 symbol = marketId
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
-        last = self.safe_number_2(ticker, 'last', 'close')
-        open = self.safe_number(ticker, 'open')
+        last = self.safe_string_2(ticker, 'last', 'close')
+        open = self.safe_string(ticker, 'open')
         bidVolume = None
         askVolume = None
         bid = self.safe_value(ticker, 'bid')
         if bid is None:
-            bid = self.safe_number(ticker, 'best_bid')
+            bid = self.safe_string(ticker, 'best_bid')
         else:
-            bidVolume = self.safe_number(bid, 1)
-            bid = self.safe_number(bid, 0)
+            bidVolume = self.safe_string(bid, 1)
+            bid = self.safe_string(bid, 0)
         ask = self.safe_value(ticker, 'ask')
         if ask is None:
-            ask = self.safe_number(ticker, 'best_ask')
+            ask = self.safe_string(ticker, 'best_ask')
         else:
-            askVolume = self.safe_number(ask, 1)
-            ask = self.safe_number(ask, 0)
-        baseVolume = self.safe_number_2(ticker, 'amount', 'volume_24h')
-        quoteVolume = self.safe_number(ticker, 'vol')
+            askVolume = self.safe_string(ask, 1)
+            ask = self.safe_string(ask, 0)
+        baseVolume = self.safe_string_2(ticker, 'amount', 'volume_24h')
+        quoteVolume = self.safe_string(ticker, 'vol')
         vwap = self.vwap(baseVolume, quoteVolume)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number_2(ticker, 'high', 'high_24h'),
-            'low': self.safe_number_2(ticker, 'low', 'low_24h'),
+            'high': self.safe_string_2(ticker, 'high', 'high_24h'),
+            'low': self.safe_string_2(ticker, 'low', 'low_24h'),
             'bid': bid,
             'bidVolume': bidVolume,
             'ask': ask,
@@ -1116,7 +1116,7 @@ class bitget(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

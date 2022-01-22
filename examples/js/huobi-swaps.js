@@ -29,8 +29,19 @@ const exchange = new ccxt.huobi ({
     }
 
     try {
+        // Checking balance
+        const balance = await exchange.fetchBalance()
+        // console.log(balance)
+
+        // Order creation
         const order = await exchange.createOrder (symbol, type, side, amount, price, params)
         console.log (order)
+
+        // Check opened order
+        const openOrders = await exchange.fetchOpenOrders(symbol)
+        console.log(openOrders)
+
+        // Order cancelations
         const cancel = await exchange.cancelOrder (order['id'], symbol)
         console.log (cancel)
     } catch (e) {

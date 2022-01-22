@@ -284,22 +284,21 @@ module.exports = class bithumb extends Exchange {
         //
         const timestamp = this.safeInteger (ticker, 'date');
         const symbol = this.safeSymbol (undefined, market);
-        const open = this.safeNumber (ticker, 'opening_price');
-        const close = this.safeNumber (ticker, 'closing_price');
-        const baseVolume = this.safeNumber (ticker, 'units_traded_24H');
-        const quoteVolume = this.safeNumber (ticker, 'acc_trade_value_24H');
-        const vwap = this.vwap (baseVolume, quoteVolume);
+        const open = this.safeString (ticker, 'opening_price');
+        const close = this.safeString (ticker, 'closing_price');
+        const baseVolume = this.safeString (ticker, 'units_traded_24H');
+        const quoteVolume = this.safeString (ticker, 'acc_trade_value_24H');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'max_price'),
-            'low': this.safeNumber (ticker, 'min_price'),
-            'bid': this.safeNumber (ticker, 'buy_price'),
+            'high': this.safeString (ticker, 'max_price'),
+            'low': this.safeString (ticker, 'min_price'),
+            'bid': this.safeString (ticker, 'buy_price'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'sell_price'),
+            'ask': this.safeString (ticker, 'sell_price'),
             'askVolume': undefined,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': open,
             'close': close,
             'last': close,
@@ -310,7 +309,7 @@ module.exports = class bithumb extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

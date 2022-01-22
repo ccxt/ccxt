@@ -757,8 +757,8 @@ class okex extends Exchange {
             $baseId = $this->safe_string($parts, 0);
             $quoteId = $this->safe_string($parts, 1);
         }
-        $inverse = $baseId === $settleCurrency;
-        $linear = $quoteId === $settleCurrency;
+        $inverse = $contract ? ($baseId === $settleCurrency) : null;
+        $linear = $contract ? ($quoteId === $settleCurrency) : null;
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $symbol = $base . '/' . $quote;
@@ -1556,13 +1556,9 @@ class okex extends Exchange {
 
     public function fetch_balance($params = array ()) {
         $this->load_markets();
-        $defaultType = $this->safe_string($this->options, 'defaultType');
-        $options = $this->safe_value($this->options, 'fetchBalance', array());
-        $type = $this->safe_string($options, 'type', $defaultType);
-        $type = $this->safe_string($params, 'type', $type);
-        $params = $this->omit($params, 'type');
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $method = null;
-        if ($type === 'funding') {
+        if ($marketType === 'funding') {
             $method = 'privateGetAssetBalances';
         } else {
             $method = 'privateGetAccountBalance';
@@ -1570,7 +1566,7 @@ class okex extends Exchange {
         $request = array(
             // 'ccy' => 'BTC,ETH', // comma-separated list of currency ids
         );
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method (array_merge($request, $query));
         //
         //     {
         //         "code":"0",
@@ -1673,7 +1669,7 @@ class okex extends Exchange {
         //         "msg":""
         //     }
         //
-        return $this->parse_balance_by_type($type, $response);
+        return $this->parse_balance_by_type($marketType, $response);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

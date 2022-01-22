@@ -210,6 +210,7 @@ class digifinex extends Exchange {
             'commonCurrencies' => array(
                 'BHT' => 'Black House Test',
                 'EPS' => 'Epanus',
+                'FREE' => 'FreeRossDAO',
                 'MBN' => 'Mobilian Coin',
                 'TEL' => 'TEL666',
             ),
@@ -613,17 +614,17 @@ class digifinex extends Exchange {
         $marketId = $this->safe_string_upper($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $timestamp = $this->safe_timestamp($ticker, 'date');
-        $last = $this->safe_number($ticker, 'last');
-        $percentage = $this->safe_number($ticker, 'change');
+        $last = $this->safe_string($ticker, 'last');
+        $percentage = $this->safe_string($ticker, 'change');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'buy'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'sell'),
+            'ask' => $this->safe_string($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -633,10 +634,10 @@ class digifinex extends Exchange {
             'change' => null,
             'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'vol'),
-            'quoteVolume' => $this->safe_number($ticker, 'base_vol'),
+            'baseVolume' => $this->safe_string($ticker, 'vol'),
+            'quoteVolume' => $this->safe_string($ticker, 'base_vol'),
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function parse_trade($trade, $market = null) {

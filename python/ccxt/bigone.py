@@ -146,6 +146,7 @@ class bigone(Exchange):
             'commonCurrencies': {
                 'CRE': 'Cybereits',
                 'FXT': 'FXTTOKEN',
+                'FREE': 'FreeRossDAO',
                 'MBN': 'Mobilian Coin',
                 'ONE': 'BigONE Token',
             },

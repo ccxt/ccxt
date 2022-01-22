@@ -30,6 +30,7 @@ from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class bitmart(Exchange):
@@ -311,6 +312,7 @@ class bitmart(Exchange):
                 'DMS': 'DimSum',  # conflict with Dragon Mainland Shards
                 'FOX': 'Fox Finance',
                 'GDT': 'Gorilla Diamond',
+                '$GM': 'GOLDMINER',
                 '$HERO': 'Step Hero',
                 '$PAC': 'PAC',
                 'MIM': 'MIM Swarm',
@@ -727,29 +729,28 @@ class bitmart(Exchange):
         marketId = self.safe_string_2(ticker, 'symbol', 'contract_id')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
-        last = self.safe_number_2(ticker, 'close_24h', 'last_price')
-        percentage = self.safe_number_2(ticker, 'fluctuation', 'rise_fall_rate')
-        if percentage is not None:
-            percentage *= 100
+        last = self.safe_string_2(ticker, 'close_24h', 'last_price')
+        percentage = self.safe_string_2(ticker, 'fluctuation', 'rise_fall_rate')
+        percentage = Precise.string_mul(percentage, '100')
         if percentage is None:
-            percentage = self.safe_number(ticker, 'price_change_percent_24h')
-        baseVolume = self.safe_number_2(ticker, 'base_coin_volume', 'base_volume_24h')
-        quoteVolume = self.safe_number_2(ticker, 'quote_coin_volume', 'quote_volume_24h')
-        quoteVolume = self.safe_number(ticker, 'volume_24h', quoteVolume)
-        average = self.safe_number(ticker, 'avg_price')
-        price = self.safe_value(ticker, 'depth_price', ticker)
+            percentage = self.safe_string(ticker, 'price_change_percent_24h')
+        baseVolume = self.safe_string_2(ticker, 'base_coin_volume', 'base_volume_24h')
+        quoteVolume = self.safe_string_2(ticker, 'quote_coin_volume', 'quote_volume_24h')
+        quoteVolume = self.safe_string(ticker, 'volume_24h', quoteVolume)
+        average = self.safe_string(ticker, 'avg_price')
+        price = self.safe_string(ticker, 'depth_price', ticker)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number_2(ticker, 'high', 'high_24h'),
-            'low': self.safe_number_2(ticker, 'low', 'low_24h'),
-            'bid': self.safe_number_2(price, 'best_bid', 'bid_price'),
-            'bidVolume': self.safe_number(ticker, 'best_bid_size'),
-            'ask': self.safe_number_2(price, 'best_ask', 'ask_price'),
-            'askVolume': self.safe_number(ticker, 'best_ask_size'),
+            'high': self.safe_string_2(ticker, 'high', 'high_24h'),
+            'low': self.safe_string_2(ticker, 'low', 'low_24h'),
+            'bid': self.safe_string_2(price, 'best_bid', 'bid_price'),
+            'bidVolume': self.safe_string(ticker, 'best_bid_size'),
+            'ask': self.safe_string_2(price, 'best_ask', 'ask_price'),
+            'askVolume': self.safe_string(ticker, 'best_ask_size'),
             'vwap': None,
-            'open': self.safe_number(ticker, 'open_24h'),
+            'open': self.safe_string(ticker, 'open_24h'),
             'close': last,
             'last': last,
             'previousClose': None,
@@ -759,7 +760,7 @@ class bitmart(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -1423,19 +1424,15 @@ class bitmart(Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        method = None
-        options = self.safe_value(self.options, 'fetchBalance', {})
-        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
-        type = self.safe_string(options, 'type', defaultType)
-        type = self.safe_string(params, 'type', type)
-        params = self.omit(params, 'type')
-        if type == 'spot':
-            method = 'privateSpotGetWallet'
-        elif type == 'account':
-            method = 'privateAccountGetWallet'
-        elif (type == 'swap') or (type == 'future') or (type == 'contract'):
-            method = 'privateContractGetAccounts'
-        response = getattr(self, method)(params)
+        marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateSpotGetWallet',
+            'swap': 'privateContractGetAccounts',
+            'future': 'privateContractGetAccounts',
+            'contract': 'privateContractGetAccounts',
+            'account': 'privateAccountGetWallet',
+        })
+        response = getattr(self, method)(query)
         #
         # spot
         #
@@ -1771,7 +1768,7 @@ class bitmart(Exchange):
             raise ArgumentsRequired(self.id + ' canelOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if not market['contract']:
             raise NotSupported(self.id + ' cancelOrders() does not support ' + market['type'] + ' orders, only contract orders are accepted')
         orders = []
         for i in range(0, len(ids)):

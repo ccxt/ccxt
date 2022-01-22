@@ -23,13 +23,18 @@ class xena(Exchange):
             'countries': ['VC', 'UK'],
             'rateLimit': 100,
             'has': {
-                'fetchAccounts': True,
+                'spot': False,
+                'margin': False,
+                'swap': None,  # has but not fully implemented
+                'future': None,  # has but not fully implemented
+                'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'CORS': None,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'editOrder': True,
+                'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
@@ -180,6 +185,12 @@ class xena(Exchange):
         #
         #     [
         #         {
+        #             "type": "Index",
+        #             "symbol": ".ADAUSD",
+        #             "tickSize": 4,
+        #             "enabled": True
+        #         },
+        #         {
         #             "id":"ETHUSD_3M_250920",
         #             "type":"Margin",
         #             "marginType":"XenaFuture",
@@ -269,56 +280,73 @@ class xena(Exchange):
             marginType = self.safe_string(market, 'marginType')
             baseId = self.safe_string(market, 'baseCurrency')
             quoteId = self.safe_string(market, 'quoteCurrency')
+            settleId = self.safe_string(market, 'settlCurrency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            settle = self.safe_currency_code(settleId)
+            expiryDate = self.safe_string(market, 'expiryDate')
+            expiryTimestamp = self.parse8601(expiryDate)
             symbol = id
+            future = False
+            swap = False
             if type == 'margin':
+                symbol = base + '/' + quote + ':' + settle
                 if marginType == 'XenaFuture':
+                    symbol = symbol + '-' + self.yymmdd(expiryTimestamp)
                     type = 'future'
+                    future = True
                 elif marginType == 'XenaListedPerpetual':
                     type = 'swap'
-                    symbol = base + '/' + quote
-            future = (type == 'future')
-            swap = (type == 'swap')
-            pricePrecision = self.safe_integer_2(market, 'tickSize', 'pricePrecision')
-            precision = {
-                'price': pricePrecision,
-                'amount': 0,
-            }
-            maxCost = self.safe_number(market, 'maxOrderQty')
-            minCost = self.safe_number(market, 'minOrderQuantity')
-            limits = {
-                'amount': {
-                    'min': None,
-                    'max': None,
-                },
-                'price': {
-                    'min': None,
-                    'max': None,
-                },
-                'cost': {
-                    'min': minCost,
-                    'max': maxCost,
-                },
-            }
-            active = self.safe_value(market, 'enabled', False)
+                    swap = True
             inverse = self.safe_value(market, 'inverse', False)
+            contract = swap or future
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': settleId,
                 'numericId': numericId,
-                'active': active,
                 'type': type,
                 'spot': False,
-                'future': future,
+                'margin': False,
                 'swap': swap,
-                'inverse': inverse,
-                'precision': precision,
-                'limits': limits,
+                'future': future,
+                'option': False,
+                'active': self.safe_value(market, 'enabled', False),
+                'contract': contract,
+                'linear': not inverse if contract else None,
+                'inverse': inverse if contract else None,
+                'contractSize': self.safe_number(market, 'contractValue'),
+                'expiry': expiryTimestamp,
+                'expiryDatetime': self.iso8601(expiryTimestamp),
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': self.safe_integer_2(market, 'tickSize', 'pricePrecision'),
+                    'amount': 0,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': self.safe_number(market, 'minOrderQuantity'),
+                        'max': self.safe_number(market, 'maxOrderQty'),
+                    },
+                },
                 'info': market,
             })
         return result

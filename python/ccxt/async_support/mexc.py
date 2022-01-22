@@ -16,6 +16,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -245,6 +246,7 @@ class mexc(Exchange):
             'commonCurrencies': {
                 'BYN': 'BeyondFi',
                 'COFI': 'COFIX',  # conflict with CoinFi
+                'DFI': 'DfiStarter',
                 'DFT': 'dFuture',
                 'DRK': 'DRK',
                 'EGC': 'Egoras Credit',
@@ -1034,7 +1036,9 @@ class mexc(Exchange):
         market = self.market(symbol)
         options = self.safe_value(self.options, 'timeframes', {})
         timeframes = self.safe_value(options, market['type'], {})
-        timeframeValue = self.safe_string(timeframes, timeframe, timeframe)
+        timeframeValue = self.safe_string(timeframes, timeframe)
+        if timeframeValue is None:
+            raise NotSupported(self.id + ' fetchOHLCV() does not support ' + timeframe + ' timeframe for ' + market['type'] + ' markets')
         request = {
             'symbol': market['id'],
             'interval': timeframeValue,

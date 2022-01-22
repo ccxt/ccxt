@@ -156,6 +156,7 @@ class bibox(Exchange):
                 'NFT': 'NFT Protocol',
                 'PAI': 'PCHAIN',
                 'REVO': 'Revo Network',
+                'STAR': 'Starbase',
                 'TERN': 'Ternio-ERC20',
             },
         })
@@ -225,8 +226,8 @@ class bibox(Exchange):
             spot = True
             areaId = self.safe_integer(market, 'area_id')
             if areaId == 16:
-                type = None
-                spot = False
+                # TODO: update to v3 api
+                continue
             precision = {
                 'amount': self.safe_number(market, 'amount_scale'),
                 'price': self.safe_number(market, 'decimal'),
@@ -241,7 +242,21 @@ class bibox(Exchange):
                 'quoteId': quoteId,
                 'type': type,
                 'spot': spot,
-                'active': True,
+                'margin': False,
+                'future': False,
+                'swap': False,
+                'option': False,
+                'optionType': None,
+                'strike': None,
+                'linear': None,
+                'inverse': None,
+                'contract': False,
+                'contractSize': None,
+                'settle': None,
+                'settleId': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'active': None,
                 'info': market,
                 'precision': precision,
                 'limits': {

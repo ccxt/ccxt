@@ -20,7 +20,7 @@ class blockchaincom(Exchange):
             'secret': None,
             'name': 'Blockchain.com',
             'countries': ['LX'],
-            'rateLimit': 10000,
+            'rateLimit': 1000,
             'version': 'v3',
             'has': {
                 'spot': True,
@@ -245,6 +245,7 @@ class blockchaincom(Exchange):
             else:
                 maxOrderSize = None
             result.append({
+                'info': market,
                 'id': marketId,
                 'numericId': numericId,
                 'symbol': base + '/' + quote,
@@ -328,9 +329,9 @@ class blockchaincom(Exchange):
         #
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market, '-')
-        last = self.safe_number(ticker, 'last_trade_price')
-        baseVolume = self.safe_number(ticker, 'volume_24h')
-        open = self.safe_number(ticker, 'price_24h')
+        last = self.safe_string(ticker, 'last_trade_price')
+        baseVolume = self.safe_string(ticker, 'volume_24h')
+        open = self.safe_string(ticker, 'price_24h')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
@@ -352,7 +353,7 @@ class blockchaincom(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -412,7 +413,7 @@ class blockchaincom(Exchange):
         datetime = self.iso8601(timestamp)
         filled = self.safe_string(order, 'cumQty')
         remaining = self.safe_string(order, 'leavesQty')
-        result = self.safeOrder2({
+        result = self.safe_order({
             'id': exchangeOrderId,
             'clientOrderId': clientOrderId,
             'datetime': datetime,
@@ -827,7 +828,7 @@ class blockchaincom(Exchange):
             account['free'] = self.safe_string(entry, 'available')
             account['total'] = self.safe_string(entry, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def fetch_order(self, id, symbol=None, params={}):
         # note: only works with exchange-order-id

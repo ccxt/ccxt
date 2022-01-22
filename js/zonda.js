@@ -15,18 +15,45 @@ module.exports = class zonda extends Exchange {
             'countries': [ 'EE' ], // Estonia
             'rateLimit': 1000,
             'has': {
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
                 'cancelOrder': true,
                 'CORS': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
                 'fetchLedger': true,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -256,47 +283,47 @@ module.exports = class zonda extends Exchange {
             const quoteId = this.safeString (second, 'currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const precision = {
-                'amount': this.safeInteger (first, 'scale'),
-                'price': this.safeInteger (second, 'scale'),
-            };
             let fees = this.safeValue (this.fees, 'trading', {});
             if (this.inArray (base, fiatCurrencies) || this.inArray (quote, fiatCurrencies)) {
                 fees = this.safeValue (this.fees, 'fiat', {});
             }
-            const maker = this.safeNumber (fees, 'maker');
-            const taker = this.safeNumber (fees, 'taker');
             // todo: check that the limits have ben interpreted correctly
             // todo: parse the fees page
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'precision': precision,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
                 'margin': false,
                 'future': false,
                 'swap': false,
                 'option': false,
+                'active': undefined,
+                'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
+                'maker': this.safeNumber (fees, 'maker'),
+                'taker': this.safeNumber (fees, 'taker'),
+                'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
-                'contract': false,
-                'contractSize': undefined,
                 'optionType': undefined,
                 'strike': undefined,
-                'settle': undefined,
-                'settleId': undefined,
-                'active': undefined,
-                'maker': maker,
-                'taker': taker,
+                'precision': {
+                    'amount': this.safeInteger (first, 'scale'),
+                    'price': this.safeInteger (second, 'scale'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (first, 'minOffer'),
                         'max': undefined,

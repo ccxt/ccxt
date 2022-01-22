@@ -1464,14 +1464,14 @@ class gateio extends Exchange {
         //
         $marketId = $this->safe_string_2($ticker, 'currency_pair', 'contract');
         $symbol = $this->safe_symbol($marketId, $market);
-        $last = $this->safe_number($ticker, 'last');
-        $ask = $this->safe_number($ticker, 'lowest_ask');
-        $bid = $this->safe_number($ticker, 'highest_bid');
-        $high = $this->safe_number($ticker, 'high_24h');
-        $low = $this->safe_number($ticker, 'low_24h');
-        $baseVolume = $this->safe_number_2($ticker, 'base_volume', 'volume_24h_base');
-        $quoteVolume = $this->safe_number_2($ticker, 'quote_volume', 'volume_24h_quote');
-        $percentage = $this->safe_number($ticker, 'change_percentage');
+        $last = $this->safe_string($ticker, 'last');
+        $ask = $this->safe_string($ticker, 'lowest_ask');
+        $bid = $this->safe_string($ticker, 'highest_bid');
+        $high = $this->safe_string($ticker, 'high_24h');
+        $low = $this->safe_string($ticker, 'low_24h');
+        $baseVolume = $this->safe_string_2($ticker, 'base_volume', 'volume_24h_base');
+        $quoteVolume = $this->safe_string_2($ticker, 'quote_volume', 'volume_24h_quote');
+        $percentage = $this->safe_string($ticker, 'change_percentage');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,
@@ -1493,7 +1493,7 @@ class gateio extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

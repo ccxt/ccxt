@@ -152,29 +152,29 @@ class coinfalcon(Exchange):
         marketId = self.safe_string(ticker, 'name')
         market = self.safe_market(marketId, market, '-')
         timestamp = self.milliseconds()
-        last = self.safe_number(ticker, 'last_price')
+        last = self.safe_string(ticker, 'last_price')
         return self.safe_ticker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': self.safe_number(ticker, 'highest_bid'),
+            'bid': self.safe_string(ticker, 'highest_bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'lowest_ask'),
+            'ask': self.safe_string(ticker, 'lowest_ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_number(ticker, 'change_in_24h'),
+            'change': self.safe_string(ticker, 'change_in_24h'),
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': self.safe_number(ticker, 'volume'),
+            'quoteVolume': self.safe_string(ticker, 'volume'),
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

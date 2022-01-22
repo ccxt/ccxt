@@ -18,7 +18,7 @@ class blockchaincom extends Exchange {
             'secret' => null,
             'name' => 'Blockchain.com',
             'countries' => array( 'LX' ),
-            'rateLimit' => 10000,
+            'rateLimit' => 1000,
             'version' => 'v3',
             'has' => array(
                 'spot' => true,
@@ -246,6 +246,7 @@ class blockchaincom extends Exchange {
                 $maxOrderSize = null;
             }
             $result[] = array(
+                'info' => $market,
                 'id' => $marketId,
                 'numericId' => $numericId,
                 'symbol' => $base . '/' . $quote,
@@ -336,9 +337,9 @@ class blockchaincom extends Exchange {
         //
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '-');
-        $last = $this->safe_number($ticker, 'last_trade_price');
-        $baseVolume = $this->safe_number($ticker, 'volume_24h');
-        $open = $this->safe_number($ticker, 'price_24h');
+        $last = $this->safe_string($ticker, 'last_trade_price');
+        $baseVolume = $this->safe_string($ticker, 'volume_24h');
+        $open = $this->safe_string($ticker, 'price_24h');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,
@@ -360,7 +361,7 @@ class blockchaincom extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -424,7 +425,7 @@ class blockchaincom extends Exchange {
         $datetime = $this->iso8601($timestamp);
         $filled = $this->safe_string($order, 'cumQty');
         $remaining = $this->safe_string($order, 'leavesQty');
-        $result = $this->safeOrder2 (array(
+        $result = $this->safe_order(array(
             'id' => $exchangeOrderId,
             'clientOrderId' => $clientOrderId,
             'datetime' => $datetime,
@@ -879,7 +880,7 @@ class blockchaincom extends Exchange {
             $account['total'] = $this->safe_string($entry, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

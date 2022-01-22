@@ -506,23 +506,22 @@ class btcmarkets(Exchange):
         market = self.safe_market(marketId, market, '-')
         symbol = market['symbol']
         timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
-        last = self.safe_number(ticker, 'lastPrice')
-        baseVolume = self.safe_number(ticker, 'volume24h')
-        quoteVolume = self.safe_number(ticker, 'volumeQte24h')
-        vwap = self.vwap(baseVolume, quoteVolume)
-        change = self.safe_number(ticker, 'price24h')
-        percentage = self.safe_number(ticker, 'pricePct24h')
+        last = self.safe_string(ticker, 'lastPrice')
+        baseVolume = self.safe_string(ticker, 'volume24h')
+        quoteVolume = self.safe_string(ticker, 'volumeQte24h')
+        change = self.safe_string(ticker, 'price24h')
+        percentage = self.safe_string(ticker, 'pricePct24h')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high24h'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bestBid'),
+            'high': self.safe_string(ticker, 'high24h'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bestBid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'bestAsk'),
+            'ask': self.safe_string(ticker, 'bestAsk'),
             'askVolume': None,
-            'vwap': vwap,
+            'vwap': None,
             'open': None,
             'close': last,
             'last': last,
@@ -533,7 +532,7 @@ class btcmarkets(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

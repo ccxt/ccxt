@@ -445,6 +445,20 @@ class exmo extends Exchange {
                 'quoteId' => $quoteId,
                 'type' => 'spot',
                 'spot' => true,
+                'margin' => false,
+                'future' => false,
+                'swap' => false,
+                'option' => false,
+                'optionType' => null,
+                'strike' => null,
+                'linear' => null,
+                'inverse' => null,
+                'contract' => false,
+                'contractSize' => null,
+                'settle' => null,
+                'settleId' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
                 'active' => true,
                 'taker' => $taker,
                 'maker' => $maker,
@@ -643,16 +657,16 @@ class exmo extends Exchange {
         //
         $timestamp = $this->safe_timestamp($ticker, 'updated');
         $market = $this->safe_market(null, $market);
-        $last = $this->safe_number($ticker, 'last_trade');
+        $last = $this->safe_string($ticker, 'last_trade');
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'buy_price'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'buy_price'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'sell_price'),
+            'ask' => $this->safe_string($ticker, 'sell_price'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -661,11 +675,11 @@ class exmo extends Exchange {
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
-            'average' => $this->safe_number($ticker, 'avg'),
-            'baseVolume' => $this->safe_number($ticker, 'vol'),
-            'quoteVolume' => $this->safe_number($ticker, 'vol_curr'),
+            'average' => $this->safe_string($ticker, 'avg'),
+            'baseVolume' => $this->safe_string($ticker, 'vol'),
+            'quoteVolume' => $this->safe_string($ticker, 'vol_curr'),
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

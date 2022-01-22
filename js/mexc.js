@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InvalidAddress, ExchangeError, BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InvalidOrder, InsufficientFunds, ArgumentsRequired, OrderNotFound, PermissionDenied } = require ('./base/errors');
+const { InvalidAddress, ExchangeError, BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InvalidOrder, InsufficientFunds, ArgumentsRequired, OrderNotFound, PermissionDenied, NotSupported } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -232,6 +232,7 @@ module.exports = class mexc extends Exchange {
             'commonCurrencies': {
                 'BYN': 'BeyondFi',
                 'COFI': 'COFIX', // conflict with CoinFi
+                'DFI': 'DfiStarter',
                 'DFT': 'dFuture',
                 'DRK': 'DRK',
                 'EGC': 'Egoras Credit',
@@ -1059,7 +1060,10 @@ module.exports = class mexc extends Exchange {
         const market = this.market (symbol);
         const options = this.safeValue (this.options, 'timeframes', {});
         const timeframes = this.safeValue (options, market['type'], {});
-        const timeframeValue = this.safeString (timeframes, timeframe, timeframe);
+        const timeframeValue = this.safeString (timeframes, timeframe);
+        if (timeframeValue === undefined) {
+            throw new NotSupported (this.id + ' fetchOHLCV() does not support ' + timeframe + ' timeframe for ' + market['type'] + ' markets');
+        }
         const request = {
             'symbol': market['id'],
             'interval': timeframeValue,

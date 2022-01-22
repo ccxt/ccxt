@@ -287,22 +287,21 @@ class bithumb extends Exchange {
         //
         $timestamp = $this->safe_integer($ticker, 'date');
         $symbol = $this->safe_symbol(null, $market);
-        $open = $this->safe_number($ticker, 'opening_price');
-        $close = $this->safe_number($ticker, 'closing_price');
-        $baseVolume = $this->safe_number($ticker, 'units_traded_24H');
-        $quoteVolume = $this->safe_number($ticker, 'acc_trade_value_24H');
-        $vwap = $this->vwap($baseVolume, $quoteVolume);
+        $open = $this->safe_string($ticker, 'opening_price');
+        $close = $this->safe_string($ticker, 'closing_price');
+        $baseVolume = $this->safe_string($ticker, 'units_traded_24H');
+        $quoteVolume = $this->safe_string($ticker, 'acc_trade_value_24H');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'max_price'),
-            'low' => $this->safe_number($ticker, 'min_price'),
-            'bid' => $this->safe_number($ticker, 'buy_price'),
+            'high' => $this->safe_string($ticker, 'max_price'),
+            'low' => $this->safe_string($ticker, 'min_price'),
+            'bid' => $this->safe_string($ticker, 'buy_price'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'sell_price'),
+            'ask' => $this->safe_string($ticker, 'sell_price'),
             'askVolume' => null,
-            'vwap' => $vwap,
+            'vwap' => null,
             'open' => $open,
             'close' => $close,
             'last' => $close,
@@ -313,7 +312,7 @@ class bithumb extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

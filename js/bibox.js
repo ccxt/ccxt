@@ -140,6 +140,7 @@ module.exports = class bibox extends Exchange {
                 'NFT': 'NFT Protocol',
                 'PAI': 'PCHAIN',
                 'REVO': 'Revo Network',
+                'STAR': 'Starbase',
                 'TERN': 'Ternio-ERC20',
             },
         });
@@ -207,12 +208,12 @@ module.exports = class bibox extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            let type = 'spot';
-            let spot = true;
+            const type = 'spot';
+            const spot = true;
             const areaId = this.safeInteger (market, 'area_id');
             if (areaId === 16) {
-                type = undefined;
-                spot = false;
+                // TODO: update to v3 api
+                continue;
             }
             const precision = {
                 'amount': this.safeNumber (market, 'amount_scale'),
@@ -228,7 +229,21 @@ module.exports = class bibox extends Exchange {
                 'quoteId': quoteId,
                 'type': type,
                 'spot': spot,
-                'active': true,
+                'margin': false,
+                'future': false,
+                'swap': false,
+                'option': false,
+                'optionType': undefined,
+                'strike': undefined,
+                'linear': undefined,
+                'inverse': undefined,
+                'contract': false,
+                'contractSize': undefined,
+                'settle': undefined,
+                'settleId': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'active': undefined,
                 'info': market,
                 'precision': precision,
                 'limits': {

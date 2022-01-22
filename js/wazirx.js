@@ -199,7 +199,7 @@ module.exports = class wazirx extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': status === 'trading',
+                'active': (status === 'trading'),
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,

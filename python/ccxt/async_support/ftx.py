@@ -394,6 +394,9 @@ class ftx(Exchange):
                     'BSC': 'bsc',
                 },
             },
+            'commonCurrencies': {
+                'STARS': 'StarLaunch',
+            },
         })
 
     async def fetch_currencies(self, params={}):
@@ -568,7 +571,7 @@ class ftx(Exchange):
             settle = self.safe_currency_code(settleId)
             spot = not contract
             margin = not contract
-            perpetual = self.safe_value(future, 'perpetual')
+            perpetual = self.safe_value(future, 'perpetual', False)
             swap = perpetual
             option = False
             isFuture = contract and not swap

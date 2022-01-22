@@ -565,6 +565,20 @@ class coinbase extends Exchange {
                         'quoteId' => $quoteId,
                         'type' => 'spot',
                         'spot' => true,
+                        'margin' => false,
+                        'future' => false,
+                        'swap' => false,
+                        'option' => false,
+                        'optionType' => null,
+                        'strike' => null,
+                        'linear' => null,
+                        'inverse' => null,
+                        'contract' => false,
+                        'contractSize' => null,
+                        'settle' => null,
+                        'settleId' => null,
+                        'expiry' => null,
+                        'expiryDatetime' => null,
                         'active' => null,
                         'info' => $quoteCurrency,
                         'precision' => array(
@@ -755,17 +769,14 @@ class coinbase extends Exchange {
         $bid = null;
         $last = null;
         $timestamp = $this->milliseconds();
-        if (gettype($ticker) === 'string') {
-            $inverted = Precise::string_div('1', $ticker); // the currency requested, USD or other, is the base currency
-            $last = $this->parse_number($inverted);
-        } else {
+        if (gettype($ticker) !== 'string') {
             list($spot, $buy, $sell) = $ticker;
             $spotData = $this->safe_value($spot, 'data', array());
             $buyData = $this->safe_value($buy, 'data', array());
             $sellData = $this->safe_value($sell, 'data', array());
-            $last = $this->safe_number($spotData, 'amount');
-            $bid = $this->safe_number($buyData, 'amount');
-            $ask = $this->safe_number($sellData, 'amount');
+            $last = $this->safe_string($spotData, 'amount');
+            $bid = $this->safe_string($buyData, 'amount');
+            $ask = $this->safe_string($sellData, 'amount');
         }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -788,7 +799,7 @@ class coinbase extends Exchange {
             'baseVolume' => null,
             'quoteVolume' => null,
             'info' => $ticker,
-        ));
+        ), $market, false);
     }
 
     public function fetch_balance($params = array ()) {

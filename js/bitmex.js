@@ -957,19 +957,19 @@ module.exports = class bitmex extends Exchange {
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
-        const open = this.safeNumber (ticker, 'prevPrice24h');
-        const last = this.safeNumber (ticker, 'lastPrice');
+        const open = this.safeString (ticker, 'prevPrice24h');
+        const last = this.safeString (ticker, 'lastPrice');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'highPrice'),
-            'low': this.safeNumber (ticker, 'lowPrice'),
-            'bid': this.safeNumber (ticker, 'bidPrice'),
+            'high': this.safeString (ticker, 'highPrice'),
+            'low': this.safeString (ticker, 'lowPrice'),
+            'bid': this.safeString (ticker, 'bidPrice'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'askPrice'),
+            'ask': this.safeString (ticker, 'askPrice'),
             'askVolume': undefined,
-            'vwap': this.safeNumber (ticker, 'vwap'),
+            'vwap': this.safeString (ticker, 'vwap'),
             'open': open,
             'close': last,
             'last': last,
@@ -977,10 +977,10 @@ module.exports = class bitmex extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'homeNotional24h'),
-            'quoteVolume': this.safeNumber (ticker, 'foreignNotional24h'),
+            'baseVolume': this.safeString (ticker, 'homeNotional24h'),
+            'quoteVolume': this.safeString (ticker, 'foreignNotional24h'),
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     parseOHLCV (ohlcv, market = undefined) {

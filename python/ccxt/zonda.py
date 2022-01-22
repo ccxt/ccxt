@@ -28,18 +28,45 @@ class zonda(Exchange):
             'countries': ['EE'],  # Estonia
             'rateLimit': 1000,
             'has': {
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelOrder': True,
                 'CORS': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
                 'fetchLedger': True,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -268,46 +295,46 @@ class zonda(Exchange):
             quoteId = self.safe_string(second, 'currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            precision = {
-                'amount': self.safe_integer(first, 'scale'),
-                'price': self.safe_integer(second, 'scale'),
-            }
             fees = self.safe_value(self.fees, 'trading', {})
             if self.in_array(base, fiatCurrencies) or self.in_array(quote, fiatCurrencies):
                 fees = self.safe_value(self.fees, 'fiat', {})
-            maker = self.safe_number(fees, 'maker')
-            taker = self.safe_number(fees, 'taker')
             # todo: check that the limits have ben interpreted correctly
             # todo: parse the fees page
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'precision': precision,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
                 'margin': False,
                 'future': False,
                 'swap': False,
                 'option': False,
+                'active': None,
+                'contract': False,
                 'linear': None,
                 'inverse': None,
+                'maker': self.safe_number(fees, 'maker'),
+                'taker': self.safe_number(fees, 'taker'),
+                'contractSize': None,
                 'expiry': None,
                 'expiryDatetime': None,
-                'contract': False,
-                'contractSize': None,
                 'optionType': None,
                 'strike': None,
-                'settle': None,
-                'settleId': None,
-                'active': None,
-                'maker': maker,
-                'taker': taker,
+                'precision': {
+                    'amount': self.safe_integer(first, 'scale'),
+                    'price': self.safe_integer(second, 'scale'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(first, 'minOffer'),
                         'max': None,
