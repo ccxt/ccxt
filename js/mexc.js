@@ -1468,7 +1468,7 @@ module.exports = class mexc extends Exchange {
         }
         const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
-        const amount = this.safeNumber (transaction, 'amount');
+        let amount = this.safeNumber (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
         const txid = this.safeString (transaction, 'tx_id');
         let fee = undefined;
