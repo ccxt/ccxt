@@ -450,19 +450,18 @@ class poloniex(Exchange):
         # }
         timestamp = self.milliseconds()
         symbol = self.safe_symbol(None, market)
-        last = self.safe_number(ticker, 'last')
+        last = self.safe_string(ticker, 'last')
         relativeChange = self.safe_string(ticker, 'percentChange')
         percentage = Precise.string_mul(relativeChange, '100')
-        percentage = self.parse_number(percentage)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high24hr'),
-            'low': self.safe_number(ticker, 'low24hr'),
-            'bid': self.safe_number(ticker, 'highestBid'),
+            'high': self.safe_string(ticker, 'high24hr'),
+            'low': self.safe_string(ticker, 'low24hr'),
+            'bid': self.safe_string(ticker, 'highestBid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'lowestAsk'),
+            'ask': self.safe_string(ticker, 'lowestAsk'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -472,10 +471,10 @@ class poloniex(Exchange):
             'change': None,
             'percentage': percentage,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'quoteVolume'),
-            'quoteVolume': self.safe_number(ticker, 'baseVolume'),
+            'baseVolume': self.safe_string(ticker, 'quoteVolume'),
+            'quoteVolume': self.safe_string(ticker, 'baseVolume'),
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
