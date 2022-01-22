@@ -336,30 +336,30 @@ module.exports = class latoken1 extends Exchange {
         //
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market);
-        const close = this.safeNumber (ticker, 'close');
+        const close = this.safeString (ticker, 'close');
         const timestamp = this.milliseconds ();
         return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'low': this.safeNumber (ticker, 'low'),
-            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'high': this.safeString (ticker, 'high'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeNumber (ticker, 'open'),
+            'open': this.safeString (ticker, 'open'),
             'close': close,
             'last': close,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': this.safeNumber (ticker, 'priceChange'),
+            'percentage': this.safeString (ticker, 'priceChange'),
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': this.safeNumber (ticker, 'volume'),
+            'quoteVolume': this.safeString (ticker, 'volume'),
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
