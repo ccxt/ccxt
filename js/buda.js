@@ -388,12 +388,12 @@ module.exports = class buda extends Exchange {
         const timestamp = this.milliseconds ();
         const marketId = this.safeString (ticker, 'market_id');
         const symbol = this.safeSymbol (marketId, market, '-');
-        const lastPrice = this.safeString (ticker, 'last_price', []);
+        const lastPrice = this.safeValue (ticker, 'last_price', []);
         const last = this.safeString (lastPrice, 0);
         const percentage = this.safeString (ticker, 'price_variation_24h');
-        const maxBid = this.safeString (ticker, 'max_bid', []);
-        const minAsk = this.safeString (ticker, 'min_ask', []);
-        const baseVolume = this.safeString (ticker, 'volume', []);
+        const maxBid = this.safeValue (ticker, 'max_bid', []);
+        const minAsk = this.safeValue (ticker, 'min_ask', []);
+        const baseVolume = this.safeValue (ticker, 'volume', []);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
