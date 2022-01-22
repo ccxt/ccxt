@@ -1424,19 +1424,15 @@ class bitmart(Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        method = None
-        options = self.safe_value(self.options, 'fetchBalance', {})
-        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
-        type = self.safe_string(options, 'type', defaultType)
-        type = self.safe_string(params, 'type', type)
-        params = self.omit(params, 'type')
-        if type == 'spot':
-            method = 'privateSpotGetWallet'
-        elif type == 'account':
-            method = 'privateAccountGetWallet'
-        elif (type == 'swap') or (type == 'future') or (type == 'contract'):
-            method = 'privateContractGetAccounts'
-        response = await getattr(self, method)(params)
+        marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateSpotGetWallet',
+            'swap': 'privateContractGetAccounts',
+            'future': 'privateContractGetAccounts',
+            'contract': 'privateContractGetAccounts',
+            'account': 'privateAccountGetWallet',
+        })
+        response = await getattr(self, method)(query)
         #
         # spot
         #

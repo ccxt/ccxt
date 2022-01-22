@@ -1458,20 +1458,15 @@ class bitmart extends Exchange {
 
     public function fetch_balance($params = array ()) {
         $this->load_markets();
-        $method = null;
-        $options = $this->safe_value($this->options, 'fetchBalance', array());
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
-        $type = $this->safe_string($options, 'type', $defaultType);
-        $type = $this->safe_string($params, 'type', $type);
-        $params = $this->omit($params, 'type');
-        if ($type === 'spot') {
-            $method = 'privateSpotGetWallet';
-        } else if ($type === 'account') {
-            $method = 'privateAccountGetWallet';
-        } else if (($type === 'swap') || ($type === 'future') || ($type === 'contract')) {
-            $method = 'privateContractGetAccounts';
-        }
-        $response = $this->$method ($params);
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateSpotGetWallet',
+            'swap' => 'privateContractGetAccounts',
+            'future' => 'privateContractGetAccounts',
+            'contract' => 'privateContractGetAccounts',
+            'account' => 'privateAccountGetWallet',
+        ));
+        $response = $this->$method ($query);
         //
         // spot
         //
