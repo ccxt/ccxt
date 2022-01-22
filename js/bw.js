@@ -336,8 +336,8 @@ module.exports = class bw extends Exchange {
         const symbol = market['symbol'];
         const timestamp = this.milliseconds ();
         const close = this.safeString (ticker, 1);
-        const bid = this.safeString (ticker, 'bid', {});
-        const ask = this.safeString (ticker, 'ask', {});
+        const bid = this.safeValue (ticker, 'bid', {});
+        const ask = this.safeValue (ticker, 'ask', {});
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
