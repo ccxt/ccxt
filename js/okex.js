@@ -1892,6 +1892,21 @@ module.exports = class okex extends Exchange {
             });
         }
         const response = await this.privatePostTradeCancelBatchOrders (request); // dont extend with params, otherwise ARRAY will be turned into OBJECT
+        //
+        // {
+        //     "code": "0",
+        //     "data": [
+        //         {
+        //             "clOrdId": "e123456789ec4dBC1123456ba123b45e",
+        //             "ordId": "405071912345641543",
+        //             "sCode": "0",
+        //             "sMsg": ""
+        //         },
+        //         ...
+        //     ],
+        //     "msg": ""
+        // }
+        //
         const ordersData = this.safeValue (response, 'data', []);
         return this.parseOrders(ordersData, market, undefined, undefined, params);
     }
