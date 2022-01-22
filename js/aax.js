@@ -1790,28 +1790,24 @@ module.exports = class aax extends Exchange {
             // 'orderType': undefined, // MARKET, LIMIT, STOP, STOP-LIMIT
             // 'side': 'undefined', // BUY, SELL
         };
-        let method = undefined;
-        const defaultType = this.safeString2 (this.options, 'fetchMyTrades', 'defaultType', 'spot');
-        let type = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
-            type = market['type'];
         }
-        if (type === 'spot') {
-            method = 'privateGetSpotTrades';
-        } else if (type === 'swap' || type === 'future' || type === 'futures') { // type === 'futures' deprecated, use type === 'swap'
-            method = 'privateGetFuturesTrades';
-        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateGetSpotTrades',
+            'swap': 'privateGetFuturesTrades',
+            'future': 'privateGetFuturesTrades',
+        });
         if (limit !== undefined) {
             request['pageSize'] = limit; // default 10
         }
         if (since !== undefined) {
             request['startDate'] = this.yyyymmdd (since);
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         //     {
         //         "code":1,
