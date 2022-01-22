@@ -22,8 +22,8 @@ class xena extends Exchange {
             'has' => array(
                 'spot' => false,
                 'margin' => false,
-                'swap' => true,
-                'future' => true,
+                'swap' => null, // has but not fully implemented
+                'future' => null, // has but not fully implemented
                 'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,

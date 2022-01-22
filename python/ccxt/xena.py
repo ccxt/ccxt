@@ -25,8 +25,8 @@ class xena(Exchange):
             'has': {
                 'spot': False,
                 'margin': False,
-                'swap': True,
-                'future': True,
+                'swap': None,  # has but not fully implemented
+                'future': None,  # has but not fully implemented
                 'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
