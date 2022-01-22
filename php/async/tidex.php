@@ -444,16 +444,16 @@ class tidex extends Exchange {
         //
         $timestamp = $this->safe_timestamp($ticker, 'updated');
         $market = $this->safe_market(null, $market);
-        $last = $this->safe_number($ticker, 'last');
+        $last = $this->safe_string($ticker, 'last');
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'buy'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'sell'),
+            'ask' => $this->safe_string($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -462,11 +462,11 @@ class tidex extends Exchange {
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
-            'average' => $this->safe_number($ticker, 'avg'),
-            'baseVolume' => $this->safe_number($ticker, 'vol_cur'),
-            'quoteVolume' => $this->safe_number($ticker, 'vol'),
+            'average' => $this->safe_string($ticker, 'avg'),
+            'baseVolume' => $this->safe_string($ticker, 'vol_cur'),
+            'quoteVolume' => $this->safe_string($ticker, 'vol'),
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
