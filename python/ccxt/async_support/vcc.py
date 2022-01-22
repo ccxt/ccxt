@@ -434,23 +434,22 @@ class vcc(Exchange):
         #     }
         #
         timestamp = self.milliseconds()
-        baseVolume = self.safe_number(ticker, 'base_volume')
-        quoteVolume = self.safe_number(ticker, 'quote_volume')
-        open = self.safe_number(ticker, 'open_price')
-        last = self.safe_number(ticker, 'last_price')
-        vwap = self.vwap(baseVolume, quoteVolume)
+        baseVolume = self.safe_string(ticker, 'base_volume')
+        quoteVolume = self.safe_string(ticker, 'quote_volume')
+        open = self.safe_string(ticker, 'open_price')
+        last = self.safe_string(ticker, 'last_price')
         symbol = self.safe_symbol(None, market)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'max_price'),
-            'low': self.safe_number(ticker, 'min_price'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'max_price'),
+            'low': self.safe_string(ticker, 'min_price'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
-            'vwap': vwap,
+            'vwap': None,
             'open': open,
             'close': last,
             'last': last,
@@ -461,7 +460,7 @@ class vcc(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()

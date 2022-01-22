@@ -440,23 +440,22 @@ class vcc extends Exchange {
         //     }
         //
         $timestamp = $this->milliseconds();
-        $baseVolume = $this->safe_number($ticker, 'base_volume');
-        $quoteVolume = $this->safe_number($ticker, 'quote_volume');
-        $open = $this->safe_number($ticker, 'open_price');
-        $last = $this->safe_number($ticker, 'last_price');
-        $vwap = $this->vwap($baseVolume, $quoteVolume);
+        $baseVolume = $this->safe_string($ticker, 'base_volume');
+        $quoteVolume = $this->safe_string($ticker, 'quote_volume');
+        $open = $this->safe_string($ticker, 'open_price');
+        $last = $this->safe_string($ticker, 'last_price');
         $symbol = $this->safe_symbol(null, $market);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'max_price'),
-            'low' => $this->safe_number($ticker, 'min_price'),
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'high' => $this->safe_string($ticker, 'max_price'),
+            'low' => $this->safe_string($ticker, 'min_price'),
+            'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
-            'vwap' => $vwap,
+            'vwap' => null,
             'open' => $open,
             'close' => $last,
             'last' => $last,
@@ -467,7 +466,7 @@ class vcc extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
