@@ -955,9 +955,7 @@ module.exports = class bybit extends Exchange {
         const last = this.safeString (ticker, 'last_price');
         const open = this.safeString (ticker, 'prev_price_24h');
         let percentage = this.safeString (ticker, 'price_24h_pcnt');
-        if (percentage !== undefined) {
-            percentage = Precise.stringMul (percentage, '100');
-        }
+        percentage = Precise.stringMul (percentage, '100');
         const baseVolume = this.safeString (ticker, 'turnover_24h');
         const quoteVolume = this.safeString (ticker, 'volume_24h');
         return this.safeTicker ({
