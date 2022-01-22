@@ -409,13 +409,13 @@ class wazirx(Exchange):
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
-        last = self.safe_number(ticker, 'lastPrice')
-        open = self.safe_number(ticker, 'openPrice')
-        high = self.safe_number(ticker, 'highPrice')
-        low = self.safe_number(ticker, 'lowPrice')
-        baseVolume = self.safe_number(ticker, 'volume')
-        bid = self.safe_number(ticker, 'bidPrice')
-        ask = self.safe_number(ticker, 'askPrice')
+        last = self.safe_string(ticker, 'lastPrice')
+        open = self.safe_string(ticker, 'openPrice')
+        high = self.safe_string(ticker, 'highPrice')
+        low = self.safe_string(ticker, 'lowPrice')
+        baseVolume = self.safe_string(ticker, 'volume')
+        bid = self.safe_string(ticker, 'bidPrice')
+        ask = self.safe_string(ticker, 'askPrice')
         timestamp = self.safe_string(ticker, 'at')
         return self.safe_ticker({
             'symbol': symbol,
@@ -438,7 +438,7 @@ class wazirx(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def parse_balance(self, response):
         result = {}
