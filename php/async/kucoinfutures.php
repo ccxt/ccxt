@@ -669,7 +669,7 @@ class kucoinfutures extends kucoin {
         //          }
         //     }
         //
-        $last = $this->safe_number($ticker, 'price');
+        $last = $this->safe_string($ticker, 'price');
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market, '-');
         $timestamp = Precise::string_div($this->safe_string($ticker, 'ts'), '1000000');
@@ -679,10 +679,10 @@ class kucoinfutures extends kucoin {
             'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => $this->safe_number($ticker, 'bestBidPrice'),
-            'bidVolume' => $this->safe_number($ticker, 'bestBidSize'),
-            'ask' => $this->safe_number($ticker, 'bestAskPrice'),
-            'askVolume' => $this->safe_number($ticker, 'bestAskSize'),
+            'bid' => $this->safe_string($ticker, 'bestBidPrice'),
+            'bidVolume' => $this->safe_string($ticker, 'bestBidSize'),
+            'ask' => $this->safe_string($ticker, 'bestAskPrice'),
+            'askVolume' => $this->safe_string($ticker, 'bestAskSize'),
             'vwap' => null,
             'open' => null,
             'close' => $last,
@@ -694,7 +694,7 @@ class kucoinfutures extends kucoin {
             'baseVolume' => null,
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
