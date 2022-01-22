@@ -2337,13 +2337,11 @@ class bitget extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        $type = $this->safe_string($params, 'type', $market['type']);
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
         $request = array(
             'symbol' => $market['id'],
         );
-        $method = null;
-        if ($type === 'spot') {
-            $method = 'apiGetOrderOrdersHistory';
+        if ($marketType === 'spot') {
             // Value range [((end_time) – 48h), (end_time)]
             // the $query window is 48 hours at most
             // the window shift range is the last 30 days
@@ -2357,8 +2355,7 @@ class bitget extends Exchange {
             if ($limit === null) {
                 $request['size'] = $limit; // default 100, max 1000
             }
-        } else if ($type === 'swap') {
-            $method = 'swapGetOrderOrders';
+        } else if ($marketType === 'swap') {
             $request['status'] = '2'; // 0 Failed, 1 Partially Filled, 2 Fully Filled 3 = Open . Partially Filled, 4 Canceling
             $request['from'] = '1';
             $request['to'] = '1';
@@ -2366,7 +2363,10 @@ class bitget extends Exchange {
                 $request['limit'] = 100; // default 100, max 100
             }
         }
-        $query = $this->omit($params, 'type');
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'apiGetOrderOrdersHistory',
+            'swap' => 'swapGetOrderOrders',
+        ));
         $response = $this->$method (array_merge($request, $query));
         //
         //  spot

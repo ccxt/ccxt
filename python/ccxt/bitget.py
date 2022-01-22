@@ -2244,13 +2244,11 @@ class bitget(Exchange):
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        type = self.safe_string(params, 'type', market['type'])
+        marketType, query = self.handle_market_type_and_params('fetchClosedOrders', market, params)
         request = {
             'symbol': market['id'],
         }
-        method = None
-        if type == 'spot':
-            method = 'apiGetOrderOrdersHistory'
+        if marketType == 'spot':
             # Value range [((end_time) – 48h),(end_time)]
             # the query window is 48 hours at most
             # the window shift range is the last 30 days
@@ -2262,14 +2260,16 @@ class bitget(Exchange):
             request['method'] = 'openOrders'
             if limit is None:
                 request['size'] = limit  # default 100, max 1000
-        elif type == 'swap':
-            method = 'swapGetOrderOrders'
+        elif marketType == 'swap':
             request['status'] = '2'  # 0 Failed, 1 Partially Filled, 2 Fully Filled 3 = Open + Partially Filled, 4 Canceling
             request['from'] = '1'
             request['to'] = '1'
             if limit is None:
                 request['limit'] = 100  # default 100, max 100
-        query = self.omit(params, 'type')
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'apiGetOrderOrdersHistory',
+            'swap': 'swapGetOrderOrders',
+        })
         response = getattr(self, method)(self.extend(request, query))
         #
         #  spot
