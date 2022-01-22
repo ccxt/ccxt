@@ -1810,10 +1810,9 @@ class bitmart(Exchange):
             raise ArgumentsRequired(self.id + ' fetchOrdersByStatus() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
+        marketType, query = self.handle_market_type_and_params('fetchOrdersByStatus', market, params)
         request = {}
-        method = None
         if market['spot']:
-            method = 'privateSpotGetOrders'
             request['symbol'] = market['id']
             request['offset'] = 1  # max offset * limit < 500
             request['limit'] = 100  # max limit is 100
@@ -1836,7 +1835,6 @@ class bitmart(Exchange):
             else:
                 request['status'] = status
         elif market['swap'] or market['future']:
-            method = 'privateContractGetUserOrders'
             request['contractID'] = market['id']
             # request['offset'] = 1
             if limit is not None:
@@ -1852,7 +1850,12 @@ class bitmart(Exchange):
                 request['status'] = 4
             else:
                 request['status'] = status
-        response = await getattr(self, method)(self.extend(request, params))
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateSpotGetOrders',
+            'swap': 'privateContractGetUserOrders',
+            'future': 'privateContractGetUserOrders',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
         #
         # spot
         #

@@ -1875,10 +1875,9 @@ class bitmart extends Exchange {
         }
         yield $this->load_markets();
         $market = $this->market($symbol);
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params);
         $request = array();
-        $method = null;
         if ($market['spot']) {
-            $method = 'privateSpotGetOrders';
             $request['symbol'] = $market['id'];
             $request['offset'] = 1; // max offset * $limit < 500
             $request['limit'] = 100; // max $limit is 100
@@ -1902,7 +1901,6 @@ class bitmart extends Exchange {
                 $request['status'] = $status;
             }
         } else if ($market['swap'] || $market['future']) {
-            $method = 'privateContractGetUserOrders';
             $request['contractID'] = $market['id'];
             // $request['offset'] = 1;
             if ($limit !== null) {
@@ -1921,7 +1919,12 @@ class bitmart extends Exchange {
                 $request['status'] = $status;
             }
         }
-        $response = yield $this->$method (array_merge($request, $params));
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateSpotGetOrders',
+            'swap' => 'privateContractGetUserOrders',
+            'future' => 'privateContractGetUserOrders',
+        ));
+        $response = yield $this->$method (array_merge($request, $query));
         //
         // spot
         //
