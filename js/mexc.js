@@ -1468,20 +1468,20 @@ module.exports = class mexc extends Exchange {
         }
         const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
-        let amount = this.safeNumber (transaction, 'amount');
+        let amountString = this.safeString (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
         const txid = this.safeString (transaction, 'tx_id');
         let fee = undefined;
-        const feeCost = this.safeNumber (transaction, 'fee');
-        if (feeCost !== undefined) {
+        const feeCostString = this.safeString (transaction, 'fee');
+        if (feeCostString !== undefined) {
             fee = {
-                'cost': feeCost,
+                'cost': this.parseNumber (feeCostString);
                 'currency': code,
             };
         }
         if (type === 'withdrawal') {
             // mexc withdrawal amount includes the fee
-            amount = amount - feeCost;
+            amountString = Precise.stringSub (amountString, feeCostString);
         }
         return {
             'info': transaction,
@@ -1497,7 +1497,7 @@ module.exports = class mexc extends Exchange {
             'tagTo': undefined,
             'tagFrom': undefined,
             'type': type,
-            'amount': amount,
+            'amount': this.parseNumber (amountString),
             'currency': code,
             'status': status,
             'updated': updated,
