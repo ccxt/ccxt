@@ -1324,26 +1324,23 @@ class aax(Exchange):
             # 'side': 'None',  # BUY, SELL
             # 'clOrdID': clientOrderId,
         }
-        defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
-        params = self.omit(params, 'type')
         market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-            type = market['type']
+        marketType, query = self.handle_market_type_and_params('fetchOpenOrders', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateGetSpotOpenOrders',
+            'swap': 'privateGetFuturesOpenOrders',
+            'future': 'privateGetFuturesOpenOrders',
+        })
         clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         if clientOrderId is not None:
             request['clOrdID'] = clientOrderId
             params = self.omit(params, ['clOrdID', 'clientOrderId'])
-        method = None
-        if type == 'spot':
-            method = 'privateGetSpotOpenOrders'
-        elif type == 'swap' or type == 'future' or type == 'futures':  # type == 'futures' deprecated, use type == 'swap'
-            method = 'privateGetFuturesOpenOrders'
         if limit is not None:
             request['pageSize'] = limit  # default 10
-        response = getattr(self, method)(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, query))
         #
         # spot
         #

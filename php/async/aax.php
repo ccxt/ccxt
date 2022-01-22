@@ -1362,30 +1362,26 @@ class aax extends Exchange {
             // 'side' => 'null', // BUY, SELL
             // 'clOrdID' => $clientOrderId,
         );
-        $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit($params, 'type');
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
-            $type = $market['type'];
         }
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateGetSpotOpenOrders',
+            'swap' => 'privateGetFuturesOpenOrders',
+            'future' => 'privateGetFuturesOpenOrders',
+        ));
         $clientOrderId = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['clOrdID'] = $clientOrderId;
             $params = $this->omit($params, array( 'clOrdID', 'clientOrderId' ));
         }
-        $method = null;
-        if ($type === 'spot') {
-            $method = 'privateGetSpotOpenOrders';
-        } else if ($type === 'swap' || $type === 'future' || $type === 'futures') { // $type === 'futures' deprecated, use $type === 'swap'
-            $method = 'privateGetFuturesOpenOrders';
-        }
         if ($limit !== null) {
             $request['pageSize'] = $limit; // default 10
         }
-        $response = yield $this->$method (array_merge($request, $params));
+        $response = yield $this->$method (array_merge($request, $query));
         //
         // spot
         //
