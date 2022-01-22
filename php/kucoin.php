@@ -775,41 +775,40 @@ class kucoin extends Exchange {
         //         time => 1634641777363
         //     }
         //
-        $percentage = $this->safe_number($ticker, 'changeRate');
+        $percentage = $this->safe_string($ticker, 'changeRate');
         if ($percentage !== null) {
-            $percentage = $percentage * 100;
+            $percentage = Precise::string_mul($percentage, '100');
         }
-        $last = $this->safe_number_2($ticker, 'last', 'lastTradedPrice');
-        $last = $this->safe_number($ticker, 'price', $last);
+        $last = $this->safe_string_2($ticker, 'last', 'lastTradedPrice');
+        $last = $this->safe_string($ticker, 'price', $last);
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market, '-');
         $symbol = $market['symbol'];
-        $baseVolume = $this->safe_number($ticker, 'vol');
-        $quoteVolume = $this->safe_number($ticker, 'volValue');
-        $vwap = $this->vwap($baseVolume, $quoteVolume);
+        $baseVolume = $this->safe_string($ticker, 'vol');
+        $quoteVolume = $this->safe_string($ticker, 'volValue');
         $timestamp = $this->safe_integer_2($ticker, 'time', 'datetime');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number_2($ticker, 'buy', 'bestBid'),
-            'bidVolume' => $this->safe_number($ticker, 'bestBidSize'),
-            'ask' => $this->safe_number_2($ticker, 'sell', 'bestAsk'),
-            'askVolume' => $this->safe_number($ticker, 'bestAskSize'),
-            'vwap' => $vwap,
-            'open' => $this->safe_number($ticker, 'open'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string_2($ticker, 'buy', 'bestBid'),
+            'bidVolume' => $this->safe_string($ticker, 'bestBidSize'),
+            'ask' => $this->safe_string_2($ticker, 'sell', 'bestAsk'),
+            'askVolume' => $this->safe_string($ticker, 'bestAskSize'),
+            'vwap' => null,
+            'open' => $this->safe_string($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_number($ticker, 'changePrice'),
+            'change' => $this->safe_string($ticker, 'changePrice'),
             'percentage' => $percentage,
-            'average' => $this->safe_number($ticker, 'averagePrice'),
+            'average' => $this->safe_string($ticker, 'averagePrice'),
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

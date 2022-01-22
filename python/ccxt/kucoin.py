@@ -774,40 +774,39 @@ class kucoin(Exchange):
         #         time: 1634641777363
         #     }
         #
-        percentage = self.safe_number(ticker, 'changeRate')
+        percentage = self.safe_string(ticker, 'changeRate')
         if percentage is not None:
-            percentage = percentage * 100
-        last = self.safe_number_2(ticker, 'last', 'lastTradedPrice')
-        last = self.safe_number(ticker, 'price', last)
+            percentage = Precise.string_mul(percentage, '100')
+        last = self.safe_string_2(ticker, 'last', 'lastTradedPrice')
+        last = self.safe_string(ticker, 'price', last)
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market, '-')
         symbol = market['symbol']
-        baseVolume = self.safe_number(ticker, 'vol')
-        quoteVolume = self.safe_number(ticker, 'volValue')
-        vwap = self.vwap(baseVolume, quoteVolume)
+        baseVolume = self.safe_string(ticker, 'vol')
+        quoteVolume = self.safe_string(ticker, 'volValue')
         timestamp = self.safe_integer_2(ticker, 'time', 'datetime')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number_2(ticker, 'buy', 'bestBid'),
-            'bidVolume': self.safe_number(ticker, 'bestBidSize'),
-            'ask': self.safe_number_2(ticker, 'sell', 'bestAsk'),
-            'askVolume': self.safe_number(ticker, 'bestAskSize'),
-            'vwap': vwap,
-            'open': self.safe_number(ticker, 'open'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string_2(ticker, 'buy', 'bestBid'),
+            'bidVolume': self.safe_string(ticker, 'bestBidSize'),
+            'ask': self.safe_string_2(ticker, 'sell', 'bestAsk'),
+            'askVolume': self.safe_string(ticker, 'bestAskSize'),
+            'vwap': None,
+            'open': self.safe_string(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_number(ticker, 'changePrice'),
+            'change': self.safe_string(ticker, 'changePrice'),
             'percentage': percentage,
-            'average': self.safe_number(ticker, 'averagePrice'),
+            'average': self.safe_string(ticker, 'averagePrice'),
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
