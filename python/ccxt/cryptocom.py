@@ -1367,17 +1367,17 @@ class cryptocom(Exchange):
         marketId = self.safe_string(ticker, 'i')
         market = self.safe_market(marketId, market, '_')
         symbol = market['symbol']
-        last = self.safe_number(ticker, 'a')
-        relativeChange = self.safe_number(ticker, 'c')
+        last = self.safe_string(ticker, 'a')
+        relativeChange = self.safe_string(ticker, 'c')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'h'),
-            'low': self.safe_number(ticker, 'l'),
-            'bid': self.safe_number(ticker, 'b'),
+            'high': self.safe_string(ticker, 'h'),
+            'low': self.safe_string(ticker, 'l'),
+            'bid': self.safe_string(ticker, 'b'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'k'),
+            'ask': self.safe_string(ticker, 'k'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -1385,12 +1385,12 @@ class cryptocom(Exchange):
             'last': last,
             'previousClose': None,
             'change': None,
-            'percentage': relativeChange * 100,
+            'percentage': relativeChange,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'v'),
+            'baseVolume': self.safe_string(ticker, 'v'),
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def parse_trade(self, trade, market=None):
         #

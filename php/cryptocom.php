@@ -1434,17 +1434,17 @@ class cryptocom extends Exchange {
         $marketId = $this->safe_string($ticker, 'i');
         $market = $this->safe_market($marketId, $market, '_');
         $symbol = $market['symbol'];
-        $last = $this->safe_number($ticker, 'a');
-        $relativeChange = $this->safe_number($ticker, 'c');
+        $last = $this->safe_string($ticker, 'a');
+        $relativeChange = $this->safe_string($ticker, 'c');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'h'),
-            'low' => $this->safe_number($ticker, 'l'),
-            'bid' => $this->safe_number($ticker, 'b'),
+            'high' => $this->safe_string($ticker, 'h'),
+            'low' => $this->safe_string($ticker, 'l'),
+            'bid' => $this->safe_string($ticker, 'b'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'k'),
+            'ask' => $this->safe_string($ticker, 'k'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -1452,12 +1452,12 @@ class cryptocom extends Exchange {
             'last' => $last,
             'previousClose' => null,
             'change' => null,
-            'percentage' => $relativeChange * 100,
+            'percentage' => $relativeChange,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'v'),
+            'baseVolume' => $this->safe_string($ticker, 'v'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function parse_trade($trade, $market = null) {
