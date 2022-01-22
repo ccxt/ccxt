@@ -380,16 +380,16 @@ class luno(Exchange):
         timestamp = self.safe_integer(ticker, 'timestamp')
         marketId = self.safe_string(ticker, 'pair')
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_number(ticker, 'last_trade')
+        last = self.safe_string(ticker, 'last_trade')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': self.safe_number(ticker, 'bid'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -399,10 +399,10 @@ class luno(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'rolling_24_hour_volume'),
+            'baseVolume': self.safe_string(ticker, 'rolling_24_hour_volume'),
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()

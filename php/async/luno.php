@@ -406,16 +406,16 @@ class luno extends Exchange {
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $marketId = $this->safe_string($ticker, 'pair');
         $symbol = $this->safe_symbol($marketId, $market);
-        $last = $this->safe_number($ticker, 'last_trade');
+        $last = $this->safe_string($ticker, 'last_trade');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -425,10 +425,10 @@ class luno extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'rolling_24_hour_volume'),
+            'baseVolume' => $this->safe_string($ticker, 'rolling_24_hour_volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
