@@ -1846,16 +1846,16 @@ module.exports = class okex extends Exchange {
         if (typeof ids === 'string') {
             const orderIds = ids.split (',');
             for (let i = 0; i < orderIds.length; i++) {
-                request.push({
-                    "instId": market['id'],
-                    "ordId": orderIds[i]
+                request.push ({
+                    'instId': market['id'],
+                    'ordId': orderIds[i],
                 });
             }
         } else {
             for (let i = 0; i < ids.length; i++) {
-                request.push({
-                    "instId": market['id'],
-                    "ordId": ids[i]
+                request.push ({
+                    'instId': market['id'],
+                    'ordId': ids[i],
                 });
             }
         }
@@ -1864,15 +1864,15 @@ module.exports = class okex extends Exchange {
         orderId = this.safeValue2 (params, 'ordId', 'orderId', orderId);
         if (Array.isArray (orderId)) {
             for (let i = 0; i < orderId.length; i++) {
-                request.push({
-                    "instId": market['id'],
-                    "ordId": orderId[i]
+                request.push ({
+                    'instId': market['id'],
+                    'ordId': orderId[i],
                 });
             }
         } else if (typeof orderId === 'string') {
-            request.push({
-                "instId": market['id'],
-                "ordId": orderId[i]
+            request.push ({
+                'instId': market['id'],
+                'ordId': orderId,
             });
         }
         // for client-order-ids
@@ -1880,15 +1880,15 @@ module.exports = class okex extends Exchange {
         clientOrderId = this.safeValue2 (params, 'clOrdId', 'clientOrderId', clientOrderId);
         if (Array.isArray (clientOrderId)) {
             for (let i = 0; i < clientOrderId.length; i++) {
-                request.push({
-                    "instId": market['id'],
-                    "clOrdId": clientOrderId[i]
+                request.push ({
+                    'instId': market['id'],
+                    'clOrdId': clientOrderId[i],
                 });
             }
         } else if (typeof clientOrderId === 'string') {
-            request.push({
-                "instId": market['id'],
-                "clOrdId": orderId[i]
+            request.push ({
+                'instId': market['id'],
+                'clOrdId': clientOrderId,
             });
         }
         const response = await this.privatePostTradeCancelBatchOrders (request); // dont extend with params, otherwise ARRAY will be turned into OBJECT
@@ -1908,7 +1908,7 @@ module.exports = class okex extends Exchange {
         // }
         //
         const ordersData = this.safeValue (response, 'data', []);
-        return this.parseOrders(ordersData, market, undefined, undefined, params);
+        return this.parseOrders (ordersData, market, undefined, undefined, params);
     }
 
     parseOrderStatus (status) {
