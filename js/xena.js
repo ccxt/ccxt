@@ -14,8 +14,8 @@ module.exports = class xena extends Exchange {
             'has': {
                 'spot': false,
                 'margin': false,
-                'swap': true,
-                'future': true,
+                'swap': undefined, // has but not fully implemented
+                'future': undefined, // has but not fully implemented
                 'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
