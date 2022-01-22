@@ -248,11 +248,14 @@ module.exports = class mexc extends Exchange {
                 'exact': {
                     '400': BadRequest, // Invalid parameter
                     '401': AuthenticationError, // Invalid signature, fail to pass the validation
+                    '403': PermissionDenied, // {"msg":"no permission to access the endpoint","code":403}
                     '429': RateLimitExceeded, // too many requests, rate limit rule is violated
                     '1000': PermissionDenied, // {"success":false,"code":1000,"message":"Please open contract account first!"}
                     '1002': InvalidOrder, // {"success":false,"code":1002,"message":"Contract not allow place order!"}
                     '10072': AuthenticationError, // Invalid access key
                     '10073': AuthenticationError, // Invalid request time
+                    '10075': PermissionDenied, // {"msg":"IP [xxx.xxx.xxx.xxx] not in the ip white list","code":10075}
+                    '10101': InsufficientFunds, // {"code":10101,"msg":"Insufficient balance"}
                     '10216': InvalidAddress, // {"code":10216,"msg":"No available deposit address"}
                     '10232': BadSymbol, // {"code":10232,"msg":"The currency not exist"}
                     '30000': BadSymbol, // Trading is suspended for the requested symbol
@@ -1476,6 +1479,10 @@ module.exports = class mexc extends Exchange {
                 'currency': code,
             };
         }
+        if (type === 'withdrawal') {
+            // mexc withdrawal amount includes the fee
+            amount = amount - feeCost;
+        }
         return {
             'info': transaction,
             'id': id,
@@ -2083,8 +2090,19 @@ module.exports = class mexc extends Exchange {
             params = this.omit (params, [ 'network', 'chain' ]);
         }
         const response = await this.spotPrivatePostAssetWithdraw (this.extend (request, params));
+        //
+        //     {
+        //         "code":200,
+        //         "data": {
+        //             "withdrawId":"25fb2831fb6d4fc7aa4094612a26c81d"
+        //         }
+        //     }
+        //
         const data = this.safeValue (response, 'data', {});
-        return this.parseTransaction (data, currency);
+        return {
+            'info': data,
+            'id': this.data (response, 'withdrawId'),
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
