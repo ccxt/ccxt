@@ -559,30 +559,30 @@ class currencycom extends Exchange {
         $timestamp = $this->safe_integer($ticker, 'closeTime');
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market, '/');
-        $last = $this->safe_number($ticker, 'lastPrice');
-        $open = $this->safe_number($ticker, 'openPrice');
+        $last = $this->safe_string($ticker, 'lastPrice');
+        $open = $this->safe_string($ticker, 'openPrice');
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'highPrice'),
-            'low' => $this->safe_number($ticker, 'lowPrice'),
-            'bid' => $this->safe_number($ticker, 'bidPrice'),
-            'bidVolume' => $this->safe_number($ticker, 'bidQty'),
-            'ask' => $this->safe_number($ticker, 'askPrice'),
-            'askVolume' => $this->safe_number($ticker, 'askQty'),
-            'vwap' => $this->safe_number($ticker, 'weightedAvgPrice'),
+            'high' => $this->safe_string($ticker, 'highPrice'),
+            'low' => $this->safe_string($ticker, 'lowPrice'),
+            'bid' => $this->safe_string($ticker, 'bidPrice'),
+            'bidVolume' => $this->safe_string($ticker, 'bidQty'),
+            'ask' => $this->safe_string($ticker, 'askPrice'),
+            'askVolume' => $this->safe_string($ticker, 'askQty'),
+            'vwap' => $this->safe_string($ticker, 'weightedAvgPrice'),
             'open' => $open,
             'close' => $last,
             'last' => $last,
-            'previousClose' => $this->safe_number($ticker, 'prevClosePrice'), // previous day close
-            'change' => $this->safe_number($ticker, 'priceChange'),
-            'percentage' => $this->safe_number($ticker, 'priceChangePercent'),
+            'previousClose' => $this->safe_string($ticker, 'prevClosePrice'), // previous day close
+            'change' => $this->safe_string($ticker, 'priceChange'),
+            'percentage' => $this->safe_string($ticker, 'priceChangePercent'),
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'volume'),
-            'quoteVolume' => $this->safe_number($ticker, 'quoteVolume'),
+            'baseVolume' => $this->safe_string($ticker, 'volume'),
+            'quoteVolume' => $this->safe_string($ticker, 'quoteVolume'),
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
