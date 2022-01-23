@@ -1096,22 +1096,21 @@ module.exports = class okex extends Exchange {
         const marketId = this.safeString (ticker, 'instId');
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];
-        const last = this.safeNumber (ticker, 'last');
-        const open = this.safeNumber (ticker, 'open24h');
-        const quoteVolume = this.safeNumber (ticker, 'volCcy24h');
-        const baseVolume = this.safeNumber (ticker, 'vol24h');
-        const vwap = this.vwap (baseVolume, quoteVolume);
+        const last = this.safeString (ticker, 'last');
+        const open = this.safeString (ticker, 'open24h');
+        const quoteVolume = this.safeString (ticker, 'volCcy24h');
+        const baseVolume = this.safeString (ticker, 'vol24h');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high24h'),
-            'low': this.safeNumber (ticker, 'low24h'),
-            'bid': this.safeNumber (ticker, 'bidPx'),
-            'bidVolume': this.safeNumber (ticker, 'bidSz'),
-            'ask': this.safeNumber (ticker, 'askPx'),
-            'askVolume': this.safeNumber (ticker, 'askSz'),
-            'vwap': vwap,
+            'high': this.safeString (ticker, 'high24h'),
+            'low': this.safeString (ticker, 'low24h'),
+            'bid': this.safeString (ticker, 'bidPx'),
+            'bidVolume': this.safeString (ticker, 'bidSz'),
+            'ask': this.safeString (ticker, 'askPx'),
+            'askVolume': this.safeString (ticker, 'askSz'),
+            'vwap': undefined,
             'open': open,
             'close': last,
             'last': last,
@@ -1122,7 +1121,7 @@ module.exports = class okex extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {

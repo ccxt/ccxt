@@ -641,13 +641,13 @@ class wavesexchange(Exchange):
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
         data = self.safe_value(ticker, 'data', {})
-        last = self.safe_number(data, 'lastPrice')
-        low = self.safe_number(data, 'low')
-        high = self.safe_number(data, 'high')
-        vwap = self.safe_number(data, 'weightedAveragePrice')
-        baseVolume = self.safe_number(data, 'volume')
-        quoteVolume = self.safe_number(data, 'quoteVolume')
-        open = self.safe_number(data, 'firstPrice')
+        last = self.safe_string(data, 'lastPrice')
+        low = self.safe_string(data, 'low')
+        high = self.safe_string(data, 'high')
+        vwap = self.safe_string(data, 'weightedAveragePrice')
+        baseVolume = self.safe_string(data, 'volume')
+        quoteVolume = self.safe_string(data, 'quoteVolume')
+        open = self.safe_string(data, 'firstPrice')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -669,7 +669,7 @@ class wavesexchange(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

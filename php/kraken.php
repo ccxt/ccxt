@@ -695,27 +695,44 @@ class kraken extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
+        //
+        //     {
+        //         "a":["2432.77000","1","1.000"],
+        //         "b":["2431.37000","2","2.000"],
+        //         "c":["2430.58000","0.04408910"],
+        //         "v":["4147.94474901","8896.96086304"],
+        //         "p":["2456.22239","2568.63032"],
+        //         "t":[3907,10056],
+        //         "l":["2302.18000","2302.18000"],
+        //         "h":["2621.14000","2860.01000"],
+        //         "o":"2571.56000"
+        //     }
+        //
         $timestamp = $this->milliseconds();
         $symbol = $this->safe_symbol(null, $market);
-        $baseVolume = floatval($ticker['v'][1]);
-        $vwap = floatval($ticker['p'][1]);
+        $v = $this->safe_value($ticker, 'v', array());
+        $baseVolume = $this->safe_string($v, 1);
+        $p = $this->safe_value($ticker, 'p', array());
+        $vwap = $this->safe_string($p, 1);
         $quoteVolume = null;
-        if ($baseVolume !== null && $vwap !== null) {
-            $quoteVolume = $baseVolume * $vwap;
-        }
-        $last = floatval($ticker['c'][0]);
+        $c = $this->safe_value($ticker, 'c', array());
+        $last = $this->safe_string($c, 0);
+        $high = $this->safe_value($ticker, 'h', array());
+        $low = $this->safe_value($ticker, 'l', array());
+        $bid = $this->safe_value($ticker, 'b', array());
+        $ask = $this->safe_value($ticker, 'a', array());
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => floatval($ticker['h'][1]),
-            'low' => floatval($ticker['l'][1]),
-            'bid' => floatval($ticker['b'][0]),
+            'high' => $this->safe_string($high, 1),
+            'low' => $this->safe_string($low, 1),
+            'bid' => $this->safe_string($bid, 0),
             'bidVolume' => null,
-            'ask' => floatval($ticker['a'][0]),
+            'ask' => $this->safe_string($ask, 0),
             'askVolume' => null,
             'vwap' => $vwap,
-            'open' => $this->safe_number($ticker, 'o'),
+            'open' => $this->safe_string($ticker, 'o'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
@@ -725,7 +742,7 @@ class kraken extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

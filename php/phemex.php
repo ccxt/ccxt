@@ -1041,30 +1041,24 @@ class phemex extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer_product($ticker, 'timestamp', 0.000001);
-        $lastString = $this->from_ep($this->safe_string($ticker, 'lastEp'), $market);
-        $last = $this->parse_number($lastString);
-        $quoteVolume = $this->parse_number($this->from_ev($this->safe_string($ticker, 'turnoverEv'), $market));
-        $baseVolume = $this->safe_number($ticker, 'volume');
+        $last = $this->from_ep($this->safe_string($ticker, 'lastEp'), $market);
+        $quoteVolume = $this->from_ev($this->safe_string($ticker, 'turnoverEv'), $market);
+        $baseVolume = $this->safe_string($ticker, 'volume');
         if ($baseVolume === null) {
-            $baseVolume = $this->parse_number($this->from_ev($this->safe_string($ticker, 'volumeEv'), $market));
+            $baseVolume = $this->from_ev($this->safe_string($ticker, 'volumeEv'), $market);
         }
-        $vwap = null;
-        if (($market !== null) && ($market['spot'])) {
-            $vwap = $this->vwap($baseVolume, $quoteVolume);
-        }
-        $openString = $this->from_ep($this->safe_string($ticker, 'openEp'), $market);
-        $open = $this->parse_number($openString);
+        $open = $this->from_ep($this->safe_string($ticker, 'openEp'), $market);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->parse_number($this->from_ep($this->safe_string($ticker, 'highEp'), $market)),
-            'low' => $this->parse_number($this->from_ep($this->safe_string($ticker, 'lowEp'), $market)),
-            'bid' => $this->parse_number($this->from_ep($this->safe_string($ticker, 'bidEp'), $market)),
+            'high' => $this->from_ep($this->safe_string($ticker, 'highEp'), $market),
+            'low' => $this->from_ep($this->safe_string($ticker, 'lowEp'), $market),
+            'bid' => $this->from_ep($this->safe_string($ticker, 'bidEp'), $market),
             'bidVolume' => null,
-            'ask' => $this->parse_number($this->from_ep($this->safe_string($ticker, 'askEp'), $market)),
+            'ask' => $this->from_ep($this->safe_string($ticker, 'askEp'), $market),
             'askVolume' => null,
-            'vwap' => $vwap,
+            'vwap' => null,
             'open' => $open,
             'close' => $last,
             'last' => $last,
@@ -1075,7 +1069,7 @@ class phemex extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

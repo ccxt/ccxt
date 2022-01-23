@@ -667,13 +667,13 @@ class wavesexchange extends Exchange {
             $symbol = $market['symbol'];
         }
         $data = $this->safe_value($ticker, 'data', array());
-        $last = $this->safe_number($data, 'lastPrice');
-        $low = $this->safe_number($data, 'low');
-        $high = $this->safe_number($data, 'high');
-        $vwap = $this->safe_number($data, 'weightedAveragePrice');
-        $baseVolume = $this->safe_number($data, 'volume');
-        $quoteVolume = $this->safe_number($data, 'quoteVolume');
-        $open = $this->safe_number($data, 'firstPrice');
+        $last = $this->safe_string($data, 'lastPrice');
+        $low = $this->safe_string($data, 'low');
+        $high = $this->safe_string($data, 'high');
+        $vwap = $this->safe_string($data, 'weightedAveragePrice');
+        $baseVolume = $this->safe_string($data, 'volume');
+        $quoteVolume = $this->safe_string($data, 'quoteVolume');
+        $open = $this->safe_string($data, 'firstPrice');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -695,7 +695,7 @@ class wavesexchange extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
