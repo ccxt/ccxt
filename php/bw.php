@@ -352,31 +352,31 @@ class bw extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $timestamp = $this->milliseconds();
-        $close = $this->safe_number($ticker, 1);
+        $close = $this->safe_string($ticker, 1);
         $bid = $this->safe_value($ticker, 'bid', array());
         $ask = $this->safe_value($ticker, 'ask', array());
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 2),
-            'low' => $this->safe_number($ticker, 3),
-            'bid' => $this->safe_number($ticker, 7),
-            'bidVolume' => $this->safe_number($bid, 'quantity'),
-            'ask' => $this->safe_number($ticker, 8),
-            'askVolume' => $this->safe_number($ask, 'quantity'),
+            'high' => $this->safe_string($ticker, 2),
+            'low' => $this->safe_string($ticker, 3),
+            'bid' => $this->safe_string($ticker, 7),
+            'bidVolume' => $this->safe_string($bid, 'quantity'),
+            'ask' => $this->safe_string($ticker, 8),
+            'askVolume' => $this->safe_string($ask, 'quantity'),
             'vwap' => null,
             'open' => null,
             'close' => $close,
             'last' => $close,
             'previousClose' => null,
-            'change' => $this->safe_number($ticker, 5),
+            'change' => $this->safe_string($ticker, 5),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 4),
-            'quoteVolume' => $this->safe_number($ticker, 9),
+            'baseVolume' => $this->safe_string($ticker, 4),
+            'quoteVolume' => $this->safe_string($ticker, 9),
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

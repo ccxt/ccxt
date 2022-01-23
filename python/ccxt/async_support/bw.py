@@ -351,31 +351,31 @@ class bw(Exchange):
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
         timestamp = self.milliseconds()
-        close = self.safe_number(ticker, 1)
+        close = self.safe_string(ticker, 1)
         bid = self.safe_value(ticker, 'bid', {})
         ask = self.safe_value(ticker, 'ask', {})
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 2),
-            'low': self.safe_number(ticker, 3),
-            'bid': self.safe_number(ticker, 7),
-            'bidVolume': self.safe_number(bid, 'quantity'),
-            'ask': self.safe_number(ticker, 8),
-            'askVolume': self.safe_number(ask, 'quantity'),
+            'high': self.safe_string(ticker, 2),
+            'low': self.safe_string(ticker, 3),
+            'bid': self.safe_string(ticker, 7),
+            'bidVolume': self.safe_string(bid, 'quantity'),
+            'ask': self.safe_string(ticker, 8),
+            'askVolume': self.safe_string(ask, 'quantity'),
             'vwap': None,
             'open': None,
             'close': close,
             'last': close,
             'previousClose': None,
-            'change': self.safe_number(ticker, 5),
+            'change': self.safe_string(ticker, 5),
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 4),
-            'quoteVolume': self.safe_number(ticker, 9),
+            'baseVolume': self.safe_string(ticker, 4),
+            'quoteVolume': self.safe_string(ticker, 9),
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
