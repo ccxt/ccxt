@@ -272,8 +272,8 @@ class digifinex(Exchange):
             currency = data[i]
             id = self.safe_string(currency, 'currency')
             code = self.safe_currency_code(id)
-            depositStatus = self.safe_value(currency, 'deposit_status', 1)
-            withdrawStatus = self.safe_value(currency, 'withdraw_status', 1)
+            depositStatus = self.safe_integer(currency, 'deposit_status', 1)
+            withdrawStatus = self.safe_integer(currency, 'withdraw_status', 1)
             deposit = depositStatus > 0
             withdraw = withdrawStatus > 0
             active = deposit and withdraw
