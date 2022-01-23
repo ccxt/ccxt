@@ -295,49 +295,51 @@ module.exports = class wazirx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            'instrumentId': market['id'],
         };
+        if (since !== undefined) {
+            request['start'] = since;
+        }
         if (limit !== undefined) {
             request['limit'] = limit; // Default 500; max 1000.
         }
-        const method = this.safeString (this.options, 'fetchTradesMethod', 'publicGetTrades');
-        const response = await this[method] (this.extend (request, params));
-        // [
-        //     {
-        //         "id":322307791,
-        //         "price":"93.7",
-        //         "qty":"0.7",
-        //         "quoteQty":"65.59",
-        //         "time":1641386701000,
-        //         "isBuyerMaker":false
-        //     },
-        // ]
-        return this.parseTrades (response, market, since, limit);
+        const response = await this.publicGetGetLastTrades (this.extend (request, params));
+        // {
+        //     "result":{
+        //     "data":[
+        //         {
+        //             "id":744918,
+        //             "time":1594800000857010,
+        //             "price":0.02594000,
+        //             "qty":0.05800000,
+        //             "side":"buy"
+        //         }
+        //     ],
+        //     "next":false
+        //     }
+        // }
+        const result = this.safeValue (response, 'result', {});
+        const data = this.safeValue (result, 'data', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
         //
-        //     {
-        //         "id":322307791,
-        //         "price":"93.7",
-        //         "qty":"0.7",
-        //         "quoteQty":"65.59",
-        //         "time":1641386701000,
-        //         "isBuyerMaker":false
-        //     }
+        //         {
+        //             "id":744918,
+        //             "time":1594800000857010,
+        //             "price":0.02594000,
+        //             "qty":0.05800000,
+        //             "side":"buy"
+        //         }
         //
         const id = this.safeString (trade, 'id');
         const timestamp = this.parse8601 (this.safeString (trade, 'time'));
         const datetime = this.iso8601 (timestamp);
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        const isBuyerMaker = this.safeValue (trade, 'isBuyerMaker');
-        const side = isBuyerMaker ? 'sell' : 'buy';
+        const symbol = this.safeSymbol (undefined, market);
+        const side = this.safeString (trade, 'side');
         const price = this.safeNumber (trade, 'price');
         const amount = this.safeNumber (trade, 'qty');
-        const cost = this.safeNumber (trade, 'quoteQty');
         return this.safeTrade ({
             'info': trade,
             'id': id,
@@ -350,7 +352,7 @@ module.exports = class wazirx extends Exchange {
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'fee': undefined,
         });
     }
