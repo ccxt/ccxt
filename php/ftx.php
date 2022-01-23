@@ -1046,6 +1046,11 @@ class ftx extends Exchange {
             'market_name' => $marketId,
         );
         if ($since !== null) {
+            // the exchange aligns results to end_time returning 5000 trades max
+            // the user must set the end_time (in seconds) close enough to start_time
+            // for a proper pagination, fetch the most recent trades first
+            // then set the end_time parameter to the timestamp of the last trade
+            // start_time and end_time must be in seconds, divided by a thousand
             $request['start_time'] = intval($since / 1000);
             // start_time doesn't work without end_time
             $request['end_time'] = $this->seconds();
