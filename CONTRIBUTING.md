@@ -580,11 +580,15 @@ In order to convert to milliseconds timestamps, CCXT implements the following me
 const data = {
    'unixTimestampInSeconds': 1565242530,
    'unixTimestampInMilliseconds': 1565242530165,
+   'unixTimestampAsDecimal': 1565242530.165,
    'stringInSeconds': '1565242530',
 };
 
 // convert to integer if the underlying value is already in milliseconds
 const timestamp = this.safeInteger (data, 'unixTimestampInMilliseconds'); // === 1565242530165
+
+// convert to integer and multiply by a thousand if the value has milliseconds after dot
+const timestamp = this.safeTimestamp (data, 'unixTimestampAsDecimal'); // === 1565242530165
 
 // convert to integer and multiply by a thousand if the value is a UNIX timestamp in seconds
 const timestamp = this.safeTimestamp (data, 'unixTimestampInSeconds'); // === 1565242530000
