@@ -1843,6 +1843,19 @@ module.exports = class okex extends Exchange {
         const market = this.market (symbol);
         const request = [];
         const clientOrderId = this.safeValue2 (params, 'clOrdId', 'clientOrderId');
+        if (Array.isArray (clientOrderId)) {
+            for (let i = 0; i < clientOrderId.length; i++) {
+                request.push ({
+                    'instId': market['id'],
+                    'clOrdId': clientOrderId[i],
+                });
+            }
+        } else if (typeof clientOrderId === 'string') {
+            request.push ({
+                'instId': market['id'],
+                'clOrdId': clientOrderId,
+            });
+        }
         if (clientOrderId === undefined) {
             if (typeof ids === 'string') {
                 const orderIds = ids.split (',');
@@ -1860,19 +1873,7 @@ module.exports = class okex extends Exchange {
                     });
                 }
             }
-        } else if (Array.isArray (clientOrderId)) {
-            for (let i = 0; i < clientOrderId.length; i++) {
-                request.push ({
-                    'instId': market['id'],
-                    'clOrdId': clientOrderId[i],
-                });
-            }
-        } else if (typeof clientOrderId === 'string') {
-            request.push ({
-                'instId': market['id'],
-                'clOrdId': clientOrderId,
-            });
-        }
+        } 
         const response = await this.privatePostTradeCancelBatchOrders (request); // dont extend with params, otherwise ARRAY will be turned into OBJECT
         //
         // {
