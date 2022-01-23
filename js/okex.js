@@ -1835,49 +1835,15 @@ module.exports = class okex extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelOrders (ids, symbol = undefined, params = {}) { // TODO : the original endpoint signature differs. You can skip individual symbol and assign them in batch
+    async cancelOrders (ids, symbol = undefined, params = {}) { // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' canelOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = [];
-        // for ids
-        if (typeof ids === 'string') {
-            const orderIds = ids.split (',');
-            for (let i = 0; i < orderIds.length; i++) {
-                request.push ({
-                    'instId': market['id'],
-                    'ordId': orderIds[i],
-                });
-            }
-        } else {
-            for (let i = 0; i < ids.length; i++) {
-                request.push ({
-                    'instId': market['id'],
-                    'ordId': ids[i],
-                });
-            }
-        }
-        // for order-ids
-        let orderId = this.safeValue2 (params, 'ordIds', 'orderIds');
-        orderId = this.safeValue2 (params, 'ordId', 'orderId', orderId);
-        if (Array.isArray (orderId)) {
-            for (let i = 0; i < orderId.length; i++) {
-                request.push ({
-                    'instId': market['id'],
-                    'ordId': orderId[i],
-                });
-            }
-        } else if (typeof orderId === 'string') {
-            request.push ({
-                'instId': market['id'],
-                'ordId': orderId,
-            });
-        }
         // for client-order-ids
-        let clientOrderId = this.safeValue2 (params, 'clOrdIds', 'clientOrderIds');
-        clientOrderId = this.safeValue2 (params, 'clOrdId', 'clientOrderId', clientOrderId);
+        const clientOrderId = this.safeValue2 (params, 'clOrdId', 'clientOrderId');
         if (Array.isArray (clientOrderId)) {
             for (let i = 0; i < clientOrderId.length; i++) {
                 request.push ({
@@ -1890,6 +1856,26 @@ module.exports = class okex extends Exchange {
                 'instId': market['id'],
                 'clOrdId': clientOrderId,
             });
+        }
+        // for ids (only if client-order-ids were not set)
+        const requestLength = request.length;
+        if (requestLength === 0) {
+            if (typeof ids === 'string') {
+                const orderIds = ids.split (',');
+                for (let i = 0; i < orderIds.length; i++) {
+                    request.push ({
+                        'instId': market['id'],
+                        'ordId': orderIds[i],
+                    });
+                }
+            } else {
+                for (let i = 0; i < ids.length; i++) {
+                    request.push ({
+                        'instId': market['id'],
+                        'ordId': ids[i],
+                    });
+                }
+            }
         }
         const response = await this.privatePostTradeCancelBatchOrders (request); // dont extend with params, otherwise ARRAY will be turned into OBJECT
         //
