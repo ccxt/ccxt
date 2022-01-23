@@ -508,9 +508,9 @@ class zonda(Exchange):
         #       }
         #
         open = self.safe_string(ticker, 'r24h')
-        high = self.safe_number(ticker, 'h')
-        low = self.safe_number(ticker, 'l')
-        volume = self.safe_number(ticker, 'v')
+        high = self.safe_string(ticker, 'h')
+        low = self.safe_string(ticker, 'l')
+        volume = self.safe_string(ticker, 'v')
         marketId = self.safe_string(ticker, 'm')
         market = self.safe_market(marketId, market, '-')
         symbol = market['symbol']
