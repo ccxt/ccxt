@@ -414,13 +414,14 @@ module.exports = class wazirx extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         //
-        // {"code":2098,"message":"Request out of receiving window."}
+        // {"error":{"code":10501,"message":"Request parameters have incorrect format."}}
         //
         if (response === undefined) {
             return;
         }
-        const errorCode = this.safeString (response, 'code');
-        if (errorCode !== undefined) {
+        const error = this.safeString (response, 'error');
+        if (error !== undefined) {
+            const errorCode = this.safeString (error, 'code');
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             throw new ExchangeError (feedback);
