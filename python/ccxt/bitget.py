@@ -1659,17 +1659,16 @@ class bitget(Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         self.load_accounts()
-        marketType = None
-        marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
+        marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'apiGetAccountsAccountIdBalance',
             'swap': 'swapGetAccountAccounts',
         })
         if marketType == 'spot':
-            accountId = self.get_account_id(params)
-            params['account_id'] = accountId
-            params['method'] = 'balance'
-        response = getattr(self, method)(params)
+            accountId = self.get_account_id(query)
+            query['account_id'] = accountId
+            query['method'] = 'balance'
+        response = getattr(self, method)(query)
         #
         # spot
         #

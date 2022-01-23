@@ -1710,18 +1710,17 @@ class bitget extends Exchange {
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         $this->load_accounts();
-        $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'apiGetAccountsAccountIdBalance',
             'swap' => 'swapGetAccountAccounts',
         ));
         if ($marketType === 'spot') {
-            $accountId = $this->get_account_id($params);
-            $params['account_id'] = $accountId;
-            $params['method'] = 'balance';
+            $accountId = $this->get_account_id($query);
+            $query['account_id'] = $accountId;
+            $query['method'] = 'balance';
         }
-        $response = $this->$method ($params);
+        $response = $this->$method ($query);
         //
         // spot
         //
