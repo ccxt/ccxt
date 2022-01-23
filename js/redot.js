@@ -75,46 +75,18 @@ module.exports = class wazirx extends Exchange {
                         'get-stats': 1,
                     },
                 },
-                'private': {
-                    'get': {
-                        'account': 1,
-                        'allOrders': 1,
-                        'funds': 1,
-                        'historicalTrades': 1,
-                        'openOrders': 1,
-                        'order': 1,
-                    },
-                    'post': {
-                        'order': 1,
-                        'order/test': 1,
-                    },
-                    'delete': {
-                        'order': 1,
-                        'openOrders': 1,
-                    },
-                },
             },
-            'fees': {
-                'WRX': { 'maker': this.parseNumber ('0.0'), 'taker': this.parseNumber ('0.0') },
+            'timeframes': {
+                '1m': '60',
+                '5m': '300',
+                '15m': '900',
+                '1h': '3600',
+                '12h': '43200',
             },
             'exceptions': {
                 'exact': {
-                    '-1121': BadSymbol, // { "code": -1121, "message": "Invalid symbol." }
-                    '1999': BadRequest, // {"code":1999,"message":"symbol is missing, symbol does not have a valid value"} message varies depending on the error
-                    '2002': InsufficientFunds, // {"code":2002,"message":"Not enough USDT balance to execute this order"}
-                    '2005': BadRequest, // {"code":2005,"message":"Signature is incorrect."}
-                    '2078': PermissionDenied, // {"code":2078,"message":"Permission denied."}
-                    '2098': BadRequest, // {"code":2098,"message":"Request out of receiving window."}
-                    '2031': InvalidOrder, // {"code":2031,"message":"Minimum buy amount must be worth 2.0 USDT"}
-                    '2113': BadRequest, // {"code":2113,"message":"RecvWindow must be in range 1..60000"}
-                    '2115': BadRequest, // {"code":2115,"message":"Signature not found."}
-                    '2136': RateLimitExceeded, // {"code":2136,"message":"Too many api request"}
-                    '94001': InvalidOrder, // {"code":94001,"message":"Stop price not found."}
+                    '-32700': BadRequest, // { "code": -1121, "message": "Invalid symbol." }
                 },
-            },
-            'options': {
-                // 'fetchTradesMethod': 'privateGetHistoricalTrades',
-                'recvWindow': 10000,
             },
         });
     }
@@ -405,25 +377,37 @@ module.exports = class wazirx extends Exchange {
         }, market);
     }
 
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instrumentId': market['id'],
+            'size': this.timeframes[timeframe],
+        };
+        const response = await this.publicGetGetCandles (this.extend (request, params));
+        // {
+        //     "result":{
+        //     "data":[
+        //         {
+        //             "time":1642973286229265,
+        //             "low":0.068584,
+        //             "high":0.068584,
+        //             "open":0.068584,
+        //             "close":0.068584,
+        //             "volume":0.0338
+        //         },
+        // }
+        const resultResponse = this.safeValue (response, 'result', {});
+        const data = this.safeValue (resultResponse, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
-        }
-        if (api === 'private') {
-            this.checkRequiredCredentials ();
-            const timestamp = this.milliseconds ();
-            let data = this.extend ({ 'recvWindow': this.options['recvWindow'], 'timestamp': timestamp }, params);
-            data = this.keysort (data);
-            const signature = this.hmac (this.encode (this.urlencode (data)), this.encode (this.secret), 'sha256');
-            url += '?' + this.urlencode (data);
-            url += '&signature=' + signature;
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-Api-Key': this.apiKey,
-            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
