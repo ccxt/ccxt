@@ -955,26 +955,23 @@ class bybit extends Exchange {
         $timestamp = null;
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $last = $this->safe_number($ticker, 'last_price');
-        $open = $this->safe_number($ticker, 'prev_price_24h');
-        $percentage = $this->safe_number($ticker, 'price_24h_pcnt');
-        if ($percentage !== null) {
-            $percentage *= 100;
-        }
-        $baseVolume = $this->safe_number($ticker, 'turnover_24h');
-        $quoteVolume = $this->safe_number($ticker, 'volume_24h');
-        $vwap = $this->vwap($baseVolume, $quoteVolume);
+        $last = $this->safe_string($ticker, 'last_price');
+        $open = $this->safe_string($ticker, 'prev_price_24h');
+        $percentage = $this->safe_string($ticker, 'price_24h_pcnt');
+        $percentage = Precise::string_mul($percentage, '100');
+        $baseVolume = $this->safe_string($ticker, 'turnover_24h');
+        $quoteVolume = $this->safe_string($ticker, 'volume_24h');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high_price_24h'),
-            'low' => $this->safe_number($ticker, 'low_price_24h'),
-            'bid' => $this->safe_number($ticker, 'bid_price'),
+            'high' => $this->safe_string($ticker, 'high_price_24h'),
+            'low' => $this->safe_string($ticker, 'low_price_24h'),
+            'bid' => $this->safe_string($ticker, 'bid_price'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask_price'),
+            'ask' => $this->safe_string($ticker, 'ask_price'),
             'askVolume' => null,
-            'vwap' => $vwap,
+            'vwap' => null,
             'open' => $open,
             'close' => $last,
             'last' => $last,
@@ -985,7 +982,7 @@ class bybit extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

@@ -962,25 +962,23 @@ class bybit(Exchange):
         timestamp = None
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_number(ticker, 'last_price')
-        open = self.safe_number(ticker, 'prev_price_24h')
-        percentage = self.safe_number(ticker, 'price_24h_pcnt')
-        if percentage is not None:
-            percentage *= 100
-        baseVolume = self.safe_number(ticker, 'turnover_24h')
-        quoteVolume = self.safe_number(ticker, 'volume_24h')
-        vwap = self.vwap(baseVolume, quoteVolume)
+        last = self.safe_string(ticker, 'last_price')
+        open = self.safe_string(ticker, 'prev_price_24h')
+        percentage = self.safe_string(ticker, 'price_24h_pcnt')
+        percentage = Precise.string_mul(percentage, '100')
+        baseVolume = self.safe_string(ticker, 'turnover_24h')
+        quoteVolume = self.safe_string(ticker, 'volume_24h')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high_price_24h'),
-            'low': self.safe_number(ticker, 'low_price_24h'),
-            'bid': self.safe_number(ticker, 'bid_price'),
+            'high': self.safe_string(ticker, 'high_price_24h'),
+            'low': self.safe_string(ticker, 'low_price_24h'),
+            'bid': self.safe_string(ticker, 'bid_price'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask_price'),
+            'ask': self.safe_string(ticker, 'ask_price'),
             'askVolume': None,
-            'vwap': vwap,
+            'vwap': None,
             'open': open,
             'close': last,
             'last': last,
@@ -991,7 +989,7 @@ class bybit(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
