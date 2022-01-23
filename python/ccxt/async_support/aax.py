@@ -1172,19 +1172,16 @@ class aax(Exchange):
         request = {
             'orderID': id,
         }
-        method = None
-        defaultType = self.safe_string_2(self.options, 'cancelOrder', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
-        params = self.omit(params, 'type')
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            type = market['type']
-        if type == 'spot':
-            method = 'privateDeleteSpotOrdersCancelOrderID'
-        elif type == 'swap' or type == 'future' or type == 'futures':  # type == 'futures' deprecated, use type == 'swap'
-            method = 'privateDeleteFuturesOrdersCancelOrderID'
-        response = await getattr(self, method)(self.extend(request, params))
+        marketType, query = self.handle_market_type_and_params('cancelOrder', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateDeleteSpotOrdersCancelOrderID',
+            'swap': 'privateDeleteFuturesOrdersCancelOrderID',
+            'future': 'privateDeleteFuturesOrdersCancelOrderID',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
         #
         # spot
         #

@@ -1199,21 +1199,17 @@ class aax extends Exchange {
         $request = array(
             'orderID' => $id,
         );
-        $method = null;
-        $defaultType = $this->safe_string_2($this->options, 'cancelOrder', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit($params, 'type');
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $type = $market['type'];
         }
-        if ($type === 'spot') {
-            $method = 'privateDeleteSpotOrdersCancelOrderID';
-        } else if ($type === 'swap' || $type === 'future' || $type === 'futures') { // $type === 'futures' deprecated, use $type === 'swap'
-            $method = 'privateDeleteFuturesOrdersCancelOrderID';
-        }
-        $response = $this->$method (array_merge($request, $params));
+        list($marketType, $query) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateDeleteSpotOrdersCancelOrderID',
+            'swap' => 'privateDeleteFuturesOrdersCancelOrderID',
+            'future' => 'privateDeleteFuturesOrdersCancelOrderID',
+        ));
+        $response = $this->$method (array_merge($request, $query));
         //
         // spot
         //
