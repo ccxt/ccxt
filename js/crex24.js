@@ -1140,10 +1140,9 @@ module.exports = class crex24 extends Exchange {
         return this.parseOrders (response);
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) { // TODO: atm, this doesnt accept an array as symbol argument, because of unification (however, exchange allows multiple symbols)
         let response = undefined;
         let market = undefined;
-        const isSymbolArray = Array.isArray (symbol);
         if (symbol === undefined) {
             response = await this.tradingPostCancelAllOrders (params);
             //
@@ -1154,15 +1153,10 @@ module.exports = class crex24 extends Exchange {
             //
         } else {
             await this.loadMarkets ();
+            market = this.market (symbol);
             const request = {
-                'instruments': [],
+                'instruments': [ market['id'] ],
             };
-            if (isSymbolArray) {
-                request['instruments'] = this.marketIds (symbol);
-            } else {
-                market = this.market (symbol);
-                request['instruments'].push (market['id']);
-            }
             response = await this.tradingPostCancelOrdersByInstrument (this.extend (request, params));
             //
             //     [
@@ -1171,8 +1165,7 @@ module.exports = class crex24 extends Exchange {
             //     ]
             //
         }
-        const oneMarket = (isSymbolArray && symbol !== undefined) ? market : undefined;
-        return this.parseOrders (response, oneMarket, undefined, undefined, params);
+        return this.parseOrders (response, market, undefined, undefined, params);
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
