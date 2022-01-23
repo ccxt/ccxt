@@ -1175,17 +1175,20 @@ The CCXT library currently supports the following 114 cryptocurrency exchange ma
      - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/51840849/87443317-01c0d080-c5fe-11ea-95c2-9ebe1a8fafd9.jpg
-          :target: https://www.flowbtc.com.br
+          :target: https://one.ndax.io/bfQiSL
           :alt: flowbtc
      
      - flowbtc
-     - `flowBTC <https://www.flowbtc.com.br>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
+     - `flowBTC <https://one.ndax.io/bfQiSL>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://www.flowbtc.com.br/api.html
-          :alt: API Version 1
+          :alt: API Version *
      
      - 
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/97296144-514fa300-1861-11eb-952b-3d55d492200b.jpg
           :target: https://fmfw.io/referral/da948b21d6c92d69
           :alt: fmfwio
@@ -1978,14 +1981,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.70.13/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@1.70.13/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.70.18/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@1.70.18/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.70.13/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.70.18/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

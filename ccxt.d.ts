@@ -485,7 +485,7 @@ declare module 'ccxt' {
     export class eqonex extends Exchange {}
     export class equos extends eqonex {}
     export class exmo extends Exchange {}
-    export class flowbtc extends Exchange {}
+    export class flowbtc extends ndax {}
     export class fmfwio extends hitbtc {}
     export class ftx extends Exchange {}
     export class ftxus extends ftx {}

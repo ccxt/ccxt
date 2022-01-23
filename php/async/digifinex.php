@@ -262,8 +262,8 @@ class digifinex extends Exchange {
             $currency = $data[$i];
             $id = $this->safe_string($currency, 'currency');
             $code = $this->safe_currency_code($id);
-            $depositStatus = $this->safe_value($currency, 'deposit_status', 1);
-            $withdrawStatus = $this->safe_value($currency, 'withdraw_status', 1);
+            $depositStatus = $this->safe_integer($currency, 'deposit_status', 1);
+            $withdrawStatus = $this->safe_integer($currency, 'withdraw_status', 1);
             $deposit = $depositStatus > 0;
             $withdraw = $withdrawStatus > 0;
             $active = $deposit && $withdraw;

@@ -1197,21 +1197,17 @@ module.exports = class aax extends Exchange {
         const request = {
             'orderID': id,
         };
-        let method = undefined;
-        const defaultType = this.safeString2 (this.options, 'cancelOrder', 'defaultType', 'spot');
-        let type = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            type = market['type'];
         }
-        if (type === 'spot') {
-            method = 'privateDeleteSpotOrdersCancelOrderID';
-        } else if (type === 'swap' || type === 'future' || type === 'futures') { // type === 'futures' deprecated, use type === 'swap'
-            method = 'privateDeleteFuturesOrdersCancelOrderID';
-        }
-        const response = await this[method] (this.extend (request, params));
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateDeleteSpotOrdersCancelOrderID',
+            'swap': 'privateDeleteFuturesOrdersCancelOrderID',
+            'future': 'privateDeleteFuturesOrdersCancelOrderID',
+        });
+        const response = await this[method] (this.extend (request, query));
         //
         // spot
         //
