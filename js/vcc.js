@@ -223,7 +223,7 @@ module.exports = class vcc extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': this.safeValue (market, 'active', false),
+                'active': this.safeValue (market, 'active'),
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
