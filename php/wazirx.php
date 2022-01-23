@@ -19,28 +19,44 @@ class wazirx extends Exchange {
             'version' => 'v2',
             'rateLimit' => 100,
             'has' => array(
+                'spot' => true,
+                'margin' => null, // exists but currently unimplemented
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'CORS' => false,
                 'createOrder' => true,
-                'fetchCurrencies' => false,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => false,
                 'fetchClosedOrders' => false,
+                'fetchCurrencies' => false,
                 'fetchDepositAddress' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchFundingFees' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => false,
                 'fetchOHLCV' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
-                'fetchOrders' => true,
                 'fetchOrderBook' => true,
+                'fetchOrders' => true,
+                'fetchPosition' => false,
                 'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -49,12 +65,13 @@ class wazirx extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
                 'fetchTransactions' => false,
-                'fetchWithdrawals' => false,
-                'setLeverage' => false,
-                'withdraw' => false,
-                'fetchDepositAddressesByNetwork' => false,
-                'transfer' => false,
                 'fetchTransfers' => false,
+                'fetchWithdrawals' => false,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setPositionMode' => false,
+                'transfer' => false,
+                'withdraw' => false,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/148647666-c109c20b-f8ac-472f-91c3-5f658cb90f49.jpeg',
@@ -157,7 +174,6 @@ class wazirx extends Exchange {
             $quoteId = $this->safe_string($entry, 'quoteAsset');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
             $isSpot = $this->safe_value($entry, 'isSpotTradingAllowed');
             $filters = $this->safe_value($entry, 'filters');
             $minPrice = null;
@@ -171,59 +187,58 @@ class wazirx extends Exchange {
             $fee = $this->safe_value($this->fees, $quote, array());
             $takerString = $this->safe_string($fee, 'taker', '0.2');
             $takerString = Precise::string_div($takerString, '100');
-            $taker = $this->parse_number($takerString);
             $makerString = $this->safe_string($fee, 'maker', '0.2');
             $makerString = Precise::string_div($makerString, '100');
-            $maker = $this->parse_number($makerString);
             $status = $this->safe_string($entry, 'status');
-            $active = $status === 'trading';
-            $limits = array(
-                'price' => array(
-                    'min' => $minPrice,
-                    'max' => null,
-                ),
-                'amount' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-                'cost' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-            );
-            $precision = array(
-                'price' => $this->safe_integer($entry, 'quoteAssetPrecision'),
-                'amount' => $this->safe_integer($entry, 'baseAssetPrecision'),
-            );
             $result[] = array(
-                'info' => $entry,
-                'symbol' => $symbol,
                 'id' => $id,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
-                'maker' => $maker,
-                'taker' => $taker,
                 'quoteId' => $quoteId,
-                'limits' => $limits,
-                'precision' => $precision,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => $isSpot,
                 'margin' => false,
-                'future' => false,
                 'swap' => false,
+                'future' => false,
                 'option' => false,
-                'optionType' => null,
-                'strike' => null,
+                'active' => ($status === 'trading'),
+                'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                'contract' => false,
+                'maker' => $this->parse_number($makerString),
+                'taker' => $this->parse_number($takerString),
                 'contractSize' => null,
-                'settle' => null,
-                'settleId' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
-                'active' => $active,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'price' => $this->safe_integer($entry, 'quoteAssetPrecision'),
+                    'amount' => $this->safe_integer($entry, 'baseAssetPrecision'),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'price' => array(
+                        'min' => $minPrice,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+                'info' => $entry,
             );
         }
         return $result;
