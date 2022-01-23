@@ -530,22 +530,21 @@ module.exports = class probit extends Exchange {
         const timestamp = this.parse8601 (this.safeString (ticker, 'time'));
         const marketId = this.safeString (ticker, 'market_id');
         const symbol = this.safeSymbol (marketId, market, '-');
-        const close = this.safeNumber (ticker, 'last');
-        const change = this.safeNumber (ticker, 'change');
-        const baseVolume = this.safeNumber (ticker, 'base_volume');
-        const quoteVolume = this.safeNumber (ticker, 'quote_volume');
-        const vwap = this.vwap (baseVolume, quoteVolume);
+        const close = this.safeString (ticker, 'last');
+        const change = this.safeString (ticker, 'change');
+        const baseVolume = this.safeString (ticker, 'base_volume');
+        const quoteVolume = this.safeString (ticker, 'quote_volume');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
             'askVolume': undefined,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': undefined,
             'close': close,
             'last': close,
@@ -556,7 +555,7 @@ module.exports = class probit extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
