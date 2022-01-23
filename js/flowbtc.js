@@ -12,7 +12,6 @@ module.exports = class flowbtc extends ndax {
             'id': 'flowbtc',
             'name': 'flowBTC',
             'countries': [ 'BR' ], // Brazil
-            'version': 'v1',
             'rateLimit': 1000,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87443317-01c0d080-c5fe-11ea-95c2-9ebe1a8fafd9.jpg',
