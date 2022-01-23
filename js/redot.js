@@ -2,7 +2,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest, RateLimitExceeded, BadSymbol, ArgumentsRequired, PermissionDenied, InsufficientFunds, InvalidOrder } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+// const Precise = require ('./base/Precise');
 
 module.exports = class wazirx extends Exchange {
     describe () {
@@ -51,7 +51,7 @@ module.exports = class wazirx extends Exchange {
                 'fetchTransfers': false,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/148647666-c109c20b-f8ac-472f-91c3-5f658cb90f49.jpeg',
+                'logo': 'https://cdn.redot.com/static/icons/500px_transparent_background/Icon_0-3.png',
                 'api': {
                     'public': 'https://api.redot.com/v1/public',
                     'private': 'https://api.redot.com/v1/private',
@@ -119,109 +119,83 @@ module.exports = class wazirx extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetExchangeInfo (params);
-        //
+        const response = await this.publicGetGetInstruments (params);
         // {
-        //     "timezone":"UTC",
-        //     "serverTime":1641336850932,
-        //     "symbols":[
+        //     "result":[
         //     {
-        //         "symbol":"btcinr",
-        //         "status":"trading",
-        //         "baseAsset":"btc",
-        //         "quoteAsset":"inr",
-        //         "baseAssetPrecision":5,
-        //         "quoteAssetPrecision":0,
-        //         "orderTypes":[
-        //             "limit",
-        //             "stop_limit"
-        //         ],
-        //         "isSpotTradingAllowed":true,
-        //         "filters":[
-        //             {
-        //                 "filterType":"PRICE_FILTER",
-        //                 "minPrice":"1",
-        //                 "tickSize":"1"
-        //             }
-        //         ]
+        //         "id":"KARTA-USDT",
+        //         "displayName":"KARTA/USDT",
+        //         "type":"spot",
+        //         "base":"KARTA",
+        //         "quote":"USDT",
+        //         "minQty":0.01,
+        //         "maxQty":10000000.0,
+        //         "tickSize":0.01,
+        //         "takerFee":0.0015,
+        //         "makerFee":-0.0005,
+        //         "feeCurrency":"acquired"
         //     },
-        //
-        const markets = this.safeValue (response, 'symbols', []);
+        // }
+        const markets = this.safeValue (response, 'result', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const entry = markets[i];
-            const id = this.safeString (entry, 'symbol');
-            const baseId = this.safeString (entry, 'baseAsset');
-            const quoteId = this.safeString (entry, 'quoteAsset');
+            const market = markets[i];
+            const id = this.safeString (market, 'id');
+            const baseId = this.safeString (market, 'base');
+            const quoteId = this.safeString (market, 'quote');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const isSpot = this.safeValue (entry, 'isSpotTradingAllowed');
-            const filters = this.safeValue (entry, 'filters');
-            let minPrice = undefined;
-            for (let j = 0; j < filters.length; j++) {
-                const filter = filters[j];
-                const filterType = this.safeString (filter, 'filterType');
-                if (filterType === 'PRICE_FILTER') {
-                    minPrice = this.safeNumber (filter, 'minPrice');
-                }
-            }
-            const fee = this.safeValue (this.fees, quote, {});
-            let takerString = this.safeString (fee, 'taker', '0.2');
-            takerString = Precise.stringDiv (takerString, '100');
-            const taker = this.parseNumber (takerString);
-            let makerString = this.safeString (fee, 'maker', '0.2');
-            makerString = Precise.stringDiv (makerString, '100');
-            const maker = this.parseNumber (makerString);
-            const status = this.safeString (entry, 'status');
-            const active = status === 'trading';
-            const limits = {
-                'price': {
-                    'min': minPrice,
-                    'max': undefined,
-                },
-                'amount': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            };
+            const minQuantity = this.safeInteger (market, 'minQty');
+            const maxQuantity = this.safeNumber (market, 'maxQty');
             const precision = {
-                'price': this.safeInteger (entry, 'quoteAssetPrecision'),
-                'amount': this.safeInteger (entry, 'baseAssetPrecision'),
+                'amount': this.safeInteger (market, 'minQty'),
+                'price': minQuantity,
             };
             result.push ({
-                'info': entry,
-                'symbol': symbol,
+                'info': market,
                 'id': id,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'baseId': baseId,
-                'maker': maker,
-                'taker': taker,
                 'quoteId': quoteId,
-                'limits': limits,
-                'precision': precision,
+                'linear': undefined,
+                'inverse': undefined,
+                'settle': undefined,
+                'settleId': undefined,
                 'type': 'spot',
-                'spot': isSpot,
-                'margin': false,
+                'spot': true,
+                'margin': undefined,
                 'future': false,
                 'swap': false,
                 'option': false,
                 'optionType': undefined,
                 'strike': undefined,
-                'linear': undefined,
-                'inverse': undefined,
-                'contract': false,
-                'contractSize': undefined,
-                'settle': undefined,
-                'settleId': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
-                'active': active,
+                'contract': false,
+                'contractSize': undefined,
+                'active': undefined,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': this.parseNumber (minQuantity),
+                        'max': maxQuantity,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
             });
         }
         return result;
