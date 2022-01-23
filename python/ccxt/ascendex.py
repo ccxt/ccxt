@@ -632,8 +632,7 @@ class ascendex(Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         self.load_accounts()
-        marketType = None
-        marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
+        marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
         options = self.safe_value(self.options, 'fetchBalance', {})
         accountCategories = self.safe_value(self.options, 'accountCategories', {})
         accountCategory = self.safe_string(accountCategories, marketType, 'cash')
@@ -650,7 +649,7 @@ class ascendex(Exchange):
         })
         if accountCategory == 'cash':
             request['account-category'] = accountCategory
-        response = getattr(self, method)(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, query))
         #
         # cash
         #

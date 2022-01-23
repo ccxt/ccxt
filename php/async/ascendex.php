@@ -639,8 +639,7 @@ class ascendex extends Exchange {
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
         yield $this->load_accounts();
-        $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $options = $this->safe_value($this->options, 'fetchBalance', array());
         $accountCategories = $this->safe_value($this->options, 'accountCategories', array());
         $accountCategory = $this->safe_string($accountCategories, $marketType, 'cash');
@@ -658,7 +657,7 @@ class ascendex extends Exchange {
         if ($accountCategory === 'cash') {
             $request['account-category'] = $accountCategory;
         }
-        $response = yield $this->$method (array_merge($request, $params));
+        $response = yield $this->$method (array_merge($request, $query));
         //
         // cash
         //
