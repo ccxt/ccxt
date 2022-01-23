@@ -1158,10 +1158,7 @@ module.exports = class crex24 extends Exchange {
                 'instruments': [],
             };
             if (isSymbolArray) {
-                for (let i = 0; i < symbol.length; i++) {
-                    market = this.market (symbol);
-                    request['instruments'].push (market['id']);
-                }
+                request['instruments'] = this.marketIds (symbol);
             } else {
                 market = this.market (symbol);
                 request['instruments'].push (market['id']);
