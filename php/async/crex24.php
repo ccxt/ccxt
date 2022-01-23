@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
+use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
 use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
@@ -28,6 +29,7 @@ class crex24 extends Exchange {
             'has' => array(
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'cancelOrders' => true,
                 'CORS' => null,
                 'createOrder' => true,
                 'editOrder' => true,
@@ -805,6 +807,10 @@ class crex24 extends Exchange {
         //         "childOrderId" => null
         //     }
         //
+        // cancelOrder, cancelOrders, cancelAllOrders
+        //
+        //  465448358
+        //
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $marketId = $this->safe_string($order, 'instrument');
         $symbol = $this->safe_symbol($marketId, $market, '-');
@@ -813,7 +819,7 @@ class crex24 extends Exchange {
         $amount = $this->safe_string($order, 'volume');
         $remaining = $this->safe_string($order, 'remainingVolume');
         $lastTradeTimestamp = $this->parse8601($this->safe_string($order, 'lastUpdate'));
-        $id = $this->safe_string($order, 'id');
+        $id = $this->safe_string($order, 'id', $order); // if $order was integer
         $type = $this->safe_string($order, 'type');
         $side = $this->safe_string($order, 'side');
         $timeInForce = $this->safe_string($order, 'timeInForce');
@@ -1117,12 +1123,22 @@ class crex24 extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        $response = yield $this->cancel_orders(array( $id ), $symbol, $params);
+        return $this->safe_value($response, 0);
+    }
+
+    public function cancel_orders($ids, $symbol = null, $params = array ()) {
+        if (gettype($ids) === 'array' && count(array_filter(array_keys($ids), 'is_string')) != 0) {
+            throw new ArgumentsRequired($this->id . ' cancelOrders $ids argument should be an array');
+        }
         yield $this->load_markets();
         $request = array(
-            'ids' => array(
-                intval($id),
-            ),
+            'ids' => array(),
         );
+        for ($i = 0; $i < count($ids); $i++) {
+            $id = intval($ids[$i]);
+            $request['ids'][] = $id;
+        }
         $response = yield $this->tradingPostCancelOrdersById (array_merge($request, $params));
         //
         //     array(
@@ -1130,18 +1146,35 @@ class crex24 extends Exchange {
         //         468364313
         //     )
         //
-        return $this->parse_order($response);
+        return $this->parse_orders($response);
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
-        $response = yield $this->tradingPostCancelAllOrders ($params);
-        //
-        //     array(
-        //         465448358,
-        //         468364313
-        //     )
-        //
-        return $response;
+        $response = null;
+        $market = null;
+        if ($symbol === null) {
+            $response = yield $this->tradingPostCancelAllOrders ($params);
+            //
+            //     array(
+            //         465448358,
+            //         468364313
+            //     )
+            //
+        } else {
+            yield $this->load_markets();
+            $market = $this->market($symbol);
+            $request = array(
+                'instruments' => [ $market['id'] ],
+            );
+            $response = yield $this->tradingPostCancelOrdersByInstrument (array_merge($request, $params));
+            //
+            //     array(
+            //         465441234,
+            //         468364321
+            //     )
+            //
+        }
+        return $this->parse_orders($response, $market, null, null, $params);
     }
 
     public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {

@@ -9,6 +9,7 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import AccountSuspended
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -34,6 +35,7 @@ class crex24(Exchange):
             'has': {
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'cancelOrders': True,
                 'CORS': None,
                 'createOrder': True,
                 'editOrder': True,
@@ -780,6 +782,10 @@ class crex24(Exchange):
         #         "childOrderId": null
         #     }
         #
+        # cancelOrder, cancelOrders, cancelAllOrders
+        #
+        #  465448358
+        #
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'instrument')
         symbol = self.safe_symbol(marketId, market, '-')
@@ -788,7 +794,7 @@ class crex24(Exchange):
         amount = self.safe_string(order, 'volume')
         remaining = self.safe_string(order, 'remainingVolume')
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'lastUpdate'))
-        id = self.safe_string(order, 'id')
+        id = self.safe_string(order, 'id', order)  # if order was integer
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'side')
         timeInForce = self.safe_string(order, 'timeInForce')
@@ -1072,12 +1078,19 @@ class crex24(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     async def cancel_order(self, id, symbol=None, params={}):
+        response = await self.cancel_orders([id], symbol, params)
+        return self.safe_value(response, 0)
+
+    async def cancel_orders(self, ids, symbol=None, params={}):
+        if not isinstance(ids, list):
+            raise ArgumentsRequired(self.id + ' cancelOrders ids argument should be an array')
         await self.load_markets()
         request = {
-            'ids': [
-                int(id),
-            ],
+            'ids': [],
         }
+        for i in range(0, len(ids)):
+            id = int(ids[i])
+            request['ids'].append(id)
         response = await self.tradingPostCancelOrdersById(self.extend(request, params))
         #
         #     [
@@ -1085,17 +1098,33 @@ class crex24(Exchange):
         #         468364313
         #     ]
         #
-        return self.parse_order(response)
+        return self.parse_orders(response)
 
     async def cancel_all_orders(self, symbol=None, params={}):
-        response = await self.tradingPostCancelAllOrders(params)
-        #
-        #     [
-        #         465448358,
-        #         468364313
-        #     ]
-        #
-        return response
+        response = None
+        market = None
+        if symbol is None:
+            response = await self.tradingPostCancelAllOrders(params)
+            #
+            #     [
+            #         465448358,
+            #         468364313
+            #     ]
+            #
+        else:
+            await self.load_markets()
+            market = self.market(symbol)
+            request = {
+                'instruments': [market['id']],
+            }
+            response = await self.tradingPostCancelOrdersByInstrument(self.extend(request, params))
+            #
+            #     [
+            #         465441234,
+            #         468364321
+            #     ]
+            #
+        return self.parse_orders(response, market, None, None, params)
 
     async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
