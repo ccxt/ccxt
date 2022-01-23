@@ -634,8 +634,7 @@ module.exports = class ascendex extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const options = this.safeValue (this.options, 'fetchBalance', {});
         const accountCategories = this.safeValue (this.options, 'accountCategories', {});
         const accountCategory = this.safeString (accountCategories, marketType, 'cash');
@@ -653,7 +652,7 @@ module.exports = class ascendex extends Exchange {
         if (accountCategory === 'cash') {
             request['account-category'] = accountCategory;
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         // cash
         //
