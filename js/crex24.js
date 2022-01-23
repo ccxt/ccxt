@@ -1155,7 +1155,7 @@ module.exports = class crex24 extends Exchange {
         } else {
             await this.loadMarkets ();
             const request = {
-                'instruments': undefined,
+                'instruments': [],
             };
             if (isSymbolArray) {
                 for (let i = 0; i < symbol.length; i++) {
@@ -1164,7 +1164,7 @@ module.exports = class crex24 extends Exchange {
                 }
             } else {
                 market = this.market (symbol);
-                request['instruments'] = [ market['id'] ];
+                request['instruments'].push (market['id']);
             }
             response = await this.tradingPostCancelOrdersByInstrument (this.extend (request, params));
             //
