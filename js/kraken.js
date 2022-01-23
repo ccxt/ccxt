@@ -686,27 +686,44 @@ module.exports = class kraken extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         "a":["2432.77000","1","1.000"],
+        //         "b":["2431.37000","2","2.000"],
+        //         "c":["2430.58000","0.04408910"],
+        //         "v":["4147.94474901","8896.96086304"],
+        //         "p":["2456.22239","2568.63032"],
+        //         "t":[3907,10056],
+        //         "l":["2302.18000","2302.18000"],
+        //         "h":["2621.14000","2860.01000"],
+        //         "o":"2571.56000"
+        //     }
+        //
         const timestamp = this.milliseconds ();
         const symbol = this.safeSymbol (undefined, market);
-        const baseVolume = parseFloat (ticker['v'][1]);
-        const vwap = parseFloat (ticker['p'][1]);
-        let quoteVolume = undefined;
-        if (baseVolume !== undefined && vwap !== undefined) {
-            quoteVolume = baseVolume * vwap;
-        }
-        const last = parseFloat (ticker['c'][0]);
+        const v = this.safeValue (ticker, 'v', []);
+        const baseVolume = this.safeString (v, 1);
+        const p = this.safeValue (ticker, 'p', []);
+        const vwap = this.safeString (p, 1);
+        const quoteVolume = undefined;
+        const c = this.safeValue (ticker, 'c', []);
+        const last = this.safeString (c, 0);
+        const high = this.safeValue (ticker, 'h', []);
+        const low = this.safeValue (ticker, 'l', []);
+        const bid = this.safeValue (ticker, 'b', []);
+        const ask = this.safeValue (ticker, 'a', []);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['h'][1]),
-            'low': parseFloat (ticker['l'][1]),
-            'bid': parseFloat (ticker['b'][0]),
+            'high': this.safeString (high, 1),
+            'low': this.safeString (low, 1),
+            'bid': this.safeString (bid, 0),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['a'][0]),
+            'ask': this.safeString (ask, 0),
             'askVolume': undefined,
             'vwap': vwap,
-            'open': this.safeNumber (ticker, 'o'),
+            'open': this.safeString (ticker, 'o'),
             'close': last,
             'last': last,
             'previousClose': undefined,
@@ -716,7 +733,7 @@ module.exports = class kraken extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
