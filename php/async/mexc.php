@@ -1158,14 +1158,14 @@ class mexc extends Exchange {
 
     public function fetch_balance($params = array ()) {
         yield $this->load_markets();
-        $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'spotPrivateGetAccountInfo',
+            'margin' => 'spotPrivateGetAccountInfo',
             'swap' => 'contractPrivateGetAccountAssets',
         ));
         $spot = ($marketType === 'spot');
-        $response = yield $this->$method ($params);
+        $response = yield $this->$method ($query);
         //
         // $spot
         //

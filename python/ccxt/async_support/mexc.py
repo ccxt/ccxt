@@ -1120,14 +1120,14 @@ class mexc(Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        marketType = None
-        marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
+        marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotPrivateGetAccountInfo',
+            'margin': 'spotPrivateGetAccountInfo',
             'swap': 'contractPrivateGetAccountAssets',
         })
         spot = (marketType == 'spot')
-        response = await getattr(self, method)(params)
+        response = await getattr(self, method)(query)
         #
         # spot
         #
