@@ -661,13 +661,13 @@ module.exports = class wavesexchange extends Exchange {
             symbol = market['symbol'];
         }
         const data = this.safeValue (ticker, 'data', {});
-        const last = this.safeNumber (data, 'lastPrice');
-        const low = this.safeNumber (data, 'low');
-        const high = this.safeNumber (data, 'high');
-        const vwap = this.safeNumber (data, 'weightedAveragePrice');
-        const baseVolume = this.safeNumber (data, 'volume');
-        const quoteVolume = this.safeNumber (data, 'quoteVolume');
-        const open = this.safeNumber (data, 'firstPrice');
+        const last = this.safeString (data, 'lastPrice');
+        const low = this.safeString (data, 'low');
+        const high = this.safeString (data, 'high');
+        const vwap = this.safeString (data, 'weightedAveragePrice');
+        const baseVolume = this.safeString (data, 'volume');
+        const quoteVolume = this.safeString (data, 'quoteVolume');
+        const open = this.safeString (data, 'firstPrice');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -689,7 +689,7 @@ module.exports = class wavesexchange extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
