@@ -462,12 +462,12 @@ class cex(Exchange):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_timestamp(ticker, 'timestamp')
-        volume = self.safe_number(ticker, 'volume')
-        high = self.safe_number(ticker, 'high')
-        low = self.safe_number(ticker, 'low')
-        bid = self.safe_number(ticker, 'bid')
-        ask = self.safe_number(ticker, 'ask')
-        last = self.safe_number(ticker, 'last')
+        volume = self.safe_string(ticker, 'volume')
+        high = self.safe_string(ticker, 'high')
+        low = self.safe_string(ticker, 'low')
+        bid = self.safe_string(ticker, 'bid')
+        ask = self.safe_string(ticker, 'ask')
+        last = self.safe_string(ticker, 'last')
         symbol = self.safe_symbol(None, market)
         return self.safe_ticker({
             'symbol': symbol,
@@ -490,7 +490,7 @@ class cex(Exchange):
             'baseVolume': volume,
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
