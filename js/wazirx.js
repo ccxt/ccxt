@@ -13,28 +13,44 @@ module.exports = class wazirx extends Exchange {
             'version': 'v2',
             'rateLimit': 100,
             'has': {
+                'spot': true,
+                'margin': undefined, // exists but currently unimplemented
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'CORS': false,
                 'createOrder': true,
-                'fetchCurrencies': false,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchClosedOrders': false,
+                'fetchCurrencies': false,
                 'fetchDepositAddress': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingFees': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
                 'fetchOHLCV': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
-                'fetchOrders': true,
                 'fetchOrderBook': true,
+                'fetchOrders': true,
+                'fetchPosition': false,
                 'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -43,12 +59,13 @@ module.exports = class wazirx extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransactions': false,
-                'fetchWithdrawals': false,
-                'setLeverage': false,
-                'withdraw': false,
-                'fetchDepositAddressesByNetwork': false,
-                'transfer': false,
                 'fetchTransfers': false,
+                'fetchWithdrawals': false,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setPositionMode': false,
+                'transfer': false,
+                'withdraw': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/148647666-c109c20b-f8ac-472f-91c3-5f658cb90f49.jpeg',
@@ -151,7 +168,6 @@ module.exports = class wazirx extends Exchange {
             const quoteId = this.safeString (entry, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
             const isSpot = this.safeValue (entry, 'isSpotTradingAllowed');
             const filters = this.safeValue (entry, 'filters');
             let minPrice = undefined;
@@ -165,59 +181,58 @@ module.exports = class wazirx extends Exchange {
             const fee = this.safeValue (this.fees, quote, {});
             let takerString = this.safeString (fee, 'taker', '0.2');
             takerString = Precise.stringDiv (takerString, '100');
-            const taker = this.parseNumber (takerString);
             let makerString = this.safeString (fee, 'maker', '0.2');
             makerString = Precise.stringDiv (makerString, '100');
-            const maker = this.parseNumber (makerString);
             const status = this.safeString (entry, 'status');
-            const active = status === 'trading';
-            const limits = {
-                'price': {
-                    'min': minPrice,
-                    'max': undefined,
-                },
-                'amount': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            };
-            const precision = {
-                'price': this.safeInteger (entry, 'quoteAssetPrecision'),
-                'amount': this.safeInteger (entry, 'baseAssetPrecision'),
-            };
             result.push ({
-                'info': entry,
-                'symbol': symbol,
                 'id': id,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
-                'maker': maker,
-                'taker': taker,
                 'quoteId': quoteId,
-                'limits': limits,
-                'precision': precision,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': isSpot,
                 'margin': false,
-                'future': false,
                 'swap': false,
+                'future': false,
                 'option': false,
-                'optionType': undefined,
-                'strike': undefined,
+                'active': (status === 'trading'),
+                'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'contract': false,
+                'maker': this.parseNumber (makerString),
+                'taker': this.parseNumber (takerString),
                 'contractSize': undefined,
-                'settle': undefined,
-                'settleId': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
-                'active': active,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': this.safeInteger (entry, 'quoteAssetPrecision'),
+                    'amount': this.safeInteger (entry, 'baseAssetPrecision'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': minPrice,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'info': entry,
             });
         }
         return result;
