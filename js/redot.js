@@ -205,27 +205,31 @@ module.exports = class wazirx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            'instrumentId': market['id'],
         };
-        if (limit !== undefined) {
-            request['limit'] = limit; // [1, 5, 10, 20, 50, 100, 500, 1000]
-        }
-        const response = await this.publicGetDepth (this.extend (request, params));
+        const response = await this.publicGetGetOrderBook (this.extend (request, params));
         //
-        //     {
-        //          "timestamp":1559561187,
-        //          "asks":[
-        //                     ["8540.0","1.5"],
-        //                     ["8541.0","0.0042"]
-        //                 ],
-        //          "bids":[
-        //                     ["8530.0","0.8814"],
-        //                     ["8524.0","1.4"]
-        //                 ]
-        //      }
+        // {
+        //     "result":{
+        //     "bids":[
+        //         [
+        //             0.068377,
+        //             1.3247,
+        //         ],
+        //     ],
+        //     "asks":[
+        //         [
+        //             0.068531,
+        //             0.2693,
+        //         ]
+        //     ],
+        //     "time":1642973720071624
+        //     }
+        // }
         //
-        const timestamp = this.safeInteger (response, 'timestamp');
-        return this.parseOrderBook (response, symbol, timestamp);
+        const result = this.safeValue (response, 'result', []);
+        const timestamp = this.safeInteger (response, 'time');
+        return this.parseOrderBook (result, symbol, timestamp);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -347,30 +351,6 @@ module.exports = class wazirx extends Exchange {
         });
     }
 
-    async fetchStatus (params = {}) {
-        const response = await this.publicGetSystemStatus (params);
-        //
-        //  { "status":"normal","message":"System is running normally." }
-        //
-        let status = this.safeString (response, 'status');
-        status = (status === 'normal') ? 'ok' : 'maintenance';
-        this.status = this.extend (this.status, {
-            'status': status,
-            'updated': this.milliseconds (),
-        });
-        return this.status;
-    }
-
-    async fetchTime (params = {}) {
-        const response = await this.publicGetTime (params);
-        //
-        //     {
-        //         "serverTime":1635467280514
-        //     }
-        //
-        return this.safeInteger (response, 'serverTime');
-    }
-
     parseTicker (ticker, market = undefined) {
         //
         //     {
@@ -422,244 +402,8 @@ module.exports = class wazirx extends Exchange {
         }, market);
     }
 
-    parseBalance (response) {
-        const result = { };
-        for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
-            const id = this.safeString (balance, 'asset');
-            const code = this.safeCurrencyCode (id);
-            const account = this.account ();
-            account['free'] = this.safeString (balance, 'free');
-            account['used'] = this.safeString (balance, 'locked');
-            result[code] = account;
-        }
-        return this.safeBalance (result);
-    }
-
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetFunds (params);
-        //
-        // [
-        //       {
-        //          "asset":"inr",
-        //          "free":"0.0",
-        //          "locked":"0.0"
-        //       },
-        // ]
-        //
-        return this.parseBalance (response);
-    }
-
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders requires a `symbol` argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const response = await this.privateGetAllOrders (this.extend (request, params));
-        // [
-        //     {
-        //         "id": 28,
-        //         "symbol": "wrxinr",
-        //         "price": "9293.0",
-        //         "origQty": "10.0",
-        //         "executedQty": "8.2",
-        //         "status": "cancel",
-        //         "type": "limit",
-        //         "side": "sell",
-        //         "createdTime": 1499827319559,
-        //         "updatedTime": 1499827319559
-        //     },
-        //     {
-        //         "id": 30,
-        //         "symbol": "wrxinr",
-        //         "price": "9293.0",
-        //         "stopPrice": "9200.0",
-        //         "origQty": "10.0",
-        //         "executedQty": "0.0",
-        //         "status": "cancel",
-        //         "type": "stop_limit",
-        //         "side": "sell",
-        //         "createdTime": 1499827319559,
-        //         "updatedTime": 1507725176595
-        //     }
-        // ]
-        let orders = this.parseOrders (response, market, since, limit);
-        orders = this.filterBy (orders, 'symbol', symbol);
-        return orders;
-    }
-
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {};
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-        }
-        const response = await this.privateGetOpenOrders (this.extend (request, params));
-        // [
-        //     {
-        //         "id": 28,
-        //         "symbol": "wrxinr",
-        //         "price": "9293.0",
-        //         "origQty": "10.0",
-        //         "executedQty": "8.2",
-        //         "status": "cancel",
-        //         "type": "limit",
-        //         "side": "sell",
-        //         "createdTime": 1499827319559,
-        //         "updatedTime": 1499827319559
-        //     },
-        //     {
-        //         "id": 30,
-        //         "symbol": "wrxinr",
-        //         "price": "9293.0",
-        //         "stopPrice": "9200.0",
-        //         "origQty": "10.0",
-        //         "executedQty": "0.0",
-        //         "status": "cancel",
-        //         "type": "stop_limit",
-        //         "side": "sell",
-        //         "createdTime": 1499827319559,
-        //         "updatedTime": 1507725176595
-        //     }
-        // ]
-        const orders = this.parseOrders (response, market, since, limit);
-        return orders;
-    }
-
-    async cancelAllOrders (symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders requires a `symbol` argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        return await this.privateDeleteOpenOrders (this.extend (request, params));
-    }
-
-    async cancelOrder (id, symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder requires a `symbol` argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-            'orderId': id,
-        };
-        const response = await this.privateDeleteOrder (this.extend (request, params));
-        return this.parseOrder (response);
-    }
-
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (!(type === 'limit') || (type === 'stop_limit')) {
-            throw new ExchangeError (this.id + ' createOrder() supports limit and stop_limit orders only');
-        }
-        if (price === undefined) {
-            throw new ExchangeError (this.id + ' createOrder() requires a price argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-            'side': side,
-            'quantity': amount,
-            'type': 'limit',
-        };
-        request['price'] = this.priceToPrecision (symbol, price);
-        const stopPrice = this.safeString (params, 'stopPrice');
-        if (stopPrice !== undefined) {
-            request['type'] = 'stop_limit';
-        }
-        const response = await this.privatePostOrder (this.extend (request, params));
-        // {
-        //     "id": 28,
-        //     "symbol": "wrxinr",
-        //     "price": "9293.0",
-        //     "origQty": "10.0",
-        //     "executedQty": "8.2",
-        //     "status": "wait",
-        //     "type": "limit",
-        //     "side": "sell",
-        //     "createdTime": 1499827319559,
-        //     "updatedTime": 1499827319559
-        // }
-        return this.parseOrder (response, market);
-    }
-
-    parseOrder (order, market = undefined) {
-        // {
-        //     "id":1949417813,
-        //     "symbol":"ltcusdt",
-        //     "type":"limit",
-        //     "side":"sell",
-        //     "status":"done",
-        //     "price":"146.2",
-        //     "origQty":"0.05",
-        //     "executedQty":"0.05",
-        //     "createdTime":1641252564000,
-        //     "updatedTime":1641252564000
-        // },
-        const created = this.safeInteger (order, 'createdTime');
-        const updated = this.safeInteger (order, 'updatedTime');
-        const marketId = this.safeString (order, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
-        const amount = this.safeString (order, 'quantity');
-        const filled = this.safeString (order, 'executedQty');
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const id = this.safeString (order, 'id');
-        const price = this.safeString (order, 'price');
-        const type = this.safeStringLower (order, 'type');
-        const side = this.safeStringLower (order, 'side');
-        return this.safeOrder ({
-            'info': order,
-            'id': id,
-            'clientOrderId': undefined,
-            'timestamp': created,
-            'datetime': this.iso8601 (created),
-            'lastTradeTimestamp': updated,
-            'status': status,
-            'symbol': symbol,
-            'type': type,
-            'timeInForce': undefined,
-            'postOnly': undefined,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'filled': filled,
-            'remaining': undefined,
-            'cost': undefined,
-            'fee': undefined,
-            'average': undefined,
-            'trades': [],
-        }, market);
-    }
-
-    parseOrderStatus (status) {
-        const statuses = {
-            'wait': 'open',
-            'done': 'closed',
-            'cancel': 'canceled',
-        };
-        return this.safeString (statuses, status, status);
-    }
-
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + path;
+        let url = this.urls['api'][api] + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
