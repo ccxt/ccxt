@@ -243,16 +243,16 @@ class independentreserve extends Exchange {
         }
         $market = $this->safe_market($defaultMarketId, $market, '/');
         $symbol = $market['symbol'];
-        $last = $this->safe_number($ticker, 'LastPrice');
+        $last = $this->safe_string($ticker, 'LastPrice');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'DayHighestPrice'),
-            'low' => $this->safe_number($ticker, 'DayLowestPrice'),
-            'bid' => $this->safe_number($ticker, 'CurrentHighestBidPrice'),
+            'high' => $this->safe_string($ticker, 'DayHighestPrice'),
+            'low' => $this->safe_string($ticker, 'DayLowestPrice'),
+            'bid' => $this->safe_string($ticker, 'CurrentHighestBidPrice'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'CurrentLowestOfferPrice'),
+            'ask' => $this->safe_string($ticker, 'CurrentLowestOfferPrice'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -261,11 +261,11 @@ class independentreserve extends Exchange {
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
-            'average' => $this->safe_number($ticker, 'DayAvgPrice'),
-            'baseVolume' => $this->safe_number($ticker, 'DayVolumeXbtInSecondaryCurrrency'),
+            'average' => $this->safe_string($ticker, 'DayAvgPrice'),
+            'baseVolume' => $this->safe_string($ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
