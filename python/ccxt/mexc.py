@@ -262,11 +262,14 @@ class mexc(Exchange):
                 'exact': {
                     '400': BadRequest,  # Invalid parameter
                     '401': AuthenticationError,  # Invalid signature, fail to pass the validation
+                    '403': PermissionDenied,  # {"msg":"no permission to access the endpoint","code":403}
                     '429': RateLimitExceeded,  # too many requests, rate limit rule is violated
                     '1000': PermissionDenied,  # {"success":false,"code":1000,"message":"Please open contract account first!"}
                     '1002': InvalidOrder,  # {"success":false,"code":1002,"message":"Contract not allow place order!"}
                     '10072': AuthenticationError,  # Invalid access key
                     '10073': AuthenticationError,  # Invalid request time
+                    '10075': PermissionDenied,  # {"msg":"IP [xxx.xxx.xxx.xxx] not in the ip white list","code":10075}
+                    '10101': InsufficientFunds,  # {"code":10101,"msg":"Insufficient balance"}
                     '10216': InvalidAddress,  # {"code":10216,"msg":"No available deposit address"}
                     '10232': BadSymbol,  # {"code":10232,"msg":"The currency not exist"}
                     '30000': BadSymbol,  # Trading is suspended for the requested symbol
@@ -1406,16 +1409,19 @@ class mexc(Exchange):
             network = self.safe_network(networkId)
         code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
-        amount = self.safe_number(transaction, 'amount')
+        amountString = self.safe_string(transaction, 'amount')
         address = self.safe_string(transaction, 'address')
         txid = self.safe_string(transaction, 'tx_id')
         fee = None
-        feeCost = self.safe_number(transaction, 'fee')
-        if feeCost is not None:
+        feeCostString = self.safe_string(transaction, 'fee')
+        if feeCostString is not None:
             fee = {
-                'cost': feeCost,
+                'cost': self.parse_number(feeCostString),
                 'currency': code,
             }
+        if type == 'withdrawal':
+            # mexc withdrawal amount includes the fee
+            amountString = Precise.string_sub(amountString, feeCostString)
         return {
             'info': transaction,
             'id': id,
@@ -1430,7 +1436,7 @@ class mexc(Exchange):
             'tagTo': None,
             'tagFrom': None,
             'type': type,
-            'amount': amount,
+            'amount': self.parse_number(amountString),
             'currency': code,
             'status': status,
             'updated': updated,
@@ -1971,8 +1977,19 @@ class mexc(Exchange):
             request['chain'] = network
             params = self.omit(params, ['network', 'chain'])
         response = self.spotPrivatePostAssetWithdraw(self.extend(request, params))
+        #
+        #     {
+        #         "code":200,
+        #         "data": {
+        #             "withdrawId":"25fb2831fb6d4fc7aa4094612a26c81d"
+        #         }
+        #     }
+        #
         data = self.safe_value(response, 'data', {})
-        return self.parse_transaction(data, currency)
+        return {
+            'info': data,
+            'id': self.data(response, 'withdrawId'),
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         section, access = api
