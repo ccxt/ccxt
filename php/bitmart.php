@@ -828,14 +828,13 @@ class bitmart extends Exchange {
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
-        $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', null, $params);
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', null, $params);
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'publicSpotGetTicker',
             'swap' => 'publicContractGetTickers',
             'future' => 'publicContractGetTickers',
         ));
-        $response = $this->$method ($params);
+        $response = $this->$method ($query);
         $data = $this->safe_value($response, 'data', array());
         $tickers = $this->safe_value($data, 'tickers', array());
         $result = array();
