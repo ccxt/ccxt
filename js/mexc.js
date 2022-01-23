@@ -1152,14 +1152,14 @@ module.exports = class mexc extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivateGetAccountInfo',
+            'margin': 'spotPrivateGetAccountInfo',
             'swap': 'contractPrivateGetAccountAssets',
         });
         const spot = (marketType === 'spot');
-        const response = await this[method] (params);
+        const response = await this[method] (query);
         //
         // spot
         //
