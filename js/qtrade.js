@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InvalidOrder, InsufficientFunds, AuthenticationError, RateLimitExceeded, BadSymbol } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -412,12 +413,15 @@ module.exports = class qtrade extends Exchange {
         const previous = this.safeString (ticker, 'day_open');
         const last = this.safeString (ticker, 'last');
         const day_change = this.safeString (ticker, 'day_change');
-        const percentage = undefined;
-        const change = undefined;
+        let percentage = undefined;
+        let change = undefined;
         const average = this.safeString (ticker, 'day_avg_price');
+        percentage = Precise.stringMul (day_change, '100');
+        if (previous !== undefined) {
+            change = Precise.stringMul (day_change, percentage);
+        }
         const baseVolume = this.safeString (ticker, 'day_volume_market');
         const quoteVolume = this.safeString (ticker, 'day_volume_base');
-        const vwap = this.vwap (baseVolume, quoteVolume);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -428,7 +432,7 @@ module.exports = class qtrade extends Exchange {
             'bidVolume': undefined,
             'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': previous,
             'close': last,
             'last': last,
