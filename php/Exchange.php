@@ -2151,7 +2151,7 @@ class Exchange {
                 'ask' => $this->safe_number($ticker, 'ask'),
                 'askVolume' => $this->safe_number($ticker, 'askVolume'),
                 'high' => $this->safe_number($ticker, 'high'),
-                'low' => $this->safe_number(ticker, 'low'),
+                'low' => $this->safe_number($ticker, 'low'),
                 'open' => $this->parse_number($open),
                 'close' =>$this->parse_number($close),
                 'last' => $this->parse_number($last),
