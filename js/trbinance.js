@@ -150,6 +150,7 @@ module.exports = class trbinance extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetCommonSymbols (params);
+        console.log (response);
         //
         //       {
         //            "code":0,
