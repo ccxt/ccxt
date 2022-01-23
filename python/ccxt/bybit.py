@@ -2296,8 +2296,7 @@ class bybit(Exchange):
             request['start_time'] = since
         if limit is not None:
             request['limit'] = limit  # default 20, max 50
-        marketType = None
-        marketType, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
+        marketType, query = self.handle_market_type_and_params('fetchMyTrades', market, params)
         marketDefined = (market is not None)
         linear = (marketDefined and market['linear']) or (marketType == 'linear')
         inverse = (marketDefined and market['swap'] and market['inverse']) or (marketType == 'inverse')
@@ -2309,7 +2308,7 @@ class bybit(Exchange):
             method = 'v2PrivateGetExecutionList'
         elif future:
             method = 'futuresPrivateGetExecutionList'
-        response = getattr(self, method)(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, query))
         #
         # inverse
         #

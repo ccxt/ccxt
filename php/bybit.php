@@ -2388,8 +2388,7 @@ class bybit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 20, max 50
         }
-        $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
         $marketDefined = ($market !== null);
         $linear = ($marketDefined && $market['linear']) || ($marketType === 'linear');
         $inverse = ($marketDefined && $market['swap'] && $market['inverse']) || ($marketType === 'inverse');
@@ -2402,7 +2401,7 @@ class bybit extends Exchange {
         } else if ($future) {
             $method = 'futuresPrivateGetExecutionList';
         }
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method (array_merge($request, $query));
         //
         // $inverse
         //
