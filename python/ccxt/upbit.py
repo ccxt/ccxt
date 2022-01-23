@@ -562,29 +562,29 @@ class upbit(Exchange):
         timestamp = self.safe_integer(ticker, 'trade_timestamp')
         marketId = self.safe_string_2(ticker, 'market', 'code')
         market = self.safe_market(marketId, market, '-')
-        last = self.safe_number(ticker, 'trade_price')
+        last = self.safe_string(ticker, 'trade_price')
         return self.safe_ticker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high_price'),
-            'low': self.safe_number(ticker, 'low_price'),
+            'high': self.safe_string(ticker, 'high_price'),
+            'low': self.safe_string(ticker, 'low_price'),
             'bid': None,
             'bidVolume': None,
             'ask': None,
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_number(ticker, 'opening_price'),
+            'open': self.safe_string(ticker, 'opening_price'),
             'close': last,
             'last': last,
-            'previousClose': self.safe_number(ticker, 'prev_closing_price'),
-            'change': self.safe_number(ticker, 'signed_change_price'),
-            'percentage': self.safe_number(ticker, 'signed_change_rate'),
+            'previousClose': self.safe_string(ticker, 'prev_closing_price'),
+            'change': self.safe_string(ticker, 'signed_change_price'),
+            'percentage': self.safe_string(ticker, 'signed_change_rate'),
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'acc_trade_volume_24h'),
-            'quoteVolume': self.safe_number(ticker, 'acc_trade_price_24h'),
+            'baseVolume': self.safe_string(ticker, 'acc_trade_volume_24h'),
+            'quoteVolume': self.safe_string(ticker, 'acc_trade_price_24h'),
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()

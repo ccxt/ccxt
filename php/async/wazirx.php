@@ -419,13 +419,13 @@ class wazirx extends Exchange {
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
-        $last = $this->safe_number($ticker, 'lastPrice');
-        $open = $this->safe_number($ticker, 'openPrice');
-        $high = $this->safe_number($ticker, 'highPrice');
-        $low = $this->safe_number($ticker, 'lowPrice');
-        $baseVolume = $this->safe_number($ticker, 'volume');
-        $bid = $this->safe_number($ticker, 'bidPrice');
-        $ask = $this->safe_number($ticker, 'askPrice');
+        $last = $this->safe_string($ticker, 'lastPrice');
+        $open = $this->safe_string($ticker, 'openPrice');
+        $high = $this->safe_string($ticker, 'highPrice');
+        $low = $this->safe_string($ticker, 'lowPrice');
+        $baseVolume = $this->safe_string($ticker, 'volume');
+        $bid = $this->safe_string($ticker, 'bidPrice');
+        $ask = $this->safe_string($ticker, 'askPrice');
         $timestamp = $this->safe_string($ticker, 'at');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -448,7 +448,7 @@ class wazirx extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function parse_balance($response) {

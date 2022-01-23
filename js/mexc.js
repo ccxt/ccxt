@@ -248,11 +248,14 @@ module.exports = class mexc extends Exchange {
                 'exact': {
                     '400': BadRequest, // Invalid parameter
                     '401': AuthenticationError, // Invalid signature, fail to pass the validation
+                    '403': PermissionDenied, // {"msg":"no permission to access the endpoint","code":403}
                     '429': RateLimitExceeded, // too many requests, rate limit rule is violated
                     '1000': PermissionDenied, // {"success":false,"code":1000,"message":"Please open contract account first!"}
                     '1002': InvalidOrder, // {"success":false,"code":1002,"message":"Contract not allow place order!"}
                     '10072': AuthenticationError, // Invalid access key
                     '10073': AuthenticationError, // Invalid request time
+                    '10075': PermissionDenied, // {"msg":"IP [xxx.xxx.xxx.xxx] not in the ip white list","code":10075}
+                    '10101': InsufficientFunds, // {"code":10101,"msg":"Insufficient balance"}
                     '10216': InvalidAddress, // {"code":10216,"msg":"No available deposit address"}
                     '10232': BadSymbol, // {"code":10232,"msg":"The currency not exist"}
                     '30000': BadSymbol, // Trading is suspended for the requested symbol
@@ -275,13 +278,12 @@ module.exports = class mexc extends Exchange {
     }
 
     async fetchTime (params = {}) {
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPublicGetCommonTimestamp',
             'swap': 'contractPublicGetPing',
         });
-        const response = await this[method] (this.extend (params));
+        const response = await this[method] (this.extend (query));
         //
         // spot
         //
@@ -665,13 +667,12 @@ module.exports = class mexc extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPublicGetMarketTicker',
             'swap': 'contractPublicGetTicker',
         });
-        const response = await this[method] (this.extend (params));
+        const response = await this[method] (this.extend (query));
         //
         //     {
         //         "success":true,
@@ -815,24 +816,22 @@ module.exports = class mexc extends Exchange {
         const timestamp = this.safeInteger2 (ticker, 'time', 'timestamp');
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const baseVolume = this.safeNumber2 (ticker, 'volume', 'volume24');
-        const quoteVolume = this.safeNumber (ticker, 'amount24');
-        const open = this.safeNumber (ticker, 'open');
-        const lastString = this.safeString2 (ticker, 'last', 'lastPrice');
-        const last = this.parseNumber (lastString);
-        const change = this.safeNumber (ticker, 'riseFallValue');
+        const baseVolume = this.safeString2 (ticker, 'volume', 'volume24');
+        const quoteVolume = this.safeString (ticker, 'amount24');
+        const open = this.safeString (ticker, 'open');
+        const last = this.safeString2 (ticker, 'last', 'lastPrice');
+        const change = this.safeString (ticker, 'riseFallValue');
         const riseFallRate = this.safeString (ticker, 'riseFallRate');
-        const percentageString = Precise.stringAdd (riseFallRate, '1');
-        const percentage = this.parseNumber (percentageString);
+        const percentage = Precise.stringAdd (riseFallRate, '1');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber2 (ticker, 'high', 'high24Price'),
-            'low': this.safeNumber2 (ticker, 'low', 'lower24Price'),
-            'bid': this.safeNumber2 (ticker, 'bid', 'bid1'),
+            'high': this.safeString2 (ticker, 'high', 'high24Price'),
+            'low': this.safeString2 (ticker, 'low', 'lower24Price'),
+            'bid': this.safeString2 (ticker, 'bid', 'bid1'),
             'bidVolume': undefined,
-            'ask': this.safeNumber2 (ticker, 'ask', 'ask1'),
+            'ask': this.safeString2 (ticker, 'ask', 'ask1'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
@@ -845,7 +844,7 @@ module.exports = class mexc extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -1151,14 +1150,14 @@ module.exports = class mexc extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivateGetAccountInfo',
+            'margin': 'spotPrivateGetAccountInfo',
             'swap': 'contractPrivateGetAccountAssets',
         });
         const spot = (marketType === 'spot');
-        const response = await this[method] (params);
+        const response = await this[method] (query);
         //
         // spot
         //
@@ -1465,16 +1464,20 @@ module.exports = class mexc extends Exchange {
         }
         const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
-        const amount = this.safeNumber (transaction, 'amount');
+        let amountString = this.safeString (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
         const txid = this.safeString (transaction, 'tx_id');
         let fee = undefined;
-        const feeCost = this.safeNumber (transaction, 'fee');
-        if (feeCost !== undefined) {
+        const feeCostString = this.safeString (transaction, 'fee');
+        if (feeCostString !== undefined) {
             fee = {
-                'cost': feeCost,
+                'cost': this.parseNumber (feeCostString),
                 'currency': code,
             };
+        }
+        if (type === 'withdrawal') {
+            // mexc withdrawal amount includes the fee
+            amountString = Precise.stringSub (amountString, feeCostString);
         }
         return {
             'info': transaction,
@@ -1490,7 +1493,7 @@ module.exports = class mexc extends Exchange {
             'tagTo': undefined,
             'tagFrom': undefined,
             'type': type,
-            'amount': amount,
+            'amount': this.parseNumber (amountString),
             'currency': code,
             'status': status,
             'updated': updated,
@@ -2083,8 +2086,19 @@ module.exports = class mexc extends Exchange {
             params = this.omit (params, [ 'network', 'chain' ]);
         }
         const response = await this.spotPrivatePostAssetWithdraw (this.extend (request, params));
+        //
+        //     {
+        //         "code":200,
+        //         "data": {
+        //             "withdrawId":"25fb2831fb6d4fc7aa4094612a26c81d"
+        //         }
+        //     }
+        //
         const data = this.safeValue (response, 'data', {});
-        return this.parseTransaction (data, currency);
+        return {
+            'info': data,
+            'id': this.data (response, 'withdrawId'),
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

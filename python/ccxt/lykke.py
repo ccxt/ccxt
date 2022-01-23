@@ -394,16 +394,16 @@ class lykke(Exchange):
         timestamp = self.milliseconds()
         marketId = self.safe_string(ticker, 'assetPair')
         market = self.safe_market(marketId, market)
-        close = self.safe_number(ticker, 'lastPrice')
+        close = self.safe_string(ticker, 'lastPrice')
         return self.safe_ticker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': self.safe_number(ticker, 'bid'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -414,9 +414,9 @@ class lykke(Exchange):
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': self.safe_number(ticker, 'volume24H'),
+            'quoteVolume': self.safe_string(ticker, 'volume24H'),
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

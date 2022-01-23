@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.69.29';
+$version = '1.69.94';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.69.29';
+    const VERSION = '1.69.94';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2146,12 +2146,12 @@ class Exchange {
             // $timestamp and $symbol operations don't belong in safeTicker
             // they should be done in the derived classes
             return array_merge($ticker, array(
-                'bid' => $this->safe_number(ticker, 'bid'),
-                'bidVolume'=> $this->safe_number(ticker, 'bidVolume'),
-                'ask' => $this->safe_number(ticker, 'ask'),
-                'askVolume' => $this->safe_number(ticker, 'askVolume'),
-                'high' => $this->safe_number(ticker, 'high'),
-                'low' => $this->safe_number(ticker, 'low'),
+                'bid' => $this->safe_number($ticker, 'bid'),
+                'bidVolume'=> $this->safe_number($ticker, 'bidVolume'),
+                'ask' => $this->safe_number($ticker, 'ask'),
+                'askVolume' => $this->safe_number($ticker, 'askVolume'),
+                'high' => $this->safe_number($ticker, 'high'),
+                'low' => $this->safe_number($ticker, 'low'),
                 'open' => $this->parse_number($open),
                 'close' =>$this->parse_number($close),
                 'last' => $this->parse_number($last),

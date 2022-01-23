@@ -233,16 +233,16 @@ class independentreserve(Exchange):
             defaultMarketId = baseId + '/' + quoteId
         market = self.safe_market(defaultMarketId, market, '/')
         symbol = market['symbol']
-        last = self.safe_number(ticker, 'LastPrice')
+        last = self.safe_string(ticker, 'LastPrice')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'DayHighestPrice'),
-            'low': self.safe_number(ticker, 'DayLowestPrice'),
-            'bid': self.safe_number(ticker, 'CurrentHighestBidPrice'),
+            'high': self.safe_string(ticker, 'DayHighestPrice'),
+            'low': self.safe_string(ticker, 'DayLowestPrice'),
+            'bid': self.safe_string(ticker, 'CurrentHighestBidPrice'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'CurrentLowestOfferPrice'),
+            'ask': self.safe_string(ticker, 'CurrentLowestOfferPrice'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -251,11 +251,11 @@ class independentreserve(Exchange):
             'previousClose': None,
             'change': None,
             'percentage': None,
-            'average': self.safe_number(ticker, 'DayAvgPrice'),
-            'baseVolume': self.safe_number(ticker, 'DayVolumeXbtInSecondaryCurrrency'),
+            'average': self.safe_string(ticker, 'DayAvgPrice'),
+            'baseVolume': self.safe_string(ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

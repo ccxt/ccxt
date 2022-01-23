@@ -253,11 +253,14 @@ class mexc extends Exchange {
                 'exact' => array(
                     '400' => '\\ccxt\\BadRequest', // Invalid parameter
                     '401' => '\\ccxt\\AuthenticationError', // Invalid signature, fail to pass the validation
+                    '403' => '\\ccxt\\PermissionDenied', // array("msg":"no permission to access the endpoint","code":403)
                     '429' => '\\ccxt\\RateLimitExceeded', // too many requests, rate limit rule is violated
                     '1000' => '\\ccxt\\PermissionDenied', // array("success":false,"code":1000,"message":"Please open contract account first!")
                     '1002' => '\\ccxt\\InvalidOrder', // array("success":false,"code":1002,"message":"Contract not allow place order!")
                     '10072' => '\\ccxt\\AuthenticationError', // Invalid access key
                     '10073' => '\\ccxt\\AuthenticationError', // Invalid request time
+                    '10075' => '\\ccxt\\PermissionDenied', // array("msg":"IP [xxx.xxx.xxx.xxx] not in the ip white list","code":10075)
+                    '10101' => '\\ccxt\\InsufficientFunds', // array("code":10101,"msg":"Insufficient balance")
                     '10216' => '\\ccxt\\InvalidAddress', // array("code":10216,"msg":"No available deposit address")
                     '10232' => '\\ccxt\\BadSymbol', // array("code":10232,"msg":"The currency not exist")
                     '30000' => '\\ccxt\\BadSymbol', // Trading is suspended for the requested symbol
@@ -670,13 +673,12 @@ class mexc extends Exchange {
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
-        $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', null, $params);
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', null, $params);
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'spotPublicGetMarketTicker',
             'swap' => 'contractPublicGetTicker',
         ));
-        $response = $this->$method (array_merge($params));
+        $response = $this->$method (array_merge($query));
         //
         //     {
         //         "success":true,
@@ -820,24 +822,22 @@ class mexc extends Exchange {
         $timestamp = $this->safe_integer_2($ticker, 'time', 'timestamp');
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $baseVolume = $this->safe_number_2($ticker, 'volume', 'volume24');
-        $quoteVolume = $this->safe_number($ticker, 'amount24');
-        $open = $this->safe_number($ticker, 'open');
-        $lastString = $this->safe_string_2($ticker, 'last', 'lastPrice');
-        $last = $this->parse_number($lastString);
-        $change = $this->safe_number($ticker, 'riseFallValue');
+        $baseVolume = $this->safe_string_2($ticker, 'volume', 'volume24');
+        $quoteVolume = $this->safe_string($ticker, 'amount24');
+        $open = $this->safe_string($ticker, 'open');
+        $last = $this->safe_string_2($ticker, 'last', 'lastPrice');
+        $change = $this->safe_string($ticker, 'riseFallValue');
         $riseFallRate = $this->safe_string($ticker, 'riseFallRate');
-        $percentageString = Precise::string_add($riseFallRate, '1');
-        $percentage = $this->parse_number($percentageString);
+        $percentage = Precise::string_add($riseFallRate, '1');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number_2($ticker, 'high', 'high24Price'),
-            'low' => $this->safe_number_2($ticker, 'low', 'lower24Price'),
-            'bid' => $this->safe_number_2($ticker, 'bid', 'bid1'),
+            'high' => $this->safe_string_2($ticker, 'high', 'high24Price'),
+            'low' => $this->safe_string_2($ticker, 'low', 'lower24Price'),
+            'bid' => $this->safe_string_2($ticker, 'bid', 'bid1'),
             'bidVolume' => null,
-            'ask' => $this->safe_number_2($ticker, 'ask', 'ask1'),
+            'ask' => $this->safe_string_2($ticker, 'ask', 'ask1'),
             'askVolume' => null,
             'vwap' => null,
             'open' => $open,
@@ -850,7 +850,7 @@ class mexc extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -1156,14 +1156,14 @@ class mexc extends Exchange {
 
     public function fetch_balance($params = array ()) {
         $this->load_markets();
-        $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'spotPrivateGetAccountInfo',
+            'margin' => 'spotPrivateGetAccountInfo',
             'swap' => 'contractPrivateGetAccountAssets',
         ));
         $spot = ($marketType === 'spot');
-        $response = $this->$method ($params);
+        $response = $this->$method ($query);
         //
         // $spot
         //
@@ -1470,16 +1470,20 @@ class mexc extends Exchange {
         }
         $code = $this->safe_currency_code($currencyId, $currency);
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
-        $amount = $this->safe_number($transaction, 'amount');
+        $amountString = $this->safe_string($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');
         $txid = $this->safe_string($transaction, 'tx_id');
         $fee = null;
-        $feeCost = $this->safe_number($transaction, 'fee');
-        if ($feeCost !== null) {
+        $feeCostString = $this->safe_string($transaction, 'fee');
+        if ($feeCostString !== null) {
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $this->parse_number($feeCostString),
                 'currency' => $code,
             );
+        }
+        if ($type === 'withdrawal') {
+            // mexc withdrawal amount includes the $fee
+            $amountString = Precise::string_sub($amountString, $feeCostString);
         }
         return array(
             'info' => $transaction,
@@ -1495,7 +1499,7 @@ class mexc extends Exchange {
             'tagTo' => null,
             'tagFrom' => null,
             'type' => $type,
-            'amount' => $amount,
+            'amount' => $this->parse_number($amountString),
             'currency' => $code,
             'status' => $status,
             'updated' => $updated,
@@ -2088,8 +2092,19 @@ class mexc extends Exchange {
             $params = $this->omit($params, array( 'network', 'chain' ));
         }
         $response = $this->spotPrivatePostAssetWithdraw (array_merge($request, $params));
+        //
+        //     {
+        //         "code":200,
+        //         "data" => {
+        //             "withdrawId":"25fb2831fb6d4fc7aa4094612a26c81d"
+        //         }
+        //     }
+        //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_transaction($data, $currency);
+        return array(
+            'info' => $data,
+            'id' => $this->data ($response, 'withdrawId'),
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

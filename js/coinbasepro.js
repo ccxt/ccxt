@@ -495,17 +495,17 @@ module.exports = class coinbasepro extends Exchange {
         let volume = undefined;
         const symbol = (market === undefined) ? undefined : market['symbol'];
         if (Array.isArray (ticker)) {
-            last = this.safeNumber (ticker, 4);
+            last = this.safeString (ticker, 4);
             timestamp = this.milliseconds ();
         } else {
             timestamp = this.parse8601 (this.safeValue (ticker, 'time'));
-            bid = this.safeNumber (ticker, 'bid');
-            ask = this.safeNumber (ticker, 'ask');
-            high = this.safeNumber (ticker, 'high');
-            low = this.safeNumber (ticker, 'low');
-            open = this.safeNumber (ticker, 'open');
-            last = this.safeNumber2 (ticker, 'price', 'last');
-            volume = this.safeNumber (ticker, 'volume');
+            bid = this.safeString (ticker, 'bid');
+            ask = this.safeString (ticker, 'ask');
+            high = this.safeString (ticker, 'high');
+            low = this.safeString (ticker, 'low');
+            open = this.safeString (ticker, 'open');
+            last = this.safeString2 (ticker, 'price', 'last');
+            volume = this.safeString (ticker, 'volume');
         }
         return this.safeTicker ({
             'symbol': symbol,
@@ -528,7 +528,7 @@ module.exports = class coinbasepro extends Exchange {
             'baseVolume': volume,
             'quoteVolume': undefined,
             'info': ticker,
-        });
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

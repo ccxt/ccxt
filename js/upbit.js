@@ -570,29 +570,29 @@ module.exports = class upbit extends Exchange {
         const timestamp = this.safeInteger (ticker, 'trade_timestamp');
         const marketId = this.safeString2 (ticker, 'market', 'code');
         market = this.safeMarket (marketId, market, '-');
-        const last = this.safeNumber (ticker, 'trade_price');
+        const last = this.safeString (ticker, 'trade_price');
         return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high_price'),
-            'low': this.safeNumber (ticker, 'low_price'),
+            'high': this.safeString (ticker, 'high_price'),
+            'low': this.safeString (ticker, 'low_price'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeNumber (ticker, 'opening_price'),
+            'open': this.safeString (ticker, 'opening_price'),
             'close': last,
             'last': last,
-            'previousClose': this.safeNumber (ticker, 'prev_closing_price'),
-            'change': this.safeNumber (ticker, 'signed_change_price'),
-            'percentage': this.safeNumber (ticker, 'signed_change_rate'),
+            'previousClose': this.safeString (ticker, 'prev_closing_price'),
+            'change': this.safeString (ticker, 'signed_change_price'),
+            'percentage': this.safeString (ticker, 'signed_change_rate'),
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'acc_trade_volume_24h'),
-            'quoteVolume': this.safeNumber (ticker, 'acc_trade_price_24h'),
+            'baseVolume': this.safeString (ticker, 'acc_trade_volume_24h'),
+            'quoteVolume': this.safeString (ticker, 'acc_trade_price_24h'),
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

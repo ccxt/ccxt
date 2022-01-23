@@ -656,7 +656,7 @@ class kucoinfutures(kucoin):
         #          }
         #     }
         #
-        last = self.safe_number(ticker, 'price')
+        last = self.safe_string(ticker, 'price')
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market, '-')
         timestamp = Precise.string_div(self.safe_string(ticker, 'ts'), '1000000')
@@ -666,10 +666,10 @@ class kucoinfutures(kucoin):
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': self.safe_number(ticker, 'bestBidPrice'),
-            'bidVolume': self.safe_number(ticker, 'bestBidSize'),
-            'ask': self.safe_number(ticker, 'bestAskPrice'),
-            'askVolume': self.safe_number(ticker, 'bestAskSize'),
+            'bid': self.safe_string(ticker, 'bestBidPrice'),
+            'bidVolume': self.safe_string(ticker, 'bestBidSize'),
+            'ask': self.safe_string(ticker, 'bestAskPrice'),
+            'askVolume': self.safe_string(ticker, 'bestAskSize'),
             'vwap': None,
             'open': None,
             'close': last,
@@ -681,7 +681,7 @@ class kucoinfutures(kucoin):
             'baseVolume': None,
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
         #

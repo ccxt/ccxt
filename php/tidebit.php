@@ -231,15 +231,15 @@ class tidebit extends Exchange {
         $timestamp = $this->safe_timestamp($ticker, 'at');
         $ticker = $this->safe_value($ticker, 'ticker', array());
         $market = $this->safe_market(null, $market);
-        $last = $this->safe_number($ticker, 'last');
+        $last = $this->safe_string($ticker, 'last');
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'buy'),
-            'ask' => $this->safe_number($ticker, 'sell'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'buy'),
+            'ask' => $this->safe_string($ticker, 'sell'),
             'bidVolume' => null,
             'askVolume' => null,
             'vwap' => null,
@@ -250,10 +250,10 @@ class tidebit extends Exchange {
             'percentage' => null,
             'previousClose' => null,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'vol'),
+            'baseVolume' => $this->safe_string($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

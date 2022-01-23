@@ -458,19 +458,18 @@ class poloniex extends Exchange {
         // }
         $timestamp = $this->milliseconds();
         $symbol = $this->safe_symbol(null, $market);
-        $last = $this->safe_number($ticker, 'last');
+        $last = $this->safe_string($ticker, 'last');
         $relativeChange = $this->safe_string($ticker, 'percentChange');
         $percentage = Precise::string_mul($relativeChange, '100');
-        $percentage = $this->parse_number($percentage);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high24hr'),
-            'low' => $this->safe_number($ticker, 'low24hr'),
-            'bid' => $this->safe_number($ticker, 'highestBid'),
+            'high' => $this->safe_string($ticker, 'high24hr'),
+            'low' => $this->safe_string($ticker, 'low24hr'),
+            'bid' => $this->safe_string($ticker, 'highestBid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'lowestAsk'),
+            'ask' => $this->safe_string($ticker, 'lowestAsk'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -480,10 +479,10 @@ class poloniex extends Exchange {
             'change' => null,
             'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'quoteVolume'),
-            'quoteVolume' => $this->safe_number($ticker, 'baseVolume'),
+            'baseVolume' => $this->safe_string($ticker, 'quoteVolume'),
+            'quoteVolume' => $this->safe_string($ticker, 'baseVolume'),
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

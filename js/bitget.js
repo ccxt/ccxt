@@ -2249,21 +2249,18 @@ module.exports = class bitget extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const type = this.safeString (params, 'type', market['type']);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         const request = {
             'symbol': market['id'],
         };
-        let method = undefined;
-        if (type === 'spot') {
-            method = 'apiGetOrderOrdersOpenOrders';
+        if (marketType === 'spot') {
             // request['from'] = this.safeString (params, 'from'); // order id
             // request['direct'] = 'next'; // or 'prev'
             request['method'] = 'openOrders';
             if (limit === undefined) {
                 request['size'] = limit; // default 100, max 1000
             }
-        } else if (type === 'swap') {
-            method = 'swapGetOrderOrders';
+        } else if (marketType === 'swap') {
             request['status'] = '3'; // 0 Failed, 1 Partially Filled, 2 Fully Filled 3 = Open + Partially Filled, 4 Canceling
             request['from'] = '1';
             request['to'] = '1';
@@ -2271,7 +2268,10 @@ module.exports = class bitget extends Exchange {
                 request['limit'] = 100; // default 100, max 100
             }
         }
-        const query = this.omit (params, 'type');
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'apiGetOrderOrdersOpenOrders',
+            'swap': 'swapGetOrderOrders',
+        });
         const response = await this[method] (this.extend (request, query));
         //
         //  spot
@@ -2334,13 +2334,11 @@ module.exports = class bitget extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const type = this.safeString (params, 'type', market['type']);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
         const request = {
             'symbol': market['id'],
         };
-        let method = undefined;
-        if (type === 'spot') {
-            method = 'apiGetOrderOrdersHistory';
+        if (marketType === 'spot') {
             // Value range [((end_time) – 48h), (end_time)]
             // the query window is 48 hours at most
             // the window shift range is the last 30 days
@@ -2354,8 +2352,7 @@ module.exports = class bitget extends Exchange {
             if (limit === undefined) {
                 request['size'] = limit; // default 100, max 1000
             }
-        } else if (type === 'swap') {
-            method = 'swapGetOrderOrders';
+        } else if (marketType === 'swap') {
             request['status'] = '2'; // 0 Failed, 1 Partially Filled, 2 Fully Filled 3 = Open + Partially Filled, 4 Canceling
             request['from'] = '1';
             request['to'] = '1';
@@ -2363,7 +2360,10 @@ module.exports = class bitget extends Exchange {
                 request['limit'] = 100; // default 100, max 100
             }
         }
-        const query = this.omit (params, 'type');
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'apiGetOrderOrdersHistory',
+            'swap': 'swapGetOrderOrders',
+        });
         const response = await this[method] (this.extend (request, query));
         //
         //  spot

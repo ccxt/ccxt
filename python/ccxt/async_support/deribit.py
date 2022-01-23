@@ -739,18 +739,18 @@ class deribit(Exchange):
         timestamp = self.safe_integer_2(ticker, 'timestamp', 'creation_timestamp')
         marketId = self.safe_string(ticker, 'instrument_name')
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_number_2(ticker, 'last_price', 'last')
+        last = self.safe_string_2(ticker, 'last_price', 'last')
         stats = self.safe_value(ticker, 'stats', ticker)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number_2(stats, 'high', 'max_price'),
-            'low': self.safe_number_2(stats, 'low', 'min_price'),
-            'bid': self.safe_number_2(ticker, 'best_bid_price', 'bid_price'),
-            'bidVolume': self.safe_number(ticker, 'best_bid_amount'),
-            'ask': self.safe_number_2(ticker, 'best_ask_price', 'ask_price'),
-            'askVolume': self.safe_number(ticker, 'best_ask_amount'),
+            'high': self.safe_string_2(stats, 'high', 'max_price'),
+            'low': self.safe_string_2(stats, 'low', 'min_price'),
+            'bid': self.safe_string_2(ticker, 'best_bid_price', 'bid_price'),
+            'bidVolume': self.safe_string(ticker, 'best_bid_amount'),
+            'ask': self.safe_string_2(ticker, 'best_ask_price', 'ask_price'),
+            'askVolume': self.safe_string(ticker, 'best_ask_amount'),
             'vwap': None,
             'open': None,
             'close': last,
@@ -760,9 +760,9 @@ class deribit(Exchange):
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': self.safe_number(stats, 'volume'),
+            'quoteVolume': self.safe_string(stats, 'volume'),
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

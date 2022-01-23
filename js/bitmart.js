@@ -1286,7 +1286,7 @@ module.exports = class bitmart extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = undefined;
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const request = {};
         if (market['spot']) {
             request['symbol'] = market['id'];
@@ -1295,16 +1295,19 @@ module.exports = class bitmart extends Exchange {
                 limit = 100; // max 100
             }
             request['limit'] = limit;
-            method = 'privateSpotGetTrades';
         } else if (market['swap'] || market['future']) {
             request['contractID'] = market['id'];
             // request['offset'] = 1;
             if (limit !== undefined) {
                 request['size'] = limit; // max 60
             }
-            method = 'privateContractGetUserTrades';
         }
-        const response = await this[method] (this.extend (request, params));
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateSpotGetTrades',
+            'swap': 'privateContractGetUserTrades',
+            'future': 'privateContractGetUserTrades',
+        });
+        const response = await this[method] (this.extend (request, query));
         //
         // spot
         //
@@ -1367,18 +1370,21 @@ module.exports = class bitmart extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = undefined;
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderTrades', market, params);
         const request = {};
         if (market['spot']) {
             request['symbol'] = market['id'];
             request['order_id'] = id;
-            method = 'privateSpotGetTrades';
         } else if (market['swap'] || market['future']) {
             request['contractID'] = market['id'];
             request['orderID'] = id;
-            method = 'privateContractGetOrderTrades';
         }
-        const response = await this[method] (this.extend (request, params));
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateSpotGetTrades',
+            'swap': 'privateContractGetOrderTrades',
+            'future': 'privateContractGetOrderTrades',
+        });
+        const response = await this[method] (this.extend (request, query));
         //
         // spot
         //
@@ -1454,20 +1460,15 @@ module.exports = class bitmart extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let method = undefined;
-        const options = this.safeValue (this.options, 'fetchBalance', {});
-        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        let type = this.safeString (options, 'type', defaultType);
-        type = this.safeString (params, 'type', type);
-        params = this.omit (params, 'type');
-        if (type === 'spot') {
-            method = 'privateSpotGetWallet';
-        } else if (type === 'account') {
-            method = 'privateAccountGetWallet';
-        } else if ((type === 'swap') || (type === 'future') || (type === 'contract')) {
-            method = 'privateContractGetAccounts';
-        }
-        const response = await this[method] (params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateSpotGetWallet',
+            'swap': 'privateContractGetAccounts',
+            'future': 'privateContractGetAccounts',
+            'contract': 'privateContractGetAccounts',
+            'account': 'privateAccountGetWallet',
+        });
+        const response = await this[method] (query);
         //
         // spot
         //
@@ -1875,10 +1876,9 @@ module.exports = class bitmart extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
         const request = {};
-        let method = undefined;
         if (market['spot']) {
-            method = 'privateSpotGetOrders';
             request['symbol'] = market['id'];
             request['offset'] = 1; // max offset * limit < 500
             request['limit'] = 100; // max limit is 100
@@ -1902,7 +1902,6 @@ module.exports = class bitmart extends Exchange {
                 request['status'] = status;
             }
         } else if (market['swap'] || market['future']) {
-            method = 'privateContractGetUserOrders';
             request['contractID'] = market['id'];
             // request['offset'] = 1;
             if (limit !== undefined) {
@@ -1921,7 +1920,12 @@ module.exports = class bitmart extends Exchange {
                 request['status'] = status;
             }
         }
-        const response = await this[method] (this.extend (request, params));
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateSpotGetOrders',
+            'swap': 'privateContractGetUserOrders',
+            'future': 'privateContractGetUserOrders',
+        });
+        const response = await this[method] (this.extend (request, query));
         //
         // spot
         //
@@ -2016,20 +2020,23 @@ module.exports = class bitmart extends Exchange {
         await this.loadMarkets ();
         const request = {};
         const market = this.market (symbol);
-        let method = undefined;
         if (typeof id !== 'string') {
             id = id.toString ();
         }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         if (market['spot']) {
             request['symbol'] = market['id'];
             request['order_id'] = id;
-            method = 'privateSpotGetOrderDetail';
         } else if (market['swap'] || market['future']) {
             request['contractID'] = market['id'];
             request['orderID'] = id;
-            method = 'privateContractGetUserOrderInfo';
         }
-        const response = await this[method] (this.extend (request, params));
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateSpotGetOrderDetail',
+            'swap': 'privateContractGetUserOrderInfo',
+            'future': 'privateContractGetUserOrderInfo',
+        });
+        const response = await this[method] (this.extend (request, query));
         //
         // spot
         //

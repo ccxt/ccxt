@@ -57,6 +57,12 @@ Sponsored Promotion
 -------------------
 
 
+.. image:: https://user-images.githubusercontent.com/1294454/150618153-e818845e-ba2e-4d60-8b1d-4ff47e09270d.png
+     :target: https://github.com/ccxt/ccxt/issues/11606
+     :alt: Huobi Futures Now Available In CCXT 1.68+
+
+
+
 .. image:: https://user-images.githubusercontent.com/1294454/106092533-865ce180-613f-11eb-8d67-0830771fde32.png
      :target: https://ccxt.pro
      :alt: CCXT Pro – A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals
@@ -1829,7 +1835,7 @@ The CCXT library currently supports the following 114 cryptocurrency exchange ma
      - whitebit
      - `WhiteBit <https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://documenter.getpostman.com/view/7473075/Szzj8dgv?version=latest
+          :target: https://github.com/whitebit-exchange/api-docs
           :alt: API Version 2
      
      - 
@@ -1972,14 +1978,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.69.29/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@1.69.29/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.69.94/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@1.69.94/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.69.29/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.69.94/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

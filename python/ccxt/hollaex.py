@@ -476,29 +476,29 @@ class hollaex(Exchange):
         market = self.safe_market(marketId, market, '-')
         symbol = market['symbol']
         timestamp = self.parse8601(self.safe_string_2(ticker, 'time', 'timestamp'))
-        close = self.safe_number(ticker, 'close')
+        close = self.safe_string(ticker, 'close')
         return self.safe_ticker({
             'symbol': symbol,
             'info': ticker,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
             'bid': None,
             'bidVolume': None,
             'ask': None,
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_number(ticker, 'open'),
+            'open': self.safe_string(ticker, 'open'),
             'close': close,
-            'last': self.safe_number(ticker, 'last', close),
+            'last': self.safe_string(ticker, 'last', close),
             'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'volume'),
+            'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': None,
-        }, market)
+        }, market, False)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()

@@ -27,24 +27,51 @@ class timex(Exchange):
             'version': 'v1',
             'rateLimit': 1500,
             'has': {
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'CORS': None,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'editOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,  # maker fee only
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
             },
             'timeframes': {
                 '1m': 'I1',
@@ -841,57 +868,64 @@ class timex(Exchange):
         #     }
         #
         locked = self.safe_value(market, 'locked')
-        active = not locked
         id = self.safe_string(market, 'symbol')
         baseId = self.safe_string(market, 'baseCurrency')
         quoteId = self.safe_string(market, 'quoteCurrency')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        symbol = base + '/' + quote
-        precision = {
-            'amount': self.precision_from_string(self.safe_string(market, 'quantityIncrement')),
-            'price': self.precision_from_string(self.safe_string(market, 'tickSize')),
-        }
-        amountIncrement = self.safe_number(market, 'quantityIncrement')
-        minBase = self.safe_number(market, 'baseMinSize')
-        minAmount = max(amountIncrement, minBase)
-        priceIncrement = self.safe_number(market, 'tickSize')
-        minCost = self.safe_number(market, 'quoteMinSize')
-        limits = {
-            'amount': {'min': minAmount, 'max': None},
-            'price': {'min': priceIncrement, 'max': None},
-            'cost': {'min': max(minCost, minAmount * priceIncrement), 'max': None},
-        }
-        taker = self.safe_number(market, 'takerFee')
-        maker = self.safe_number(market, 'makerFee')
+        amountIncrement = self.safe_string(market, 'quantityIncrement')
+        minBase = self.safe_string(market, 'baseMinSize')
+        minAmount = Precise.string_max(amountIncrement, minBase)
+        priceIncrement = self.safe_string(market, 'tickSize')
+        minCost = self.safe_string(market, 'quoteMinSize')
         return {
             'id': id,
-            'symbol': symbol,
+            'symbol': base + '/' + quote,
             'base': base,
             'quote': quote,
+            'settle': None,
             'baseId': baseId,
             'quoteId': quoteId,
+            'settleId': None,
             'type': 'spot',
             'spot': True,
             'margin': False,
-            'future': False,
             'swap': False,
+            'future': False,
             'option': False,
-            'optionType': None,
-            'strike': None,
+            'active': not locked,
+            'contract': False,
             'linear': None,
             'inverse': None,
-            'contract': False,
+            'taker': self.safe_number(market, 'takerFee'),
+            'maker': self.safe_number(market, 'makerFee'),
             'contractSize': None,
-            'settle': None,
-            'settleId': None,
             'expiry': None,
             'expiryDatetime': None,
-            'active': active,
-            'precision': precision,
-            'limits': limits,
-            'taker': taker,
-            'maker': maker,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': self.precision_from_string(self.safe_string(market, 'quantityIncrement')),
+                'price': self.precision_from_string(self.safe_string(market, 'tickSize')),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
+                },
+                'amount': {
+                    'min': self.parse_number(minAmount),
+                    'max': None,
+                },
+                'price': {
+                    'min': self.parse_number(priceIncrement),
+                    'max': None,
+                },
+                'cost': {
+                    'min': minCost,
+                    'max': None,
+                },
+            },
             'info': market,
         }
 
@@ -993,18 +1027,18 @@ class timex(Exchange):
         marketId = self.safe_string(ticker, 'market')
         symbol = self.safe_symbol(marketId, market, '/')
         timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
-        last = self.safe_number(ticker, 'last')
-        open = self.safe_number(ticker, 'open')
+        last = self.safe_string(ticker, 'last')
+        open = self.safe_string(ticker, 'open')
         return self.safe_ticker({
             'symbol': symbol,
             'info': ticker,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': open,
@@ -1014,9 +1048,9 @@ class timex(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'volume'),
-            'quoteVolume': self.safe_number(ticker, 'volumeQuote'),
-        }, market)
+            'baseVolume': self.safe_string(ticker, 'volume'),
+            'quoteVolume': self.safe_string(ticker, 'volumeQuote'),
+        }, market, False)
 
     def parse_trade(self, trade, market=None):
         #

@@ -412,16 +412,16 @@ class lykke extends Exchange {
         $timestamp = $this->milliseconds();
         $marketId = $this->safe_string($ticker, 'assetPair');
         $market = $this->safe_market($marketId, $market);
-        $close = $this->safe_number($ticker, 'lastPrice');
+        $close = $this->safe_string($ticker, 'lastPrice');
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -432,9 +432,9 @@ class lykke extends Exchange {
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => $this->safe_number($ticker, 'volume24H'),
+            'quoteVolume' => $this->safe_string($ticker, 'volume24H'),
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

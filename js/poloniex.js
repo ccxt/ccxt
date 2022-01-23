@@ -455,19 +455,18 @@ module.exports = class poloniex extends Exchange {
         // }
         const timestamp = this.milliseconds ();
         const symbol = this.safeSymbol (undefined, market);
-        const last = this.safeNumber (ticker, 'last');
+        const last = this.safeString (ticker, 'last');
         const relativeChange = this.safeString (ticker, 'percentChange');
-        let percentage = Precise.stringMul (relativeChange, '100');
-        percentage = this.parseNumber (percentage);
+        const percentage = Precise.stringMul (relativeChange, '100');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high24hr'),
-            'low': this.safeNumber (ticker, 'low24hr'),
-            'bid': this.safeNumber (ticker, 'highestBid'),
+            'high': this.safeString (ticker, 'high24hr'),
+            'low': this.safeString (ticker, 'low24hr'),
+            'bid': this.safeString (ticker, 'highestBid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'lowestAsk'),
+            'ask': this.safeString (ticker, 'lowestAsk'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -477,10 +476,10 @@ module.exports = class poloniex extends Exchange {
             'change': undefined,
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'quoteVolume'),
-            'quoteVolume': this.safeNumber (ticker, 'baseVolume'),
+            'baseVolume': this.safeString (ticker, 'quoteVolume'),
+            'quoteVolume': this.safeString (ticker, 'baseVolume'),
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

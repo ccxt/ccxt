@@ -504,15 +504,15 @@ class latoken extends Exchange {
         //
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $last = $this->safe_number($ticker, 'lastPrice');
-        $change = $this->safe_number($ticker, 'change24h');
+        $last = $this->safe_string($ticker, 'lastPrice');
+        $change = $this->safe_string($ticker, 'change24h');
         $timestamp = $this->nonce();
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'low' => $this->safe_number($ticker, 'low'),
-            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'high' => $this->safe_string($ticker, 'high'),
             'bid' => null,
             'bidVolume' => null,
             'ask' => null,
@@ -526,9 +526,9 @@ class latoken extends Exchange {
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => $this->safe_number($ticker, 'volume24h'),
+            'quoteVolume' => $this->safe_string($ticker, 'volume24h'),
             'info' => $ticker,
-        ));
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

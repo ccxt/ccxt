@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
 from ccxt.base.precise import Precise
@@ -161,27 +160,43 @@ class zaif(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            precision = {
-                'amount': -math.log10(self.safe_number(market, 'item_unit_step')),
-                'price': self.safe_integer(market, 'aux_unit_point'),
-            }
             fees = self.safe_value(self.options['fees'], symbol, self.fees['trading'])
-            taker = fees['taker']
-            maker = fees['maker']
+            itemUnitStep = self.safe_string(market, 'item_unit_step')
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': True,  # can trade or not
-                'precision': precision,
-                'taker': taker,
-                'maker': maker,
+                'margin': None,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': None,  # can trade or not
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'taker': fees['taker'],
+                'maker': fees['maker'],
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': Precise.string_mul(itemUnitStep, '-1e10'),
+                    'price': self.safe_integer(market, 'aux_unit_point'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(market, 'item_unit_min'),
                         'max': None,

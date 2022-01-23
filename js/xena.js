@@ -12,13 +12,18 @@ module.exports = class xena extends Exchange {
             'countries': [ 'VC', 'UK' ],
             'rateLimit': 100,
             'has': {
-                'fetchAccounts': true,
+                'spot': false,
+                'margin': false,
+                'swap': undefined, // has but not fully implemented
+                'future': undefined, // has but not fully implemented
+                'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'CORS': undefined,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'editOrder': true,
+                'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
@@ -171,6 +176,12 @@ module.exports = class xena extends Exchange {
         //
         //     [
         //         {
+        //             "type": "Index",
+        //             "symbol": ".ADAUSD",
+        //             "tickSize": 4,
+        //             "enabled": true
+        //         },
+        //         {
         //             "id":"ETHUSD_3M_250920",
         //             "type":"Margin",
         //             "marginType":"XenaFuture",
@@ -260,58 +271,75 @@ module.exports = class xena extends Exchange {
             const marginType = this.safeString (market, 'marginType');
             const baseId = this.safeString (market, 'baseCurrency');
             const quoteId = this.safeString (market, 'quoteCurrency');
+            const settleId = this.safeString (market, 'settlCurrency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            const settle = this.safeCurrencyCode (settleId);
+            const expiryDate = this.safeString (market, 'expiryDate');
+            const expiryTimestamp = this.parse8601 (expiryDate);
             let symbol = id;
+            let future = false;
+            let swap = false;
             if (type === 'margin') {
+                symbol = base + '/' + quote + ':' + settle;
                 if (marginType === 'XenaFuture') {
+                    symbol = symbol + '-' + this.yymmdd (expiryTimestamp);
                     type = 'future';
+                    future = true;
                 } else if (marginType === 'XenaListedPerpetual') {
                     type = 'swap';
-                    symbol = base + '/' + quote;
+                    swap = true;
                 }
             }
-            const future = (type === 'future');
-            const swap = (type === 'swap');
-            const pricePrecision = this.safeInteger2 (market, 'tickSize', 'pricePrecision');
-            const precision = {
-                'price': pricePrecision,
-                'amount': 0,
-            };
-            const maxCost = this.safeNumber (market, 'maxOrderQty');
-            const minCost = this.safeNumber (market, 'minOrderQuantity');
-            const limits = {
-                'amount': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': minCost,
-                    'max': maxCost,
-                },
-            };
-            const active = this.safeValue (market, 'enabled', false);
             const inverse = this.safeValue (market, 'inverse', false);
+            const contract = swap || future;
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': settleId,
                 'numericId': numericId,
-                'active': active,
                 'type': type,
                 'spot': false,
-                'future': future,
+                'margin': false,
                 'swap': swap,
-                'inverse': inverse,
-                'precision': precision,
-                'limits': limits,
+                'future': future,
+                'option': false,
+                'active': this.safeValue (market, 'enabled', false),
+                'contract': contract,
+                'linear': contract ? !inverse : undefined,
+                'inverse': contract ? inverse : undefined,
+                'contractSize': this.safeNumber (market, 'contractValue'),
+                'expiry': expiryTimestamp,
+                'expiryDatetime': this.iso8601 (expiryTimestamp),
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': this.safeInteger2 (market, 'tickSize', 'pricePrecision'),
+                    'amount': 0,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'minOrderQuantity'),
+                        'max': this.safeNumber (market, 'maxOrderQty'),
+                    },
+                },
                 'info': market,
             });
         }
@@ -402,20 +430,20 @@ module.exports = class xena extends Exchange {
         const timestamp = this.milliseconds ();
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeNumber (ticker, 'lastPx');
-        const open = this.safeNumber (ticker, 'firstPx');
-        const buyVolume = this.safeNumber (ticker, 'buyVolume');
-        const sellVolume = this.safeNumber (ticker, 'sellVolume');
+        const last = this.safeString (ticker, 'lastPx');
+        const open = this.safeString (ticker, 'firstPx');
+        const buyVolume = this.safeString (ticker, 'buyVolume');
+        const sellVolume = this.safeString (ticker, 'sellVolume');
         const baseVolume = this.sum (buyVolume, sellVolume);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'highPx'),
-            'low': this.safeNumber (ticker, 'lowPx'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeString (ticker, 'highPx'),
+            'low': this.safeString (ticker, 'lowPx'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
@@ -428,7 +456,7 @@ module.exports = class xena extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {

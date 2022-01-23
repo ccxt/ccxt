@@ -152,29 +152,29 @@ class coinfalcon extends Exchange {
         $marketId = $this->safe_string($ticker, 'name');
         $market = $this->safe_market($marketId, $market, '-');
         $timestamp = $this->milliseconds();
-        $last = $this->safe_number($ticker, 'last_price');
+        $last = $this->safe_string($ticker, 'last_price');
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => $this->safe_number($ticker, 'highest_bid'),
+            'bid' => $this->safe_string($ticker, 'highest_bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'lowest_ask'),
+            'ask' => $this->safe_string($ticker, 'lowest_ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_number($ticker, 'change_in_24h'),
+            'change' => $this->safe_string($ticker, 'change_in_24h'),
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => $this->safe_number($ticker, 'volume'),
+            'quoteVolume' => $this->safe_string($ticker, 'volume'),
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

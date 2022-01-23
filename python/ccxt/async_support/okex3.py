@@ -1112,18 +1112,18 @@ class okex3(Exchange):
         marketId = self.safe_string(ticker, 'instrument_id')
         market = self.safe_market(marketId, market, '-')
         symbol = market['symbol']
-        last = self.safe_number(ticker, 'last')
-        open = self.safe_number(ticker, 'open_24h')
+        last = self.safe_string(ticker, 'last')
+        open = self.safe_string(ticker, 'open_24h')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high_24h'),
-            'low': self.safe_number(ticker, 'low_24h'),
-            'bid': self.safe_number(ticker, 'best_bid'),
-            'bidVolume': self.safe_number(ticker, 'best_bid_size'),
-            'ask': self.safe_number(ticker, 'best_ask'),
-            'askVolume': self.safe_number(ticker, 'best_ask_size'),
+            'high': self.safe_string(ticker, 'high_24h'),
+            'low': self.safe_string(ticker, 'low_24h'),
+            'bid': self.safe_string(ticker, 'best_bid'),
+            'bidVolume': self.safe_string(ticker, 'best_bid_size'),
+            'ask': self.safe_string(ticker, 'best_ask'),
+            'askVolume': self.safe_string(ticker, 'best_ask_size'),
             'vwap': None,
             'open': open,
             'close': last,
@@ -1132,10 +1132,10 @@ class okex3(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'base_volume_24h'),
-            'quoteVolume': self.safe_number(ticker, 'quote_volume_24h'),
+            'baseVolume': self.safe_string(ticker, 'base_volume_24h'),
+            'quoteVolume': self.safe_string(ticker, 'quote_volume_24h'),
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

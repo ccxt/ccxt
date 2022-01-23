@@ -21,19 +21,46 @@ class btcturk(Exchange):
             'countries': ['TR'],  # Turkey
             'rateLimit': 100,
             'has': {
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelOrder': True,
                 'CORS': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
             },
             'timeframes': {
                 '1d': '1d',
@@ -147,7 +174,6 @@ class btcturk(Exchange):
             quoteId = self.safe_string(entry, 'denominator')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
             filters = self.safe_value(entry, 'filters')
             minPrice = None
             maxPrice = None
@@ -164,52 +190,53 @@ class btcturk(Exchange):
                     maxAmount = self.safe_number(filter, 'maxAmount')
                     minCost = self.safe_number(filter, 'minExchangeValue')
             status = self.safe_string(entry, 'status')
-            active = status == 'TRADING'
-            limits = {
-                'price': {
-                    'min': minPrice,
-                    'max': maxPrice,
-                },
-                'amount': {
-                    'min': minAmount,
-                    'max': maxAmount,
-                },
-                'cost': {
-                    'min': minCost,
-                    'max': None,
-                },
-            }
-            precision = {
-                'price': self.safe_integer(entry, 'denominatorScale'),
-                'amount': self.safe_integer(entry, 'numeratorScale'),
-            }
             result.append({
-                'info': entry,
-                'symbol': symbol,
                 'id': id,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'limits': limits,
-                'precision': precision,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
                 'margin': False,
-                'future': False,
                 'swap': False,
+                'future': False,
                 'option': False,
-                'optionType': None,
-                'strike': None,
+                'active': (status == 'TRADING'),
+                'contract': False,
                 'linear': None,
                 'inverse': None,
-                'contract': False,
                 'contractSize': None,
-                'settle': None,
-                'settleId': None,
                 'expiry': None,
                 'expiryDatetime': None,
-                'active': active,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': self.safe_integer(entry, 'denominatorScale'),
+                    'amount': self.safe_integer(entry, 'numeratorScale'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': minAmount,
+                        'max': maxAmount,
+                    },
+                    'price': {
+                        'min': minPrice,
+                        'max': maxPrice,
+                    },
+                    'cost': {
+                        'min': minCost,
+                        'max': None,
+                    },
+                },
+                'info': entry,
             })
         return result
 
