@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, InvalidOrder, ArgumentsRequired, AuthenticationError, OrderNotFound, PermissionDenied, InsufficientFunds, BadRequest } = require ('./base/errors');
 const Precise = require ('./base/Precise');
+
 //  ---------------------------------------------------------------------------
 
 module.exports = class whitebit extends Exchange {
@@ -435,30 +436,31 @@ module.exports = class whitebit extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const last = this.safeNumber (ticker, 'last_price');
-        const percentage = this.safeNumber (ticker, 'change') * 0.01;
+        const last = this.safeString (ticker, 'last_price');
+        const change = this.safeString (ticker, 'change');
+        const percentage = Precise.stringMul (change, '0.01');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeNumber (ticker, 'open'),
+            'open': this.safeString (ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeNumber2 (ticker, 'base_volume', 'volume'),
-            'quoteVolume': this.safeNumber2 (ticker, 'quote_volume', 'deal'),
+            'baseVolume': this.safeString2 (ticker, 'base_volume', 'volume'),
+            'quoteVolume': this.safeString2 (ticker, 'quote_volume', 'deal'),
             'info': ticker,
-        });
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
