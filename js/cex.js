@@ -463,12 +463,12 @@ module.exports = class cex extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
-        const volume = this.safeNumber (ticker, 'volume');
-        const high = this.safeNumber (ticker, 'high');
-        const low = this.safeNumber (ticker, 'low');
-        const bid = this.safeNumber (ticker, 'bid');
-        const ask = this.safeNumber (ticker, 'ask');
-        const last = this.safeNumber (ticker, 'last');
+        const volume = this.safeString (ticker, 'volume');
+        const high = this.safeString (ticker, 'high');
+        const low = this.safeString (ticker, 'low');
+        const bid = this.safeString (ticker, 'bid');
+        const ask = this.safeString (ticker, 'ask');
+        const last = this.safeString (ticker, 'last');
         const symbol = this.safeSymbol (undefined, market);
         return this.safeTicker ({
             'symbol': symbol,
@@ -491,7 +491,7 @@ module.exports = class cex extends Exchange {
             'baseVolume': volume,
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
