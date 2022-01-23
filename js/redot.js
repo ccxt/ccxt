@@ -2,6 +2,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest, RateLimitExceeded, BadSymbol, ArgumentsRequired, PermissionDenied, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+const { base } = require ('./static_dependencies/elliptic/lib/elliptic/curve');
 // const Precise = require ('./base/Precise');
 
 module.exports = class wazirx extends Exchange {
@@ -37,7 +38,7 @@ module.exports = class wazirx extends Exchange {
                 'fetchPositions': false,
                 'fetchStatus': true,
                 'fetchTicker': true,
-                'fetchTickers': true,
+                'fetchTickers': false,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
@@ -238,22 +239,25 @@ module.exports = class wazirx extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const ticker = await this.publicGetTicker24hr (this.extend (request, params));
+        const response = await this.publicGetTicker24hr (this.extend (request, params));
         //
         // {
-        //     "symbol":"wrxinr",
-        //     "baseAsset":"wrx",
-        //     "quoteAsset":"inr",
-        //     "openPrice":"94.77",
-        //     "lowPrice":"92.7",
-        //     "highPrice":"95.17",
-        //     "lastPrice":"94.03",
-        //     "volume":"1118700.0",
-        //     "bidPrice":"94.02",
-        //     "askPrice":"94.03",
-        //     "at":1641382455000
+        //     "result":
+        //     {
+        //     "lastTradeId":7219332,
+        //     "price":0.068708,
+        //     "qty":0.0046,
+        //     "bidPrice":0.068663,
+        //     "askPrice":0.068678,
+        //     "bidQty":0.4254,
+        //     "askQty":0.0506,
+        //     "volumeUsd":315646.03,
+        //     "volume":130.5272,
+        //     "time":1642974178845710
+        //     }
         // }
         //
+        const ticker = this.safeValue (response, 'result', {});
         return this.parseTicker (ticker, market);
     }
 
@@ -353,31 +357,28 @@ module.exports = class wazirx extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        //     {
-        //        "symbol":"btcinr",
-        //        "baseAsset":"btc",
-        //        "quoteAsset":"inr",
-        //        "openPrice":"3698486",
-        //        "lowPrice":"3641155.0",
-        //        "highPrice":"3767999.0",
-        //        "lastPrice":"3713212.0",
-        //        "volume":"254.11582", // base volume
-        //        "bidPrice":"3715021.0",
-        //        "askPrice":"3715022.0",
-        //        "at":1641382455000 // only on fetchTicker
-        //     }
+        // {
+        //     "lastTradeId":7219332,
+        //     "price":0.068708,
+        //     "qty":0.0046,
+        //     "bidPrice":0.068663,
+        //     "askPrice":0.068678,
+        //     "bidQty":0.4254,
+        //     "askQty":0.0506,
+        //     "volumeUsd":315646.03,
+        //     "volume":130.5272,
+        //     "time":1642974178845710
+        // }
         //
-        const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
-        const last = this.safeNumber (ticker, 'lastPrice');
+        const symbol = this.safeSymbol (undefined, market);
+        const last = this.safeNumber (ticker, 'price');
         const open = this.safeNumber (ticker, 'openPrice');
         const high = this.safeNumber (ticker, 'highPrice');
         const low = this.safeNumber (ticker, 'lowPrice');
         const baseVolume = this.safeNumber (ticker, 'volume');
         const bid = this.safeNumber (ticker, 'bidPrice');
         const ask = this.safeNumber (ticker, 'askPrice');
-        const timestamp = this.safeString (ticker, 'at');
+        const timestamp = this.safeString (ticker, 'time');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
