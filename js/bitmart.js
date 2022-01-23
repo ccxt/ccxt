@@ -824,14 +824,13 @@ module.exports = class bitmart extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'publicSpotGetTicker',
             'swap': 'publicContractGetTickers',
             'future': 'publicContractGetTickers',
         });
-        const response = await this[method] (params);
+        const response = await this[method] (query);
         const data = this.safeValue (response, 'data', {});
         const tickers = this.safeValue (data, 'tickers', []);
         const result = {};
