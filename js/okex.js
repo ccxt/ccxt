@@ -1858,8 +1858,7 @@ module.exports = class okex extends Exchange {
             });
         }
         // for ids (only if client-order-ids were not set)
-        const requestLength = request.length;
-        if (requestLength === 0) {
+        if (clientOrderId === undefined) {
             if (typeof ids === 'string') {
                 const orderIds = ids.split (',');
                 for (let i = 0; i < orderIds.length; i++) {
