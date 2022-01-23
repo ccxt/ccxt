@@ -535,22 +535,21 @@ class probit extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($ticker, 'time'));
         $marketId = $this->safe_string($ticker, 'market_id');
         $symbol = $this->safe_symbol($marketId, $market, '-');
-        $close = $this->safe_number($ticker, 'last');
-        $change = $this->safe_number($ticker, 'change');
-        $baseVolume = $this->safe_number($ticker, 'base_volume');
-        $quoteVolume = $this->safe_number($ticker, 'quote_volume');
-        $vwap = $this->vwap($baseVolume, $quoteVolume);
+        $close = $this->safe_string($ticker, 'last');
+        $change = $this->safe_string($ticker, 'change');
+        $baseVolume = $this->safe_string($ticker, 'base_volume');
+        $quoteVolume = $this->safe_string($ticker, 'quote_volume');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
             'bid' => null,
             'bidVolume' => null,
             'ask' => null,
             'askVolume' => null,
-            'vwap' => $vwap,
+            'vwap' => null,
             'open' => null,
             'close' => $close,
             'last' => $close,
@@ -561,7 +560,7 @@ class probit extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
