@@ -674,13 +674,12 @@ class mexc extends Exchange {
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         yield $this->load_markets();
-        $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', null, $params);
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', null, $params);
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'spotPublicGetMarketTicker',
             'swap' => 'contractPublicGetTicker',
         ));
-        $response = yield $this->$method (array_merge($params));
+        $response = yield $this->$method (array_merge($query));
         //
         //     {
         //         "success":true,

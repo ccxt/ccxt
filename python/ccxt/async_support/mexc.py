@@ -661,13 +661,12 @@ class mexc(Exchange):
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        marketType = None
-        marketType, params = self.handle_market_type_and_params('fetchTickers', None, params)
+        marketType, query = self.handle_market_type_and_params('fetchTickers', None, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotPublicGetMarketTicker',
             'swap': 'contractPublicGetTicker',
         })
-        response = await getattr(self, method)(self.extend(params))
+        response = await getattr(self, method)(self.extend(query))
         #
         #     {
         #         "success":true,
