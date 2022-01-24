@@ -32,6 +32,7 @@ class ascendex(Exchange):
                 'swap': True,
                 'future': False,
                 'option': False,
+                'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'CORS': None,
@@ -55,6 +56,7 @@ class ascendex(Exchange):
                 'fetchTrades': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': True,
                 'setLeverage': True,
                 'setMarginMode': True,
             },
@@ -2061,6 +2063,43 @@ class ascendex(Exchange):
         contracts = self.safe_value(data, 'contracts', [])
         result = self.parse_funding_rates(contracts)
         return self.filter_by_array(result, 'symbol', symbols)
+
+    async def modify_margin_helper(self, symbol, amount, type, params={}):
+        await self.load_markets()
+        await self.load_accounts()
+        market = self.market(symbol)
+        account = self.safe_value(self.accounts, 0, {})
+        accountGroup = self.safe_string(account, 'id')
+        amount = self.number_to_string(amount)
+        request = {
+            'account-group': accountGroup,
+            'symbol': market['id'],
+            'amount': amount,
+        }
+        response = await self.v2PrivateAccountGroupPostFuturesIsolatedPositionMargin(self.extend(request, params))
+        #
+        # Can only change margin for perpetual futures isolated margin positions
+        #
+        #     {
+        #          "code": 0
+        #     }
+        #
+        errorCode = self.safe_string(response, 'code')
+        status = 'ok' if (errorCode == '0') else 'failed'
+        return {
+            'info': response,
+            'type': type,
+            'amount': amount,
+            'code': market['quote'],
+            'symbol': market['symbol'],
+            'status': status,
+        }
+
+    async def reduce_margin(self, symbol, amount, params={}):
+        return await self.modify_margin_helper(symbol, amount, 'reduce', params)
+
+    async def add_margin(self, symbol, amount, params={}):
+        return await self.modify_margin_helper(symbol, amount, 'add', params)
 
     async def set_leverage(self, leverage, symbol=None, params={}):
         if symbol is None:

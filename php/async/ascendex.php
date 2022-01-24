@@ -28,6 +28,7 @@ class ascendex extends Exchange {
                 'swap' => true,
                 'future' => false,
                 'option' => false,
+                'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'CORS' => null,
@@ -51,6 +52,7 @@ class ascendex extends Exchange {
                 'fetchTrades' => true,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
             ),
@@ -2137,6 +2139,46 @@ class ascendex extends Exchange {
         $contracts = $this->safe_value($data, 'contracts', array());
         $result = $this->parse_funding_rates($contracts);
         return $this->filter_by_array($result, 'symbol', $symbols);
+    }
+
+    public function modify_margin_helper($symbol, $amount, $type, $params = array ()) {
+        yield $this->load_markets();
+        yield $this->load_accounts();
+        $market = $this->market($symbol);
+        $account = $this->safe_value($this->accounts, 0, array());
+        $accountGroup = $this->safe_string($account, 'id');
+        $amount = $this->number_to_string($amount);
+        $request = array(
+            'account-group' => $accountGroup,
+            'symbol' => $market['id'],
+            'amount' => $amount,
+        );
+        $response = yield $this->v2PrivateAccountGroupPostFuturesIsolatedPositionMargin (array_merge($request, $params));
+        //
+        // Can only change margin for perpetual futures isolated margin positions
+        //
+        //     {
+        //          "code" => 0
+        //     }
+        //
+        $errorCode = $this->safe_string($response, 'code');
+        $status = ($errorCode === '0') ? 'ok' : 'failed';
+        return array(
+            'info' => $response,
+            'type' => $type,
+            'amount' => $amount,
+            'code' => $market['quote'],
+            'symbol' => $market['symbol'],
+            'status' => $status,
+        );
+    }
+
+    public function reduce_margin($symbol, $amount, $params = array ()) {
+        return yield $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
+    }
+
+    public function add_margin($symbol, $amount, $params = array ()) {
+        return yield $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 
     public function set_leverage($leverage, $symbol = null, $params = array ()) {
