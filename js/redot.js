@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, BadSymbol } = require ('./base/errors');
+const { ExchangeError, BadRequest, BadSymbol, RateLimitExceeded } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 module.exports = class redot extends Exchange {
@@ -84,6 +84,7 @@ module.exports = class redot extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    '10002': RateLimitExceeded, // {"error":{"code":10002,"message":"Too many requests."}
                     '10501': BadRequest, // {"error":{"code":10501,"message":"Request parameters have incorrect format."}}
                     '14500': BadRequest, // {"error":{"code":14500,"message":"Depth is invalid."}}
                     '13500': BadSymbol, // {"error":{"code":13500,"message":"Instrument id is invalid."}}
@@ -207,7 +208,7 @@ module.exports = class redot extends Exchange {
         //
         const result = this.safeValue (response, 'result', []);
         let timestamp = Precise.stringDiv (this.safeString (result, 'time'), '1000');
-        timestamp = this.safeInteger (timestamp);
+        timestamp = parseInt (parseFloat (timestamp));
         return this.parseOrderBook (result, symbol, timestamp);
     }
 
@@ -283,7 +284,7 @@ module.exports = class redot extends Exchange {
         //
         const id = this.safeString (trade, 'id');
         let timestamp = Precise.stringDiv (this.safeString (trade, 'time'), '1000');
-        timestamp = this.safeInteger (timestamp);
+        timestamp = parseInt (parseFloat (timestamp));
         const datetime = this.iso8601 (timestamp);
         const symbol = this.safeSymbol (undefined, market);
         const side = this.safeString (trade, 'side');
@@ -329,7 +330,8 @@ module.exports = class redot extends Exchange {
         const baseVolume = this.safeString (ticker, 'volume');
         const bid = this.safeString (ticker, 'bidPrice');
         const ask = this.safeString (ticker, 'askPrice');
-        const timestamp = Precise.stringDiv (this.safeString (ticker, 'time'), '1000');
+        let timestamp = Precise.stringDiv (this.safeString (ticker, 'time'), '1000');
+        timestamp = parseInt (parseFloat (timestamp));
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -366,7 +368,7 @@ module.exports = class redot extends Exchange {
         //  },
         //
         return [
-            this.safeInteger (Precise.stringDiv (this.safeString (ohlcv, 'time'), '1000')),
+            parseInt (parseFloat (Precise.stringDiv (this.safeString (ohlcv, 'time'), '1000'))),
             this.safeNumber (ohlcv, 'open'),
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),
