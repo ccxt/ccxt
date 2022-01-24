@@ -17,6 +17,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.precise import Precise
 
 
 class qtrade(Exchange):
@@ -412,30 +413,25 @@ class qtrade(Exchange):
         marketId = self.safe_string(ticker, 'id_hr')
         symbol = self.safe_symbol(marketId, market, '_')
         timestamp = self.safe_integer_product(ticker, 'last_change', 0.001)
-        previous = self.safe_number(ticker, 'day_open')
-        last = self.safe_number(ticker, 'last')
-        day_change = self.safe_number(ticker, 'day_change')
-        percentage = None
-        change = None
-        average = self.safe_number(ticker, 'day_avg_price')
-        if day_change is not None:
-            percentage = day_change * 100
-            if previous is not None:
-                change = day_change * previous
-        baseVolume = self.safe_number(ticker, 'day_volume_market')
-        quoteVolume = self.safe_number(ticker, 'day_volume_base')
-        vwap = self.vwap(baseVolume, quoteVolume)
+        previous = self.safe_string(ticker, 'day_open')
+        last = self.safe_string(ticker, 'last')
+        day_change = self.safe_string(ticker, 'day_change')
+        average = self.safe_string(ticker, 'day_avg_price')
+        baseVolume = self.safe_string(ticker, 'day_volume_market')
+        quoteVolume = self.safe_string(ticker, 'day_volume_base')
+        percentage = Precise.string_mul(day_change, '100')
+        change = Precise.string_mul(day_change, previous)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'day_high'),
-            'low': self.safe_number(ticker, 'day_low'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'day_high'),
+            'low': self.safe_string(ticker, 'day_low'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
-            'vwap': vwap,
+            'vwap': None,
             'open': previous,
             'close': last,
             'last': last,
@@ -446,7 +442,7 @@ class qtrade(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()

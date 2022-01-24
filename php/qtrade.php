@@ -412,32 +412,25 @@ class qtrade extends Exchange {
         $marketId = $this->safe_string($ticker, 'id_hr');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $timestamp = $this->safe_integer_product($ticker, 'last_change', 0.001);
-        $previous = $this->safe_number($ticker, 'day_open');
-        $last = $this->safe_number($ticker, 'last');
-        $day_change = $this->safe_number($ticker, 'day_change');
-        $percentage = null;
-        $change = null;
-        $average = $this->safe_number($ticker, 'day_avg_price');
-        if ($day_change !== null) {
-            $percentage = $day_change * 100;
-            if ($previous !== null) {
-                $change = $day_change * $previous;
-            }
-        }
-        $baseVolume = $this->safe_number($ticker, 'day_volume_market');
-        $quoteVolume = $this->safe_number($ticker, 'day_volume_base');
-        $vwap = $this->vwap($baseVolume, $quoteVolume);
+        $previous = $this->safe_string($ticker, 'day_open');
+        $last = $this->safe_string($ticker, 'last');
+        $day_change = $this->safe_string($ticker, 'day_change');
+        $average = $this->safe_string($ticker, 'day_avg_price');
+        $baseVolume = $this->safe_string($ticker, 'day_volume_market');
+        $quoteVolume = $this->safe_string($ticker, 'day_volume_base');
+        $percentage = Precise::string_mul($day_change, '100');
+        $change = Precise::string_mul($day_change, $previous);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'day_high'),
-            'low' => $this->safe_number($ticker, 'day_low'),
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'high' => $this->safe_string($ticker, 'day_high'),
+            'low' => $this->safe_string($ticker, 'day_low'),
+            'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
-            'vwap' => $vwap,
+            'vwap' => null,
             'open' => $previous,
             'close' => $last,
             'last' => $last,
@@ -448,7 +441,7 @@ class qtrade extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
