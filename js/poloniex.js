@@ -305,33 +305,47 @@ module.exports = class poloniex extends Exchange {
             const [ quoteId, baseId ] = id.split ('_');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const limits = this.extend (this.limits, {
-                'cost': {
-                    'min': this.safeValue (this.options['limits']['cost']['min'], quote),
-                },
-            });
             const isFrozen = this.safeString (market, 'isFrozen');
-            const active = (isFrozen !== '1');
-            const numericId = this.safeInteger (market, 'id');
             // these are known defaults
-            const precision = {
-                'price': 8,
-                'amount': 8,
-            };
             result.push ({
                 'id': id,
-                'numericId': numericId,
-                'symbol': symbol,
-                'baseId': baseId,
-                'quoteId': quoteId,
+                'numericId': this.safeInteger (market, 'id'),
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
-                'precision': precision,
-                'limits': limits,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': (isFrozen !== '1'),
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': 8,
+                    'amount': 8,
+                },
+                'limits': this.extend (this.limits, {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.safeValue (this.options['limits']['cost']['min'], quote),
+                        'max': undefined,
+                    },
+                }),
                 'info': market,
             });
         }
