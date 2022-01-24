@@ -1540,6 +1540,7 @@ module.exports = class binance extends Exchange {
                 contractSize = this.safeNumber (market, 'contractSize', this.parseNumber ('1'));
                 fees = this.fees[type];
             }
+            const isMarginTradingAllowed = this.safeValue (market, 'isMarginTradingAllowed', false);
             const entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -1552,7 +1553,7 @@ module.exports = class binance extends Exchange {
                 'settleId': settleId,
                 'type': type,
                 'spot': spot,
-                'margin': spot && this.safeValue (market, 'isMarginTradingAllowed', false),
+                'margin': spot && isMarginTradingAllowed,
                 'future': future,
                 'delivery': delivery,
                 'option': false,
