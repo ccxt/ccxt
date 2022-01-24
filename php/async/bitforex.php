@@ -104,6 +104,7 @@ class bitforex extends Exchange {
                 'TON' => 'To The Moon',
             ),
             'exceptions' => array(
+                '1000' => '\\ccxt\\OrderNotFound', // array("code":"1000","success":false,"time":1643047898676,"message":"The order does not exist or the status is wrong")
                 '1003' => '\\ccxt\\BadSymbol', // array("success":false,"code":"1003","message":"Param Invalid:param invalid -symbol:symbol error")
                 '1013' => '\\ccxt\\AuthenticationError',
                 '1016' => '\\ccxt\\AuthenticationError',
