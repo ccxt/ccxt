@@ -3685,6 +3685,14 @@ You may set the value of `exchange.withdraw ('USDT', 100, 'TVJ1fwyJ1a8JbtUxZ8Km9
 
 ## Transactions
 
+CCXT supports obtaining different type of transactions using specific methods (if the exchange supports a native API **filter** parameter for that exact data):
+- `fetchTransactions` : returns paginated deposits and withdrawals (mixed) transactions
+- `fetchDeposits` : returns paginated deposits only 
+- `fetchWithdrawals` : similar as `fetchDeposits`
+- `fetchTransfers` : returns paginated internal transfers
+- `fetchLedger` : Returns mixed data of all transactions that include or affect- deposits, withdrawals, fees, rebates, fees, trades, money movments & balance changes of different kinds...
+
+
 #### Transaction Structure
 
 ```JavaScript
