@@ -212,9 +212,9 @@ module.exports = class tidebit extends Exchange {
                         'leverage': {
                             'min': undefined,
                             'max': undefined,
-                        }
+                        },
                     },
-                    this.limits,
+                    this.limits
                 ),
                 'info': market,
             });
