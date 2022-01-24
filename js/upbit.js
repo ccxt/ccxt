@@ -412,8 +412,6 @@ module.exports = class upbit extends Exchange {
             const [ quoteId, baseId ] = id.split ('-');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const precisionAmount = this.parseNumber ('8');
-            const precisionPrice = this.parseNumber ('8');
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -441,8 +439,8 @@ module.exports = class upbit extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': precisionPrice,
-                    'amount': precisionAmount,
+                    'price': 8,
+                    'amount': 8,
                 },
                 'limits': {
                     'leverage': {
@@ -450,11 +448,11 @@ module.exports = class upbit extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': this.parseNumber ('-1e' + precisionAmount),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'price': {
-                        'min': this.parseNumber ('-1e' + precisionPrice),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
