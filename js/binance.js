@@ -1520,8 +1520,9 @@ module.exports = class binance extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
+            const contract = future || delivery;
             const contractType = this.safeString (market, 'contractType');
-            const idSymbol = (future || delivery) && (contractType !== 'PERPETUAL');
+            const idSymbol = contract && (contractType !== 'PERPETUAL');
             let symbol = undefined;
             let expiry = undefined;
             if (idSymbol) {
@@ -1533,7 +1534,6 @@ module.exports = class binance extends Exchange {
             const filters = this.safeValue (market, 'filters', []);
             const filtersByType = this.indexBy (filters, 'filterType');
             const status = this.safeString2 (market, 'status', 'contractStatus');
-            const contract = future || delivery;
             let contractSize = undefined;
             let fees = this.fees;
             if (contract) {
