@@ -1199,11 +1199,11 @@ module.exports = class woo extends Exchange {
         //     meta: { total: '1', records_per_page: '25', current_page: '1' },
         //     success: true
         // }
-        return [currency, this.safeValue (response, 'rows', {})];
+        return [ currency, this.safeValue (response, 'rows', {}) ];
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
-        const [currency, rows] = await this.getAssetHistoryRows(code, since, limit, params);
+        const [ currency, rows ] = await this.getAssetHistoryRows(code, since, limit, params);
         return this.parseLedger (rows, currency, since, limit, params);
     }
 
@@ -1214,8 +1214,7 @@ module.exports = class woo extends Exchange {
         const amount = this.safeNumber (item, 'amount');
         const side = this.safeNumber (item, 'token_side');
         const direction = (side === 'DEPOSIT') ? 'in' : 'out';
-        const timestamp = this.safeTimestamp (item, 'created_time');        
-        const feeCost = this.safeString (item, 'fee');
+        const timestamp = this.safeTimestamp (item, 'created_time');
         const fee = this.parseTokenAndFeeTemp (item, 'fee_token', 'fee_amount');
         return {
             'id': this.safeString (item, 'id'),
@@ -1278,7 +1277,7 @@ module.exports = class woo extends Exchange {
         const request = {
             'type': 'BALANCE',
         };
-        const [currency, rows] = await this.getAssetHistoryRows (code, since, limit, this.extend (request,params) );
+        const [ currency, rows ] = await this.getAssetHistoryRows (code, since, limit, this.extend (request, params));
         return this.parseTransactions (rows, currency, since, limit, params);
     }
 
@@ -1330,7 +1329,7 @@ module.exports = class woo extends Exchange {
         const request = {
             'type': 'COLLATERAL',
         };
-        const [currency, rows] = await this.getAssetHistoryRows(code, since, limit, this.extend (request,params));
+        const [ currency, rows ] = await this.getAssetHistoryRows (code, since, limit, this.extend (request, params) );
         return this.parseTransfers (rows, currency, since, limit, params);
     }
 
