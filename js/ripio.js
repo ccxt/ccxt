@@ -126,7 +126,12 @@ module.exports = class ripio extends Exchange {
         //                 "quote_name":"USD Coin",
         //                 "symbol":"BTC_USDC",
         //                 "fees":[
-        //                     {"traded_volume":0.0,"maker_fee":0.0,"taker_fee":0.0,"cancellation_fee":0.0}
+        //                     {
+        //                         "traded_volume": 0.0,
+        //                         "maker_fee": 0.0,
+        //                         "taker_fee": 0.0,
+        //                         "cancellation_fee": 0.0
+        //                     }
         //                 ],
         //                 "country":"ZZ",
         //                 "enabled":true,
@@ -148,58 +153,56 @@ module.exports = class ripio extends Exchange {
             const id = this.safeString (market, 'symbol');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const precision = {
-                'amount': this.safeNumber (market, 'min_amount'),
-                'price': this.safeNumber (market, 'price_tick'),
-            };
-            const limits = {
-                'amount': {
-                    'min': this.safeNumber (market, 'min_amount'),
-                    'max': undefined,
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': this.safeNumber (market, 'min_value'),
-                    'max': undefined,
-                },
-            };
-            const active = this.safeValue (market, 'enabled', true);
             const fees = this.safeValue (market, 'fees', []);
             const firstFee = this.safeValue (fees, 0, {});
-            const maker = this.safeNumber (firstFee, 'maker_fee', 0.0);
-            const taker = this.safeNumber (firstFee, 'taker_fee', 0.0);
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
                 'margin': false,
                 'future': false,
                 'swap': false,
                 'option': false,
-                'optionType': undefined,
-                'strike': undefined,
+                'active': this.safeValue (market, 'enabled', true),
+                'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'contract': false,
+                'taker': this.safeNumber (firstFee, 'taker_fee', 0.0),
+                'maker': this.safeNumber (firstFee, 'maker_fee', 0.0),
                 'contractSize': undefined,
-                'settle': undefined,
-                'settleId': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
-                'active': active,
-                'precision': precision,
-                'maker': maker,
-                'taker': taker,
-                'limits': limits,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeNumber (market, 'min_amount'),
+                    'price': this.safeNumber (market, 'price_tick'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (market, 'min_amount'),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'min_value'),
+                        'max': undefined,
+                    },
+                },
                 'info': market,
             });
         }
