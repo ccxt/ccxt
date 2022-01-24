@@ -1873,7 +1873,7 @@ module.exports = class okex extends Exchange {
                     });
                 }
             }
-        } 
+        }
         const response = await this.privatePostTradeCancelBatchOrders (request); // dont extend with params, otherwise ARRAY will be turned into OBJECT
         //
         // {
