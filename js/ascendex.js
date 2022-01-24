@@ -23,6 +23,7 @@ module.exports = class ascendex extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
+                'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'CORS': undefined,
@@ -46,6 +47,7 @@ module.exports = class ascendex extends Exchange {
                 'fetchTrades': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': true,
                 'setLeverage': true,
                 'setMarginMode': true,
             },
@@ -2132,6 +2134,46 @@ module.exports = class ascendex extends Exchange {
         const contracts = this.safeValue (data, 'contracts', []);
         const result = this.parseFundingRates (contracts);
         return this.filterByArray (result, 'symbol', symbols);
+    }
+
+    async modifyMarginHelper (symbol, amount, type, params = {}) {
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const market = this.market (symbol);
+        const account = this.safeValue (this.accounts, 0, {});
+        const accountGroup = this.safeString (account, 'id');
+        amount = this.numberToString (amount);
+        const request = {
+            'account-group': accountGroup,
+            'symbol': market['id'],
+            'amount': amount,
+        };
+        const response = await this.v2PrivateAccountGroupPostFuturesIsolatedPositionMargin (this.extend (request, params));
+        //
+        // Can only change margin for perpetual futures isolated margin positions
+        //
+        //     {
+        //          "code": 0
+        //     }
+        //
+        const errorCode = this.safeString (response, 'code');
+        const status = (errorCode === '0') ? 'ok' : 'failed';
+        return {
+            'info': response,
+            'type': type,
+            'amount': amount,
+            'code': market['quote'],
+            'symbol': market['symbol'],
+            'status': status,
+        };
+    }
+
+    async reduceMargin (symbol, amount, params = {}) {
+        return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
+    }
+
+    async addMargin (symbol, amount, params = {}) {
+        return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
