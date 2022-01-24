@@ -570,6 +570,7 @@ module.exports = class bybit extends Exchange {
                     '30068': ExchangeError, // exit value must be positive
                     '30074': InvalidOrder, // can't create the stop order, because you expect the order will be triggered when the LastPrice(or IndexPrice、 MarkPrice, determined by trigger_by) is raising to stop_px, but the LastPrice(or IndexPrice、 MarkPrice) is already equal to or greater than stop_px, please adjust base_price or stop_px
                     '30075': InvalidOrder, // can't create the stop order, because you expect the order will be triggered when the LastPrice(or IndexPrice、 MarkPrice, determined by trigger_by) is falling to stop_px, but the LastPrice(or IndexPrice、 MarkPrice) is already equal to or less than stop_px, please adjust base_price or stop_px
+                    '30084': BadRequest, // Isolated not modified
                     '33004': AuthenticationError, // apikey already expired
                     '34026': ExchangeError, // the limit is no change
                 },
@@ -2882,7 +2883,17 @@ module.exports = class bybit extends Exchange {
             'buy_leverage': leverage,
             'sell_leverage': leverage,
         };
-        return await this[method] (this.extend (request, params));
+        try {
+            return await this[method] (this.extend (request, params));
+        } catch (e) {
+            if (this.last_http_response) {
+                if (this.last_http_response.indexOf ('not modified') >= 0) {
+                    throw new BadRequest ('marginType for ' + symbol + ' already set to ' + marginType + '. Nothing was changed.');
+                }
+            } else {
+                throw e;
+            }
+        }
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
