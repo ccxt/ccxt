@@ -121,6 +121,8 @@ module.exports = class redot extends Exchange {
             const symbol = base + '/' + quote;
             const minQuantity = this.safeInteger (market, 'minQty');
             const maxQuantity = this.safeNumber (market, 'maxQty');
+            const makerFee = this.safeNumber (market, 'makerFee');
+            const takerFee = this.safeNumber (market, 'takerFee');
             const precision = {
                 'amount': this.safeInteger (market, 'minQty'),
                 'price': minQuantity,
@@ -133,6 +135,8 @@ module.exports = class redot extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'maker': makerFee,
+                'taker': takerFee,
                 'linear': undefined,
                 'inverse': undefined,
                 'settle': undefined,
