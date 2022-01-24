@@ -18,30 +18,57 @@ module.exports = class stex extends Exchange {
             'certified': false,
             // new metainfo interface
             'has': {
-                'fetchClosedOrder': true,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'CORS': undefined,
                 'createDepositAddress': true,
                 'createMarketOrder': undefined, // limit orders only
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
+                'fetchClosedOrder': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchFundingFees': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderTrades': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'withdraw': true,
             },
             'version': 'v3',
@@ -367,46 +394,64 @@ module.exports = class stex extends Exchange {
             const quoteNumericId = this.safeInteger (market, 'market_currency_id');
             const base = this.safeCurrencyCode (this.safeString (market, 'currency_code'));
             const quote = this.safeCurrencyCode (this.safeString (market, 'market_code'));
-            const symbol = base + '/' + quote;
-            const precision = {
-                'amount': this.safeInteger (market, 'currency_precision'),
-                'price': this.safeInteger (market, 'market_precision'),
-            };
-            const active = this.safeValue (market, 'active');
-            const minBuyPrice = this.safeNumber (market, 'min_buy_price');
-            const minSellPrice = this.safeNumber (market, 'min_sell_price');
-            const minPrice = Math.max (minBuyPrice, minSellPrice);
-            const buyFee = this.safeNumber (market, 'buy_fee_percent') / 100;
-            const sellFee = this.safeNumber (market, 'sell_fee_percent') / 100;
-            const fee = Math.max (buyFee, sellFee);
+            const minBuyPrice = this.safeString (market, 'min_buy_price');
+            const minSellPrice = this.safeString (market, 'min_sell_price');
+            const minPrice = Precise.stringMax (minBuyPrice, minSellPrice);
+            const buyFee = Precise.stringDiv (this.safeString (market, 'buy_fee_percent'), '100');
+            const sellFee = Precise.stringDiv (this.safeString (market, 'sell_fee_percent'), '100');
+            const fee = Precise.stringMax (buyFee, sellFee);
             result.push ({
                 'id': id,
                 'numericId': numericId,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'baseNumericId': baseNumericId,
                 'quoteNumericId': quoteNumericId,
-                'info': market,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
-                'maker': fee,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': this.safeValue (market, 'active'),
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
                 'taker': fee,
-                'precision': precision,
+                'maker': fee,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': this.safeInteger (market, 'market_precision'),
+                    'amount': this.safeInteger (market, 'currency_precision'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'min_order_amount'),
                         'max': undefined,
                     },
-                    'price': { 'min': minPrice, 'max': undefined },
+                    'price': {
+                        'min': minPrice,
+                        'max': undefined,
+                    },
                     'cost': {
                         'min': undefined,
                         'max': undefined,
                     },
                 },
+                'info': market,
             });
         }
         return result;
