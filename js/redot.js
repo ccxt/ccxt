@@ -366,7 +366,7 @@ module.exports = class redot extends Exchange {
         //  },
         //
         return [
-            this.safeInteger (ohlcv, 'time'),
+            this.safeInteger (Precise.stringDiv (this.safeString (ohlcv, 'time'), '1000')),
             this.safeNumber (ohlcv, 'open'),
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),
