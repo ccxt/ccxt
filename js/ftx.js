@@ -49,7 +49,8 @@ module.exports = class ftx extends Exchange {
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': true,
-                'fetchBorrowRateHistory': false,
+                'fetchBorrowRateHistories': true,
+                'fetchBorrowRateHistory': true,
                 'fetchBorrowRates': true,
                 'fetchClosedOrders': undefined,
                 'fetchCurrencies': true,
@@ -2442,5 +2443,68 @@ module.exports = class ftx extends Exchange {
             };
         }
         return rates;
+    }
+
+    async fetchBorrowRateHistories (since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        const endTime = this.safeNumber2 (params, 'till', 'end_time');
+        if (since !== undefined) {
+            request['start_time'] = since / 1000;
+            if (endTime === undefined) {
+                request['end_time'] = this.milliseconds ();
+            }
+        }
+        if (endTime !== undefined) {
+            request['end_time'] = endTime / 1000;
+        }
+        const response = await this.publicGetSpotMarginHistory (this.extend (request, params));
+        //
+        //    {
+        //        "success": true,
+        //        "result": [
+        //            {
+        //                "coin": "PYPL",
+        //                "time": "2022-01-24T13:00:00+00:00",
+        //                "size": 0.00500172,
+        //                "rate": 1e-6
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        const result = this.safeValue (response, 'result');
+        // How to calculate borrow rate
+        // https://help.ftx.com/hc/en-us/articles/360053007671-Spot-Margin-Trading-Explainer
+        const takerFee = this.fees['trading']['taker'].toString ();
+        const spotMarginBorrowRate = Precise.stringMul ('500', takerFee);
+        const borrowRateHistories = {};
+        for (let i = 0; i < result.length; i++) {
+            const item = result[i];
+            const currency = this.safeCurrencyCode (this.safeString (item, 'coin'));
+            if (!(currency in borrowRateHistories)) {
+                borrowRateHistories[currency] = [];
+            }
+            const datetime = this.safeString (item, 'time');
+            const lendingRate = this.safeString (item, 'rate');
+            borrowRateHistories[currency].push ({
+                'currency': currency,
+                'rate': Precise.stringMul (lendingRate, Precise.stringAdd ('1', spotMarginBorrowRate)),
+                'timestamp': this.parse8601 (datetime),
+                'datetime': datetime,
+                'info': item,
+            });
+        }
+        return borrowRateHistories;
+    }
+
+    async fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {}) {
+        const histories = await this.fetchBorrowRateHistories (since, limit, params);
+        const borrowRateHistory = this.safeValue (histories, code);
+        if (borrowRateHistory === undefined) {
+            throw new BadRequest (this.id + '.fetchBorrowRateHistory returned no data for ' + code);
+        } else {
+            return this.filterByCurrencySinceLimit (borrowRateHistory, code, since, limit);
+        }
     }
 };
