@@ -1994,39 +1994,39 @@ class binance extends Exchange {
         $timestamp = $this->safe_integer($ticker, 'closeTime');
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $last = $this->safe_number($ticker, 'lastPrice');
+        $last = $this->safe_string($ticker, 'lastPrice');
         $isCoinm = (is_array($ticker) && array_key_exists('baseVolume', $ticker));
         $baseVolume = null;
         $quoteVolume = null;
         if ($isCoinm) {
-            $baseVolume = $this->safe_number($ticker, 'baseVolume');
-            $quoteVolume = $this->safe_number($ticker, 'volume');
+            $baseVolume = $this->safe_string($ticker, 'baseVolume');
+            $quoteVolume = $this->safe_string($ticker, 'volume');
         } else {
-            $baseVolume = $this->safe_number($ticker, 'volume');
-            $quoteVolume = $this->safe_number($ticker, 'quoteVolume');
+            $baseVolume = $this->safe_string($ticker, 'volume');
+            $quoteVolume = $this->safe_string($ticker, 'quoteVolume');
         }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'highPrice'),
-            'low' => $this->safe_number($ticker, 'lowPrice'),
-            'bid' => $this->safe_number($ticker, 'bidPrice'),
-            'bidVolume' => $this->safe_number($ticker, 'bidQty'),
-            'ask' => $this->safe_number($ticker, 'askPrice'),
-            'askVolume' => $this->safe_number($ticker, 'askQty'),
-            'vwap' => $this->safe_number($ticker, 'weightedAvgPrice'),
-            'open' => $this->safe_number($ticker, 'openPrice'),
+            'high' => $this->safe_string($ticker, 'highPrice'),
+            'low' => $this->safe_string($ticker, 'lowPrice'),
+            'bid' => $this->safe_string($ticker, 'bidPrice'),
+            'bidVolume' => $this->safe_string($ticker, 'bidQty'),
+            'ask' => $this->safe_string($ticker, 'askPrice'),
+            'askVolume' => $this->safe_string($ticker, 'askQty'),
+            'vwap' => $this->safe_string($ticker, 'weightedAvgPrice'),
+            'open' => $this->safe_string($ticker, 'openPrice'),
             'close' => $last,
             'last' => $last,
-            'previousClose' => $this->safe_number($ticker, 'prevClosePrice'), // previous day close
-            'change' => $this->safe_number($ticker, 'priceChange'),
-            'percentage' => $this->safe_number($ticker, 'priceChangePercent'),
+            'previousClose' => $this->safe_string($ticker, 'prevClosePrice'), // previous day close
+            'change' => $this->safe_string($ticker, 'priceChange'),
+            'percentage' => $this->safe_string($ticker, 'priceChangePercent'),
             'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_status($params = array ()) {

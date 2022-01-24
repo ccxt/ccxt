@@ -1971,38 +1971,38 @@ class binance(Exchange):
         timestamp = self.safe_integer(ticker, 'closeTime')
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_number(ticker, 'lastPrice')
+        last = self.safe_string(ticker, 'lastPrice')
         isCoinm = ('baseVolume' in ticker)
         baseVolume = None
         quoteVolume = None
         if isCoinm:
-            baseVolume = self.safe_number(ticker, 'baseVolume')
-            quoteVolume = self.safe_number(ticker, 'volume')
+            baseVolume = self.safe_string(ticker, 'baseVolume')
+            quoteVolume = self.safe_string(ticker, 'volume')
         else:
-            baseVolume = self.safe_number(ticker, 'volume')
-            quoteVolume = self.safe_number(ticker, 'quoteVolume')
+            baseVolume = self.safe_string(ticker, 'volume')
+            quoteVolume = self.safe_string(ticker, 'quoteVolume')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'highPrice'),
-            'low': self.safe_number(ticker, 'lowPrice'),
-            'bid': self.safe_number(ticker, 'bidPrice'),
-            'bidVolume': self.safe_number(ticker, 'bidQty'),
-            'ask': self.safe_number(ticker, 'askPrice'),
-            'askVolume': self.safe_number(ticker, 'askQty'),
-            'vwap': self.safe_number(ticker, 'weightedAvgPrice'),
-            'open': self.safe_number(ticker, 'openPrice'),
+            'high': self.safe_string(ticker, 'highPrice'),
+            'low': self.safe_string(ticker, 'lowPrice'),
+            'bid': self.safe_string(ticker, 'bidPrice'),
+            'bidVolume': self.safe_string(ticker, 'bidQty'),
+            'ask': self.safe_string(ticker, 'askPrice'),
+            'askVolume': self.safe_string(ticker, 'askQty'),
+            'vwap': self.safe_string(ticker, 'weightedAvgPrice'),
+            'open': self.safe_string(ticker, 'openPrice'),
             'close': last,
             'last': last,
-            'previousClose': self.safe_number(ticker, 'prevClosePrice'),  # previous day close
-            'change': self.safe_number(ticker, 'priceChange'),
-            'percentage': self.safe_number(ticker, 'priceChangePercent'),
+            'previousClose': self.safe_string(ticker, 'prevClosePrice'),  # previous day close
+            'change': self.safe_string(ticker, 'priceChange'),
+            'percentage': self.safe_string(ticker, 'priceChangePercent'),
             'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_status(self, params={}):
         response = await self.sapiGetSystemStatus(params)

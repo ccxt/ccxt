@@ -394,8 +394,9 @@ class buda extends Exchange {
         $marketId = $this->safe_string($ticker, 'market_id');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $lastPrice = $this->safe_value($ticker, 'last_price', array());
-        $last = $this->safe_number($lastPrice, 0);
-        $percentage = $this->safe_number($ticker, 'price_variation_24h');
+        $last = $this->safe_string($lastPrice, 0);
+        $percentage = $this->safe_string($ticker, 'price_variation_24h');
+        $percentage = Precise::string_mul($percentage, '100');
         $maxBid = $this->safe_value($ticker, 'max_bid', array());
         $minAsk = $this->safe_value($ticker, 'min_ask', array());
         $baseVolume = $this->safe_value($ticker, 'volume', array());
@@ -405,9 +406,9 @@ class buda extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => $this->safe_number($maxBid, 0),
+            'bid' => $this->safe_string($maxBid, 0),
             'bidVolume' => null,
-            'ask' => $this->safe_number($minAsk, 0),
+            'ask' => $this->safe_string($minAsk, 0),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -415,12 +416,12 @@ class buda extends Exchange {
             'last' => $last,
             'previousClose' => null,
             'change' => null,
-            'percentage' => $percentage * 100,
+            'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => $this->safe_number($baseVolume, 0),
+            'baseVolume' => $this->safe_string($baseVolume, 0),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
