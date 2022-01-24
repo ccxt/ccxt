@@ -220,7 +220,7 @@ module.exports = class therock extends Exchange {
                     'limits': {
                         'leverage': {
                             'min': 1,
-                            'max': Precise.stringMax (leverages),
+                            'max': this.safeValue (leverages, leveragesLength - 1, 1),
                         },
                         'amount': {
                             'min': this.safeNumber (market, 'minimum_quantity_offer'),
