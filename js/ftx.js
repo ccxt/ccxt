@@ -2452,7 +2452,7 @@ module.exports = class ftx extends Exchange {
         if (since !== undefined) {
             request['start_time'] = since / 1000;
             if (endTime === undefined) {
-                request['end_time'] = this.milliseconds ();
+                request['end_time'] = this.milliseconds () / 1000;
             }
         }
         if (endTime !== undefined) {
