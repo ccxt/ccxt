@@ -1987,39 +1987,39 @@ module.exports = class binance extends Exchange {
         const timestamp = this.safeInteger (ticker, 'closeTime');
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeNumber (ticker, 'lastPrice');
+        const last = this.safeString (ticker, 'lastPrice');
         const isCoinm = ('baseVolume' in ticker);
         let baseVolume = undefined;
         let quoteVolume = undefined;
         if (isCoinm) {
-            baseVolume = this.safeNumber (ticker, 'baseVolume');
-            quoteVolume = this.safeNumber (ticker, 'volume');
+            baseVolume = this.safeString (ticker, 'baseVolume');
+            quoteVolume = this.safeString (ticker, 'volume');
         } else {
-            baseVolume = this.safeNumber (ticker, 'volume');
-            quoteVolume = this.safeNumber (ticker, 'quoteVolume');
+            baseVolume = this.safeString (ticker, 'volume');
+            quoteVolume = this.safeString (ticker, 'quoteVolume');
         }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'highPrice'),
-            'low': this.safeNumber (ticker, 'lowPrice'),
-            'bid': this.safeNumber (ticker, 'bidPrice'),
-            'bidVolume': this.safeNumber (ticker, 'bidQty'),
-            'ask': this.safeNumber (ticker, 'askPrice'),
-            'askVolume': this.safeNumber (ticker, 'askQty'),
-            'vwap': this.safeNumber (ticker, 'weightedAvgPrice'),
-            'open': this.safeNumber (ticker, 'openPrice'),
+            'high': this.safeString (ticker, 'highPrice'),
+            'low': this.safeString (ticker, 'lowPrice'),
+            'bid': this.safeString (ticker, 'bidPrice'),
+            'bidVolume': this.safeString (ticker, 'bidQty'),
+            'ask': this.safeString (ticker, 'askPrice'),
+            'askVolume': this.safeString (ticker, 'askQty'),
+            'vwap': this.safeString (ticker, 'weightedAvgPrice'),
+            'open': this.safeString (ticker, 'openPrice'),
             'close': last,
             'last': last,
-            'previousClose': this.safeNumber (ticker, 'prevClosePrice'), // previous day close
-            'change': this.safeNumber (ticker, 'priceChange'),
-            'percentage': this.safeNumber (ticker, 'priceChangePercent'),
+            'previousClose': this.safeString (ticker, 'prevClosePrice'), // previous day close
+            'change': this.safeString (ticker, 'priceChange'),
+            'percentage': this.safeString (ticker, 'priceChangePercent'),
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchStatus (params = {}) {
