@@ -29,30 +29,57 @@ class stex(Exchange):
             'certified': False,
             # new metainfo interface
             'has': {
-                'fetchClosedOrder': True,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'CORS': None,
                 'createDepositAddress': True,
                 'createMarketOrder': None,  # limit orders only
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
+                'fetchClosedOrder': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchFundingFees': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderTrades': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'version': 'v3',
@@ -375,46 +402,64 @@ class stex(Exchange):
             quoteNumericId = self.safe_integer(market, 'market_currency_id')
             base = self.safe_currency_code(self.safe_string(market, 'currency_code'))
             quote = self.safe_currency_code(self.safe_string(market, 'market_code'))
-            symbol = base + '/' + quote
-            precision = {
-                'amount': self.safe_integer(market, 'currency_precision'),
-                'price': self.safe_integer(market, 'market_precision'),
-            }
-            active = self.safe_value(market, 'active')
-            minBuyPrice = self.safe_number(market, 'min_buy_price')
-            minSellPrice = self.safe_number(market, 'min_sell_price')
-            minPrice = max(minBuyPrice, minSellPrice)
-            buyFee = self.safe_number(market, 'buy_fee_percent') / 100
-            sellFee = self.safe_number(market, 'sell_fee_percent') / 100
-            fee = max(buyFee, sellFee)
+            minBuyPrice = self.safe_string(market, 'min_buy_price')
+            minSellPrice = self.safe_string(market, 'min_sell_price')
+            minPrice = Precise.string_max(minBuyPrice, minSellPrice)
+            buyFee = Precise.string_div(self.safe_string(market, 'buy_fee_percent'), '100')
+            sellFee = Precise.string_div(self.safe_string(market, 'sell_fee_percent'), '100')
+            fee = Precise.string_max(buyFee, sellFee)
             result.append({
                 'id': id,
                 'numericId': numericId,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'baseNumericId': baseNumericId,
                 'quoteNumericId': quoteNumericId,
-                'info': market,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
-                'maker': fee,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': self.safe_value(market, 'active'),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
                 'taker': fee,
-                'precision': precision,
+                'maker': fee,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': self.safe_integer(market, 'market_precision'),
+                    'amount': self.safe_integer(market, 'currency_precision'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(market, 'min_order_amount'),
                         'max': None,
                     },
-                    'price': {'min': minPrice, 'max': None},
+                    'price': {
+                        'min': minPrice,
+                        'max': None,
+                    },
                     'cost': {
                         'min': None,
                         'max': None,
                     },
                 },
+                'info': market,
             })
         return result
 

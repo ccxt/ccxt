@@ -2482,7 +2482,7 @@ More practical examples that describe the behavior of ``exchange.precisionMode``
    exchange.precisionMode = ccxt.DECIMAL_PLACES
    market = exchange.market (symbol)
    market['precision']['amount'] === 8 // up to 8 decimals after the dot
-   exchange.amountToPrecision (symbol, 0.123456789) === 0.12345678 
+   exchange.amountToPrecision (symbol, 0.123456789) === 0.12345678
    exchange.amountToPrecision (symbol, 0.0000000000123456789) === 0.0000000 === 0.0
 
 .. code-block:: JavaScript
@@ -2500,7 +2500,7 @@ More practical examples that describe the behavior of ``exchange.precisionMode``
    exchange.precisionMode = ccxt.SIGNIFICANT_DIGITS
    market = exchange.market (symbol)
    market['precision']['amount'] === 8 // up to 8 significant non-zero digits
-   exchange.amountToPrecision (symbol, 0.0000000000123456789) === 0.000000000012345678 
+   exchange.amountToPrecision (symbol, 0.0000000000123456789) === 0.000000000012345678
    exchange.amountToPrecision (symbol, 123.4567890123456789) === 123.45678
 
 Loading Markets
@@ -4021,6 +4021,16 @@ Private API
 
 
 In order to be able to access your user account, perform algorithmic trading by placing market and limit orders, query balances, deposit and withdraw funds and so on, you need to obtain your API keys for authentication from each exchange you want to trade with. They usually have it available on a separate tab or page within your user account settings. API keys are exchange-specific and cannnot be interchanged under any circumstances.
+
+The exchanges' private APIs will usually allow the following types of interaction:
+
+
+ * the current state of the user's account balance can be obtained with the ``fetchBalance()`` method as described in the :ref:`Account Balance <account balance>` section
+ * the user can place and cancel orders with ``createOrder()``\ , ``cancelOrder()``\ , as well as fetch current open orders and the past order history with methods like ``fetchOrder``\ , ``fetchOrders()``\ , ``fetchOpenOrders()``\ , ``fetchClosedOrders``\ , as described in the section on :ref:`Orders <orders>`
+ * the user can query the history of past trades executed with his account using ``fetchMyTrades``\ , as described in the :ref:`My Trades <my trades>` section, also see `How Orders Are Related To Trades <https://docs.ccxt.com/en/latest/manual.html#how-orders-are-related-to-trades>`__
+ * the user can query his positions with ``fetchPositions()`` as described in the :ref:`Positions <positions>` section
+ * the user can fetch the history of his transactions (on-chain *transactions* which are either *deposits* to the exchange account or *withdrawals* from the exchange account) with ``fetchTransactions()``\ , or with ``fetchDeposits()`` and ``fetchWithdrawals()`` separately, depending on what is available from the exchange API
+ * if the exchange API provides a ledger endpoint, the user can fetch a history of all money movements that somehow affected the balance, with ``fetchLedger`` that will return all accounting ledger entries such as trades, deposits, withdrawals, internal transfers between accounts, rebates, bonuses, fees, staking profits and so on, as described in the :ref:`Ledger <ledger>` section.
 
 Authentication
 --------------
