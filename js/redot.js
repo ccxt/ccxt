@@ -1,43 +1,43 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, RateLimitExceeded, BadSymbol, ArgumentsRequired, PermissionDenied, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, BadRequest, RateLimitExceeded, BadSymbol } = require ('./base/errors');
 
-module.exports = class wazirx extends Exchange {
+module.exports = class redot extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'redot',
             'name': 'Redot',
-            'countries': [ 'IN' ],
+            'countries': [ 'EE' ], // Estonia
             'version': 'v1',
-            'rateLimit': 100,
+            'rateLimit': 300,
             'has': {
-                'cancelAllOrders': true,
-                'cancelOrder': true,
+                'cancelAllOrders': false,
+                'cancelOrder': false,
                 'CORS': false,
                 'createOrder': true,
                 'fetchCurrencies': false,
-                'fetchBalance': true,
+                'fetchBalance': false,
                 'fetchBidsAsks': false,
                 'fetchClosedOrders': false,
                 'fetchDepositAddress': false,
-                'fetchDeposits': true,
+                'fetchDeposits': false,
                 'fetchFundingFees': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRates': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': false,
-                'fetchOHLCV': false,
-                'fetchOpenOrders': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': false,
+                'fetchOrder': false,
+                'fetchOrders': false,
                 'fetchOrderBook': true,
                 'fetchPositions': false,
-                'fetchStatus': true,
+                'fetchStatus': false,
                 'fetchTicker': true,
                 'fetchTickers': false,
-                'fetchTime': true,
+                'fetchTime': false,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
@@ -87,7 +87,7 @@ module.exports = class wazirx extends Exchange {
                     '14500': BadRequest, // {"error":{"code":14500,"message":"Depth is invalid."}}
                     '10001': BadRequest,
                     '20000': BadRequest,
-                    '20001': BadRequest,
+                    '20001': BadSymbol,
                     '20002': BadRequest,
                     '20003': BadRequest,
                     '20004': BadRequest,
