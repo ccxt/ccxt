@@ -1,7 +1,8 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, RateLimitExceeded, BadSymbol } = require ('./base/errors');
+const { ExchangeError, BadRequest, BadSymbol } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 module.exports = class redot extends Exchange {
     describe () {
@@ -205,7 +206,8 @@ module.exports = class redot extends Exchange {
         // }
         //
         const result = this.safeValue (response, 'result', []);
-        const timestamp = this.safeInteger (response, 'time');
+        let timestamp = Precise.stringDiv (this.safeString (result, 'time'), '1000');
+        timestamp = this.safeInteger (timestamp);
         return this.parseOrderBook (result, symbol, timestamp);
     }
 
@@ -280,7 +282,8 @@ module.exports = class redot extends Exchange {
         //         }
         //
         const id = this.safeString (trade, 'id');
-        const timestamp = this.parse8601 (this.safeString (trade, 'time'));
+        let timestamp = Precise.stringDiv (this.safeString (trade, 'time'), '1000');
+        timestamp = this.safeInteger (timestamp);
         const datetime = this.iso8601 (timestamp);
         const symbol = this.safeSymbol (undefined, market);
         const side = this.safeString (trade, 'side');
@@ -326,7 +329,7 @@ module.exports = class redot extends Exchange {
         const baseVolume = this.safeString (ticker, 'volume');
         const bid = this.safeString (ticker, 'bidPrice');
         const ask = this.safeString (ticker, 'askPrice');
-        const timestamp = this.safeInteger (ticker, 'time');
+        const timestamp = Precise.stringDiv (this.safeString (ticker, 'time'), '1000');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -349,6 +352,27 @@ module.exports = class redot extends Exchange {
             'quoteVolume': undefined,
             'info': ticker,
         }, market, false);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //  {
+        //       "time":1642973286229265,
+        //       "low":0.068584,
+        //       "high":0.068584,
+        //       "open":0.068584,
+        //       "close":0.068584,
+        //       "volume":0.0338
+        //  },
+        //
+        return [
+            this.safeInteger (ohlcv, 'time'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
+        ];
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
