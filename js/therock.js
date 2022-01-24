@@ -1088,7 +1088,7 @@ module.exports = class therock extends Exchange {
             'id': id,
             'fund_id': market['id'],
         };
-        const response = await this.privatePostFundsFundIdOrdersId (this.extend (request, params));
+        const response = await this.privateGetFundsFundIdOrdersId (this.extend (request, params));
         return this.parseOrder (response);
     }
 
