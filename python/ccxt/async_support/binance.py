@@ -1520,10 +1520,13 @@ class binance(Exchange):
             lowercaseId = self.safe_string_lower(market, 'symbol')
             baseId = self.safe_string(market, 'baseAsset')
             quoteId = self.safe_string(market, 'quoteAsset')
+            settleId = self.safe_string(market, 'marginAsset')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            settle = self.safe_currency_code(settleId)
+            contract = future or delivery
             contractType = self.safe_string(market, 'contractType')
-            idSymbol = (future or delivery) and (contractType != 'PERPETUAL')
+            idSymbol = contract and (contractType != 'PERPETUAL')
             symbol = None
             expiry = None
             if idSymbol:
@@ -1533,50 +1536,51 @@ class binance(Exchange):
                 symbol = base + '/' + quote
             filters = self.safe_value(market, 'filters', [])
             filtersByType = self.index_by(filters, 'filterType')
-            precision = {
-                'base': self.safe_integer(market, 'baseAssetPrecision'),
-                'quote': self.safe_integer(market, 'quotePrecision'),
-                'amount': self.safe_integer(market, 'quantityPrecision'),
-                'price': self.safe_integer(market, 'pricePrecision'),
-            }
             status = self.safe_string_2(market, 'status', 'contractStatus')
-            active = (status == 'TRADING')
-            margin = self.safe_value(market, 'isMarginTradingAllowed', False)
             contractSize = None
             fees = self.fees
-            if future or delivery:
+            if contract:
                 contractSize = self.safe_number(market, 'contractSize', self.parse_number('1'))
                 fees = self.fees[type]
-            maker = fees['trading']['maker']
-            taker = fees['trading']['taker']
-            settleId = self.safe_string(market, 'marginAsset')
-            settle = self.safe_currency_code(settleId)
+            isMarginTradingAllowed = self.safe_value(market, 'isMarginTradingAllowed', False)
             entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
-                'spot': spot,
+                'settleId': settleId,
                 'type': type,
-                'margin': margin,
+                'spot': spot,
+                'margin': spot and isMarginTradingAllowed,
                 'future': future,
                 'delivery': delivery,
-                'linear': future,
-                'inverse': delivery,
+                'option': False,
+                'active': (status == 'TRADING'),
+                'contract': contract,
+                'linear': future if contract else None,
+                'inverse': delivery if contract else None,
+                'taker': fees['trading']['taker'],
+                'maker': fees['trading']['maker'],
+                'contractSize': contractSize,
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
-                'settleId': settleId,
-                'settle': settle,
-                'active': active,
-                'precision': precision,
-                'contractSize': contractSize,
-                'maker': maker,
-                'taker': taker,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': self.safe_integer(market, 'pricePrecision'),
+                    'amount': self.safe_integer(market, 'quantityPrecision'),
+                    'base': self.safe_integer(market, 'baseAssetPrecision'),
+                    'quote': self.safe_integer(market, 'quotePrecision'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': None,
                         'max': None,
@@ -1590,6 +1594,7 @@ class binance(Exchange):
                         'max': None,
                     },
                 },
+                'info': market,
             }
             if 'PRICE_FILTER' in filtersByType:
                 filter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
