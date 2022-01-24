@@ -21,11 +21,11 @@ module.exports = class bitmex extends Exchange {
             'pro': true,
             'has': {
                 'CORS': undefined,
-                'spot': true,
-                'margin': undefined,
-                'swap': undefined,
-                'future': undefined,
-                'option': undefined,
+                'spot': false,
+                'margin': false,
+                'swap': undefined, // has but not fully implemented
+                'future': undefined, // has but not fully implemented
+                'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
