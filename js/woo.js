@@ -97,7 +97,7 @@ module.exports = class woo extends Exchange {
                     'public': {
                         'get': {
                             'info': 1,
-                            'info/{symbol}': 1, // TO_DO
+                            'info/{symbol}': 1,
                             'market_trades': 1,
                             'token': 1,
                             'token_network': 1,
@@ -105,32 +105,32 @@ module.exports = class woo extends Exchange {
                     },
                     'private': {
                         'get': {
-                            'client/token': 1, // implicit
-                            'order/{oid}': 1, // shared with "GET: client/order/:client_order_id"
-                            'client/order/{client_order_id}': 1, // shared with "GET: order/:oid"
+                            'client/token': 1,
+                            'order/{oid}': 1,
+                            'client/order/{client_order_id}': 1,
                             'orders': 1,
                             'orderbook/{symbol}': 1,
                             'kline': 1,
-                            'client/trade/{tid}': 1, // implicit
+                            'client/trade/{tid}': 1,
                             'order/{oid}/trades': 1,
                             'client/trades': 1,
                             'client/info': 60,
                             'asset/deposit': 120,
                             'asset/history': 60,
-                            'token_interest': 60, // implicit
-                            'token_interest/{token}': 60, // implicit
-                            'interest/history': 60, // implicit
-                            'interest/repay': 60, // implicit
+                            'token_interest': 60,
+                            'token_interest/{token}': 60,
+                            'interest/history': 60,
+                            'interest/repay': 60,
                         },
                         'post': {
-                            'order': 5, // Limit: 2 requests per 1 second per symbol
-                            'asset/withdraw': 120,  // implemented in ccxt, but exchange have that endpoint disabled atm: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                            'order': 5, // 2 requests per 1 second per symbol
+                            'asset/withdraw': 120,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
                         },
                         'delete': {
-                            'order': 1, // shared with "DELETE: client/order"
-                            'client/order': 1, // shared with "DELETE: order"
+                            'order': 1,
+                            'client/order': 1,
                             'orders': 1,
-                            'asset/withdraw': 120,  // implemented in ccxt, but exchange have that endpoint disabled atm: https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
+                            'asset/withdraw': 120,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#cancel-withdraw-request
                         },
                     },
                 },
@@ -391,30 +391,31 @@ module.exports = class woo extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
-        // ### public/market_trades
-        // {
-        //     symbol: "SPOT_BTC_USDT",
-        //     side: "SELL",
-        //     executed_price: 46222.35,
-        //     executed_quantity: 0.0012,
-        //     executed_timestamp: "1641241162.329"
-        // },
+        // public/market_trades
         //
-        // ### fetchOrderTrades, fetchOrder->Transactions[]
+        //     {
+        //         symbol: "SPOT_BTC_USDT",
+        //         side: "SELL",
+        //         executed_price: 46222.35,
+        //         executed_quantity: 0.0012,
+        //         executed_timestamp: "1641241162.329"
+        //     }
         //
-        // {
-        //     id: '99119876',
-        //     symbol: 'SPOT_WOO_USDT',
-        //     fee: '0.0024',
-        //     side: 'BUY',
-        //     executed_timestamp: '1641481113.084',
-        //     order_id: '87001234',
-        //     order_tag: 'default', <-- this param only in "fetchOrderTrades"
-        //     executed_price: '1',
-        //     executed_quantity: '12',
-        //     fee_asset: 'WOO',
-        //     is_maker: '1'
-        // }
+        // fetchOrderTrades, fetchOrder
+        //
+        //     {
+        //         id: '99119876',
+        //         symbol: 'SPOT_WOO_USDT',
+        //         fee: '0.0024',
+        //         side: 'BUY',
+        //         executed_timestamp: '1641481113.084',
+        //         order_id: '87001234',
+        //         order_tag: 'default', <-- this param only in "fetchOrderTrades"
+        //         executed_price: '1',
+        //         executed_quantity: '12',
+        //         fee_asset: 'WOO',
+        //         is_maker: '1'
+        //     }
         //
         const isFromFetchOrder = ('id' in trade);
         const timestamp = this.safeTimestamp (trade, 'executed_timestamp');
@@ -424,8 +425,16 @@ module.exports = class woo extends Exchange {
         const price = this.safeString (trade, 'executed_price');
         const amount = this.safeString (trade, 'executed_quantity');
         const order_id = this.safeString (trade, 'order_id');
-        const feeValue = this.safeString (trade, 'fee');
-        const feeAsset = this.safeString (trade, 'fee_asset');
+        const feeCost = this.safeString (trade, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (trade, 'fee_asset');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
         const cost = Precise.stringMul (price, amount);
         const side = this.safeStringLower (trade, 'side');
         let id = this.safeString (trade, 'id');
@@ -455,10 +464,7 @@ module.exports = class woo extends Exchange {
             'order': order_id,
             'takerOrMaker': takerOrMaker,
             'type': undefined,
-            'fee': {
-                'cost': feeValue,
-                'currency': feeAsset,
-            },
+            'fee': fee,
             'info': trade,
         }, market);
     }
