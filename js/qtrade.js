@@ -169,29 +169,45 @@ module.exports = class qtrade extends Exchange {
             const quoteId = this.safeString (market, 'base_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const precision = {
-                'amount': this.safeInteger (market, 'market_precision'),
-                'price': this.safeInteger (market, 'base_precision'),
-            };
             const canView = this.safeValue (market, 'can_view', false);
             const canTrade = this.safeValue (market, 'can_trade', false);
             const active = canTrade && canView;
             result.push ({
-                'symbol': symbol,
                 'id': marketId,
                 'numericId': numericId,
-                'baseId': baseId,
-                'quoteId': quoteId,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'active': active,
-                'precision': precision,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
                 'taker': this.safeNumber (market, 'taker_fee'),
                 'maker': this.safeNumber (market, 'maker_fee'),
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': this.safeInteger (market, 'base_precision'),
+                    'amount': this.safeInteger (market, 'market_precision'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'minimum_sell_value'),
                         'max': undefined,
