@@ -25,7 +25,7 @@ before_install:
 - pip install --upgrade setuptools
 - pip install --upgrade aiohttp requests cryptography pyopenssl
 - git config pull.rebase false
-- travis_wait 20 git pull --tags --verbose --progress
+- git fetch --tags --verbose --progress
 - phpenv global 7.4.2
 - composer install
 - composer require --ignore-platform-reqs react/http:"^1.4.0" recoil/react:"1.0.2"
