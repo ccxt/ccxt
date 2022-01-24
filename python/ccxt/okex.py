@@ -4,6 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -47,7 +54,7 @@ class okex(Exchange):
                 'addMargin': True,
                 'cancelAllOrders': None,
                 'cancelOrder': True,
-                'cancelOrders': None,
+                'cancelOrders': True,
                 'CORS': None,
                 'createDepositAddress': None,
                 'createOrder': True,
@@ -1796,6 +1803,57 @@ class okex(Exchange):
         data = self.safe_value(response, 'data', [])
         order = self.safe_value(data, 0)
         return self.parse_order(order, market)
+
+    def cancel_orders(self, ids, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' canelOrders() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = []
+        clientOrderId = self.safe_value_2(params, 'clOrdId', 'clientOrderId')
+        if clientOrderId is None:
+            if isinstance(ids, basestring):
+                orderIds = ids.split(',')
+                for i in range(0, len(orderIds)):
+                    request.append({
+                        'instId': market['id'],
+                        'ordId': orderIds[i],
+                    })
+            else:
+                for i in range(0, len(ids)):
+                    request.append({
+                        'instId': market['id'],
+                        'ordId': ids[i],
+                    })
+        elif isinstance(clientOrderId, list):
+            for i in range(0, len(clientOrderId)):
+                request.append({
+                    'instId': market['id'],
+                    'clOrdId': clientOrderId[i],
+                })
+        elif isinstance(clientOrderId, basestring):
+            request.append({
+                'instId': market['id'],
+                'clOrdId': clientOrderId,
+            })
+        response = self.privatePostTradeCancelBatchOrders(request)  # dont self.extend with params, otherwise ARRAY will be turned into OBJECT
+        #
+        # {
+        #     "code": "0",
+        #     "data": [
+        #         {
+        #             "clOrdId": "e123456789ec4dBC1123456ba123b45e",
+        #             "ordId": "405071912345641543",
+        #             "sCode": "0",
+        #             "sMsg": ""
+        #         },
+        #         ...
+        #     ],
+        #     "msg": ""
+        # }
+        #
+        ordersData = self.safe_value(response, 'data', [])
+        return self.parse_orders(ordersData, market, None, None, params)
 
     def parse_order_status(self, status):
         statuses = {

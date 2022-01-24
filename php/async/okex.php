@@ -32,7 +32,7 @@ class okex extends Exchange {
                 'addMargin' => true,
                 'cancelAllOrders' => null,
                 'cancelOrder' => true,
-                'cancelOrders' => null,
+                'cancelOrders' => true,
                 'CORS' => null,
                 'createDepositAddress' => null,
                 'createOrder' => true,
@@ -1862,6 +1862,64 @@ class okex extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $order = $this->safe_value($data, 0);
         return $this->parse_order($order, $market);
+    }
+
+    public function cancel_orders($ids, $symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' canelOrders() requires a $symbol argument');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array();
+        $clientOrderId = $this->safe_value_2($params, 'clOrdId', 'clientOrderId');
+        if ($clientOrderId === null) {
+            if (gettype($ids) === 'string') {
+                $orderIds = explode(',', $ids);
+                for ($i = 0; $i < count($orderIds); $i++) {
+                    $request[] = array(
+                        'instId' => $market['id'],
+                        'ordId' => $orderIds[$i],
+                    );
+                }
+            } else {
+                for ($i = 0; $i < count($ids); $i++) {
+                    $request[] = array(
+                        'instId' => $market['id'],
+                        'ordId' => $ids[$i],
+                    );
+                }
+            }
+        } else if (gettype($clientOrderId) === 'array' && count(array_filter(array_keys($clientOrderId), 'is_string')) == 0) {
+            for ($i = 0; $i < count($clientOrderId); $i++) {
+                $request[] = array(
+                    'instId' => $market['id'],
+                    'clOrdId' => $clientOrderId[$i],
+                );
+            }
+        } else if (gettype($clientOrderId) === 'string') {
+            $request[] = array(
+                'instId' => $market['id'],
+                'clOrdId' => $clientOrderId,
+            );
+        }
+        $response = yield $this->privatePostTradeCancelBatchOrders ($request); // dont extend with $params, otherwise ARRAY will be turned into OBJECT
+        //
+        // {
+        //     "code" => "0",
+        //     "data" => array(
+        //         array(
+        //             "clOrdId" => "e123456789ec4dBC1123456ba123b45e",
+        //             "ordId" => "405071912345641543",
+        //             "sCode" => "0",
+        //             "sMsg" => ""
+        //         ),
+        //         ...
+        //     ),
+        //     "msg" => ""
+        // }
+        //
+        $ordersData = $this->safe_value($response, 'data', array());
+        return $this->parse_orders($ordersData, $market, null, null, $params);
     }
 
     public function parse_order_status($status) {
