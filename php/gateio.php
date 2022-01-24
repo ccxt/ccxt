@@ -2951,9 +2951,9 @@ class gateio extends Exchange {
         $size = $this->safe_string($position, 'size');
         $side = null;
         if (Precise::string_gt($size, '0')) {
-            $side = 'buy';
+            $side = 'long';
         } else if (Precise::string_lt($size, '0')) {
-            $side = 'sell';
+            $side = 'short';
         }
         $maintenanceRate = $this->safe_string($position, 'maintenance_rate');
         $notional = $this->safe_string($position, 'value');
