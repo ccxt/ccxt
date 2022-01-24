@@ -18,7 +18,11 @@ module.exports = class poloniex extends Exchange {
             'certified': false,
             'pro': true,
             'has': {
-                'fetchPosition': true,
+                'spot': true,
+                'margin': undefined, // has but not fully implemented
+                'swap': undefined, // has but not fully implemented
+                'future': undefined, // has but not fully implemented
+                'option': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'CORS': undefined,
@@ -39,6 +43,7 @@ module.exports = class poloniex extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderBooks': true,
                 'fetchOrderTrades': true, // true endpoint for trades of a single open or closed order
+                'fetchPosition': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -306,6 +311,7 @@ module.exports = class poloniex extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const isFrozen = this.safeString (market, 'isFrozen');
+            const marginEnabled = this.safeInteger (market, 'marginTradingEnabled');
             // these are known defaults
             result.push ({
                 'id': id,
@@ -319,7 +325,7 @@ module.exports = class poloniex extends Exchange {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': false,
+                'margin': (marginEnabled === 1),
                 'swap': false,
                 'future': false,
                 'option': false,
