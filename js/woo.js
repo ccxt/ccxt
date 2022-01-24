@@ -426,16 +426,7 @@ module.exports = class woo extends Exchange {
         const price = this.safeString (trade, 'executed_price');
         const amount = this.safeString (trade, 'executed_quantity');
         const order_id = this.safeString (trade, 'order_id');
-        const feeCost = this.safeString (trade, 'fee');
-        let fee = undefined;
-        if (feeCost !== undefined) {
-            const feeCurrencyId = this.safeString (trade, 'fee_asset');
-            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
-            fee = {
-                'cost': feeCost,
-                'currency': feeCurrencyCode,
-            };
-        }
+        const fee = this.parseTokenAndFeeTemp (trade, 'fee_asset', 'fee');
         const cost = Precise.stringMul (price, amount);
         const side = this.safeStringLower (trade, 'side');
         let id = this.safeString (trade, 'id');
@@ -468,6 +459,20 @@ module.exports = class woo extends Exchange {
             'fee': fee,
             'info': trade,
         }, market);
+    }
+
+    parseTokenAndFeeTemp (item, feeTokenKey, feeAmountKey) {
+        const feeCost = this.safeString (item, feeAmountKey);
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (item, feeTokenKey);
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
+        return fee;
     }
 
     async fetchCurrencies (params = {}) {
@@ -1211,15 +1216,7 @@ module.exports = class woo extends Exchange {
         const direction = (side === 'DEPOSIT') ? 'in' : 'out';
         const timestamp = this.safeTimestamp (item, 'created_time');        
         const feeCost = this.safeString (item, 'fee');
-        let fee = undefined;
-        if (feeCost !== undefined) {
-            const feeCurrencyId = this.safeString (item, 'fee_asset');
-            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
-            fee = {
-                'cost': feeCost,
-                'currency': feeCurrencyCode,
-            };
-        }
+        const fee = this.parseTokenAndFeeTemp (item, 'fee_token', 'fee_amount');
         return {
             'id': this.safeString (item, 'id'),
             'currency': code,
@@ -1294,11 +1291,8 @@ module.exports = class woo extends Exchange {
         if (movementDirection === 'withdraw') {
             movementDirection = 'withdrawal';
         }
-        const feeCurrencyId = this.safeString (transaction, 'fee_token', '');
-        let feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
-        if (feeCurrencyCode === '') {
-            feeCurrencyCode = code;
-        }
+        const fee = this.parseTokenAndFeeTemp (transaction, 'fee_token', 'fee_amount');
+        fee['rate'] = undefined;
         const addressTo = this.safeString (transaction, 'target_address');
         const addressFrom = this.safeString (transaction, 'source_address');
         const timestamp = this.safeTimestamp (transaction, 'created_time');
@@ -1316,11 +1310,7 @@ module.exports = class woo extends Exchange {
             'currency': code,
             'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
             'updated': this.safeTimestamp (transaction, 'updated_time'),
-            'fee': {
-                'currency': feeCurrencyCode,
-                'cost': this.safeNumber (transaction, 'fee_amount'),
-                'rate': undefined,
-            },
+            'fee': fee,
             'info': transaction,
         };
     }
