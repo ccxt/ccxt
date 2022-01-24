@@ -2170,16 +2170,10 @@ module.exports = class ascendex extends Exchange {
     }
 
     async reduceMargin (symbol, amount, params = {}) {
-        if (amount >= 1) {
-            throw new BadRequest (this.id + ' reduceMargin() amount argument must be a negative number');
-        }
         return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
     }
 
     async addMargin (symbol, amount, params = {}) {
-        if (amount < 1) {
-            throw new BadRequest (this.id + ' addMargin() amount argument must be a positive number');
-        }
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
