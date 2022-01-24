@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { AddressPending, AuthenticationError, ExchangeError, NotSupported, PermissionDenied, ArgumentsRequired } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -390,7 +391,8 @@ module.exports = class buda extends Exchange {
         const symbol = this.safeSymbol (marketId, market, '-');
         const lastPrice = this.safeValue (ticker, 'last_price', []);
         const last = this.safeString (lastPrice, 0);
-        const percentage = this.safeString (ticker, 'price_variation_24h');
+        let percentage = this.safeString (ticker, 'price_variation_24h');
+        percentage = Precise.stringMul (percentage, '100');
         const maxBid = this.safeValue (ticker, 'max_bid', []);
         const minAsk = this.safeValue (ticker, 'min_ask', []);
         const baseVolume = this.safeValue (ticker, 'volume', []);
