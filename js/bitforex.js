@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, DDoSProtection, PermissionDenied, BadSymbol, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, DDoSProtection, PermissionDenied, BadSymbol, InvalidOrder, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -102,6 +102,7 @@ module.exports = class bitforex extends Exchange {
                 'TON': 'To The Moon',
             },
             'exceptions': {
+                '1000': OrderNotFound, // {"code":"1000","success":false,"time":1643047898676,"message":"The order does not exist or the status is wrong"}
                 '1003': BadSymbol, // {"success":false,"code":"1003","message":"Param Invalid:param invalid -symbol:symbol error"}
                 '1013': AuthenticationError,
                 '1016': AuthenticationError,
