@@ -184,7 +184,7 @@ module.exports = class therock extends Exchange {
                 const buy_fee = this.safeString (market, 'buy_fee');
                 const sell_fee = this.safeString (market, 'sell_fee');
                 let taker = Precise.stringMax (buy_fee, sell_fee);
-                taker = Precise.stringDiv (taker, '100');
+                taker = this.parseNumber (Precise.stringDiv (taker, '100'));
                 const leverages = this.safeValue (market, 'leverages');
                 const leveragesLength = leverages.length;
                 result.push ({
