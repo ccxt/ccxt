@@ -26,7 +26,6 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
-from ccxt.base.precise import Precise
 
 
 class gemini(Exchange):
@@ -569,38 +568,54 @@ class gemini(Exchange):
         #         "type":"buy"
         #     }
         #
+        # private fetchTrades
+        #
+        #      {
+        #          "price":"3900.00",
+        #          "amount":"0.00996",
+        #          "timestamp":1638891173,
+        #          "timestampms":1638891173518,
+        #          "type":"Sell",
+        #          "aggressor":false,
+        #          "fee_currency":"EUR",
+        #          "fee_amount":"0.00",
+        #          "tid":73621746145,
+        #          "order_id":"73621746059",
+        #          "exchange":"gemini",
+        #          "is_auction_fill":false,
+        #          "is_clearing_fill":false,
+        #          "symbol":"ETHEUR",
+        #          "client_order_id":"1638891171610"
+        #      }
+        #
         timestamp = self.safe_integer(trade, 'timestampms')
         id = self.safe_string(trade, 'tid')
         orderId = self.safe_string(trade, 'order_id')
         feeCurrencyId = self.safe_string(trade, 'fee_currency')
         feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
         fee = {
-            'cost': self.safe_number(trade, 'fee_amount'),
+            'cost': self.safe_string(trade, 'fee_amount'),
             'currency': feeCurrencyCode,
         }
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
-        type = None
         side = self.safe_string_lower(trade, 'type')
         symbol = self.safe_symbol(None, market)
-        return {
+        return self.safe_trade({
             'id': id,
             'order': orderId,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'type': type,
+            'type': None,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'cost': cost,
-            'amount': amount,
+            'price': priceString,
+            'cost': None,
+            'amount': amountString,
             'fee': fee,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
