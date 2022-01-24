@@ -333,7 +333,6 @@ module.exports = class upbit extends Exchange {
         const bidFee = this.safeNumber (response, 'bid_fee');
         const askFee = this.safeNumber (response, 'ask_fee');
         const fee = Math.max (bidFee, askFee);
-        const precisionPrice = '8';
         return {
             'info': response,
             'id': marketId,
@@ -362,8 +361,8 @@ module.exports = class upbit extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'price': this.parseNumber (precisionPrice),
-                'amount': this.parseNumber (precisionPrice),
+                'price': 8,
+                'amount': 8,
             },
             'limits': {
                 'leverage': {
@@ -375,7 +374,7 @@ module.exports = class upbit extends Exchange {
                     'max': undefined,
                 },
                 'price': {
-                    'min': this.parseNumber ('-1e' + precisionPrice),
+                    'min': undefined,
                     'max': undefined,
                 },
                 'cost': {
