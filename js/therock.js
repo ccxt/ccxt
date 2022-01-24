@@ -17,24 +17,47 @@ module.exports = class therock extends Exchange {
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
+                'spot': true,
+                'margin': undefined, // has, but unimplemented
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
                 'cancelOrder': true,
                 'CORS': undefined,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
                 'fetchLedger': true,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTransactions': 'emulated',
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
@@ -158,10 +181,12 @@ module.exports = class therock extends Exchange {
                 const quoteId = this.safeString (market, 'base_currency');
                 const base = this.safeCurrencyCode (baseId);
                 const quote = this.safeCurrencyCode (quoteId);
-                const buy_fee = this.safeNumber (market, 'buy_fee');
-                const sell_fee = this.safeNumber (market, 'sell_fee');
-                let taker = Math.max (buy_fee, sell_fee);
-                taker = taker / 100;
+                const buy_fee = this.safeString (market, 'buy_fee');
+                const sell_fee = this.safeString (market, 'sell_fee');
+                let taker = Precise.stringMax (buy_fee, sell_fee);
+                taker = Precise.stringDiv (taker, '100');
+                const leverages = this.safeValue (market, 'leverages');
+                const leveragesLength = leverages.length;
                 result.push ({
                     'id': id,
                     'symbol': base + '/' + quote,
@@ -173,7 +198,7 @@ module.exports = class therock extends Exchange {
                     'settleId': undefined,
                     'type': 'spot',
                     'spot': true,
-                    'margin': false,
+                    'margin': leveragesLength > 0,
                     'future': false,
                     'swap': false,
                     'option': false,
@@ -194,8 +219,8 @@ module.exports = class therock extends Exchange {
                     },
                     'limits': {
                         'leverage': {
-                            'min': this.safeNumber (market, 'minimum_quantity_offer'),
-                            'max': undefined,
+                            'min': 1,
+                            'max': Precise.stringMax (leverages),
                         },
                         'amount': {
                             'min': this.safeNumber (market, 'minimum_quantity_offer'),
