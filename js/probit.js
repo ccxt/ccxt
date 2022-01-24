@@ -216,51 +216,51 @@ module.exports = class probit extends Exchange {
             const quoteId = this.safeString (market, 'quote_currency_id');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
             const closed = this.safeValue (market, 'closed', false);
-            const active = !closed;
             const amountPrecision = this.safeString (market, 'quantity_precision');
             const costPrecision = this.safeString (market, 'cost_precision');
             const amountTickSize = this.parsePrecision (amountPrecision);
             const costTickSize = this.parsePrecision (costPrecision);
-            const precision = {
-                'amount': this.parseNumber (amountTickSize),
-                'price': this.safeNumber (market, 'price_increment'),
-                'cost': this.parseNumber (costTickSize),
-            };
             const takerFeeRate = this.safeString (market, 'taker_fee_rate');
             const taker = Precise.stringDiv (takerFeeRate, '100');
             const makerFeeRate = this.safeString (market, 'maker_fee_rate');
             const maker = Precise.stringDiv (makerFeeRate, '100');
             result.push ({
                 'id': id,
-                'info': market,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
                 'margin': false,
-                'future': false,
                 'swap': false,
+                'future': false,
                 'option': false,
-                'optionType': undefined,
-                'strike': undefined,
+                'active': !closed,
+                'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'contract': false,
-                'contractSize': undefined,
-                'settle': undefined,
-                'settleId': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'active': active,
-                'precision': precision,
                 'taker': this.parseNumber (taker),
                 'maker': this.parseNumber (maker),
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': this.safeNumber (market, 'price_increment'),
+                    'amount': this.parseNumber (amountTickSize),
+                    'cost': this.parseNumber (costTickSize),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'min_quantity'),
                         'max': this.safeNumber (market, 'max_quantity'),
@@ -274,6 +274,7 @@ module.exports = class probit extends Exchange {
                         'max': this.safeNumber (market, 'max_cost'),
                     },
                 },
+                'info': market,
             });
         }
         return result;
