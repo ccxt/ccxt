@@ -1048,7 +1048,7 @@ class therock(Exchange):
             'id': id,
             'fund_id': market['id'],
         }
-        response = await self.privatePostFundsFundIdOrdersId(self.extend(request, params))
+        response = await self.privateGetFundsFundIdOrdersId(self.extend(request, params))
         return self.parse_order(response)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):

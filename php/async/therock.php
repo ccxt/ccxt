@@ -1091,7 +1091,7 @@ class therock extends Exchange {
             'id' => $id,
             'fund_id' => $market['id'],
         );
-        $response = yield $this->privatePostFundsFundIdOrdersId (array_merge($request, $params));
+        $response = yield $this->privateGetFundsFundIdOrdersId (array_merge($request, $params));
         return $this->parse_order($response);
     }
 
