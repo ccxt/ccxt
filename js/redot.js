@@ -85,19 +85,7 @@ module.exports = class redot extends Exchange {
                 'exact': {
                     '10501': BadRequest, // {"error":{"code":10501,"message":"Request parameters have incorrect format."}}
                     '14500': BadRequest, // {"error":{"code":14500,"message":"Depth is invalid."}}
-                    '10001': BadRequest,
-                    '20000': BadRequest,
-                    '20001': BadSymbol,
-                    '20002': BadRequest,
-                    '20003': BadRequest,
-                    '20004': BadRequest,
-                    '20005': BadRequest,
-                    '20006': BadRequest,
-                    '20007': BadRequest,
-                    '20008': BadRequest,
-                    '20009': BadRequest,
-                    '20010': BadRequest,
-                    '30001': RateLimitExceeded,
+                    '13500': BadSymbol, // {"error":{"code":13500,"message":"Instrument id is invalid."}}
                 },
             },
         });
@@ -221,9 +209,9 @@ module.exports = class redot extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            'instrumentId': market['id'],
         };
-        const response = await this.publicGetTicker24hr (this.extend (request, params));
+        const response = await this.publicGetGetTicker (this.extend (request, params));
         //
         // {
         //     "result":
@@ -245,36 +233,6 @@ module.exports = class redot extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        const tickers = await this.publicGetTickers24hr ();
-        //
-        // [
-        //     {
-        //        "symbol":"btcinr",
-        //        "baseAsset":"btc",
-        //        "quoteAsset":"inr",
-        //        "openPrice":"3698486",
-        //        "lowPrice":"3641155.0",
-        //        "highPrice":"3767999.0",
-        //        "lastPrice":"3713212.0",
-        //        "volume":"254.11582",
-        //        "bidPrice":"3715021.0",
-        //        "askPrice":"3715022.0",
-        //     }
-        //     ...
-        // ]
-        //
-        const result = {};
-        for (let i = 0; i < tickers.length; i++) {
-            const ticker = tickers[i];
-            const parsedTicker = this.parseTicker (ticker);
-            const symbol = parsedTicker['symbol'];
-            result[symbol] = parsedTicker;
-        }
-        return result;
-    }
-
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -285,7 +243,7 @@ module.exports = class redot extends Exchange {
             request['start'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // Default 500; max 1000.
+            request['limit'] = limit;
         }
         const response = await this.publicGetGetLastTrades (this.extend (request, params));
         // {
@@ -357,14 +315,14 @@ module.exports = class redot extends Exchange {
         // }
         //
         const symbol = this.safeSymbol (undefined, market);
-        const last = this.safeNumber (ticker, 'price');
-        const open = this.safeNumber (ticker, 'openPrice');
-        const high = this.safeNumber (ticker, 'highPrice');
-        const low = this.safeNumber (ticker, 'lowPrice');
-        const baseVolume = this.safeNumber (ticker, 'volume');
-        const bid = this.safeNumber (ticker, 'bidPrice');
-        const ask = this.safeNumber (ticker, 'askPrice');
-        const timestamp = this.safeString (ticker, 'time');
+        const last = this.safeString (ticker, 'price');
+        const open = this.safeString (ticker, 'openPrice');
+        const high = this.safeString (ticker, 'highPrice');
+        const low = this.safeString (ticker, 'lowPrice');
+        const baseVolume = this.safeString (ticker, 'volume');
+        const bid = this.safeString (ticker, 'bidPrice');
+        const ask = this.safeString (ticker, 'askPrice');
+        const timestamp = this.safeInteger (ticker, 'time');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -386,7 +344,7 @@ module.exports = class redot extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
