@@ -1719,7 +1719,8 @@ module.exports = class deribit extends Exchange {
         const contract = this.safeString (position, 'instrument_name');
         market = this.safeMarket (contract, market);
         const size = this.safeString (position, 'size');
-        const side = this.safeString (position, 'direction');
+        let side = this.safeString (position, 'direction');
+        side = (side === 'buy') ? 'long' : 'short';
         const maintenanceRate = this.safeString (position, 'maintenance_margin');
         const markPrice = this.safeString (position, 'mark_price');
         const notionalString = Precise.stringMul (markPrice, size);
