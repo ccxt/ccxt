@@ -324,6 +324,7 @@ module.exports = class bitmex extends Exchange {
             let type = undefined;
             let future = false;
             let prediction = false;
+            let index = false;
             let symbol = base + '/' + quote + ':' + settle;
             const expiryDatetime = this.safeString (market, 'expiry');
             const expiry = this.parse8601 (expiryDatetime);
@@ -334,10 +335,14 @@ module.exports = class bitmex extends Exchange {
                 prediction = true;
                 type = 'prediction';
                 symbol = id;
-            } else {
+            } else if (expiry !== undefined) {
                 future = true;
                 type = 'future';
                 symbol = symbol + '-' + this.yymmdd (expiry);
+            } else {
+                index = true;
+                type = 'index';
+                symbol = id;
             }
             const positionId = this.safeString2 (market, 'positionCurrency', 'quoteCurrency');
             const position = this.safeCurrencyCode (positionId);
@@ -362,6 +367,7 @@ module.exports = class bitmex extends Exchange {
                 'future': future,
                 'option': false,
                 'prediction': prediction,
+                'index': index,
                 'contract': true,
                 'linear': !inverse,
                 'inverse': inverse,
