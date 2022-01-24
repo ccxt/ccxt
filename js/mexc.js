@@ -1504,6 +1504,7 @@ module.exports = class mexc extends Exchange {
     parseTransactionStatus (status) {
         const statuses = {
             'WAIT': 'pending',
+            'WAIT_PACKAGING': 'pending',
             'SUCCESS': 'ok',
         };
         return this.safeString (statuses, status, status);
@@ -2097,7 +2098,7 @@ module.exports = class mexc extends Exchange {
         const data = this.safeValue (response, 'data', {});
         return {
             'info': data,
-            'id': this.data (response, 'withdrawId'),
+            'id': this.safeString (data, 'withdrawId'),
         };
     }
 
