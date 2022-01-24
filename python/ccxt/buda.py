@@ -12,6 +12,7 @@ from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import AddressPending
 from ccxt.base.errors import NotSupported
+from ccxt.base.precise import Precise
 
 
 class buda(Exchange):
@@ -380,8 +381,9 @@ class buda(Exchange):
         marketId = self.safe_string(ticker, 'market_id')
         symbol = self.safe_symbol(marketId, market, '-')
         lastPrice = self.safe_value(ticker, 'last_price', [])
-        last = self.safe_number(lastPrice, 0)
-        percentage = self.safe_number(ticker, 'price_variation_24h')
+        last = self.safe_string(lastPrice, 0)
+        percentage = self.safe_string(ticker, 'price_variation_24h')
+        percentage = Precise.string_mul(percentage, '100')
         maxBid = self.safe_value(ticker, 'max_bid', [])
         minAsk = self.safe_value(ticker, 'min_ask', [])
         baseVolume = self.safe_value(ticker, 'volume', [])
@@ -391,9 +393,9 @@ class buda(Exchange):
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': self.safe_number(maxBid, 0),
+            'bid': self.safe_string(maxBid, 0),
             'bidVolume': None,
-            'ask': self.safe_number(minAsk, 0),
+            'ask': self.safe_string(minAsk, 0),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -401,12 +403,12 @@ class buda(Exchange):
             'last': last,
             'previousClose': None,
             'change': None,
-            'percentage': percentage * 100,
+            'percentage': percentage,
             'average': None,
-            'baseVolume': self.safe_number(baseVolume, 0),
+            'baseVolume': self.safe_string(baseVolume, 0),
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
