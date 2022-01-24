@@ -2,8 +2,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest, RateLimitExceeded, BadSymbol, ArgumentsRequired, PermissionDenied, InsufficientFunds, InvalidOrder } = require ('./base/errors');
-const { base } = require ('./static_dependencies/elliptic/lib/elliptic/curve');
-// const Precise = require ('./base/Precise');
 
 module.exports = class wazirx extends Exchange {
     describe () {
@@ -85,7 +83,21 @@ module.exports = class wazirx extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    '-32700': BadRequest, // { "code": -1121, "message": "Invalid symbol." }
+                    '10501': BadRequest, // {"error":{"code":10501,"message":"Request parameters have incorrect format."}}
+                    '14500': BadRequest, // {"error":{"code":14500,"message":"Depth is invalid."}}
+                    '10001': BadRequest,
+                    '20000': BadRequest,
+                    '20001': BadRequest,
+                    '20002': BadRequest,
+                    '20003': BadRequest,
+                    '20004': BadRequest,
+                    '20005': BadRequest,
+                    '20006': BadRequest,
+                    '20007': BadRequest,
+                    '20008': BadRequest,
+                    '20009': BadRequest,
+                    '20010': BadRequest,
+                    '30001': RateLimitExceeded,
                 },
             },
         });
@@ -419,7 +431,7 @@ module.exports = class wazirx extends Exchange {
         if (response === undefined) {
             return;
         }
-        const error = this.safeString (response, 'error');
+        const error = this.safeValue (response, 'error');
         if (error !== undefined) {
             const errorCode = this.safeString (error, 'code');
             const feedback = this.id + ' ' + body;
