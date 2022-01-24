@@ -1363,7 +1363,7 @@ class binance extends Exchange {
         }
         $response = $this->$method ($query);
         //
-        // $spot / $margin
+        // $spot / margin
         //
         //     {
         //         "timezone":"UTC",
@@ -1522,10 +1522,13 @@ class binance extends Exchange {
             $lowercaseId = $this->safe_string_lower($market, 'symbol');
             $baseId = $this->safe_string($market, 'baseAsset');
             $quoteId = $this->safe_string($market, 'quoteAsset');
+            $settleId = $this->safe_string($market, 'marginAsset');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            $settle = $this->safe_currency_code($settleId);
+            $contract = $future || $delivery;
             $contractType = $this->safe_string($market, 'contractType');
-            $idSymbol = ($future || $delivery) && ($contractType !== 'PERPETUAL');
+            $idSymbol = $contract && ($contractType !== 'PERPETUAL');
             $symbol = null;
             $expiry = null;
             if ($idSymbol) {
@@ -1536,51 +1539,52 @@ class binance extends Exchange {
             }
             $filters = $this->safe_value($market, 'filters', array());
             $filtersByType = $this->index_by($filters, 'filterType');
-            $precision = array(
-                'base' => $this->safe_integer($market, 'baseAssetPrecision'),
-                'quote' => $this->safe_integer($market, 'quotePrecision'),
-                'amount' => $this->safe_integer($market, 'quantityPrecision'),
-                'price' => $this->safe_integer($market, 'pricePrecision'),
-            );
             $status = $this->safe_string_2($market, 'status', 'contractStatus');
-            $active = ($status === 'TRADING');
-            $margin = $this->safe_value($market, 'isMarginTradingAllowed', false);
             $contractSize = null;
             $fees = $this->fees;
-            if ($future || $delivery) {
+            if ($contract) {
                 $contractSize = $this->safe_number($market, 'contractSize', $this->parse_number('1'));
                 $fees = $this->fees[$type];
             }
-            $maker = $fees['trading']['maker'];
-            $taker = $fees['trading']['taker'];
-            $settleId = $this->safe_string($market, 'marginAsset');
-            $settle = $this->safe_currency_code($settleId);
+            $isMarginTradingAllowed = $this->safe_value($market, 'isMarginTradingAllowed', false);
             $entry = array(
                 'id' => $id,
                 'lowercaseId' => $lowercaseId,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => $settle,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'info' => $market,
-                'spot' => $spot,
+                'settleId' => $settleId,
                 'type' => $type,
-                'margin' => $margin,
+                'spot' => $spot,
+                'margin' => $spot && $isMarginTradingAllowed,
                 'future' => $future,
                 'delivery' => $delivery,
-                'linear' => $future,
-                'inverse' => $delivery,
+                'option' => false,
+                'active' => ($status === 'TRADING'),
+                'contract' => $contract,
+                'linear' => $contract ? $future : null,
+                'inverse' => $contract ? $delivery : null,
+                'taker' => $fees['trading']['taker'],
+                'maker' => $fees['trading']['maker'],
+                'contractSize' => $contractSize,
                 'expiry' => $expiry,
                 'expiryDatetime' => $this->iso8601($expiry),
-                'settleId' => $settleId,
-                'settle' => $settle,
-                'active' => $active,
-                'precision' => $precision,
-                'contractSize' => $contractSize,
-                'maker' => $maker,
-                'taker' => $taker,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'price' => $this->safe_integer($market, 'pricePrecision'),
+                    'amount' => $this->safe_integer($market, 'quantityPrecision'),
+                    'base' => $this->safe_integer($market, 'baseAssetPrecision'),
+                    'quote' => $this->safe_integer($market, 'quotePrecision'),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => null,
                         'max' => null,
@@ -1594,6 +1598,7 @@ class binance extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'info' => $market,
             );
             if (is_array($filtersByType) && array_key_exists('PRICE_FILTER', $filtersByType)) {
                 $filter = $this->safe_value($filtersByType, 'PRICE_FILTER', array());
