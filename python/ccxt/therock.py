@@ -23,24 +23,47 @@ class therock(Exchange):
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
+                'spot': True,
+                'margin': None,  # has, but unimplemented
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelOrder': True,
                 'CORS': None,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
                 'fetchLedger': True,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTransactions': 'emulated',
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
@@ -131,30 +154,25 @@ class therock(Exchange):
     def fetch_markets(self, params={}):
         response = self.publicGetFunds(params)
         #
-        #     {funds: [{                     id:   "BTCEUR",
-        #                              description:   "Trade Bitcoin with Euro",
-        #                                     type:   "currency",
-        #                            base_currency:   "EUR",
-        #                           trade_currency:   "BTC",
-        #                                  buy_fee:    0.2,
-        #                                 sell_fee:    0.2,
-        #                      minimum_price_offer:    0.01,
-        #                   minimum_quantity_offer:    0.0005,
-        #                   base_currency_decimals:    2,
-        #                  trade_currency_decimals:    4,
-        #                                leverages: []                           },
-        #                {                     id:   "LTCEUR",
-        #                              description:   "Trade Litecoin with Euro",
-        #                                     type:   "currency",
-        #                            base_currency:   "EUR",
-        #                           trade_currency:   "LTC",
-        #                                  buy_fee:    0.2,
-        #                                 sell_fee:    0.2,
-        #                      minimum_price_offer:    0.01,
-        #                   minimum_quantity_offer:    0.01,
-        #                   base_currency_decimals:    2,
-        #                  trade_currency_decimals:    2,
-        #                                leverages: []                            }]}
+        #    {
+        #        funds: [
+        #            {
+        #                id: "BTCEUR",
+        #                description: "Trade Bitcoin with Euro",
+        #                type: "currency",
+        #                base_currency: "EUR",
+        #                trade_currency: "BTC",
+        #                buy_fee: 0.2,
+        #                sell_fee: 0.2,
+        #                minimum_price_offer: 0.01,
+        #                minimum_quantity_offer: 0.0005,
+        #                base_currency_decimals: 2,
+        #                trade_currency_decimals: 4,
+        #                leverages: []
+        #            },
+        #            ...
+        #        ]
+        #    }
         #
         markets = self.safe_value(response, 'funds')
         result = []
@@ -168,44 +186,47 @@ class therock(Exchange):
                 quoteId = self.safe_string(market, 'base_currency')
                 base = self.safe_currency_code(baseId)
                 quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-                buy_fee = self.safe_number(market, 'buy_fee')
-                sell_fee = self.safe_number(market, 'sell_fee')
-                taker = max(buy_fee, sell_fee)
-                taker = taker / 100
-                maker = taker
+                buy_fee = self.safe_string(market, 'buy_fee')
+                sell_fee = self.safe_string(market, 'sell_fee')
+                taker = Precise.string_max(buy_fee, sell_fee)
+                taker = self.parse_number(Precise.string_div(taker, '100'))
+                leverages = self.safe_value(market, 'leverages')
+                leveragesLength = len(leverages)
                 result.append({
                     'id': id,
-                    'symbol': symbol,
+                    'symbol': base + '/' + quote,
                     'base': base,
                     'quote': quote,
+                    'settle': None,
                     'baseId': baseId,
                     'quoteId': quoteId,
-                    'info': market,
+                    'settleId': None,
                     'type': 'spot',
                     'spot': True,
-                    'margin': False,
+                    'margin': leveragesLength > 0,
                     'future': False,
                     'swap': False,
                     'option': False,
-                    'optionType': None,
-                    'strike': None,
+                    'contract': False,
                     'linear': None,
                     'inverse': None,
-                    'contract': False,
+                    'taker': taker,
+                    'maker': taker,
                     'contractSize': None,
-                    'settle': None,
-                    'settleId': None,
+                    'active': True,
                     'expiry': None,
                     'expiryDatetime': None,
-                    'active': True,
-                    'maker': maker,
-                    'taker': taker,
+                    'strike': None,
+                    'optionType': None,
                     'precision': {
                         'amount': self.safe_integer(market, 'trade_currency_decimals'),
                         'price': self.safe_integer(market, 'base_currency_decimals'),
                     },
                     'limits': {
+                        'leverage': {
+                            'min': 1,
+                            'max': self.safe_value(leverages, leveragesLength - 1, 1),
+                        },
                         'amount': {
                             'min': self.safe_number(market, 'minimum_quantity_offer'),
                             'max': None,
@@ -219,6 +240,7 @@ class therock(Exchange):
                             'max': None,
                         },
                     },
+                    'info': market,
                 })
         return result
 
