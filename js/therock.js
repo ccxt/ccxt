@@ -126,30 +126,25 @@ module.exports = class therock extends Exchange {
     async fetchMarkets (params = {}) {
         const response = await this.publicGetFunds (params);
         //
-        //     { funds: [ {                      id:   "BTCEUR",
-        //                              description:   "Trade Bitcoin with Euro",
-        //                                     type:   "currency",
-        //                            base_currency:   "EUR",
-        //                           trade_currency:   "BTC",
-        //                                  buy_fee:    0.2,
-        //                                 sell_fee:    0.2,
-        //                      minimum_price_offer:    0.01,
-        //                   minimum_quantity_offer:    0.0005,
-        //                   base_currency_decimals:    2,
-        //                  trade_currency_decimals:    4,
-        //                                leverages: []                           },
-        //                {                      id:   "LTCEUR",
-        //                              description:   "Trade Litecoin with Euro",
-        //                                     type:   "currency",
-        //                            base_currency:   "EUR",
-        //                           trade_currency:   "LTC",
-        //                                  buy_fee:    0.2,
-        //                                 sell_fee:    0.2,
-        //                      minimum_price_offer:    0.01,
-        //                   minimum_quantity_offer:    0.01,
-        //                   base_currency_decimals:    2,
-        //                  trade_currency_decimals:    2,
-        //                                leverages: []                            } ] }
+        //    {
+        //        funds: [
+        //            {
+        //                id: "BTCEUR",
+        //                description: "Trade Bitcoin with Euro",
+        //                type: "currency",
+        //                base_currency: "EUR",
+        //                trade_currency: "BTC",
+        //                buy_fee: 0.2,
+        //                sell_fee: 0.2,
+        //                minimum_price_offer: 0.01,
+        //                minimum_quantity_offer: 0.0005,
+        //                base_currency_decimals: 2,
+        //                trade_currency_decimals: 4,
+        //                leverages: []
+        //            },
+        //            ...
+        //        ]
+        //    }
         //
         const markets = this.safeValue (response, 'funds');
         const result = [];
