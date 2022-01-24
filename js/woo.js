@@ -33,6 +33,7 @@ module.exports = class woo extends Exchange {
                 'fetchDepositAddress': false,
                 'fetchDeposits': true,
                 'fetchFundingRateHistory': false,
+                'fetchLedger': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -1139,23 +1140,7 @@ module.exports = class woo extends Exchange {
         };
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'type': 'BALANCE',
-            'token_side': 'DEPOSIT',
-        };
-        return await this.fetchTransactions (code, since, limit, this.extend (request, params));
-    }
-
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'type': 'BALANCE',
-            'token_side': 'WITHDRAW',
-        };
-        return await this.fetchTransactions (code, since, limit, this.extend (request, params));
-    }
-
-    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async getAssetHistoryRows (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = { };
         let currency = undefined;
@@ -1174,11 +1159,7 @@ module.exports = class woo extends Exchange {
         if (transactionType !== undefined) {
             request['type'] = transactionType;
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTransactions', undefined, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'v1PrivateGetAssetHistory',
-        });
-        const response = await this[method] (this.extend (request, query));
+        const response = await this.v1PrivateGetAssetHistory (this.extend (request, params));
         // {
         //     rows: [
         //       {
@@ -1213,16 +1194,62 @@ module.exports = class woo extends Exchange {
         //     meta: { total: '1', records_per_page: '25', current_page: '1' },
         //     success: true
         // }
-        const transactions = this.safeValue (response, 'rows', {});
-        return this.parseTransactions (transactions, currency, since, limit);
+        return [currency, this.safeValue (response, 'rows', {})];
     }
 
-    parseTransaction (transaction, currency = undefined) {
-        // example in fetchTransactions
-        const networkizedCode = this.safeString (transaction, 'token');
-        let code = undefined;
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        const [currency, rows] = await this.getAssetHistoryRows(code, since, limit, params);
+        return this.parseLedger (rows, currency, since, limit, params);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        const networkizedCode = this.safeString (item, 'token');
+        const currencyDefined = this.getCurrencyFromChaincode (networkizedCode, currency);
+        const code = currencyDefined['code'];
+        const amount = this.safeNumber (item, 'amount');
+        const side = this.safeNumber (item, 'token_side');
+        const direction = (side === 'DEPOSIT') ? 'in' : 'out';
+        const timestamp = this.safeTimestamp (item, 'created_time');        
+        const feeCost = this.safeString (item, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (item, 'fee_asset');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
+        return {
+            'id': this.safeString (item, 'id'),
+            'currency': code,
+            'account': this.safeString (item, 'account'),
+            'referenceAccount': undefined,
+            'referenceId': this.safeString (item, 'tx_id'),
+            'status': this.parseTransactionStatus (item, 'status'),
+            'amount': amount,
+            'before': undefined,
+            'after': undefined,
+            'fee': fee,
+            'direction': direction,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'type': this.parseLedgerEntryType (this.safeString (item, 'type')),
+            'info': item,
+        };
+    }
+
+    parseLedgerEntryType (type) {
+        const types = {
+            'BALANCE': 'transaction', // Funds moved in/out wallet
+            'COLLATERAL': 'transfer', // Funds moved between portfolios
+        };
+        return this.safeString (types, type, type);
+    }
+
+    getCurrencyFromChaincode (networkizedCode, currency) {
         if (currency !== undefined) {
-            code = currency['code'];
+            return currency;
         } else {
             const parts = networkizedCode.split ('_');
             const partsLength = parts.length;
@@ -1231,8 +1258,38 @@ module.exports = class woo extends Exchange {
             if (partsLength > 2) {
                 currencyId += '_' + this.safeString (parts, 2);
             }
-            code = this.safeCurrencyCode (currencyId);
+            currency = this.safeCurrency (currencyId);
         }
+        return currency;
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'token_side': 'DEPOSIT',
+        };
+        return await this.fetchTransactions (code, since, limit, this.extend (request, params));
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'token_side': 'WITHDRAW',
+        };
+        return await this.fetchTransactions (code, since, limit, this.extend (request, params));
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'type': 'BALANCE',
+        };
+        const [currency, rows] = await this.getAssetHistoryRows (code, since, limit, this.extend (request,params) );
+        return this.parseTransactions (rows, currency, since, limit, params);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        // example in fetchLedger
+        const networkizedCode = this.safeString (transaction, 'token');
+        const currencyDefined = this.getCurrencyFromChaincode (networkizedCode, currency);
+        const code = currencyDefined['code'];
         let movementDirection = this.safeStringLower (transaction, 'token_side');
         if (movementDirection === 'withdraw') {
             movementDirection = 'withdrawal';
@@ -1280,21 +1337,18 @@ module.exports = class woo extends Exchange {
     }
 
     async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-        }
         const request = {
             'type': 'COLLATERAL',
         };
-        params = this.omit (params, 'type');
-        const response = await this.v1PrivateGetAssetHistory (this.extend (request, params));
-        const rows = this.safeValue (response, 'rows');
+        const [currency, rows] = await this.getAssetHistoryRows(code, since, limit, this.extend (request,params));
         return this.parseTransfers (rows, currency, since, limit, params);
     }
 
     parseTransfer (transfer, currency = undefined) {
         // example is "fetchTransactions"
+        const networkizedCode = this.safeString (transfer, 'token');
+        const currencyDefined = this.getCurrencyFromChaincode (networkizedCode, currency);
+        const code = currencyDefined['code'];
         let movementDirection = this.safeStringLower (transfer, 'token_side');
         if (movementDirection === 'withdraw') {
             movementDirection = 'withdrawal';
@@ -1313,7 +1367,7 @@ module.exports = class woo extends Exchange {
             'id': this.safeString (transfer, 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'currency': this.safeValue (currency, 'code'),
+            'currency': code,
             'amount': this.safeNumber (transfer, 'amount'),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
