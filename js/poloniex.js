@@ -112,6 +112,58 @@ module.exports = class poloniex extends Exchange {
                         'withdraw',
                     ],
                 },
+                'futuresPublic': {
+                    'get': [
+                        'contracts/active',
+                        'contracts/{symbol}',
+                        'ticker',
+                        'ticker', // v2
+                        'tickers', // v2
+                        'level2/snapshot',
+                        'level2/depth',
+                        'level2/message/query',
+                        'level3/snapshot', // v2
+                        'trade/history',
+                        'interest/query',
+                        'index/query',
+                        'mark-price/{symbol}/current',
+                        'premium/query',
+                        'funding-rate/{symbol}/current',
+                        'timestamp',
+                        'status',
+                        'kline/query',
+                    ],
+                    'post': [
+                        'bullet-public',
+                    ],
+                },
+                'futuresPrivate': {
+                    'get': [
+                        'account-overview',
+                        'transaction-history',
+                        'orders',
+                        'stopOrders',
+                        'recentDoneOrders',
+                        'orders/{order-id}',
+                        'fills',
+                        'openOrderStatistics',
+                        'position',
+                        'positions',
+                        'funding-history',
+                    ],
+                    'post': [
+                        'orders',
+                        'orders',
+                        'position/margin/auto-deposit-status',
+                        'position/margin/deposit-margin',
+                        'bullet-private',
+                    ],
+                    'delete': [
+                        'orders/{order-id}',
+                        'orders',
+                        'stopOrders',
+                    ],
+                },
             },
             'fees': {
                 'trading': {
