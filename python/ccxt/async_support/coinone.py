@@ -203,17 +203,32 @@ class coinone(Exchange):
         return self.parse_ticker(response, market)
 
     def parse_ticker(self, ticker, market=None):
+        #
+        #     {
+        #         "currency":"xec",
+        #         "first":"0.1069",
+        #         "low":"0.09",
+        #         "high":"0.1069",
+        #         "last":"0.0911",
+        #         "volume":"4591217267.4974",
+        #         "yesterday_first":"0.1128",
+        #         "yesterday_low":"0.1035",
+        #         "yesterday_high":"0.1167",
+        #         "yesterday_last":"0.1069",
+        #         "yesterday_volume":"4014832231.5102"
+        #     }
+        #
         timestamp = self.safe_timestamp(ticker, 'timestamp')
-        open = self.safe_number(ticker, 'first')
-        last = self.safe_number(ticker, 'last')
-        previousClose = self.safe_number(ticker, 'yesterday_last')
+        open = self.safe_string(ticker, 'first')
+        last = self.safe_string(ticker, 'last')
+        previousClose = self.safe_string(ticker, 'yesterday_last')
         symbol = self.safe_symbol(None, market)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
             'bid': None,
             'bidVolume': None,
             'ask': None,
@@ -226,10 +241,10 @@ class coinone(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'volume'),
+            'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def parse_trade(self, trade, market=None):
         #
