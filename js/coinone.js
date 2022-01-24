@@ -208,17 +208,32 @@ module.exports = class coinone extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         "currency":"xec",
+        //         "first":"0.1069",
+        //         "low":"0.09",
+        //         "high":"0.1069",
+        //         "last":"0.0911",
+        //         "volume":"4591217267.4974",
+        //         "yesterday_first":"0.1128",
+        //         "yesterday_low":"0.1035",
+        //         "yesterday_high":"0.1167",
+        //         "yesterday_last":"0.1069",
+        //         "yesterday_volume":"4014832231.5102"
+        //     }
+        //
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
-        const open = this.safeNumber (ticker, 'first');
-        const last = this.safeNumber (ticker, 'last');
-        const previousClose = this.safeNumber (ticker, 'yesterday_last');
+        const open = this.safeString (ticker, 'first');
+        const last = this.safeString (ticker, 'last');
+        const previousClose = this.safeString (ticker, 'yesterday_last');
         const symbol = this.safeSymbol (undefined, market);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
@@ -231,10 +246,10 @@ module.exports = class coinone extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'volume'),
+            'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     parseTrade (trade, market = undefined) {
