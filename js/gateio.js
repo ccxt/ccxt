@@ -2946,9 +2946,9 @@ module.exports = class gateio extends Exchange {
         const size = this.safeString (position, 'size');
         let side = undefined;
         if (Precise.stringGt (size, '0')) {
-            side = 'buy';
+            side = 'long';
         } else if (Precise.stringLt (size, '0')) {
-            side = 'sell';
+            side = 'short';
         }
         const maintenanceRate = this.safeString (position, 'maintenance_rate');
         const notional = this.safeString (position, 'value');
