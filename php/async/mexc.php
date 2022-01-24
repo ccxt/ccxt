@@ -1510,6 +1510,7 @@ class mexc extends Exchange {
     public function parse_transaction_status($status) {
         $statuses = array(
             'WAIT' => 'pending',
+            'WAIT_PACKAGING' => 'pending',
             'SUCCESS' => 'ok',
         );
         return $this->safe_string($statuses, $status, $status);
@@ -2103,7 +2104,7 @@ class mexc extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         return array(
             'info' => $data,
-            'id' => $this->data ($response, 'withdrawId'),
+            'id' => $this->safe_string($data, 'withdrawId'),
         );
     }
 

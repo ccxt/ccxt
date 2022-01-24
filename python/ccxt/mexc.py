@@ -1444,6 +1444,7 @@ class mexc(Exchange):
     def parse_transaction_status(self, status):
         statuses = {
             'WAIT': 'pending',
+            'WAIT_PACKAGING': 'pending',
             'SUCCESS': 'ok',
         }
         return self.safe_string(statuses, status, status)
@@ -1986,7 +1987,7 @@ class mexc(Exchange):
         data = self.safe_value(response, 'data', {})
         return {
             'info': data,
-            'id': self.data(response, 'withdrawId'),
+            'id': self.safe_string(data, 'withdrawId'),
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
