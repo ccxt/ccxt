@@ -19,7 +19,7 @@ before_install:
 - npm install
 - git checkout package.json package-lock.json
 - git config pull.rebase false
-- git fetch --tags --verbose --progress
+- git fetch --depth=50 --tags --verbose --progress
 - sudo -H pip install --upgrade setuptools
 - sudo -H pip install --upgrade pip wheel requests pyopenssl
 - sudo -H pip install --ignore-installed six
