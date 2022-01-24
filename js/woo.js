@@ -73,7 +73,7 @@ module.exports = class woo extends Exchange {
                 '1y': '1y',
             },
             'urls': {
-                'logo': '',
+                'logo': 'https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg',
                 'api': {
                     'public': 'https://api.woo.org',
                     'private': 'https://api.woo.org',
@@ -90,7 +90,7 @@ module.exports = class woo extends Exchange {
                 'fees': [
                     'https://support.woo.org/hc/en-001/articles/4404611795353--Trading-Fees',
                 ],
-                'referral': '',
+                'referral': 'https://referral.woo.org/BAJS6oNmZb3vi3RGA',
             },
             'api': {
                 'v1': {
