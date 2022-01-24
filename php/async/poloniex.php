@@ -21,7 +21,11 @@ class poloniex extends Exchange {
             'certified' => false,
             'pro' => true,
             'has' => array(
-                'fetchPosition' => true,
+                'spot' => true,
+                'margin' => null, // has but not fully implemented
+                'swap' => null, // has but not fully implemented
+                'future' => null, // has but not fully implemented
+                'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'CORS' => null,
@@ -42,6 +46,7 @@ class poloniex extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => true,
                 'fetchOrderTrades' => true, // true endpoint for trades of a single open or closed order
+                'fetchPosition' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
@@ -308,33 +313,48 @@ class poloniex extends Exchange {
             list($quoteId, $baseId) = explode('_', $id);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $limits = array_merge($this->limits, array(
-                'cost' => array(
-                    'min' => $this->safe_value($this->options['limits']['cost']['min'], $quote),
-                ),
-            ));
             $isFrozen = $this->safe_string($market, 'isFrozen');
-            $active = ($isFrozen !== '1');
-            $numericId = $this->safe_integer($market, 'id');
+            $marginEnabled = $this->safe_integer($market, 'marginTradingEnabled');
             // these are known defaults
-            $precision = array(
-                'price' => 8,
-                'amount' => 8,
-            );
             $result[] = array(
                 'id' => $id,
-                'numericId' => $numericId,
-                'symbol' => $symbol,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
+                'numericId' => $this->safe_integer($market, 'id'),
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'active' => $active,
-                'precision' => $precision,
-                'limits' => $limits,
+                'margin' => ($marginEnabled === 1),
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => ($isFrozen !== '1'),
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'price' => 8,
+                    'amount' => 8,
+                ),
+                'limits' => array_merge($this->limits, array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => $this->safe_value($this->options['limits']['cost']['min'], $quote),
+                        'max' => null,
+                    ),
+                )),
                 'info' => $market,
             );
         }
