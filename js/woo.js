@@ -1203,7 +1203,7 @@ module.exports = class woo extends Exchange {
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
-        const [ currency, rows ] = await this.getAssetHistoryRows(code, since, limit, params);
+        const [ currency, rows ] = await this.getAssetHistoryRows (code, since, limit, params);
         return this.parseLedger (rows, currency, since, limit, params);
     }
 
@@ -1329,7 +1329,7 @@ module.exports = class woo extends Exchange {
         const request = {
             'type': 'COLLATERAL',
         };
-        const [ currency, rows ] = await this.getAssetHistoryRows (code, since, limit, this.extend (request, params) );
+        const [ currency, rows ] = await this.getAssetHistoryRows (code, since, limit, this.extend (request, params));
         return this.parseTransfers (rows, currency, since, limit, params);
     }
 
