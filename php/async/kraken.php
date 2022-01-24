@@ -715,7 +715,7 @@ class kraken extends Exchange {
         $baseVolume = $this->safe_string($v, 1);
         $p = $this->safe_value($ticker, 'p', array());
         $vwap = $this->safe_string($p, 1);
-        $quoteVolume = null;
+        $quoteVolume = Precise::string_mul($baseVolume, $vwap);
         $c = $this->safe_value($ticker, 'c', array());
         $last = $this->safe_string($c, 0);
         $high = $this->safe_value($ticker, 'h', array());

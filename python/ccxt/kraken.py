@@ -705,7 +705,7 @@ class kraken(Exchange):
         baseVolume = self.safe_string(v, 1)
         p = self.safe_value(ticker, 'p', [])
         vwap = self.safe_string(p, 1)
-        quoteVolume = None
+        quoteVolume = Precise.string_mul(baseVolume, vwap)
         c = self.safe_value(ticker, 'c', [])
         last = self.safe_string(c, 0)
         high = self.safe_value(ticker, 'h', [])
