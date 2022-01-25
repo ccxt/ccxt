@@ -193,7 +193,7 @@ class itbit extends Exchange {
         $feeCurrency = $this->safe_currency_code($feeCurrencyId);
         $rebatesApplied = $this->safe_number($trade, 'rebatesApplied');
         if ($rebatesApplied !== null) {
-            $rebatesApplied = -$rebatesApplied;
+            $rebatesApplied = -rebatesApplied;
         }
         $rebateCurrencyId = $this->safe_string($trade, 'rebateCurrency');
         $rebateCurrency = $this->safe_currency_code($rebateCurrencyId);

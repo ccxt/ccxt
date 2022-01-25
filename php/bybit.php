@@ -2766,7 +2766,7 @@ class bybit extends Exchange {
         $direction = ($amount < 0) ? 'out' : 'in';
         $before = null;
         if ($after !== null && $amount !== null) {
-            $difference = ($direction === 'out') ? $amount : -$amount;
+            $difference = ($direction === 'out') ? $amount : -amount;
             $before = $this->sum($after, $difference);
         }
         $timestamp = $this->parse8601($this->safe_string($item, 'exec_time'));

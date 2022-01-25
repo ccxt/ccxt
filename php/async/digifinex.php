@@ -806,7 +806,7 @@ class digifinex extends Exchange {
         } else if ($limit !== null) {
             $endTime = $this->seconds();
             $duration = $this->parse_timeframe($timeframe);
-            $request['startTime'] = $this->sum($endTime, -$limit * $duration);
+            $request['startTime'] = $this->sum($endTime, -limit * $duration);
         }
         $response = yield $this->publicGetKline (array_merge($request, $params));
         //

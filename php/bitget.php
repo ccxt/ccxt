@@ -1300,7 +1300,7 @@ class bitget extends Exchange {
         //         "price":"359.240000000000",
         //         "source":"接口",
         //         "symbol":"eth_usdt",
-        //         "type":"buy-$market"
+        //         "type":"buy-market"
         //     }
         //
         //     swap
@@ -1971,7 +1971,7 @@ class bitget extends Exchange {
         //     $price false string Order $price, $market order does not pass this parameter
         //     source false string Order source api
         //     $symbol true string Trading pair  btc_usdt, eth_btc ...
-        //     $type true string Order Type  buy-$market => buy at $market $price, sell-$market => sell at $market $price, buy-limit => buy at limit $price, sell-limit => sell at limit $price
+        //     $type true string Order Type  buy-market => buy at $market $price, sell-market => sell at $market $price, buy-limit => buy at limit $price, sell-limit => sell at limit $price
         //
         // swap
         //
@@ -2302,7 +2302,7 @@ class bitget extends Exchange {
         //                 "source":"接口",
         //                 "state":"canceled",
         //                 "symbol":"eth_usdt",
-        //                 "type":"buy-$limit"
+        //                 "type":"buy-limit"
         //             }
         //         )
         //     }
@@ -2394,7 +2394,7 @@ class bitget extends Exchange {
         //                 "source":"接口",
         //                 "state":"canceled",
         //                 "symbol":"eth_usdt",
-        //                 "type":"buy-$limit"
+        //                 "type":"buy-limit"
         //             }
         //         )
         //     }
@@ -2604,7 +2604,7 @@ class bitget extends Exchange {
         //
         //     POST /api/v1/order/matchresults Query current order, order history
         //     $symbol true string trading pair  btc_usdt, eth_btc ...
-        //     types false string Query order $type combination  buy-$market, sell-$market, buy-$limit, sell-$limit
+        //     types false string Query order $type combination  buy-market, sell-market, buy-limit, sell-limit
         //     start_date false string Query start date, date format yyyy-mm-dd -61 days [-61day, $end-date]
         //     end_date false string Query $end date, date format yyyy-mm-dd Now [start-date, now]
         //     from false string Query start ID order record id
@@ -2614,7 +2614,7 @@ class bitget extends Exchange {
         $request = array(
             'symbol' => $market['id'],
             'method' => 'matchresults',
-            // 'types' => 'buy-$market,sell-$market,buy-$limit,sell-limit',
+            // 'types' => 'buy-market,sell-market,buy-limit,sell-limit',
             // 'start_date' => $this->yyyymmdd($since),
             // 'end_date' => $this->yyyymmdd($this->milliseconds()),
             // 'size' => 100,
@@ -2638,7 +2638,7 @@ class bitget extends Exchange {
         //                 "order_id" => 59378,
         //                 "match_id" => 59335,
         //                 "symbol" => "eth_usdt",
-        //                 "type" => "buy-$limit",
+        //                 "type" => "buy-limit",
         //                 "source" => "api",
         //                 "price" => "100.1000000000",
         //                 "filled_amount" => "0.9845000000",
@@ -2689,7 +2689,7 @@ class bitget extends Exchange {
         //                 "price":"359.240000000000",
         //                 "source":"接口",
         //                 "symbol":"eth_usdt",
-        //                 "type":"buy-$market"
+        //                 "type":"buy-market"
         //             }
         //         )
         //     }

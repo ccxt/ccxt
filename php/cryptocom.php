@@ -483,7 +483,7 @@ class cryptocom extends Exchange {
         $response = $this->$method ($query);
         // {
         //     "code":0,
-        //     "method":"public/get-$ticker",
+        //     "method":"public/get-ticker",
         //     "result":{
         //       "data" => array(
         //         array("i":"CRO_BTC","b":0.00000890,"k":0.00001179,"a":0.00001042,"t":1591770793901,"v":14905879.59,"h":0.00,"l":0.00,"c":0.00),
@@ -857,7 +857,7 @@ class cryptocom extends Exchange {
         $response = $this->$method (array_merge($request, $query));
         // {
         //     "id" => 11,
-        //     "method" => "private/get-$order-detail",
+        //     "method" => "private/get-order-detail",
         //     "code" => 0,
         //     "result" => {
         //       "trade_list" => array(
@@ -1158,7 +1158,7 @@ class cryptocom extends Exchange {
         $response = $this->spotPrivatePostPrivateGetDepositAddress (array_merge($request, $params));
         // {
         //     "id" => 11,
-        //     "method" => "private/get-deposit-$address",
+        //     "method" => "private/get-deposit-address",
         //     "code" => 0,
         //     "result" => {
         //          "deposit_address_list" => array(
@@ -1351,7 +1351,7 @@ class cryptocom extends Exchange {
         //
         //     {
         //       id => '1641032709328',
-        //       method => 'private/deriv/get-$transfer-history',
+        //       method => 'private/deriv/get-transfer-history',
         //       $code => '0',
         //       $result => {
         //         transfer_list => array(
@@ -1580,7 +1580,7 @@ class cryptocom extends Exchange {
         //
         //     {
         //       $id => 1641026373106,
-        //       method => 'private/get-$order-history',
+        //       method => 'private/get-order-history',
         //       code => 0,
         //       result => {
         //         data => array(

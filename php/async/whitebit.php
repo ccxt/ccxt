@@ -759,7 +759,7 @@ class whitebit extends Exchange {
                 // it's a stop-limit-order
                 $method = 'v4PrivateOPostOrderStopLimit';
             } else if ($type === 'market' || $type === 'stopMarket') {
-                // it's a stop-$market-order
+                // it's a stop-market-order
                 $method = 'v4PrivatePostOrderStopMarket';
             }
         } else {

@@ -340,7 +340,7 @@ class btcmarkets extends Exchange {
             $maxAmount = $this->safe_number($market, 'maxOrderAmount');
             $minPrice = null;
             if ($quote === 'AUD') {
-                $minPrice = pow(10, -$pricePrecision);
+                $minPrice = pow(10, -pricePrecision);
             }
             $result[] = array(
                 'id' => $id,
