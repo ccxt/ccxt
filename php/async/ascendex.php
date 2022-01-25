@@ -33,6 +33,7 @@ class ascendex extends Exchange {
                 'cancelOrder' => true,
                 'CORS' => null,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
@@ -1154,6 +1155,12 @@ class ascendex extends Exchange {
         $account = $this->safe_value($this->accounts, 0, array());
         $accountGroup = $this->safe_value($account, 'id');
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'id');
+        $reduceOnly = $this->safe_value($params, 'execInst');
+        if ($reduceOnly !== null) {
+            if (($style !== 'swap')) {
+                throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $style . ' orders, $reduceOnly orders are supported for perpetuals only');
+            }
+        }
         $request = array(
             'account-group' => $accountGroup,
             'account-category' => $accountCategory,
@@ -1264,6 +1271,13 @@ class ascendex extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $order = $this->safe_value_2($data, 'order', 'info', array());
         return $this->parse_order($order, $market);
+    }
+
+    public function create_reduce_only_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $request = array(
+            'execInst' => 'reduceOnly',
+        );
+        return yield $this->create_order($symbol, $type, $side, $amount, $price, array_merge($request, $params));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
