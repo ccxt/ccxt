@@ -52,24 +52,28 @@ module.exports = class btse extends Exchange {
             'urls': {
                 'logo': 'https://cdn.redot.com/static/icons/500px_transparent_background/Icon_0-3.png',
                 'api': {
-                    'public': 'https://api.redot.com/v1/public',
-                    'private': 'https://api.redot.com/v1/private',
+                    'spot': 'https://api.btse.com/spot/v3.2',
+                    'future': 'https://api.redot.com/v1/private',
                 },
                 'www': 'https://redot.com/',
                 'doc': 'https://redot.com/docs/#rest-api',
             },
             'api': {
-                'public': {
-                    'get': {
-                        'get-info': 1,
-                        'get-assets': 1,
-                        'get-instruments': 1,
-                        'get-instrument': 1,
-                        'get-order-book': 1,
-                        'get-ticker': 1,
-                        'get-last-trades': 1,
-                        'get-candles': 1,
-                        'get-stats': 1,
+                'spot': {
+                    'public': {
+                        'get': {
+                            'market_summary': 1,
+                            'ohlcv': 1,
+                            'price': 1,
+                            'orderbook': 1,
+                            'trades': 1,
+                            'time': 1,
+                            'get-stats': 1,
+                        },
+                    },
+                    'private': {
+                        'post': {
+                        },
                     },
                 },
             },
@@ -93,34 +97,54 @@ module.exports = class btse extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetGetInstruments (params);
-        // {
-        //     "result":[
-        //     {
-        //         "id":"KARTA-USDT",
-        //         "displayName":"KARTA/USDT",
-        //         "type":"spot",
-        //         "base":"KARTA",
-        //         "quote":"USDT",
-        //         "minQty":0.01,
-        //         "maxQty":10000000.0,
-        //         "tickSize":0.01,
-        //         "takerFee":0.0015,
-        //         "makerFee":-0.0005,
-        //         "feeCurrency":"acquired"
-        //     },
-        // }
-        const markets = this.safeValue (response, 'result', []);
+        // [
+        //   {
+        //      "symbol":"1INCH-AED",
+        //      "last":0.0,
+        //      "lowestAsk":0.0,
+        //      "highestBid":0.0,
+        //      "percentageChange":0.887761573,
+        //      "volume":6679180.080848128,
+        //      "high24Hr":6.038055,
+        //      "low24Hr":5.417631,
+        //      "base":"1INCH",
+        //      "quote":"AED",
+        //      "active":true,
+        //      "size":1150813.46023945,
+        //      "minValidPrice":0.001,
+        //      "minPriceIncrement":0.001,
+        //      "minOrderSize":0.1,
+        //      "maxOrderSize":300000.0,
+        //      "minSizeIncrement":0.1,
+        //      "openInterest":0.0,
+        //      "openInterestUSD":0.0,
+        //      "contractStart":0,
+        //      "contractEnd":0,
+        //      "timeBasedContract":false,
+        //      "openTime":0,
+        //      "closeTime":0,
+        //      "startMatching":0,
+        //      "inactiveTime":0,
+        //      "fundingRate":0.0,
+        //      "contractSize":0.0,
+        //      "maxPosition":0,
+        //      "minRiskLimit":0,
+        //      "maxRiskLimit":0,
+        //      "availableSettlement":null,
+        //      "futures":false
+        //   },
+        // ]
         const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const id = this.safeString (market, 'id');
+        for (let i = 0; i < response.length; i++) {
+            const market = response[i];
+            const id = this.safeString (market, 'symbol');
             const baseId = this.safeString (market, 'base');
             const quoteId = this.safeString (market, 'quote');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const minQuantity = this.safeInteger (market, 'minQty');
-            const maxQuantity = this.safeNumber (market, 'maxQty');
+            const minQuantity = this.safeInteger (market, 'minOrderSize');
+            const maxQuantity = this.safeNumber (market, 'maxOrderSize');
             const makerFee = this.safeNumber (market, 'makerFee');
             const takerFee = this.safeNumber (market, 'takerFee');
             const type = this.safeString (market, 'type');
