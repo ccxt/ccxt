@@ -25,8 +25,13 @@ class currencycom extends Exchange {
             'version' => 'v1',
             // new metainfo interface
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => null,
+                'swap' => null,
+                'future' => null,
+                'option' => null,
+                'cancelOrder' => true,
                 'createOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,

@@ -27,6 +27,7 @@ class bitbns(Exchange):
             'version': 'v2',
             # new metainfo interface
             'has': {
+                'CORS': None,
                 'spot': True,
                 'margin': None,
                 'swap': False,

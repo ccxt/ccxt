@@ -17,8 +17,13 @@ class indodax extends Exchange {
             'name' => 'INDODAX',
             'countries' => array( 'ID' ), // Indonesia
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => null,
+                'swap' => null,
+                'future' => null,
+                'option' => null,
+                'cancelOrder' => true,
                 'createMarketOrder' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,

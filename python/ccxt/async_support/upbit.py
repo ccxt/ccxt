@@ -27,6 +27,7 @@ class upbit(Exchange):
             'pro': True,
             # new metainfo interface
             'has': {
+                'CORS': True,
                 'spot': True,
                 'margin': None,
                 'swap': False,
@@ -34,7 +35,6 @@ class upbit(Exchange):
                 'option': False,
                 'addMargin': False,
                 'cancelOrder': True,
-                'CORS': True,
                 'createDepositAddress': True,
                 'createMarketOrder': True,
                 'createOrder': True,

@@ -22,6 +22,7 @@ class vcc extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v3',
             'has' => array(
+                'CORS' => null,
                 'spot' => true,
                 'margin' => false,
                 'swap' => false,

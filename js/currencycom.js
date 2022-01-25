@@ -21,8 +21,13 @@ module.exports = class currencycom extends Exchange {
             'version': 'v1',
             // new metainfo interface
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': undefined,
+                'swap': undefined,
+                'future': undefined,
+                'option': undefined,
+                'cancelOrder': true,
                 'createOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,

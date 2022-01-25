@@ -17,6 +17,7 @@ module.exports = class tidebit extends Exchange {
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
+                'CORS': undefined,
                 'spot': true,
                 'margin': false,
                 'swap': false,
@@ -24,7 +25,6 @@ module.exports = class tidebit extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
-                'CORS': undefined,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,

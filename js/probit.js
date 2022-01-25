@@ -17,6 +17,7 @@ module.exports = class probit extends Exchange {
             'countries': [ 'SC', 'KR' ], // Seychelles, South Korea
             'rateLimit': 50, // ms
             'has': {
+                'CORS': true,
                 'spot': true,
                 'margin': false,
                 'swap': false,
@@ -24,7 +25,6 @@ module.exports = class probit extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
-                'CORS': true,
                 'createMarketOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,

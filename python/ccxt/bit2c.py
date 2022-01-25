@@ -28,8 +28,13 @@ class bit2c(Exchange):
             'countries': ['IL'],  # Israel
             'rateLimit': 3000,
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': None,
+                'swap': None,
+                'future': None,
+                'option': None,
+                'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchMyTrades': True,

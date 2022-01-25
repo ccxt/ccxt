@@ -18,6 +18,12 @@ class bitforex extends Exchange {
             'rateLimit' => 500, // https://github.com/ccxt/ccxt/issues/5054
             'version' => 'v1',
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => null,
+                'swap' => null,
+                'future' => null,
+                'option' => null,
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,

@@ -22,6 +22,12 @@ module.exports = class idex extends Exchange {
             'certified': true,
             'requiresWeb3': true,
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': undefined,
+                'swap': undefined,
+                'future': undefined,
+                'option': undefined,
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,

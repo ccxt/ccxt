@@ -13,6 +13,7 @@ module.exports = class timex extends Exchange {
             'version': 'v1',
             'rateLimit': 1500,
             'has': {
+                'CORS': undefined,
                 'spot': true,
                 'margin': false,
                 'swap': false,
@@ -21,7 +22,6 @@ module.exports = class timex extends Exchange {
                 'addMargin': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
-                'CORS': undefined,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'editOrder': true,

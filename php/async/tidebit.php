@@ -21,6 +21,7 @@ class tidebit extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v2',
             'has' => array(
+                'CORS' => null,
                 'spot' => true,
                 'margin' => false,
                 'swap' => false,
@@ -28,7 +29,6 @@ class tidebit extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
-                'CORS' => null,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,

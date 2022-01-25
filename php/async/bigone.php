@@ -19,6 +19,12 @@ class bigone extends Exchange {
             'version' => 'v3',
             'rateLimit' => 1200, // 500 request per 10 minutes
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => null,
+                'swap' => null,
+                'future' => null,
+                'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,

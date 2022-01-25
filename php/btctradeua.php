@@ -18,6 +18,7 @@ class btctradeua extends Exchange {
             'countries' => array( 'UA' ), // Ukraine,
             'rateLimit' => 3000,
             'has' => array(
+                'CORS' => null,
                 'spot' => true,
                 'margin' => false,
                 'swap' => false,
@@ -25,7 +26,6 @@ class btctradeua extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
-                'CORS' => null,
                 'createMarketOrder' => null,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,

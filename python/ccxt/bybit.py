@@ -38,12 +38,14 @@ class bybit(Exchange):
             'rateLimit': 100,
             'hostname': 'bybit.com',  # bybit.com, bytick.com
             'has': {
+                'CORS': True,
+                'spot': True,
                 'margin': False,
                 'swap': True,
                 'future': True,
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': True,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,

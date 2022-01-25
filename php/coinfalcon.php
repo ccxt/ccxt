@@ -18,6 +18,12 @@ class coinfalcon extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v1',
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => null,
+                'swap' => null,
+                'future' => null,
+                'option' => null,
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,

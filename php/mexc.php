@@ -24,6 +24,7 @@ class mexc extends Exchange {
             'version' => 'v2',
             'certified' => true,
             'has' => array(
+                'CORS' => null,
                 'spot' => true,
                 'margin' => null,
                 'swap' => true,

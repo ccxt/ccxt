@@ -24,6 +24,7 @@ class hollaex(Exchange):
             'rateLimit': 333,
             'version': 'v2',
             'has': {
+                'CORS': None,
                 'spot': True,
                 'margin': None,
                 'swap': False,
@@ -31,7 +32,6 @@ class hollaex(Exchange):
                 'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': None,
                 'createLimitBuyOrder': True,
                 'createLimitSellOrder': True,
                 'createMarketBuyOrder': True,

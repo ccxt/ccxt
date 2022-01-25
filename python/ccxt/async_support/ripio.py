@@ -29,6 +29,7 @@ class ripio(Exchange):
             'pro': True,
             # new metainfo interface
             'has': {
+                'CORS': None,
                 'spot': True,
                 'margin': False,
                 'swap': False,
@@ -36,7 +37,6 @@ class ripio(Exchange):
                 'option': False,
                 'addMargin': False,
                 'cancelOrder': True,
-                'CORS': None,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,

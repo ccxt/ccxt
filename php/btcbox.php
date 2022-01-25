@@ -18,6 +18,7 @@ class btcbox extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v1',
             'has' => array(
+                'CORS' => null,
                 'spot' => true,
                 'margin' => false,
                 'swap' => false,
@@ -25,7 +26,6 @@ class btcbox extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
-                'CORS' => null,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,

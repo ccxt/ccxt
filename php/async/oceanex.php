@@ -27,6 +27,12 @@ class oceanex extends Exchange {
                 'referral' => 'https://oceanex.pro/signup?referral=VE24QX',
             ),
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => null,
+                'swap' => null,
+                'future' => null,
+                'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,

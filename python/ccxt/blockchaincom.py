@@ -23,6 +23,7 @@ class blockchaincom(Exchange):
             'rateLimit': 1000,
             'version': 'v3',
             'has': {
+                'CORS': False,
                 'spot': True,
                 'margin': None,  # on exchange but not implemented in CCXT
                 'swap': False,
@@ -30,7 +31,6 @@ class blockchaincom(Exchange):
                 'option': False,
                 'cancelOrder': True,
                 'cancelOrders': True,
-                'CORS': False,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchCanceledOrders': True,

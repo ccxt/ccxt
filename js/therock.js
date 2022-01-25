@@ -17,6 +17,7 @@ module.exports = class therock extends Exchange {
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
+                'CORS': undefined,
                 'spot': true,
                 'margin': undefined, // has, but unimplemented
                 'swap': false,
@@ -24,7 +25,6 @@ module.exports = class therock extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
-                'CORS': undefined,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,

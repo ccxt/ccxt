@@ -26,6 +26,7 @@ class wazirx(Exchange):
             'version': 'v2',
             'rateLimit': 100,
             'has': {
+                'CORS': False,
                 'spot': True,
                 'margin': None,  # exists but currently unimplemented
                 'swap': False,
@@ -34,7 +35,6 @@ class wazirx(Exchange):
                 'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,

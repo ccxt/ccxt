@@ -24,6 +24,7 @@ class ndax(Exchange):
             'rateLimit': 1000,
             'pro': True,
             'has': {
+                'CORS': None,
                 'spot': True,
                 'margin': False,
                 'swap': False,

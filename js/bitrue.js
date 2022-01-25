@@ -20,9 +20,14 @@ module.exports = class bitrue extends Exchange {
             'version': 'v1',
             // new metainfo interface
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': undefined,
+                'swap': undefined,
+                'future': undefined,
+                'option': undefined,
                 'cancelAllOrders': false,
                 'cancelOrder': true,
-                'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,

@@ -27,6 +27,7 @@ class qtrade extends Exchange {
                 'referral' => 'https://qtrade.io/?ref=BKOQWVFGRH2C',
             ),
             'has' => array(
+                'CORS' => null,
                 'spot' => true,
                 'margin' => false,
                 'swap' => false,
@@ -34,7 +35,6 @@ class qtrade extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
-                'CORS' => null,
                 'createMarketOrder' => null,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,

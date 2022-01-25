@@ -46,6 +46,7 @@ class kraken(Exchange):
             'certified': False,
             'pro': True,
             'has': {
+                'CORS': None,
                 'spot': True,
                 'margin': True,
                 'swap': False,
@@ -54,7 +55,6 @@ class kraken(Exchange):
                 'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': None,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,

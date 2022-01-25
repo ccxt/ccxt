@@ -31,6 +31,7 @@ class probit(Exchange):
             'countries': ['SC', 'KR'],  # Seychelles, South Korea
             'rateLimit': 50,  # ms
             'has': {
+                'CORS': True,
                 'spot': True,
                 'margin': False,
                 'swap': False,
@@ -38,7 +39,6 @@ class probit(Exchange):
                 'option': False,
                 'addMargin': False,
                 'cancelOrder': True,
-                'CORS': True,
                 'createMarketOrder': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,

@@ -33,6 +33,7 @@ class btcbox(Exchange):
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
+                'CORS': None,
                 'spot': True,
                 'margin': False,
                 'swap': False,
@@ -40,7 +41,6 @@ class btcbox(Exchange):
                 'option': False,
                 'addMargin': False,
                 'cancelOrder': True,
-                'CORS': None,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,

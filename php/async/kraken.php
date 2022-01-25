@@ -30,6 +30,7 @@ class kraken extends Exchange {
             'certified' => false,
             'pro' => true,
             'has' => array(
+                'CORS' => null,
                 'spot' => true,
                 'margin' => true,
                 'swap' => false,
@@ -38,7 +39,6 @@ class kraken extends Exchange {
                 'addMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => null,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,

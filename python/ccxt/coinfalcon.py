@@ -21,6 +21,12 @@ class coinfalcon(Exchange):
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': None,
+                'swap': None,
+                'future': None,
+                'option': None,
                 'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,

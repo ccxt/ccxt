@@ -32,6 +32,12 @@ class idex(Exchange):
             'certified': True,
             'requiresWeb3': True,
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': None,
+                'swap': None,
+                'future': None,
+                'option': None,
                 'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,

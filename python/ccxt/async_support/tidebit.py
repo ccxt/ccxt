@@ -21,6 +21,7 @@ class tidebit(Exchange):
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
+                'CORS': None,
                 'spot': True,
                 'margin': False,
                 'swap': False,
@@ -28,7 +29,6 @@ class tidebit(Exchange):
                 'option': False,
                 'addMargin': False,
                 'cancelOrder': True,
-                'CORS': None,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,
