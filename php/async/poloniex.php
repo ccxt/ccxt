@@ -1223,7 +1223,8 @@ class poloniex extends Exchange {
         $response = yield $this->privatePostGenerateNewAddress (array_merge($request, $params));
         $address = null;
         $tag = null;
-        if ($response['success'] === 1) {
+        $success = $this->safe_string($response, 'success');
+        if ($success === '1') {
             $address = $this->safe_string($response, 'response');
         }
         $this->check_address($address);
