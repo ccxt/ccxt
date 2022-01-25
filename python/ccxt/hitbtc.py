@@ -631,16 +631,30 @@ class hitbtc(Exchange):
         #   price: '0.073365',
         #   fee: '0.000000147',
         #   timestamp: '2018-04-28T18:39:55.345Z'}
+        #
+        #  {
+        #      "id":1568938909,
+        #      "orderId":793293348428,
+        #      "clientOrderId":"fbc5c5b753e8476cb14697458cb928ef",
+        #      "symbol":"DOGEUSD",
+        #      "side":"sell",
+        #      "quantity":"100",
+        #      "price":"0.03904191",
+        #      "fee":"0.009760477500",
+        #      "timestamp":"2022-01-25T15:15:41.353Z",
+        #      "taker":true
+        #  }
+        #
         timestamp = self.parse8601(trade['timestamp'])
         marketId = self.safe_string(trade, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
         fee = None
-        feeCost = self.safe_number(trade, 'fee')
-        if feeCost is not None:
+        feeCostString = self.safe_string(trade, 'fee')
+        if feeCostString is not None:
             feeCurrencyCode = market['feeCurrency'] if market else None
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
         # we use clientOrderId as the order id with self exchange intentionally
@@ -649,12 +663,9 @@ class hitbtc(Exchange):
         orderId = self.safe_string(trade, 'clientOrderId')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'quantity')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         side = self.safe_string(trade, 'side')
         id = self.safe_string(trade, 'id')
-        return {
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'order': orderId,
@@ -664,11 +675,11 @@ class hitbtc(Exchange):
             'type': None,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
