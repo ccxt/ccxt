@@ -129,6 +129,10 @@ class CCXTProTranspiler extends Transpiler {
         ]
     }
 
+    sortExchangeCapabilities (code) {
+        return false
+    }
+
     // ------------------------------------------------------------------------
 
     transpileOrderBookTest () {
