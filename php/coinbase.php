@@ -1127,7 +1127,7 @@ class coinbase extends Exchange {
         $direction = null;
         if ($amount < 0) {
             $direction = 'out';
-            $amount = -$amount;
+            $amount = -amount;
         } else {
             $direction = 'in';
         }

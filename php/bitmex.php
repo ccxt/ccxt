@@ -658,7 +658,7 @@ class bitmex extends Exchange {
         if ($after !== null) {
             $after = $after / 100000000;
         }
-        $before = $this->sum($after, -$amount);
+        $before = $this->sum($after, -amount);
         $direction = null;
         if ($amount < 0) {
             $direction = 'out';

@@ -279,7 +279,7 @@ class buda extends Exchange {
             $id = $this->safe_string($currency, 'id');
             $code = $this->safe_currency_code($id);
             $precision = $this->safe_number($currency, 'input_decimals');
-            $minimum = pow(10, -$precision);
+            $minimum = pow(10, -precision);
             $depositMinimum = $this->safe_value($currency, 'deposit_minimum', array());
             $withdrawalMinimum = $this->safe_value($currency, 'withdrawal_minimum', array());
             $minDeposit = $this->safe_number($depositMinimum, 0);

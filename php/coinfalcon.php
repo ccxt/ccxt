@@ -121,11 +121,11 @@ class coinfalcon extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -$precision['amount']),
+                        'min' => pow(10, -precision['amount']),
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision['price']),
+                        'min' => pow(10, -precision['price']),
                         'max' => null,
                     ),
                     'cost' => array(

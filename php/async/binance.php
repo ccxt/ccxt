@@ -2248,7 +2248,7 @@ class binance extends Exchange {
         //
         // recent public trades and old public trades
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#recent-trades-list
-        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#old-$trade-lookup-market_data
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#old-trade-lookup-market_data
         //
         //     {
         //         "id" => 28457,
@@ -2260,7 +2260,7 @@ class binance extends Exchange {
         //     }
         //
         // private trades
-        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#account-$trade-list-user_data
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#account-trade-list-user_data
         //
         //     {
         //         "symbol" => "BNBBTC",
@@ -2277,7 +2277,7 @@ class binance extends Exchange {
         //     }
         //
         // futures trades
-        // https://binance-docs.github.io/apidocs/futures/en/#account-$trade-list-user_data
+        // https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
         //
         //     {
         //       "accountId" => 20,
@@ -3772,7 +3772,7 @@ class binance extends Exchange {
             $params = $this->omit($params, 'network');
         }
         // has support for the 'network' parameter
-        // https://binance-docs.github.io/apidocs/spot/en/#deposit-$address-supporting-$network-user_data
+        // https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
         $response = yield $this->sapiGetCapitalDepositAddress (array_merge($request, $params));
         //
         //     {

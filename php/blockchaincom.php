@@ -883,7 +883,7 @@ class blockchaincom extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
-        // note => only works with exchange-order-$id
+        // note => only works with exchange-order-id
         // does not work with clientOrderId
         $this->load_markets();
         $request = array(

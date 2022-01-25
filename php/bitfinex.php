@@ -474,7 +474,7 @@ class bitfinex extends Exchange {
             $symbol = $base . '/' . $quote;
             $precision = array(
                 'price' => $this->safe_integer($market, 'price_precision'),
-                // https://docs.bitfinex.com/docs/introduction#amount-$precision
+                // https://docs.bitfinex.com/docs/introduction#amount-precision
                 // The amount field allows up to 8 decimals.
                 // Anything exceeding this will be rounded to the 8th decimal.
                 'amount' => 8,

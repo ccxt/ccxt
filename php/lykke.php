@@ -600,7 +600,7 @@ class lykke extends Exchange {
         $price = $this->safe_number($bidask, $priceKey);
         $amount = $this->safe_number($bidask, $amountKey);
         if ($amount < 0) {
-            $amount = -$amount;
+            $amount = -amount;
         }
         return array( $price, $amount );
     }

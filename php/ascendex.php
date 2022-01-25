@@ -308,7 +308,7 @@ class ascendex extends Exchange {
     }
 
     public function get_account($params = array ()) {
-        // get current or provided bitmax sub-$account
+        // get current or provided bitmax sub-account
         $account = $this->safe_value($params, 'account', $this->options['account']);
         return strtolower($account).capitalize ();
     }
@@ -1224,7 +1224,7 @@ class ascendex extends Exchange {
         //         "data" => {
         //             "ac" => "MARGIN",
         //             "accountId" => "cshQtyfq8XLAA9kcf19h8bXHbAwwoqDo",
-        //             "action" => "place-$order",
+        //             "action" => "place-order",
         //             "info" => array(
         //                 "id" => "16e607e2b83a8bXHbAwwoqDo55c166fa",
         //                 "orderId" => "16e85b4d9b9a8bXHbAwwoqDoc3d66830",
@@ -1243,7 +1243,7 @@ class ascendex extends Exchange {
         //         "data" => {
         //             "meta" => array(
         //                 "id" => "",
-        //                 "action" => "place-$order",
+        //                 "action" => "place-order",
         //                 "respInst" => "ACK"
         //             ),
         //             "order" => {
@@ -1710,7 +1710,7 @@ class ascendex extends Exchange {
         //         "data" => {
         //             "accountId" => "cshQtyfq8XLAA9kcf19h8bXHbAwwoqDo",
         //             "ac" => "CASH",
-        //             "action" => "cancel-$order",
+        //             "action" => "cancel-order",
         //             "status" => "Ack",
         //             "info" => {
         //                 "id" =>        "wv8QGquoeamhssvQBeHOHGQCGlcBjj23",
@@ -1729,7 +1729,7 @@ class ascendex extends Exchange {
         //         "data" => {
         //             "meta" => array(
         //                 "id" => "foobar",
-        //                 "action" => "cancel-$order",
+        //                 "action" => "cancel-order",
         //                 "respInst" => "ACK"
         //             ),
         //             "order" => {

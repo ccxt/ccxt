@@ -1772,7 +1772,7 @@ class okex extends Exchange {
         if ($type === 'market') {
             if ($market['type'] === 'spot' && $side === 'buy') {
                 // spot $market buy => "sz" can refer either to base currency units or to quote currency units
-                // see documentation => https://www.okex.com/docs-v5/en/#rest-api-trade-place-$order
+                // see documentation => https://www.okex.com/docs-v5/en/#rest-api-trade-place-order
                 $defaultTgtCcy = $this->safe_string($this->options, 'tgtCcy', 'base_ccy');
                 $tgtCcy = $this->safe_string($params, 'tgtCcy', $defaultTgtCcy);
                 if ($tgtCcy === 'quote_ccy') {
@@ -1800,7 +1800,7 @@ class okex extends Exchange {
                 $params = $this->omit($params, array( 'tgtCcy' ));
             }
         } else {
-            // non-$market orders
+            // non-market orders
             $request['px'] = $this->price_to_precision($symbol, $price);
         }
         $extendedRequest = null;
@@ -2009,7 +2009,7 @@ class okex extends Exchange {
         $amount = null;
         $cost = null;
         // spot $market buy => "sz" can refer either to base currency units or to quote currency units
-        // see documentation => https://www.okex.com/docs-v5/en/#rest-api-trade-place-$order
+        // see documentation => https://www.okex.com/docs-v5/en/#rest-api-trade-place-order
         $defaultTgtCcy = $this->safe_string($this->options, 'tgtCcy', 'base_ccy');
         $tgtCcy = $this->safe_string($order, 'tgtCcy', $defaultTgtCcy);
         $instType = $this->safe_string($order, 'instType');
