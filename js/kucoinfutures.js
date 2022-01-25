@@ -877,9 +877,9 @@ module.exports = class kucoinfutures extends kucoin {
         const size = this.safeString (position, 'currentQty');
         let side = undefined;
         if (Precise.stringGt (size, '0')) {
-            side = 'buy';
+            side = 'long';
         } else if (Precise.stringLt (size, '0')) {
-            side = 'sell';
+            side = 'short';
         }
         const notional = Precise.stringAbs (this.safeString (position, 'posCost'));
         const initialMargin = this.safeString (position, 'posInit');
