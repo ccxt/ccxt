@@ -236,10 +236,10 @@ module.exports = class dydx extends Exchange {
             const tickSize = this.safeNumber (market, 'tickSize');
             const minOrderSize = this.safeNumber (market, 'minOrderSize');
             const type = this.safeString (market, 'type');
-            const spot = (type === 'spot');
-            const future = (type === 'future');
-            const swap = (type === 'swap');
-            const option = (type === 'option');
+            const spot = false;
+            const future = false;
+            const swap = (type === 'PERPETUAL');
+            const option = false;
             const contract = future || swap;
             const entry = {
                 'id': id,
