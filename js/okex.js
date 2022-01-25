@@ -310,7 +310,7 @@ module.exports = class okex extends Exchange {
                     '50011': RateLimitExceeded, // Request too frequent
                     '50012': ExchangeError, // Account status invalid
                     '50013': ExchangeNotAvailable, // System is busy, please try again later
-                    '50014': ExchangeError, // Parameter {0} can not be empty
+                    '50014': BadRequest, // Parameter {0} can not be empty
                     '50015': ExchangeError, // Either parameter {0} or {1} is required
                     '50016': ExchangeError, // Parameter {0} does not match parameter {1}
                     '50017': ExchangeError, // The position is frozen due to ADL. Operation restricted
@@ -320,14 +320,14 @@ module.exports = class okex extends Exchange {
                     '50021': ExchangeError, // Currency {0} is frozen due to liquidation. Operation restricted
                     '50022': ExchangeError, // The account is frozen due to liquidation. Operation restricted
                     '50023': ExchangeError, // Funding fee frozen. Operation restricted
-                    '50024': ExchangeError, // Parameter {0} and {1} can not exist at the same time
+                    '50024': BadRequest, // Parameter {0} and {1} can not exist at the same time
                     '50025': ExchangeError, // Parameter {0} count exceeds the limit {1}
                     '50026': ExchangeError, // System error
-                    '50027': ExchangeError, // The account is restricted from trading
+                    '50027': PermissionDenied, // The account is restricted from trading
                     '50028': ExchangeError, // Unable to take the order, please reach out to support center for details
                     // API Class
                     '50100': ExchangeError, // API frozen, please contact customer service
-                    '50101': ExchangeError, // Broker id of APIKey does not match current environment
+                    '50101': AuthenticationError, // Broker id of APIKey does not match current environment
                     '50102': InvalidNonce, // Timestamp request expired
                     '50103': AuthenticationError, // Request header "OK_ACCESS_KEY" can not be empty
                     '50104': AuthenticationError, // Request header "OK_ACCESS_PASSPHRASE" can not be empty
@@ -3813,7 +3813,7 @@ module.exports = class okex extends Exchange {
 
     setSandboxMode (enable) {
         if (enable) {
-            this.headers['x-simulated-trading'] = 1;
+            this.headers['x-simulated-trading'] = '1';
         } else if ('x-simulated-trading' in this.headers) {
             this.headers = this.omit (this.headers, 'x-simulated-trading');
         }
