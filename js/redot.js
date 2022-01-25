@@ -2,7 +2,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest, BadSymbol, RateLimitExceeded } = require ('./base/errors');
-const Precise = require ('./base/Precise');
 
 module.exports = class redot extends Exchange {
     describe () {
@@ -207,8 +206,7 @@ module.exports = class redot extends Exchange {
         // }
         //
         const result = this.safeValue (response, 'result', []);
-        let timestamp = Precise.stringDiv (this.safeString (result, 'time'), '1000');
-        timestamp = parseInt (parseFloat (timestamp));
+        const timestamp = this.safeIntegerProduct (result, 'time', 0.001);
         return this.parseOrderBook (result, symbol, timestamp);
     }
 
@@ -283,8 +281,7 @@ module.exports = class redot extends Exchange {
         //         }
         //
         const id = this.safeString (trade, 'id');
-        let timestamp = Precise.stringDiv (this.safeString (trade, 'time'), '1000');
-        timestamp = parseInt (parseFloat (timestamp));
+        const timestamp = this.safeIntegerProduct (trade, 'time', 0.001);
         const datetime = this.iso8601 (timestamp);
         const symbol = this.safeSymbol (undefined, market);
         const side = this.safeString (trade, 'side');
@@ -330,8 +327,7 @@ module.exports = class redot extends Exchange {
         const baseVolume = this.safeString (ticker, 'volume');
         const bid = this.safeString (ticker, 'bidPrice');
         const ask = this.safeString (ticker, 'askPrice');
-        let timestamp = Precise.stringDiv (this.safeString (ticker, 'time'), '1000');
-        timestamp = parseInt (parseFloat (timestamp));
+        const timestamp = this.safeIntegerProduct (ticker, 'time', 0.001);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -368,7 +364,7 @@ module.exports = class redot extends Exchange {
         //  },
         //
         return [
-            parseInt (parseFloat (Precise.stringDiv (this.safeString (ohlcv, 'time'), '1000'))),
+            this.safeIntegerProduct (ohlcv, 'time', 0.001),
             this.safeNumber (ohlcv, 'open'),
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),
