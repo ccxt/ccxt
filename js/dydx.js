@@ -332,6 +332,74 @@ module.exports = class dydx extends Exchange {
         return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'price', 'size');
     }
 
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        // we skip `since` param, because exchange's `startingBeforeOrAt` is an opposite concept of `since`
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 100);
+        }
+        const response = await this.publicGetTradesMarket (this.extend (request, params));
+        //
+        // {
+        //   "trades": [
+        //     {
+        //       "side": "BUY",
+        //       "size": "0.001",
+        //       "price": "29000",
+        //       "createdAt": "2021-01-05T16:33:43.163Z" // most recent item in top of response
+        //     },
+        //     ...
+        //   ]
+        // }
+        //
+        const trades = this.safeValue (response, 'trades', []);
+        return this.parseTrades (trades, market, since, limit, params);
+    }
+
+    parseTrade (trade, market) {
+        let id = undefined;
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString (trade, 'size');
+        const dateString = this.safeString (trade, 'createdAt');
+        const timestamp = this.parseDate (dateString);
+        const symbol = this.safeSymbol (undefined, market, '-');
+        const sideString = this.safeString (trade, 'side');
+        const side = (sideString === 'BUY') ? 'buy' : 'sell';
+        const takerOrMaker = true;
+        if (id === undefined) { // reconstruct artificially, if it doesn't exist
+            id = this.syntheticTradeId (market, timestamp, side, amount, price);
+        }
+        return this.safeTrade ({
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'order': undefined,
+            'type': 'limit',
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': price,
+            'amount': amount,
+            'info': trade,
+        });
+    }
+
+    syntheticTradeId (market, timestamp, side, amount, price) { // TODO: can be unified method? this approach is being used by multiple exchanges (mexc, woo-coinsbit, dydx, ...)
+        let id = '';
+        if (timestamp !== undefined) {
+            const marketIdStr = this.safeString (market, 'id', '');
+            const amountStr = (amount === undefined) ? '' : amount;
+            const sideStr = (side === undefined) ? '' : side;
+            const priceStr = (price === undefined) ? '' : price;
+            id = this.numberToString (timestamp) + '-' + marketIdStr + '-' + sideStr + '-' + amountStr + '-' + priceStr;
+        }
+        return id;
+    }
+
     sign (path, api = 'private', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = this.safeString (this.options, 'version', 'v3');
         let url = this.urls['api']['private'] + '/' + version + '/' + this.implodeParams (path, params);
