@@ -809,75 +809,102 @@ module.exports = class okex3 extends Exchange {
         //     }
         //
         const id = this.safeString (market, 'instrument_id');
+        let optionType = this.safeValue (market, 'option_type');
+        const contractVal = this.safeNumber (market, 'contract_val');
+        const contract = contractVal !== undefined;
+        const futuresAlias = this.safeString (market, 'alias');
         let marketType = 'spot';
-        let spot = true;
-        let future = false;
-        let swap = false;
-        let option = false;
+        const spot = !contract;
+        const option = (optionType !== undefined);
+        const future = !option && (futuresAlias !== undefined);
+        const swap = contract && !future && !option;
         let baseId = this.safeString (market, 'base_currency');
         let quoteId = this.safeString (market, 'quote_currency');
-        const contractVal = this.safeNumber (market, 'contract_val');
-        if (contractVal !== undefined) {
-            if ('option_type' in market) {
-                marketType = 'option';
-                spot = false;
-                option = true;
-                const underlying = this.safeString (market, 'underlying');
-                const parts = underlying.split ('-');
-                baseId = this.safeString (parts, 0);
-                quoteId = this.safeString (parts, 1);
-            } else {
-                marketType = 'swap';
-                spot = false;
-                swap = true;
-                const futuresAlias = this.safeString (market, 'alias');
-                if (futuresAlias !== undefined) {
-                    swap = false;
-                    future = true;
-                    marketType = 'futures';
-                    baseId = this.safeString (market, 'underlying_index');
-                }
-            }
+        const settleId = this.safeString (market, 'settlement_currency');
+        if (option) {
+            const underlying = this.safeString (market, 'underlying');
+            const parts = underlying.split ('-');
+            baseId = this.safeString (parts, 0);
+            quoteId = this.safeString (parts, 1);
+            marketType = 'option';
+        } else if (future) {
+            baseId = this.safeString (market, 'underlying_index');
+            marketType = 'futures';
+        } else if (swap) {
+            marketType = 'swap';
         }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = spot ? (base + '/' + quote) : id;
+        const settle = this.safeCurrencyCode (settleId);
+        let symbol = base + '/' + quote;
+        let expiryDatetime = this.safeString (market, 'delivery');
+        let expiry = undefined;
+        const strike = this.safeValue (market, 'strike');
+        if (contract) {
+            symbol = symbol + ':' + settle;
+            if (future || option) {
+                if (future) {
+                    expiryDatetime += 'T00:00:00Z';
+                }
+                expiry = this.parse8601 (expiryDatetime);
+                symbol = symbol + '-' + this.yymmdd (expiry);
+                if (option) {
+                    symbol = symbol + ':' + strike + ':' + optionType;
+                    optionType = (optionType === 'C') ? 'call' : 'put';
+                }
+            }
+        }
         const lotSize = this.safeNumber2 (market, 'lot_size', 'trade_increment');
         const minPrice = this.safeString (market, 'tick_size');
-        const precision = {
-            'amount': this.safeNumber (market, 'size_increment', lotSize),
-            'price': this.parseNumber (minPrice),
-        };
         const minAmountString = this.safeString2 (market, 'min_size', 'base_min_size');
         const minAmount = this.parseNumber (minAmountString);
         let minCost = undefined;
         if ((minAmount !== undefined) && (minPrice !== undefined)) {
             minCost = this.parseNumber (Precise.stringMul (minPrice, minAmountString));
         }
-        const active = true;
         const fees = this.safeValue2 (this.fees, marketType, 'trading', {});
+        const maxLeverageString = this.safeString (market, 'max_leverage', '1');
+        const maxLeverage = this.parseNumber (Precise.stringMax (maxLeverageString, '1'));
+        const precisionPrice = this.parseNumber (minPrice);
         return this.extend (fees, {
             'id': id,
             'symbol': symbol,
             'base': base,
             'quote': quote,
+            'settle': settle,
             'baseId': baseId,
             'quoteId': quoteId,
-            'info': market,
+            'settleId': settleId,
             'type': marketType,
             'spot': spot,
-            'futures': future,
+            'margin': spot && (Precise.stringGt (maxLeverage, '1')),
             'swap': swap,
+            'futures': future,
             'option': option,
-            'active': active,
-            'precision': precision,
+            'active': true,
+            'contract': contract,
+            'linear': contract ? (quote === settle) : undefined,
+            'inverse': contract ? (base === settle) : undefined,
+            'contractSize': contractVal,
+            'expiry': expiry,
+            'expiryDatetime': this.iso8601 (expiry),
+            'strike': strike,
+            'optionType': optionType,
+            'precision': {
+                'price': precisionPrice,
+                'amount': this.safeNumber (market, 'size_increment', lotSize),
+            },
             'limits': {
+                'leverage': {
+                    'min': 1,
+                    'max': this.parseNumber (maxLeverage),
+                },
                 'amount': {
                     'min': minAmount,
                     'max': undefined,
                 },
                 'price': {
-                    'min': precision['price'],
+                    'min': precisionPrice,
                     'max': undefined,
                 },
                 'cost': {
@@ -885,6 +912,7 @@ module.exports = class okex3 extends Exchange {
                     'max': undefined,
                 },
             },
+            'info': market,
         });
     }
 
