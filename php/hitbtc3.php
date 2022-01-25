@@ -754,52 +754,61 @@ class hitbtc3 extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
-        // createMarketOrder
         //
-        //  {       $fee => "0.0004644",
-        //           $id =>  386394956,
-        //        $price => "0.4644",
-        //     quantity => "1",
-        //    $timestamp => "2018-10-25T16:41:44.780Z" }
+        // createOrder ($market)
+        //
+        //  {
+        //      $id => '1569252895',
+        //      position_id => '0',
+        //      quantity => '10',
+        //      price => '0.03919424',
+        //      $fee => '0.000979856000',
+        //      $timestamp => '2022-01-25T19:38:36.153Z',
+        //      $taker => true
+        //  }
         //
         // fetchTrades
         //
-        // { $id => 974786185,
-        //   $price => '0.032462',
-        //   qty => '0.3673',
-        //   $side => 'buy',
-        //   $timestamp => '2020-10-16T12:57:39.846Z' }
+        //  {
+        //      $id => 974786185,
+        //      price => '0.032462',
+        //      qty => '0.3673',
+        //      $side => 'buy',
+        //      $timestamp => '2020-10-16T12:57:39.846Z'
+        //  }
         //
         // fetchMyTrades
         //
-        // { $id => 277210397,
-        //   clientOrderId => '6e102f3e7f3f4e04aeeb1cdc95592f1a',
-        //   $orderId => 28102855393,
-        //   $symbol => 'ETHBTC',
-        //   $side => 'sell',
-        //   quantity => '0.002',
-        //   $price => '0.073365',
-        //   $fee => '0.000000147',
-        //   $timestamp => '2018-04-28T18:39:55.345Z',
-        //   $taker => true }
+        //  {
+        //      $id => 277210397,
+        //      clientOrderId => '6e102f3e7f3f4e04aeeb1cdc95592f1a',
+        //      $orderId => 28102855393,
+        //      $symbol => 'ETHBTC',
+        //      $side => 'sell',
+        //      quantity => '0.002',
+        //      price => '0.073365',
+        //      $fee => '0.000000147',
+        //      $timestamp => '2018-04-28T18:39:55.345Z',
+        //      $taker => true
+        //  }
         //
         $timestamp = $this->parse8601($trade['timestamp']);
         $marketId = $this->safe_string($trade, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $fee = null;
-        $feeCost = $this->safe_number($trade, 'fee');
+        $feeCostString = $this->safe_string($trade, 'fee');
         $taker = $this->safe_value($trade, 'taker');
         $takerOrMaker = null;
         if ($taker !== null) {
             $takerOrMaker = $taker ? 'taker' : 'maker';
         }
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $info = $this->safe_value($market, 'info', array());
             $feeCurrency = $this->safe_string($info, 'fee_currency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrency);
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
             );
         }
@@ -809,12 +818,9 @@ class hitbtc3 extends Exchange {
         $orderId = $this->safe_string($trade, 'clientOrderId');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string_2($trade, 'quantity', 'qty');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $side = $this->safe_string($trade, 'side');
         $id = $this->safe_string($trade, 'id');
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'order' => $orderId,
@@ -824,11 +830,11 @@ class hitbtc3 extends Exchange {
             'type' => null,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_transactions_helper($types, $code, $since, $limit, $params) {

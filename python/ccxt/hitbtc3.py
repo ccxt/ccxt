@@ -731,51 +731,60 @@ class hitbtc3(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def parse_trade(self, trade, market=None):
-        # createMarketOrder
         #
-        #  {      fee: "0.0004644",
-        #           id:  386394956,
-        #        price: "0.4644",
-        #     quantity: "1",
-        #    timestamp: "2018-10-25T16:41:44.780Z"}
+        # createOrder(market)
+        #
+        #  {
+        #      id: '1569252895',
+        #      position_id: '0',
+        #      quantity: '10',
+        #      price: '0.03919424',
+        #      fee: '0.000979856000',
+        #      timestamp: '2022-01-25T19:38:36.153Z',
+        #      taker: True
+        #  }
         #
         # fetchTrades
         #
-        # {id: 974786185,
-        #   price: '0.032462',
-        #   qty: '0.3673',
-        #   side: 'buy',
-        #   timestamp: '2020-10-16T12:57:39.846Z'}
+        #  {
+        #      id: 974786185,
+        #      price: '0.032462',
+        #      qty: '0.3673',
+        #      side: 'buy',
+        #      timestamp: '2020-10-16T12:57:39.846Z'
+        #  }
         #
         # fetchMyTrades
         #
-        # {id: 277210397,
-        #   clientOrderId: '6e102f3e7f3f4e04aeeb1cdc95592f1a',
-        #   orderId: 28102855393,
-        #   symbol: 'ETHBTC',
-        #   side: 'sell',
-        #   quantity: '0.002',
-        #   price: '0.073365',
-        #   fee: '0.000000147',
-        #   timestamp: '2018-04-28T18:39:55.345Z',
-        #   taker: True}
+        #  {
+        #      id: 277210397,
+        #      clientOrderId: '6e102f3e7f3f4e04aeeb1cdc95592f1a',
+        #      orderId: 28102855393,
+        #      symbol: 'ETHBTC',
+        #      side: 'sell',
+        #      quantity: '0.002',
+        #      price: '0.073365',
+        #      fee: '0.000000147',
+        #      timestamp: '2018-04-28T18:39:55.345Z',
+        #      taker: True
+        #  }
         #
         timestamp = self.parse8601(trade['timestamp'])
         marketId = self.safe_string(trade, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
         fee = None
-        feeCost = self.safe_number(trade, 'fee')
+        feeCostString = self.safe_string(trade, 'fee')
         taker = self.safe_value(trade, 'taker')
         takerOrMaker = None
         if taker is not None:
             takerOrMaker = 'taker' if taker else 'maker'
-        if feeCost is not None:
+        if feeCostString is not None:
             info = self.safe_value(market, 'info', {})
             feeCurrency = self.safe_string(info, 'fee_currency')
             feeCurrencyCode = self.safe_currency_code(feeCurrency)
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
         # we use clientOrderId as the order id with self exchange intentionally
@@ -784,12 +793,9 @@ class hitbtc3(Exchange):
         orderId = self.safe_string(trade, 'clientOrderId')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string_2(trade, 'quantity', 'qty')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         side = self.safe_string(trade, 'side')
         id = self.safe_string(trade, 'id')
-        return {
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'order': orderId,
@@ -799,11 +805,11 @@ class hitbtc3(Exchange):
             'type': None,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_transactions_helper(self, types, code, since, limit, params):
         self.load_markets()
