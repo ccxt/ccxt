@@ -2826,6 +2826,11 @@ class gateio(Exchange):
         maintenanceRate = self.safe_string(position, 'maintenance_rate')
         notional = self.safe_string(position, 'value')
         leverage = self.safe_string(position, 'leverage')
+        marginType = None
+        if leverage == '0':
+            marginType = 'cross'
+        else:
+            marginType = 'isolated'
         unrealisedPnl = self.safe_string(position, 'unrealised_pnl')
         # Initial Position Margin = ( Position Value / Leverage ) + Close Position Fee
         # *The default leverage under the full position is the highest leverage in the market.
@@ -2854,7 +2859,7 @@ class gateio(Exchange):
             'liquidationPrice': self.safe_number(position, 'liq_price'),
             'markPrice': self.safe_number(position, 'mark_price'),
             'collateral': self.safe_number(position, 'margin'),
-            'marginType': None,
+            'marginType': marginType,
             'side': side,
             'percentage': self.parse_number(percentage),
         }

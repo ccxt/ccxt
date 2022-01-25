@@ -2958,6 +2958,12 @@ class gateio extends Exchange {
         $maintenanceRate = $this->safe_string($position, 'maintenance_rate');
         $notional = $this->safe_string($position, 'value');
         $leverage = $this->safe_string($position, 'leverage');
+        $marginType = null;
+        if ($leverage === '0') {
+            $marginType = 'cross';
+        } else {
+            $marginType = 'isolated';
+        }
         $unrealisedPnl = $this->safe_string($position, 'unrealised_pnl');
         // Initial Position Margin = ( Position Value / Leverage ) . Close Position Fee
         // *The default $leverage under the full $position is the highest $leverage in the $market->
@@ -2986,7 +2992,7 @@ class gateio extends Exchange {
             'liquidationPrice' => $this->safe_number($position, 'liq_price'),
             'markPrice' => $this->safe_number($position, 'mark_price'),
             'collateral' => $this->safe_number($position, 'margin'),
-            'marginType' => null,
+            'marginType' => $marginType,
             'side' => $side,
             'percentage' => $this->parse_number($percentage),
         );
