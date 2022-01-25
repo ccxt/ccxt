@@ -676,35 +676,48 @@ class Transpiler {
     // ========================================================================
     // exchange capabilities ordering
 
-    areCapabilitiesAlreadySorted (capabilities) {
-        let secondIndex;
-        for(let firstIndex = 0; firstIndex < capabilities.length; firstIndex++){
-            secondIndex = firstIndex + 1;
-            if (capabilities[firstIndex].localeCompare (capabilities[secondIndex]) > 0) return false;
-        }
-        return true;
-    }
-    
-    orderExchangeCapabilities (code) {
+    sortExchangeCapabilities (code, filename) {
         const lineBreak = '\n';
-        const capabilitiesObjectRegex = /(?<='has': {[\n])([^|})]*)(?=\n([ ]+}))/;
+        const capabilitiesObjectRegex = /(?<='has': {[\n])([^|})]*)(?=\n(\s+}))/;
         const found = capabilitiesObjectRegex.exec (code);
         if (found === null) {
-            return null; // capabilities not found
+            return false // capabilities not found
         }
-        let capabilities = found[0].split (lineBreak); 
-        if (this.areCapabilitiesAlreadySorted (capabilities)) {
-            return null;
+        let capabilities = found[0].split (lineBreak);
+        const exchange = new Exchange ()
+        const sortingOrder = {
+            'CORS': 'undefined,',
+            'spot': 'true,',
+            'margin': 'undefined,',
+            'swap': 'undefined,',
+            'future': 'undefined,',
+            'option': 'undefined,',
+            // then everything else
         }
-        capabilities.sort (function (a, b) {
-            return a.localeCompare (b);
-        });
-        const sortedCapabilities = capabilities.join (lineBreak);
-        const finalResult = code.replace (capabilitiesObjectRegex, sortedCapabilities)
-        if (finalResult.length !== code.length) {
-            return null; // something went wrong
+        const features = {}
+        let indentation = '                ' // 16 spaces
+        for (let i = 0; i < capabilities.length; i++) {
+            const capability = capabilities[i]
+            const match = capability.match (/(\s+)\'(.+)\': (.+)$/)
+            if (match) {
+                indentation = match[1]
+                const feature = match[2]
+                const value = match[3]
+                features[feature] = value
+            }
         }
-        return finalResult;
+        let keys = Object.keys (features)
+        keys.sort ((a, b) => a.localeCompare (b))
+        const allKeys = Object.keys (sortingOrder).concat (keys)
+        for (let i = 0; i < allKeys.length; i++) {
+            const key = allKeys[i]
+            sortingOrder[key] = (key in features) ? features[key] : sortingOrder[key]
+        }
+        const result = Object.entries (sortingOrder).map (([ key, value ]) => indentation + "'" + key + "': " + value).join (lineBreak)
+        if (result === found[0]) {
+            return false
+        }
+        return code.replace (capabilitiesObjectRegex, result)
     }
 
     // ------------------------------------------------------------------------
@@ -1082,7 +1095,16 @@ class Transpiler {
             const pythonFilename = filename.replace ('.js', '.py')
             const phpFilename = filename.replace ('.js', '.php')
 
-            const jsMtime = fs.statSync (jsFolder + filename).mtime.getTime ()
+            const jsPath = jsFolder + filename
+
+            let contents = fs.readFileSync (jsPath, 'utf8')
+            const sortedExchangeCapabilities = this.sortExchangeCapabilities (contents, filename)
+            if (sortedExchangeCapabilities) {
+                contents = sortedExchangeCapabilities
+                overwriteFile (jsPath, contents)
+            }
+
+            const jsMtime = fs.statSync (jsPath).mtime.getTime ()
 
             const python2Path  = python2Folder  ? (python2Folder  + pythonFilename) : undefined
             const python3Path  = python3Folder  ? (python3Folder  + pythonFilename) : undefined
@@ -1094,17 +1116,7 @@ class Transpiler {
             const phpAsyncMtime = phpAsyncFolder ? (fs.existsSync (phpAsyncPath) ? fs.statSync (phpAsyncPath).mtime.getTime () : 0) : undefined
             const phpMtime      = phpPath        ? (fs.existsSync (phpPath)      ? fs.statSync (phpPath).mtime.getTime ()      : 0) : undefined
 
-            const jsPath = jsFolder + filename
-            let contents = fs.readFileSync (jsPath, 'utf8')
-
-            let orderedContent = this.orderExchangeCapabilities (contents)
-            if (orderedContent !== null) {
-                contents = orderedContent
-                overwriteFile (jsPath, contents)
-            }
-
-            if (orderedContent !==null || 
-                force ||
+            if (force ||
                 (python3Folder  && (jsMtime > python3Mtime))  ||
                 (phpFolder      && (jsMtime > phpMtime))      ||
                 (phpAsyncFolder && (jsMtime > phpAsyncMtime)) ||
