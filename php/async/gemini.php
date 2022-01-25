@@ -10,7 +10,6 @@ use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\NotSupported;
-use \ccxt\Precise;
 
 class gemini extends Exchange {
 
@@ -574,38 +573,54 @@ class gemini extends Exchange {
         //         "type":"buy"
         //     }
         //
+        // private fetchTrades
+        //
+        //      {
+        //          "price":"3900.00",
+        //          "amount":"0.00996",
+        //          "timestamp":1638891173,
+        //          "timestampms":1638891173518,
+        //          "type":"Sell",
+        //          "aggressor":false,
+        //          "fee_currency":"EUR",
+        //          "fee_amount":"0.00",
+        //          "tid":73621746145,
+        //          "order_id":"73621746059",
+        //          "exchange":"gemini",
+        //          "is_auction_fill":false,
+        //          "is_clearing_fill":false,
+        //          "symbol":"ETHEUR",
+        //          "client_order_id":"1638891171610"
+        //      }
+        //
         $timestamp = $this->safe_integer($trade, 'timestampms');
         $id = $this->safe_string($trade, 'tid');
         $orderId = $this->safe_string($trade, 'order_id');
         $feeCurrencyId = $this->safe_string($trade, 'fee_currency');
         $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
         $fee = array(
-            'cost' => $this->safe_number($trade, 'fee_amount'),
+            'cost' => $this->safe_string($trade, 'fee_amount'),
             'currency' => $feeCurrencyCode,
         );
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        $type = null;
         $side = $this->safe_string_lower($trade, 'type');
         $symbol = $this->safe_symbol(null, $market);
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'order' => $orderId,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
-            'type' => $type,
+            'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
-            'price' => $price,
-            'cost' => $cost,
-            'amount' => $amount,
+            'price' => $priceString,
+            'cost' => null,
+            'amount' => $amountString,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {

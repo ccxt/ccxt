@@ -2820,9 +2820,9 @@ class gateio(Exchange):
         size = self.safe_string(position, 'size')
         side = None
         if Precise.string_gt(size, '0'):
-            side = 'buy'
+            side = 'long'
         elif Precise.string_lt(size, '0'):
-            side = 'sell'
+            side = 'short'
         maintenanceRate = self.safe_string(position, 'maintenance_rate')
         notional = self.safe_string(position, 'value')
         leverage = self.safe_string(position, 'leverage')
