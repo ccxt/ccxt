@@ -879,9 +879,9 @@ class kucoinfutures extends kucoin {
         $size = $this->safe_string($position, 'currentQty');
         $side = null;
         if (Precise::string_gt($size, '0')) {
-            $side = 'buy';
+            $side = 'long';
         } else if (Precise::string_lt($size, '0')) {
-            $side = 'sell';
+            $side = 'short';
         }
         $notional = Precise::string_abs($this->safe_string($position, 'posCost'));
         $initialMargin = $this->safe_string($position, 'posInit');
