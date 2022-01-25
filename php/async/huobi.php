@@ -1091,12 +1091,12 @@ class huobi extends Exchange {
         //             array(
         //                 "base-currency":"xrp3s",
         //                 "quote-currency":"usdt",
-        //                 "price-precision":4,
-        //                 "amount-precision":4,
+        //                 "price-$precision":4,
+        //                 "amount-$precision":4,
         //                 "symbol-partition":"innovation",
         //                 "symbol":"xrp3susdt",
         //                 "state":"online",
-        //                 "value-precision":8,
+        //                 "value-$precision":8,
         //                 "min-order-amt":0.01,
         //                 "max-order-amt":1616.4353,
         //                 "min-order-value":5,
@@ -1104,9 +1104,9 @@ class huobi extends Exchange {
         //                 "limit-order-max-order-amt":1616.4353,
         //                 "limit-order-max-buy-amt":1616.4353,
         //                 "limit-order-max-sell-amt":1616.4353,
-        //                 "sell-market-min-order-amt":0.01,
-        //                 "sell-market-max-order-amt":1616.4353,
-        //                 "buy-market-max-order-value":2500,
+        //                 "sell-$market-min-order-amt":0.01,
+        //                 "sell-$market-max-order-amt":1616.4353,
+        //                 "buy-$market-max-order-value":2500,
         //                 "max-order-value":2500,
         //                 "underlying":"xrpusdt",
         //                 "mgmt-fee-rate":0.035000000000000000,
@@ -1263,7 +1263,7 @@ class huobi extends Exchange {
                 $maker = ($base === 'OMG') ? 0 : 0.2 / 100;
                 $taker = ($base === 'OMG') ? 0 : 0.2 / 100;
             }
-            $minAmount = $this->safe_number($market, 'min-order-amt', pow(10, -precision['amount']));
+            $minAmount = $this->safe_number($market, 'min-order-amt', pow(10, -$precision['amount']));
             $maxAmount = $this->safe_number($market, 'max-order-amt');
             $minCost = $this->safe_number($market, 'min-order-value', 0);
             $active = null;
@@ -1699,7 +1699,7 @@ class huobi extends Exchange {
         //
         //     {
         //         "amount" => 0.010411000000000000,
-        //         "trade-id" => 102090736910,
+        //         "trade-$id" => 102090736910,
         //         "ts" => 1583497692182,
         //         "id" => 10500517034273194594947,
         //         "price" => 9096.050000000000000000,
@@ -1823,7 +1823,7 @@ class huobi extends Exchange {
         $request = array(
             // spot -----------------------------------------------------------
             // 'symbol' => $market['id'],
-            // 'types' => 'buy-market,sell-market,buy-limit,sell-limit,buy-ioc,sell-ioc,buy-limit-maker,sell-limit-maker,buy-stop-limit,sell-stop-limit',
+            // 'types' => 'buy-$market,sell-$market,buy-$limit,sell-$limit,buy-ioc,sell-ioc,buy-$limit-maker,sell-$limit-maker,buy-stop-$limit,sell-stop-limit',
             // 'start-time' => $since, // max 48 hours within 120 days
             // 'end-time' => $this->milliseconds(), // max 48 hours within 120 days
             // 'from' => 'id', // tring false N/A Search internal id to begin with if search next page, then this should be the last id (not trade-id) of last page; if search previous page, then this should be the first id (not trade-id) of last page
@@ -1903,7 +1903,7 @@ class huobi extends Exchange {
         //                 "fee-deduct-currency" => "hbpoint",
         //                 "fee-deduct-state" => "done",
         //                 "id" => 313288753120940,
-        //                 "type" => "buy-market"
+        //                 "type" => "buy-$market"
         //             }
         //         )
         //     }
@@ -2513,7 +2513,7 @@ class huobi extends Exchange {
             // spot -----------------------------------------------------------
             // 'order-id' => 'id',
             // 'symbol' => $market['id'],
-            // 'client-order-id' => $clientOrderId,
+            // 'client-$order-id' => $clientOrderId,
             // 'clientOrderId' => $clientOrderId,
             // contracts ------------------------------------------------------
             // 'order_id' => $id,
@@ -2530,7 +2530,7 @@ class huobi extends Exchange {
             if ($clientOrderId !== null) {
                 $method = 'spotPrivateGetV1OrderOrdersGetClientOrder';
                 // will be filled below in extend ()
-                // they expect $clientOrderId instead of client-order-id
+                // they expect $clientOrderId instead of client-$order-$id
                 // $request['clientOrderId'] = $clientOrderId;
             } else {
                 $request['order-id'] = $id;
@@ -2576,8 +2576,8 @@ class huobi extends Exchange {
         //         "data":{
         //             "id":438398393065481,
         //             "symbol":"ethusdt",
-        //             "account-id":1528640,
-        //             "client-order-id":"AA03022abc2163433e-006b-480e-9ad1-d4781478c5e7",
+        //             "account-$id":1528640,
+        //             "client-$order-$id":"AA03022abc2163433e-006b-480e-9ad1-d4781478c5e7",
         //             "amount":"0.100000000000000000",
         //             "price":"3000.000000000000000000",
         //             "created-at":1640549994642,
@@ -2712,7 +2712,7 @@ class huobi extends Exchange {
         $request = array(
             // spot_private_get_v1_order_orders GET /v1/order/orders ----------
             // 'symbol' => $market['id'], // required
-            // 'types' => 'buy-market,sell-market,buy-limit,sell-limit,buy-ioc,sell-ioc,buy-stop-limit,sell-stop-limit,buy-limit-fok,sell-limit-fok,buy-stop-limit-fok,sell-stop-limit-fok',
+            // 'types' => 'buy-$market,sell-$market,buy-$limit,sell-$limit,buy-ioc,sell-ioc,buy-stop-$limit,sell-stop-$limit,buy-$limit-fok,sell-$limit-fok,buy-stop-$limit-fok,sell-stop-$limit-fok',
             // 'start-time' => $since, // max window of 48h within a range of 180 days, within past 2 hours for cancelled orders
             // 'end-time' => $this->milliseconds(),
             'states' => $states, // filled, partial-canceled, canceled
@@ -2752,7 +2752,7 @@ class huobi extends Exchange {
         //                 amount => "0.045000000000000000",
         //                 price => "0.034014000000000000",
         //                 'created-at' => 1545836976871,
-        //                 type => "sell-limit",
+        //                 type => "sell-$limit",
         //                 'field-amount' => "0.045000000000000000",
         //                 'field-cash-amount' => "0.001530630000000000",
         //                 'field-fees' => "0.000003061260000000",
@@ -3006,7 +3006,7 @@ class huobi extends Exchange {
         //                 "filled-fees":"0.0",
         //                 "id":38477101630,
         //                 "state":"submitted",
-        //                 "type":"sell-limit"
+        //                 "type":"sell-$limit"
         //             }
         //         )
         //     }
@@ -3095,8 +3095,8 @@ class huobi extends Exchange {
         //         $price => "0.034014000000000000",
         //         'created-at' =>  1545836976871,
         //         $type => "sell-limit",
-        //         'field-amount' => "0.045000000000000000", // they have fixed it for $filled-amount
-        //         'field-cash-amount' => "0.001530630000000000", // they have fixed it for $filled-cash-amount
+        //         'field-amount' => "0.045000000000000000", // they have fixed it for $filled-$amount
+        //         'field-cash-amount' => "0.001530630000000000", // they have fixed it for $filled-cash-$amount
         //         'field-fees' => "0.000003061260000000", // they have fixed it for $filled-fees
         //         'finished-at' =>  1545837948214,
         //         source => "spot-api",
@@ -3111,9 +3111,9 @@ class huobi extends Exchange {
         //         $amount => "0.001000000000000000",
         //         $price => "0.0",
         //         'created-at' =>  1545831584023,
-        //         $type => "buy-market",
-        //         'field-amount' => "0.029100000000000000", // they have fixed it for $filled-amount
-        //         'field-cash-amount' => "0.000999788700000000", // they have fixed it for $filled-cash-amount
+        //         $type => "buy-$market",
+        //         'field-amount' => "0.029100000000000000", // they have fixed it for $filled-$amount
+        //         'field-cash-amount' => "0.000999788700000000", // they have fixed it for $filled-cash-$amount
         //         'field-fees' => "0.000058200000000000", // they have fixed it for $filled-fees
         //         'finished-at' =>  1545831584181,
         //         source => "spot-api",
@@ -3237,7 +3237,7 @@ class huobi extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_integer_2($order, 'created_at', 'created-at');
-        $clientOrderId = $this->safe_string_2($order, 'client_order_id', 'client-order-id');
+        $clientOrderId = $this->safe_string_2($order, 'client_order_id', 'client-$order-id');
         $amount = $this->safe_string_2($order, 'volume', 'amount');
         $filled = $this->safe_string_2($order, 'filled-amount', 'field-amount'); // typo in their API, $filled $amount
         $filled = $this->safe_string($order, 'trade_volume', $filled);
@@ -3314,7 +3314,7 @@ class huobi extends Exchange {
             // spot -----------------------------------------------------------
             'account-id' => $accountId,
             'symbol' => $market['id'],
-            // 'type' => $side . '-' . $type, // buy-market, sell-market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-limit-maker, sell-limit-maker, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
+            // 'type' => $side . '-' . $type, // buy-$market, sell-$market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-limit-maker, sell-limit-maker, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
             // 'amount' => $this->amount_to_precision($symbol, $amount), // for buy $market orders it's the order cost
             // 'price' => $this->price_to_precision($symbol, $price),
             // 'source' => 'spot-api', // optional, spot-api, margin-api = isolated margin, super-margin-api = cross margin, c2c-margin-api
@@ -3329,7 +3329,7 @@ class huobi extends Exchange {
         if ($stopPrice === null) {
             $stopOrderTypes = $this->safe_value($options, 'stopOrderTypes', array());
             if (is_array($stopOrderTypes) && array_key_exists($orderType, $stopOrderTypes)) {
-                throw new ArgumentsRequired($this->id . 'createOrder() requires a $stopPrice or a stop-price parameter for a stop order');
+                throw new ArgumentsRequired($this->id . 'createOrder() requires a $stopPrice or a stop-$price parameter for a stop order');
             }
         } else {
             $stopOperator = $this->safe_string($params, 'operator');
@@ -3765,7 +3765,7 @@ class huobi extends Exchange {
             // spot -----------------------------------------------------------
             // 'account-id' => account['id'],
             // 'symbol' => $market['id'], // a list of comma-separated symbols, all symbols by default
-            // 'types' 'string', buy-market, sell-market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
+            // 'types' 'string', buy-$market, sell-$market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
             // 'side' => 'buy', // or 'sell'
             // 'size' => 100, // the number of orders to cancel 1-100
             // contract -------------------------------------------------------
@@ -4245,19 +4245,19 @@ class huobi extends Exchange {
         //             "currencies" => array(
         //                 array(
         //                     "currency" => "1inch",
-        //                     "interest-rate" => "0.00098",
+        //                     "interest-$rate" => "0.00098",
         //                     "min-loan-amt" => "90.000000000000000000",
         //                     "max-loan-amt" => "1000.000000000000000000",
         //                     "loanable-amt" => "0.0",
-        //                     "actual-rate" => "0.00098"
+        //                     "actual-$rate" => "0.00098"
         //                 ),
         //                 array(
         //                     "currency" => "usdt",
-        //                     "interest-rate" => "0.00098",
+        //                     "interest-$rate" => "0.00098",
         //                     "min-loan-amt" => "100.000000000000000000",
         //                     "max-loan-amt" => "1000.000000000000000000",
         //                     "loanable-amt" => "0.0",
-        //                     "actual-rate" => "0.00098"
+        //                     "actual-$rate" => "0.00098"
         //                 }
         //             )
         //         ),
@@ -4597,7 +4597,7 @@ class huobi extends Exchange {
         }
         if (is_array($response) && array_key_exists('status', $response)) {
             //
-            //     array("status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min => `0.001`","data":null)
+            //     array("status":"error","err-$code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min => `0.001`","data":null)
             //
             $status = $this->safe_string($response, 'status');
             if ($status === 'error') {

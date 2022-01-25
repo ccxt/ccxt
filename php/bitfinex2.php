@@ -1068,7 +1068,7 @@ class bitfinex2 extends bitfinex {
         $orderType = $this->safe_string_upper($orderTypes, $type, $type);
         $postOnly = $this->safe_value($params, 'postOnly', false);
         $params = $this->omit($params, array( 'postOnly' ));
-        $amount = ($side === 'sell') ? -amount : $amount;
+        $amount = ($side === 'sell') ? -$amount : $amount;
         $request = array(
             // 'gid' => 0123456789, // int32,  optional group id for the $order
             // 'cid' => 0123456789, // int32 client $order id
@@ -1449,7 +1449,7 @@ class bitfinex2 extends bitfinex {
             }
             $feeCost = $this->safe_number($data, 8);
             if ($feeCost !== null) {
-                $feeCost = -feeCost;
+                $feeCost = -$feeCost;
             }
             $amount = $this->safe_number($data, 5);
             $id = $this->safe_value($data, 0);
@@ -1478,7 +1478,7 @@ class bitfinex2 extends bitfinex {
             }
             $feeCost = $this->safe_number($transaction, 13);
             if ($feeCost !== null) {
-                $feeCost = -feeCost;
+                $feeCost = -$feeCost;
             }
             $addressTo = $this->safe_string($transaction, 16);
             $txid = $this->safe_string($transaction, 20);

@@ -1294,7 +1294,7 @@ class okex3 extends Exchange {
                 // or a negative number (transaction $fee deduction)
                 // therefore we need to invert the $fee
                 // more about it https://github.com/ccxt/ccxt/issues/5909
-                'cost' => -feeCost,
+                'cost' => -$feeCost,
                 'currency' => $feeCurrency,
             );
         }
@@ -2764,23 +2764,23 @@ class okex3 extends Exchange {
             if (($feeCostSecond !== null) && ($feeCostSecond !== 0)) {
                 $fees = array(
                     array(
-                        'cost' => -feeCostFirst,
+                        'cost' => -$feeCostFirst,
                         'currency' => $feeCurrencyCodeFirst,
                     ),
                     array(
-                        'cost' => -feeCostSecond,
+                        'cost' => -$feeCostSecond,
                         'currency' => $feeCurrencyCodeSecond,
                     ),
                 );
             } else {
                 $fee = array(
-                    'cost' => -feeCostFirst,
+                    'cost' => -$feeCostFirst,
                     'currency' => $feeCurrencyCodeFirst,
                 );
             }
         } else if (($feeCostSecond !== null) && ($feeCostSecond !== 0)) {
             $fee = array(
-                'cost' => -feeCostSecond,
+                'cost' => -$feeCostSecond,
                 'currency' => $feeCurrencyCodeSecond,
             );
         } else {

@@ -478,7 +478,7 @@ class bitmart extends Exchange {
                 'optionType' => null,
                 'precision' => array(
                     'amount' => $this->safe_number($market, 'base_min_size'),
-                    'price' => $this->parse_number($this->decimal_to_precision(pow(10, -pricePrecision), ROUND, 14)),
+                    'price' => $this->parse_number($this->decimal_to_precision(pow(10, -$pricePrecision), ROUND, 14)),
                 ),
                 'limits' => array(
                     'leverage' => array(

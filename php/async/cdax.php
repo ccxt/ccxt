@@ -350,7 +350,7 @@ class cdax extends Exchange {
             );
             $maker = ($base === 'OMG') ? 0 : 0.2 / 100;
             $taker = ($base === 'OMG') ? 0 : 0.2 / 100;
-            $minAmount = $this->safe_number($market, 'min-order-amt', pow(10, -precision['amount']));
+            $minAmount = $this->safe_number($market, 'min-order-amt', pow(10, -$precision['amount']));
             $maxAmount = $this->safe_number($market, 'max-order-amt');
             $minCost = $this->safe_number($market, 'min-order-value', 0);
             $state = $this->safe_string($market, 'state');
@@ -388,7 +388,7 @@ class cdax extends Exchange {
                         'max' => $maxAmount,
                     ),
                     'price' => array(
-                        'min' => pow(10, -precision['price']),
+                        'min' => pow(10, -$precision['price']),
                         'max' => null,
                     ),
                     'cost' => array(
@@ -593,7 +593,7 @@ class cdax extends Exchange {
         //      {
         //          "id" => "112522757755423628681413936",
         //          "ts" => "1638457111917",
-        //          "trade-id" => "100454385963",
+        //          "trade-$id" => "100454385963",
         //          "amount" => "13.7962",
         //          "price" => "1.697867",
         //          "direction" => "buy"
@@ -605,19 +605,19 @@ class cdax extends Exchange {
         //          "symbol" => "adausdt",
         //          "fee-currency" => "usdt",
         //          "source" => "spot-api",
-        //          "order-id" => "423628498050504",
+        //          "order-$id" => "423628498050504",
         //          "created-at" => "1638455779233",
         //          "role" => "taker",
         //          "price" => "1.672487",
-        //          "match-id" => "112521868633",
-        //          "trade-id" => "100454375614",
+        //          "match-$id" => "112521868633",
+        //          "trade-$id" => "100454375614",
         //          "filled-amount" => "6.8",
         //          "filled-fees" => "0.0227458232",
         //          "filled-points" => "0.0",
         //          "fee-deduct-currency" => "",
         //          "fee-deduct-state" => "done",
         //          "id" => "422419583501532",
-        //          "type" => "sell-market"
+        //          "type" => "sell-$market"
         //      ),
         //
         // fetchOrderTrades (private)
@@ -626,10 +626,10 @@ class cdax extends Exchange {
         //          "symbol" => "adausdt",
         //          "fee-currency" => "usdt",
         //          "source" => "spot-api",
-        //          "match-id" => "112521868633",
-        //          "trade-id" => "100454375614",
+        //          "match-$id" => "112521868633",
+        //          "trade-$id" => "100454375614",
         //          "role" => "taker",
-        //          "order-id" => "423628498050504",
+        //          "order-$id" => "423628498050504",
         //          "price" => "1.672487",
         //          "created-at" => "1638455779233",
         //          "filled-amount" => "6.8",
@@ -638,7 +638,7 @@ class cdax extends Exchange {
         //          "fee-deduct-currency" => "",
         //          "fee-deduct-state" => "done",
         //          "id" => "422419583501532",
-        //          "type" => "sell-market"
+        //          "type" => "sell-$market"
         //      }
         //
         $marketId = $this->safe_string($trade, 'symbol');
@@ -835,19 +835,19 @@ class cdax extends Exchange {
         //                 "fast-confirms":12,
         //                 "safe-confirms":12,
         //                 "currency-type":"eth",
-        //                 "quote-currency":true,
+        //                 "quote-$currency":true,
         //                 "withdraw-enable-timestamp":1609430400000,
         //                 "deposit-enable-timestamp":1609430400000,
         //                 "currency-partition":"all",
         //                 "support-sites":["OTC","INSTITUTION","MINEPOOL"],
-        //                 "withdraw-precision":6,
+        //                 "withdraw-$precision":6,
         //                 "visible-assets-timestamp":1508839200000,
         //                 "deposit-min-amount":"1",
         //                 "withdraw-min-amount":"10",
-        //                 "show-precision":"8",
+        //                 "show-$precision":"8",
         //                 "tags":"",
         //                 "weight":23,
-        //                 "full-name":"Tether USDT",
+        //                 "full-$name":"Tether USDT",
         //                 "otc-enable":1,
         //                 "visible":true,
         //                 "white-enabled":false,
@@ -856,12 +856,12 @@ class cdax extends Exchange {
         //                 "withdraw-enabled":true,
         //                 "name":"usdt",
         //                 "state":"online",
-        //                 "display-name":"USDT",
+        //                 "display-$name":"USDT",
         //                 "suspend-withdraw-desc":null,
         //                 "withdraw-desc":"Minimum withdrawal amount => 10 USDT (ERC20). !>_<!To ensure the safety of your funds, your withdrawal $request will be manually reviewed if your security strategy or password is changed. Please wait for phone calls or emails from our staff.!>_<!Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
         //                 "suspend-deposit-desc":null,
         //                 "deposit-desc":"Please don’t deposit any other digital assets except USDT to the above address. Otherwise, you may lose your assets permanently. !>_<!Depositing to the above address requires confirmations of the entire network. It will arrive after 12 confirmations, and it will be available to withdraw after 12 confirmations. !>_<!Minimum deposit amount => 1 USDT. Any deposits less than the minimum will not be credited or refunded.!>_<!Your deposit address won’t change often. If there are any changes, we will notify you via announcement or email.!>_<!Please make sure that your computer and browser are secure and your information is protected from being tampered or leaked.",
-        //                 "suspend-visible-desc":null
+        //                 "suspend-$visible-desc":null
         //             }
         //         ]
         //     }
@@ -895,7 +895,7 @@ class cdax extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -precision),
+                        'min' => pow(10, -$precision),
                         'max' => pow(10, $precision),
                     ),
                     'deposit' => array(
@@ -968,7 +968,7 @@ class cdax extends Exchange {
         //                                amount => "0.045000000000000000",
         //                                 price => "0.034014000000000000",
         //                          'created-at' =>  1545836976871,
-        //                                  type => "sell-limit",
+        //                                  type => "sell-$limit",
         //                        'field-amount' => "0.045000000000000000",
         //                   'field-cash-amount' => "0.001530630000000000",
         //                          'field-fees' => "0.000003061260000000",
@@ -1054,7 +1054,7 @@ class cdax extends Exchange {
         //                 "filled-fees":"0.0",
         //                 "id":38477101630,
         //                 "state":"submitted",
-        //                 "type":"sell-limit"
+        //                 "type":"sell-$limit"
         //             }
         //         )
         //     }
@@ -1097,7 +1097,7 @@ class cdax extends Exchange {
         //                    amount => "0.001000000000000000",
         //                     price => "0.0",
         //              'created-at' =>  1545831584023,
-        //                      $type => "buy-market",
+        //                      $type => "buy-$market",
         //            'field-amount' => "0.029100000000000000", // they have fixed it for filled-amount
         //       'field-cash-amount' => "0.000999788700000000", // they have fixed it for filled-cash-amount
         //              'field-fees' => "0.000058200000000000", // they have fixed it for filled-fees
@@ -1120,7 +1120,7 @@ class cdax extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($order, 'created-at');
-        $clientOrderId = $this->safe_string($order, 'client-order-id');
+        $clientOrderId = $this->safe_string($order, 'client-$order-id');
         $filledString = $this->safe_string_2($order, 'filled-amount', 'field-amount'); // typo in their API, filled amount
         $priceString = $this->safe_string($order, 'price');
         $costString = $this->safe_string_2($order, 'filled-cash-amount', 'field-cash-amount'); // same typo
@@ -1296,7 +1296,7 @@ class cdax extends Exchange {
         $request = array(
             // 'account-id' string false NA The account id used for this cancel Refer to GET /v1/account/accounts
             // 'symbol' => $market['id'], // a list of comma-separated symbols, all symbols by default
-            // 'types' 'string', buy-market, sell-market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
+            // 'types' 'string', buy-$market, sell-$market, buy-limit, sell-limit, buy-ioc, sell-ioc, buy-stop-limit, sell-stop-limit, buy-limit-fok, sell-limit-fok, buy-stop-limit-fok, sell-stop-limit-fok
             // 'side' => 'buy', // or 'sell'
             // 'size' => 100, // the number of orders to cancel 1-100
         );
@@ -1609,7 +1609,7 @@ class cdax extends Exchange {
         }
         if (is_array($response) && array_key_exists('status', $response)) {
             //
-            //     array("status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min => `0.001`","data":null)
+            //     array("status":"error","err-$code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min => `0.001`","data":null)
             //
             $status = $this->safe_string($response, 'status');
             if ($status === 'error') {

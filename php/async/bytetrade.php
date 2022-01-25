@@ -149,7 +149,7 @@ class bytetrade extends Exchange {
             }
             $name = $this->safe_string($currency, 'fullname');
             // in byte-trade.com DEX, request https://api-v2.byte-trade.com/currencies will return $currencies,
-            // the api doc is https://github.com/Bytetrade/bytetrade-official-api-docs/wiki/rest-api#get-currencies-get-currencys-supported-in-bytetradecom
+            // the api doc is https://github.com/Bytetrade/bytetrade-official-api-docs/wiki/rest-api#get-$currencies-get-currencys-supported-in-bytetradecom
             // we can see the coin $name is none-unique in the $result, the coin which $code is 18 is the CyberMiles ERC20, and the coin which $code is 35 is the CyberMiles main chain, but their $name is same.
             // that is because bytetrade is a DEX, supports people create coin with the same $name, but the $id($code) of coin is unique, so we should use the $id or $name and $id as the identity of coin.
             // For coin $name and symbol is same with CCXT, I use $name@$id as the key of commonCurrencies dict.

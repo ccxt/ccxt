@@ -862,7 +862,7 @@ class zonda extends Exchange {
         $direction = 'in';
         if ($amount < 0) {
             $direction = 'out';
-            $amount = -amount;
+            $amount = -$amount;
         }
         $id = $this->safe_string($item, 'historyId');
         // there are 2 undocumented api calls => (v1_01PrivateGetPaymentsDepositDetailId and v1_01PrivateGetPaymentsWithdrawalDetailId)
@@ -1118,7 +1118,7 @@ class zonda extends Exchange {
         //         )
         //     }
         //
-        // partially-filled (open order)
+        // partially-$filled (open order)
         //
         //     {
         //         "status" => "Ok",

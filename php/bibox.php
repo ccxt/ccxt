@@ -257,11 +257,11 @@ class bibox extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -precision['amount']),
+                        'min' => pow(10, -$precision['amount']),
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => pow(10, -precision['price']),
+                        'min' => pow(10, -$precision['price']),
                         'max' => null,
                     ),
                     'cost' => array(
@@ -528,7 +528,7 @@ class bibox extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -precision),
+                        'min' => pow(10, -$precision),
                         'max' => null,
                     ),
                     'withdraw' => array(
@@ -624,7 +624,7 @@ class bibox extends Exchange {
                 'precision' => $precision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -precision),
+                        'min' => pow(10, -$precision),
                         'max' => pow(10, $precision),
                     ),
                     'withdraw' => array(
@@ -1099,7 +1099,7 @@ class bibox extends Exchange {
         //                             "coin_symbol":"LTC",        // Trading Token
         //                             "currency_symbol":"BTC",    // Pricing Token
         //                             "order_side":2,             // Trading side 1-Buy, 2-Sell
-        //                             "order_type":2,             // 2-limit order
+        //                             "order_type":2,             // 2-$limit order
         //                             "price":"0.00900000",       // order price
         //                             "amount":"1.00000000",      // order amount
         //                             "money":"0.00900000",       // currency amount (price * amount)
@@ -1153,7 +1153,7 @@ class bibox extends Exchange {
         //                             "coin_symbol":"LTC",        // Trading Token
         //                             "currency_symbol":"BTC",    // Pricing Token
         //                             "order_side":2,             // Trading side 1-Buy, 2-Sell
-        //                             "order_type":2,             // 2-limit order
+        //                             "order_type":2,             // 2-$limit order
         //                             "price":"0.00900000",       // order price
         //                             "amount":"1.00000000",      // order amount
         //                             "money":"0.00900000",       // currency amount (price * amount)

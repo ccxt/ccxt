@@ -1887,6 +1887,16 @@ class gateio(Exchange):
         #         "price": "32452.16"
         #     }
         #
+        # public ws
+        #
+        #     {
+        #         id: 221994511,
+        #         time: 1580311438.618647,
+        #         price: '9309',
+        #         amount: '0.0019',
+        #         type: 'sell'
+        #     }
+        #
         # private
         #
         #     {
@@ -1906,21 +1916,15 @@ class gateio(Exchange):
         #     }
         #
         id = self.safe_string(trade, 'id')
-        timestampStringContract = self.safe_string(trade, 'create_time')
-        timestampString = self.safe_string_2(trade, 'create_time_ms', 'time', timestampStringContract)
-        timestamp = None
-        if timestampString.find('.') > 0:
-            milliseconds = timestampString.split('.')
-            timestamp = int(milliseconds[0])
-        if market['contract']:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(trade, 'time')
+        timestamp = self.safe_integer(trade, 'create_time_ms', timestamp)
         marketId = self.safe_string_2(trade, 'currency_pair', 'contract')
         symbol = self.safe_symbol(marketId, market)
         amountString = self.safe_string_2(trade, 'amount', 'size')
         priceString = self.safe_string(trade, 'price')
         contractSide = 'sell' if Precise.string_lt(amountString, '0') else 'buy'
         amountString = Precise.string_abs(amountString)
-        side = self.safe_string(trade, 'side', contractSide)
+        side = self.safe_string_2(trade, 'side', 'type', contractSide)
         orderId = self.safe_string(trade, 'order_id')
         gtFee = self.safe_string(trade, 'gt_fee')
         feeCurrency = None

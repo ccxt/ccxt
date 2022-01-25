@@ -1943,6 +1943,16 @@ class gateio extends Exchange {
         //         "price" => "32452.16"
         //     }
         //
+        // public ws
+        //
+        //     {
+        //         $id => 221994511,
+        //         time => 1580311438.618647,
+        //         price => '9309',
+        //         amount => '0.0019',
+        //         type => 'sell'
+        //     }
+        //
         // private
         //
         //     {
@@ -1962,23 +1972,15 @@ class gateio extends Exchange {
         //     }
         //
         $id = $this->safe_string($trade, 'id');
-        $timestampStringContract = $this->safe_string($trade, 'create_time');
-        $timestampString = $this->safe_string_2($trade, 'create_time_ms', 'time', $timestampStringContract);
-        $timestamp = null;
-        if (mb_strpos($timestampString, '.') > 0) {
-            $milliseconds = explode('.', $timestampString);
-            $timestamp = intval($milliseconds[0]);
-        }
-        if ($market['contract']) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp($trade, 'time');
+        $timestamp = $this->safe_integer($trade, 'create_time_ms', $timestamp);
         $marketId = $this->safe_string_2($trade, 'currency_pair', 'contract');
         $symbol = $this->safe_symbol($marketId, $market);
         $amountString = $this->safe_string_2($trade, 'amount', 'size');
         $priceString = $this->safe_string($trade, 'price');
         $contractSide = Precise::string_lt($amountString, '0') ? 'sell' : 'buy';
         $amountString = Precise::string_abs($amountString);
-        $side = $this->safe_string($trade, 'side', $contractSide);
+        $side = $this->safe_string_2($trade, 'side', 'type', $contractSide);
         $orderId = $this->safe_string($trade, 'order_id');
         $gtFee = $this->safe_string($trade, 'gt_fee');
         $feeCurrency = null;

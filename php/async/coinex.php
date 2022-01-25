@@ -266,7 +266,7 @@ class coinex extends Exchange {
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => pow(10, -precision['price']),
+                        'min' => pow(10, -$precision['price']),
                         'max' => null,
                     ),
                 ),

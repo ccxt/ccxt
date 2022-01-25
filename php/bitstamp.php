@@ -411,11 +411,11 @@ class bitstamp extends Exchange {
             'precision' => $precision,
             'limits' => array(
                 'amount' => array(
-                    'min' => pow(10, -precision),
+                    'min' => pow(10, -$precision),
                     'max' => null,
                 ),
                 'price' => array(
-                    'min' => pow(10, -precision),
+                    'min' => pow(10, -$precision),
                     'max' => null,
                 ),
                 'cost' => array(

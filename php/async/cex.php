@@ -859,7 +859,7 @@ class cex extends Exchange {
                 $tradeTimestamp = $this->parse8601($this->safe_string($item, 'time'));
                 $tradeAmount = $this->safe_number($item, 'amount');
                 $feeCost = $this->safe_number($item, 'fee_amount');
-                $absTradeAmount = ($tradeAmount < 0) ? -tradeAmount : $tradeAmount;
+                $absTradeAmount = ($tradeAmount < 0) ? -$tradeAmount : $tradeAmount;
                 $tradeCost = null;
                 if ($tradeSide === 'sell') {
                     $tradeCost = $absTradeAmount;

@@ -543,7 +543,7 @@ class timex extends Exchange {
         //         "orders" => array(
         //             {
         //                 "cancelledQuantity" => "0.3",
-        //                 "clientOrderId" => "my-order-1",
+        //                 "clientOrderId" => "my-$order-1",
         //                 "createdAt" => "1970-01-01T00:00:00",
         //                 "cursorId" => 50,
         //                 "expireTime" => "1970-01-01T00:00:00",
@@ -583,7 +583,7 @@ class timex extends Exchange {
         //             array(
         //                 "newOrder" => array(
         //                 "cancelledQuantity" => "0.3",
-        //                 "clientOrderId" => "my-order-1",
+        //                 "clientOrderId" => "my-$order-1",
         //                 "createdAt" => "1970-01-01T00:00:00",
         //                 "cursorId" => 50,
         //                 "expireTime" => "1970-01-01T00:00:00",
@@ -664,7 +664,7 @@ class timex extends Exchange {
         //     {
         //         "order" => array(
         //             "cancelledQuantity" => "0.3",
-        //             "clientOrderId" => "my-order-1",
+        //             "clientOrderId" => "my-$order-1",
         //             "createdAt" => "1970-01-01T00:00:00",
         //             "cursorId" => 50,
         //             "expireTime" => "1970-01-01T00:00:00",
@@ -1020,11 +1020,11 @@ class timex extends Exchange {
             $dotIndex = $feeStringLen - $tradeDecimals;
             if ($dotIndex > 0) {
                 $whole = mb_substr($feeString, 0, $dotIndex - 0);
-                $fraction = mb_substr($feeString, -dotIndex);
+                $fraction = mb_substr($feeString, -$dotIndex);
                 $fee = $this->parse_number($whole . '.' . $fraction);
             } else {
                 $fraction = '.';
-                for ($i = 0; $i < -dotIndex; $i++) {
+                for ($i = 0; $i < -$dotIndex; $i++) {
                     $fraction .= '0';
                 }
                 $fee = $this->parse_number($fraction . $feeString);
@@ -1190,7 +1190,7 @@ class timex extends Exchange {
         //
         //     {
         //         "cancelledQuantity" => "0.3",
-        //         "clientOrderId" => "my-order-1",
+        //         "clientOrderId" => "my-$order-1",
         //         "createdAt" => "1970-01-01T00:00:00",
         //         "cursorId" => 50,
         //         "expireTime" => "1970-01-01T00:00:00",

@@ -282,7 +282,7 @@ class liquid extends Exchange {
                 'precision' => $amountPrecision,
                 'limits' => array(
                     'amount' => array(
-                        'min' => pow(10, -amountPrecision),
+                        'min' => pow(10, -$amountPrecision),
                         'max' => pow(10, $amountPrecision),
                     ),
                     'withdraw' => array(
