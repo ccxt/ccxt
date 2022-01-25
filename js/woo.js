@@ -1373,9 +1373,9 @@ module.exports = class woo extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const version = api[0];
-        const access = api[1];
+    sign (path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const version = section[0];
+        const access = section[1];
         let url = this.implodeHostname (this.urls['api'][access]);
         url += '/' + version + '/';
         path = this.implodeParams (path, params);
