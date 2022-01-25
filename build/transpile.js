@@ -876,7 +876,7 @@ class Transpiler {
         allVariables = allVariables.map (error => this.regexAll (error, this.getCommonRegexes ()))
 
         // append $ to all variables in the method (PHP syntax demands $ at the beginning of a variable name)
-        let phpVariablesRegexes = allVariables.map (x => [ "(^|[^$$a-zA-Z0-9\\.\\>'\"_/])" + x + "([^a-zA-Z0-9'_/])", '$1$$' + x + '$2' ])
+        let phpVariablesRegexes = allVariables.map (x => [ "(^|[^$$a-zA-Z0-9\\.\\>'\"_/-])" + x + "([^a-zA-Z0-9'_/])", '$1$$' + x + '$2' ])
 
         // support for php syntax for object-pointer dereference
         // convert all $variable.property to $variable->property
