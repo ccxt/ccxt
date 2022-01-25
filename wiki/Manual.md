@@ -1643,7 +1643,7 @@ if (exchange.has['fetchTrades']) {
         const limit = 20 // change for your limit
         const trades = await exchange.fetchTrades (symbol, since, limit)
         if (trades.length) {
-            since = trades[trades.length - 1]['timestamp']
+            since = trades[trades.length - 1]['timestamp'] + 1
             allTrades = allTrades.concat (trades)
         } else {
             break
@@ -1664,7 +1664,7 @@ if exchange.has['fetchOrders']:
         limit = 20  # change for your limit
         orders = await exchange.fetch_orders(symbol, since, limit)
         if len(orders):
-            since = orders[len(orders) - 1]['timestamp']
+            since = orders[len(orders) - 1]['timestamp'] + 1
             all_orders += orders
         else:
             break
@@ -1682,7 +1682,7 @@ if ($exchange->has['fetchMyTrades']) {
         $limit = 20; // change for your limit
         $trades = $exchange->fetchMyTrades ($symbol, $since, $limit);
         if (count($trades)) {
-            $since = $trades[count($trades) - 1]['timestamp'];
+            $since = $trades[count($trades) - 1]['timestamp'] + 1;
             $all_trades = array_merge ($all_trades, $trades);
         } else {
             break;

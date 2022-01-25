@@ -37,20 +37,31 @@ class ascendex(Exchange):
                 'cancelOrder': True,
                 'CORS': None,
                 'createOrder': True,
+                'createReduceOnlyOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
                 'fetchFundingRates': True,
+                'fetchFundingRateHistory': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': False,
+                'fetchPosition': False,
                 'fetchPositions': True,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -59,6 +70,7 @@ class ascendex(Exchange):
                 'reduceMargin': True,
                 'setLeverage': True,
                 'setMarginMode': True,
+                'setPositionMode': False,
             },
             'timeframes': {
                 '1m': '1',
@@ -1127,6 +1139,10 @@ class ascendex(Exchange):
         account = self.safe_value(self.accounts, 0, {})
         accountGroup = self.safe_value(account, 'id')
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'id')
+        reduceOnly = self.safe_value(params, 'execInst')
+        if reduceOnly is not None:
+            if (style != 'swap'):
+                raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + style + ' orders, reduceOnly orders are supported for perpetuals only')
         request = {
             'account-group': accountGroup,
             'account-category': accountCategory,
@@ -1231,6 +1247,12 @@ class ascendex(Exchange):
         data = self.safe_value(response, 'data', {})
         order = self.safe_value_2(data, 'order', 'info', {})
         return self.parse_order(order, market)
+
+    def create_reduce_only_order(self, symbol, type, side, amount, price=None, params={}):
+        request = {
+            'execInst': 'reduceOnly',
+        }
+        return self.create_order(symbol, type, side, amount, price, self.extend(request, params))
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
