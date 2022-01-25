@@ -23,9 +23,13 @@ class gemini extends Exchange {
             'rateLimit' => 100,
             'version' => 'v1',
             'has' => array(
-                'fetchDepositAddressesByNetwork' => true,
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => null,
+                'swap' => null,
+                'future' => null,
+                'option' => null,
+                'cancelOrder' => true,
                 'createDepositAddress' => true,
                 'createMarketOrder' => null,
                 'createOrder' => true,
@@ -33,6 +37,7 @@ class gemini extends Exchange {
                 'fetchBidsAsks' => null,
                 'fetchClosedOrders' => null,
                 'fetchDepositAddress' => null, // TODO
+                'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => null,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,

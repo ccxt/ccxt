@@ -30,6 +30,7 @@ class wavesexchange(Exchange):
             'certified': True,
             'pro': False,
             'has': {
+                'CORS': None,
                 'spot': True,
                 'margin': False,
                 'swap': False,

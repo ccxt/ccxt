@@ -19,7 +19,9 @@ class bitbank extends Exchange {
             'countries' => array( 'JP' ),
             'version' => 'v1',
             'has' => array(
+                'CORS' => null,
                 'spot' => true,
+                'margin' => null,
                 'swap' => false,
                 'future' => false,
                 'option' => false,

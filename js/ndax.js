@@ -18,6 +18,7 @@ module.exports = class ndax extends Exchange {
             'rateLimit': 1000,
             'pro': true,
             'has': {
+                'CORS': undefined,
                 'spot': true,
                 'margin': false,
                 'swap': false,

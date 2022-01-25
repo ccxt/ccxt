@@ -19,6 +19,7 @@ class wazirx extends Exchange {
             'version' => 'v2',
             'rateLimit' => 100,
             'has' => array(
+                'CORS' => false,
                 'spot' => true,
                 'margin' => null, // exists but currently unimplemented
                 'swap' => false,
@@ -27,7 +28,6 @@ class wazirx extends Exchange {
                 'addMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,

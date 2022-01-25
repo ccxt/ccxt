@@ -24,14 +24,16 @@ module.exports = class huobi extends Exchange {
             'hostname': 'api.huobi.pro', // api.testnet.huobi.pro
             'pro': true,
             'has': {
-                // 'margin': true,
+                'CORS': undefined,
+                'spot': true,
+                'margin': true,
                 'swap': true,
                 'future': true,
+                'option': undefined,
                 'addMargin': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
-                'CORS': undefined,
                 'createDepositAddress': undefined,
                 'createOrder': true,
                 'createReduceOnlyOrder': undefined,

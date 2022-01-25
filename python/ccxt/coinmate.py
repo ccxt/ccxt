@@ -22,8 +22,13 @@ class coinmate(Exchange):
             'countries': ['GB', 'CZ', 'EU'],  # UK, Czech Republic
             'rateLimit': 1000,
             'has': {
-                'cancelOrder': True,
                 'CORS': True,
+                'spot': True,
+                'margin': None,
+                'swap': None,
+                'future': None,
+                'option': None,
+                'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchMarkets': True,

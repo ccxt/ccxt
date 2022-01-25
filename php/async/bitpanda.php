@@ -20,8 +20,7 @@ class bitpanda extends Exchange {
             'version' => 'v1',
             // new metainfo interface
             'has' => array(
-                'privateAPI' => true,
-                'publicAPI' => true,
+                'CORS' => null,
                 'spot' => true,
                 'margin' => false,
                 'swap' => false,
@@ -31,7 +30,6 @@ class bitpanda extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
-                'CORS' => null,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
@@ -69,6 +67,8 @@ class bitpanda extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFees' => true,
                 'fetchWithdrawals' => true,
+                'privateAPI' => true,
+                'publicAPI' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,

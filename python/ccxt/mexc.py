@@ -33,6 +33,7 @@ class mexc(Exchange):
             'version': 'v2',
             'certified': True,
             'has': {
+                'CORS': None,
                 'spot': True,
                 'margin': None,
                 'swap': True,

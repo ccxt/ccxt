@@ -20,6 +20,7 @@ class hollaex extends Exchange {
             'rateLimit' => 333,
             'version' => 'v2',
             'has' => array(
+                'CORS' => null,
                 'spot' => true,
                 'margin' => null,
                 'swap' => false,
@@ -27,7 +28,6 @@ class hollaex extends Exchange {
                 'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => null,
                 'createLimitBuyOrder' => true,
                 'createLimitSellOrder' => true,
                 'createMarketBuyOrder' => true,

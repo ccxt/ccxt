@@ -23,6 +23,7 @@ class probit extends Exchange {
             'countries' => array( 'SC', 'KR' ), // Seychelles, South Korea
             'rateLimit' => 50, // ms
             'has' => array(
+                'CORS' => true,
                 'spot' => true,
                 'margin' => false,
                 'swap' => false,
@@ -30,7 +31,6 @@ class probit extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
-                'CORS' => true,
                 'createMarketOrder' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,

@@ -29,6 +29,7 @@ class stex(Exchange):
             'certified': False,
             # new metainfo interface
             'has': {
+                'CORS': None,
                 'spot': True,
                 'margin': False,
                 'swap': False,
@@ -37,7 +38,6 @@ class stex(Exchange):
                 'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': None,
                 'createDepositAddress': True,
                 'createMarketOrder': None,  # limit orders only
                 'createOrder': True,

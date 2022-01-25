@@ -29,13 +29,13 @@ class bitso(Exchange):
             'rateLimit': 2000,  # 30 requests per minute
             'version': 'v3',
             'has': {
+                'CORS': None,
                 'spot': True,
                 'margin': None,
                 'swap': False,
                 'future': False,
                 'option': False,
                 'cancelOrder': True,
-                'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchDepositAddress': True,

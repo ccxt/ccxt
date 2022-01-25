@@ -33,6 +33,7 @@ class poloniex(Exchange):
             'certified': False,
             'pro': True,
             'has': {
+                'CORS': None,
                 'spot': True,
                 'margin': None,  # has but not fully implemented
                 'swap': None,  # has but not fully implemented
@@ -40,7 +41,6 @@ class poloniex(Exchange):
                 'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': None,
                 'createDepositAddress': True,
                 'createMarketOrder': None,
                 'createOrder': True,

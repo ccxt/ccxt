@@ -17,8 +17,7 @@ module.exports = class bitpanda extends Exchange {
             'version': 'v1',
             // new metainfo interface
             'has': {
-                'privateAPI': true,
-                'publicAPI': true,
+                'CORS': undefined,
                 'spot': true,
                 'margin': false,
                 'swap': false,
@@ -28,7 +27,6 @@ module.exports = class bitpanda extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
-                'CORS': undefined,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
@@ -66,6 +64,8 @@ module.exports = class bitpanda extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFees': true,
                 'fetchWithdrawals': true,
+                'privateAPI': true,
+                'publicAPI': true,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,

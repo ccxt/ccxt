@@ -26,6 +26,12 @@ class bigone(Exchange):
             'version': 'v3',
             'rateLimit': 1200,  # 500 request per 10 minutes
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': None,
+                'swap': None,
+                'future': None,
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,

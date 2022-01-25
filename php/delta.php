@@ -20,8 +20,12 @@ class delta extends Exchange {
             'version' => 'v2',
             // new metainfo interface
             'has' => array(
-                'fetchPositions' => true,
-                'fetchPosition' => true,
+                'CORS' => null,
+                'spot' => true,
+                'margin' => null,
+                'swap' => null,
+                'future' => null,
+                'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
@@ -36,6 +40,8 @@ class delta extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrderBook' => true,
+                'fetchPosition' => true,
+                'fetchPositions' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,

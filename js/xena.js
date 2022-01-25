@@ -12,6 +12,7 @@ module.exports = class xena extends Exchange {
             'countries': [ 'VC', 'UK' ],
             'rateLimit': 100,
             'has': {
+                'CORS': undefined,
                 'spot': false,
                 'margin': false,
                 'swap': undefined, // has but not fully implemented
@@ -19,7 +20,6 @@ module.exports = class xena extends Exchange {
                 'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': undefined,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'editOrder': true,

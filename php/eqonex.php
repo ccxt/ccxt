@@ -18,9 +18,13 @@ class eqonex extends Exchange {
             'countries' => array( 'US', 'SG' ), // United States, Singapore
             'rateLimit' => 10,
             'has' => array(
-                'fetchTradingLimits' => true,
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => null,
+                'swap' => null,
+                'future' => null,
+                'option' => null,
+                'cancelOrder' => true,
                 'createOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
@@ -38,6 +42,7 @@ class eqonex extends Exchange {
                 'fetchTicker' => null,
                 'fetchTrades' => true,
                 'fetchTradingFees' => true,
+                'fetchTradingLimits' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),

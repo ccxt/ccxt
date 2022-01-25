@@ -16,13 +16,13 @@ class independentreserve(Exchange):
             'countries': ['AU', 'NZ'],  # Australia, New Zealand
             'rateLimit': 1000,
             'has': {
+                'CORS': None,
                 'spot': True,
                 'margin': False,
                 'swap': False,
                 'future': False,
                 'option': False,
                 'cancelOrder': True,
-                'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,

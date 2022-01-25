@@ -23,9 +23,14 @@ class bitrue extends Exchange {
             'version' => 'v1',
             // new metainfo interface
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => null,
+                'swap' => null,
+                'future' => null,
+                'option' => null,
                 'cancelAllOrders' => false,
                 'cancelOrder' => true,
-                'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,

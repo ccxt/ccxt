@@ -41,14 +41,16 @@ class binance(Exchange):
             'pro': True,
             # new metainfo interface
             'has': {
+                'CORS': None,
+                'spot': True,
                 'margin': True,
                 'swap': True,
                 'future': True,
+                'option': None,
                 'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': None,
-                'CORS': None,
                 'createDepositAddress': None,
                 'createOrder': True,
                 'createReduceOnlyOrder': True,

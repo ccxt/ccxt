@@ -13,6 +13,7 @@ module.exports = class wazirx extends Exchange {
             'version': 'v2',
             'rateLimit': 100,
             'has': {
+                'CORS': false,
                 'spot': true,
                 'margin': undefined, // exists but currently unimplemented
                 'swap': false,
@@ -21,7 +22,6 @@ module.exports = class wazirx extends Exchange {
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,

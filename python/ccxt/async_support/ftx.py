@@ -59,6 +59,7 @@ class ftx(Exchange):
                 },
             },
             'has': {
+                'CORS': None,
                 'spot': True,
                 'margin': True,
                 'swap': True,
@@ -77,8 +78,8 @@ class ftx(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchFundingFees': None,
-                'fetchFundingRate': True,
                 'fetchFundingHistory': True,
+                'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': None,
                 'fetchIndexOHLCV': True,

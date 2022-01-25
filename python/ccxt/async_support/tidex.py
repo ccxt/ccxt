@@ -35,6 +35,7 @@ class tidex(Exchange):
             'version': '3',
             'userAgent': self.userAgents['chrome'],
             'has': {
+                'CORS': None,
                 'spot': True,
                 'margin': False,
                 'swap': False,
@@ -42,7 +43,6 @@ class tidex(Exchange):
                 'option': False,
                 'addMargin': False,
                 'cancelOrder': True,
-                'CORS': None,
                 'createMarketOrder': None,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,

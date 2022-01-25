@@ -19,6 +19,7 @@ class ndax extends Exchange {
             'rateLimit' => 1000,
             'pro' => true,
             'has' => array(
+                'CORS' => null,
                 'spot' => true,
                 'margin' => false,
                 'swap' => false,

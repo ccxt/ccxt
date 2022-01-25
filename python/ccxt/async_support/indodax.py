@@ -23,8 +23,13 @@ class indodax(Exchange):
             'name': 'INDODAX',
             'countries': ['ID'],  # Indonesia
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': None,
+                'swap': None,
+                'future': None,
+                'option': None,
+                'cancelOrder': True,
                 'createMarketOrder': None,
                 'createOrder': True,
                 'fetchBalance': True,

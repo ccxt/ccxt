@@ -16,6 +16,12 @@ module.exports = class coinex extends Exchange {
             'countries': [ 'CN' ],
             'rateLimit': 1000,
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': undefined,
+                'swap': undefined,
+                'future': undefined,
+                'option': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,

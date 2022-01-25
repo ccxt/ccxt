@@ -17,9 +17,13 @@ module.exports = class bitflyer extends Exchange {
             'rateLimit': 1000, // their nonce-timestamp is in seconds...
             'hostname': 'bitflyer.com', // or bitflyer.com
             'has': {
-                'fetchPositions': true,
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': undefined,
+                'swap': undefined,
+                'future': undefined,
+                'option': undefined,
+                'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': 'emulated',
@@ -29,6 +33,7 @@ module.exports = class bitflyer extends Exchange {
                 'fetchOrder': 'emulated',
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPositions': true,
                 'fetchTicker': true,
                 'fetchTrades': true,
                 'withdraw': true,

@@ -22,6 +22,7 @@ class upbit extends Exchange {
             'pro' => true,
             // new metainfo interface
             'has' => array(
+                'CORS' => true,
                 'spot' => true,
                 'margin' => null,
                 'swap' => false,
@@ -29,7 +30,6 @@ class upbit extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
-                'CORS' => true,
                 'createDepositAddress' => true,
                 'createMarketOrder' => true,
                 'createOrder' => true,

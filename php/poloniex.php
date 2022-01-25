@@ -20,6 +20,7 @@ class poloniex extends Exchange {
             'certified' => false,
             'pro' => true,
             'has' => array(
+                'CORS' => null,
                 'spot' => true,
                 'margin' => null, // has but not fully implemented
                 'swap' => null, // has but not fully implemented
@@ -27,7 +28,6 @@ class poloniex extends Exchange {
                 'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => null,
                 'createDepositAddress' => true,
                 'createMarketOrder' => null,
                 'createOrder' => true,

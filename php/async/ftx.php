@@ -42,6 +42,7 @@ class ftx extends Exchange {
                 ),
             ),
             'has' => array(
+                'CORS' => null,
                 'spot' => true,
                 'margin' => true,
                 'swap' => true,
@@ -60,8 +61,8 @@ class ftx extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchFundingFees' => null,
-                'fetchFundingRate' => true,
                 'fetchFundingHistory' => true,
+                'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => null,
                 'fetchIndexOHLCV' => true,

@@ -28,8 +28,12 @@ class delta(Exchange):
             'version': 'v2',
             # new metainfo interface
             'has': {
-                'fetchPositions': True,
-                'fetchPosition': True,
+                'CORS': None,
+                'spot': True,
+                'margin': None,
+                'swap': None,
+                'future': None,
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
@@ -44,6 +48,8 @@ class delta(Exchange):
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
+                'fetchPosition': True,
+                'fetchPositions': True,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,

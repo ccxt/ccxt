@@ -21,6 +21,7 @@ class btcalpha(Exchange):
             'countries': ['US'],
             'version': 'v1',
             'has': {
+                'CORS': None,
                 'spot': True,
                 'margin': False,
                 'swap': False,

@@ -20,9 +20,13 @@ class eqonex(Exchange):
             'countries': ['US', 'SG'],  # United States, Singapore
             'rateLimit': 10,
             'has': {
-                'fetchTradingLimits': True,
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': None,
+                'swap': None,
+                'future': None,
+                'option': None,
+                'cancelOrder': True,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
@@ -40,6 +44,7 @@ class eqonex(Exchange):
                 'fetchTicker': None,
                 'fetchTrades': True,
                 'fetchTradingFees': True,
+                'fetchTradingLimits': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
             },

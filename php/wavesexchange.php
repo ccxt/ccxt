@@ -23,6 +23,7 @@ class wavesexchange extends Exchange {
             'certified' => true,
             'pro' => false,
             'has' => array(
+                'CORS' => null,
                 'spot' => true,
                 'margin' => false,
                 'swap' => false,

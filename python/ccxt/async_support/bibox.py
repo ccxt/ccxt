@@ -33,8 +33,13 @@ class bibox(Exchange):
             'version': 'v1',
             'hostname': 'bibox.com',
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': None,
+                'swap': None,
+                'future': None,
+                'option': None,
+                'cancelOrder': True,
                 'createMarketOrder': None,  # or they will return https://github.com/ccxt/ccxt/issues/2338
                 'createOrder': True,
                 'fetchBalance': True,

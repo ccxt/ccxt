@@ -40,9 +40,13 @@ class gemini(Exchange):
             'rateLimit': 100,
             'version': 'v1',
             'has': {
-                'fetchDepositAddressesByNetwork': True,
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': None,
+                'swap': None,
+                'future': None,
+                'option': None,
+                'cancelOrder': True,
                 'createDepositAddress': True,
                 'createMarketOrder': None,
                 'createOrder': True,
@@ -50,6 +54,7 @@ class gemini(Exchange):
                 'fetchBidsAsks': None,
                 'fetchClosedOrders': None,
                 'fetchDepositAddress': None,  # TODO
+                'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': None,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,

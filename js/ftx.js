@@ -38,6 +38,7 @@ module.exports = class ftx extends Exchange {
                 },
             },
             'has': {
+                'CORS': undefined,
                 'spot': true,
                 'margin': true,
                 'swap': true,
@@ -56,8 +57,8 @@ module.exports = class ftx extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchFundingFees': undefined,
-                'fetchFundingRate': true,
                 'fetchFundingHistory': true,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': undefined,
                 'fetchIndexOHLCV': true,

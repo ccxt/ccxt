@@ -20,6 +20,7 @@ class timex extends Exchange {
             'version' => 'v1',
             'rateLimit' => 1500,
             'has' => array(
+                'CORS' => null,
                 'spot' => true,
                 'margin' => false,
                 'swap' => false,
@@ -28,7 +29,6 @@ class timex extends Exchange {
                 'addMargin' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
-                'CORS' => null,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'editOrder' => true,

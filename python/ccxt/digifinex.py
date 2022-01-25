@@ -31,6 +31,7 @@ class digifinex(Exchange):
             'version': 'v3',
             'rateLimit': 900,  # 300 for posts
             'has': {
+                'CORS': None,
                 'spot': True,
                 'margin': None,
                 'swap': False,

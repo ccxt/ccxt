@@ -17,13 +17,13 @@ class independentreserve extends Exchange {
             'countries' => array( 'AU', 'NZ' ), // Australia, New Zealand
             'rateLimit' => 1000,
             'has' => array(
+                'CORS' => null,
                 'spot' => true,
                 'margin' => false,
                 'swap' => false,
                 'future' => false,
                 'option' => false,
                 'cancelOrder' => true,
-                'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,

@@ -46,9 +46,12 @@ class gateio(Exchange):
                 },
             },
             'has': {
+                'CORS': None,
+                'spot': True,
                 'margin': True,
                 'swap': True,
                 'future': True,
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createMarketOrder': False,

@@ -19,6 +19,7 @@ class therock extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v1',
             'has' => array(
+                'CORS' => null,
                 'spot' => true,
                 'margin' => null, // has, but unimplemented
                 'swap' => false,
@@ -26,7 +27,6 @@ class therock extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
-                'CORS' => null,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,

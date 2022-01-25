@@ -30,6 +30,7 @@ class vcc(Exchange):
             'rateLimit': 1000,
             'version': 'v3',
             'has': {
+                'CORS': None,
                 'spot': True,
                 'margin': False,
                 'swap': False,

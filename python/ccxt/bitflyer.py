@@ -20,9 +20,13 @@ class bitflyer(Exchange):
             'rateLimit': 1000,  # their nonce-timestamp is in seconds...
             'hostname': 'bitflyer.com',  # or bitflyer.com
             'has': {
-                'fetchPositions': True,
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': None,
+                'swap': None,
+                'future': None,
+                'option': None,
+                'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': 'emulated',
@@ -32,6 +36,7 @@ class bitflyer(Exchange):
                 'fetchOrder': 'emulated',
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPositions': True,
                 'fetchTicker': True,
                 'fetchTrades': True,
                 'withdraw': True,

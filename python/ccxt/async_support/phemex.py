@@ -35,6 +35,12 @@ class phemex(Exchange):
             'pro': True,
             'hostname': 'api.phemex.com',
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': None,
+                'swap': None,
+                'future': None,
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,

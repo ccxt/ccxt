@@ -21,6 +21,7 @@ class xena extends Exchange {
             'countries' => array( 'VC', 'UK' ),
             'rateLimit' => 100,
             'has' => array(
+                'CORS' => null,
                 'spot' => false,
                 'margin' => false,
                 'swap' => null, // has but not fully implemented
@@ -28,7 +29,6 @@ class xena extends Exchange {
                 'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => null,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'editOrder' => true,
