@@ -2954,7 +2954,7 @@ module.exports = class gateio extends Exchange {
         const notional = this.safeString (position, 'value');
         const leverage = this.safeString (position, 'leverage');
         let marginType = undefined;
-        if (leverage === 0) {
+        if (leverage === "0") {
             marginType = 'cross';
         } else {
             marginType = 'isolated';
