@@ -19,7 +19,10 @@ class hitbtc extends Exchange {
             'id' => 'hitbtc',
             'name' => 'HitBTC',
             'countries' => array( 'HK' ),
-            'rateLimit' => 1500,
+            // 300 requests per second => 1000ms / 300 = 3.333ms between requests on average (Trading)
+            // 100 requests per second => ( 1000ms / rateLimit ) / 100 => cost = 3.0003 (Market Data)
+            // 10 requests per second => ( 1000ms / rateLimit ) / 10 => cost = 30.003 (Other Requests)
+            'rateLimit' => 3.333,
             'version' => '2',
             'pro' => true,
             'has' => array(
@@ -89,82 +92,82 @@ class hitbtc extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'currency', // Available Currencies
-                        'currency/{currency}', // Get currency info
-                        'symbol', // Available Currency Symbols
-                        'symbol/{symbol}', // Get symbol info
-                        'ticker', // Ticker list for all symbols
-                        'ticker/{symbol}', // Ticker for symbol
-                        'trades',
-                        'trades/{symbol}', // Trades
-                        'orderbook',
-                        'orderbook/{symbol}', // Orderbook
-                        'candles',
-                        'candles/{symbol}', // Candles
+                        'currency' => 3, // Available Currencies
+                        'currency/{currency}' => 3, // Get currency info
+                        'symbol' => 3, // Available Currency Symbols
+                        'symbol/{symbol}' => 3, // Get symbol info
+                        'ticker' => 3, // Ticker list for all symbols
+                        'ticker/{symbol}' => 3, // Ticker for symbol
+                        'trades' => 3,
+                        'trades/{symbol}' => 3, // Trades
+                        'orderbook' => 3,
+                        'orderbook/{symbol}' => 3, // Orderbook
+                        'candles' => 3,
+                        'candles/{symbol}' => 3, // Candles
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'trading/balance', // Get trading balance
-                        'order', // List your current open orders
-                        'order/{clientOrderId}', // Get a single order by clientOrderId
-                        'trading/fee/all', // Get trading fee rate
-                        'trading/fee/{symbol}', // Get trading fee rate
-                        'margin/account',
-                        'margin/account/{symbol}',
-                        'margin/position',
-                        'margin/position/{symbol}',
-                        'margin/order',
-                        'margin/order/{clientOrderId}',
-                        'history/order', // Get historical orders
-                        'history/trades', // Get historical trades
-                        'history/order/{orderId}/trades', // Get historical trades by specified order
-                        'account/balance', // Get main acccount balance
-                        'account/crypto/address/{currency}', // Get current address
-                        'account/crypto/addresses/{currency}', // Get last 10 deposit addresses for currency
-                        'account/crypto/used-addresses/{currency}', // Get last 10 unique addresses used for withdraw by currency
-                        'account/crypto/estimate-withdraw',
-                        'account/crypto/is-mine/{address}',
-                        'account/transactions', // Get account transactions
-                        'account/transactions/{id}', // Get account transaction by id
-                        'sub-acc',
-                        'sub-acc/acl',
-                        'sub-acc/balance/{subAccountUserID}',
-                        'sub-acc/deposit-address/{subAccountUserId}/{currency}',
+                        'trading/balance' => 30, // Get trading balance
+                        'order' => 30, // List your current open orders
+                        'order/{clientOrderId}' => 30, // Get a single order by clientOrderId
+                        'trading/fee/all' => 30, // Get trading fee rate
+                        'trading/fee/{symbol}' => 30, // Get trading fee rate
+                        'margin/account' => 30,
+                        'margin/account/{symbol}' => 30,
+                        'margin/position' => 30,
+                        'margin/position/{symbol}' => 30,
+                        'margin/order' => 30,
+                        'margin/order/{clientOrderId}' => 30,
+                        'history/order' => 30, // Get historical orders
+                        'history/trades' => 30, // Get historical trades
+                        'history/order/{orderId}/trades' => 30, // Get historical trades by specified order
+                        'account/balance' => 30, // Get main acccount balance
+                        'account/crypto/address/{currency}' => 30, // Get current address
+                        'account/crypto/addresses/{currency}' => 30, // Get last 10 deposit addresses for currency
+                        'account/crypto/used-addresses/{currency}' => 30, // Get last 10 unique addresses used for withdraw by currency
+                        'account/crypto/estimate-withdraw' => 30,
+                        'account/crypto/is-mine/{address}' => 30,
+                        'account/transactions' => 30, // Get account transactions
+                        'account/transactions/{id}' => 30, // Get account transaction by id
+                        'sub-acc' => 30,
+                        'sub-acc/acl' => 30,
+                        'sub-acc/balance/{subAccountUserID}' => 30,
+                        'sub-acc/deposit-address/{subAccountUserId}/{currency}' => 30,
                     ),
                     'post' => array(
-                        'order', // Create new order
-                        'margin/order',
-                        'account/crypto/address/{currency}', // Create new crypto deposit address
-                        'account/crypto/withdraw', // Withdraw crypto
-                        'account/crypto/transfer-convert',
-                        'account/transfer', // Transfer amount to trading account or to main account
-                        'account/transfer/internal',
-                        'sub-acc/freeze',
-                        'sub-acc/activate',
-                        'sub-acc/transfer',
+                        'order' => 1, // Create new order
+                        'margin/order' => 1,
+                        'account/crypto/address/{currency}' => 1, // Create new crypto deposit address
+                        'account/crypto/withdraw' => 1, // Withdraw crypto
+                        'account/crypto/transfer-convert' => 1,
+                        'account/transfer' => 1, // Transfer amount to trading account or to main account
+                        'account/transfer/internal' => 1,
+                        'sub-acc/freeze' => 1,
+                        'sub-acc/activate' => 1,
+                        'sub-acc/transfer' => 1,
                     ),
                     'put' => array(
-                        'order/{clientOrderId}', // Create new order
-                        'margin/account/{symbol}',
-                        'margin/order/{clientOrderId}',
-                        'account/crypto/withdraw/{id}', // Commit crypto withdrawal
-                        'sub-acc/acl/{subAccountUserId}',
+                        'order/{clientOrderId}' => 1, // Create new order
+                        'margin/account/{symbol}' => 1,
+                        'margin/order/{clientOrderId}' => 1,
+                        'account/crypto/withdraw/{id}' => 1, // Commit crypto withdrawal
+                        'sub-acc/acl/{subAccountUserId}' => 1,
                     ),
                     'delete' => array(
-                        'order', // Cancel all open orders
-                        'order/{clientOrderId}', // Cancel order
-                        'margin/account',
-                        'margin/account/{symbol}',
-                        'margin/position',
-                        'margin/position/{symbol}',
-                        'margin/order',
-                        'margin/order/{clientOrderId}',
-                        'account/crypto/withdraw/{id}', // Rollback crypto withdrawal
+                        'order' => 1, // Cancel all open orders
+                        'order/{clientOrderId}' => 1, // Cancel order
+                        'margin/account' => 1,
+                        'margin/account/{symbol}' => 1,
+                        'margin/position' => 1,
+                        'margin/position/{symbol}' => 1,
+                        'margin/order' => 1,
+                        'margin/order/{clientOrderId}' => 1,
+                        'account/crypto/withdraw/{id}' => 1, // Rollback crypto withdrawal
                     ),
                     // outdated?
                     'patch' => array(
-                        'order/{clientOrderId}', // Cancel Replace order
+                        'order/{clientOrderId}' => 1, // Cancel Replace order
                     ),
                 ),
             ),
@@ -629,14 +632,14 @@ class hitbtc extends Exchange {
         //
         //  {       $fee => "0.0004644",
         //           $id =>  386394956,
-        //        $price => "0.4644",
+        //        price => "0.4644",
         //     quantity => "1",
         //    $timestamp => "2018-10-25T16:41:44.780Z" }
         //
         // fetchTrades
         //
         // { $id => 974786185,
-        //   $price => '0.032462',
+        //   price => '0.032462',
         //   quantity => '0.3673',
         //   $side => 'buy',
         //   $timestamp => '2020-10-16T12:57:39.846Z' }
@@ -649,19 +652,33 @@ class hitbtc extends Exchange {
         //   $symbol => 'ETHBTC',
         //   $side => 'sell',
         //   quantity => '0.002',
-        //   $price => '0.073365',
+        //   price => '0.073365',
         //   $fee => '0.000000147',
         //   $timestamp => '2018-04-28T18:39:55.345Z' }
+        //
+        //  {
+        //      "id":1568938909,
+        //      "orderId":793293348428,
+        //      "clientOrderId":"fbc5c5b753e8476cb14697458cb928ef",
+        //      "symbol":"DOGEUSD",
+        //      "side":"sell",
+        //      "quantity":"100",
+        //      "price":"0.03904191",
+        //      "fee":"0.009760477500",
+        //      "timestamp":"2022-01-25T15:15:41.353Z",
+        //      "taker":true
+        //  }
+        //
         $timestamp = $this->parse8601($trade['timestamp']);
         $marketId = $this->safe_string($trade, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $fee = null;
-        $feeCost = $this->safe_number($trade, 'fee');
-        if ($feeCost !== null) {
+        $feeCostString = $this->safe_string($trade, 'fee');
+        if ($feeCostString !== null) {
             $feeCurrencyCode = $market ? $market['feeCurrency'] : null;
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
             );
         }
@@ -671,12 +688,9 @@ class hitbtc extends Exchange {
         $orderId = $this->safe_string($trade, 'clientOrderId');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'quantity');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $side = $this->safe_string($trade, 'side');
         $id = $this->safe_string($trade, 'id');
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'order' => $orderId,
@@ -686,11 +700,11 @@ class hitbtc extends Exchange {
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {

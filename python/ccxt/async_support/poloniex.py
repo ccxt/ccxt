@@ -1161,7 +1161,8 @@ class poloniex(Exchange):
         response = await self.privatePostGenerateNewAddress(self.extend(request, params))
         address = None
         tag = None
-        if response['success'] == 1:
+        success = self.safe_string(response, 'success')
+        if success == '1':
             address = self.safe_string(response, 'response')
         self.check_address(address)
         if currency is not None:
