@@ -1938,6 +1938,16 @@ module.exports = class gateio extends Exchange {
         //         "price": "32452.16"
         //     }
         //
+        // public ws
+        //
+        //     {
+        //         id: 221994511,
+        //         time: 1580311438.618647,
+        //         price: '9309',
+        //         amount: '0.0019',
+        //         type: 'sell'
+        //     }
+        //
         // private
         //
         //     {
@@ -1957,23 +1967,15 @@ module.exports = class gateio extends Exchange {
         //     }
         //
         const id = this.safeString (trade, 'id');
-        const timestampStringContract = this.safeString (trade, 'create_time');
-        const timestampString = this.safeString2 (trade, 'create_time_ms', 'time', timestampStringContract);
-        let timestamp = undefined;
-        if (timestampString.indexOf ('.') > 0) {
-            const milliseconds = timestampString.split ('.');
-            timestamp = parseInt (milliseconds[0]);
-        }
-        if (market['contract']) {
-            timestamp = timestamp * 1000;
-        }
+        let timestamp = this.safeTimestamp (trade, 'time');
+        timestamp = this.safeInteger (trade, 'create_time_ms', timestamp);
         const marketId = this.safeString2 (trade, 'currency_pair', 'contract');
         const symbol = this.safeSymbol (marketId, market);
         let amountString = this.safeString2 (trade, 'amount', 'size');
         const priceString = this.safeString (trade, 'price');
         const contractSide = Precise.stringLt (amountString, '0') ? 'sell' : 'buy';
         amountString = Precise.stringAbs (amountString);
-        const side = this.safeString (trade, 'side', contractSide);
+        const side = this.safeString2 (trade, 'side', 'type', contractSide);
         const orderId = this.safeString (trade, 'order_id');
         const gtFee = this.safeString (trade, 'gt_fee');
         let feeCurrency = undefined;
