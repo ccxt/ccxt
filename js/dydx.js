@@ -270,8 +270,8 @@ module.exports = class dydx extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.precisionFromString (tickSize),
-                    'amount': this.precisionFromString (stepSize),
+                    'price': tickSize,
+                    'amount': stepSize,
                     // 'base': ..., // TODO: I also think these can be set from base, according to IDs from currencies (whenever possible)
                     // 'quote': ..., // TODO: same as above
                 },
