@@ -300,10 +300,10 @@ module.exports = class dydx extends Exchange {
         return result;
     }
 
-    symbolDefine (baseCode, quoteCode, contractPart = undefined, expiryDate = undefined) { // TODO: can be unified method?
+    symbolDefine (baseCode, quoteCode, settleCode = undefined, deliveryDate = undefined) { // TODO: can be unified method?
         let symbol = baseCode + '/' + quoteCode;
-        if (contractPart !== undefined) {
-            symbol += ':' + contractPart;
+        if (settleCode !== undefined) {
+            symbol += ':' + settleCode;
         }
         return symbol;
     }
