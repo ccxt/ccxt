@@ -1394,7 +1394,7 @@ module.exports = class woo extends Exchange {
             if (method === 'POST' || method === 'DELETE') {
                 body = auth;
             } else {
-                url += '?' + this.urlencode (params);
+                url += '?' + auth;
             }
             auth += '|' + ts;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
