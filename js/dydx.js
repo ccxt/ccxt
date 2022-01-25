@@ -222,6 +222,7 @@ module.exports = class dydx extends Exchange {
         const result = [];
         const markets = this.safeValue (marketsResponse, 'markets');
         const keys = Object.keys (markets);
+        const settleId = 'USDC'; // https://docs.dydx.exchange/#margin
         for (let i = 0; i < keys.length; i++) {
             const marketKey = keys[i];
             const market = markets[marketKey];
@@ -231,7 +232,8 @@ module.exports = class dydx extends Exchange {
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
+            const settle = this.safeCurrencyCode (settleId);
+            const symbol = this.symbolDefine (base, quote, settle);
             const stepSize = this.safeNumber (market, 'stepSize');
             const tickSize = this.safeNumber (market, 'tickSize');
             const minOrderSize = this.safeNumber (market, 'minOrderSize');
@@ -246,10 +248,10 @@ module.exports = class dydx extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                // 'settle': settle,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                // 'settleId': settleId,
+                'settleId': settleId,
                 'type': type,
                 'spot': spot,
                 'margin': false,
@@ -296,6 +298,14 @@ module.exports = class dydx extends Exchange {
             result.push (entry);
         }
         return result;
+    }
+
+    symbolDefine (baseCode, quoteCode, contractPart = undefined) { // TODO: can be unified method?
+        let symbol = baseCode + '/' + quoteCode;
+        if (contractPart !== undefined) {
+            symbol += ':' + contractPart;
+        }
+        return symbol;
     }
 
     sign (path, api = 'private', method = 'GET', params = {}, headers = undefined, body = undefined) {
