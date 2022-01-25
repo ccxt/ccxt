@@ -676,7 +676,7 @@ class Transpiler {
     // ========================================================================
     // exchange capabilities ordering
 
-    sortExchangeCapabilities (code, filename) {
+    sortExchangeCapabilities (code) {
         const lineBreak = '\n';
         const capabilitiesObjectRegex = /(?<='has': {[\n])([^|})]*)(?=\n(\s+}))/;
         const found = capabilitiesObjectRegex.exec (code);
@@ -1098,7 +1098,7 @@ class Transpiler {
             const jsPath = jsFolder + filename
 
             let contents = fs.readFileSync (jsPath, 'utf8')
-            const sortedExchangeCapabilities = this.sortExchangeCapabilities (contents, filename)
+            const sortedExchangeCapabilities = this.sortExchangeCapabilities (contents)
             if (sortedExchangeCapabilities) {
                 contents = sortedExchangeCapabilities
                 overwriteFile (jsPath, contents)
