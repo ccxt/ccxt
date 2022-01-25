@@ -2953,6 +2953,12 @@ module.exports = class gateio extends Exchange {
         const maintenanceRate = this.safeString (position, 'maintenance_rate');
         const notional = this.safeString (position, 'value');
         const leverage = this.safeString (position, 'leverage');
+        let marginType = undefined;
+        if (leverage === 0) {
+            marginType = 'cross';
+        } else {
+            marginType = 'isolated';
+        }
         const unrealisedPnl = this.safeString (position, 'unrealised_pnl');
         // Initial Position Margin = ( Position Value / Leverage ) + Close Position Fee
         // *The default leverage under the full position is the highest leverage in the market.
@@ -2981,7 +2987,7 @@ module.exports = class gateio extends Exchange {
             'liquidationPrice': this.safeNumber (position, 'liq_price'),
             'markPrice': this.safeNumber (position, 'mark_price'),
             'collateral': this.safeNumber (position, 'margin'),
-            'marginType': undefined,
+            'marginType': marginType,
             'side': side,
             'percentage': this.parseNumber (percentage),
         };
