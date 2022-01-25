@@ -58,7 +58,6 @@ module.exports = class redot extends Exchange {
                 },
                 'www': 'https://redot.com/',
                 'doc': 'https://redot.com/docs/#rest-api',
-                'fees': 'https://wazirx.com/fees',
             },
             'api': {
                 'public': {
@@ -84,7 +83,7 @@ module.exports = class redot extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    '10002': RateLimitExceeded, // {"error":{"code":10002,"message":"Too many requests."}
+                    '10002': RateLimitExceeded, // {"error":{"code":10002,"message":"Too many requests."}}
                     '10501': BadRequest, // {"error":{"code":10501,"message":"Request parameters have incorrect format."}}
                     '14500': BadRequest, // {"error":{"code":14500,"message":"Depth is invalid."}}
                     '13500': BadSymbol, // {"error":{"code":13500,"message":"Instrument id is invalid."}}
