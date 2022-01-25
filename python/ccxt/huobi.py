@@ -68,6 +68,7 @@ class huobi(Exchange):
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
                 'fetchBorrowRate': True,
+                'fetchBorrowRateHistories': None,
                 'fetchBorrowRateHistory': None,
                 'fetchBorrowRates': True,
                 'fetchBorrowRatesPerSymbol': True,
