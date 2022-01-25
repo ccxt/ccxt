@@ -2443,7 +2443,7 @@ module.exports = class gateio extends Exchange {
         let side = undefined;
         const contract = this.safeValue (market, 'contract');
         if (contract) {
-            if (amount) {
+            if (amount || 'size') {
                 side = Precise.stringGt (amountRaw, '0') ? 'buy' : 'sell';
             } else {
                 side = undefined;
