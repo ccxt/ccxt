@@ -187,7 +187,7 @@ class gateio(Exchange, ccxt.gateio):
         requestId = self.nonce()
         url = self.urls['api']['ws']
         options = self.safe_value(self.options, 'watchTrades', {})
-        subscriptions = self.safe_value(options, 'subcsriptions', {})
+        subscriptions = self.safe_value(options, 'subscriptions', {})
         subscriptions[uppercaseId] = True
         options['subscriptions'] = subscriptions
         self.options['watchTrades'] = options

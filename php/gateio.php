@@ -197,7 +197,7 @@ class gateio extends \ccxt\async\gateio {
         $requestId = $this->nonce();
         $url = $this->urls['api']['ws'];
         $options = $this->safe_value($this->options, 'watchTrades', array());
-        $subscriptions = $this->safe_value($options, 'subcsriptions', array());
+        $subscriptions = $this->safe_value($options, 'subscriptions', array());
         $subscriptions[$uppercaseId] = true;
         $options['subscriptions'] = $subscriptions;
         $this->options['watchTrades'] = $options;
