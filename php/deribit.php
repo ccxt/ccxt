@@ -1723,6 +1723,7 @@ class deribit extends Exchange {
         $market = $this->safe_market($contract, $market);
         $size = $this->safe_string($position, 'size');
         $side = $this->safe_string($position, 'direction');
+        $side = ($side === 'buy') ? 'long' : 'short';
         $maintenanceRate = $this->safe_string($position, 'maintenance_margin');
         $markPrice = $this->safe_string($position, 'mark_price');
         $notionalString = Precise::string_mul($markPrice, $size);

@@ -1674,6 +1674,7 @@ class deribit(Exchange):
         market = self.safe_market(contract, market)
         size = self.safe_string(position, 'size')
         side = self.safe_string(position, 'direction')
+        side = 'long' if (side == 'buy') else 'short'
         maintenanceRate = self.safe_string(position, 'maintenance_margin')
         markPrice = self.safe_string(position, 'mark_price')
         notionalString = Precise.string_mul(markPrice, size)
