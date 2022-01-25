@@ -6,7 +6,7 @@ const Exchange = require ('./base/Exchange');
 const { ExchangeNotAvailable, AuthenticationError, BadSymbol, ExchangeError, InvalidOrder, InsufficientFunds } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
-function c(o){console.log(o);} function x(o){c(o);process.exit();}
+
 // ----------------------------------------------------------------------------
 
 module.exports = class dydx extends Exchange {
@@ -14,7 +14,7 @@ module.exports = class dydx extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'dydx',
             'name': 'dYdX',
-            'countries': [ 'US'],
+            'countries': [ 'US' ],
             'rateLimit': 100,
             'version': 'v3',
             'has': {
@@ -51,7 +51,7 @@ module.exports = class dydx extends Exchange {
                 'logo': '',
                 'test': {
                     'public': 'https://api.stage.dydx.exchange',
-                    'private': 'https://api.stage.dydx.exchange'
+                    'private': 'https://api.stage.dydx.exchange',
                 },
                 'api': {
                     'public': 'https://api.dydx.exchange',
@@ -262,8 +262,6 @@ module.exports = class dydx extends Exchange {
                 'contract': contract,
                 'linear': undefined,
                 'inverse': undefined,
-                // 'maker': maker, // TODO: I suppose this should be set from base, depending on global market/taker values
-                // 'taker': taker, // TODO: I suppose this should be set from base, depending on global market/taker values
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -272,8 +270,6 @@ module.exports = class dydx extends Exchange {
                 'precision': {
                     'price': tickSize,
                     'amount': stepSize,
-                    // 'base': ..., // TODO: I also think these can be set from base, according to IDs from currencies (whenever possible)
-                    // 'quote': ..., // TODO: same as above
                 },
                 'limits': {
                     'leverage': {
@@ -304,6 +300,9 @@ module.exports = class dydx extends Exchange {
         let symbol = baseCode + '/' + quoteCode;
         if (settleCode !== undefined) {
             symbol += ':' + settleCode;
+        }
+        if (deliveryDate !== undefined) {
+            symbol += '-' + deliveryDate;
         }
         return symbol;
     }
