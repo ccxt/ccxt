@@ -768,20 +768,20 @@ module.exports = class okex extends Exchange {
         const contract = swap || futures || option;
         let baseId = this.safeString (market, 'baseCcy');
         let quoteId = this.safeString (market, 'quoteCcy');
-        const settleCurrency = this.safeString (market, 'settleCcy');
-        const settle = this.safeCurrencyCode (settleCurrency);
+        const settleId = this.safeString (market, 'settleCcy');
+        const settle = this.safeCurrencyCode (settleId);
         const underlying = this.safeString (market, 'uly');
         if ((underlying !== undefined) && !spot) {
             const parts = underlying.split ('-');
             baseId = this.safeString (parts, 0);
             quoteId = this.safeString (parts, 1);
         }
-        const inverse = contract ? (baseId === settleCurrency) : undefined;
-        const linear = contract ? (quoteId === settleCurrency) : undefined;
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         let symbol = base + '/' + quote;
         let expiry = undefined;
+        let strikePrice = undefined;
+        let optionType = undefined;
         if (contract) {
             symbol = symbol + ':' + settle;
             expiry = this.safeInteger (market, 'expTime');
@@ -790,69 +790,69 @@ module.exports = class okex extends Exchange {
                 symbol = symbol + '-' + ymd;
             }
             if (option) {
-                const strikePrice = this.safeString (market, 'stk');
-                const optionType = this.safeString (market, 'optType');
+                strikePrice = this.safeString (market, 'stk');
+                optionType = this.safeString (market, 'optType');
                 symbol = symbol + '-' + strikePrice + '-' + optionType;
+                optionType = (optionType === 'P') ? 'put' : 'call';
             }
         }
         const tickSize = this.safeString (market, 'tickSz');
-        const precision = {
-            'amount': this.safeNumber (market, 'lotSz'),
-            'price': this.parseNumber (tickSize),
-        };
         const minAmountString = this.safeString (market, 'minSz');
         const minAmount = this.parseNumber (minAmountString);
         let minCost = undefined;
         if ((minAmount !== undefined) && (tickSize !== undefined)) {
             minCost = this.parseNumber (Precise.stringMul (tickSize, minAmountString));
         }
-        const active = true;
         const fees = this.safeValue2 (this.fees, type, 'trading', {});
-        let contractSize = undefined;
-        if (contract) {
-            contractSize = this.safeNumber (market, 'ctVal');
-        }
-        const leverage = this.safeNumber (market, 'lever', 1);
+        const precisionPrice = this.parseNumber (tickSize);
+        const maxLeverage = this.parseNumber (Precise.stringMax (this.safeString (market, 'lever', '1'), '1'));
         return this.extend (fees, {
             'id': id,
             'symbol': symbol,
             'base': base,
             'quote': quote,
+            'settle': settle,
             'baseId': baseId,
             'quoteId': quoteId,
-            'settleId': settleCurrency,
-            'settle': settle,
-            'info': market,
+            'settleId': settleId,
             'type': type,
             'spot': spot,
-            'futures': futures,
+            'margin': spot && (maxLeverage > 1),
             'swap': swap,
-            'contract': contract,
+            'futures': futures,
             'option': option,
-            'linear': linear,
-            'inverse': inverse,
-            'active': active,
-            'contractSize': contractSize,
-            'precision': precision,
+            'active': true,
+            'contract': contract,
+            'linear': contract ? (quoteId === settleId) : undefined,
+            'inverse': contract ? (baseId === settleId) : undefined,
+            'contractSize': contract ? this.safeNumber (market, 'ctVal') : undefined,
             'expiry': expiry,
             'expiryDatetime': this.iso8601 (expiry),
+            'strike': strikePrice,
+            'optionType': optionType,
+            'precision': {
+                'price': precisionPrice,
+                'amount': this.safeNumber (market, 'lotSz'),
+            },
             'limits': {
+                'leverage': {
+                    'min': 1,
+                    'max': maxLeverage,
+                },
                 'amount': {
                     'min': minAmount,
                     'max': undefined,
                 },
                 'price': {
-                    'min': precision['price'],
+                    'min': precisionPrice,
                     'max': undefined,
                 },
                 'cost': {
                     'min': minCost,
                     'max': undefined,
                 },
-                'leverage': {
-                    'max': leverage,
-                },
             },
+            'info': market,
         });
     }
 
