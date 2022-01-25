@@ -1374,30 +1374,26 @@ module.exports = class woo extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const versionStr = api[0];
-        const privateOrPublic = api[1];
-        let url = this.implodeHostname (this.urls['api'][privateOrPublic]);
-        url += '/' + versionStr + '/';
+        const version = api[0];
+        const access = api[1];
+        let url = this.implodeHostname (this.urls['api'][access]);
+        url += '/' + version + '/';
         path = this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
         params = this.keysort (params);
-        if (privateOrPublic === 'public') {
-            url += privateOrPublic + '/' + path;
-            const keys = Object.keys (params);
-            const keysLength = keys.length;
-            if (keysLength > 0) {
+        if (access === 'public') {
+            url += access + '/' + path;
+            if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
         } else {
             this.checkRequiredCredentials ();
             url += path;
             const ts = this.nonce ().toString ();
-            let auth = '';
+            let auth = this.urlencode (params);
             if (method === 'POST' || method === 'DELETE') {
-                auth += this.urlencode (params);
                 body = auth;
             } else {
-                auth += this.urlencode (params);
                 url += '?' + this.urlencode (params);
             }
             auth += '|' + ts;
