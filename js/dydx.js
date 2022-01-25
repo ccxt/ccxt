@@ -6,7 +6,7 @@ const Exchange = require ('./base/Exchange');
 const { ExchangeNotAvailable, AuthenticationError, BadSymbol, ExchangeError, InvalidOrder, InsufficientFunds } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
-// function c(o){console.log(o);} function x(o){c(o);process.exit();}
+function c(o){console.log(o);} function x(o){c(o);process.exit();}
 // ----------------------------------------------------------------------------
 
 module.exports = class dydx extends Exchange {
@@ -306,6 +306,30 @@ module.exports = class dydx extends Exchange {
             symbol += ':' + contractPart;
         }
         return symbol;
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        const response = await this.publicGetOrderbookMarket (this.extend (request, params));
+        //
+        // {
+        //     asks: [
+        //       { size: '39.991', price: '12.1' },
+        //       { size: '106.19', price: '12.3' },
+        //       ...
+        //     },
+        //     bids: [
+        //       { size: '14.909', price: '11.9' },
+        //       { size: '24', price: '11.8' },
+        //       ...
+        //     }
+        // }
+        //
+        return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'price', 'size');
     }
 
     sign (path, api = 'private', method = 'GET', params = {}, headers = undefined, body = undefined) {
