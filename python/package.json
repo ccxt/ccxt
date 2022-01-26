@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.70.65",
+  "version": "1.70.71",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -594,7 +594,9 @@
     "KuCoin Futures",
     "wazirx.com",
     "WazirX",
-    "FMFW.io"
+    "FMFW.io",
+    "woo.org",
+    "Woo"
   ],
   "collective": {
     "type": "opencollective",

@@ -8,6 +8,7 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
+use \ccxt\BadSymbol;
 use \ccxt\OrderNotFound;
 
 class aax extends Exchange {
@@ -69,7 +70,7 @@ class aax extends Exchange {
                 'fetchLedgerEntry' => null,
                 'fetchLeverage' => null,
                 'fetchMarkets' => true,
-                'fetchMarkOHLCV' => false,
+                'fetchMarkOHLCV' => true,
                 'fetchMyBuys' => null,
                 'fetchMySells' => null,
                 'fetchMyTrades' => true,
@@ -84,7 +85,7 @@ class aax extends Exchange {
                 'fetchPosition' => null,
                 'fetchPositions' => null,
                 'fetchPositionsRisk' => null,
-                'fetchPremiumIndexOHLCV' => false,
+                'fetchPremiumIndexOHLCV' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => 'emulated',
                 'fetchTickers' => true,
@@ -100,7 +101,7 @@ class aax extends Exchange {
                 'fetchWithdrawalWhitelist' => null,
                 'loadLeverageBrackets' => null,
                 'reduceMargin' => null,
-                'setLeverage' => null,
+                'setLeverage' => true,
                 'setMarginMode' => null,
                 'setPositionMode' => null,
                 'signIn' => null,
@@ -896,6 +897,20 @@ class aax extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+    }
+
+    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'mark',
+        );
+        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_premium_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'premiumIndex',
+        );
+        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -2275,6 +2290,25 @@ class aax extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+        }
+        if (($leverage < 1) || ($leverage > 100)) {
+            throw new BadRequest($this->id . ' $leverage should be between 1 and 100');
+        }
+        $market = $this->market($symbol);
+        if ($market['type'] !== 'swap') {
+            throw new BadSymbol($this->id . ' setLeverage() supports swap contracts only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'leverage' => $leverage,
+        );
+        return $this->privatePostFuturesPositionLeverage (array_merge($request, $params));
     }
 
     public function nonce() {
