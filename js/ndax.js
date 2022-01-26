@@ -431,7 +431,6 @@ module.exports = class ndax extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': undefined,
-                'info': market,
                 'type': 'spot',
                 'spot': true,
                 'margin': false,
@@ -469,6 +468,7 @@ module.exports = class ndax extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': market,
             });
         }
         return result;
