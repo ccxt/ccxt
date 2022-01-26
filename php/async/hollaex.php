@@ -8,7 +8,6 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ArgumentsRequired;
 use \ccxt\OrderNotFound;
-use \ccxt\Precise;
 
 class hollaex extends Exchange {
 
@@ -546,15 +545,15 @@ class hollaex extends Exchange {
         //     }
         //
         // fetchMyTrades (private)
-        //
-        //     {
-        //         "side" => "buy",
-        //         "symbol" => "eth-usdt",
-        //         "size" => 0.086,
-        //         "price" => 226.19,
-        //         "timestamp" => "2020-03-03T08:03:55.459Z",
-        //         "fee" => 0.1
-        //     }
+        //  {
+        //      "side":"sell",
+        //      "symbol":"doge-usdt",
+        //      "size":70,
+        //      "price":0.147411,
+        //      "timestamp":"2022-01-26T17:53:34.650Z",
+        //      "order_id":"cba78ecb-4187-4da2-9d2f-c259aa693b5a",
+        //      "fee":0.01031877,"fee_coin":"usdt"
+        //  }
         //
         $marketId = $this->safe_string($trade, 'symbol');
         $market = $this->safe_market($marketId, $market, '-');
@@ -562,36 +561,34 @@ class hollaex extends Exchange {
         $datetime = $this->safe_string($trade, 'timestamp');
         $timestamp = $this->parse8601($datetime);
         $side = $this->safe_string($trade, 'side');
+        $orderId = $this->safe_string($trade, 'order_id');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'size');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        $feeCost = $this->safe_number($trade, 'fee');
+        $feeCostString = $this->safe_string($trade, 'fee');
         $fee = null;
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $quote = $market['quote'];
             $feeCurrencyCode = ($market !== null) ? $market['quote'] : $quote;
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => null,
             'timestamp' => $timestamp,
             'datetime' => $datetime,
             'symbol' => $symbol,
-            'order' => null,
+            'order' => $orderId,
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1h', $since = null, $limit = null, $params = array ()) {

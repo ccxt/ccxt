@@ -11,7 +11,6 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NetworkError
 from ccxt.base.decimal_to_precision import TICK_SIZE
-from ccxt.base.precise import Precise
 
 
 class hollaex(Exchange):
@@ -536,15 +535,15 @@ class hollaex(Exchange):
         #     }
         #
         # fetchMyTrades(private)
-        #
-        #     {
-        #         "side": "buy",
-        #         "symbol": "eth-usdt",
-        #         "size": 0.086,
-        #         "price": 226.19,
-        #         "timestamp": "2020-03-03T08:03:55.459Z",
-        #         "fee": 0.1
-        #     }
+        #  {
+        #      "side":"sell",
+        #      "symbol":"doge-usdt",
+        #      "size":70,
+        #      "price":0.147411,
+        #      "timestamp":"2022-01-26T17:53:34.650Z",
+        #      "order_id":"cba78ecb-4187-4da2-9d2f-c259aa693b5a",
+        #      "fee":0.01031877,"fee_coin":"usdt"
+        #  }
         #
         marketId = self.safe_string(trade, 'symbol')
         market = self.safe_market(marketId, market, '-')
@@ -552,35 +551,33 @@ class hollaex(Exchange):
         datetime = self.safe_string(trade, 'timestamp')
         timestamp = self.parse8601(datetime)
         side = self.safe_string(trade, 'side')
+        orderId = self.safe_string(trade, 'order_id')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'size')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
-        feeCost = self.safe_number(trade, 'fee')
+        feeCostString = self.safe_string(trade, 'fee')
         fee = None
-        if feeCost is not None:
+        if feeCostString is not None:
             quote = market['quote']
             feeCurrencyCode = market['quote'] if (market is not None) else quote
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
-        return {
+        return self.safe_trade({
             'info': trade,
             'id': None,
             'timestamp': timestamp,
             'datetime': datetime,
             'symbol': symbol,
-            'order': None,
+            'order': orderId,
             'type': None,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_ohlcv(self, symbol, timeframe='1h', since=None, limit=None, params={}):
         self.load_markets()
