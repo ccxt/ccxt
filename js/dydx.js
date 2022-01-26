@@ -6,7 +6,7 @@ const Exchange = require ('./base/Exchange');
 const { ExchangeNotAvailable, AuthenticationError, BadSymbol, ExchangeError, InvalidOrder, InsufficientFunds } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 // const Precise = require ('./base/Precise');
-
+// function c(o){console.log(o);} function x(o){c(o);process.exit();}
 // ----------------------------------------------------------------------------
 
 module.exports = class dydx extends Exchange {
@@ -44,7 +44,12 @@ module.exports = class dydx extends Exchange {
                 'withdraw': true,
             },
             'timeframes': {
+                '1m': '1MIN',
+                '5m': '5MINS',
+                '15m': '15MINS',
+                '30m': '30MINS',
                 '1h': '1HOUR',
+                '4h': '4HOURS',
                 '1d': '1DAY',
             },
             'urls': {
@@ -156,7 +161,7 @@ module.exports = class dydx extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const configResponse = await this.publicGetConfig ();
+        // const configResponse = await this.publicGetConfig ();
         //
         // {
         //     collateralAssetId: '0x02893294412a4c8f915f75892b395ebbf6859ec246ec365c3b1f56f47c3a0a5d',
@@ -183,8 +188,6 @@ module.exports = class dydx extends Exchange {
         //     }
         // }
         //
-        this['fees']['trading']['maker'] = this.safeString (configResponse['defaultMakerFee']);
-        this['fees']['trading']['taker'] = this.safeString (configResponse['defaultTakerFee']);
         const marketsResponse = await this.publicGetMarkets (params);
         //
         // {
@@ -296,7 +299,7 @@ module.exports = class dydx extends Exchange {
         return result;
     }
 
-    symbolDefine (baseCode, quoteCode, settleCode = undefined, deliveryDate = undefined) { // TODO: can be unified method?
+    symbolDefine (baseCode, quoteCode, settleCode = undefined, deliveryDate = undefined) { // TODO: can be unified method? users will use to avoid any mistakes
         let symbol = baseCode + '/' + quoteCode;
         if (settleCode !== undefined) {
             symbol += ':' + settleCode;
@@ -397,6 +400,54 @@ module.exports = class dydx extends Exchange {
             id = this.numberToString (timestamp) + '-' + marketIdStr + '-' + sideStr + '-' + amountStr + '-' + priceStr;
         }
         return id;
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+            'resolution': this.timeframes[timeframe],
+        };
+        if (since !== undefined) {
+            request['fromISO'] = this.iso8601 (since);
+        }
+        const response = await this.publicGetCandlesMarket (this.extend (request, params));
+        //
+        // {
+        //   "candles": [
+        //     {
+        //       startedAt: '2022-01-26T07:34:00.000Z',
+        //       updatedAt: '2022-01-26T07:34:51.810Z',
+        //       "market": "BTC-USD",
+        //       "resolution": "1MIN",
+        //       "low": "40000",
+        //       "high": "45000",
+        //       "open": "45000",
+        //       "close": "40000",
+        //       "baseTokenVolume": "1.002",
+        //       "trades": "3",
+        //       "usdVolume": "45085",
+        //       "startingOpenInterest": "28"
+        //     },
+        //     ...
+        //   ]
+        // }
+        //
+        const data = this.safeValue (response, 'candles', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        const startedAt = this.safeString (ohlcv, 'startedAt');
+        const timestamp = this.parseDate (startedAt);
+        const open = this.safeNumber (ohlcv, 'open');
+        const high = this.safeNumber (ohlcv, 'high');
+        const low = this.safeNumber (ohlcv, 'low');
+        const close = this.safeNumber (ohlcv, 'close');
+        // const volume = this.safeNumber (ohlcv, 'usdVolume');
+        const baseTokenVolume = this.safeNumber (ohlcv, 'baseTokenVolume');
+        return [ timestamp, open, high, low, close, baseTokenVolume ];
     }
 
     sign (path, api = 'private', method = 'GET', params = {}, headers = undefined, body = undefined) {
