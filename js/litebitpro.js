@@ -192,11 +192,11 @@ module.exports = class litebitpro extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': undefined,
+                        'min': this.safeNumber (market, 'step_size'),
                         'max': undefined,
                     },
                     'price': {
-                        'min': undefined,
+                        'min': this.safeNumber (market, 'tick_size'),
                         'max': undefined,
                     },
                     'cost': {
