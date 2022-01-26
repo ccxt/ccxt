@@ -301,11 +301,7 @@ module.exports = class poloniex extends Exchange {
                 'requiredCredentials': {
                     'apiKey': true,
                     'secret': true,
-                    'uid': true,
-                    // these credentials are required for signIn() and withdraw()
-                    'login': true,
                     'password': true,
-                    // 'twofa': true,
                 },
             },
         });
