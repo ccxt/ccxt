@@ -799,10 +799,12 @@ module.exports = class okex extends Exchange {
         const tickSize = this.safeString (market, 'tickSz');
         const minAmountString = this.safeString (market, 'minSz');
         const minAmount = this.parseNumber (minAmountString);
-        const minCost = this.parseNumber (Precise.stringMul (tickSize, minAmountString));
         const fees = this.safeValue2 (this.fees, type, 'trading', {});
         const precisionPrice = this.parseNumber (tickSize);
         let maxLeverage = this.safeString (market, 'lever', '1');
+        if (maxLeverage === '') {
+            maxLeverage = '1';
+        }
         maxLeverage = Precise.stringMax (maxLeverage, '1');
         return this.extend (fees, {
             'id': id,
@@ -846,7 +848,7 @@ module.exports = class okex extends Exchange {
                     'max': undefined,
                 },
                 'cost': {
-                    'min': minCost,
+                    'min': undefined,
                     'max': undefined,
                 },
             },
