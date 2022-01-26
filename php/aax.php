@@ -62,7 +62,7 @@ class aax extends Exchange {
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => null,
-                'fetchIndexOHLCV' => false,
+                'fetchIndexOHLCV' => true,
                 'fetchIsolatedPositions' => null,
                 'fetchL3OrderBook' => null,
                 'fetchLedger' => null,
@@ -863,7 +863,7 @@ class aax extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1h', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -896,6 +896,13 @@ class aax extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+    }
+
+    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'index',
+        );
+        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_balance($params = array ()) {

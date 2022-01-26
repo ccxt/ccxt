@@ -79,7 +79,7 @@ class aax(Exchange):
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': None,
-                'fetchIndexOHLCV': False,
+                'fetchIndexOHLCV': True,
                 'fetchIsolatedPositions': None,
                 'fetchL3OrderBook': None,
                 'fetchLedger': None,
@@ -854,7 +854,7 @@ class aax(Exchange):
             self.safe_number(ohlcv, 4),
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1h', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -886,6 +886,12 @@ class aax(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
+
+    async def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'index',
+        }
+        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
