@@ -79,8 +79,8 @@ module.exports = class aax extends Exchange {
                 'fetchOrderBooks': undefined,
                 'fetchOrders': true,
                 'fetchOrderTrades': undefined,
-                'fetchPosition': undefined,
-                'fetchPositions': undefined,
+                'fetchPosition': true,
+                'fetchPositions': true,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
@@ -2266,6 +2266,204 @@ module.exports = class aax extends Exchange {
             });
         }
         return result;
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        //     "code":1,
+        //     "data":[
+        //        {
+        //           "autoMarginCall":false,
+        //           "avgEntryPrice":"36988.64",
+        //           "bankruptPrice":"32756.7156500000",
+        //           "base":"BTC",
+        //           "code":"FP",
+        //           "commission":"0.01479546",
+        //           "currentQty":"1",
+        //           "funding":"0.00678918",
+        //           "fundingStatus":null,
+        //           "id":"406353527118426112",
+        //           "leverage":"9",
+        //           "liquidationPrice":"32954.85",
+        //           "marketPrice":"37404.11",
+        //           "openTime":"2022-01-26T01:56:15.547Z",
+        //           "posLeverage":"9",
+        //           "posMargin":"4.23192435",
+        //           "quote":"USDT",
+        //           "realisedPnl":"-0.00800628",
+        //           "riskLimit":"1000000",
+        //           "riskyPrice":"34568.37",
+        //           "settleType":"VANILLA",
+        //           "stopLossPrice":"0",
+        //           "stopLossSource":1,
+        //           "symbol":"BTCUSDFP",
+        //           "takeProfitPrice":"0",
+        //           "takeProfitSource":1,
+        //           "unrealisedPnl":"0.41547000",
+        //           "userID":"3376269"
+        //        }
+        //     ],
+        //     "message":"success",
+        //     "ts":1643168722164
+        //  }
+        //
+        const contract = this.safeString (position, 'symbol');
+        market = this.safeMarket (contract, market);
+        const size = this.safeString (position, 'currentQty');
+        const side = (size > 0) ? 'long' : 'short';
+        const unrealisedPnl = this.safeString (position, 'unrealisedPnl');
+        const initialMarginString = this.safeString (position, 'posMargin');
+        const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
+        const currentTime = this.milliseconds ();
+        return {
+            'info': position,
+            'symbol': this.safeString (market, 'symbol'),
+            'timestamp': currentTime,
+            'datetime': this.iso8601 (currentTime),
+            'initialMargin': this.parseNumber (initialMarginString),
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'entryPrice': this.safeString (position, 'avgEntryPrice'),
+            'notional': undefined,
+            'leverage': this.safeNumber (position, 'leverage'),
+            'unrealizedPnl': this.parseNumber (unrealisedPnl),
+            'contracts': this.parseNumber (size),
+            'contractSize': this.safeValue (market, 'contractSize'),
+            'marginRatio': undefined,
+            'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
+            'markPrice': undefined,
+            'collateral': undefined,
+            'marginType': undefined,
+            'side': side,
+            'percentage': this.parseNumber (percentage),
+        };
+    }
+
+    parsePositions (positions) {
+        const result = [];
+        for (let i = 0; i < positions.length; i++) {
+            result.push (this.parsePosition (positions[i]));
+        }
+        return result;
+    }
+
+    async fetchPosition (symbol, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        const request = {
+            // 'symbol': market['id'],
+        };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.privateGetFuturesPosition (this.extend (request, params));
+        //
+        //     "code":1,
+        //     "data":[
+        //        {
+        //           "autoMarginCall":false,
+        //           "avgEntryPrice":"36988.64",
+        //           "bankruptPrice":"32756.7156500000",
+        //           "base":"BTC",
+        //           "code":"FP",
+        //           "commission":"0.01479546",
+        //           "currentQty":"1",
+        //           "funding":"0.00678918",
+        //           "fundingStatus":null,
+        //           "id":"406353527118426112",
+        //           "leverage":"9",
+        //           "liquidationPrice":"32954.85",
+        //           "marketPrice":"37404.11",
+        //           "openTime":"2022-01-26T01:56:15.547Z",
+        //           "posLeverage":"9",
+        //           "posMargin":"4.23192435",
+        //           "quote":"USDT",
+        //           "realisedPnl":"-0.00800628",
+        //           "riskLimit":"1000000",
+        //           "riskyPrice":"34568.37",
+        //           "settleType":"VANILLA",
+        //           "stopLossPrice":"0",
+        //           "stopLossSource":1,
+        //           "symbol":"BTCUSDFP",
+        //           "takeProfitPrice":"0",
+        //           "takeProfitSource":1,
+        //           "unrealisedPnl":"0.41547000",
+        //           "userID":"3376269"
+        //        }
+        //     ],
+        //     "message":"success",
+        //     "ts":1643168722164
+        //  }
+        //
+        const data = this.safeValue (response, 'data');
+        const result = this.safeValue (data, 0);
+        return this.parsePosition (result);
+    }
+
+    async fetchPositions (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        let symbol = undefined;
+        if (typeof symbols === 'string') {
+            symbol = symbols;
+        } else if (Array.isArray (symbols)) {
+            const length = symbols.length;
+            if (length !== 1) {
+                throw new BadRequest (this.id + ' fetchPositions symbols argument cannot contain more than 1 symbol');
+            }
+            const market = this.market (symbols[0]);
+            symbol = market['id'];
+        }
+        const request = {
+            // 'symbols': market['id'],
+        };
+        if (symbols !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.privateGetFuturesPosition (this.extend (request, params));
+        //
+        //     "code":1,
+        //     "data":[
+        //        {
+        //           "autoMarginCall":false,
+        //           "avgEntryPrice":"36988.64",
+        //           "bankruptPrice":"32756.7156500000",
+        //           "base":"BTC",
+        //           "code":"FP",
+        //           "commission":"0.01479546",
+        //           "currentQty":"1",
+        //           "funding":"0.00678918",
+        //           "fundingStatus":null,
+        //           "id":"406353527118426112",
+        //           "leverage":"9",
+        //           "liquidationPrice":"32954.85",
+        //           "marketPrice":"37404.11",
+        //           "openTime":"2022-01-26T01:56:15.547Z",
+        //           "posLeverage":"9",
+        //           "posMargin":"4.23192435",
+        //           "quote":"USDT",
+        //           "realisedPnl":"-0.00800628",
+        //           "riskLimit":"1000000",
+        //           "riskyPrice":"34568.37",
+        //           "settleType":"VANILLA",
+        //           "stopLossPrice":"0",
+        //           "stopLossSource":1,
+        //           "symbol":"BTCUSDFP",
+        //           "takeProfitPrice":"0",
+        //           "takeProfitSource":1,
+        //           "unrealisedPnl":"0.41547000",
+        //           "userID":"3376269"
+        //        }
+        //     ],
+        //     "message":"success",
+        //     "ts":1643168722164
+        //  }
+        //
+        const result = this.safeValue (response, 'data');
+        return this.parsePositions (result);
     }
 
     nonce () {
