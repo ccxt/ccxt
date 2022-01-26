@@ -51,7 +51,7 @@ module.exports = class bybit extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
-                'fetchPosition': true,
+                'fetchPosition': 'emulated',
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': true,
                 'fetchTicker': true,
