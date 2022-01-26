@@ -745,6 +745,7 @@ declare module "@2525venturesbv/ccxt" {
     | "latoken1"
     | "lbank"
     | "liquid"
+    | "litebitpro"
     | "luno"
     | "lykke"
     | "mercado"
