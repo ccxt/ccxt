@@ -60,6 +60,7 @@ module.exports = class poloniex extends Exchange {
                 'api': {
                     'public': 'https://poloniex.com/public',
                     'private': 'https://poloniex.com/tradingApi',
+                    'future': 'https://futures-api.poloniex.com',
                 },
                 'www': 'https://www.poloniex.com',
                 'doc': 'https://docs.poloniex.com',
@@ -112,57 +113,59 @@ module.exports = class poloniex extends Exchange {
                         'withdraw',
                     ],
                 },
-                'futuresPublic': {
-                    'get': [
-                        'contracts/active',
-                        'contracts/{symbol}',
-                        'ticker',
-                        'ticker', // v2
-                        'tickers', // v2
-                        'level2/snapshot',
-                        'level2/depth',
-                        'level2/message/query',
-                        'level3/snapshot', // v2
-                        'trade/history',
-                        'interest/query',
-                        'index/query',
-                        'mark-price/{symbol}/current',
-                        'premium/query',
-                        'funding-rate/{symbol}/current',
-                        'timestamp',
-                        'status',
-                        'kline/query',
-                    ],
-                    'post': [
-                        'bullet-public',
-                    ],
-                },
-                'futuresPrivate': {
-                    'get': [
-                        'account-overview',
-                        'transaction-history',
-                        'orders',
-                        'stopOrders',
-                        'recentDoneOrders',
-                        'orders/{order-id}',
-                        'fills',
-                        'openOrderStatistics',
-                        'position',
-                        'positions',
-                        'funding-history',
-                    ],
-                    'post': [
-                        'orders',
-                        'orders',
-                        'position/margin/auto-deposit-status',
-                        'position/margin/deposit-margin',
-                        'bullet-private',
-                    ],
-                    'delete': [
-                        'orders/{order-id}',
-                        'orders',
-                        'stopOrders',
-                    ],
+                'future': {
+                    'public': {
+                        'get': [
+                            'contracts/active',
+                            'contracts/{symbol}',
+                            'ticker',
+                            'ticker', // v2
+                            'tickers', // v2
+                            'level2/snapshot',
+                            'level2/depth',
+                            'level2/message/query',
+                            'level3/snapshot', // v2
+                            'trade/history',
+                            'interest/query',
+                            'index/query',
+                            'mark-price/{symbol}/current',
+                            'premium/query',
+                            'funding-rate/{symbol}/current',
+                            'timestamp',
+                            'status',
+                            'kline/query',
+                        ],
+                        'post': [
+                            'bullet-public',
+                        ],
+                    },
+                    'private': {
+                        'get': [
+                            'account-overview',
+                            'transaction-history',
+                            'orders',
+                            'stopOrders',
+                            'recentDoneOrders',
+                            'orders/{order-id}',
+                            'fills',
+                            'openOrderStatistics',
+                            'position',
+                            'positions',
+                            'funding-history',
+                        ],
+                        'post': [
+                            'orders',
+                            'orders',
+                            'position/margin/auto-deposit-status',
+                            'position/margin/deposit-margin',
+                            'bullet-private',
+                        ],
+                        'delete': [
+                            'orders/{order-id}',
+                            'orders',
+                            'stopOrders',
+                        ],
+                    },
                 },
             },
             'fees': {
@@ -248,6 +251,20 @@ module.exports = class poloniex extends Exchange {
                         },
                     },
                 },
+                'version': {
+                    'future': 'v1',
+                },
+                'versions': {
+                    'future': {
+                        'public': {
+                            'GET': {
+                                'ticker': 'v2',
+                                'tickers': 'v2',
+                                'level3/snapshot': 'v2',
+                            },
+                        },
+                    },
+                },
             },
             'exceptions': {
                 'exact': {
@@ -278,6 +295,17 @@ module.exports = class poloniex extends Exchange {
                     'Amount must be at least': InvalidOrder, // {"error":"Amount must be at least 0.000001."}
                     'is either completed or does not exist': OrderNotFound, // {"error":"Order 587957810791 is either completed or does not exist."}
                     'Error pulling ': ExchangeError, // {"error":"Error pulling order book"}
+                },
+            },
+            'future': {
+                'requiredCredentials': {
+                    'apiKey': true,
+                    'secret': true,
+                    'uid': true,
+                    // these credentials are required for signIn() and withdraw()
+                    'login': true,
+                    'password': true,
+                    // 'twofa': true,
                 },
             },
         });
@@ -1581,20 +1609,78 @@ module.exports = class poloniex extends Exchange {
         return this.milliseconds ();
     }
 
+    checkFutureRequiredCredentials (error = true) {
+        const credentials = this.future['requiredCredentials'];
+        const keys = Object.keys (credentials);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (credentials[key] && !this[key]) {
+                if (error) {
+                    throw new AuthenticationError (this.id + ' requires `' + key + '` credential');
+                } else {
+                    return error;
+                }
+            }
+        }
+        return true;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api];
-        const query = this.extend ({ 'command': path }, params);
-        if (api === 'public') {
-            url += '?' + this.urlencode (query);
+        let url = undefined;
+        const isFuture = Array.isArray (api);
+        if (isFuture) {
+            const urlIndex = this.safeString (api, 0);
+            api = this.safeString (api, 1);
+            url = this.urls['api'][urlIndex];
+            const versions = this.safeValue (this.options, 'versions', {});
+            const futureVersions = this.safeValue (versions, 'future');
+            const apiVersions = this.safeValue (futureVersions, api, {});
+            const methodVersions = this.safeValue (apiVersions, method, {});
+            const defaultVersion = this.safeString (methodVersions, path, this.options['version']['future']);
+            const version = this.safeString (params, 'version', defaultVersion);
+            const tail = '/api/' + version + '/' + this.implodeParams (path, params);
+            url += tail;
+            const query = this.omit (params, path);
+            if (api === 'public') {
+                const queryLength = Object.keys (query).length;
+                if (queryLength > 0) {
+                    url += '?' + this.urlencode (query);
+                }
+            } else {
+                this.checkFutureRequiredCredentials ();
+                body = this.urlencode (query);
+                const now = this.milliseconds ().toString ();
+                const str_to_sign = now + method + tail;
+                const signature = this.hmac (this.encode (this.secret), this.encode (str_to_sign), 'sha256', 'base64');
+                headers = {
+                    'PF-API-SIGN': signature,
+                    'PF-API-TIMESTAMP': now,
+                    'PF-API-KEY': this.apiKey,
+                    'PF-API-PASSPHRASE': this.password,
+                };
+                // const signature = base64.b64encode (
+                //     hmac.new (
+                //         api_secret.encode('utf-8'),
+                //         str_to_sign.encode('utf-8'),
+                //         hashlib.sha256
+                //     ).digest ()
+                // )
+            }
         } else {
-            this.checkRequiredCredentials ();
-            query['nonce'] = this.nonce ();
-            body = this.urlencode (query);
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Key': this.apiKey,
-                'Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
-            };
+            url = this.urls['api'][api];
+            const query = this.extend ({ 'command': path }, params);
+            if (api === 'public') {
+                url += '?' + this.urlencode (query);
+            } else if (api === 'private') {
+                this.checkRequiredCredentials ();
+                query['nonce'] = this.nonce ();
+                body = this.urlencode (query);
+                headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Key': this.apiKey,
+                    'Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
+                };
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
