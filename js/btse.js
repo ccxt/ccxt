@@ -114,13 +114,6 @@ module.exports = class btse extends Exchange {
 
                 },
             },
-            'timeframes': {
-                '1m': '60',
-                '5m': '300',
-                '15m': '900',
-                '1h': '3600',
-                '12h': '43200',
-            },
             'exceptions': {
                 'exact': {
                     '10002': RateLimitExceeded, // {"error":{"code":10002,"message":"Too many requests."}}
@@ -575,6 +568,20 @@ module.exports = class btse extends Exchange {
         //     ]
         //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    async fetchTime (params = {}) {
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'spotPublicGetGetTime',
+            'future': 'futurePublicGetGetTimes',
+        });
+        const response = await this[method] (query);
+        // {
+        //     "iso": "2021-06-29T18:14:30.886Z",
+        //     "epoch": 1624990470
+        // }
+        return this.safeInteger (response, 'epoch');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
