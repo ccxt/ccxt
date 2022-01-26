@@ -6,7 +6,7 @@ const Exchange = require ('./base/Exchange');
 const { ExchangeNotAvailable, AuthenticationError, BadSymbol, ExchangeError, InvalidOrder, InsufficientFunds } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 // const Precise = require ('./base/Precise');
-// function c(o){console.log(o);} function x(o){c(o);process.exit();}
+function c(o){console.log(o);} function x(o){c(o);process.exit();}
 // ----------------------------------------------------------------------------
 
 module.exports = class dydx extends Exchange {
@@ -37,7 +37,9 @@ module.exports = class dydx extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
-                'fetchTicker': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFees': true,
                 'fetchWithdrawals': true,
@@ -72,17 +74,17 @@ module.exports = class dydx extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'config', // Get default maker and taker fees.
                         'markets',
                         'orderbook/{market}',
                         'trades/{market}',
-                        'fast-withdrawals',
-                        'stats',
-                        'historical-funding',
+                        'fast-withdrawals', // implicit
+                        'stats/{market}',
+                        'historical-funding/{market}',
                         'candles/{market}',
                         'users/exists',
                         'usernames',
                         'time',
-                        'config', // Get default maker and taker fees.
                     ],
                 },
                 'private': {
@@ -158,6 +160,17 @@ module.exports = class dydx extends Exchange {
                 // 'starkKey': true, // STARK Key Authentication
             },
         });
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.publicGetTime (params);
+        //
+        // {
+        //     iso: '2022-01-26T10:19:47.576Z',
+        //     epoch: '1643192387.576'
+        // }
+        //
+        return this.safeTimestamp (response, 'epoch');
     }
 
     async fetchMarkets (params = {}) {
@@ -448,6 +461,93 @@ module.exports = class dydx extends Exchange {
         // const volume = this.safeNumber (ohlcv, 'usdVolume');
         const baseTokenVolume = this.safeNumber (ohlcv, 'baseTokenVolume');
         return [ timestamp, open, high, low, close, baseTokenVolume ];
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'market': '',
+        };
+        const response = await this.publicGetStatsMarket (this.extend (request, params));
+        // {
+        //     markets: {
+        //       'ETH-USD': {
+        //         market: 'ETH-USD',
+        //         open: '2417.7',
+        //         high: '2520',
+        //         low: '2364.8',
+        //         close: '2494.6',
+        //         baseVolume: '225412.440',
+        //         quoteVolume: '551363381.1817',
+        //         type: 'PERPETUAL',
+        //         fees: '131095.349933'
+        //       },
+        //       ...
+        //     }
+        // }
+        //
+        const data = this.safeValue (response, 'markets', []);
+        return this.parseTickers (data, symbols);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        const response = await this.publicGetStatsMarket (this.extend (request, params));
+        //
+        // {
+        //     markets: {
+        //       'ETH-USD': {
+        //         market: 'ETH-USD',
+        //         open: '2417.7',
+        //         high: '2520',
+        //         low: '2364.8',
+        //         close: '2494.6',
+        //         baseVolume: '225412.440',
+        //         quoteVolume: '551363381.1817',
+        //         type: 'PERPETUAL',
+        //         fees: '131095.349933'
+        //       }
+        //     }
+        // }
+        //
+        const markets = this.safeValue (response, 'markets', {});
+        const ticker = this.safeValue (markets, market['id'], {});
+        return this.parseTicker (ticker, market);
+    }
+
+    parseTicker (ticker, market = undefined) {
+        const marketId = this.safeString (ticker, 'market');
+        market = this.safeMarket (marketId, market, '-');
+        const open = this.safeString (ticker, 'open');
+        const high = this.safeString (ticker, 'high');
+        const low = this.safeString (ticker, 'low');
+        const close = this.safeString (ticker, 'close');
+        const baseVolume = this.safeString (ticker, 'baseVolume');
+        const quoteVolume = this.safeString (ticker, 'quoteVolume');
+        return this.safeTicker ({
+            'symbol': this.safeString (market, 'symbol'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': open,
+            'high': high,
+            'low': low,
+            'close': close,
+            'last': close,
+            'previousClose': undefined,
+            'average': undefined,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'info': ticker,
+        }, market, false);
     }
 
     sign (path, api = 'private', method = 'GET', params = {}, headers = undefined, body = undefined) {
