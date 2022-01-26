@@ -21,7 +21,8 @@ class hollaex(Exchange):
             'id': 'hollaex',
             'name': 'HollaEx',
             'countries': ['KR'],
-            'rateLimit': 333,
+            # 4 requests per second => 1000ms / 4 = 250 ms between requests
+            'rateLimit': 250,
             'version': 'v2',
             'has': {
                 'CORS': None,
@@ -96,43 +97,43 @@ class hollaex(Exchange):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'health',
-                        'constants',
-                        'kit',
-                        'tiers',
-                        'ticker',
-                        'tickers',
-                        'orderbook',
-                        'orderbooks',
-                        'trades',
-                        'chart',
-                        'charts',
+                    'get': {
+                        'health': 1,
+                        'constants': 1,
+                        'kit': 1,
+                        'tiers': 1,
+                        'ticker': 1,
+                        'tickers': 1,
+                        'orderbook': 1,
+                        'orderbooks': 1,
+                        'trades': 1,
+                        'chart': 1,
+                        'charts': 1,
                         # TradingView
-                        'udf/config',
-                        'udf/history',
-                        'udf/symbols',
-                    ],
+                        'udf/config': 1,
+                        'udf/history': 1,
+                        'udf/symbols': 1,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'user',
-                        'user/balance',
-                        'user/deposits',
-                        'user/withdrawals',
-                        'user/withdrawal/fee',
-                        'user/trades',
-                        'orders',
-                        'orders/{order_id}',
-                    ],
-                    'post': [
-                        'user/request-withdrawal',
-                        'order',
-                    ],
-                    'delete': [
-                        'order/all',
-                        'order',
-                    ],
+                    'get': {
+                        'user': 1,
+                        'user/balance': 1,
+                        'user/deposits': 1,
+                        'user/withdrawals': 1,
+                        'user/withdrawal/fee': 1,
+                        'user/trades': 1,
+                        'orders': 1,
+                        'orders/{order_id}': 1,
+                    },
+                    'post': {
+                        'user/request-withdrawal': 1,
+                        'order': 1,
+                    },
+                    'delete': {
+                        'order/all': 1,
+                        'order': 1,
+                    },
                 },
             },
             'fees': {
