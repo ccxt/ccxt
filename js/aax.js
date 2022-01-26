@@ -897,33 +897,10 @@ module.exports = class aax extends Exchange {
     }
 
     async fetchIndexOHLCV (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
-            'timeFrame': this.timeframes[timeframe],
+            'price': 'index',
         };
-        const response = await this.publicGetMarketIndexCandles (this.extend (request, params));
-        //
-        //     {
-        //         c: '36592.81000000',
-        //         e: 'BTCUSDT_INDEX@1h_candles',
-        //         h: '36669.29000000',
-        //         l: '36555.28000000',
-        //         o: '36555.83000000',
-        //         s: '1643148000',
-        //         t: '1643148978',
-        //         v: '0.00000000'
-        //     }
-        //
-        return [
-            this.safeTimestamp (response, 't'),
-            this.safeNumber (response, 'o'),
-            this.safeNumber (response, 'h'),
-            this.safeNumber (response, 'l'),
-            this.safeNumber (response, 'c'),
-            this.safeNumber (response, 'v'),
-        ];
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
     async fetchBalance (params = {}) {
