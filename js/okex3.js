@@ -877,7 +877,7 @@ module.exports = class okex3 extends Exchange {
             'settleId': settleId,
             'type': marketType,
             'spot': spot,
-            'margin': spot && (Precise.stringGt (maxLeverage, '1')),
+            'margin': spot && (Precise.stringGt (maxLeverageString, '1')),
             'swap': swap,
             'futures': future,
             'option': option,
