@@ -6,7 +6,7 @@ const Exchange = require ('./base/Exchange');
 const { ExchangeNotAvailable, AuthenticationError, BadSymbol, ExchangeError, InvalidOrder, InsufficientFunds } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 // const Precise = require ('./base/Precise');
-function c(o){console.log(o);} function x(o){c(o);process.exit();}
+// function c(o){console.log(o);} function x(o){c(o);process.exit();}
 // ----------------------------------------------------------------------------
 
 module.exports = class dydx extends Exchange {
@@ -65,7 +65,7 @@ module.exports = class dydx extends Exchange {
                     'private': 'https://api.dydx.exchange',
                 },
                 'www': 'https://trade.dydx.exchange/',
-                'www-test': 'https://trade.stage.dydx.exchange/',
+                'www-test': 'https://trade.stage.dydx.exchange/', // TODO: which key should be for test-websites?
                 'doc': [
                     'https://docs.dydx.exchange/',
                 ],
@@ -74,7 +74,6 @@ module.exports = class dydx extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'config', // Get default maker and taker fees.
                         'markets',
                         'orderbook/{market}',
                         'trades/{market}',
@@ -82,9 +81,15 @@ module.exports = class dydx extends Exchange {
                         'stats/{market}',
                         'historical-funding/{market}',
                         'candles/{market}',
+                        'config', // Get default maker and taker fees.
                         'users/exists',
                         'usernames',
                         'time',
+                        'leaderboard-pnl',
+                        'rewards/public-retroactive-mining',
+                    ],
+                    'put': [
+                        'emails/verify-email',
                     ],
                 },
                 'private': {
@@ -582,6 +587,7 @@ module.exports = class dydx extends Exchange {
                 }
             } else if (method === 'DELETE') {
                 if (path === 'api-keys') {
+                    payload = this.parseJson (payload); // because in above line, it was stringified
                     // Ethereum Key Private Endpoints: POST, DELETE /v3/api-keys
                     headers['DYDX-TIMESTAMP'] = timestamp;
                     headers['DYDX-ETHEREUM-ADDRESS'] = this.ethereumAddress;
