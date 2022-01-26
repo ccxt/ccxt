@@ -51,6 +51,7 @@ class huobi extends Exchange {
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
                 'fetchBorrowRate' => true,
+                'fetchBorrowRateHistories' => null,
                 'fetchBorrowRateHistory' => null,
                 'fetchBorrowRates' => true,
                 'fetchBorrowRatesPerSymbol' => true,

@@ -1071,22 +1071,22 @@ module.exports = class binance extends Exchange {
                     '-3044': DDoSProtection, // {"code":-3044,"msg":"System busy."}
                     '-3045': ExchangeError, // {"code":-3045,"msg":"The system doesn't have enough asset now."}
                     '-3999': ExchangeError, // {"code":-3999,"msg":"This function is only available for invited users."}
-                    '-4001 ': BadRequest, // {"code":-4001 ,"msg":"Invalid operation."}
-                    '-4002 ': BadRequest, // {"code":-4002 ,"msg":"Invalid get."}
-                    '-4003 ': BadRequest, // {"code":-4003 ,"msg":"Your input email is invalid."}
+                    '-4001': BadRequest, // {"code":-4001 ,"msg":"Invalid operation."}
+                    '-4002': BadRequest, // {"code":-4002 ,"msg":"Invalid get."}
+                    '-4003': BadRequest, // {"code":-4003 ,"msg":"Your input email is invalid."}
                     '-4004': AuthenticationError, // {"code":-4004,"msg":"You don't login or auth."}
-                    '-4005 ': RateLimitExceeded, // {"code":-4005 ,"msg":"Too many new requests."}
-                    '-4006 ': BadRequest, // {"code":-4006 ,"msg":"Support main account only."}
-                    '-4007 ': BadRequest, // {"code":-4007 ,"msg":"Address validation is not passed."}
-                    '-4008 ': BadRequest, // {"code":-4008 ,"msg":"Address tag validation is not passed."}
-                    '-4010 ': BadRequest, // {"code":-4010 ,"msg":"White list mail has been confirmed."} // [TODO] possible bug: it should probably be "has not been confirmed"
-                    '-4011 ': BadRequest, // {"code":-4011 ,"msg":"White list mail is invalid."}
-                    '-4012 ': BadRequest, // {"code":-4012 ,"msg":"White list is not opened."}
-                    '-4013 ': AuthenticationError, // {"code":-4013 ,"msg":"2FA is not opened."}
-                    '-4014 ': PermissionDenied, // {"code":-4014 ,"msg":"Withdraw is not allowed within 2 min login."}
-                    '-4015 ': ExchangeError, // {"code":-4015 ,"msg":"Withdraw is limited."}
-                    '-4016 ': PermissionDenied, // {"code":-4016 ,"msg":"Within 24 hours after password modification, withdrawal is prohibited."}
-                    '-4017 ': PermissionDenied, // {"code":-4017 ,"msg":"Within 24 hours after the release of 2FA, withdrawal is prohibited."}
+                    '-4005': RateLimitExceeded, // {"code":-4005 ,"msg":"Too many new requests."}
+                    '-4006': BadRequest, // {"code":-4006 ,"msg":"Support main account only."}
+                    '-4007': BadRequest, // {"code":-4007 ,"msg":"Address validation is not passed."}
+                    '-4008': BadRequest, // {"code":-4008 ,"msg":"Address tag validation is not passed."}
+                    '-4010': BadRequest, // {"code":-4010 ,"msg":"White list mail has been confirmed."} // [TODO] possible bug: it should probably be "has not been confirmed"
+                    '-4011': BadRequest, // {"code":-4011 ,"msg":"White list mail is invalid."}
+                    '-4012': BadRequest, // {"code":-4012 ,"msg":"White list is not opened."}
+                    '-4013': AuthenticationError, // {"code":-4013 ,"msg":"2FA is not opened."}
+                    '-4014': PermissionDenied, // {"code":-4014 ,"msg":"Withdraw is not allowed within 2 min login."}
+                    '-4015': ExchangeError, // {"code":-4015 ,"msg":"Withdraw is limited."}
+                    '-4016': PermissionDenied, // {"code":-4016 ,"msg":"Within 24 hours after password modification, withdrawal is prohibited."}
+                    '-4017': PermissionDenied, // {"code":-4017 ,"msg":"Within 24 hours after the release of 2FA, withdrawal is prohibited."}
                     '-4018': BadSymbol, // {"code":-4018,"msg":"We don't have this asset."}
                     '-4019': BadSymbol, // {"code":-4019,"msg":"Current asset is not open for withdrawal."}
                     '-4021': BadRequest, // {"code":-4021,"msg":"Asset withdrawal must be an %s multiple of %s."}
