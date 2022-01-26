@@ -50,13 +50,13 @@ module.exports = class btse extends Exchange {
                 'withdraw': false,
             },
             'urls': {
-                'logo': 'https://cdn.redot.com/static/icons/500px_transparent_background/Icon_0-3.png',
+                'logo': '',
                 'api': {
-                    'spot': 'https://api.btse.com/spot/v3.2',
-                    'future': 'https://api.redot.com/v1/private',
+                    'spot': 'https://api.btse.com/spot/api/v3.2',
+                    'future': 'https://api.btse.com/futures/api/v2.1',
                 },
-                'www': 'https://redot.com/',
-                'doc': 'https://redot.com/docs/#rest-api',
+                'www': 'https://www.btse.com/en/home',
+                'doc': 'https://btsecom.github.io/docs/',
             },
             'api': {
                 'spot': {
@@ -65,16 +65,44 @@ module.exports = class btse extends Exchange {
                             'market_summary': 1,
                             'ohlcv': 1,
                             'price': 1,
-                            'orderbook': 1,
+                            'orderbook/{symbol}': 1,
                             'trades': 1,
                             'time': 1,
                             'get-stats': 1,
                         },
                     },
                     'private': {
+                        'get': {
+                            'user/open_orders': 1,
+                            'user/fees': 1,
+                        },
                         'post': {
+                            'order': 1,
+                            'order/peg': 1,
+                        },
+                        'put': {
+                            'order': 1,
+                        },
+                        'delete': {
+                            'order/cancelAllAfter': 1,
+                            'user/trade_history': 1,
+
                         },
                     },
+                },
+                'future': {
+                    'public': {
+                        'get': {
+                            'market_summary': 1,
+                            'ohlcv': 1,
+                            'price': 1,
+                            'orderbook/{symbol}': 1,
+                            'trades': 1,
+                            'time': 1,
+                            'get-stats': 1,
+                        },
+                    },
+
                 },
             },
             'timeframes': {
@@ -96,7 +124,7 @@ module.exports = class btse extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetGetInstruments (params);
+        const response = await this.SpotPublicGetGetInstruments (params);
         // [
         //   {
         //      "symbol":"1INCH-AED",
@@ -143,10 +171,10 @@ module.exports = class btse extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const minQuantity = this.safeInteger (market, 'minOrderSize');
+            const minQuantity = this.safeNumber (market, 'minOrderSize');
             const maxQuantity = this.safeNumber (market, 'maxOrderSize');
-            const makerFee = this.safeNumber (market, 'makerFee');
-            const takerFee = this.safeNumber (market, 'takerFee');
+            const minPriceIncrement = this.safeNumber (market, 'minPriceIncrement');
+            const active = this.safeString (market, 'active');
             const type = this.safeString (market, 'type');
             const precision = {
                 'amount': this.safeInteger (market, 'minQty'),
@@ -160,8 +188,8 @@ module.exports = class btse extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'maker': makerFee,
-                'taker': takerFee,
+                'maker': undefined,
+                'taker': undefined,
                 'linear': undefined,
                 'inverse': undefined,
                 'settle': undefined,
@@ -178,7 +206,7 @@ module.exports = class btse extends Exchange {
                 'expiryDatetime': undefined,
                 'contract': false,
                 'contractSize': undefined,
-                'active': undefined,
+                'active': (active === 'active'),
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -186,7 +214,114 @@ module.exports = class btse extends Exchange {
                         'max': maxQuantity,
                     },
                     'price': {
+                        'min': minPriceIncrement,
+                        'max': undefined,
+                    },
+                    'cost': {
                         'min': undefined,
+                        'max': undefined,
+                    },
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            });
+        }
+        const futuresResponse = await this.FuturePublicGetGetInstruments (params);
+        // [
+        // {
+        //     "symbol":"XRPPFC",
+        //     "last":0.6095,
+        //     "lowestAsk":0.6095,
+        //     "highestBid":0.6083,
+        //     "openInterest":559988.0,
+        //     "openInterestUSD":340930.27,
+        //     "percentageChange":0.8271,
+        //     "volume":995720.3549,
+        //     "high24Hr":0.665,
+        //     "low24Hr":0.5936,
+        //     "base":"XRP",
+        //     "quote":"USD",
+        //     "contractStart":0,
+        //     "contractEnd":0,
+        //     "active":true,
+        //     "timeBasedContract":false,
+        //     "openTime":0,
+        //     "closeTime":0,
+        //     "startMatching":0,
+        //     "inactiveTime":0,
+        //     "fundingRate":1.2499999999999999E-5,
+        //     "contractSize":1.0,
+        //     "maxPosition":5000000,
+        //     "minValidPrice":1.0E-4,
+        //     "minPriceIncrement":1.0E-4,
+        //     "minOrderSize":1,
+        //     "maxOrderSize":100000,
+        //     "minRiskLimit":50000,
+        //     "maxRiskLimit":500000,
+        //     "minSizeIncrement":1.0,
+        //     "availableSettlement":[
+        //        "USD",
+        //        "LTC",
+        //        "BTC",
+        //        "USDT",
+        //        "USDC",
+        //        "USDP"
+        //     ]
+        //  },
+        // ]
+        for (let i = 0; i < futuresResponse.length; i++) {
+            const market = futuresResponse[i];
+            const id = this.safeString (market, 'symbol');
+            const baseId = this.safeString (market, 'base');
+            const quoteId = this.safeString (market, 'quote');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const minQuantity = this.safeNumber (market, 'minOrderSize');
+            const maxQuantity = this.safeNumber (market, 'maxOrderSize');
+            const minPriceIncrement = this.safeNumber (market, 'minPriceIncrement');
+            const active = this.safeString (market, 'active');
+            const precision = {
+                'amount': this.safeInteger (market, 'minQty'),
+                'price': minQuantity,
+            };
+            result.push ({
+                'info': market,
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'maker': undefined,
+                'taker': undefined,
+                'linear': undefined,
+                'inverse': undefined,
+                'settle': undefined,
+                'settleId': undefined,
+                'type': undefined,
+                'spot': false,
+                'margin': undefined,
+                'future': true,
+                'swap': false,
+                'option': false,
+                'optionType': undefined,
+                'strike': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'contract': false,
+                'contractSize': undefined,
+                'active': (active === 'active'),
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': this.parseNumber (minQuantity),
+                        'max': maxQuantity,
+                    },
+                    'price': {
+                        'min': minPriceIncrement,
                         'max': undefined,
                     },
                     'cost': {
@@ -207,31 +342,42 @@ module.exports = class btse extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'instrumentId': market['id'],
+            'symbol': market['id'],
         };
-        const response = await this.publicGetGetOrderBook (this.extend (request, params));
+        if (limit) {
+            request['depth'] = limit;
+        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'spotPublicGetGetOrderBook',
+            'future': 'futurePublicGetGetOrderBook',
+        });
+        const response = await this[method] (this.extend (request, query));
         //
         // {
-        //     "result":{
-        //     "bids":[
-        //         [
-        //             0.068377,
-        //             1.3247,
-        //         ],
+        //     "buyQuote":[
+        //        {
+        //           "price":"0.6050",
+        //           "size":"9079"
+        //        },
         //     ],
-        //     "asks":[
-        //         [
-        //             0.068531,
-        //             0.2693,
-        //         ]
+        //     "sellQuote":[
+        //        {
+        //           "price":"0.6105",
+        //           "size":"20414"
+        //        }
         //     ],
-        //     "time":1642973720071624
-        //     }
-        // }
+        //     "lastPrice":"0.6103",
+        //     "timestamp":1643235771013,
+        //     "gain":-1,
+        //     "symbol":"XRPPFC"
+        //  }
         //
-        const result = this.safeValue (response, 'result', []);
-        const timestamp = this.safeIntegerProduct (result, 'time', 0.001);
-        return this.parseOrderBook (result, symbol, timestamp);
+        const result = this.safeValue (response, 'result');
+        const data = this.safeValue (result, 'data');
+        const orderBook = this.safeValue (data, 0);
+        const timestamp = this.safeInteger (orderBook, 'timestamp');
+        return this.parseOrderBook (orderBook, symbol, timestamp);
     }
 
     async fetchTicker (symbol, params = {}) {
