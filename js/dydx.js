@@ -18,32 +18,31 @@ module.exports = class dydx extends Exchange {
             'rateLimit': 100,
             'version': 'v3',
             'has': {
-                'CORS': true,
                 'publicAPI': true,
                 'privateAPI': true,
-                'cancelOrder': true,
-                'createDepositAddress': false,
-                'createOrder': true,
-                'editOrder': false,
-                'fetchBalance': true,
-                'fetchCanceledOrders': true,
-                'fetchClosedOrders': true,
+                'cancelOrder': undefined,
+                'createDepositAddress': undefined,
+                'createOrder': undefined,
+                'editOrder': undefined,
+                'fetchBalance': undefined,
+                'fetchCanceledOrders': undefined,
+                'fetchClosedOrders': undefined,
                 'fetchCurrencies': false,
-                'fetchDepositAddress': true,
-                'fetchDeposits': true,
+                'fetchDepositAddress': undefined,
+                'fetchDeposits': undefined,
                 'fetchMarkets': true,
-                'fetchMyTrades': false,
+                'fetchMyTrades': undefined,
                 'fetchOHLCV': true,
-                'fetchOrder': true,
+                'fetchOrder': undefined,
                 'fetchOrderBook': true,
-                'fetchOrders': true,
+                'fetchOrders': undefined,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFees': true,
-                'fetchWithdrawals': true,
-                'withdraw': true,
+                'fetchTradingFees': undefined,
+                'fetchWithdrawals': undefined,
+                'withdraw': undefined,
             },
             'timeframes': {
                 '1m': '1MIN',
@@ -86,7 +85,6 @@ module.exports = class dydx extends Exchange {
                         'usernames',
                         'time',
                         'leaderboard-pnl',
-                        'rewards/public-retroactive-mining',
                     ],
                     'put': [
                         'emails/verify-email',
@@ -94,6 +92,18 @@ module.exports = class dydx extends Exchange {
                 },
                 'private': {
                     'get': [
+                        'rewards/public-retroactive-mining', // TODO: write to exchange API team, that this endpoint is listed under 'public' endpoints, but needs apikey
+                        'rewards/retroactive-mining',
+                        'active-orders',
+                        'recovery',
+                        'accounts/{id}',
+                        'accounts/leaderboard-pnl/{period}',
+                        'orders/{id}',
+                        'orders/client/{id}',
+                        'rewards/weight',
+                        'rewards/liquidity',
+                        'trades/BTC-USD',
+                        'trades/BTC-USD',
                         'registration',
                         'api-keys',
                         'users',
@@ -101,12 +111,15 @@ module.exports = class dydx extends Exchange {
                         'positions',
                         'transfers',
                         'orders',
-                        'orders/client',
+                        // 'orders/client', ? this endpoint was here, but not listed in apidocs
                         'fills',
                         'funding',
                         'historical-pnl',
                     ],
                     'post': [
+                        'testnet/tokens',
+                        'onboarding',
+                        'transfers',
                         'api-keys',
                         'accounts',
                         'withdrawals',
@@ -116,9 +129,12 @@ module.exports = class dydx extends Exchange {
                     'delete': [
                         'api-keys',
                         'orders',
+                        'orders/{id}',
+                        'active-orders',
                     ],
                     'put': [
                         'users',
+                        'emails/send-verification-email',
                     ],
                 },
             },
@@ -567,7 +583,7 @@ module.exports = class dydx extends Exchange {
             query = this.urlencode (params);
             url = url + '?' + query;
         } else {
-            body = this.json (params);
+            body = params;
         }
         const timestamp = this.milliseconds ();
         if (api === 'private') {
@@ -582,12 +598,10 @@ module.exports = class dydx extends Exchange {
                     headers['DYDX-ETHEREUM-ADDRESS'] = this.ethereumAddress;
                     payload['action'] = 'DYDX-ONBOARDING';
                     payload['onlySignOn'] = 'https://trade.dydx.exchange';
-                    const signature = this.hmac (this.encode (payload), this.encode (this.secret));
-                    headers['DYDX-SIGNATURE'] = signature; // EIP-712-compliant Ethereum signature
+                    // EIP-712-compliant Ethereum signature
                 }
             } else if (method === 'DELETE') {
                 if (path === 'api-keys') {
-                    payload = this.parseJson (payload); // because in above line, it was stringified
                     // Ethereum Key Private Endpoints: POST, DELETE /v3/api-keys
                     headers['DYDX-TIMESTAMP'] = timestamp;
                     headers['DYDX-ETHEREUM-ADDRESS'] = this.ethereumAddress;
@@ -595,17 +609,17 @@ module.exports = class dydx extends Exchange {
                     payload['requestPath'] = '/v3/api-keys';
                     payload['body'] = ''; // empty for GET and DELETE
                     payload['timestamp'] = timestamp;
-                    const signature = this.hmac (this.encode (payload), this.encode (this.secret));
-                    headers['DYDX-SIGNATURE'] = signature; // EIP-712-compliant Ethereum signature
+                    // EIP-712-compliant Ethereum signature
                 }
             } else {
                 // All other API Key Private Endpoints
                 headers['DYDX-TIMESTAMP'] = timestamp;
                 headers['DYDX-ETHEREUM-ADDRESS'] = this.ethereumAddress;
                 headers['DYDX-PASSPHRASE'] = this.passPhrase;
-                const signature = this.hmac (this.encode (payload), this.encode (this.secret));
-                headers['DYDX-SIGNATURE'] = signature; // SHA-256 HMAC produced as described below, and encoded as a Base64 string
+                // SHA-256 HMAC produced as described below, and encoded as a Base64 string
             }
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret));
+            headers['DYDX-SIGNATURE'] = signature;
         }
         return { 'url': url, 'method': method, 'body': payload, 'headers': headers };
     }
