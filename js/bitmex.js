@@ -329,6 +329,8 @@ module.exports = class bitmex extends Exchange {
             const expiryDatetime = this.safeString (market, 'expiry');
             const expiry = this.parse8601 (expiryDatetime);
             const inverse = this.safeValue (market, 'isInverse');
+            const status = this.safeString (market, 'state');
+            let active = status !== 'Unlisted';
             if (swap) {
                 type = 'swap';
             } else if (id.indexOf ('B_') >= 0) {
@@ -343,6 +345,7 @@ module.exports = class bitmex extends Exchange {
                 index = true;
                 type = 'index';
                 symbol = id;
+                active = false;
             }
             const positionId = this.safeString2 (market, 'positionCurrency', 'quoteCurrency');
             const position = this.safeCurrencyCode (positionId);
@@ -350,7 +353,9 @@ module.exports = class bitmex extends Exchange {
             const lotSize = this.safeNumber (market, 'lotSize');
             const tickSize = this.safeNumber (market, 'tickSize');
             const maxOrderQty = this.safeNumber (market, 'maxOrderQty');
-            const status = this.safeString (market, 'state');
+            const contract = !index;
+            const initMargin = this.safeString (market, 'initMargin', '1');
+            const maxLeverage = this.parseNumber (Precise.stringDiv ('1', initMargin));
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -368,13 +373,13 @@ module.exports = class bitmex extends Exchange {
                 'option': false,
                 'prediction': prediction,
                 'index': index,
-                'contract': true,
-                'linear': !inverse,
-                'inverse': inverse,
+                'contract': contract,
+                'linear': contract ? !inverse : undefined,
+                'inverse': contract ? inverse : undefined,
                 'taker': this.safeNumber (market, 'takerFee'),
                 'maker': this.safeNumber (market, 'makerFee'),
-                'contractSize': undefined,
-                'active': status !== 'Unlisted',
+                'contractSize': this.safeNumber (market, 'multiplier'),
+                'active': active,
                 'expiry': expiry,
                 'expiryDatetime': expiryDatetime,
                 'strike': this.safeNumber (market, 'optionStrikePrice'),
@@ -385,8 +390,8 @@ module.exports = class bitmex extends Exchange {
                 },
                 'limits': {
                     'leverage': {
-                        'min': this.parseNumber ('1'),
-                        'max': this.parseNumber (Precise.stringDiv ('1', this.safeString (market, 'initMargin', '1'))),
+                        'min': contract ? this.parseNumber ('1') : undefined,
+                        'max': contract ? maxLeverage : undefined,
                     },
                     'amount': {
                         'min': positionIsQuote ? undefined : lotSize,
