@@ -389,7 +389,7 @@ module.exports = class dydx extends Exchange {
         const symbol = this.safeSymbol (undefined, market, '-');
         const sideString = this.safeString (trade, 'side');
         const side = (sideString === 'BUY') ? 'buy' : 'sell';
-        const takerOrMaker = true;
+        const takerOrMaker = 'taker';
         if (id === undefined) { // reconstruct artificially, if it doesn't exist
             id = this.syntheticTradeId (market, timestamp, side, amount, price);
         }
