@@ -49,6 +49,15 @@ module.exports = class btse extends Exchange {
                 'transfer': false,
                 'withdraw': false,
             },
+            'timeframes': {
+                '1m': '1',
+                '5m': '5',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '6h': '360',
+                '1d': '1440',
+            },
             'urls': {
                 'logo': '',
                 'api': {
@@ -349,8 +358,8 @@ module.exports = class btse extends Exchange {
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
         const method = this.getSupportedMapping (marketType, {
-            'spot': 'spotPublicGetGetOrderBook',
-            'future': 'futurePublicGetGetOrderBook',
+            'spot': 'spotPublicGetGetOrderBookL2',
+            'future': 'futurePublicGetGetOrderBookL2',
         });
         const response = await this[method] (this.extend (request, query));
         //
@@ -373,11 +382,8 @@ module.exports = class btse extends Exchange {
         //     "symbol":"XRPPFC"
         //  }
         //
-        const result = this.safeValue (response, 'result');
-        const data = this.safeValue (result, 'data');
-        const orderBook = this.safeValue (data, 0);
-        const timestamp = this.safeInteger (orderBook, 'timestamp');
-        return this.parseOrderBook (orderBook, symbol, timestamp);
+        const timestamp = this.safeInteger (response, 'timestamp');
+        return this.parseOrderBook (response, symbol, timestamp, 'buyQuote', 'sellQuote');
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -524,22 +530,22 @@ module.exports = class btse extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined) {
         //
-        //  {
-        //       "time":1642973286229265,
-        //       "low":0.068584,
-        //       "high":0.068584,
-        //       "open":0.068584,
-        //       "close":0.068584,
-        //       "volume":0.0338
-        //  },
+        // [
+        //    1643155200,
+        //    2460.6,
+        //    2722.75,
+        //    2402.25,
+        //    2464.3,
+        //    2.7827867792979002E7
+        // ]
         //
         return [
-            this.safeIntegerProduct (ohlcv, 'time', 0.001),
-            this.safeNumber (ohlcv, 'open'),
-            this.safeNumber (ohlcv, 'high'),
-            this.safeNumber (ohlcv, 'low'),
-            this.safeNumber (ohlcv, 'close'),
-            this.safeNumber (ohlcv, 'volume'),
+            this.Integer (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
         ];
     }
 
@@ -547,25 +553,28 @@ module.exports = class btse extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'instrumentId': market['id'],
-            'size': this.timeframes[timeframe],
+            'symbol': market['id'],
+            'resolution': this.timeframes[timeframe],
         };
-        const response = await this.publicGetGetCandles (this.extend (request, params));
-        // {
-        //     "result":{
-        //     "data":[
-        //         {
-        //             "time":1642973286229265,
-        //             "low":0.068584,
-        //             "high":0.068584,
-        //             "open":0.068584,
-        //             "close":0.068584,
-        //             "volume":0.0338
-        //         },
-        // }
-        const resultResponse = this.safeValue (response, 'result', {});
-        const data = this.safeValue (resultResponse, 'data', []);
-        return this.parseOHLCVs (data, market, timeframe, since, limit);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOHLCV', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'spotPublicGetPublicGetCandlestick',
+            'future': 'derivativesPublicGetPublicGetCandlestick',
+        });
+        const response = await this[method] (this.extend (request, query));
+        //
+        //     [
+        //         [
+        //            1643155200,
+        //            2460.6,
+        //            2722.75,
+        //            2402.25,
+        //            2464.3,
+        //            2.7827867792979002E7
+        //         ],
+        //     ]
+        //
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
