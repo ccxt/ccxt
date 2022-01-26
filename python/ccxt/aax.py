@@ -117,7 +117,7 @@ class aax(Exchange):
                 'fetchWithdrawalWhitelist': None,
                 'loadLeverageBrackets': None,
                 'reduceMargin': None,
-                'setLeverage': None,
+                'setLeverage': True,
                 'setMarginMode': None,
                 'setPositionMode': None,
                 'signIn': None,
@@ -2196,6 +2196,21 @@ class aax(Exchange):
                 'amount': self.safe_number(entry, 'fundingFee'),
             })
         return result
+
+    def set_leverage(self, leverage, symbol=None, params={}):
+        self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        if (leverage < 1) or (leverage > 100):
+            raise BadRequest(self.id + ' leverage should be between 1 and 100')
+        market = self.market(symbol)
+        if market['type'] != 'swap':
+            raise BadSymbol(self.id + ' setLeverage() supports swap contracts only')
+        request = {
+            'symbol': market['id'],
+            'leverage': leverage,
+        }
+        return self.privatePostFuturesPositionLeverage(self.extend(request, params))
 
     def nonce(self):
         return self.milliseconds()
