@@ -207,11 +207,11 @@ module.exports = class graviex extends Exchange {
         params['access_key'] = this.apiKey;
         let url = host + path;
         const sorted = this.keysort (params);
-        const paramencoded = this.urlencode (sorted);
-        // const sign_str = method + '|' + path + '|' + paramencoded;
-        // const signature = this.hmac (sign_str, this.secret, 'sha256');
-        // sorted['signature'] = signature;
-        // paramencoded = this.urlencode (sorted);
+        let paramencoded = this.urlencode (sorted);
+        const sign_str = method + '|' + path + '|' + paramencoded;
+        const signature = this.hmac (sign_str, this.secret, 'sha256');
+        sorted['signature'] = signature;
+        paramencoded = this.urlencode (sorted);
         if (is_post) {
             body = paramencoded;
         } else {
