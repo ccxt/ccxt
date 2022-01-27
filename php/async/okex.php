@@ -725,7 +725,7 @@ class okex extends Exchange {
         //         "baseCcy":"BTC",
         //         "category":"1",
         //         "ctMult":"",
-        //         "ctType":"", // $inverse, $linear
+        //         "ctType":"", // inverse, linear
         //         "ctVal":"",
         //         "ctValCcy":"",
         //         "expTime":"",
@@ -777,20 +777,20 @@ class okex extends Exchange {
         $contract = $swap || $futures || $option;
         $baseId = $this->safe_string($market, 'baseCcy');
         $quoteId = $this->safe_string($market, 'quoteCcy');
-        $settleCurrency = $this->safe_string($market, 'settleCcy');
-        $settle = $this->safe_currency_code($settleCurrency);
+        $settleId = $this->safe_string($market, 'settleCcy');
+        $settle = $this->safe_currency_code($settleId);
         $underlying = $this->safe_string($market, 'uly');
         if (($underlying !== null) && !$spot) {
             $parts = explode('-', $underlying);
             $baseId = $this->safe_string($parts, 0);
             $quoteId = $this->safe_string($parts, 1);
         }
-        $inverse = $contract ? ($baseId === $settleCurrency) : null;
-        $linear = $contract ? ($quoteId === $settleCurrency) : null;
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $symbol = $base . '/' . $quote;
         $expiry = null;
+        $strikePrice = null;
+        $optionType = null;
         if ($contract) {
             $symbol = $symbol . ':' . $settle;
             $expiry = $this->safe_integer($market, 'expTime');
@@ -802,66 +802,66 @@ class okex extends Exchange {
                 $strikePrice = $this->safe_string($market, 'stk');
                 $optionType = $this->safe_string($market, 'optType');
                 $symbol = $symbol . '-' . $strikePrice . '-' . $optionType;
+                $optionType = ($optionType === 'P') ? 'put' : 'call';
             }
         }
         $tickSize = $this->safe_string($market, 'tickSz');
-        $precision = array(
-            'amount' => $this->safe_number($market, 'lotSz'),
-            'price' => $this->parse_number($tickSize),
-        );
         $minAmountString = $this->safe_string($market, 'minSz');
         $minAmount = $this->parse_number($minAmountString);
-        $minCost = null;
-        if (($minAmount !== null) && ($tickSize !== null)) {
-            $minCost = $this->parse_number(Precise::string_mul($tickSize, $minAmountString));
-        }
-        $active = true;
         $fees = $this->safe_value_2($this->fees, $type, 'trading', array());
-        $contractSize = null;
-        if ($contract) {
-            $contractSize = $this->safe_number($market, 'ctVal');
+        $precisionPrice = $this->parse_number($tickSize);
+        $maxLeverage = $this->safe_string($market, 'lever', '1');
+        if ($maxLeverage === '') {
+            $maxLeverage = '1';
         }
-        $leverage = $this->safe_number($market, 'lever', 1);
+        $maxLeverage = Precise::string_max($maxLeverage, '1');
         return array_merge($fees, array(
             'id' => $id,
             'symbol' => $symbol,
             'base' => $base,
             'quote' => $quote,
+            'settle' => $settle,
             'baseId' => $baseId,
             'quoteId' => $quoteId,
-            'settleId' => $settleCurrency,
-            'settle' => $settle,
-            'info' => $market,
+            'settleId' => $settleId,
             'type' => $type,
             'spot' => $spot,
-            'futures' => $futures,
+            'margin' => $spot && (Precise::string_gt($maxLeverage, '1')),
             'swap' => $swap,
-            'contract' => $contract,
+            'futures' => $futures,
             'option' => $option,
-            'linear' => $linear,
-            'inverse' => $inverse,
-            'active' => $active,
-            'contractSize' => $contractSize,
-            'precision' => $precision,
+            'active' => true,
+            'contract' => $contract,
+            'linear' => $contract ? ($quoteId === $settleId) : null,
+            'inverse' => $contract ? ($baseId === $settleId) : null,
+            'contractSize' => $contract ? $this->safe_number($market, 'ctVal') : null,
             'expiry' => $expiry,
             'expiryDatetime' => $this->iso8601($expiry),
+            'strike' => $strikePrice,
+            'optionType' => $optionType,
+            'precision' => array(
+                'price' => $precisionPrice,
+                'amount' => $this->safe_number($market, 'lotSz'),
+            ),
             'limits' => array(
+                'leverage' => array(
+                    'min' => $this->parse_number('1'),
+                    'max' => $this->parse_number($maxLeverage),
+                ),
                 'amount' => array(
                     'min' => $minAmount,
                     'max' => null,
                 ),
                 'price' => array(
-                    'min' => $precision['price'],
+                    'min' => $precisionPrice,
                     'max' => null,
                 ),
                 'cost' => array(
-                    'min' => $minCost,
+                    'min' => null,
                     'max' => null,
                 ),
-                'leverage' => array(
-                    'max' => $leverage,
-                ),
             ),
+            'info' => $market,
         ));
     }
 

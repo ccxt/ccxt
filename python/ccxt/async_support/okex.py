@@ -790,19 +790,19 @@ class okex(Exchange):
         contract = swap or futures or option
         baseId = self.safe_string(market, 'baseCcy')
         quoteId = self.safe_string(market, 'quoteCcy')
-        settleCurrency = self.safe_string(market, 'settleCcy')
-        settle = self.safe_currency_code(settleCurrency)
+        settleId = self.safe_string(market, 'settleCcy')
+        settle = self.safe_currency_code(settleId)
         underlying = self.safe_string(market, 'uly')
         if (underlying is not None) and not spot:
             parts = underlying.split('-')
             baseId = self.safe_string(parts, 0)
             quoteId = self.safe_string(parts, 1)
-        inverse = (baseId == settleCurrency) if contract else None
-        linear = (quoteId == settleCurrency) if contract else None
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         symbol = base + '/' + quote
         expiry = None
+        strikePrice = None
+        optionType = None
         if contract:
             symbol = symbol + ':' + settle
             expiry = self.safe_integer(market, 'expTime')
@@ -813,62 +813,63 @@ class okex(Exchange):
                 strikePrice = self.safe_string(market, 'stk')
                 optionType = self.safe_string(market, 'optType')
                 symbol = symbol + '-' + strikePrice + '-' + optionType
+                optionType = 'put' if (optionType == 'P') else 'call'
         tickSize = self.safe_string(market, 'tickSz')
-        precision = {
-            'amount': self.safe_number(market, 'lotSz'),
-            'price': self.parse_number(tickSize),
-        }
         minAmountString = self.safe_string(market, 'minSz')
         minAmount = self.parse_number(minAmountString)
-        minCost = None
-        if (minAmount is not None) and (tickSize is not None):
-            minCost = self.parse_number(Precise.string_mul(tickSize, minAmountString))
-        active = True
         fees = self.safe_value_2(self.fees, type, 'trading', {})
-        contractSize = None
-        if contract:
-            contractSize = self.safe_number(market, 'ctVal')
-        leverage = self.safe_number(market, 'lever', 1)
+        precisionPrice = self.parse_number(tickSize)
+        maxLeverage = self.safe_string(market, 'lever', '1')
+        if maxLeverage == '':
+            maxLeverage = '1'
+        maxLeverage = Precise.string_max(maxLeverage, '1')
         return self.extend(fees, {
             'id': id,
             'symbol': symbol,
             'base': base,
             'quote': quote,
+            'settle': settle,
             'baseId': baseId,
             'quoteId': quoteId,
-            'settleId': settleCurrency,
-            'settle': settle,
-            'info': market,
+            'settleId': settleId,
             'type': type,
             'spot': spot,
-            'futures': futures,
+            'margin': spot and (Precise.string_gt(maxLeverage, '1')),
             'swap': swap,
-            'contract': contract,
+            'futures': futures,
             'option': option,
-            'linear': linear,
-            'inverse': inverse,
-            'active': active,
-            'contractSize': contractSize,
-            'precision': precision,
+            'active': True,
+            'contract': contract,
+            'linear': (quoteId == settleId) if contract else None,
+            'inverse': (baseId == settleId) if contract else None,
+            'contractSize': self.safe_number(market, 'ctVal') if contract else None,
             'expiry': expiry,
             'expiryDatetime': self.iso8601(expiry),
+            'strike': strikePrice,
+            'optionType': optionType,
+            'precision': {
+                'price': precisionPrice,
+                'amount': self.safe_number(market, 'lotSz'),
+            },
             'limits': {
+                'leverage': {
+                    'min': self.parse_number('1'),
+                    'max': self.parse_number(maxLeverage),
+                },
                 'amount': {
                     'min': minAmount,
                     'max': None,
                 },
                 'price': {
-                    'min': precision['price'],
+                    'min': precisionPrice,
                     'max': None,
                 },
                 'cost': {
-                    'min': minCost,
+                    'min': None,
                     'max': None,
                 },
-                'leverage': {
-                    'max': leverage,
-                },
             },
+            'info': market,
         })
 
     async def fetch_markets_by_type(self, type, params={}):
