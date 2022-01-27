@@ -20,7 +20,7 @@ class woo(Exchange):
     def describe(self):
         return self.deep_extend(super(woo, self).describe(), {
             'id': 'woo',
-            'name': 'Woo',
+            'name': 'WOO X',
             'countries': ['KY'],  # Cayman Islands
             'rateLimit': 100,
             'version': 'v1',
@@ -89,8 +89,8 @@ class woo(Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg',
                 'api': {
-                    'public': 'https://api.woo.org',
-                    'private': 'https://api.woo.org',
+                    'public': 'https://api.{hostname}',
+                    'private': 'https://api.{hostname}',
                 },
                 # TEST(stating) api( https://support.woo.org/hc/en-001/articles/4406352945305--Institutional-Account-Welcome-Packet-V-2) doesn't work at self moment, even thou
                 # 'test': {

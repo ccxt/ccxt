@@ -51,6 +51,7 @@ class mexc(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
+                'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -530,13 +531,13 @@ class mexc(Exchange):
                 'swap': True,
                 'future': False,
                 'option': False,
+                'active': (state == '0'),
                 'contract': True,
                 'linear': True,
                 'inverse': False,
                 'taker': self.safe_number(market, 'takerFeeRate'),
                 'maker': self.safe_number(market, 'makerFeeRate'),
                 'contractSize': self.safe_number(market, 'contractSize'),
-                'active': (state == '0'),
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
@@ -2040,6 +2041,69 @@ class mexc(Exchange):
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], responseCode, feedback)
             raise ExchangeError(feedback)
+
+    def parse_funding_rate(self, fundingRate, market=None):
+        #
+        #     {
+        #         "symbol": "BTC_USDT",
+        #         "fundingRate": 0.000014,
+        #         "maxFundingRate": 0.003,
+        #         "minFundingRate": -0.003,
+        #         "collectCycle": 8,
+        #         "nextSettleTime": 1643241600000,
+        #         "timestamp": 1643240373359
+        #     }
+        #
+        nextFundingRate = self.safe_number(fundingRate, 'fundingRate')
+        nextFundingTimestamp = self.safe_integer(fundingRate, 'nextSettleTime')
+        marketId = self.safe_string(fundingRate, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
+        timestamp = self.safe_integer(fundingRate, 'timestamp')
+        datetime = self.iso8601(timestamp)
+        return {
+            'info': fundingRate,
+            'symbol': symbol,
+            'markPrice': None,
+            'indexPrice': None,
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'fundingRate': None,
+            'fundingTimestamp': None,
+            'fundingDatetime': None,
+            'nextFundingRate': nextFundingRate,
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+        }
+
+    def fetch_funding_rate(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.contractPublicGetFundingRateSymbol(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "code": 0,
+        #         "data": {
+        #             "symbol": "BTC_USDT",
+        #             "fundingRate": 0.000014,
+        #             "maxFundingRate": 0.003,
+        #             "minFundingRate": -0.003,
+        #             "collectCycle": 8,
+        #             "nextSettleTime": 1643241600000,
+        #             "timestamp": 1643240373359
+        #         }
+        #     }
+        #
+        result = self.safe_value(response, 'data', {})
+        return self.parse_funding_rate(result, market)
 
     def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
         #

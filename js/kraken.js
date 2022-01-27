@@ -738,8 +738,10 @@ module.exports = class kraken extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTickers() requires a symbols argument, an array of symbols');
+        }
         await this.loadMarkets ();
-        symbols = (symbols === undefined) ? this.symbols : symbols;
         const marketIds = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];

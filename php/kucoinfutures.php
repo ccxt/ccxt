@@ -38,6 +38,8 @@ class kucoinfutures extends kucoin {
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
@@ -414,38 +416,40 @@ class kucoinfutures extends kucoin {
             $quoteMinSize = $this->safe_number($market, 'quoteMinSize');
             $inverse = $this->safe_value($market, 'isInverse');
             $status = $this->safe_string($market, 'status');
-            $active = $status === 'Open';
+            $multiplier = $this->safe_string($market, 'multiplier');
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => $settleId,
                 'base' => $base,
                 'quote' => $quote,
                 'settle' => $settle,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'settleId' => $settleId,
                 'type' => $type,
                 'spot' => false,
                 'margin' => false,
                 'swap' => $swap,
                 'future' => $future,
                 'option' => false,
-                'active' => $active,
+                'active' => ($status === 'Open'),
                 'contract' => true,
                 'linear' => !$inverse,
                 'inverse' => $inverse,
                 'taker' => $this->safe_number($market, 'takerFeeRate'),
                 'maker' => $this->safe_number($market, 'makerFeeRate'),
-                'contractSize' => $this->parse_number(Precise::string_abs($this->safe_string($market, 'multiplier'))),
+                'contractSize' => $this->parse_number(Precise::string_abs($multiplier)),
                 'expiry' => $expiry,
                 'expiryDatetime' => $this->iso8601($expiry),
+                'strike' => null,
+                'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_number($market, 'lotSize'),
                     'price' => $this->safe_number($market, 'tickSize'),
+                    'amount' => $this->safe_number($market, 'lotSize'),
                 ),
                 'limits' => array(
                     'leverage' => array(
-                        'min' => null,
+                        'min' => $this->parse_number('1'),
                         'max' => $this->safe_number($market, 'maxLeverage'),
                     ),
                     'amount' => array(

@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.70.73",
+  "version": "1.70.86",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -596,7 +596,8 @@
     "WazirX",
     "FMFW.io",
     "woo.org",
-    "Woo"
+    "Woo",
+    "WOO X"
   ],
   "collective": {
     "type": "opencollective",

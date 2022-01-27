@@ -747,8 +747,10 @@ class kraken extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        if ($symbols === null) {
+            throw new ArgumentsRequired($this->id . ' fetchTickers() requires a $symbols argument, an array of symbols');
+        }
         $this->load_markets();
-        $symbols = ($symbols === null) ? $this->symbols : $symbols;
         $marketIds = array();
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
