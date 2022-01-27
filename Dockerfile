@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:impish-20211015
 
 # Supresses unwanted user interaction (like "Please select the geographic area" when installing tzdata)
 ENV DEBIAN_FRONTEND=noninteractive
