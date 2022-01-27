@@ -69,6 +69,10 @@ module.exports = class btse extends Exchange {
                     'spot': 'https://api.btse.com/spot/api/v3.2',
                     'future': 'https://api.btse.com/futures/api/v2.1',
                 },
+                'test': {
+                    'spot': '',
+                    'future': 'https://testapi.btse.io/futures',
+                },
                 'www': 'https://www.btse.com/en/home',
                 'doc': 'https://btsecom.github.io/docs/',
             },
@@ -282,7 +286,13 @@ module.exports = class btse extends Exchange {
             const quoteId = this.safeString (market, 'quote');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
+            let symbol = base + '/' + quote + ':' + quote;
+            const expiry = this.safeIntegerProduct (market, 'contractEnd', 1000);
+            let type = 'swap';
+            if (expiry !== 0) {
+                type = 'future';
+                symbol = symbol + '-' + this.yymmdd (expiry);
+            }
             const minQuantity = this.safeNumber (market, 'minOrderSize');
             const maxQuantity = this.safeNumber (market, 'maxOrderSize');
             const minPriceIncrement = this.safeNumber (market, 'minPriceIncrement');
@@ -305,11 +315,11 @@ module.exports = class btse extends Exchange {
                 'inverse': undefined,
                 'settle': undefined,
                 'settleId': undefined,
-                'type': undefined,
+                'type': type,
                 'spot': false,
                 'margin': undefined,
-                'future': true,
-                'swap': false,
+                'future': (type === 'future'),
+                'swap': (type === 'swap'),
                 'option': false,
                 'optionType': undefined,
                 'strike': undefined,
