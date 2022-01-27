@@ -47,6 +47,8 @@ class kucoinfutures(kucoin):
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
@@ -418,38 +420,40 @@ class kucoinfutures(kucoin):
             quoteMinSize = self.safe_number(market, 'quoteMinSize')
             inverse = self.safe_value(market, 'isInverse')
             status = self.safe_string(market, 'status')
-            active = status == 'Open'
+            multiplier = self.safe_string(market, 'multiplier')
             result.append({
                 'id': id,
                 'symbol': symbol,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
                 'base': base,
                 'quote': quote,
                 'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
                 'type': type,
                 'spot': False,
                 'margin': False,
                 'swap': swap,
                 'future': future,
                 'option': False,
-                'active': active,
+                'active': (status == 'Open'),
                 'contract': True,
                 'linear': not inverse,
                 'inverse': inverse,
                 'taker': self.safe_number(market, 'takerFeeRate'),
                 'maker': self.safe_number(market, 'makerFeeRate'),
-                'contractSize': self.parse_number(Precise.string_abs(self.safe_string(market, 'multiplier'))),
+                'contractSize': self.parse_number(Precise.string_abs(multiplier)),
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
+                'strike': None,
+                'optionType': None,
                 'precision': {
-                    'amount': self.safe_number(market, 'lotSize'),
                     'price': self.safe_number(market, 'tickSize'),
+                    'amount': self.safe_number(market, 'lotSize'),
                 },
                 'limits': {
                     'leverage': {
-                        'min': None,
+                        'min': self.parse_number('1'),
                         'max': self.safe_number(market, 'maxLeverage'),
                     },
                     'amount': {

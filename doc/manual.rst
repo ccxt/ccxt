@@ -1516,7 +1516,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
           :alt: woo
      
      - woo
-     - `Woo <https://referral.woo.org/BAJS6oNmZb3vi3RGA>`__
+     - `WOO X <https://referral.woo.org/BAJS6oNmZb3vi3RGA>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://docs.woo.org/
           :alt: API Version 1
