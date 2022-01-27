@@ -36,6 +36,8 @@ module.exports = class kucoinfutures extends kucoin {
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
@@ -412,38 +414,40 @@ module.exports = class kucoinfutures extends kucoin {
             const quoteMinSize = this.safeNumber (market, 'quoteMinSize');
             const inverse = this.safeValue (market, 'isInverse');
             const status = this.safeString (market, 'status');
-            const active = status === 'Open';
+            const multiplier = this.safeString (market, 'multiplier');
             result.push ({
                 'id': id,
                 'symbol': symbol,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
                 'base': base,
                 'quote': quote,
                 'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
                 'type': type,
                 'spot': false,
                 'margin': false,
                 'swap': swap,
                 'future': future,
                 'option': false,
-                'active': active,
+                'active': (status === 'Open'),
                 'contract': true,
                 'linear': !inverse,
                 'inverse': inverse,
                 'taker': this.safeNumber (market, 'takerFeeRate'),
                 'maker': this.safeNumber (market, 'makerFeeRate'),
-                'contractSize': this.parseNumber (Precise.stringAbs (this.safeString (market, 'multiplier'))),
+                'contractSize': this.parseNumber (Precise.stringAbs (multiplier)),
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
+                'strike': undefined,
+                'optionType': undefined,
                 'precision': {
-                    'amount': this.safeNumber (market, 'lotSize'),
                     'price': this.safeNumber (market, 'tickSize'),
+                    'amount': this.safeNumber (market, 'lotSize'),
                 },
                 'limits': {
                     'leverage': {
-                        'min': undefined,
+                        'min': this.parseNumber ('1'),
                         'max': this.safeNumber (market, 'maxLeverage'),
                     },
                     'amount': {
