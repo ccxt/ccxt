@@ -37,6 +37,7 @@ module.exports = class mexc extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
+                'fetchFundingHistory': true,
                 'fetchFundingRateHistory': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -2160,6 +2161,84 @@ module.exports = class mexc extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], responseCode, feedback);
             throw new ExchangeError (feedback);
         }
+    }
+
+    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
+        }
+        let pageNum = undefined;
+        let pageSize = undefined;
+        if (params['page_num'] === undefined) {
+            pageNum = 1;
+        } else {
+            pageNum = params['page_num'];
+        }
+        if (params['page_size'] === undefined) {
+            pageSize = 20;
+        } else {
+            pageSize = params['page_size'];
+        }
+        const request = {
+            // 'symbol': market['id'],
+            // 'position_id: positionId,
+            'page_num': pageNum,
+            'page_size': pageSize,
+        };
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        const response = await this.contractPrivateGetPositionFundingRecords (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "code": 0,
+        //         "data": {
+        //             "pageSize": 20,
+        //             "totalCount": 2,
+        //             "totalPage": 1,
+        //             "currentPage": 1,
+        //             "resultList": [
+        //                 {
+        //                     "id": 7423910,
+        //                     "symbol": "BTC_USDT",
+        //                     "positionType": 1,
+        //                     "positionValue": 29.30024,
+        //                     "funding": 0.00076180624,
+        //                     "rate": -0.000026,
+        //                     "settleTime": 1643299200000
+        //                 },
+        //                 {
+        //                     "id": 7416473,
+        //                     "symbol": "BTC_USDT",
+        //                     "positionType": 1,
+        //                     "positionValue": 28.9188,
+        //                     "funding": 0.0014748588,
+        //                     "rate": -0.000051,
+        //                     "settleTime": 1643270400000
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const resultList = this.safeValue (data, 'resultList', []);
+        const result = [];
+        for (let i = 0; i < resultList.length; i++) {
+            const entry = resultList[i];
+            const timestamp = this.safeString (entry, 'settleTime');
+            result.push ({
+                'info': entry,
+                'symbol': symbol,
+                'code': undefined,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'id': this.safeNumber (entry, 'id'),
+                'amount': this.safeNumber (entry, 'funding'),
+            });
+        }
+        return result;
     }
 
     async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
