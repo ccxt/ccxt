@@ -371,26 +371,41 @@ module.exports = class lykke extends Exchange {
             const [ baseId, quoteId ] = name.split ('/');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
             const pricePrecision = this.safeString (market, 'Accuracy');
             const priceLimit = this.parsePrecision (pricePrecision);
-            const precision = {
-                'price': parseInt (pricePrecision),
-                'amount': this.safeInteger (market, 'InvertedAccuracy'),
-            };
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': undefined,
                 'quoteId': undefined,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'margin': undefined,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'active': true,
-                'info': market,
-                'precision': precision,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': parseInt (pricePrecision),
+                    'amount': this.safeInteger (market, 'InvertedAccuracy'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'MinVolume'),
                         'max': undefined,
@@ -404,6 +419,7 @@ module.exports = class lykke extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': market,
             });
         }
         return result;
