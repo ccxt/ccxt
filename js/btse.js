@@ -83,6 +83,7 @@ module.exports = class btse extends Exchange {
                             'market_summary': 1,
                             'ohlcv': 1,
                             'price': 1,
+                            'orderbook/L2': 1,
                             'orderbook/{symbol}': 1,
                             'trades': 1,
                             'time': 1,
@@ -113,6 +114,7 @@ module.exports = class btse extends Exchange {
                             'market_summary': 1,
                             'ohlcv': 1,
                             'price': 1,
+                            'orderbook/L2': 1,
                             'orderbook/{symbol}': 1,
                             'trades': 1,
                             'time': 1,
@@ -238,46 +240,46 @@ module.exports = class btse extends Exchange {
         }
         const futuresResponse = await this.futurePublicGetMarketSummary (params);
         // [
-        // {
-        //     "symbol":"XRPPFC",
-        //     "last":0.6095,
-        //     "lowestAsk":0.6095,
-        //     "highestBid":0.6083,
-        //     "openInterest":559988.0,
-        //     "openInterestUSD":340930.27,
-        //     "percentageChange":0.8271,
-        //     "volume":995720.3549,
-        //     "high24Hr":0.665,
-        //     "low24Hr":0.5936,
-        //     "base":"XRP",
-        //     "quote":"USD",
-        //     "contractStart":0,
-        //     "contractEnd":0,
-        //     "active":true,
-        //     "timeBasedContract":false,
-        //     "openTime":0,
-        //     "closeTime":0,
-        //     "startMatching":0,
-        //     "inactiveTime":0,
-        //     "fundingRate":1.2499999999999999E-5,
-        //     "contractSize":1.0,
-        //     "maxPosition":5000000,
-        //     "minValidPrice":1.0E-4,
-        //     "minPriceIncrement":1.0E-4,
-        //     "minOrderSize":1,
-        //     "maxOrderSize":100000,
-        //     "minRiskLimit":50000,
-        //     "maxRiskLimit":500000,
-        //     "minSizeIncrement":1.0,
-        //     "availableSettlement":[
-        //        "USD",
-        //        "LTC",
-        //        "BTC",
-        //        "USDT",
-        //        "USDC",
-        //        "USDP"
-        //     ]
-        //  },
+        //      {
+        //          "symbol":"XRPPFC",
+        //          "last":0.6095,
+        //          "lowestAsk":0.6095,
+        //          "highestBid":0.6083,
+        //          "openInterest":559988.0,
+        //          "openInterestUSD":340930.27,
+        //          "percentageChange":0.8271,
+        //          "volume":995720.3549,
+        //          "high24Hr":0.665,
+        //          "low24Hr":0.5936,
+        //          "base":"XRP",
+        //          "quote":"USD",
+        //          "contractStart":0,
+        //          "contractEnd":0,
+        //          "active":true,
+        //          "timeBasedContract":false,
+        //          "openTime":0,
+        //          "closeTime":0,
+        //          "startMatching":0,
+        //          "inactiveTime":0,
+        //          "fundingRate":1.2499999999999999E-5,
+        //          "contractSize":1.0,
+        //          "maxPosition":5000000,
+        //          "minValidPrice":1.0E-4,
+        //          "minPriceIncrement":1.0E-4,
+        //          "minOrderSize":1,
+        //          "maxOrderSize":100000,
+        //          "minRiskLimit":50000,
+        //          "maxRiskLimit":500000,
+        //          "minSizeIncrement":1.0,
+        //          "availableSettlement":[
+        //             "USD",
+        //             "LTC",
+        //             "BTC",
+        //             "USDT",
+        //             "USDC",
+        //             "USDP"
+        //          ]
+        //       },
         // ]
         for (let i = 0; i < futuresResponse.length; i++) {
             const market = futuresResponse[i];
@@ -287,7 +289,10 @@ module.exports = class btse extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             let symbol = base + '/' + quote + ':' + quote;
-            const expiry = this.safeIntegerProduct (market, 'contractEnd', 1000);
+            let expiry = this.safeIntegerProduct (market, 'contractEnd', 1000);
+            if (expiry === 0) {
+                expiry = undefined;
+            }
             let type = 'swap';
             if (expiry !== 0) {
                 type = 'future';
@@ -311,10 +316,10 @@ module.exports = class btse extends Exchange {
                 'quoteId': quoteId,
                 'maker': undefined,
                 'taker': undefined,
-                'linear': undefined,
-                'inverse': undefined,
-                'settle': undefined,
-                'settleId': undefined,
+                'linear': false,
+                'inverse': true,
+                'settle': quote,
+                'settleId': quoteId,
                 'type': type,
                 'spot': false,
                 'margin': undefined,
@@ -323,9 +328,9 @@ module.exports = class btse extends Exchange {
                 'option': false,
                 'optionType': undefined,
                 'strike': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'contract': false,
+                'expiry': expiry,
+                'expiryDatetime': this.iso8601 (expiry),
+                'contract': true,
                 'contractSize': undefined,
                 'active': (active === 'active'),
                 'precision': precision,
@@ -362,8 +367,8 @@ module.exports = class btse extends Exchange {
             request['depth'] = limit;
         }
         const method = this.getSupportedMapping (market['type'], {
-            'spot': 'publicSpotGetOrderBook',
-            'future': 'publicFutureGetOrderBook',
+            'spot': 'spotPublicGetOrderbookL2',
+            'future': 'futurePublicFutureGetOrderbookL2',
         });
         const response = await this[method] (this.extend (request, params));
         //
@@ -387,7 +392,7 @@ module.exports = class btse extends Exchange {
         //  }
         //
         const timestamp = this.safeInteger (response, 'timestamp');
-        return this.parseOrderBook (response, symbol, timestamp, 'buyQuote', 'sellQuote');
+        return this.parseOrderBook (response, symbol, timestamp, 'buyQuote', 'sellQuote', 'price', 'size');
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -483,7 +488,7 @@ module.exports = class btse extends Exchange {
         //        "symbol":"ETH-USDT",
         //        "serialId":131094468,
         //        "timestamp":1643317552000
-        //     },
+        //     }
         //
         const id = this.safeString (trade, 'serialId');
         const timestamp = this.safeInteger (trade, 'timestamp');
