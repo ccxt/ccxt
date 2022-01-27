@@ -21,28 +21,49 @@ module.exports = class latoken1 extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
-                'swap': undefined,
-                'future': undefined,
-                'option': undefined,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'privateAPI': true,
-                'publicAPI': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/61511972-24c39f00-aa01-11e9-9f7c-471f1d6e5214.jpg',
@@ -170,41 +191,61 @@ module.exports = class latoken1 extends Exchange {
             const numericId = this.safeInteger (market, 'pairId');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
             const pricePrecisionString = this.safeString (market, 'pricePrecision');
             const priceLimit = this.parsePrecision (pricePrecisionString);
-            const precision = {
-                'price': parseInt (pricePrecisionString),
-                'amount': this.safeInteger (market, 'amountPrecision'),
-            };
-            const limits = {
-                'amount': {
-                    'min': this.safeNumber (market, 'minQty'),
-                    'max': undefined,
-                },
-                'price': {
-                    'min': this.parseNumber (priceLimit),
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            };
+            const fees = this.safeValue (this.fees, 'trading');
+            const defaultTaker = this.safeNumber (fees, 'taker');
+            const defaultMaker = this.safeNumber (fees, 'maker');
             result.push ({
                 'id': id,
                 'numericId': numericId,
-                'info': market,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': undefined, // assuming true
-                'precision': precision,
-                'limits': limits,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': undefined,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': this.safeNumber (market, 'takerFee', defaultTaker),
+                'maker': this.safeNumber (market, 'makerFee', defaultMaker),
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': parseInt (pricePrecisionString),
+                    'amount': this.safeInteger (market, 'amountPrecision'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (market, 'minQty'),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': this.parseNumber (priceLimit),
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'info': market,
             });
         }
         return result;
