@@ -13,7 +13,7 @@ module.exports = class lykke extends Exchange {
             'id': 'lykke',
             'name': 'Lykke',
             'countries': [ 'CH' ],
-            'version': 'v1',
+            'version': 'v1', // v2 - https://lykkecity.github.io/Trading-API/
             'rateLimit': 200,
             'has': {
                 'CORS': undefined,
@@ -342,22 +342,19 @@ module.exports = class lykke extends Exchange {
     async fetchMarkets (params = {}) {
         const markets = await this.publicGetAssetPairs ();
         //
-        //     [ {                Id: "AEBTC",
-        //                      Name: "AE/BTC",
-        //                  Accuracy:  6,
-        //          InvertedAccuracy:  8,
-        //               BaseAssetId: "6f75280b-a005-4016-a3d8-03dc644e8912",
+        //    [
+        //        {
+        //            Id: "AEBTC",
+        //            Name: "AE/BTC",
+        //            Accuracy:  6,
+        //            InvertedAccuracy:  8,
+        //            BaseAssetId: "6f75280b-a005-4016-a3d8-03dc644e8912",
         //            QuotingAssetId: "BTC",
-        //                 MinVolume:  0.4,
-        //         MinInvertedVolume:  0.0001                                 },
-        //       {                Id: "AEETH",
-        //                      Name: "AE/ETH",
-        //                  Accuracy:  6,
-        //          InvertedAccuracy:  8,
-        //               BaseAssetId: "6f75280b-a005-4016-a3d8-03dc644e8912",
-        //            QuotingAssetId: "ETH",
-        //                 MinVolume:  0.4,
-        //         MinInvertedVolume:  0.001                                  } ]
+        //            MinVolume:  0.4,
+        //            MinInvertedVolume:  0.0001
+        //        },
+        //        ...
+        //    ]
         //
         const result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -379,6 +376,8 @@ module.exports = class lykke extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': undefined,
+                'quoteId': undefined,
                 'type': 'spot',
                 'spot': true,
                 'active': true,
@@ -398,8 +397,6 @@ module.exports = class lykke extends Exchange {
                         'max': undefined,
                     },
                 },
-                'baseId': undefined,
-                'quoteId': undefined,
             });
         }
         return result;
