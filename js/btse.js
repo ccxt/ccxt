@@ -180,7 +180,6 @@ module.exports = class btse extends Exchange {
             const maxQuantity = this.safeNumber (market, 'maxOrderSize');
             const minPriceIncrement = this.safeNumber (market, 'minPriceIncrement');
             const active = this.safeString (market, 'active');
-            const type = this.safeString (market, 'type');
             const precision = {
                 'amount': this.safeInteger (market, 'minQty'),
                 'price': minQuantity,
@@ -199,8 +198,8 @@ module.exports = class btse extends Exchange {
                 'inverse': undefined,
                 'settle': undefined,
                 'settleId': undefined,
-                'type': type,
-                'spot': (type === 'spot'),
+                'type': 'spot',
+                'spot': true,
                 'margin': undefined,
                 'future': false,
                 'swap': false,
@@ -354,7 +353,7 @@ module.exports = class btse extends Exchange {
         }
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'publicSpotGetOrderBook',
-            'future': 'publicSpotGetOrderBook',
+            'future': 'publicFutureGetOrderBook',
         });
         const response = await this[method] (this.extend (request, params));
         //
@@ -535,7 +534,7 @@ module.exports = class btse extends Exchange {
         // ]
         //
         return [
-            this.Integer (ohlcv, 0),
+            this.safeInteger (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
             this.safeNumber (ohlcv, 2),
             this.safeNumber (ohlcv, 3),
@@ -551,12 +550,11 @@ module.exports = class btse extends Exchange {
             'symbol': market['id'],
             'resolution': this.timeframes[timeframe],
         };
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOHLCV', market, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'spotPublicGetPublicGetCandlestick',
-            'future': 'derivativesPublicGetPublicGetCandlestick',
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'spotPublicGetOhlcv',
+            'future': 'futurePublicGetOhlcv',
         });
-        const response = await this[method] (this.extend (request, query));
+        const response = await this[method] (this.extend (request, params));
         //
         //     [
         //         [
