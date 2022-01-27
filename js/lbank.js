@@ -18,10 +18,10 @@ module.exports = class lbank extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
-                'swap': undefined,
-                'future': undefined,
-                'option': undefined,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
@@ -123,30 +123,48 @@ module.exports = class lbank extends Exchange {
             }
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const precision = {
-                'amount': this.safeInteger (market, 'quantityAccuracy'),
-                'price': this.safeInteger (market, 'priceAccuracy'),
-            };
+            const precisionPrice = this.safeString (market, 'priceAccuracy');
+            const precisionAmount = this.safeString (market, 'quantityAccuracy');
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'active': true,
-                'precision': precision,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': this.parseNumber (precisionPrice),
+                    'amount': this.parseNumber (precisionAmount),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
+                        'min': this.parsePrecision (precisionAmount),
                         'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': Math.pow (10, precision['price']),
+                        'min': this.parsePrecision (precisionPrice),
+                        'max': this.parsePrecision ('-' + precisionPrice),
                     },
                     'cost': {
                         'min': undefined,
