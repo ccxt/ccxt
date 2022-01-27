@@ -12,9 +12,14 @@ module.exports = class btse extends Exchange {
             'version': 'v1',
             'rateLimit': 300,
             'has': {
+                'CORS': false,
+                'spot': true,
+                'margin': undefined,
+                'swap': undefined,
+                'future': undefined,
+                'option': undefined,
                 'cancelAllOrders': false,
                 'cancelOrder': false,
-                'CORS': false,
                 'createOrder': true,
                 'fetchBalance': false,
                 'fetchBidsAsks': false,
@@ -32,18 +37,18 @@ module.exports = class btse extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
-                'fetchOrders': false,
                 'fetchOrderBook': true,
+                'fetchOrders': false,
                 'fetchPositions': false,
                 'fetchStatus': false,
                 'fetchTicker': true,
                 'fetchTickers': false,
-                'fetchTime': false,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
-                'fetchTransfers': false,
                 'fetchTransactions': false,
+                'fetchTransfers': false,
                 'fetchWithdrawals': false,
                 'setLeverage': false,
                 'transfer': false,
@@ -95,7 +100,6 @@ module.exports = class btse extends Exchange {
                         'delete': {
                             'order/cancelAllAfter': 1,
                             'user/trade_history': 1,
-
                         },
                     },
                 },
@@ -111,7 +115,6 @@ module.exports = class btse extends Exchange {
                             'get-stats': 1,
                         },
                     },
-
                 },
             },
             'exceptions': {
@@ -126,7 +129,7 @@ module.exports = class btse extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.SpotPublicGetGetInstruments (params);
+        const response = await this.spotPublicGetMarketSummary (params);
         // [
         //   {
         //      "symbol":"1INCH-AED",
@@ -230,7 +233,7 @@ module.exports = class btse extends Exchange {
                 },
             });
         }
-        const futuresResponse = await this.FuturePublicGetGetInstruments (params);
+        const futuresResponse = await this.futurePublicGetMarketSummary (params);
         // [
         // {
         //     "symbol":"XRPPFC",
@@ -349,12 +352,11 @@ module.exports = class btse extends Exchange {
         if (limit) {
             request['depth'] = limit;
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'spotPublicGetGetOrderBookL2',
-            'future': 'futurePublicGetGetOrderBookL2',
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'publicSpotGetOrderBook',
+            'future': 'publicSpotGetOrderBook',
         });
-        const response = await this[method] (this.extend (request, query));
+        const response = await this[method] (this.extend (request, params));
         //
         // {
         //     "buyQuote":[
@@ -573,8 +575,8 @@ module.exports = class btse extends Exchange {
     async fetchTime (params = {}) {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
         const method = this.getSupportedMapping (marketType, {
-            'spot': 'spotPublicGetGetTime',
-            'future': 'futurePublicGetGetTimes',
+            'spot': 'spotPublicGetTime',
+            'future': 'futurePublicGetTime',
         });
         const response = await this[method] (query);
         // {
@@ -585,8 +587,10 @@ module.exports = class btse extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + path;
-        if (api === 'public') {
+        const accessibility = api[1];
+        const type = api[0];
+        let url = this.urls['api'][type] + '/' + path;
+        if (accessibility === 'public') {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
