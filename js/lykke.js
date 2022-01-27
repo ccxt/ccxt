@@ -13,27 +13,34 @@ module.exports = class lykke extends Exchange {
             'id': 'lykke',
             'name': 'Lykke',
             'countries': [ 'CH' ],
-            'version': 'v1',
+            'version': 'v1', // v2 - https://lykkecity.github.io/Trading-API/
             'rateLimit': 200,
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
-                'swap': undefined,
-                'future': undefined,
-                'option': undefined,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': 'emulated',
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
             },
@@ -342,22 +349,19 @@ module.exports = class lykke extends Exchange {
     async fetchMarkets (params = {}) {
         const markets = await this.publicGetAssetPairs ();
         //
-        //     [ {                Id: "AEBTC",
-        //                      Name: "AE/BTC",
-        //                  Accuracy:  6,
-        //          InvertedAccuracy:  8,
-        //               BaseAssetId: "6f75280b-a005-4016-a3d8-03dc644e8912",
+        //    [
+        //        {
+        //            Id: "AEBTC",
+        //            Name: "AE/BTC",
+        //            Accuracy:  6,
+        //            InvertedAccuracy:  8,
+        //            BaseAssetId: "6f75280b-a005-4016-a3d8-03dc644e8912",
         //            QuotingAssetId: "BTC",
-        //                 MinVolume:  0.4,
-        //         MinInvertedVolume:  0.0001                                 },
-        //       {                Id: "AEETH",
-        //                      Name: "AE/ETH",
-        //                  Accuracy:  6,
-        //          InvertedAccuracy:  8,
-        //               BaseAssetId: "6f75280b-a005-4016-a3d8-03dc644e8912",
-        //            QuotingAssetId: "ETH",
-        //                 MinVolume:  0.4,
-        //         MinInvertedVolume:  0.001                                  } ]
+        //            MinVolume:  0.4,
+        //            MinInvertedVolume:  0.0001
+        //        },
+        //        ...
+        //    ]
         //
         const result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -367,24 +371,41 @@ module.exports = class lykke extends Exchange {
             const [ baseId, quoteId ] = name.split ('/');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
             const pricePrecision = this.safeString (market, 'Accuracy');
             const priceLimit = this.parsePrecision (pricePrecision);
-            const precision = {
-                'price': parseInt (pricePrecision),
-                'amount': this.safeInteger (market, 'InvertedAccuracy'),
-            };
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
+                'baseId': undefined,
+                'quoteId': undefined,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'margin': undefined,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'active': true,
-                'info': market,
-                'precision': precision,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': parseInt (pricePrecision),
+                    'amount': this.safeInteger (market, 'InvertedAccuracy'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'MinVolume'),
                         'max': undefined,
@@ -398,8 +419,7 @@ module.exports = class lykke extends Exchange {
                         'max': undefined,
                     },
                 },
-                'baseId': undefined,
-                'quoteId': undefined,
+                'info': market,
             });
         }
         return result;
