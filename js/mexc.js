@@ -2241,7 +2241,7 @@ module.exports = class mexc extends Exchange {
         }
         return result;
     }
-  
+
     parseFundingRate (fundingRate, market = undefined) {
         //
         //     {
