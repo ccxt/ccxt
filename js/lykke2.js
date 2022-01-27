@@ -276,18 +276,46 @@ module.exports = class lykke extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        // {
-        //     "assetPairId":"BTCUSD",
-        //     "volumeBase":2.56905016,
-        //     "volumeQuote":95653.8730,
-        //     "priceChange":-0.0367945778541765034194707584,
-        //     "lastPrice":36840.0,
-        //     "high":38371.645,
-        //     "low":35903.356,
-        //     "timestamp":1643295740729
-        // }
+        // fetchTickers
         //
-        const timestamp = this.milliseconds ();
+        //     publicGetTickers
+        //
+        //     {
+        //         "assetPairId":"BTCUSD",
+        //         "volumeBase":2.56905016,
+        //         "volumeQuote":95653.8730,
+        //         "priceChange":-0.0367945778541765034194707584,
+        //         "lastPrice":36840.0,
+        //         "high":38371.645,
+        //         "low":35903.356,
+        //         "timestamp":1643295740729
+        //     }
+        //
+        // fetchTicker
+        //
+        //     publicGetTickers
+        //
+        //     {
+        //         "assetPairId":"BTCUSD",
+        //         "volumeBase":2.56905016,
+        //         "volumeQuote":95653.8730,
+        //         "priceChange":-0.0367945778541765034194707584,
+        //         "lastPrice":36840.0,
+        //         "high":38371.645,
+        //         "low":35903.356,
+        //         "timestamp":1643295740729
+        //     }
+        //
+        //     publicGetPrices
+        //
+        //     {
+        //         "assetPairId":"BTCUSD",
+        //         "bid":36181.521,
+        //         "ask":36244.492,
+        //         "timestamp":1643305510990
+        //     }
+        //
+        const timestamp = this.parse8601 (this.safeValue (ticker, 'timestamp'));
         const marketId = this.safeString (ticker, 'assetPairId');
         market = this.safeMarket (marketId, market);
         const close = this.safeString (ticker, 'lastPrice');
@@ -297,9 +325,9 @@ module.exports = class lykke extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'high': this.safeString (ticker, 'high'),
             'low': this.safeString (ticker, 'low'),
-            'bid': undefined,
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': undefined,
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -309,8 +337,8 @@ module.exports = class lykke extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': this.safeString (ticker, 'volumeBase'),
+            'baseVolume': this.safeString (ticker, 'volumeBase'),
+            'quoteVolume': this.safeString (ticker, 'volumeQuote'),
             'info': ticker,
         }, market, false);
     }
@@ -322,19 +350,36 @@ module.exports = class lykke extends Exchange {
         const request = {
             'assetPairIds': this.safeString (info, 'assetPairId'),
         };
-        const response = await this.publicGetTickers (this.extend (request, params));
+        // publicGetTickers or publicGetPrices
+        const method = this.safeString (this.options, 'fetchTickerMethod', 'publicGetTickers');
+        const response = await this[method] (this.extend (request, params));
         const ticker = this.safeValue (response, 'payload', []);
         //
-        // [{
-        //     "assetPairId":"BTCUSD",
-        //     "volumeBase":2.56905016,
-        //     "volumeQuote":95653.8730,
-        //     "priceChange":-0.0367945778541765034194707584,
-        //     "lastPrice":36840.0,
-        //     "high":38371.645,
-        //     "low":35903.356,
-        //     "timestamp":1643295740729
-        // }]
+        // publicGetTickers
+        //
+        // [
+        //     {
+        //         "assetPairId":"BTCUSD",
+        //         "volumeBase":2.56905016,
+        //         "volumeQuote":95653.8730,
+        //         "priceChange":-0.0367945778541765034194707584,
+        //         "lastPrice":36840.0,
+        //         "high":38371.645,
+        //         "low":35903.356,
+        //         "timestamp":1643295740729
+        //     }
+        // ]
+        //
+        // publicGetPrices
+        //
+        // [
+        //     {
+        //         "assetPairId":"BTCUSD",
+        //         "bid":36181.521,
+        //         "ask":36244.492,
+        //         "timestamp":1643305510990
+        //     }
+        // ]
         //
         return this.parseTicker (this.safeValue (ticker, 0, {}), market);
     }
@@ -357,7 +402,6 @@ module.exports = class lykke extends Exchange {
         //     }
         // ]
         //
-        // filter by symbol, didn't work
         return this.parseTickers (tickers, symbols);
     }
 
