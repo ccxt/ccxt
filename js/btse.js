@@ -394,27 +394,51 @@ module.exports = class btse extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'instrumentId': market['id'],
+            'symbol': market['id'],
         };
-        const response = await this.publicGetGetTicker (this.extend (request, params));
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'spotPublicGetMarketSummary',
+            'future': 'futurePublicGetMarketSummary',
+        });
+        const response = await this[method] (this.extend (request, params));
         //
-        // {
-        //     "result":
-        //     {
-        //     "lastTradeId":7219332,
-        //     "price":0.068708,
-        //     "qty":0.0046,
-        //     "bidPrice":0.068663,
-        //     "askPrice":0.068678,
-        //     "bidQty":0.4254,
-        //     "askQty":0.0506,
-        //     "volumeUsd":315646.03,
-        //     "volume":130.5272,
-        //     "time":1642974178845710
-        //     }
-        // }
+        //   {
+        //      "symbol":"1INCH-AED",
+        //      "last":0.0,
+        //      "lowestAsk":0.0,
+        //      "highestBid":0.0,
+        //      "percentageChange":0.887761573,
+        //      "volume":6679180.080848128,
+        //      "high24Hr":6.038055,
+        //      "low24Hr":5.417631,
+        //      "base":"1INCH",
+        //      "quote":"AED",
+        //      "active":true,
+        //      "size":1150813.46023945,
+        //      "minValidPrice":0.001,
+        //      "minPriceIncrement":0.001,
+        //      "minOrderSize":0.1,
+        //      "maxOrderSize":300000.0,
+        //      "minSizeIncrement":0.1,
+        //      "openInterest":0.0,
+        //      "openInterestUSD":0.0,
+        //      "contractStart":0,
+        //      "contractEnd":0,
+        //      "timeBasedContract":false,
+        //      "openTime":0,
+        //      "closeTime":0,
+        //      "startMatching":0,
+        //      "inactiveTime":0,
+        //      "fundingRate":0.0,
+        //      "contractSize":0.0,
+        //      "maxPosition":0,
+        //      "minRiskLimit":0,
+        //      "maxRiskLimit":0,
+        //      "availableSettlement":null,
+        //      "futures":false
+        //   }
         //
-        const ticker = this.safeValue (response, 'result', {});
+        const ticker = this.safeValue (response, 0, {});
         return this.parseTicker (ticker, market);
     }
 
@@ -422,51 +446,53 @@ module.exports = class btse extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'instrumentId': market['id'],
+            'symbol': market['id'],
         };
         if (since !== undefined) {
-            request['start'] = since;
+            request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['count'] = limit;
         }
-        const response = await this.publicGetGetLastTrades (this.extend (request, params));
-        // {
-        //     "result":{
-        //     "data":[
-        //         {
-        //             "id":744918,
-        //             "time":1594800000857010,
-        //             "price":0.02594000,
-        //             "qty":0.05800000,
-        //             "side":"buy"
-        //         }
-        //     ],
-        //     "next":false
-        //     }
-        // }
-        const result = this.safeValue (response, 'result', {});
-        const data = this.safeValue (result, 'data', []);
-        return this.parseTrades (data, market, since, limit);
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'spotPublicGetTrades',
+            'future': 'futurePublicGetTrades',
+        });
+        const response = await this[method] (this.extend (request, params));
+        //
+        // [
+        //     {
+        //        "price":2342.419875836,
+        //        "size":0.2036,
+        //        "side":"SELL",
+        //        "symbol":"ETH-USDT",
+        //        "serialId":131094468,
+        //        "timestamp":1643317552000
+        //     },
+        // ]
+        //
+        return this.parseTrades (response, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
         //
-        //         {
-        //             "id":744918,
-        //             "time":1594800000857010,
-        //             "price":0.02594000,
-        //             "qty":0.05800000,
-        //             "side":"buy"
-        //         }
+        //     {
+        //        "price":2342.419875836,
+        //        "size":0.2036,
+        //        "side":"SELL",
+        //        "symbol":"ETH-USDT",
+        //        "serialId":131094468,
+        //        "timestamp":1643317552000
+        //     },
         //
-        const id = this.safeString (trade, 'id');
-        const timestamp = this.safeIntegerProduct (trade, 'time', 0.001);
+        const id = this.safeString (trade, 'serialId');
+        const timestamp = this.safeInteger (trade, 'timestamp');
         const datetime = this.iso8601 (timestamp);
-        const symbol = this.safeSymbol (undefined, market);
+        const marketId = this.safeString (trade, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
         const side = this.safeString (trade, 'side');
         const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'qty');
+        const amount = this.safeNumber (trade, 'size');
         return this.safeTrade ({
             'info': trade,
             'id': id,
@@ -486,32 +512,57 @@ module.exports = class btse extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        // {
-        //     "lastTradeId":7219332,
-        //     "price":0.068708,
-        //     "qty":0.0046,
-        //     "bidPrice":0.068663,
-        //     "askPrice":0.068678,
-        //     "bidQty":0.4254,
-        //     "askQty":0.0506,
-        //     "volumeUsd":315646.03,
-        //     "volume":130.5272,
-        //     "time":1642974178845710
-        // }
         //
-        const symbol = this.safeSymbol (undefined, market);
-        const last = this.safeString (ticker, 'price');
-        const open = this.safeString (ticker, 'openPrice');
-        const high = this.safeString (ticker, 'highPrice');
-        const low = this.safeString (ticker, 'lowPrice');
-        const baseVolume = this.safeString (ticker, 'volume');
-        const bid = this.safeString (ticker, 'bidPrice');
-        const ask = this.safeString (ticker, 'askPrice');
-        const timestamp = this.safeIntegerProduct (ticker, 'time', 0.001);
+        //   {
+        //      "symbol":"1INCH-AED",
+        //      "last":0.0,
+        //      "lowestAsk":0.0,
+        //      "highestBid":0.0,
+        //      "percentageChange":0.887761573,
+        //      "volume":6679180.080848128,
+        //      "high24Hr":6.038055,
+        //      "low24Hr":5.417631,
+        //      "base":"1INCH",
+        //      "quote":"AED",
+        //      "active":true,
+        //      "size":1150813.46023945,
+        //      "minValidPrice":0.001,
+        //      "minPriceIncrement":0.001,
+        //      "minOrderSize":0.1,
+        //      "maxOrderSize":300000.0,
+        //      "minSizeIncrement":0.1,
+        //      "openInterest":0.0,
+        //      "openInterestUSD":0.0,
+        //      "contractStart":0,
+        //      "contractEnd":0,
+        //      "timeBasedContract":false,
+        //      "openTime":0,
+        //      "closeTime":0,
+        //      "startMatching":0,
+        //      "inactiveTime":0,
+        //      "fundingRate":0.0,
+        //      "contractSize":0.0,
+        //      "maxPosition":0,
+        //      "minRiskLimit":0,
+        //      "maxRiskLimit":0,
+        //      "availableSettlement":null,
+        //      "futures":false
+        //   }
+        //
+        const marketId = this.safeString (ticker, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const last = this.safeString (ticker, 'last');
+        const open = this.safeString (ticker, 'lastPrice');
+        const volume = this.safeString (ticker, 'volume');
+        const high = this.safeString (ticker, 'high24Hr');
+        const low = this.safeString (ticker, 'low24Hr');
+        const change = this.safeString (ticker, 'percentageChange');
+        const ask = this.safeString (ticker, 'lowestAsk');
+        const bid = this.safeString (ticker, 'highestBid');
         return this.safeTicker ({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': high,
             'low': low,
             'bid': bid,
@@ -524,9 +575,9 @@ module.exports = class btse extends Exchange {
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': undefined,
+            'percentage': change,
             'average': undefined,
-            'baseVolume': baseVolume,
+            'baseVolume': volume,
             'quoteVolume': undefined,
             'info': ticker,
         }, market, false);
