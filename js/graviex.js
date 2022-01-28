@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, InsufficientFunds } = require ('./base/errors');
+// const { AuthenticationError, InsufficientFunds } = require ('./base/errors');
 // const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
@@ -17,9 +17,27 @@ module.exports = class graviex extends Exchange {
             'countries': [ 'MT', 'RU' ],
             'rateLimit': 1000,
             'has': {
+                'CORS': undefined,
                 'fetchMarkets': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchBalance': false,
+                'fetchCurrencies': false,
+                'fetchTrades': false,
+                'fetchOHLCV': false,
+                'fetchOrders': false,
+                'fetchOrder': false,
+                'fetchOrderBook': false,
+                'fetchOrderBooks': false,
+                'fetchL2OrderBook': false,
+                'fetchOrderTrades': false,
+                'fetchMyTrades': false,
+                'fetchWithdrawals': false,
+                'fetchDeposits': false,
+                'fetchDepositAddress': false,
+                'createOrder': false,
+                'cancelOrder': false,
+                'createOcoOrder': false,
             },
             'timeframes': {
                 '1m': '1',
@@ -105,12 +123,9 @@ module.exports = class graviex extends Exchange {
         const response = await this.publicGetMarkets ();
         const markets = response;
         const result = [];
-        const keys = Object.keys (markets);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const market = markets[key];
-            const id = market['id'];
-            const symbolParts = market['name'].split ('/');
+        for (let i = 0; i < markets.length; i++) {
+            const id = markets[i]['id'];
+            const symbolParts = markets[i]['name'].split ('/');
             const baseId = symbolParts[0];
             const quoteId = symbolParts[1];
             const base = this.commonCurrencyCode (baseId);
@@ -125,14 +140,14 @@ module.exports = class graviex extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'info': market,
+                'info': markets[i],
             });
         }
         return result;
     }
 
     parseTicker (ticker, market = undefined) {
-        const timestamp = ticker['at'];
+        const timestamp = this.milliseconds ();
         const symbol = market['symbol'];
         // ticker = ticker['ticker'];
         const last = this.safeFloat (ticker, 'last');
@@ -164,7 +179,7 @@ module.exports = class graviex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'markets': market['id'].replace ('_', ''),
+            'market': market['id'].replace ('_', ''),
         };
         const response = await this.publicGetTickers (this.extend (request, params));
         if (Array.isArray (response)) {
@@ -196,46 +211,21 @@ module.exports = class graviex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const host = this.urls['api'][api];
-        path = '/' + path;
-        let is_post = false;
-        if (method === 'POST') {
-            is_post = true;
-        }
-        const tonce = this.nonce ();
-        params['tonce'] = tonce;
-        params['access_key'] = this.apiKey;
-        let url = host + path;
-        const sorted = this.keysort (params);
-        let paramencoded = this.urlencode (sorted);
-        const sign_str = method + '|' + path + '|' + paramencoded;
-        const signature = this.hmac (sign_str, this.secret, 'sha256');
-        sorted['signature'] = signature;
-        paramencoded = this.urlencode (sorted);
-        if (is_post) {
-            body = paramencoded;
-        } else {
-            url += '?' + paramencoded;
+        let url = this.urls['api'][api] + '/' + path;
+        if (Object.keys (params).length) {
+            url += '?' + this.urlencode (params);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if ('error' in response) {
-            const code = this.safeInteger (response['error'], 'code');
-            if (code !== undefined) {
-                const error = this.safeString (response['error'], 'message');
-                if (code === 2002) {
-                    throw new InsufficientFunds (error);
-                } else if (code === 2005 || code === 2007) {
-                    throw new AuthenticationError (error);
-                }
-            }
-        }
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
         const response = await this.fetch2 (path, api, method, params, headers, body, config, context);
         return response;
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return '1'; // return;
+        }
     }
 };
