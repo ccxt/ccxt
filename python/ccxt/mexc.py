@@ -54,6 +54,7 @@ class mexc(Exchange):
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -1117,6 +1118,12 @@ class mexc(Exchange):
             self.safe_number(ohlcv, 2 if market['spot'] else 4),
             self.safe_number(ohlcv, 5),
         ]
+
+    def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'mark',
+        }
+        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     def fetch_balance(self, params={}):
         self.load_markets()
