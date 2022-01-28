@@ -591,8 +591,8 @@ module.exports = class kucoin extends Exchange {
                         'max': baseMaxSize,
                     },
                     'price': {
-                        'min': this.safeNumber (market, 'priceIncrement'),
-                        'max': this.parseNumber (Precise.stringDiv (quoteMaxSizeString, baseMinSizeString)),
+                        'min': undefined,
+                        'max': undefined,
                     },
                     'cost': {
                         'min': quoteMinSize,
