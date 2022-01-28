@@ -30,14 +30,19 @@ class latoken(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,
-                'swap': None,
+                'margin': False,
+                'swap': None,  # has but unimplemented
                 'future': None,
-                'option': None,
+                'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchCurrencies': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -275,42 +280,56 @@ class latoken(Exchange):
             if baseCurrency is not None and quoteCurrency is not None:
                 base = self.safe_currency_code(self.safe_string(baseCurrency, 'tag'))
                 quote = self.safe_currency_code(self.safe_string(quoteCurrency, 'tag'))
-                symbol = base + '/' + quote
-                precision = {
-                    'price': self.safe_number(market, 'priceTick'),
-                    'amount': self.safe_number(market, 'quantityTick'),
-                }
                 lowercaseQuote = quote.lower()
                 capitalizedQuote = self.capitalize(lowercaseQuote)
-                limits = {
-                    'amount': {
-                        'min': self.safe_number(market, 'minOrderQuantity'),
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': self.safe_number(market, 'minOrderCost' + capitalizedQuote),
-                        'max': self.safe_number(market, 'maxOrderCost' + capitalizedQuote),
-                    },
-                }
                 status = self.safe_string(market, 'status')
-                active = (status == 'PAIR_STATUS_ACTIVE')
                 result.append({
                     'id': id,
-                    'info': market,
-                    'symbol': symbol,
+                    'symbol': base + '/' + quote,
                     'base': base,
                     'quote': quote,
+                    'settle': None,
                     'baseId': baseId,
                     'quoteId': quoteId,
+                    'settleId': None,
                     'type': 'spot',
                     'spot': True,
-                    'active': active,  # assuming True
-                    'precision': precision,
-                    'limits': limits,
+                    'margin': False,
+                    'swap': False,
+                    'future': False,
+                    'option': False,
+                    'active': (status == 'PAIR_STATUS_ACTIVE'),  # assuming True
+                    'contract': False,
+                    'linear': None,
+                    'inverse': None,
+                    'contractSize': None,
+                    'expiry': None,
+                    'expiryDatetime': None,
+                    'strike': None,
+                    'optionType': None,
+                    'precision': {
+                        'price': self.safe_number(market, 'priceTick'),
+                        'amount': self.safe_number(market, 'quantityTick'),
+                    },
+                    'limits': {
+                        'leverage': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'amount': {
+                            'min': self.safe_number(market, 'minOrderQuantity'),
+                            'max': None,
+                        },
+                        'price': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'cost': {
+                            'min': self.safe_number(market, 'minOrderCost' + capitalizedQuote),
+                            'max': self.safe_number(market, 'maxOrderCost' + capitalizedQuote),
+                        },
+                    },
+                    'info': market,
                 })
         return result
 
