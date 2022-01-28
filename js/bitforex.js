@@ -279,30 +279,30 @@ module.exports = class bitforex extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.publicGetApiV1MarketTicker (this.extend (request, params));
-        const data = response['data'];
+        const data = this.safeValue (response, 'data');
         const timestamp = this.safeInteger (data, 'date');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (data, 'high'),
-            'low': this.safeNumber (data, 'low'),
-            'bid': this.safeNumber (data, 'buy'),
+            'high': this.safeString (data, 'high'),
+            'low': this.safeString (data, 'low'),
+            'bid': this.safeString (data, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (data, 'sell'),
+            'ask': this.safeString (data, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': this.safeNumber (data, 'last'),
-            'last': this.safeNumber (data, 'last'),
+            'close': this.safeString (data, 'last'),
+            'last': this.safeString (data, 'last'),
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (data, 'vol'),
+            'baseVolume': this.safeString (data, 'vol'),
             'quoteVolume': undefined,
             'info': response,
-        };
+        }, market, false);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
