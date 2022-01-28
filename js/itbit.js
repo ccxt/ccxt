@@ -141,7 +141,7 @@ module.exports = class itbit extends Exchange {
         const baseVolume = this.safeString (ticker, 'volume24h');
         const quoteVolume = Precise.stringMul (baseVolume, vwap);
         const last = this.safeString (ticker, 'lastPrice');
-        return this.safeValue ({
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
