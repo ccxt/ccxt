@@ -255,28 +255,33 @@ class zaif(Exchange):
         response = self.publicGetDepthPair(self.extend(request, params))
         return self.parse_order_book(response, symbol)
 
-    def fetch_ticker(self, symbol, params={}):
-        self.load_markets()
-        request = {
-            'pair': self.market_id(symbol),
-        }
-        ticker = self.publicGetTickerPair(self.extend(request, params))
+    def parse_ticker(self, ticker, market=None):
+        #
+        # {
+        #     "last": 9e-08,
+        #     "high": 1e-07,
+        #     "low": 9e-08,
+        #     "vwap": 0.0,
+        #     "volume": 135250.0,
+        #     "bid": 9e-08,
+        #     "ask": 1e-07
+        # }
+        #
+        symbol = self.safe_symbol(None, market)
         timestamp = self.milliseconds()
-        vwap = self.safe_number(ticker, 'vwap')
-        baseVolume = self.safe_number(ticker, 'volume')
-        quoteVolume = None
-        if baseVolume is not None and vwap is not None:
-            quoteVolume = baseVolume * vwap
-        last = self.safe_number(ticker, 'last')
-        return {
+        vwap = self.safe_string(ticker, 'vwap')
+        baseVolume = self.safe_string(ticker, 'volume')
+        quoteVolume = Precise.string_mul(baseVolume, vwap)
+        last = self.safe_string(ticker, 'last')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
             'open': None,
@@ -289,7 +294,27 @@ class zaif(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
+        }, market, False)
+
+    def fetch_ticker(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'pair': market['id'],
         }
+        ticker = self.publicGetTickerPair(self.extend(request, params))
+        #
+        # {
+        #     "last": 9e-08,
+        #     "high": 1e-07,
+        #     "low": 9e-08,
+        #     "vwap": 0.0,
+        #     "volume": 135250.0,
+        #     "bid": 9e-08,
+        #     "ask": 1e-07
+        # }
+        #
+        return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
         side = self.safe_string(trade, 'trade_type')
