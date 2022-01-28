@@ -38,9 +38,9 @@ class hitbtc3(Exchange):
             'has': {
                 'CORS': False,
                 'spot': True,
-                'margin': None,
-                'swap': None,
-                'future': None,
+                'margin': None,  # has but not fully unimplemented
+                'swap': None,  # has but not fully unimplemented
+                'future': None,  # has but not fully unimplemented
                 'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
@@ -380,8 +380,6 @@ class hitbtc3(Exchange):
             stepString = self.safe_string(market, 'tick_size')
             lot = self.parse_number(lotString)
             step = self.parse_number(stepString)
-            taker = self.safe_number(market, 'take_rate')
-            maker = self.safe_number(market, 'make_rate')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -397,13 +395,13 @@ class hitbtc3(Exchange):
                 'swap': swap,
                 'future': future,
                 'option': option,
+                'active': True,
                 'contract': contract,
                 'linear': linear,
                 'inverse': inverse,
-                'taker': taker,
-                'maker': maker,
+                'taker': self.safe_number(market, 'take_rate'),
+                'maker': self.safe_number(market, 'make_rate'),
                 'contractSize': contractSize,
-                'active': True,
                 'expiry': expiry,
                 'expiryDatetime': None,
                 'strike': None,
@@ -415,7 +413,7 @@ class hitbtc3(Exchange):
                 },
                 'limits': {
                     'leverage': {
-                        'min': 1,
+                        'min': self.parse_number('1'),
                         'max': self.safe_number(market, 'max_initial_leverage', 1),
                     },
                     'amount': {
