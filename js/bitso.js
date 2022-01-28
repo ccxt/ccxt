@@ -327,18 +327,18 @@ module.exports = class bitso extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        // {
-        //     "high":"37446.85",
-        //     "last":"36599.54",
-        //     "created_at":"2022-01-28T12:06:11+00:00",
-        //     "book":"btc_usdt",
-        //     "volume":"7.29075419",
-        //     "vwap":"36579.1564400307",
-        //     "low":"35578.52",
-        //     "ask":"36574.76",
-        //     "bid":"36538.22",
-        //     "change_24":"-105.64"
-        // }
+        //     {
+        //         "high":"37446.85",
+        //         "last":"36599.54",
+        //         "created_at":"2022-01-28T12:06:11+00:00",
+        //         "book":"btc_usdt",
+        //         "volume":"7.29075419",
+        //         "vwap":"36579.1564400307",
+        //         "low":"35578.52",
+        //         "ask":"36574.76",
+        //         "bid":"36538.22",
+        //         "change_24":"-105.64"
+        //     }
         //
         const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.parse8601 (this.safeString (ticker, 'created_at'));
@@ -379,18 +379,21 @@ module.exports = class bitso extends Exchange {
         const response = await this.publicGetTicker (this.extend (request, params));
         const ticker = this.safeValue (response, 'payload');
         //
-        // {
-        //     "high":"37446.85",
-        //     "last":"36599.54",
-        //     "created_at":"2022-01-28T12:06:11+00:00",
-        //     "book":"btc_usdt",
-        //     "volume":"7.29075419",
-        //     "vwap":"36579.1564400307",
-        //     "low":"35578.52",
-        //     "ask":"36574.76",
-        //     "bid":"36538.22",
-        //     "change_24":"-105.64"
-        // }
+        //     {
+        //         "success":true,
+        //         "payload":{
+        //             "high":"37446.85",
+        //             "last":"37051.96",
+        //             "created_at":"2022-01-28T17:03:29+00:00",
+        //             "book":"btc_usdt",
+        //             "volume":"6.16176186",
+        //             "vwap":"36582.6293169472",
+        //             "low":"35578.52",
+        //             "ask":"37083.62",
+        //             "bid":"37039.66",
+        //             "change_24":"478.45"
+        //         }
+        //     }
         //
         return this.parseTicker (ticker, market);
     }
