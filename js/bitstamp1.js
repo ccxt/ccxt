@@ -119,7 +119,7 @@ module.exports = class bitstamp1 extends Exchange {
         const baseVolume = this.safeString (ticker, 'volume');
         const quoteVolume = Precise.stringMul (baseVolume, vwap);
         const last = this.safeString (ticker, 'last');
-        return {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -140,7 +140,7 @@ module.exports = class bitstamp1 extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
