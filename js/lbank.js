@@ -182,12 +182,12 @@ module.exports = class lbank extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': this.parsePrecision (precisionAmount),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'price': {
-                        'min': this.parsePrecision (precisionPrice),
-                        'max': this.parsePrecision ('-' + precisionPrice),
+                        'min': undefined,
+                        'max': undefined,
                     },
                     'cost': {
                         'min': undefined,
