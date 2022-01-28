@@ -325,13 +325,22 @@ module.exports = class bitso extends Exchange {
         return this.parseOrderBook (orderbook, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'book': this.marketId (symbol),
-        };
-        const response = await this.publicGetTicker (this.extend (request, params));
-        const ticker = this.safeValue (response, 'payload');
+    parseTicker (ticker, market = undefined) {
+        //
+        // {
+        //     "high":"37446.85",
+        //     "last":"36599.54",
+        //     "created_at":"2022-01-28T12:06:11+00:00",
+        //     "book":"btc_usdt",
+        //     "volume":"7.29075419",
+        //     "vwap":"36579.1564400307",
+        //     "low":"35578.52",
+        //     "ask":"36574.76",
+        //     "bid":"36538.22",
+        //     "change_24":"-105.64"
+        // }
+        //
+        const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.parse8601 (this.safeString (ticker, 'created_at'));
         const vwap = this.safeString (ticker, 'vwap');
         const baseVolume = this.safeString (ticker, 'volume');
@@ -358,7 +367,32 @@ module.exports = class bitso extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, undefined, false);
+        }, market, false);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'book': market['id'],
+        };
+        const response = await this.publicGetTicker (this.extend (request, params));
+        const ticker = this.safeValue (response, 'payload');
+        //
+        // {
+        //     "high":"37446.85",
+        //     "last":"36599.54",
+        //     "created_at":"2022-01-28T12:06:11+00:00",
+        //     "book":"btc_usdt",
+        //     "volume":"7.29075419",
+        //     "vwap":"36579.1564400307",
+        //     "low":"35578.52",
+        //     "ask":"36574.76",
+        //     "bid":"36538.22",
+        //     "change_24":"-105.64"
+        // }
+        //
+        return this.parseTicker (ticker, market);
     }
 
     parseTrade (trade, market = undefined) {
