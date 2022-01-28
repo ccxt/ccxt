@@ -161,57 +161,55 @@ module.exports = class indodax extends Exchange {
             const quoteId = this.safeString (market, 'base_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const taker = this.safeNumber (market, 'trade_fee_percent');
             const isMaintenance = this.safeInteger (market, 'is_maintenance');
-            const active = (isMaintenance) ? false : true;
-            const pricePrecision = this.safeInteger (market, 'price_round');
-            const precision = {
-                'amount': 8,
-                'price': pricePrecision,
-            };
-            const limits = {
-                'amount': {
-                    'min': this.safeNumber (market, 'trade_min_traded_currency'),
-                    'max': undefined,
-                },
-                'price': {
-                    'min': this.safeNumber (market, 'trade_min_base_currency'),
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            };
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
                 'margin': false,
                 'future': false,
                 'swap': false,
                 'option': false,
-                'optionType': undefined,
-                'strike': undefined,
+                'active': isMaintenance ? false : true,
+                'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'contract': false,
+                'taker': this.safeNumber (market, 'trade_fee_percent'),
                 'contractSize': undefined,
-                'settle': undefined,
-                'settleId': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
-                'active': active,
-                'taker': taker,
+                'strike': undefined,
+                'optionType': undefined,
                 'percentage': true,
-                'precision': precision,
-                'limits': limits,
+                'precision': {
+                    'amount': 8,
+                    'price': this.safeInteger (market, 'price_round'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (market, 'trade_min_traded_currency'),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': this.safeNumber (market, 'trade_min_base_currency'),
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
                 'info': market,
             });
         }
