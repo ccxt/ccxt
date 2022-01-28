@@ -234,25 +234,31 @@ class mercado(Exchange):
         response = self.publicGetCoinOrderbook(self.extend(request, params))
         return self.parse_order_book(response, symbol)
 
-    def fetch_ticker(self, symbol, params={}):
-        self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'coin': market['base'],
-        }
-        response = self.publicGetCoinTicker(self.extend(request, params))
-        ticker = self.safe_value(response, 'ticker', {})
+    def parse_ticker(self, ticker, market=None):
+        #
+        # {
+        #     "high":"103.96000000",
+        #     "low":"95.00000000",
+        #     "vol":"2227.67806598",
+        #     "last":"97.91591000",
+        #     "buy":"95.52760000",
+        #     "sell":"97.91475000",
+        #     "open":"99.79955000",
+        #     "date":1643382606
+        # }
+        #
+        symbol = self.safe_symbol(None, market)
         timestamp = self.safe_timestamp(ticker, 'date')
-        last = self.safe_number(ticker, 'last')
-        return {
+        last = self.safe_string(ticker, 'last')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'buy'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'sell'),
+            'ask': self.safe_string(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -262,10 +268,32 @@ class mercado(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'vol'),
+            'baseVolume': self.safe_string(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
+        }, market, False)
+
+    def fetch_ticker(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'coin': market['base'],
         }
+        response = self.publicGetCoinTicker(self.extend(request, params))
+        ticker = self.safe_value(response, 'ticker', {})
+        #
+        # {
+        #     "high":"103.96000000",
+        #     "low":"95.00000000",
+        #     "vol":"2227.67806598",
+        #     "last":"97.91591000",
+        #     "buy":"95.52760000",
+        #     "sell":"97.91475000",
+        #     "open":"99.79955000",
+        #     "date":1643382606
+        # }
+        #
+        return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_timestamp_2(trade, 'date', 'executed_timestamp')
