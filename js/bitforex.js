@@ -274,15 +274,15 @@ module.exports = class bitforex extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        // {
-        //     "buy":7.04E-7,
-        //     "date":1643371198598,
-        //     "high":7.48E-7,
-        //     "last":7.28E-7,
-        //     "low":7.10E-7,
-        //     "sell":7.54E-7,
-        //     "vol":9877287.2874
-        // }
+        //     {
+        //         "buy":7.04E-7,
+        //         "date":1643371198598,
+        //         "high":7.48E-7,
+        //         "last":7.28E-7,
+        //         "low":7.10E-7,
+        //         "sell":7.54E-7,
+        //         "vol":9877287.2874
+        //     }
         //
         const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.safeInteger (ticker, 'date');
@@ -319,19 +319,19 @@ module.exports = class bitforex extends Exchange {
         const response = await this.publicGetApiV1MarketTicker (this.extend (request, params));
         const ticker = this.safeValue (response, 'data');
         //
-        // {
-        //     "data":{
-        //         "buy":37082.83,
-        //         "date":1643388686660,
-        //         "high":37487.83,
-        //         "last":37086.79,
-        //         "low":35544.44,
-        //         "sell":37090.52,
-        //         "vol":690.9776
-        //     },
-        //     "success":true,
-        //     "time":1643388686660
-        // }
+        //     {
+        //         "data":{
+        //             "buy":37082.83,
+        //             "date":1643388686660,
+        //             "high":37487.83,
+        //             "last":37086.79,
+        //             "low":35544.44,
+        //             "sell":37090.52,
+        //             "vol":690.9776
+        //         },
+        //         "success":true,
+        //         "time":1643388686660
+        //     }
         //
         return this.parseTicker (ticker, market);
     }
