@@ -64,6 +64,7 @@ class mexc(Exchange):
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
                 'fetchPositions': True,
+                'fetchPremiumIndexOHLCV': True,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -1119,6 +1120,12 @@ class mexc(Exchange):
             self.safe_number(ohlcv, 2 if market['spot'] else 4),
             self.safe_number(ohlcv, 5),
         ]
+
+    async def fetch_premium_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'premiumIndex',
+        }
+        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     async def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         request = {
