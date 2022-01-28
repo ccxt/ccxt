@@ -274,6 +274,44 @@ class bitforex extends Exchange {
         return $this->parse_balance($response);
     }
 
+    public function parse_ticker($ticker, $market = null) {
+        //
+        //     {
+        //         "buy":7.04E-7,
+        //         "date":1643371198598,
+        //         "high":7.48E-7,
+        //         "last":7.28E-7,
+        //         "low":7.10E-7,
+        //         "sell":7.54E-7,
+        //         "vol":9877287.2874
+        //     }
+        //
+        $symbol = $this->safe_symbol(null, $market);
+        $timestamp = $this->safe_integer($ticker, 'date');
+        return $this->safe_ticker(array(
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'buy'),
+            'bidVolume' => null,
+            'ask' => $this->safe_string($ticker, 'sell'),
+            'askVolume' => null,
+            'vwap' => null,
+            'open' => null,
+            'close' => $this->safe_string($ticker, 'last'),
+            'last' => $this->safe_string($ticker, 'last'),
+            'previousClose' => null,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => $this->safe_string($ticker, 'vol'),
+            'quoteVolume' => null,
+            'info' => $ticker,
+        ), $market, false);
+    }
+
     public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->markets[$symbol];
@@ -281,30 +319,23 @@ class bitforex extends Exchange {
             'symbol' => $market['id'],
         );
         $response = $this->publicGetApiV1MarketTicker (array_merge($request, $params));
-        $data = $response['data'];
-        $timestamp = $this->safe_integer($data, 'date');
-        return array(
-            'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($data, 'high'),
-            'low' => $this->safe_number($data, 'low'),
-            'bid' => $this->safe_number($data, 'buy'),
-            'bidVolume' => null,
-            'ask' => $this->safe_number($data, 'sell'),
-            'askVolume' => null,
-            'vwap' => null,
-            'open' => null,
-            'close' => $this->safe_number($data, 'last'),
-            'last' => $this->safe_number($data, 'last'),
-            'previousClose' => null,
-            'change' => null,
-            'percentage' => null,
-            'average' => null,
-            'baseVolume' => $this->safe_number($data, 'vol'),
-            'quoteVolume' => null,
-            'info' => $response,
-        );
+        $ticker = $this->safe_value($response, 'data');
+        //
+        //     {
+        //         "data":array(
+        //             "buy":37082.83,
+        //             "date":1643388686660,
+        //             "high":37487.83,
+        //             "last":37086.79,
+        //             "low":35544.44,
+        //             "sell":37090.52,
+        //             "vol":690.9776
+        //         ),
+        //         "success":true,
+        //         "time":1643388686660
+        //     }
+        //
+        return $this->parse_ticker($ticker, $market);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
