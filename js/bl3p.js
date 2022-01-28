@@ -156,6 +156,7 @@ module.exports = class bl3p extends Exchange {
         const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const last = this.safeString (ticker, 'last');
+        const volume = this.safeValue (ticker, 'volume', {});
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -174,7 +175,7 @@ module.exports = class bl3p extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeString (this.safeValue (ticker, 'volume'), '24h'),
+            'baseVolume': this.safeString (volume, '24h'),
             'quoteVolume': undefined,
             'info': ticker,
         }, market, false);
