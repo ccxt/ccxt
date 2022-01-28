@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
-const Precise = require('./base/Precise');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
