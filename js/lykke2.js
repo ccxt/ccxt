@@ -28,10 +28,17 @@ module.exports = class lykke extends Exchange {
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
-                'fetchFundingRateHistory': false, // TODO: check this api
+                'fetchDepositAddress': true,
+                'fetchDeposits': false,
+                'fetchFundingFees': false,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': 'emulated',
+                'fetchIndexOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -73,7 +80,7 @@ module.exports = class lykke extends Exchange {
                     'https://hft-apiv2.lykke.com/swagger/ui/index.html',
                     'https://lykkecity.github.io/Trading-API',
                 ],
-                'fees': '', // zero fee
+                'fees': 'https://support.lykke.com/hc/en-us/articles/115002141125-What-are-the-fees-and-charges-', // zero fee
             },
             'api': {
                 'public': {
@@ -90,14 +97,28 @@ module.exports = class lykke extends Exchange {
                     ],
                 },
                 'private': {
-                    // 'balance',
                     'get': [
+                        'balance',
+                        'trades/order/{OrderId}',
+                        'orders/active',
+                        'orders/closed',
+                        'orders/{OrderId}',
+                        'operations',
+                        'operations/deposits/addresses',
+                        'operations/deposits/addresses/{AssetId}',
+                        /////
                         'Orders',
                         'Orders/{id}',
                         'Wallets',
                         'History/trades',
                     ],
                     'post': [
+                        'orders/limit',
+                        'orders/market',
+                        'orders/bulk',
+                        'operations/withdrawals',
+                        'operations/deposits/addresses',
+                        /////
                         'Orders/limit',
                         'Orders/market',
                         'Orders/{id}/Cancel',
@@ -107,6 +128,9 @@ module.exports = class lykke extends Exchange {
                         'Orders/bulk',
                     ],
                     'delete': [
+                        'orders',
+                        'orders/{OrderId}',
+                        /////
                         'Orders',
                         'Orders/{id}',
                     ],
@@ -117,7 +141,7 @@ module.exports = class lykke extends Exchange {
                     'tierBased': false,
                     'percentage': true,
                     'maker': 0.0, // as of 7 Feb 2018, see https://github.com/ccxt/ccxt/issues/1863
-                    'taker': 0.0, // https://www.lykke.com/cp/wallet-fees-and-limits
+                    'taker': 0.0, // https://support.lykke.com/hc/en-us/articles/115002141125-What-are-the-fees-and-charges-
                 },
                 'funding': {
                     'tierBased': false,
@@ -440,39 +464,27 @@ module.exports = class lykke extends Exchange {
         return this.parseOrderBook (orderbook, symbol, timestamp, 'bids', 'asks', 'p', 'v');
     }
 
-    parseBalance (response) {
-        const result = { 'info': response };
-        for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
-            const currencyId = this.safeString (balance, 'AssetId');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['total'] = this.safeString (balance, 'Balance');
-            account['used'] = this.safeString (balance, 'Reserved');
-            result[code] = account;
-        }
-        return this.safeBalance (result);
-    }
-
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetWallets (params);
-        return this.parseBalance (response);
+    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'index',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
     parseTrade (trade, market) {
         //
         //  public fetchTrades
         //
-        //   {
-        //     "id": "d5983ab8-e9ec-48c9-bdd0-1b18f8e80a71",
-        //     "assetPairId": "BTCUSD",
-        //     "dateTime": "2019-05-15T06:52:02.147Z",
-        //     "volume": 0.00019681,
-        //     "index": 0,
-        //     "price": 8023.333,
-        //     "action": "Buy"
-        //   }
+        // [
+        //     {
+        //         "id":"71df1f0c-be4e-4d45-b809-c108fad5f2a8",
+        //         "assetPairId":"BTCUSD",
+        //         "timestamp":1643345958414,
+        //         "volume":0.00010996,
+        //         "price":37205.723,
+        //         "side":"buy"
+        //      }
+        //  ]
         //
         //  private fetchMyTrades
         //     {
@@ -508,7 +520,7 @@ module.exports = class lykke extends Exchange {
         const amount = this.parseNumber (amountString);
         const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const fee = {
-            'cost': 0, // There are no fees for trading. https://www.lykke.com/wallet-fees-and-limits/
+            'cost': 0, // There are no fees for trading.
             'currency': market['quote'],
         };
         return {
@@ -536,22 +548,138 @@ module.exports = class lykke extends Exchange {
         }
         const request = {
             'AssetPairId': market['id'],
-            'skip': 0,
-            'take': limit,
+            'offset': 0, // (optional) Skip the specified number of elements.
+            'take': limit, //(optional) Take the specified number of elements.
         };
         const response = await this.publicGetTradesPublicAssetPairId (this.extend (request, params));
         //
-        // {
-        //     "id":"fc9c54d0-6ac7-44c3-99d8-f4715be4a642",
-        //     "assetPairId":"USDCUSD",
-        //     "timestamp":1643138013338,
-        //     "volume":3.635237,
-        //     "price":1.00131,
-        //     "side":"buy",
-        // }
+        // [
+        //     {
+        //         "id":"71df1f0c-be4e-4d45-b809-c108fad5f2a8",
+        //         "assetPairId":"BTCUSD",
+        //         "timestamp":1643345958414,
+        //         "volume":0.00010996,
+        //         "price":37205.723,
+        //         "side":"buy"
+        //      }
+        //  ]
         //
         const result = this.safeValue (response, 'payload', []);
         return this.parseTrades (result, market, since, limit);
+    }
+
+    parseBalance (response) {
+        const result = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 'assetId');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            const free = this.safeString (balance, 'available');
+            const used = this.safeString (balance, 'reserved');
+            account['free'] = free;
+            account['used'] = used;
+            account['total'] = Precise.stringAdd(free, used);
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetBalance (params);
+        const payload = this.safeValue (response, 'payload', []);
+        //
+        // [
+        //     {
+        //         "assetId":"BTCUSD",
+        //         "available":0.0001,
+        //         "timestamp":1643345958414,
+        //         "reserved":0.00001,
+        //      }
+        //  ]
+        //
+        return this.parseBalance (payload);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'Open': 'open',
+            'Pending': 'open',
+            'InOrderBook': 'open',
+            'Processing': 'open',
+            'Matched': 'closed',
+            'Cancelled': 'canceled',
+            'Rejected': 'rejected',
+            'Replaced': 'canceled',
+            'Placed': 'open',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrder (order, market = undefined) {
+        //
+        //     {
+        //         "Id": "string",
+        //         "Status": "Unknown",
+        //         "AssetPairId": "string",
+        //         "Volume": 0,
+        //         "Price": 0,
+        //         "RemainingVolume": 0,
+        //         "LastMatchTime": "2020-03-26T20:58:50.710Z",
+        //         "CreatedAt": "2020-03-26T20:58:50.710Z",
+        //         "Type": "Unknown",
+        //         "LowerLimitPrice": 0,
+        //         "LowerPrice": 0,
+        //         "UpperLimitPrice": 0,
+        //         "UpperPrice": 0
+        //     }
+        //
+        const status = this.parseOrderStatus (this.safeString (order, 'Status'));
+        const marketId = this.safeString (order, 'AssetPairId');
+        const symbol = this.safeSymbol (marketId, market);
+        const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'LastMatchTime'));
+        let timestamp = undefined;
+        if (('Registered' in order) && (order['Registered'])) {
+            timestamp = this.parse8601 (order['Registered']);
+        } else if (('CreatedAt' in order) && (order['CreatedAt'])) {
+            timestamp = this.parse8601 (order['CreatedAt']);
+        }
+        const price = this.safeString (order, 'Price');
+        let side = undefined;
+        let amount = this.safeString (order, 'Volume');
+        const isAmountLessThanZero = Precise.stringLt (amount, '0');
+        if (isAmountLessThanZero) {
+            side = 'sell';
+            amount = Precise.stringAbs (amount);
+        } else {
+            side = 'buy';
+        }
+        const remaining = Precise.stringAbs (this.safeString (order, 'RemainingVolume'));
+        const id = this.safeString (order, 'Id');
+        return this.safeOrder ({
+            'info': order,
+            'id': id,
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'symbol': symbol,
+            'type': undefined,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'stopPrice': undefined,
+            'cost': undefined,
+            'average': undefined,
+            'amount': amount,
+            'filled': undefined,
+            'remaining': remaining,
+            'status': status,
+            'fee': undefined,
+            'trades': undefined,
+        }, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -636,86 +764,6 @@ module.exports = class lykke extends Exchange {
         };
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
-            'Open': 'open',
-            'Pending': 'open',
-            'InOrderBook': 'open',
-            'Processing': 'open',
-            'Matched': 'closed',
-            'Cancelled': 'canceled',
-            'Rejected': 'rejected',
-            'Replaced': 'canceled',
-            'Placed': 'open',
-        };
-        return this.safeString (statuses, status, status);
-    }
-
-    parseOrder (order, market = undefined) {
-        //
-        //     {
-        //         "Id": "string",
-        //         "Status": "Unknown",
-        //         "AssetPairId": "string",
-        //         "Volume": 0,
-        //         "Price": 0,
-        //         "RemainingVolume": 0,
-        //         "LastMatchTime": "2020-03-26T20:58:50.710Z",
-        //         "CreatedAt": "2020-03-26T20:58:50.710Z",
-        //         "Type": "Unknown",
-        //         "LowerLimitPrice": 0,
-        //         "LowerPrice": 0,
-        //         "UpperLimitPrice": 0,
-        //         "UpperPrice": 0
-        //     }
-        //
-        const status = this.parseOrderStatus (this.safeString (order, 'Status'));
-        const marketId = this.safeString (order, 'AssetPairId');
-        const symbol = this.safeSymbol (marketId, market);
-        const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'LastMatchTime'));
-        let timestamp = undefined;
-        if (('Registered' in order) && (order['Registered'])) {
-            timestamp = this.parse8601 (order['Registered']);
-        } else if (('CreatedAt' in order) && (order['CreatedAt'])) {
-            timestamp = this.parse8601 (order['CreatedAt']);
-        }
-        const price = this.safeString (order, 'Price');
-        let side = undefined;
-        let amount = this.safeString (order, 'Volume');
-        const isAmountLessThanZero = Precise.stringLt (amount, '0');
-        if (isAmountLessThanZero) {
-            side = 'sell';
-            amount = Precise.stringAbs (amount);
-        } else {
-            side = 'buy';
-        }
-        const remaining = Precise.stringAbs (this.safeString (order, 'RemainingVolume'));
-        const id = this.safeString (order, 'Id');
-        return this.safeOrder ({
-            'info': order,
-            'id': id,
-            'clientOrderId': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': symbol,
-            'type': undefined,
-            'timeInForce': undefined,
-            'postOnly': undefined,
-            'side': side,
-            'price': price,
-            'stopPrice': undefined,
-            'cost': undefined,
-            'average': undefined,
-            'amount': amount,
-            'filled': undefined,
-            'remaining': remaining,
-            'status': status,
-            'fee': undefined,
-            'trades': undefined,
-        }, market);
-    }
-
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
@@ -777,7 +825,7 @@ module.exports = class lykke extends Exchange {
             }
             this.checkRequiredCredentials ();
             headers = {
-                'api-key': this.apiKey,
+                'Authorization': 'Bearer ' + this.apiKey,
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
             };
@@ -788,5 +836,36 @@ module.exports = class lykke extends Exchange {
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'AssetId': this.safeString (currency, 'id'),
+        };
+        const response = await this.privateGetOperationsDepositsAddressesAssetId (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "result": {
+        //             "address": "0x83a127952d266A6eA306c40Ac62A4a70668FE3BE",
+        //             "tag": null,
+        //             "method": "erc20",
+        //             "coin": null
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'payload', {});
+        const networkId = this.safeString (result, 'method');
+        const address = this.safeString (result, 'address');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': this.safeString (result, 'tag'),
+            'network': this.safeNetwork (networkId),
+            'info': response,
+        };
     }
 };
