@@ -287,16 +287,16 @@ module.exports = class indodax extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        // {
-        //     "high":"0.01951",
-        //     "low":"0.01877",
-        //     "vol_eth":"39.38839319",
-        //     "vol_btc":"0.75320886",
-        //     "last":"0.01896",
-        //     "buy":"0.01896",
-        //     "sell":"0.019",
-        //     "server_time":1565248908
-        // }
+        //     {
+        //         "high":"0.01951",
+        //         "low":"0.01877",
+        //         "vol_eth":"39.38839319",
+        //         "vol_btc":"0.75320886",
+        //         "last":"0.01896",
+        //         "buy":"0.01896",
+        //         "sell":"0.019",
+        //         "server_time":1565248908
+        //     }
         //
         const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.safeTimestamp (ticker, 'server_time');
