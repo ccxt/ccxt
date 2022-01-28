@@ -1493,8 +1493,12 @@ module.exports = class cryptocom extends Exchange {
         const takerOrMaker = this.safeStringLower2 (trade, 'liquidity_indicator', 'taker_side');
         const order = this.safeString (trade, 'order_id');
         let fee = undefined;
-        const feeCost = Precise.stringNeg (this.safeString2 (trade, 'fee', 'fees'));
+        let feeCost = this.safeString2 (trade, 'fee', 'fees');
         if (feeCost !== undefined) {
+            const contract = this.safeValue (market, 'contract', false);
+            if (contract) {
+                feeCost = Precise.stringNeg (feeCost);
+            }
             let feeCurrency = undefined;
             if (market['spot']) {
                 feeCurrency = this.safeString (trade, 'fee_currency');
