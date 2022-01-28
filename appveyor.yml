@@ -1,6 +1,6 @@
 environment:
   matrix:
-    - nodejs_version: '13'
+    - nodejs_version: '14'
 install:
   - ps: Install-Product node $env:nodejs_version
   - set LIB=C:\OpenSSL-Win64\lib;%LIB%
