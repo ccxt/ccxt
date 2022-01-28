@@ -133,41 +133,80 @@ class paymium(Exchange):
         response = await self.publicGetDataCurrencyDepth(self.extend(request, params))
         return self.parse_order_book(response, symbol, None, 'bids', 'asks', 'price', 'amount')
 
-    async def fetch_ticker(self, symbol, params={}):
-        await self.load_markets()
-        request = {
-            'currency': self.market_id(symbol),
-        }
-        ticker = await self.publicGetDataCurrencyTicker(self.extend(request, params))
+    def parse_ticker(self, ticker, market=None):
+        #
+        # {
+        #     "high":"33740.82",
+        #     "low":"32185.15",
+        #     "volume":"4.7890433",
+        #     "bid":"33313.53",
+        #     "ask":"33497.97",
+        #     "midpoint":"33405.75",
+        #     "vwap":"32802.5263553",
+        #     "at":1643381654,
+        #     "price":"33143.91",
+        #     "open":"33116.86",
+        #     "variation":"0.0817",
+        #     "currency":"EUR",
+        #     "trade_id":"ce2f5152-3ac5-412d-9b24-9fa72338474c",
+        #     "size":"0.00041087"
+        # }
+        #
+        symbol = self.safe_symbol(None, market)
         timestamp = self.safe_timestamp(ticker, 'at')
-        vwap = self.safe_number(ticker, 'vwap')
-        baseVolume = self.safe_number(ticker, 'volume')
-        quoteVolume = None
-        if baseVolume is not None and vwap is not None:
-            quoteVolume = baseVolume * vwap
-        last = self.safe_number(ticker, 'price')
-        return {
+        vwap = self.safe_string(ticker, 'vwap')
+        baseVolume = self.safe_string(ticker, 'volume')
+        quoteVolume = Precise.string_mul(baseVolume, vwap)
+        last = self.safe_string(ticker, 'price')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
-            'open': self.safe_number(ticker, 'open'),
+            'open': self.safe_string(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
             'change': None,
-            'percentage': self.safe_number(ticker, 'variation'),
+            'percentage': self.safe_string(ticker, 'variation'),
             'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
+        }, market, False)
+
+    async def fetch_ticker(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'currency': market['id'],
         }
+        ticker = await self.publicGetDataCurrencyTicker(self.extend(request, params))
+        #
+        # {
+        #     "high":"33740.82",
+        #     "low":"32185.15",
+        #     "volume":"4.7890433",
+        #     "bid":"33313.53",
+        #     "ask":"33497.97",
+        #     "midpoint":"33405.75",
+        #     "vwap":"32802.5263553",
+        #     "at":1643381654,
+        #     "price":"33143.91",
+        #     "open":"33116.86",
+        #     "variation":"0.0817",
+        #     "currency":"EUR",
+        #     "trade_id":"ce2f5152-3ac5-412d-9b24-9fa72338474c",
+        #     "size":"0.00041087"
+        # }
+        #
+        return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market):
         timestamp = self.safe_timestamp(trade, 'created_at_int')
