@@ -1101,7 +1101,7 @@ module.exports = class bitget extends Exchange {
         }
         const baseVolume = this.safeString2 (ticker, 'amount', 'volume_24h');
         const quoteVolume = this.safeString (ticker, 'vol');
-        const vwap = this.vwap (baseVolume, quoteVolume);
+        const vwap = this.vwap (this.parseNumber (baseVolume), this.parseNumber (quoteVolume));
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
