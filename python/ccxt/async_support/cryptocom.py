@@ -1429,8 +1429,11 @@ class cryptocom(Exchange):
         takerOrMaker = self.safe_string_lower_2(trade, 'liquidity_indicator', 'taker_side')
         order = self.safe_string(trade, 'order_id')
         fee = None
-        feeCost = Precise.string_neg(self.safe_string_2(trade, 'fee', 'fees'))
+        feeCost = self.safe_string_2(trade, 'fee', 'fees')
         if feeCost is not None:
+            contract = self.safe_value(market, 'contract', False)
+            if contract:
+                feeCost = Precise.string_neg(feeCost)
             feeCurrency = None
             if market['spot']:
                 feeCurrency = self.safe_string(trade, 'fee_currency')
