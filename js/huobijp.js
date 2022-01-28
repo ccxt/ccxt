@@ -444,8 +444,10 @@ module.exports = class huobijp extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const state = this.safeString (market, 'state');
-            const leverageRatio = this.safeNumber (market, 'leverage-ratio', 1);
-            const superLeverageRatio = this.safeNumber (market, 'super-margin-leverage-ratio', 1);
+            const leverageRatio = this.safeString (market, 'leverage-ratio', '1');
+            const superLeverageRatio = this.safeString (market, 'super-margin-leverage-ratio', '1');
+            const margin = Precise.stringGt (leverageRatio, '1') || Precise.stringGt (superLeverageRatio, '1');
+            const fee = (base === 'OMG') ? 0 : 0.2 / 100;
             result.push ({
                 'id': baseId + quoteId,
                 'symbol': base + '/' + quote,
@@ -457,7 +459,7 @@ module.exports = class huobijp extends Exchange {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': ((leverageRatio !== undefined) || (superLeverageRatio !== undefined)),
+                'margin': margin,
                 'swap': false,
                 'future': false,
                 'option': false,
@@ -465,8 +467,8 @@ module.exports = class huobijp extends Exchange {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'taker': (base === 'OMG') ? 0 : 0.2 / 100,
-                'maker': (base === 'OMG') ? 0 : 0.2 / 100,
+                'taker': fee,
+                'maker': fee,
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -480,8 +482,8 @@ module.exports = class huobijp extends Exchange {
                 'limits': {
                     'leverage': {
                         'min': this.parseNumber ('1'),
-                        'max': leverageRatio,
-                        'superMax': superLeverageRatio,
+                        'max': this.parseNumber (leverageRatio),
+                        'superMax': this.parseNumber (superLeverageRatio),
                     },
                     'amount': {
                         'min': this.safeNumber (market, 'min-order-amt'),
