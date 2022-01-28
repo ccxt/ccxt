@@ -294,8 +294,8 @@ module.exports = class hitbtc extends Exchange {
             const quoteId = this.safeString (market, 'quoteCurrency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            let symbol = base + '/' + quote;
             // bequant fix
+            let symbol = base + '/' + quote;
             if (id.indexOf ('_') >= 0) {
                 symbol = id;
             }
@@ -303,30 +303,43 @@ module.exports = class hitbtc extends Exchange {
             const stepString = this.safeString (market, 'tickSize');
             const lot = this.parseNumber (lotString);
             const step = this.parseNumber (stepString);
-            const precision = {
-                'price': step,
-                'amount': lot,
-            };
-            const taker = this.safeNumber (market, 'takeLiquidityRate');
-            const maker = this.safeNumber (market, 'provideLiquidityRate');
             const feeCurrencyId = this.safeString (market, 'feeCurrency');
-            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             result.push (this.extend (this.fees['trading'], {
-                'info': market,
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'active': true,
-                'taker': taker,
-                'maker': maker,
-                'precision': precision,
-                'feeCurrency': feeCurrencyCode,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': this.safeNumber (market, 'takeLiquidityRate'),
+                'maker': this.safeNumber (market, 'provideLiquidityRate'),
+                'feeCurrency': this.safeCurrencyCode (feeCurrencyId),
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': step,
+                    'amount': lot,
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': lot,
                         'max': undefined,
@@ -340,6 +353,7 @@ module.exports = class hitbtc extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': market,
             }));
         }
         return result;
