@@ -44,8 +44,8 @@ module.exports = class mexc extends Exchange {
                 'fetchIndexOHLCV': true,
                 'fetchIsolatedPositions': undefined,
                 'fetchLeverage': undefined,
-                'fetchMarkOHLCV': true,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -1157,6 +1157,27 @@ module.exports = class mexc extends Exchange {
             this.safeNumber (ohlcv, market['spot'] ? 2 : 4),
             this.safeNumber (ohlcv, 5),
         ];
+    }
+
+    async fetchPremiumIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'premiumIndex',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+    }
+
+    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'index',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+    }
+
+    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'mark',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
     async fetchBalance (params = {}) {

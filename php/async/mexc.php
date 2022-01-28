@@ -45,7 +45,9 @@ class mexc extends Exchange {
                 'fetchDeposits' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
+                'fetchIndexOHLCV' => true,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -54,6 +56,7 @@ class mexc extends Exchange {
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
                 'fetchPositions' => true,
+                'fetchPremiumIndexOHLCV' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -1154,6 +1157,27 @@ class mexc extends Exchange {
             $this->safe_number($ohlcv, $market['spot'] ? 2 : 4),
             $this->safe_number($ohlcv, 5),
         ];
+    }
+
+    public function fetch_premium_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'premiumIndex',
+        );
+        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'index',
+        );
+        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'mark',
+        );
+        return yield $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_balance($params = array ()) {

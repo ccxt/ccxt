@@ -1499,8 +1499,12 @@ class cryptocom extends Exchange {
         $takerOrMaker = $this->safe_string_lower_2($trade, 'liquidity_indicator', 'taker_side');
         $order = $this->safe_string($trade, 'order_id');
         $fee = null;
-        $feeCost = Precise::string_neg($this->safe_string_2($trade, 'fee', 'fees'));
+        $feeCost = $this->safe_string_2($trade, 'fee', 'fees');
         if ($feeCost !== null) {
+            $contract = $this->safe_value($market, 'contract', false);
+            if ($contract) {
+                $feeCost = Precise::string_neg($feeCost);
+            }
             $feeCurrency = null;
             if ($market['spot']) {
                 $feeCurrency = $this->safe_string($trade, 'fee_currency');

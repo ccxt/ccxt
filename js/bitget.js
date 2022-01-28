@@ -1101,7 +1101,6 @@ module.exports = class bitget extends Exchange {
         }
         const baseVolume = this.safeString2 (ticker, 'amount', 'volume_24h');
         const quoteVolume = this.safeString (ticker, 'vol');
-        const vwap = this.vwap (baseVolume, quoteVolume);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1112,7 +1111,7 @@ module.exports = class bitget extends Exchange {
             'bidVolume': bidVolume,
             'ask': ask,
             'askVolume': askVolume,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': open,
             'close': last,
             'last': last,

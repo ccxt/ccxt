@@ -1,12 +1,12 @@
 environment:
   matrix:
-    - nodejs_version: '13'
+    - nodejs_version: '14'
 install:
   - ps: Install-Product node $env:nodejs_version
   - set LIB=C:\OpenSSL-Win64\lib;%LIB%
   - set INCLUDE=C:\OpenSSL-Win64\include;%INCLUDE%
   - set CI=true
-  - npm install --global npm@latest
+  # - npm install --global npm@latest
   - set PATH=%APPDATA%\npm;C:\Python38;C:\Python38\Scripts;%PATH%
   # Remove python2.7 from path
   - set PATH=%PATH:C:\Python27;=%

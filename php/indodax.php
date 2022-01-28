@@ -19,25 +19,48 @@ class indodax extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null,
-                'swap' => null,
-                'future' => null,
-                'option' => null,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
                 'cancelOrder' => true,
                 'createMarketOrder' => null,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => null,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => null,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => null,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'withdraw' => true,
             ),
             'version' => '2.0', // as of 9 April 2018
@@ -163,57 +186,55 @@ class indodax extends Exchange {
             $quoteId = $this->safe_string($market, 'base_currency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $taker = $this->safe_number($market, 'trade_fee_percent');
             $isMaintenance = $this->safe_integer($market, 'is_maintenance');
-            $active = ($isMaintenance) ? false : true;
-            $pricePrecision = $this->safe_integer($market, 'price_round');
-            $precision = array(
-                'amount' => 8,
-                'price' => $pricePrecision,
-            );
-            $limits = array(
-                'amount' => array(
-                    'min' => $this->safe_number($market, 'trade_min_traded_currency'),
-                    'max' => null,
-                ),
-                'price' => array(
-                    'min' => $this->safe_number($market, 'trade_min_base_currency'),
-                    'max' => null,
-                ),
-                'cost' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-            );
             $result[] = array(
                 'id' => $id,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
                 'margin' => false,
                 'future' => false,
                 'swap' => false,
                 'option' => false,
-                'optionType' => null,
-                'strike' => null,
+                'active' => $isMaintenance ? false : true,
+                'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                'contract' => false,
+                'taker' => $this->safe_number($market, 'trade_fee_percent'),
                 'contractSize' => null,
-                'settle' => null,
-                'settleId' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
-                'active' => $active,
-                'taker' => $taker,
+                'strike' => null,
+                'optionType' => null,
                 'percentage' => true,
-                'precision' => $precision,
-                'limits' => $limits,
+                'precision' => array(
+                    'amount' => 8,
+                    'price' => $this->safe_integer($market, 'price_round'),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => $this->safe_number($market, 'trade_min_traded_currency'),
+                        'max' => null,
+                    ),
+                    'price' => array(
+                        'min' => $this->safe_number($market, 'trade_min_base_currency'),
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
                 'info' => $market,
             );
         }

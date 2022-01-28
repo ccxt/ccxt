@@ -25,25 +25,48 @@ class indodax(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,
-                'swap': None,
-                'future': None,
-                'option': None,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelOrder': True,
                 'createMarketOrder': None,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': None,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': None,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': None,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'version': '2.0',  # as of 9 April 2018
@@ -166,57 +189,55 @@ class indodax(Exchange):
             quoteId = self.safe_string(market, 'base_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            taker = self.safe_number(market, 'trade_fee_percent')
             isMaintenance = self.safe_integer(market, 'is_maintenance')
-            active = False if (isMaintenance) else True
-            pricePrecision = self.safe_integer(market, 'price_round')
-            precision = {
-                'amount': 8,
-                'price': pricePrecision,
-            }
-            limits = {
-                'amount': {
-                    'min': self.safe_number(market, 'trade_min_traded_currency'),
-                    'max': None,
-                },
-                'price': {
-                    'min': self.safe_number(market, 'trade_min_base_currency'),
-                    'max': None,
-                },
-                'cost': {
-                    'min': None,
-                    'max': None,
-                },
-            }
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
                 'margin': False,
                 'future': False,
                 'swap': False,
                 'option': False,
-                'optionType': None,
-                'strike': None,
+                'active': False if isMaintenance else True,
+                'contract': False,
                 'linear': None,
                 'inverse': None,
-                'contract': False,
+                'taker': self.safe_number(market, 'trade_fee_percent'),
                 'contractSize': None,
-                'settle': None,
-                'settleId': None,
                 'expiry': None,
                 'expiryDatetime': None,
-                'active': active,
-                'taker': taker,
+                'strike': None,
+                'optionType': None,
                 'percentage': True,
-                'precision': precision,
-                'limits': limits,
+                'precision': {
+                    'amount': 8,
+                    'price': self.safe_integer(market, 'price_round'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': self.safe_number(market, 'trade_min_traded_currency'),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': self.safe_number(market, 'trade_min_base_currency'),
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
                 'info': market,
             })
         return result

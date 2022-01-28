@@ -272,6 +272,44 @@ module.exports = class bitforex extends Exchange {
         return this.parseBalance (response);
     }
 
+    parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         "buy":7.04E-7,
+        //         "date":1643371198598,
+        //         "high":7.48E-7,
+        //         "last":7.28E-7,
+        //         "low":7.10E-7,
+        //         "sell":7.54E-7,
+        //         "vol":9877287.2874
+        //     }
+        //
+        const symbol = this.safeSymbol (undefined, market);
+        const timestamp = this.safeInteger (ticker, 'date');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'buy'),
+            'bidVolume': undefined,
+            'ask': this.safeString (ticker, 'sell'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': this.safeString (ticker, 'last'),
+            'last': this.safeString (ticker, 'last'),
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'vol'),
+            'quoteVolume': undefined,
+            'info': ticker,
+        }, market, false);
+    }
+
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.markets[symbol];
@@ -279,30 +317,23 @@ module.exports = class bitforex extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.publicGetApiV1MarketTicker (this.extend (request, params));
-        const data = response['data'];
-        const timestamp = this.safeInteger (data, 'date');
-        return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (data, 'high'),
-            'low': this.safeNumber (data, 'low'),
-            'bid': this.safeNumber (data, 'buy'),
-            'bidVolume': undefined,
-            'ask': this.safeNumber (data, 'sell'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': this.safeNumber (data, 'last'),
-            'last': this.safeNumber (data, 'last'),
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': this.safeNumber (data, 'vol'),
-            'quoteVolume': undefined,
-            'info': response,
-        };
+        const ticker = this.safeValue (response, 'data');
+        //
+        //     {
+        //         "data":{
+        //             "buy":37082.83,
+        //             "date":1643388686660,
+        //             "high":37487.83,
+        //             "last":37086.79,
+        //             "low":35544.44,
+        //             "sell":37090.52,
+        //             "vol":690.9776
+        //         },
+        //         "success":true,
+        //         "time":1643388686660
+        //     }
+        //
+        return this.parseTicker (ticker, market);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
