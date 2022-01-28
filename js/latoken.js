@@ -20,7 +20,7 @@ module.exports = class latoken extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': undefined,
+                'swap': undefined, // has but unimplemented
                 'future': undefined,
                 'option': false,
                 'cancelAllOrders': true,
@@ -273,42 +273,56 @@ module.exports = class latoken extends Exchange {
             if (baseCurrency !== undefined && quoteCurrency !== undefined) {
                 const base = this.safeCurrencyCode (this.safeString (baseCurrency, 'tag'));
                 const quote = this.safeCurrencyCode (this.safeString (quoteCurrency, 'tag'));
-                const symbol = base + '/' + quote;
-                const precision = {
-                    'price': this.safeNumber (market, 'priceTick'),
-                    'amount': this.safeNumber (market, 'quantityTick'),
-                };
                 const lowercaseQuote = quote.toLowerCase ();
                 const capitalizedQuote = this.capitalize (lowercaseQuote);
-                const limits = {
-                    'amount': {
-                        'min': this.safeNumber (market, 'minOrderQuantity'),
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': this.safeNumber (market, 'minOrderCost' + capitalizedQuote),
-                        'max': this.safeNumber (market, 'maxOrderCost' + capitalizedQuote),
-                    },
-                };
                 const status = this.safeString (market, 'status');
-                const active = (status === 'PAIR_STATUS_ACTIVE');
                 result.push ({
                     'id': id,
-                    'info': market,
-                    'symbol': symbol,
+                    'symbol': base + '/' + quote,
                     'base': base,
                     'quote': quote,
+                    'settle': undefined,
                     'baseId': baseId,
                     'quoteId': quoteId,
+                    'settleId': undefined,
                     'type': 'spot',
                     'spot': true,
-                    'active': active, // assuming true
-                    'precision': precision,
-                    'limits': limits,
+                    'margin': false,
+                    'swap': false,
+                    'future': false,
+                    'option': false,
+                    'active': (status === 'PAIR_STATUS_ACTIVE'), // assuming true
+                    'contract': false,
+                    'linear': undefined,
+                    'inverse': undefined,
+                    'contractSize': undefined,
+                    'expiry': undefined,
+                    'expiryDatetime': undefined,
+                    'strike': undefined,
+                    'optionType': undefined,
+                    'precision': {
+                        'price': this.safeNumber (market, 'priceTick'),
+                        'amount': this.safeNumber (market, 'quantityTick'),
+                    },
+                    'limits': {
+                        'leverage': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'amount': {
+                            'min': this.safeNumber (market, 'minOrderQuantity'),
+                            'max': undefined,
+                        },
+                        'price': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'cost': {
+                            'min': this.safeNumber (market, 'minOrderCost' + capitalizedQuote),
+                            'max': this.safeNumber (market, 'maxOrderCost' + capitalizedQuote),
+                        },
+                    },
+                    'info': market,
                 });
             }
         }
