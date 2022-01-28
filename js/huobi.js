@@ -1262,9 +1262,9 @@ module.exports = class huobi extends Exchange {
                 const contractStatus = this.safeInteger (market, 'contract_status');
                 active = (contractStatus === 1);
             }
-            const leverageRatio = this.safeNumber (market, 'leverage-ratio', 1);
-            const superLeverageRatio = this.safeNumber (market, 'super-margin-leverage-ratio', 1);
-            const hasLeverage = (leverageRatio !== undefined) || (superLeverageRatio !== undefined);
+            const leverageRatio = this.safeString (market, 'leverage-ratio', '1');
+            const superLeverageRatio = this.safeString (market, 'super-margin-leverage-ratio', '1');
+            const hasLeverage = Precise.stringGt (leverageRatio, '1') || Precise.stringGt (superLeverageRatio, '1');
             // 0 Delisting
             // 1 Listing
             // 2 Pending Listing
@@ -1309,8 +1309,8 @@ module.exports = class huobi extends Exchange {
                 'limits': {
                     'leverage': {
                         'min': this.parseNumber ('1'),
-                        'max': leverageRatio,
-                        'superMax': superLeverageRatio,
+                        'max': this.parseNumber (leverageRatio),
+                        'superMax': this.parseNumber (superLeverageRatio),
                     },
                     'amount': {
                         'min': minAmount,
