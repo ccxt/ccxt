@@ -109,36 +109,50 @@ module.exports = class itbit extends Exchange {
         return this.parseOrderBook (orderbook, symbol);
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'symbol': this.marketId (symbol),
-        };
-        const ticker = await this.publicGetMarketsSymbolTicker (this.extend (request, params));
+    parseTicker (ticker, market = undefined) {
+        //
+        // {
+        //     "pair":"XBTUSD",
+        //     "bid":"36734.50",
+        //     "bidAmt":"0.01000000",
+        //     "ask":"36734.75",
+        //     "askAmt":"0.30750480",
+        //     "lastPrice":"36721.75",
+        //     "lastAmt":"0.00070461",
+        //     "volume24h":"275.50596346",
+        //     "volumeToday":"118.19025141",
+        //     "high24h":"37510.50",
+        //     "low24h":"35542.75",
+        //     "highToday":"37510.50",
+        //     "lowToday":"36176.50",
+        //     "openToday":"37156.50",
+        //     "vwapToday":"37008.22463903",
+        //     "vwap24h":"36580.27146808",
+        //     "serverTimeUTC":"2022-01-28T14:46:32.4472864Z"
+        // }
+        //
+        const symbol = this.safeSymbol (undefined, market);
         const serverTimeUTC = this.safeString (ticker, 'serverTimeUTC');
         if (!serverTimeUTC) {
             throw new ExchangeError (this.id + ' fetchTicker returned a bad response: ' + this.json (ticker));
         }
         const timestamp = this.parse8601 (serverTimeUTC);
-        const vwap = this.safeNumber (ticker, 'vwap24h');
-        const baseVolume = this.safeNumber (ticker, 'volume24h');
-        let quoteVolume = undefined;
-        if (baseVolume !== undefined && vwap !== undefined) {
-            quoteVolume = baseVolume * vwap;
-        }
-        const last = this.safeNumber (ticker, 'lastPrice');
-        return {
+        const vwap = this.safeString (ticker, 'vwap24h');
+        const baseVolume = this.safeString (ticker, 'volume24h');
+        const quoteVolume = Precise.stringMul (baseVolume, vwap);
+        const last = this.safeString (ticker, 'lastPrice');
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high24h'),
-            'low': this.safeNumber (ticker, 'low24h'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeString (ticker, 'high24h'),
+            'low': this.safeString (ticker, 'low24h'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': vwap,
-            'open': this.safeNumber (ticker, 'openToday'),
+            'open': this.safeString (ticker, 'openToday'),
             'close': last,
             'last': last,
             'previousClose': undefined,
@@ -148,7 +162,38 @@ module.exports = class itbit extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
+        }, market, false);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
         };
+        const ticker = await this.publicGetMarketsSymbolTicker (this.extend (request, params));
+        //
+        // {
+        //     "pair":"XBTUSD",
+        //     "bid":"36734.50",
+        //     "bidAmt":"0.01000000",
+        //     "ask":"36734.75",
+        //     "askAmt":"0.30750480",
+        //     "lastPrice":"36721.75",
+        //     "lastAmt":"0.00070461",
+        //     "volume24h":"275.50596346",
+        //     "volumeToday":"118.19025141",
+        //     "high24h":"37510.50",
+        //     "low24h":"35542.75",
+        //     "highToday":"37510.50",
+        //     "lowToday":"36176.50",
+        //     "openToday":"37156.50",
+        //     "vwapToday":"37008.22463903",
+        //     "vwap24h":"36580.27146808",
+        //     "serverTimeUTC":"2022-01-28T14:46:32.4472864Z"
+        // }
+        //
+        return this.parseTicker (ticker, market);
     }
 
     parseTrade (trade, market = undefined) {
