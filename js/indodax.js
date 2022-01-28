@@ -348,7 +348,7 @@ module.exports = class indodax extends Exchange {
         //         }
         //     }
         //
-        const ticker = this.safeValue (response, 'ticker');
+        const ticker = this.safeValue (response, 'ticker', {});
         return this.parseTicker (ticker, market);
     }
 
