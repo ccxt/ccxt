@@ -163,13 +163,13 @@ module.exports = class coinspot extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        // {
-        //     "btc":{
-        //         "bid":"51970",
-        //         "ask":"53000",
-        //         "last":"52806.47"
+        //     {
+        //         "btc":{
+        //             "bid":"51970",
+        //             "ask":"53000",
+        //             "last":"52806.47"
+        //         }
         //     }
-        // }
         //
         const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.milliseconds ();
@@ -206,13 +206,16 @@ module.exports = class coinspot extends Exchange {
         id = id.toLowerCase ();
         const prices = this.safeValue (response, 'prices');
         //
-        // {
-        //     "btc":{
-        //         "bid":"51970",
-        //         "ask":"53000",
-        //         "last":"52806.47"
+        //     {
+        //         "status":"ok",
+        //         "prices":{
+        //             "btc":{
+        //                 "bid":"52732.47000022",
+        //                 "ask":"53268.0699976",
+        //                 "last":"53284.03"
+        //             }
+        //         }
         //     }
-        // }
         //
         const ticker = this.safeValue (prices, id);
         return this.parseTicker (ticker, market);
