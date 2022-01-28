@@ -157,7 +157,7 @@ module.exports = class paymium extends Exchange {
         //     "size":"0.00041087"
         // }
         //
-        const symbol = this.safeSymbol (market, 'symbol');
+        const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.safeTimestamp (ticker, 'at');
         const vwap = this.safeString (ticker, 'vwap');
         const baseVolume = this.safeString (ticker, 'volume');
