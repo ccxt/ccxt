@@ -61,7 +61,7 @@ module.exports = class huobi extends Exchange {
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': undefined,
+                'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
                 'fetchIsolatedPositions': undefined,
                 'fetchL3OrderBook': undefined,
@@ -4480,6 +4480,50 @@ module.exports = class huobi extends Exchange {
         //
         const result = this.safeValue (response, 'data', {});
         return this.parseFundingRate (result, market);
+    }
+
+    async fetchFundingRates (symbols, params = {}) {
+        await this.loadMarkets ();
+        const options = this.safeValue (this.options, 'fetchFundingRates', {});
+        let method = undefined;
+        const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
+        let subType = this.safeString (options, 'subType', defaultSubType);
+        subType = this.safeString (params, 'subType', subType);
+        const request = {
+            // 'contract_code': market['id'],
+        };
+        const linear = (subType === 'linear');
+        const inverse = (subType === 'inverse');
+        if (linear) {
+            method = 'contractPublicGetLinearSwapApiV1SwapBatchFundingRate';
+        } else if (inverse) {
+            method = 'contractPublicGetSwapApiV1SwapBatchFundingRate';
+        } else {
+            throw new NotSupported (this.id + ' fetchFundingRates() supports linear and inverse swaps only');
+        }
+        params = this.omit (params, [ 'subType' ]);
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": [
+        //             {
+        //                 "estimated_rate": "0.000100000000000000",
+        //                 "funding_rate": "0.000100000000000000",
+        //                 "contract_code": "MANA-USDT",
+        //                 "symbol": "MANA",
+        //                 "fee_asset": "USDT",
+        //                 "funding_time": "1643356800000",
+        //                 "next_funding_time": "1643385600000",
+        //                 "trade_partition":"USDT"
+        //             },
+        //         ],
+        //         "ts": 1643346173103
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const result = this.parseFundingRates (data);
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
