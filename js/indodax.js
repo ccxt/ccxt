@@ -285,6 +285,48 @@ module.exports = class indodax extends Exchange {
         return this.parseOrderBook (orderbook, symbol, undefined, 'buy', 'sell');
     }
 
+    parseTicker (ticker, market = undefined) {
+        //
+        // {
+        //     "high":"0.01951",
+        //     "low":"0.01877",
+        //     "vol_eth":"39.38839319",
+        //     "vol_btc":"0.75320886",
+        //     "last":"0.01896",
+        //     "buy":"0.01896",
+        //     "sell":"0.019",
+        //     "server_time":1565248908
+        // }
+        //
+        const symbol = this.safeSymbol (undefined, market);
+        const timestamp = this.safeTimestamp (ticker, 'server_time');
+        const baseVolume = 'vol_' + market['baseId'].toLowerCase ();
+        const quoteVolume = 'vol_' + market['quoteId'].toLowerCase ();
+        const last = this.safeString (ticker, 'last');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'buy'),
+            'bidVolume': undefined,
+            'ask': this.safeString (ticker, 'sell'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, baseVolume),
+            'quoteVolume': this.safeString (ticker, quoteVolume),
+            'info': ticker,
+        }, market, false);
+    }
+
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -306,33 +348,8 @@ module.exports = class indodax extends Exchange {
         //         }
         //     }
         //
-        const ticker = response['ticker'];
-        const timestamp = this.safeTimestamp (ticker, 'server_time');
-        const baseVolume = 'vol_' + market['baseId'].toLowerCase ();
-        const quoteVolume = 'vol_' + market['quoteId'].toLowerCase ();
-        const last = this.safeNumber (ticker, 'last');
-        return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'buy'),
-            'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'sell'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': this.safeNumber (ticker, baseVolume),
-            'quoteVolume': this.safeNumber (ticker, quoteVolume),
-            'info': ticker,
-        };
+        const ticker = this.safeValue (response, 'ticker');
+        return this.parseTicker (ticker, market);
     }
 
     parseTrade (trade, market = undefined) {
