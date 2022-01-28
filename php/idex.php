@@ -28,28 +28,51 @@ class idex extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null,
-                'swap' => null,
-                'future' => null,
-                'option' => null,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => null,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTransactions' => null,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -167,9 +190,9 @@ class idex extends Exchange {
         //
         $maker = $this->safe_number($response2, 'makerFeeRate');
         $taker = $this->safe_number($response2, 'takerFeeRate');
-        $makerMin = $this->safe_number($response2, 'makerTradeMinimum');
-        $takerMin = $this->safe_number($response2, 'takerTradeMinimum');
-        $minCostETH = min ($makerMin, $takerMin);
+        $makerMin = $this->safe_string($response2, 'makerTradeMinimum');
+        $takerMin = $this->safe_string($response2, 'takerTradeMinimum');
+        $minCostETH = $this->parse_number(Precise::string_min($makerMin, $takerMin));
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
@@ -178,20 +201,18 @@ class idex extends Exchange {
             $quoteId = $this->safe_string($entry, 'quoteAsset');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
             $basePrecisionString = $this->safe_string($entry, 'baseAssetPrecision');
             $quotePrecisionString = $this->safe_string($entry, 'quoteAssetPrecision');
             $basePrecision = $this->parse_precision($basePrecisionString);
             $quotePrecision = $this->parse_precision($quotePrecisionString);
             $status = $this->safe_string($entry, 'status');
-            $active = $status === 'active';
             $minCost = null;
             if ($quote === 'ETH') {
                 $minCost = $minCostETH;
             }
             $result[] = array(
                 'id' => $marketId,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
                 'settle' => null,
@@ -204,20 +225,20 @@ class idex extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
+                'active' => ($status === 'active'),
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
                 'taker' => $taker,
                 'maker' => $maker,
                 'contractSize' => null,
-                'active' => $active,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => intval($basePrecisionString),
                     'price' => intval($quotePrecisionString),
+                    'amount' => intval($basePrecisionString),
                 ),
                 'limits' => array(
                     'leverage' => array(

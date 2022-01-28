@@ -737,8 +737,9 @@ class kraken(Exchange):
         }, market, False)
 
     def fetch_tickers(self, symbols=None, params={}):
+        if symbols is None:
+            raise ArgumentsRequired(self.id + ' fetchTickers() requires a symbols argument, an array of symbols')
         self.load_markets()
-        symbols = self.symbols if (symbols is None) else symbols
         marketIds = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
