@@ -18,6 +18,7 @@ module.exports = class blockchaincom extends Exchange {
             'rateLimit': 1000,
             'version': 'v3',
             'has': {
+                'CORS': false,
                 'spot': true,
                 'margin': undefined, // on exchange but not implemented in CCXT
                 'swap': false,
@@ -25,7 +26,6 @@ module.exports = class blockchaincom extends Exchange {
                 'option': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
-                'CORS': false,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,

@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.70.31';
+$version = '1.71.4';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.70.31';
+    const VERSION = '1.71.4';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -173,6 +173,7 @@ class Exchange {
         'wavesexchange',
         'wazirx',
         'whitebit',
+        'woo',
         'xena',
         'yobit',
         'zaif',
@@ -1180,14 +1181,16 @@ class Exchange {
         $this->has = array(
             'publicAPI' => true,
             'privateAPI' => true,
+            'CORS' => null,
+            'spot' => null,
             'margin' => null,
             'swap' => null,
             'future' => null,
+            'option' => null,
             'addMargin' => null,
             'cancelAllOrders' => null,
             'cancelOrder' => true,
             'cancelOrders' => null,
-            'CORS' => null,
             'createDepositAddress' => null,
             'createLimitOrder' => true,
             'createMarketOrder' => true,

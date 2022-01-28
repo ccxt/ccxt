@@ -25,6 +25,12 @@ class phemex extends Exchange {
             'pro' => true,
             'hostname' => 'api.phemex.com',
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => null,
+                'swap' => null,
+                'future' => null,
+                'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,

@@ -19,6 +19,7 @@ module.exports = class upbit extends Exchange {
             'pro': true,
             // new metainfo interface
             'has': {
+                'CORS': true,
                 'spot': true,
                 'margin': undefined,
                 'swap': false,
@@ -26,7 +27,6 @@ module.exports = class upbit extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
-                'CORS': true,
                 'createDepositAddress': true,
                 'createMarketOrder': true,
                 'createOrder': true,

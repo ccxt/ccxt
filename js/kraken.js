@@ -20,6 +20,7 @@ module.exports = class kraken extends Exchange {
             'certified': false,
             'pro': true,
             'has': {
+                'CORS': undefined,
                 'spot': true,
                 'margin': true,
                 'swap': false,
@@ -28,12 +29,12 @@ module.exports = class kraken extends Exchange {
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': undefined,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
@@ -705,7 +706,7 @@ module.exports = class kraken extends Exchange {
         const baseVolume = this.safeString (v, 1);
         const p = this.safeValue (ticker, 'p', []);
         const vwap = this.safeString (p, 1);
-        const quoteVolume = undefined;
+        const quoteVolume = Precise.stringMul (baseVolume, vwap);
         const c = this.safeValue (ticker, 'c', []);
         const last = this.safeString (c, 0);
         const high = this.safeValue (ticker, 'h', []);
@@ -737,8 +738,10 @@ module.exports = class kraken extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTickers() requires a symbols argument, an array of symbols');
+        }
         await this.loadMarkets ();
-        symbols = (symbols === undefined) ? this.symbols : symbols;
         const marketIds = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];

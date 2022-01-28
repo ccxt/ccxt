@@ -46,15 +46,19 @@ class gateio(Exchange):
                 },
             },
             'has': {
+                'CORS': None,
+                'spot': True,
                 'margin': True,
                 'swap': True,
                 'future': True,
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createMarketOrder': False,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchClosedOrders': True,
@@ -1884,6 +1888,16 @@ class gateio(Exchange):
         #         "price": "32452.16"
         #     }
         #
+        # public ws
+        #
+        #     {
+        #         id: 221994511,
+        #         time: 1580311438.618647,
+        #         price: '9309',
+        #         amount: '0.0019',
+        #         type: 'sell'
+        #     }
+        #
         # private
         #
         #     {
@@ -1903,21 +1917,15 @@ class gateio(Exchange):
         #     }
         #
         id = self.safe_string(trade, 'id')
-        timestampStringContract = self.safe_string(trade, 'create_time')
-        timestampString = self.safe_string_2(trade, 'create_time_ms', 'time', timestampStringContract)
-        timestamp = None
-        if timestampString.find('.') > 0:
-            milliseconds = timestampString.split('.')
-            timestamp = int(milliseconds[0])
-        if market['contract']:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(trade, 'time')
+        timestamp = self.safe_integer(trade, 'create_time_ms', timestamp)
         marketId = self.safe_string_2(trade, 'currency_pair', 'contract')
         symbol = self.safe_symbol(marketId, market)
         amountString = self.safe_string_2(trade, 'amount', 'size')
         priceString = self.safe_string(trade, 'price')
         contractSide = 'sell' if Precise.string_lt(amountString, '0') else 'buy'
         amountString = Precise.string_abs(amountString)
-        side = self.safe_string(trade, 'side', contractSide)
+        side = self.safe_string_2(trade, 'side', 'type', contractSide)
         orderId = self.safe_string(trade, 'order_id')
         gtFee = self.safe_string(trade, 'gt_fee')
         feeCurrency = None
@@ -2820,12 +2828,17 @@ class gateio(Exchange):
         size = self.safe_string(position, 'size')
         side = None
         if Precise.string_gt(size, '0'):
-            side = 'buy'
+            side = 'long'
         elif Precise.string_lt(size, '0'):
-            side = 'sell'
+            side = 'short'
         maintenanceRate = self.safe_string(position, 'maintenance_rate')
         notional = self.safe_string(position, 'value')
         leverage = self.safe_string(position, 'leverage')
+        marginType = None
+        if leverage == '0':
+            marginType = 'cross'
+        else:
+            marginType = 'isolated'
         unrealisedPnl = self.safe_string(position, 'unrealised_pnl')
         # Initial Position Margin = ( Position Value / Leverage ) + Close Position Fee
         # *The default leverage under the full position is the highest leverage in the market.
@@ -2854,7 +2867,7 @@ class gateio(Exchange):
             'liquidationPrice': self.safe_number(position, 'liq_price'),
             'markPrice': self.safe_number(position, 'mark_price'),
             'collateral': self.safe_number(position, 'margin'),
-            'marginType': None,
+            'marginType': marginType,
             'side': side,
             'percentage': self.parse_number(percentage),
         }

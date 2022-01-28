@@ -20,6 +20,7 @@ class blockchaincom extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v3',
             'has' => array(
+                'CORS' => false,
                 'spot' => true,
                 'margin' => null, // on exchange but not implemented in CCXT
                 'swap' => false,
@@ -27,7 +28,6 @@ class blockchaincom extends Exchange {
                 'option' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
-                'CORS' => false,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchCanceledOrders' => true,

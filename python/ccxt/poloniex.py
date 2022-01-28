@@ -33,10 +33,14 @@ class poloniex(Exchange):
             'certified': False,
             'pro': True,
             'has': {
-                'fetchPosition': True,
+                'CORS': None,
+                'spot': True,
+                'margin': None,  # has but not fully implemented
+                'swap': None,  # has but not fully implemented
+                'future': None,  # has but not fully implemented
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': None,
                 'createDepositAddress': True,
                 'createMarketOrder': None,
                 'createOrder': True,
@@ -54,6 +58,7 @@ class poloniex(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrderBooks': True,
                 'fetchOrderTrades': True,  # True endpoint for trades of a single open or closed order
+                'fetchPosition': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -312,33 +317,48 @@ class poloniex(Exchange):
             quoteId, baseId = id.split('_')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            limits = self.extend(self.limits, {
-                'cost': {
-                    'min': self.safe_value(self.options['limits']['cost']['min'], quote),
-                },
-            })
             isFrozen = self.safe_string(market, 'isFrozen')
-            active = (isFrozen != '1')
-            numericId = self.safe_integer(market, 'id')
+            marginEnabled = self.safe_integer(market, 'marginTradingEnabled')
             # these are known defaults
-            precision = {
-                'price': 8,
-                'amount': 8,
-            }
             result.append({
                 'id': id,
-                'numericId': numericId,
-                'symbol': symbol,
-                'baseId': baseId,
-                'quoteId': quoteId,
+                'numericId': self.safe_integer(market, 'id'),
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
-                'precision': precision,
-                'limits': limits,
+                'margin': (marginEnabled == 1),
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': (isFrozen != '1'),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': 8,
+                    'amount': 8,
+                },
+                'limits': self.extend(self.limits, {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': self.safe_value(self.options['limits']['cost']['min'], quote),
+                        'max': None,
+                    },
+                }),
                 'info': market,
             })
         return result
@@ -1141,7 +1161,8 @@ class poloniex(Exchange):
         response = self.privatePostGenerateNewAddress(self.extend(request, params))
         address = None
         tag = None
-        if response['success'] == 1:
+        success = self.safe_string(response, 'success')
+        if success == '1':
             address = self.safe_string(response, 'response')
         self.check_address(address)
         if currency is not None:

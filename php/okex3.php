@@ -24,10 +24,13 @@ class okex3 extends Exchange {
             'rateLimit' => 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'pro' => true,
             'has' => array(
-                'fetchPositions' => true,
-                'fetchPosition' => true,
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => null,
+                'swap' => null,
+                'future' => true,
+                'option' => null,
+                'cancelOrder' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
@@ -43,13 +46,14 @@ class okex3 extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => null,
                 'fetchOrderTrades' => true,
+                'fetchPosition' => true,
+                'fetchPositions' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTransactions' => null,
                 'fetchWithdrawals' => true,
-                'future' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -799,7 +803,7 @@ class okex3 extends Exchange {
         //         settlement_currency => 'BTC',
         //         contract_val => '0.1000',
         //         option_type => 'C',
-        //         strike => '4000',
+        //         $strike => '4000',
         //         tick_size => '0.0005',
         //         lot_size => '1.0000',
         //         listing => '2019-12-25T08:30:36.302Z',
@@ -810,75 +814,102 @@ class okex3 extends Exchange {
         //     }
         //
         $id = $this->safe_string($market, 'instrument_id');
+        $optionType = $this->safe_value($market, 'option_type');
+        $contractVal = $this->safe_number($market, 'contract_val');
+        $contract = $contractVal !== null;
+        $futuresAlias = $this->safe_string($market, 'alias');
         $marketType = 'spot';
-        $spot = true;
-        $future = false;
-        $swap = false;
-        $option = false;
+        $spot = !$contract;
+        $option = ($optionType !== null);
+        $future = !$option && ($futuresAlias !== null);
+        $swap = $contract && !$future && !$option;
         $baseId = $this->safe_string($market, 'base_currency');
         $quoteId = $this->safe_string($market, 'quote_currency');
-        $contractVal = $this->safe_number($market, 'contract_val');
-        if ($contractVal !== null) {
-            if (is_array($market) && array_key_exists('option_type', $market)) {
-                $marketType = 'option';
-                $spot = false;
-                $option = true;
-                $underlying = $this->safe_string($market, 'underlying');
-                $parts = explode('-', $underlying);
-                $baseId = $this->safe_string($parts, 0);
-                $quoteId = $this->safe_string($parts, 1);
-            } else {
-                $marketType = 'swap';
-                $spot = false;
-                $swap = true;
-                $futuresAlias = $this->safe_string($market, 'alias');
-                if ($futuresAlias !== null) {
-                    $swap = false;
-                    $future = true;
-                    $marketType = 'futures';
-                    $baseId = $this->safe_string($market, 'underlying_index');
-                }
-            }
+        $settleId = $this->safe_string($market, 'settlement_currency');
+        if ($option) {
+            $underlying = $this->safe_string($market, 'underlying');
+            $parts = explode('-', $underlying);
+            $baseId = $this->safe_string($parts, 0);
+            $quoteId = $this->safe_string($parts, 1);
+            $marketType = 'option';
+        } else if ($future) {
+            $baseId = $this->safe_string($market, 'underlying_index');
+            $marketType = 'futures';
+        } else if ($swap) {
+            $marketType = 'swap';
         }
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $symbol = $spot ? ($base . '/' . $quote) : $id;
+        $settle = $this->safe_currency_code($settleId);
+        $symbol = $base . '/' . $quote;
+        $expiryDatetime = $this->safe_string($market, 'delivery');
+        $expiry = null;
+        $strike = $this->safe_value($market, 'strike');
+        if ($contract) {
+            $symbol = $symbol . ':' . $settle;
+            if ($future || $option) {
+                if ($future) {
+                    $expiryDatetime .= 'T00:00:00Z';
+                }
+                $expiry = $this->parse8601($expiryDatetime);
+                $symbol = $symbol . '-' . $this->yymmdd($expiry);
+                if ($option) {
+                    $symbol = $symbol . ':' . $strike . ':' . $optionType;
+                    $optionType = ($optionType === 'C') ? 'call' : 'put';
+                }
+            }
+        }
         $lotSize = $this->safe_number_2($market, 'lot_size', 'trade_increment');
         $minPrice = $this->safe_string($market, 'tick_size');
-        $precision = array(
-            'amount' => $this->safe_number($market, 'size_increment', $lotSize),
-            'price' => $this->parse_number($minPrice),
-        );
         $minAmountString = $this->safe_string_2($market, 'min_size', 'base_min_size');
         $minAmount = $this->parse_number($minAmountString);
         $minCost = null;
         if (($minAmount !== null) && ($minPrice !== null)) {
             $minCost = $this->parse_number(Precise::string_mul($minPrice, $minAmountString));
         }
-        $active = true;
         $fees = $this->safe_value_2($this->fees, $marketType, 'trading', array());
+        $maxLeverageString = $this->safe_string($market, 'max_leverage', '1');
+        $maxLeverage = $this->parse_number(Precise::string_max($maxLeverageString, '1'));
+        $precisionPrice = $this->parse_number($minPrice);
         return array_merge($fees, array(
             'id' => $id,
             'symbol' => $symbol,
             'base' => $base,
             'quote' => $quote,
+            'settle' => $settle,
             'baseId' => $baseId,
             'quoteId' => $quoteId,
-            'info' => $market,
+            'settleId' => $settleId,
             'type' => $marketType,
             'spot' => $spot,
-            'futures' => $future,
+            'margin' => $spot && (Precise::string_gt($maxLeverageString, '1')),
             'swap' => $swap,
+            'futures' => $future,
             'option' => $option,
-            'active' => $active,
-            'precision' => $precision,
+            'active' => true,
+            'contract' => $contract,
+            'linear' => $contract ? ($quote === $settle) : null,
+            'inverse' => $contract ? ($base === $settle) : null,
+            'contractSize' => $contractVal,
+            'expiry' => $expiry,
+            'expiryDatetime' => $this->iso8601($expiry),
+            'strike' => $strike,
+            'optionType' => $optionType,
+            'precision' => array(
+                'price' => $precisionPrice,
+                'amount' => $this->safe_number($market, 'size_increment', $lotSize),
+            ),
             'limits' => array(
+                'leverage' => array(
+                    'min' => 1,
+                    'max' => $this->parse_number($maxLeverage),
+                ),
                 'amount' => array(
                     'min' => $minAmount,
                     'max' => null,
                 ),
                 'price' => array(
-                    'min' => $precision['price'],
+                    'min' => $precisionPrice,
                     'max' => null,
                 ),
                 'cost' => array(
@@ -886,6 +917,7 @@ class okex3 extends Exchange {
                     'max' => null,
                 ),
             ),
+            'info' => $market,
         ));
     }
 

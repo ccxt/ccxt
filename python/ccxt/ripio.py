@@ -29,20 +29,47 @@ class ripio(Exchange):
             'pro': True,
             # new metainfo interface
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/94507548-a83d6a80-0218-11eb-9998-28b9cec54165.jpg',
@@ -134,7 +161,12 @@ class ripio(Exchange):
         #                 "quote_name":"USD Coin",
         #                 "symbol":"BTC_USDC",
         #                 "fees":[
-        #                     {"traded_volume":0.0,"maker_fee":0.0,"taker_fee":0.0,"cancellation_fee":0.0}
+        #                     {
+        #                         "traded_volume": 0.0,
+        #                         "maker_fee": 0.0,
+        #                         "taker_fee": 0.0,
+        #                         "cancellation_fee": 0.0
+        #                     }
         #                 ],
         #                 "country":"ZZ",
         #                 "enabled":true,
@@ -156,58 +188,56 @@ class ripio(Exchange):
             id = self.safe_string(market, 'symbol')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            precision = {
-                'amount': self.safe_number(market, 'min_amount'),
-                'price': self.safe_number(market, 'price_tick'),
-            }
-            limits = {
-                'amount': {
-                    'min': self.safe_number(market, 'min_amount'),
-                    'max': None,
-                },
-                'price': {
-                    'min': None,
-                    'max': None,
-                },
-                'cost': {
-                    'min': self.safe_number(market, 'min_value'),
-                    'max': None,
-                },
-            }
-            active = self.safe_value(market, 'enabled', True)
             fees = self.safe_value(market, 'fees', [])
             firstFee = self.safe_value(fees, 0, {})
-            maker = self.safe_number(firstFee, 'maker_fee', 0.0)
-            taker = self.safe_number(firstFee, 'taker_fee', 0.0)
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
                 'margin': False,
                 'future': False,
                 'swap': False,
                 'option': False,
-                'optionType': None,
-                'strike': None,
+                'active': self.safe_value(market, 'enabled', True),
+                'contract': False,
                 'linear': None,
                 'inverse': None,
-                'contract': False,
+                'taker': self.safe_number(firstFee, 'taker_fee', 0.0),
+                'maker': self.safe_number(firstFee, 'maker_fee', 0.0),
                 'contractSize': None,
-                'settle': None,
-                'settleId': None,
                 'expiry': None,
                 'expiryDatetime': None,
-                'active': active,
-                'precision': precision,
-                'maker': maker,
-                'taker': taker,
-                'limits': limits,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_number(market, 'min_amount'),
+                    'price': self.safe_number(market, 'price_tick'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': self.safe_number(market, 'min_amount'),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': self.safe_number(market, 'min_value'),
+                        'max': None,
+                    },
+                },
                 'info': market,
             })
         return result

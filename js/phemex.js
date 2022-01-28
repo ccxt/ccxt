@@ -21,6 +21,12 @@ module.exports = class phemex extends Exchange {
             'pro': true,
             'hostname': 'api.phemex.com',
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': undefined,
+                'swap': undefined,
+                'future': undefined,
+                'option': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,

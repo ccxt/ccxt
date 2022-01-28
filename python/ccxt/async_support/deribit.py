@@ -42,10 +42,14 @@ class deribit(Exchange):
             # 5 requests per second for matching-engine endpoints, cost = (1000ms / rateLimit) / 5 = 4
             'rateLimit': 50,
             'has': {
-                'fetchPosition': True,
+                'CORS': True,
+                'spot': True,
+                'margin': None,
+                'swap': None,
+                'future': None,
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': True,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'editOrder': True,
@@ -64,6 +68,7 @@ class deribit(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': None,
                 'fetchOrderTrades': True,
+                'fetchPosition': True,
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
@@ -1674,6 +1679,7 @@ class deribit(Exchange):
         market = self.safe_market(contract, market)
         size = self.safe_string(position, 'size')
         side = self.safe_string(position, 'direction')
+        side = 'long' if (side == 'buy') else 'short'
         maintenanceRate = self.safe_string(position, 'maintenance_margin')
         markPrice = self.safe_string(position, 'mark_price')
         notionalString = Precise.string_mul(markPrice, size)

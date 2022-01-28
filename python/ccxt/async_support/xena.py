@@ -23,6 +23,7 @@ class xena(Exchange):
             'countries': ['VC', 'UK'],
             'rateLimit': 100,
             'has': {
+                'CORS': None,
                 'spot': False,
                 'margin': False,
                 'swap': None,  # has but not fully implemented
@@ -30,7 +31,6 @@ class xena(Exchange):
                 'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': None,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'editOrder': True,

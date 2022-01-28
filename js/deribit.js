@@ -20,10 +20,14 @@ module.exports = class deribit extends Exchange {
             // 5 requests per second for matching-engine endpoints, cost = (1000ms / rateLimit) / 5 = 4
             'rateLimit': 50,
             'has': {
-                'fetchPosition': true,
+                'CORS': true,
+                'spot': true,
+                'margin': undefined,
+                'swap': undefined,
+                'future': undefined,
+                'option': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': true,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'editOrder': true,
@@ -42,6 +46,7 @@ module.exports = class deribit extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': undefined,
                 'fetchOrderTrades': true,
+                'fetchPosition': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
@@ -1719,7 +1724,8 @@ module.exports = class deribit extends Exchange {
         const contract = this.safeString (position, 'instrument_name');
         market = this.safeMarket (contract, market);
         const size = this.safeString (position, 'size');
-        const side = this.safeString (position, 'direction');
+        let side = this.safeString (position, 'direction');
+        side = (side === 'buy') ? 'long' : 'short';
         const maintenanceRate = this.safeString (position, 'maintenance_margin');
         const markPrice = this.safeString (position, 'mark_price');
         const notionalString = Precise.stringMul (markPrice, size);

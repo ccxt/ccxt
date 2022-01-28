@@ -23,10 +23,14 @@ class deribit extends Exchange {
             // 5 requests per second for matching-engine endpoints, cost = (1000ms / rateLimit) / 5 = 4
             'rateLimit' => 50,
             'has' => array(
-                'fetchPosition' => true,
+                'CORS' => true,
+                'spot' => true,
+                'margin' => null,
+                'swap' => null,
+                'future' => null,
+                'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => true,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'editOrder' => true,
@@ -45,6 +49,7 @@ class deribit extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => null,
                 'fetchOrderTrades' => true,
+                'fetchPosition' => true,
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
@@ -1723,6 +1728,7 @@ class deribit extends Exchange {
         $market = $this->safe_market($contract, $market);
         $size = $this->safe_string($position, 'size');
         $side = $this->safe_string($position, 'direction');
+        $side = ($side === 'buy') ? 'long' : 'short';
         $maintenanceRate = $this->safe_string($position, 'maintenance_margin');
         $markPrice = $this->safe_string($position, 'mark_price');
         $notionalString = Precise::string_mul($markPrice, $size);

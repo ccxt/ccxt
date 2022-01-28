@@ -37,9 +37,14 @@ class bitrue(Exchange):
             'version': 'v1',
             # new metainfo interface
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': None,
+                'swap': None,
+                'future': None,
+                'option': None,
                 'cancelAllOrders': False,
                 'cancelOrder': True,
-                'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,

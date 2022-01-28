@@ -20,6 +20,7 @@ class btcalpha extends Exchange {
             'countries' => array( 'US' ),
             'version' => 'v1',
             'has' => array(
+                'CORS' => null,
                 'spot' => true,
                 'margin' => false,
                 'swap' => false,

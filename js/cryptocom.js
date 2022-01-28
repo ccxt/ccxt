@@ -15,14 +15,19 @@ module.exports = class cryptocom extends Exchange {
             'version': 'v2',
             'rateLimit': 10, // 100 requests per second
             'has': {
+                'CORS': false,
+                'spot': true,
+                'margin': undefined,
+                'swap': undefined,
+                'future': undefined,
+                'option': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': false,
                 'createOrder': true,
-                'fetchCurrencies': false,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchClosedOrders': 'emulated',
+                'fetchCurrencies': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
@@ -36,8 +41,8 @@ module.exports = class cryptocom extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
-                'fetchOrders': true,
                 'fetchOrderBook': true,
+                'fetchOrders': true,
                 'fetchPositions': false,
                 'fetchStatus': false,
                 'fetchTicker': true,
@@ -1488,8 +1493,12 @@ module.exports = class cryptocom extends Exchange {
         const takerOrMaker = this.safeStringLower2 (trade, 'liquidity_indicator', 'taker_side');
         const order = this.safeString (trade, 'order_id');
         let fee = undefined;
-        const feeCost = Precise.stringNeg (this.safeString2 (trade, 'fee', 'fees'));
+        let feeCost = this.safeString2 (trade, 'fee', 'fees');
         if (feeCost !== undefined) {
+            const contract = this.safeValue (market, 'contract', false);
+            if (contract) {
+                feeCost = Precise.stringNeg (feeCost);
+            }
             let feeCurrency = undefined;
             if (market['spot']) {
                 feeCurrency = this.safeString (trade, 'fee_currency');

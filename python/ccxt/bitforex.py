@@ -31,6 +31,12 @@ class bitforex(Exchange):
             'rateLimit': 500,  # https://github.com/ccxt/ccxt/issues/5054
             'version': 'v1',
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': None,
+                'swap': None,
+                'future': None,
+                'option': None,
                 'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
@@ -117,6 +123,7 @@ class bitforex(Exchange):
                 'TON': 'To The Moon',
             },
             'exceptions': {
+                '1000': OrderNotFound,  # {"code":"1000","success":false,"time":1643047898676,"message":"The order does not exist or the status is wrong"}
                 '1003': BadSymbol,  # {"success":false,"code":"1003","message":"Param Invalid:param invalid -symbol:symbol error"}
                 '1013': AuthenticationError,
                 '1016': AuthenticationError,
@@ -270,6 +277,43 @@ class bitforex(Exchange):
         response = self.privatePostApiV1FundAllAccount(params)
         return self.parse_balance(response)
 
+    def parse_ticker(self, ticker, market=None):
+        #
+        #     {
+        #         "buy":7.04E-7,
+        #         "date":1643371198598,
+        #         "high":7.48E-7,
+        #         "last":7.28E-7,
+        #         "low":7.10E-7,
+        #         "sell":7.54E-7,
+        #         "vol":9877287.2874
+        #     }
+        #
+        symbol = self.safe_symbol(None, market)
+        timestamp = self.safe_integer(ticker, 'date')
+        return self.safe_ticker({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'buy'),
+            'bidVolume': None,
+            'ask': self.safe_string(ticker, 'sell'),
+            'askVolume': None,
+            'vwap': None,
+            'open': None,
+            'close': self.safe_string(ticker, 'last'),
+            'last': self.safe_string(ticker, 'last'),
+            'previousClose': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': self.safe_string(ticker, 'vol'),
+            'quoteVolume': None,
+            'info': ticker,
+        }, market, False)
+
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.markets[symbol]
@@ -277,30 +321,23 @@ class bitforex(Exchange):
             'symbol': market['id'],
         }
         response = self.publicGetApiV1MarketTicker(self.extend(request, params))
-        data = response['data']
-        timestamp = self.safe_integer(data, 'date')
-        return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(data, 'high'),
-            'low': self.safe_number(data, 'low'),
-            'bid': self.safe_number(data, 'buy'),
-            'bidVolume': None,
-            'ask': self.safe_number(data, 'sell'),
-            'askVolume': None,
-            'vwap': None,
-            'open': None,
-            'close': self.safe_number(data, 'last'),
-            'last': self.safe_number(data, 'last'),
-            'previousClose': None,
-            'change': None,
-            'percentage': None,
-            'average': None,
-            'baseVolume': self.safe_number(data, 'vol'),
-            'quoteVolume': None,
-            'info': response,
-        }
+        ticker = self.safe_value(response, 'data')
+        #
+        #     {
+        #         "data":{
+        #             "buy":37082.83,
+        #             "date":1643388686660,
+        #             "high":37487.83,
+        #             "last":37086.79,
+        #             "low":35544.44,
+        #             "sell":37090.52,
+        #             "vol":690.9776
+        #         },
+        #         "success":true,
+        #         "time":1643388686660
+        #     }
+        #
+        return self.parse_ticker(ticker, market)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #

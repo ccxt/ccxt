@@ -36,15 +36,19 @@ class gateio extends Exchange {
                 ),
             ),
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
                 'margin' => true,
                 'swap' => true,
                 'future' => true,
+                'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createMarketOrder' => false,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
                 'fetchClosedOrders' => true,
@@ -1940,6 +1944,16 @@ class gateio extends Exchange {
         //         "price" => "32452.16"
         //     }
         //
+        // public ws
+        //
+        //     {
+        //         $id => 221994511,
+        //         time => 1580311438.618647,
+        //         price => '9309',
+        //         amount => '0.0019',
+        //         type => 'sell'
+        //     }
+        //
         // private
         //
         //     {
@@ -1959,23 +1973,15 @@ class gateio extends Exchange {
         //     }
         //
         $id = $this->safe_string($trade, 'id');
-        $timestampStringContract = $this->safe_string($trade, 'create_time');
-        $timestampString = $this->safe_string_2($trade, 'create_time_ms', 'time', $timestampStringContract);
-        $timestamp = null;
-        if (mb_strpos($timestampString, '.') > 0) {
-            $milliseconds = explode('.', $timestampString);
-            $timestamp = intval($milliseconds[0]);
-        }
-        if ($market['contract']) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp($trade, 'time');
+        $timestamp = $this->safe_integer($trade, 'create_time_ms', $timestamp);
         $marketId = $this->safe_string_2($trade, 'currency_pair', 'contract');
         $symbol = $this->safe_symbol($marketId, $market);
         $amountString = $this->safe_string_2($trade, 'amount', 'size');
         $priceString = $this->safe_string($trade, 'price');
         $contractSide = Precise::string_lt($amountString, '0') ? 'sell' : 'buy';
         $amountString = Precise::string_abs($amountString);
-        $side = $this->safe_string($trade, 'side', $contractSide);
+        $side = $this->safe_string_2($trade, 'side', 'type', $contractSide);
         $orderId = $this->safe_string($trade, 'order_id');
         $gtFee = $this->safe_string($trade, 'gt_fee');
         $feeCurrency = null;
@@ -2951,13 +2957,19 @@ class gateio extends Exchange {
         $size = $this->safe_string($position, 'size');
         $side = null;
         if (Precise::string_gt($size, '0')) {
-            $side = 'buy';
+            $side = 'long';
         } else if (Precise::string_lt($size, '0')) {
-            $side = 'sell';
+            $side = 'short';
         }
         $maintenanceRate = $this->safe_string($position, 'maintenance_rate');
         $notional = $this->safe_string($position, 'value');
         $leverage = $this->safe_string($position, 'leverage');
+        $marginType = null;
+        if ($leverage === '0') {
+            $marginType = 'cross';
+        } else {
+            $marginType = 'isolated';
+        }
         $unrealisedPnl = $this->safe_string($position, 'unrealised_pnl');
         // Initial Position Margin = ( Position Value / Leverage ) . Close Position Fee
         // *The default $leverage under the full $position is the highest $leverage in the $market->
@@ -2986,7 +2998,7 @@ class gateio extends Exchange {
             'liquidationPrice' => $this->safe_number($position, 'liq_price'),
             'markPrice' => $this->safe_number($position, 'mark_price'),
             'collateral' => $this->safe_number($position, 'margin'),
-            'marginType' => null,
+            'marginType' => $marginType,
             'side' => $side,
             'percentage' => $this->parse_number($percentage),
         );

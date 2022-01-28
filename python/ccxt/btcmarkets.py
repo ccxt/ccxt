@@ -25,6 +25,7 @@ class btcmarkets(Exchange):
             'rateLimit': 1000,  # market data cached for 1 second(trades cached for 2 seconds)
             'version': 'v3',
             'has': {
+                'CORS': None,
                 'spot': True,
                 'margin': False,
                 'swap': False,
@@ -33,7 +34,6 @@ class btcmarkets(Exchange):
                 'addMargin': False,
                 'cancelOrder': True,
                 'cancelOrders': True,
-                'CORS': None,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,

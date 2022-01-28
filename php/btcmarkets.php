@@ -19,6 +19,7 @@ class btcmarkets extends Exchange {
             'rateLimit' => 1000, // market data cached for 1 second (trades cached for 2 seconds)
             'version' => 'v3',
             'has' => array(
+                'CORS' => null,
                 'spot' => true,
                 'margin' => false,
                 'swap' => false,
@@ -27,7 +28,6 @@ class btcmarkets extends Exchange {
                 'addMargin' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
-                'CORS' => null,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,

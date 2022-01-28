@@ -28,8 +28,13 @@ class bithumb(Exchange):
             'countries': ['KR'],  # South Korea
             'rateLimit': 500,
             'has': {
-                'cancelOrder': True,
                 'CORS': True,
+                'spot': True,
+                'margin': None,
+                'swap': None,
+                'future': None,
+                'option': None,
+                'cancelOrder': True,
                 'createMarketOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,

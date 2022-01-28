@@ -26,6 +26,12 @@ class coinex(Exchange):
             'countries': ['CN'],
             'rateLimit': 1000,
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': None,
+                'swap': None,
+                'future': None,
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,

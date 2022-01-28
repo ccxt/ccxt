@@ -29,6 +29,7 @@ class kraken extends Exchange {
             'certified' => false,
             'pro' => true,
             'has' => array(
+                'CORS' => null,
                 'spot' => true,
                 'margin' => true,
                 'swap' => false,
@@ -37,12 +38,12 @@ class kraken extends Exchange {
                 'addMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => null,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
                 'fetchClosedOrders' => true,
@@ -714,7 +715,7 @@ class kraken extends Exchange {
         $baseVolume = $this->safe_string($v, 1);
         $p = $this->safe_value($ticker, 'p', array());
         $vwap = $this->safe_string($p, 1);
-        $quoteVolume = null;
+        $quoteVolume = Precise::string_mul($baseVolume, $vwap);
         $c = $this->safe_value($ticker, 'c', array());
         $last = $this->safe_string($c, 0);
         $high = $this->safe_value($ticker, 'h', array());
@@ -746,8 +747,10 @@ class kraken extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        if ($symbols === null) {
+            throw new ArgumentsRequired($this->id . ' fetchTickers() requires a $symbols argument, an array of symbols');
+        }
         $this->load_markets();
-        $symbols = ($symbols === null) ? $this->symbols : $symbols;
         $marketIds = array();
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];

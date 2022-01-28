@@ -16,7 +16,9 @@ module.exports = class bitbank extends Exchange {
             'countries': [ 'JP' ],
             'version': 'v1',
             'has': {
+                'CORS': undefined,
                 'spot': true,
+                'margin': undefined,
                 'swap': false,
                 'future': false,
                 'option': false,

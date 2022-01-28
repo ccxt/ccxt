@@ -28,8 +28,7 @@ class bitpanda(Exchange):
             'version': 'v1',
             # new metainfo interface
             'has': {
-                'privateAPI': True,
-                'publicAPI': True,
+                'CORS': None,
                 'spot': True,
                 'margin': False,
                 'swap': False,
@@ -39,7 +38,6 @@ class bitpanda(Exchange):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
-                'CORS': None,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
@@ -77,6 +75,8 @@ class bitpanda(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFees': True,
                 'fetchWithdrawals': True,
+                'privateAPI': True,
+                'publicAPI': True,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,

@@ -24,6 +24,7 @@ class mexc extends Exchange {
             'version' => 'v2',
             'certified' => true,
             'has' => array(
+                'CORS' => null,
                 'spot' => true,
                 'margin' => null,
                 'swap' => true,
@@ -41,8 +42,11 @@ class mexc extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
+                'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
+                'fetchIndexOHLCV' => true,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -51,6 +55,7 @@ class mexc extends Exchange {
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
                 'fetchPositions' => true,
+                'fetchPremiumIndexOHLCV' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -537,13 +542,13 @@ class mexc extends Exchange {
                 'swap' => true,
                 'future' => false,
                 'option' => false,
+                'active' => ($state === '0'),
                 'contract' => true,
                 'linear' => true,
                 'inverse' => false,
                 'taker' => $this->safe_number($market, 'takerFeeRate'),
                 'maker' => $this->safe_number($market, 'makerFeeRate'),
                 'contractSize' => $this->safe_number($market, 'contractSize'),
-                'active' => ($state === '0'),
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
@@ -1153,6 +1158,27 @@ class mexc extends Exchange {
         ];
     }
 
+    public function fetch_premium_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'premiumIndex',
+        );
+        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'index',
+        );
+        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'mark',
+        );
+        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+    }
+
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
@@ -1509,6 +1535,7 @@ class mexc extends Exchange {
     public function parse_transaction_status($status) {
         $statuses = array(
             'WAIT' => 'pending',
+            'WAIT_PACKAGING' => 'pending',
             'SUCCESS' => 'ok',
         );
         return $this->safe_string($statuses, $status, $status);
@@ -2102,7 +2129,7 @@ class mexc extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         return array(
             'info' => $data,
-            'id' => $this->data ($response, 'withdrawId'),
+            'id' => $this->safe_string($data, 'withdrawId'),
         );
     }
 
@@ -2163,6 +2190,71 @@ class mexc extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $responseCode, $feedback);
             throw new ExchangeError($feedback);
         }
+    }
+
+    public function parse_funding_rate($fundingRate, $market = null) {
+        //
+        //     {
+        //         "symbol" => "BTC_USDT",
+        //         "fundingRate" => 0.000014,
+        //         "maxFundingRate" => 0.003,
+        //         "minFundingRate" => -0.003,
+        //         "collectCycle" => 8,
+        //         "nextSettleTime" => 1643241600000,
+        //         "timestamp" => 1643240373359
+        //     }
+        //
+        $nextFundingRate = $this->safe_number($fundingRate, 'fundingRate');
+        $nextFundingTimestamp = $this->safe_integer($fundingRate, 'nextSettleTime');
+        $marketId = $this->safe_string($fundingRate, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $timestamp = $this->safe_integer($fundingRate, 'timestamp');
+        $datetime = $this->iso8601($timestamp);
+        return array(
+            'info' => $fundingRate,
+            'symbol' => $symbol,
+            'markPrice' => null,
+            'indexPrice' => null,
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $datetime,
+            'fundingRate' => null,
+            'fundingTimestamp' => null,
+            'fundingDatetime' => null,
+            'nextFundingRate' => $nextFundingRate,
+            'nextFundingTimestamp' => $nextFundingTimestamp,
+            'nextFundingDatetime' => $this->iso8601($nextFundingTimestamp),
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+        );
+    }
+
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->contractPublicGetFundingRateSymbol (array_merge($request, $params));
+        //
+        //     {
+        //         "success" => true,
+        //         "code" => 0,
+        //         "data" => {
+        //             "symbol" => "BTC_USDT",
+        //             "fundingRate" => 0.000014,
+        //             "maxFundingRate" => 0.003,
+        //             "minFundingRate" => -0.003,
+        //             "collectCycle" => 8,
+        //             "nextSettleTime" => 1643241600000,
+        //             "timestamp" => 1643240373359
+        //         }
+        //     }
+        //
+        $result = $this->safe_value($response, 'data', array());
+        return $this->parse_funding_rate($result, $market);
     }
 
     public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {

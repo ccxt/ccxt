@@ -38,11 +38,14 @@ class bitget(Exchange):
             'version': 'v3',
             'rateLimit': 1000,  # up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'has': {
-                'fetchPositions': True,
-                'fetchPosition': True,
+                'CORS': None,
+                'spot': True,
+                'margin': None,
+                'swap': None,
+                'future': None,
+                'option': None,
                 'cancelOrder': True,
                 'cancelOrders': True,
-                'CORS': None,
                 'createOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
@@ -56,6 +59,8 @@ class bitget(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderTrades': True,
+                'fetchPosition': True,
+                'fetchPositions': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -1094,7 +1099,6 @@ class bitget(Exchange):
             ask = self.safe_string(ask, 0)
         baseVolume = self.safe_string_2(ticker, 'amount', 'volume_24h')
         quoteVolume = self.safe_string(ticker, 'vol')
-        vwap = self.vwap(baseVolume, quoteVolume)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1105,7 +1109,7 @@ class bitget(Exchange):
             'bidVolume': bidVolume,
             'ask': ask,
             'askVolume': askVolume,
-            'vwap': vwap,
+            'vwap': None,
             'open': open,
             'close': last,
             'last': last,

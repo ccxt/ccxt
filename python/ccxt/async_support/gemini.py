@@ -26,7 +26,6 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
-from ccxt.base.precise import Precise
 
 
 class gemini(Exchange):
@@ -36,12 +35,18 @@ class gemini(Exchange):
             'id': 'gemini',
             'name': 'Gemini',
             'countries': ['US'],
-            'rateLimit': 1500,  # 200 for private API
+            # 600 requests a minute = 10 requests per second => 1000ms / 10 = 100ms between requests(private endpoints)
+            # 120 requests a minute = 2 requests per second =>( 1000ms / rateLimit ) / 2 = 5(public endpoints)
+            'rateLimit': 100,
             'version': 'v1',
             'has': {
-                'fetchDepositAddressesByNetwork': True,
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': None,
+                'swap': None,
+                'future': None,
+                'option': None,
+                'cancelOrder': True,
                 'createDepositAddress': True,
                 'createMarketOrder': None,
                 'createOrder': True,
@@ -49,6 +54,7 @@ class gemini(Exchange):
                 'fetchBidsAsks': None,
                 'fetchClosedOrders': None,
                 'fetchDepositAddress': None,  # TODO
+                'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': None,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -98,57 +104,57 @@ class gemini(Exchange):
                     ],
                 },
                 'public': {
-                    'get': [
-                        'v1/symbols',
-                        'v1/symbols/details/{symbol}',
-                        'v1/pubticker/{symbol}',
-                        'v2/ticker/{symbol}',
-                        'v2/candles/{symbol}/{timeframe}',
-                        'v1/trades/{symbol}',
-                        'v1/auction/{symbol}',
-                        'v1/auction/{symbol}/history',
-                        'v1/pricefeed',
-                        'v1/book/{symbol}',
-                        'v1/earn/rates',
-                    ],
+                    'get': {
+                        'v1/symbols': 5,
+                        'v1/symbols/details/{symbol}': 5,
+                        'v1/pubticker/{symbol}': 5,
+                        'v2/ticker/{symbol}': 5,
+                        'v2/candles/{symbol}/{timeframe}': 5,
+                        'v1/trades/{symbol}': 5,
+                        'v1/auction/{symbol}': 5,
+                        'v1/auction/{symbol}/history': 5,
+                        'v1/pricefeed': 5,
+                        'v1/book/{symbol}': 5,
+                        'v1/earn/rates': 5,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'v1/order/new',
-                        'v1/order/cancel',
-                        'v1/wrap/{symbol}',
-                        'v1/order/cancel/session',
-                        'v1/order/cancel/all',
-                        'v1/order/status',
-                        'v1/orders',
-                        'v1/mytrades',
-                        'v1/notionalvolume',
-                        'v1/tradevolume',
-                        'v1/clearing/new',
-                        'v1/clearing/status',
-                        'v1/clearing/cancel',
-                        'v1/clearing/confirm',
-                        'v1/balances',
-                        'v1/notionalbalances/{currency}',
-                        'v1/transfers',
-                        'v1/addresses/{network}',
-                        'v1/deposit/{network}/newAddress',
-                        'v1/deposit/{currency}/newAddress',
-                        'v1/withdraw/{currency}',
-                        'v1/account/transfer/{currency}',
-                        'v1/payments/addbank',
-                        'v1/payments/methods',
-                        'v1/payments/sen/withdraw',
-                        'v1/balances/earn',
-                        'v1/earn/interest',
-                        'v1/approvedAddresses/{network}/request',
-                        'v1/approvedAddresses/account/{network}',
-                        'v1/approvedAddresses/{network}/remove',
-                        'v1/account',
-                        'v1/account/create',
-                        'v1/account/list',
-                        'v1/heartbeat',
-                    ],
+                    'post': {
+                        'v1/order/new': 1,
+                        'v1/order/cancel': 1,
+                        'v1/wrap/{symbol}': 1,
+                        'v1/order/cancel/session': 1,
+                        'v1/order/cancel/all': 1,
+                        'v1/order/status': 1,
+                        'v1/orders': 1,
+                        'v1/mytrades': 1,
+                        'v1/notionalvolume': 1,
+                        'v1/tradevolume': 1,
+                        'v1/clearing/new': 1,
+                        'v1/clearing/status': 1,
+                        'v1/clearing/cancel': 1,
+                        'v1/clearing/confirm': 1,
+                        'v1/balances': 1,
+                        'v1/notionalbalances/{currency}': 1,
+                        'v1/transfers': 1,
+                        'v1/addresses/{network}': 1,
+                        'v1/deposit/{network}/newAddress': 1,
+                        'v1/deposit/{currency}/newAddress': 1,
+                        'v1/withdraw/{currency}': 1,
+                        'v1/account/transfer/{currency}': 1,
+                        'v1/payments/addbank': 1,
+                        'v1/payments/methods': 1,
+                        'v1/payments/sen/withdraw': 1,
+                        'v1/balances/earn': 1,
+                        'v1/earn/interest': 1,
+                        'v1/approvedAddresses/{network}/request': 1,
+                        'v1/approvedAddresses/account/{network}': 1,
+                        'v1/approvedAddresses/{network}/remove': 1,
+                        'v1/account': 1,
+                        'v1/account/create': 1,
+                        'v1/account/list': 1,
+                        'v1/heartbeat': 1,
+                    },
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -567,38 +573,54 @@ class gemini(Exchange):
         #         "type":"buy"
         #     }
         #
+        # private fetchTrades
+        #
+        #      {
+        #          "price":"3900.00",
+        #          "amount":"0.00996",
+        #          "timestamp":1638891173,
+        #          "timestampms":1638891173518,
+        #          "type":"Sell",
+        #          "aggressor":false,
+        #          "fee_currency":"EUR",
+        #          "fee_amount":"0.00",
+        #          "tid":73621746145,
+        #          "order_id":"73621746059",
+        #          "exchange":"gemini",
+        #          "is_auction_fill":false,
+        #          "is_clearing_fill":false,
+        #          "symbol":"ETHEUR",
+        #          "client_order_id":"1638891171610"
+        #      }
+        #
         timestamp = self.safe_integer(trade, 'timestampms')
         id = self.safe_string(trade, 'tid')
         orderId = self.safe_string(trade, 'order_id')
         feeCurrencyId = self.safe_string(trade, 'fee_currency')
         feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
         fee = {
-            'cost': self.safe_number(trade, 'fee_amount'),
+            'cost': self.safe_string(trade, 'fee_amount'),
             'currency': feeCurrencyCode,
         }
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
-        type = None
         side = self.safe_string_lower(trade, 'type')
         symbol = self.safe_symbol(None, market)
-        return {
+        return self.safe_trade({
             'id': id,
             'order': orderId,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'type': type,
+            'type': None,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'cost': cost,
-            'amount': amount,
+            'price': priceString,
+            'cost': None,
+            'amount': amountString,
             'fee': fee,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()

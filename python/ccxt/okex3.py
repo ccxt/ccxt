@@ -47,10 +47,13 @@ class okex3(Exchange):
             'rateLimit': 1000,  # up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'pro': True,
             'has': {
-                'fetchPositions': True,
-                'fetchPosition': True,
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': None,
+                'swap': None,
+                'future': True,
+                'option': None,
+                'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
@@ -66,13 +69,14 @@ class okex3(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': None,
                 'fetchOrderTrades': True,
+                'fetchPosition': True,
+                'fetchPositions': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTransactions': None,
                 'fetchWithdrawals': True,
-                'future': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -827,71 +831,96 @@ class okex3(Exchange):
         #     }
         #
         id = self.safe_string(market, 'instrument_id')
+        optionType = self.safe_value(market, 'option_type')
+        contractVal = self.safe_number(market, 'contract_val')
+        contract = contractVal is not None
+        futuresAlias = self.safe_string(market, 'alias')
         marketType = 'spot'
-        spot = True
-        future = False
-        swap = False
-        option = False
+        spot = not contract
+        option = (optionType is not None)
+        future = not option and (futuresAlias is not None)
+        swap = contract and not future and not option
         baseId = self.safe_string(market, 'base_currency')
         quoteId = self.safe_string(market, 'quote_currency')
-        contractVal = self.safe_number(market, 'contract_val')
-        if contractVal is not None:
-            if 'option_type' in market:
-                marketType = 'option'
-                spot = False
-                option = True
-                underlying = self.safe_string(market, 'underlying')
-                parts = underlying.split('-')
-                baseId = self.safe_string(parts, 0)
-                quoteId = self.safe_string(parts, 1)
-            else:
-                marketType = 'swap'
-                spot = False
-                swap = True
-                futuresAlias = self.safe_string(market, 'alias')
-                if futuresAlias is not None:
-                    swap = False
-                    future = True
-                    marketType = 'futures'
-                    baseId = self.safe_string(market, 'underlying_index')
+        settleId = self.safe_string(market, 'settlement_currency')
+        if option:
+            underlying = self.safe_string(market, 'underlying')
+            parts = underlying.split('-')
+            baseId = self.safe_string(parts, 0)
+            quoteId = self.safe_string(parts, 1)
+            marketType = 'option'
+        elif future:
+            baseId = self.safe_string(market, 'underlying_index')
+            marketType = 'futures'
+        elif swap:
+            marketType = 'swap'
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        symbol = (base + '/' + quote) if spot else id
+        settle = self.safe_currency_code(settleId)
+        symbol = base + '/' + quote
+        expiryDatetime = self.safe_string(market, 'delivery')
+        expiry = None
+        strike = self.safe_value(market, 'strike')
+        if contract:
+            symbol = symbol + ':' + settle
+            if future or option:
+                if future:
+                    expiryDatetime += 'T00:00:00Z'
+                expiry = self.parse8601(expiryDatetime)
+                symbol = symbol + '-' + self.yymmdd(expiry)
+                if option:
+                    symbol = symbol + ':' + strike + ':' + optionType
+                    optionType = 'call' if (optionType == 'C') else 'put'
         lotSize = self.safe_number_2(market, 'lot_size', 'trade_increment')
         minPrice = self.safe_string(market, 'tick_size')
-        precision = {
-            'amount': self.safe_number(market, 'size_increment', lotSize),
-            'price': self.parse_number(minPrice),
-        }
         minAmountString = self.safe_string_2(market, 'min_size', 'base_min_size')
         minAmount = self.parse_number(minAmountString)
         minCost = None
         if (minAmount is not None) and (minPrice is not None):
             minCost = self.parse_number(Precise.string_mul(minPrice, minAmountString))
-        active = True
         fees = self.safe_value_2(self.fees, marketType, 'trading', {})
+        maxLeverageString = self.safe_string(market, 'max_leverage', '1')
+        maxLeverage = self.parse_number(Precise.string_max(maxLeverageString, '1'))
+        precisionPrice = self.parse_number(minPrice)
         return self.extend(fees, {
             'id': id,
             'symbol': symbol,
             'base': base,
             'quote': quote,
+            'settle': settle,
             'baseId': baseId,
             'quoteId': quoteId,
-            'info': market,
+            'settleId': settleId,
             'type': marketType,
             'spot': spot,
-            'futures': future,
+            'margin': spot and (Precise.string_gt(maxLeverageString, '1')),
             'swap': swap,
+            'futures': future,
             'option': option,
-            'active': active,
-            'precision': precision,
+            'active': True,
+            'contract': contract,
+            'linear': (quote == settle) if contract else None,
+            'inverse': (base == settle) if contract else None,
+            'contractSize': contractVal,
+            'expiry': expiry,
+            'expiryDatetime': self.iso8601(expiry),
+            'strike': strike,
+            'optionType': optionType,
+            'precision': {
+                'price': precisionPrice,
+                'amount': self.safe_number(market, 'size_increment', lotSize),
+            },
             'limits': {
+                'leverage': {
+                    'min': 1,
+                    'max': self.parse_number(maxLeverage),
+                },
                 'amount': {
                     'min': minAmount,
                     'max': None,
                 },
                 'price': {
-                    'min': precision['price'],
+                    'min': precisionPrice,
                     'max': None,
                 },
                 'cost': {
@@ -899,6 +928,7 @@ class okex3(Exchange):
                     'max': None,
                 },
             },
+            'info': market,
         })
 
     def fetch_markets_by_type(self, type, params={}):

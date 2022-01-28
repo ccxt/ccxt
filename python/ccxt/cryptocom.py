@@ -27,14 +27,19 @@ class cryptocom(Exchange):
             'version': 'v2',
             'rateLimit': 10,  # 100 requests per second
             'has': {
+                'CORS': False,
+                'spot': True,
+                'margin': None,
+                'swap': None,
+                'future': None,
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': False,
                 'createOrder': True,
-                'fetchCurrencies': False,
                 'fetchBalance': True,
                 'fetchBidsAsks': False,
                 'fetchClosedOrders': 'emulated',
+                'fetchCurrencies': False,
                 'fetchDepositAddress': True,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
@@ -48,8 +53,8 @@ class cryptocom(Exchange):
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
-                'fetchOrders': True,
                 'fetchOrderBook': True,
+                'fetchOrders': True,
                 'fetchPositions': False,
                 'fetchStatus': False,
                 'fetchTicker': True,
@@ -1424,8 +1429,11 @@ class cryptocom(Exchange):
         takerOrMaker = self.safe_string_lower_2(trade, 'liquidity_indicator', 'taker_side')
         order = self.safe_string(trade, 'order_id')
         fee = None
-        feeCost = Precise.string_neg(self.safe_string_2(trade, 'fee', 'fees'))
+        feeCost = self.safe_string_2(trade, 'fee', 'fees')
         if feeCost is not None:
+            contract = self.safe_value(market, 'contract', False)
+            if contract:
+                feeCost = Precise.string_neg(feeCost)
             feeCurrency = None
             if market['spot']:
                 feeCurrency = self.safe_string(trade, 'fee_currency')

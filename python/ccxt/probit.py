@@ -31,25 +31,52 @@ class probit(Exchange):
             'countries': ['SC', 'KR'],  # Seychelles, South Korea
             'rateLimit': 50,  # ms
             'has': {
-                'fetchDepositAddresses': True,
-                'cancelOrder': True,
                 'CORS': True,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
                 'createMarketOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'signIn': True,
                 'withdraw': True,
             },
@@ -229,51 +256,51 @@ class probit(Exchange):
             quoteId = self.safe_string(market, 'quote_currency_id')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
             closed = self.safe_value(market, 'closed', False)
-            active = not closed
             amountPrecision = self.safe_string(market, 'quantity_precision')
             costPrecision = self.safe_string(market, 'cost_precision')
             amountTickSize = self.parse_precision(amountPrecision)
             costTickSize = self.parse_precision(costPrecision)
-            precision = {
-                'amount': self.parse_number(amountTickSize),
-                'price': self.safe_number(market, 'price_increment'),
-                'cost': self.parse_number(costTickSize),
-            }
             takerFeeRate = self.safe_string(market, 'taker_fee_rate')
             taker = Precise.string_div(takerFeeRate, '100')
             makerFeeRate = self.safe_string(market, 'maker_fee_rate')
             maker = Precise.string_div(makerFeeRate, '100')
             result.append({
                 'id': id,
-                'info': market,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
                 'margin': False,
-                'future': False,
                 'swap': False,
+                'future': False,
                 'option': False,
-                'optionType': None,
-                'strike': None,
+                'active': not closed,
+                'contract': False,
                 'linear': None,
                 'inverse': None,
-                'contract': False,
-                'contractSize': None,
-                'settle': None,
-                'settleId': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'active': active,
-                'precision': precision,
                 'taker': self.parse_number(taker),
                 'maker': self.parse_number(maker),
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': self.safe_number(market, 'price_increment'),
+                    'amount': self.parse_number(amountTickSize),
+                    'cost': self.parse_number(costTickSize),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(market, 'min_quantity'),
                         'max': self.safe_number(market, 'max_quantity'),
@@ -287,6 +314,7 @@ class probit(Exchange):
                         'max': self.safe_number(market, 'max_cost'),
                     },
                 },
+                'info': market,
             })
         return result
 

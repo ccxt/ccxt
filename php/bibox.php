@@ -21,8 +21,13 @@ class bibox extends Exchange {
             'version' => 'v1',
             'hostname' => 'bibox.com',
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => null,
+                'swap' => null,
+                'future' => null,
+                'option' => null,
+                'cancelOrder' => true,
                 'createMarketOrder' => null, // or they will return https://github.com/ccxt/ccxt/issues/2338
                 'createOrder' => true,
                 'fetchBalance' => true,

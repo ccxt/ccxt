@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.70.31'
+__version__ = '1.71.4'
 
 # -----------------------------------------------------------------------------
 
@@ -256,14 +256,16 @@ class Exchange(object):
     has = {
         'publicAPI': True,
         'privateAPI': True,
+        'CORS': None,
+        'spot': None,
         'margin': None,
         'swap': None,
         'future': None,
+        'option': None,
         'addMargin': None,
         'cancelAllOrders': None,
         'cancelOrder': True,
         'cancelOrders': None,
-        'CORS': None,
         'createDepositAddress': None,
         'createLimitOrder': True,
         'createMarketOrder': True,

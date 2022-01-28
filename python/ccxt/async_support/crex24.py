@@ -33,10 +33,15 @@ class crex24(Exchange):
             'version': 'v2',
             # new metainfo interface
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': None,
+                'swap': None,
+                'future': None,
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
-                'CORS': None,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,

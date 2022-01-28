@@ -20,6 +20,7 @@ class tidex extends Exchange {
             'version' => '3',
             'userAgent' => $this->userAgents['chrome'],
             'has' => array(
+                'CORS' => null,
                 'spot' => true,
                 'margin' => false,
                 'swap' => false,
@@ -27,7 +28,6 @@ class tidex extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
-                'CORS' => null,
                 'createMarketOrder' => null,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,

@@ -20,14 +20,19 @@ class cryptocom extends Exchange {
             'version' => 'v2',
             'rateLimit' => 10, // 100 requests per second
             'has' => array(
+                'CORS' => false,
+                'spot' => true,
+                'margin' => null,
+                'swap' => null,
+                'future' => null,
+                'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => false,
                 'createOrder' => true,
-                'fetchCurrencies' => false,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => false,
                 'fetchClosedOrders' => 'emulated',
+                'fetchCurrencies' => false,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
@@ -41,8 +46,8 @@ class cryptocom extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
-                'fetchOrders' => true,
                 'fetchOrderBook' => true,
+                'fetchOrders' => true,
                 'fetchPositions' => false,
                 'fetchStatus' => false,
                 'fetchTicker' => true,
@@ -1493,8 +1498,12 @@ class cryptocom extends Exchange {
         $takerOrMaker = $this->safe_string_lower_2($trade, 'liquidity_indicator', 'taker_side');
         $order = $this->safe_string($trade, 'order_id');
         $fee = null;
-        $feeCost = Precise::string_neg($this->safe_string_2($trade, 'fee', 'fees'));
+        $feeCost = $this->safe_string_2($trade, 'fee', 'fees');
         if ($feeCost !== null) {
+            $contract = $this->safe_value($market, 'contract', false);
+            if ($contract) {
+                $feeCost = Precise::string_neg($feeCost);
+            }
             $feeCurrency = null;
             if ($market['spot']) {
                 $feeCurrency = $this->safe_string($trade, 'fee_currency');

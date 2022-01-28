@@ -15,22 +15,34 @@ class lykke extends Exchange {
             'id' => 'lykke',
             'name' => 'Lykke',
             'countries' => array( 'CH' ),
-            'version' => 'v1',
+            'version' => 'v1', // v2 - https://lykkecity.github.io/Trading-API/
             'rateLimit' => 200,
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => 'emulated',
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
             ),
@@ -339,22 +351,19 @@ class lykke extends Exchange {
     public function fetch_markets($params = array ()) {
         $markets = yield $this->publicGetAssetPairs ();
         //
-        //     array( array(                Id => "AEBTC",
-        //                      Name => "AE/BTC",
-        //                  Accuracy =>  6,
-        //          InvertedAccuracy =>  8,
-        //               BaseAssetId => "6f75280b-a005-4016-a3d8-03dc644e8912",
+        //    array(
+        //        array(
+        //            Id => "AEBTC",
+        //            Name => "AE/BTC",
+        //            Accuracy =>  6,
+        //            InvertedAccuracy =>  8,
+        //            BaseAssetId => "6f75280b-a005-4016-a3d8-03dc644e8912",
         //            QuotingAssetId => "BTC",
-        //                 MinVolume =>  0.4,
-        //         MinInvertedVolume =>  0.0001                                 ),
-        //       {                Id => "AEETH",
-        //                      Name => "AE/ETH",
-        //                  Accuracy =>  6,
-        //          InvertedAccuracy =>  8,
-        //               BaseAssetId => "6f75280b-a005-4016-a3d8-03dc644e8912",
-        //            QuotingAssetId => "ETH",
-        //                 MinVolume =>  0.4,
-        //         MinInvertedVolume =>  0.001                                  } )
+        //            MinVolume =>  0.4,
+        //            MinInvertedVolume =>  0.0001
+        //        ),
+        //        ...
+        //    )
         //
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
@@ -364,24 +373,41 @@ class lykke extends Exchange {
             list($baseId, $quoteId) = explode('/', $name);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
             $pricePrecision = $this->safe_string($market, 'Accuracy');
             $priceLimit = $this->parse_precision($pricePrecision);
-            $precision = array(
-                'price' => intval($pricePrecision),
-                'amount' => $this->safe_integer($market, 'InvertedAccuracy'),
-            );
             $result[] = array(
                 'id' => $id,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
+                'baseId' => null,
+                'quoteId' => null,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
+                'margin' => null,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
                 'active' => true,
-                'info' => $market,
-                'precision' => $precision,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'price' => intval($pricePrecision),
+                    'amount' => $this->safe_integer($market, 'InvertedAccuracy'),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->safe_number($market, 'MinVolume'),
                         'max' => null,
@@ -395,8 +421,7 @@ class lykke extends Exchange {
                         'max' => null,
                     ),
                 ),
-                'baseId' => null,
-                'quoteId' => null,
+                'info' => $market,
             );
         }
         return $result;

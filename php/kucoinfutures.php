@@ -24,19 +24,22 @@ class kucoinfutures extends kucoin {
             'comment' => 'Platform 2.0',
             'quoteJsonNumbers' => false,
             'has' => array(
+                'CORS' => null,
                 'spot' => false,
                 'margin' => false,
                 'swap' => true,
                 'future' => true,
                 'option' => false,
+                'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => null,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
@@ -68,7 +71,6 @@ class kucoinfutures extends kucoin {
                 'setMarginMode' => false,
                 'transfer' => true,
                 'withdraw' => null,
-                'addMargin' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/147508995-9e35030a-d046-43a1-a006-6fabd981b554.jpg',
@@ -414,38 +416,40 @@ class kucoinfutures extends kucoin {
             $quoteMinSize = $this->safe_number($market, 'quoteMinSize');
             $inverse = $this->safe_value($market, 'isInverse');
             $status = $this->safe_string($market, 'status');
-            $active = $status === 'Open';
+            $multiplier = $this->safe_string($market, 'multiplier');
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => $settleId,
                 'base' => $base,
                 'quote' => $quote,
                 'settle' => $settle,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'settleId' => $settleId,
                 'type' => $type,
                 'spot' => false,
                 'margin' => false,
                 'swap' => $swap,
                 'future' => $future,
                 'option' => false,
-                'active' => $active,
+                'active' => ($status === 'Open'),
                 'contract' => true,
                 'linear' => !$inverse,
                 'inverse' => $inverse,
                 'taker' => $this->safe_number($market, 'takerFeeRate'),
                 'maker' => $this->safe_number($market, 'makerFeeRate'),
-                'contractSize' => $this->parse_number(Precise::string_abs($this->safe_string($market, 'multiplier'))),
+                'contractSize' => $this->parse_number(Precise::string_abs($multiplier)),
                 'expiry' => $expiry,
                 'expiryDatetime' => $this->iso8601($expiry),
+                'strike' => null,
+                'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_number($market, 'lotSize'),
                     'price' => $this->safe_number($market, 'tickSize'),
+                    'amount' => $this->safe_number($market, 'lotSize'),
                 ),
                 'limits' => array(
                     'leverage' => array(
-                        'min' => null,
+                        'min' => $this->parse_number('1'),
                         'max' => $this->safe_number($market, 'maxLeverage'),
                     ),
                     'amount' => array(
@@ -879,9 +883,9 @@ class kucoinfutures extends kucoin {
         $size = $this->safe_string($position, 'currentQty');
         $side = null;
         if (Precise::string_gt($size, '0')) {
-            $side = 'buy';
+            $side = 'long';
         } else if (Precise::string_lt($size, '0')) {
-            $side = 'sell';
+            $side = 'short';
         }
         $notional = Precise::string_abs($this->safe_string($position, 'posCost'));
         $initialMargin = $this->safe_string($position, 'posInit');

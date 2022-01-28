@@ -31,15 +31,19 @@ module.exports = class gateio extends Exchange {
                 },
             },
             'has': {
+                'CORS': undefined,
+                'spot': true,
                 'margin': true,
                 'swap': true,
                 'future': true,
+                'option': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createMarketOrder': false,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
@@ -1935,6 +1939,16 @@ module.exports = class gateio extends Exchange {
         //         "price": "32452.16"
         //     }
         //
+        // public ws
+        //
+        //     {
+        //         id: 221994511,
+        //         time: 1580311438.618647,
+        //         price: '9309',
+        //         amount: '0.0019',
+        //         type: 'sell'
+        //     }
+        //
         // private
         //
         //     {
@@ -1954,23 +1968,15 @@ module.exports = class gateio extends Exchange {
         //     }
         //
         const id = this.safeString (trade, 'id');
-        const timestampStringContract = this.safeString (trade, 'create_time');
-        const timestampString = this.safeString2 (trade, 'create_time_ms', 'time', timestampStringContract);
-        let timestamp = undefined;
-        if (timestampString.indexOf ('.') > 0) {
-            const milliseconds = timestampString.split ('.');
-            timestamp = parseInt (milliseconds[0]);
-        }
-        if (market['contract']) {
-            timestamp = timestamp * 1000;
-        }
+        let timestamp = this.safeTimestamp (trade, 'time');
+        timestamp = this.safeInteger (trade, 'create_time_ms', timestamp);
         const marketId = this.safeString2 (trade, 'currency_pair', 'contract');
         const symbol = this.safeSymbol (marketId, market);
         let amountString = this.safeString2 (trade, 'amount', 'size');
         const priceString = this.safeString (trade, 'price');
         const contractSide = Precise.stringLt (amountString, '0') ? 'sell' : 'buy';
         amountString = Precise.stringAbs (amountString);
-        const side = this.safeString (trade, 'side', contractSide);
+        const side = this.safeString2 (trade, 'side', 'type', contractSide);
         const orderId = this.safeString (trade, 'order_id');
         const gtFee = this.safeString (trade, 'gt_fee');
         let feeCurrency = undefined;
@@ -2946,13 +2952,19 @@ module.exports = class gateio extends Exchange {
         const size = this.safeString (position, 'size');
         let side = undefined;
         if (Precise.stringGt (size, '0')) {
-            side = 'buy';
+            side = 'long';
         } else if (Precise.stringLt (size, '0')) {
-            side = 'sell';
+            side = 'short';
         }
         const maintenanceRate = this.safeString (position, 'maintenance_rate');
         const notional = this.safeString (position, 'value');
         const leverage = this.safeString (position, 'leverage');
+        let marginType = undefined;
+        if (leverage === '0') {
+            marginType = 'cross';
+        } else {
+            marginType = 'isolated';
+        }
         const unrealisedPnl = this.safeString (position, 'unrealised_pnl');
         // Initial Position Margin = ( Position Value / Leverage ) + Close Position Fee
         // *The default leverage under the full position is the highest leverage in the market.
@@ -2981,7 +2993,7 @@ module.exports = class gateio extends Exchange {
             'liquidationPrice': this.safeNumber (position, 'liq_price'),
             'markPrice': this.safeNumber (position, 'mark_price'),
             'collateral': this.safeNumber (position, 'margin'),
-            'marginType': undefined,
+            'marginType': marginType,
             'side': side,
             'percentage': this.parseNumber (percentage),
         };

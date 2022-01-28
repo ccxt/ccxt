@@ -46,6 +46,7 @@ class kraken(Exchange):
             'certified': False,
             'pro': True,
             'has': {
+                'CORS': None,
                 'spot': True,
                 'margin': True,
                 'swap': False,
@@ -54,12 +55,12 @@ class kraken(Exchange):
                 'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': None,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchClosedOrders': True,
@@ -705,7 +706,7 @@ class kraken(Exchange):
         baseVolume = self.safe_string(v, 1)
         p = self.safe_value(ticker, 'p', [])
         vwap = self.safe_string(p, 1)
-        quoteVolume = None
+        quoteVolume = Precise.string_mul(baseVolume, vwap)
         c = self.safe_value(ticker, 'c', [])
         last = self.safe_string(c, 0)
         high = self.safe_value(ticker, 'h', [])
@@ -736,8 +737,9 @@ class kraken(Exchange):
         }, market, False)
 
     def fetch_tickers(self, symbols=None, params={}):
+        if symbols is None:
+            raise ArgumentsRequired(self.id + ' fetchTickers() requires a symbols argument, an array of symbols')
         self.load_markets()
-        symbols = self.symbols if (symbols is None) else symbols
         marketIds = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]

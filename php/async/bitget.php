@@ -22,11 +22,14 @@ class bitget extends Exchange {
             'version' => 'v3',
             'rateLimit' => 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'has' => array(
-                'fetchPositions' => true,
-                'fetchPosition' => true,
+                'CORS' => null,
+                'spot' => true,
+                'margin' => null,
+                'swap' => null,
+                'future' => null,
+                'option' => null,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
-                'CORS' => null,
                 'createOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
@@ -40,6 +43,8 @@ class bitget extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderTrades' => true,
+                'fetchPosition' => true,
+                'fetchPositions' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -1100,7 +1105,6 @@ class bitget extends Exchange {
         }
         $baseVolume = $this->safe_string_2($ticker, 'amount', 'volume_24h');
         $quoteVolume = $this->safe_string($ticker, 'vol');
-        $vwap = $this->vwap($baseVolume, $quoteVolume);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -1111,7 +1115,7 @@ class bitget extends Exchange {
             'bidVolume' => $bidVolume,
             'ask' => $ask,
             'askVolume' => $askVolume,
-            'vwap' => $vwap,
+            'vwap' => null,
             'open' => $open,
             'close' => $last,
             'last' => $last,

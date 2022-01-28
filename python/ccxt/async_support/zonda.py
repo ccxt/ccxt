@@ -28,6 +28,7 @@ class zonda(Exchange):
             'countries': ['EE'],  # Estonia
             'rateLimit': 1000,
             'has': {
+                'CORS': True,
                 'spot': True,
                 'margin': False,
                 'swap': False,
@@ -35,7 +36,6 @@ class zonda(Exchange):
                 'option': False,
                 'addMargin': False,
                 'cancelOrder': True,
-                'CORS': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,
