@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { PAD_WITH_ZERO } = require ('./base/functions/number');
 const { InvalidOrder, InsufficientFunds, ExchangeError, ExchangeNotAvailable, DDoSProtection, BadRequest, NotSupported, InvalidAddress, AuthenticationError } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
 
@@ -163,9 +164,9 @@ module.exports = class idex extends Exchange {
         //
         const maker = this.safeNumber (response2, 'makerFeeRate');
         const taker = this.safeNumber (response2, 'takerFeeRate');
-        const makerMin = this.safeNumber (response2, 'makerTradeMinimum');
-        const takerMin = this.safeNumber (response2, 'takerTradeMinimum');
-        const minCostETH = Math.min (makerMin, takerMin);
+        const makerMin = this.safeString (response2, 'makerTradeMinimum');
+        const takerMin = this.safeString (response2, 'takerTradeMinimum');
+        const minCostETH = this.parseNumber (Precise.stringMin (makerMin, takerMin));
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -174,20 +175,18 @@ module.exports = class idex extends Exchange {
             const quoteId = this.safeString (entry, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
             const basePrecisionString = this.safeString (entry, 'baseAssetPrecision');
             const quotePrecisionString = this.safeString (entry, 'quoteAssetPrecision');
             const basePrecision = this.parsePrecision (basePrecisionString);
             const quotePrecision = this.parsePrecision (quotePrecisionString);
             const status = this.safeString (entry, 'status');
-            const active = status === 'active';
             let minCost = undefined;
             if (quote === 'ETH') {
                 minCost = minCostETH;
             }
             result.push ({
                 'id': marketId,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
                 'settle': undefined,
@@ -200,20 +199,20 @@ module.exports = class idex extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'active': (status === 'active'),
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
                 'taker': taker,
                 'maker': maker,
                 'contractSize': undefined,
-                'active': active,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': parseInt (basePrecisionString),
                     'price': parseInt (quotePrecisionString),
+                    'amount': parseInt (basePrecisionString),
                 },
                 'limits': {
                     'leverage': {
