@@ -1099,7 +1099,6 @@ class bitget(Exchange):
             ask = self.safe_string(ask, 0)
         baseVolume = self.safe_string_2(ticker, 'amount', 'volume_24h')
         quoteVolume = self.safe_string(ticker, 'vol')
-        vwap = self.vwap(baseVolume, quoteVolume)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1110,7 +1109,7 @@ class bitget(Exchange):
             'bidVolume': bidVolume,
             'ask': ask,
             'askVolume': askVolume,
-            'vwap': vwap,
+            'vwap': None,
             'open': open,
             'close': last,
             'last': last,

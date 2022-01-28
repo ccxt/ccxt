@@ -1105,7 +1105,6 @@ class bitget extends Exchange {
         }
         $baseVolume = $this->safe_string_2($ticker, 'amount', 'volume_24h');
         $quoteVolume = $this->safe_string($ticker, 'vol');
-        $vwap = $this->vwap($baseVolume, $quoteVolume);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -1116,7 +1115,7 @@ class bitget extends Exchange {
             'bidVolume' => $bidVolume,
             'ask' => $ask,
             'askVolume' => $askVolume,
-            'vwap' => $vwap,
+            'vwap' => null,
             'open' => $open,
             'close' => $last,
             'last' => $last,

@@ -15,6 +15,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import PAD_WITH_ZERO
+from ccxt.base.precise import Precise
 
 
 class idex(Exchange):
@@ -34,28 +35,51 @@ class idex(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,
-                'swap': None,
-                'future': None,
-                'option': None,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': None,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTransactions': None,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -172,9 +196,9 @@ class idex(Exchange):
         #
         maker = self.safe_number(response2, 'makerFeeRate')
         taker = self.safe_number(response2, 'takerFeeRate')
-        makerMin = self.safe_number(response2, 'makerTradeMinimum')
-        takerMin = self.safe_number(response2, 'takerTradeMinimum')
-        minCostETH = min(makerMin, takerMin)
+        makerMin = self.safe_string(response2, 'makerTradeMinimum')
+        takerMin = self.safe_string(response2, 'takerTradeMinimum')
+        minCostETH = self.parse_number(Precise.string_min(makerMin, takerMin))
         result = []
         for i in range(0, len(response)):
             entry = response[i]
@@ -183,19 +207,17 @@ class idex(Exchange):
             quoteId = self.safe_string(entry, 'quoteAsset')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
             basePrecisionString = self.safe_string(entry, 'baseAssetPrecision')
             quotePrecisionString = self.safe_string(entry, 'quoteAssetPrecision')
             basePrecision = self.parse_precision(basePrecisionString)
             quotePrecision = self.parse_precision(quotePrecisionString)
             status = self.safe_string(entry, 'status')
-            active = status == 'active'
             minCost = None
             if quote == 'ETH':
                 minCost = minCostETH
             result.append({
                 'id': marketId,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
                 'settle': None,
@@ -208,20 +230,20 @@ class idex(Exchange):
                 'swap': False,
                 'future': False,
                 'option': False,
+                'active': (status == 'active'),
                 'contract': False,
                 'linear': None,
                 'inverse': None,
                 'taker': taker,
                 'maker': maker,
                 'contractSize': None,
-                'active': active,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': int(basePrecisionString),
                     'price': int(quotePrecisionString),
+                    'amount': int(basePrecisionString),
                 },
                 'limits': {
                     'leverage': {
