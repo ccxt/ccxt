@@ -44,7 +44,9 @@ class kucoin extends Exchange {
                 'fetchDeposits' => true,
                 'fetchFundingFee' => true,
                 'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchL3OrderBook' => true,
                 'fetchLedger' => true,
@@ -509,7 +511,7 @@ class kucoin extends Exchange {
         //             "time":1602832092060,
         //             "ticker":array(
         //                 {
-        //                     "symbol" => "BTC-USDT",   // $symbol
+        //                     "symbol" => "BTC-USDT",   // symbol
         //                     "symbolName":"BTC-USDT", // Name of trading pairs, it would change after renaming
         //                     "buy" => "11328.9",   // bestAsk
         //                     "sell" => "11329",    // bestBid
@@ -540,9 +542,6 @@ class kucoin extends Exchange {
             list($baseId, $quoteId) = explode('-', $id);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $active = $this->safe_value($market, 'enableTrading');
-            $margin = $this->safe_value($market, 'isMarginEnabled');
             $baseMaxSize = $this->safe_number($market, 'baseMaxSize');
             $baseMinSizeString = $this->safe_string($market, 'baseMinSize');
             $quoteMaxSizeString = $this->safe_string($market, 'quoteMaxSize');
@@ -550,49 +549,59 @@ class kucoin extends Exchange {
             $quoteMaxSize = $this->parse_number($quoteMaxSizeString);
             $quoteMinSize = $this->safe_number($market, 'quoteMinSize');
             // $quoteIncrement = $this->safe_number($market, 'quoteIncrement');
-            $precision = array(
-                'amount' => $this->precision_from_string($this->safe_string($market, 'baseIncrement')),
-                'price' => $this->precision_from_string($this->safe_string($market, 'priceIncrement')),
-            );
-            $limits = array(
-                'amount' => array(
-                    'min' => $baseMinSize,
-                    'max' => $baseMaxSize,
-                ),
-                'price' => array(
-                    'min' => $this->safe_number($market, 'priceIncrement'),
-                    'max' => $this->parse_number(Precise::string_div($quoteMaxSizeString, $baseMinSizeString)),
-                ),
-                'cost' => array(
-                    'min' => $quoteMinSize,
-                    'max' => $quoteMaxSize,
-                ),
-                'leverage' => array(
-                    'max' => $this->safe_number($market, 'maxLeverage', 1), // * Don't default to 1 for $margin markets, leverage is located elsewhere
-                ),
-            );
             $ticker = $this->safe_value($tickersByMarketId, $id, array());
             $makerFeeRate = $this->safe_string($ticker, 'makerFeeRate');
             $takerFeeRate = $this->safe_string($ticker, 'makerFeeRate');
             $makerCoefficient = $this->safe_string($ticker, 'makerCoefficient');
             $takerCoefficient = $this->safe_string($ticker, 'takerCoefficient');
-            $maker = $this->parse_number(Precise::string_mul($makerFeeRate, $makerCoefficient));
-            $taker = $this->parse_number(Precise::string_mul($takerFeeRate, $takerCoefficient));
             $result[] = array(
                 'id' => $id,
-                'symbol' => $symbol,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'margin' => $margin,
-                'active' => $active,
-                'maker' => $maker,
-                'taker' => $taker,
-                'precision' => $precision,
-                'limits' => $limits,
+                'margin' => $this->safe_value($market, 'isMarginEnabled'),
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => $this->safe_value($market, 'enableTrading'),
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'taker' => $this->parse_number(Precise::string_mul($takerFeeRate, $takerCoefficient)),
+                'maker' => $this->parse_number(Precise::string_mul($makerFeeRate, $makerCoefficient)),
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'price' => $this->precision_from_string($this->safe_string($market, 'priceIncrement')),
+                    'amount' => $this->precision_from_string($this->safe_string($market, 'baseIncrement')),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => $baseMinSize,
+                        'max' => $baseMaxSize,
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => $quoteMinSize,
+                        'max' => $quoteMaxSize,
+                    ),
+                ),
                 'info' => $market,
             );
         }
