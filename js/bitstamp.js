@@ -650,16 +650,6 @@ module.exports = class bitstamp extends Exchange {
         return undefined;
     }
 
-    getMarketFromTrades (trades) {
-        const tradesBySymbol = this.indexBy (trades, 'symbol');
-        const symbols = Object.keys (tradesBySymbol);
-        const numSymbols = symbols.length;
-        if (numSymbols === 1) {
-            return this.markets[symbols[0]];
-        }
-        return undefined;
-    }
-
     parseTrade (trade, market = undefined) {
         //
         // fetchTrades (public)
