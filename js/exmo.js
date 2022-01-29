@@ -434,35 +434,41 @@ module.exports = class exmo extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const takerString = this.safeString (market, 'commission_taker_percent');
             const makerString = this.safeString (market, 'commission_maker_percent');
-            const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
-            const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
                 'margin': false,
                 'future': false,
                 'swap': false,
                 'option': false,
-                'optionType': undefined,
-                'strike': undefined,
+                'active': true,
+                'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'contract': false,
+                'taker': this.parseNumber (Precise.stringDiv (takerString, '100')),
+                'maker': this.parseNumber (Precise.stringDiv (makerString, '100')),
                 'contractSize': undefined,
-                'settle': undefined,
-                'settleId': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
-                'active': true,
-                'taker': taker,
-                'maker': maker,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': 8,
+                    'price': this.safeInteger (market, 'price_precision'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'min_quantity'),
                         'max': this.safeNumber (market, 'max_quantity'),
@@ -475,10 +481,6 @@ module.exports = class exmo extends Exchange {
                         'min': this.safeNumber (market, 'min_amount'),
                         'max': this.safeNumber (market, 'max_amount'),
                     },
-                },
-                'precision': {
-                    'amount': 8,
-                    'price': this.safeInteger (market, 'price_precision'),
                 },
                 'info': market,
             });
