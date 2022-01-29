@@ -604,23 +604,19 @@ class mexc(Exchange):
             baseId, quoteId = id.split('_')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            priceScale = self.safe_integer(market, 'price_scale')
-            quantityScale = self.safe_integer(market, 'quantity_scale')
-            pricePrecision = 1 / math.pow(10, priceScale)
-            quantityPrecision = 1 / math.pow(10, quantityScale)
+            priceScale = self.safe_string(market, 'price_scale')
+            quantityScale = self.safe_string(market, 'quantity_scale')
             state = self.safe_string(market, 'state')
-            type = 'spot'
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
                 'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': None,
-                'type': type,
+                'type': 'spot',
                 'spot': True,
                 'margin': False,
                 'swap': False,
@@ -638,8 +634,8 @@ class mexc(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': pricePrecision,
-                    'amount': quantityPrecision,
+                    'price': self.parse_precision(priceScale),
+                    'amount': self.parse_precision(quantityScale),
                 },
                 'limits': {
                     'leverage': {
