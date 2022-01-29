@@ -1092,12 +1092,12 @@ class huobi extends Exchange {
         //             array(
         //                 "base-currency":"xrp3s",
         //                 "quote-currency":"usdt",
-        //                 "price-$precision":4,
-        //                 "amount-$precision":4,
+        //                 "price-precision":4,
+        //                 "amount-precision":4,
         //                 "symbol-partition":"innovation",
         //                 "symbol":"xrp3susdt",
         //                 "state":"online",
-        //                 "value-$precision":8,
+        //                 "value-precision":8,
         //                 "min-order-amt":0.01,
         //                 "max-order-amt":1616.4353,
         //                 "min-order-value":5,
@@ -1253,18 +1253,13 @@ class huobi extends Exchange {
                 $pricePrecision = $this->safe_number($market, 'price_tick');
                 $amountPrecision = 1;
             }
-            $precision = array(
-                'amount' => $amountPrecision,
-                'price' => $pricePrecision,
-                'cost' => $costPrecision,
-            );
             $maker = null;
             $taker = null;
             if ($spot) {
                 $maker = ($base === 'OMG') ? 0 : 0.2 / 100;
                 $taker = ($base === 'OMG') ? 0 : 0.2 / 100;
             }
-            $minAmount = $this->safe_number($market, 'min-order-amt', pow(10, -$precision['amount']));
+            $minAmount = $this->safe_number($market, 'min-order-amt');
             $maxAmount = $this->safe_number($market, 'max-order-amt');
             $minCost = $this->safe_number($market, 'min-order-value', 0);
             $active = null;
@@ -1275,6 +1270,9 @@ class huobi extends Exchange {
                 $contractStatus = $this->safe_integer($market, 'contract_status');
                 $active = ($contractStatus === 1);
             }
+            $leverageRatio = $this->safe_string($market, 'leverage-ratio', '1');
+            $superLeverageRatio = $this->safe_string($market, 'super-margin-leverage-ratio', '1');
+            $hasLeverage = Precise::string_gt($leverageRatio, '1') || Precise::string_gt($superLeverageRatio, '1');
             // 0 Delisting
             // 1 Listing
             // 2 Pending Listing
@@ -1295,35 +1293,44 @@ class huobi extends Exchange {
                 'quoteId' => $quoteId,
                 'settleId' => $settleId,
                 'type' => $type,
-                'contract' => $contract,
                 'spot' => $spot,
-                'future' => $future,
+                'margin' => ($spot && $hasLeverage),
                 'swap' => $swap,
+                'future' => $future,
+                'option' => false,
+                'active' => $active,
+                'contract' => $contract,
                 'linear' => $linear,
                 'inverse' => $inverse,
-                'expiry' => $expiry,
-                'expiryDatetime' => $this->iso8601($expiry),
-                'contractSize' => $contractSize,
-                'active' => $active,
-                'precision' => $precision,
                 'taker' => $taker,
                 'maker' => $maker,
+                'contractSize' => $contractSize,
+                'expiry' => $expiry,
+                'expiryDatetime' => $this->iso8601($expiry),
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $amountPrecision,
+                    'price' => $pricePrecision,
+                    'cost' => $costPrecision,
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => $this->parse_number('1'),
+                        'max' => $this->parse_number($leverageRatio),
+                        'superMax' => $this->parse_number($superLeverageRatio),
+                    ),
                     'amount' => array(
                         'min' => $minAmount,
                         'max' => $maxAmount,
                     ),
                     'price' => array(
-                        'min' => $pricePrecision,
+                        'min' => null,
                         'max' => null,
                     ),
                     'cost' => array(
                         'min' => $minCost,
                         'max' => null,
-                    ),
-                    'leverage' => array(
-                        'max' => $this->safe_number($market, 'leverage-ratio', 1),
-                        'superMax' => $this->safe_number($market, 'super-margin-leverage-ratio', 1),
                     ),
                 ),
                 'info' => $market,
