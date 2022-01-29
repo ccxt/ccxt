@@ -36,7 +36,7 @@ module.exports = class huobi extends Exchange {
                 'cancelOrders': true,
                 'createDepositAddress': undefined,
                 'createOrder': true,
-                'createReduceOnlyOrder': undefined,
+                'createReduceOnlyOrder': false,
                 'deposit': undefined,
                 'fetchAccounts': true,
                 'fetchAllTradingFees': undefined,
@@ -61,13 +61,13 @@ module.exports = class huobi extends Exchange {
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': undefined,
+                'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
-                'fetchIsolatedPositions': undefined,
+                'fetchIsolatedPositions': false,
                 'fetchL3OrderBook': undefined,
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
-                'fetchLeverage': undefined,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyBuys': undefined,
@@ -83,7 +83,7 @@ module.exports = class huobi extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositions': true,
-                'fetchPositionsRisk': undefined,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': true,
                 'fetchStatus': undefined,
                 'fetchTicker': true,
@@ -102,8 +102,8 @@ module.exports = class huobi extends Exchange {
                 'loadLeverageBrackets': undefined,
                 'reduceMargin': undefined,
                 'setLeverage': true,
-                'setMarginMode': undefined,
-                'setPositionMode': undefined,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'signIn': undefined,
                 'transfer': true,
                 'withdraw': true,
@@ -4487,6 +4487,44 @@ module.exports = class huobi extends Exchange {
         //
         const result = this.safeValue (response, 'data', {});
         return this.parseFundingRate (result, market);
+    }
+
+    async fetchFundingRates (symbols, params = {}) {
+        await this.loadMarkets ();
+        const options = this.safeValue (this.options, 'fetchFundingRates', {});
+        const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
+        let subType = this.safeString (options, 'subType', defaultSubType);
+        subType = this.safeString (params, 'subType', subType);
+        const request = {
+            // 'contract_code': market['id'],
+        };
+        const method = this.getSupportedMapping (subType, {
+            'linear': 'contractPublicGetLinearSwapApiV1SwapBatchFundingRate',
+            'inverse': 'contractPublicGetSwapApiV1SwapBatchFundingRate',
+        });
+        params = this.omit (params, 'subType');
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": [
+        //             {
+        //                 "estimated_rate": "0.000100000000000000",
+        //                 "funding_rate": "0.000100000000000000",
+        //                 "contract_code": "MANA-USDT",
+        //                 "symbol": "MANA",
+        //                 "fee_asset": "USDT",
+        //                 "funding_time": "1643356800000",
+        //                 "next_funding_time": "1643385600000",
+        //                 "trade_partition":"USDT"
+        //             },
+        //         ],
+        //         "ts": 1643346173103
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const result = this.parseFundingRates (data);
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
