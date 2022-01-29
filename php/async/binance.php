@@ -5054,26 +5054,16 @@ class binance extends Exchange {
             $this->check_required_credentials();
             $query = null;
             $recvWindow = $this->safe_integer($this->options, 'recvWindow', 5000);
+            $extendedParams = array_merge(array(
+                'timestamp' => $this->nonce(),
+                'recvWindow' => $recvWindow,
+            ), $params);
             if (($api === 'sapi') && ($path === 'asset/dust')) {
-                $query = $this->urlencode_with_array_repeat(array_merge(array(
-                    'timestamp' => $this->nonce(),
-                    'recvWindow' => $recvWindow,
-                ), $params));
-            } else if (($path === 'batchOrders') || (mb_strpos($path, 'sub-account') !== false)) {
-                $query = $this->rawencode(array_merge(array(
-                    'timestamp' => $this->nonce(),
-                    'recvWindow' => $recvWindow,
-                ), $params));
-            } else if ($giftcard) {
-                $query = $this->urlencode(array(
-                    'timestamp' => $this->nonce(),
-                    'recvWindow' => $recvWindow,
-                ));
+                $query = $this->urlencode_with_array_repeat($extendedParams);
+            } else if (($path === 'batchOrders') || (mb_strpos($path, 'sub-account') !== false) || ($path === 'capital/withdraw/apply')) {
+                $query = $this->rawencode($extendedParams);
             } else {
-                $query = $this->urlencode(array_merge(array(
-                    'timestamp' => $this->nonce(),
-                    'recvWindow' => $recvWindow,
-                ), $params));
+                $query = $this->urlencode($extendedParams);
             }
             $signature = $this->hmac($this->encode($query), $this->encode($this->secret));
             $query .= '&' . 'signature=' . $signature;
