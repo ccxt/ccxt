@@ -5047,26 +5047,20 @@ module.exports = class binance extends Exchange {
             this.checkRequiredCredentials ();
             let query = undefined;
             const recvWindow = this.safeInteger (this.options, 'recvWindow', 5000);
+            const extendedParams = this.extend ({
+                'timestamp': this.nonce (),
+                'recvWindow': recvWindow,
+            }, params);
             if ((api === 'sapi') && (path === 'asset/dust')) {
-                query = this.urlencodeWithArrayRepeat (this.extend ({
-                    'timestamp': this.nonce (),
-                    'recvWindow': recvWindow,
-                }, params));
+                query = this.urlencodeWithArrayRepeat (extendedParams);
             } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0)) {
-                query = this.rawencode (this.extend ({
-                    'timestamp': this.nonce (),
-                    'recvWindow': recvWindow,
-                }, params));
+                query = this.rawencode (extendedParams);
             } else if (giftcard) {
-                query = this.urlencode ({
-                    'timestamp': this.nonce (),
-                    'recvWindow': recvWindow,
-                });
+                query = this.urlencode (extendedParams);
+            } else if (path === 'capital/withdraw/apply') {
+                query = this.rawencode (extendedParams);
             } else {
-                query = this.urlencode (this.extend ({
-                    'timestamp': this.nonce (),
-                    'recvWindow': recvWindow,
-                }, params));
+                query = this.urlencode (extendedParams);
             }
             const signature = this.hmac (this.encode (query), this.encode (this.secret));
             query += '&' + 'signature=' + signature;
