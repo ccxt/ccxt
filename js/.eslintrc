@@ -21,6 +21,7 @@
         "exports": "always-multiline",
         "functions": "never"
     }],
+    "import/extensions": "off",
     "brace-style": ["error", "1tbs"],
     "multiline-comment-style": ["error", "separate-lines"],
     "dot-notation": "off",
@@ -80,6 +81,7 @@
     "operator-assignment": "off",
     "no-underscore-dangle": "off",
     "consistent-return": "off",
-    "no-await-in-loop": "off"
+    "no-await-in-loop": "off",
+    "prefer-exponentiation-operator": "off",
   }
 }

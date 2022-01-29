@@ -54,15 +54,14 @@
     "postinstall": "node postinstall"
   },
   "types": "./ccxt.d.ts",
-  "dependencies": {},
   "devDependencies": {
     "ansicolor": "1.1.81",
     "as-table": "1.0.37",
     "asciichart": "1.5.25",
     "browserify": "14.5.0",
-    "eslint": "^6.8.0",
-    "eslint-config-airbnb-base": "14.1.0",
-    "eslint-plugin-import": "2.20.1",
+    "eslint": "^8.8.0",
+    "eslint-config-airbnb-base": "15.0.0",
+    "eslint-plugin-import": "2.25.4",
     "ololog": "1.1.155"
   },
   "author": {
