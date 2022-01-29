@@ -1,16 +1,18 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, BadSymbol, RateLimitExceeded } = require ('./base/errors');
+const { ExchangeError, BadRequest, BadSymbol } = require ('./base/errors');
 
 module.exports = class btse extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'btse',
             'name': 'BTSE',
-            'countries': [ 'EE' ], // Estonia
+            'countries': [ 'VG' ], // British Virgin Islands
             'version': 'v1',
-            'rateLimit': 300,
+            'rateLimit': 13.333,
+            // ordering 75 per second => 1000 / 75 = 13.33 (cost = 1)
+            // query 15 req per second => 75/15 = cost = 5
             'has': {
                 'CORS': false,
                 'spot': true,
@@ -64,13 +66,13 @@ module.exports = class btse extends Exchange {
                 '1d': '1440',
             },
             'urls': {
-                'logo': '',
+                'logo': 'https://s2.coinmarketcap.com/static/img/coins/64x64/5305.png',
                 'api': {
                     'spot': 'https://api.btse.com/spot/api/v3.2',
                     'future': 'https://api.btse.com/futures/api/v2.1',
                 },
                 'test': {
-                    'spot': '',
+                    'spot': 'https://testapi.btse.io/spot',
                     'future': 'https://testapi.btse.io/futures',
                 },
                 'www': 'https://www.btse.com/en/home',
@@ -80,55 +82,84 @@ module.exports = class btse extends Exchange {
                 'spot': {
                     'public': {
                         'get': {
-                            'market_summary': 1,
-                            'ohlcv': 1,
-                            'price': 1,
-                            'orderbook/L2': 1,
-                            'orderbook/{symbol}': 1,
-                            'trades': 1,
-                            'time': 1,
-                            'get-stats': 1,
+                            'availableCurrencyNetworks': 5,
+                            'availableCurrencies': 5,
+                            'market_summary': 5,
+                            'ohlcv': 5,
+                            'price': 5,
+                            'orderbook/L2': 5,
+                            'orderbook/{symbol}': 5,
+                            'trades': 5,
+                            'time': 5,
+                            'get-stats': 5,
+                            'exchangeRate': 5,
                         },
                     },
                     'private': {
                         'get': {
-                            'user/open_orders': 1,
-                            'user/fees': 1,
+                            'user/fees': 5,
+                            'user/open_orders': 5,
+                            'user/trade_history': 5,
+                            'user/wallet_history': 5,
+                            'user/wallet': 5,
                         },
                         'post': {
                             'order': 1,
+                            'order/cancelAllAfter': 1,
                             'order/peg': 1,
+                            'user/wallet/convert': 1,
+                            'user/wallet/address': 1,
+                            'user/wallet/withdraw': 1,
+                            'user/wallet/transfer': 1,
                         },
                         'put': {
                             'order': 1,
                         },
                         'delete': {
                             'order/cancelAllAfter': 1,
-                            'user/trade_history': 1,
                         },
                     },
                 },
                 'future': {
                     'public': {
                         'get': {
-                            'market_summary': 1,
-                            'ohlcv': 1,
-                            'price': 1,
-                            'orderbook/L2': 1,
-                            'orderbook/{symbol}': 1,
-                            'trades': 1,
-                            'time': 1,
-                            'get-stats': 1,
+                            'market_summary': 5,
+                            'ohlcv': 5,
+                            'price': 5,
+                            'orderbook/L2': 5,
+                            'orderbook/{symbol}': 5,
+                            'trades': 5,
+                            'time': 5,
+                            'get-stats': 5,
+                        },
+                    },
+                    'private': {
+                        'get': {
+                            'settle_in': 5,
+                            'user/fees': 5,
+                            'user/open_orders': 5,
+                            'user/trade_history': 5,
+                        },
+                        'post': {
+                            'order': 1,
+                            'order/peg': 1,
+                            'order/close_position': 1,
+                            'risk_limit': 1,
+                            'leverage': 1,
+                        },
+                        'put': {
+                            'order': 1,
+                        },
+                        'delete': {
+                            'order/cancelAllAfter': 1,
                         },
                     },
                 },
             },
             'exceptions': {
                 'exact': {
-                    '10002': RateLimitExceeded, // {"error":{"code":10002,"message":"Too many requests."}}
-                    '10501': BadRequest, // {"error":{"code":10501,"message":"Request parameters have incorrect format."}}
-                    '14500': BadRequest, // {"error":{"code":14500,"message":"Depth is invalid."}}
-                    '13500': BadSymbol, // {"error":{"code":13500,"message":"Instrument id is invalid."}}
+                    '-1': BadRequest, // {"code":-1,"msg":null,"time":1643322746173,"data":null,"success":false}
+                    '80005': BadSymbol, // {"code":80005,"msg":"BADREQUEST: product_id invalid","time":1643385790496,"data":null,"success":false}
                 },
             },
         });
@@ -495,7 +526,7 @@ module.exports = class btse extends Exchange {
         const datetime = this.iso8601 (timestamp);
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const side = this.safeString (trade, 'side');
+        const side = this.safeStringLower (trade, 'side');
         const price = this.safeNumber (trade, 'price');
         const amount = this.safeNumber (trade, 'size');
         return this.safeTrade ({
@@ -664,16 +695,15 @@ module.exports = class btse extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         //
-        // {"error":{"code":10501,"message":"Request parameters have incorrect format."}}
+        // {"code":-1,"msg":null,"time":1643322746173,"data":null,"success":false}
         //
         if (response === undefined) {
             return;
         }
-        const error = this.safeValue (response, 'error');
+        const error = this.safeString (response, 'code');
         if (error !== undefined) {
-            const errorCode = this.safeString (error, 'code');
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
             throw new ExchangeError (feedback);
         }
     }
