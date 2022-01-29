@@ -14,7 +14,7 @@ before_install:
 - nvm ls
 # - nvm install 14.9.0 -v
 # - nvm use 14.9.0
-- nvm use stable
+- nvm use v16.13.2
 - rm -rf node_modules
 - npm install
 - git checkout package.json package-lock.json
