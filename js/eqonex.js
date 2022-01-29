@@ -234,24 +234,24 @@ module.exports = class eqonex extends Exchange {
         //        ]
         //    }
         //
-        const id = this.safeString (market, 'instrumentId');
-        const baseId = this.safeString (market, 'currency');
-        const quoteId = this.safeString (market, 'contAmtCurr');
-        const settleId = this.safeString (market, 'settlCurrency');
-        const base = this.safeCurrencyCode (baseId);
-        const quote = this.safeCurrencyCode (quoteId);
-        const settle = this.safeCurrencyCode (settleId);
         const assetType = this.safeString (market, 'assetType');
         const spot = (assetType === 'PAIR');
         const swap = (assetType === 'PERPETUAL_SWAP');
         const future = (assetType === 'DATED_FUTURE');
+        const contract = swap || future;
+        const id = this.safeString (market, 'instrumentId');
+        const baseId = this.safeString (market, 'currency');
+        const quoteId = this.safeString (market, 'contAmtCurr');
+        const settleId = contract ? this.safeString (market, 'settlCurrency') : undefined;
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const settle = this.safeCurrencyCode (settleId);
         let symbol = base + '/' + quote;
         const uppercaseId = this.safeString (market, 'symbol');
         let type = 'spot';
         let linear = undefined;
         let inverse = undefined;
-        const contract = swap || future;
-        const expiry = this.safeInteger (market, '1648195200000');
+        const expiry = this.safeNumber (market, 'contractExpireTime');
         if (contract) {
             symbol = symbol + ':' + settle;
             linear = (quote === settle);
