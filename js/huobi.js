@@ -1245,18 +1245,13 @@ module.exports = class huobi extends Exchange {
                 pricePrecision = this.safeNumber (market, 'price_tick');
                 amountPrecision = 1;
             }
-            const precision = {
-                'amount': amountPrecision,
-                'price': pricePrecision,
-                'cost': costPrecision,
-            };
             let maker = undefined;
             let taker = undefined;
             if (spot) {
                 maker = (base === 'OMG') ? 0 : 0.2 / 100;
                 taker = (base === 'OMG') ? 0 : 0.2 / 100;
             }
-            const minAmount = this.safeNumber (market, 'min-order-amt', Math.pow (10, -precision['amount']));
+            const minAmount = this.safeNumber (market, 'min-order-amt');
             const maxAmount = this.safeNumber (market, 'max-order-amt');
             const minCost = this.safeNumber (market, 'min-order-value', 0);
             let active = undefined;
@@ -1267,6 +1262,9 @@ module.exports = class huobi extends Exchange {
                 const contractStatus = this.safeInteger (market, 'contract_status');
                 active = (contractStatus === 1);
             }
+            const leverageRatio = this.safeString (market, 'leverage-ratio', '1');
+            const superLeverageRatio = this.safeString (market, 'super-margin-leverage-ratio', '1');
+            const hasLeverage = Precise.stringGt (leverageRatio, '1') || Precise.stringGt (superLeverageRatio, '1');
             // 0 Delisting
             // 1 Listing
             // 2 Pending Listing
@@ -1287,35 +1285,44 @@ module.exports = class huobi extends Exchange {
                 'quoteId': quoteId,
                 'settleId': settleId,
                 'type': type,
-                'contract': contract,
                 'spot': spot,
-                'future': future,
+                'margin': (spot && hasLeverage),
                 'swap': swap,
+                'future': future,
+                'option': false,
+                'active': active,
+                'contract': contract,
                 'linear': linear,
                 'inverse': inverse,
-                'expiry': expiry,
-                'expiryDatetime': this.iso8601 (expiry),
-                'contractSize': contractSize,
-                'active': active,
-                'precision': precision,
                 'taker': taker,
                 'maker': maker,
+                'contractSize': contractSize,
+                'expiry': expiry,
+                'expiryDatetime': this.iso8601 (expiry),
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': amountPrecision,
+                    'price': pricePrecision,
+                    'cost': costPrecision,
+                },
                 'limits': {
+                    'leverage': {
+                        'min': this.parseNumber ('1'),
+                        'max': this.parseNumber (leverageRatio),
+                        'superMax': this.parseNumber (superLeverageRatio),
+                    },
                     'amount': {
                         'min': minAmount,
                         'max': maxAmount,
                     },
                     'price': {
-                        'min': pricePrecision,
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
                         'min': minCost,
                         'max': undefined,
-                    },
-                    'leverage': {
-                        'max': this.safeNumber (market, 'leverage-ratio', 1),
-                        'superMax': this.safeNumber (market, 'super-margin-leverage-ratio', 1),
                     },
                 },
                 'info': market,

@@ -23,10 +23,10 @@ class mercado extends Exchange {
             'has' => array(
                 'CORS' => true,
                 'spot' => true,
-                'margin' => null,
-                'swap' => null,
-                'future' => null,
-                'option' => null,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
                 'createMarketOrder' => true,
@@ -238,25 +238,31 @@ class mercado extends Exchange {
         return $this->parse_order_book($response, $symbol);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'coin' => $market['base'],
-        );
-        $response = yield $this->publicGetCoinTicker (array_merge($request, $params));
-        $ticker = $this->safe_value($response, 'ticker', array());
+    public function parse_ticker($ticker, $market = null) {
+        //
+        // {
+        //     "high":"103.96000000",
+        //     "low":"95.00000000",
+        //     "vol":"2227.67806598",
+        //     "last":"97.91591000",
+        //     "buy":"95.52760000",
+        //     "sell":"97.91475000",
+        //     "open":"99.79955000",
+        //     "date":1643382606
+        // }
+        //
+        $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->safe_timestamp($ticker, 'date');
-        $last = $this->safe_number($ticker, 'last');
-        return array(
+        $last = $this->safe_string($ticker, 'last');
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'buy'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'sell'),
+            'ask' => $this->safe_string($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -266,10 +272,33 @@ class mercado extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'vol'),
+            'baseVolume' => $this->safe_string($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
+        ), $market, false);
+    }
+
+    public function fetch_ticker($symbol, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'coin' => $market['base'],
         );
+        $response = yield $this->publicGetCoinTicker (array_merge($request, $params));
+        $ticker = $this->safe_value($response, 'ticker', array());
+        //
+        // {
+        //     "high":"103.96000000",
+        //     "low":"95.00000000",
+        //     "vol":"2227.67806598",
+        //     "last":"97.91591000",
+        //     "buy":"95.52760000",
+        //     "sell":"97.91475000",
+        //     "open":"99.79955000",
+        //     "date":1643382606
+        // }
+        //
+        return $this->parse_ticker($ticker, $market);
     }
 
     public function parse_trade($trade, $market = null) {

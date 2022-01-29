@@ -162,6 +162,7 @@ class currencycom(Exchange):
                 'ACN': 'Accenture',
                 'BNS': 'Bank of Nova Scotia',
                 'CAR': 'Avis Budget Group Inc',
+                'CLR': 'Continental Resources',
                 'EDU': 'New Oriental Education & Technology Group Inc',
                 'ETN': 'Eaton',
                 'FOX': 'Fox Corporation',

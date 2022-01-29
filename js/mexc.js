@@ -30,6 +30,7 @@ module.exports = class mexc extends Exchange {
                 'cancelOrder': true,
                 'createMarketOrder': false,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
@@ -39,7 +40,10 @@ module.exports = class mexc extends Exchange {
                 'fetchDeposits': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
+                'fetchFundingRates': false,
                 'fetchIndexOHLCV': true,
+                'fetchIsolatedPositions': undefined,
+                'fetchLeverage': undefined,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
@@ -50,6 +54,7 @@ module.exports = class mexc extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositions': true,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
@@ -59,6 +64,7 @@ module.exports = class mexc extends Exchange {
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'setLeverage': true,
+                'setMarginMode': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -609,23 +615,19 @@ module.exports = class mexc extends Exchange {
             const [ baseId, quoteId ] = id.split ('_');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const priceScale = this.safeInteger (market, 'price_scale');
-            const quantityScale = this.safeInteger (market, 'quantity_scale');
-            const pricePrecision = 1 / Math.pow (10, priceScale);
-            const quantityPrecision = 1 / Math.pow (10, quantityScale);
+            const priceScale = this.safeString (market, 'price_scale');
+            const quantityScale = this.safeString (market, 'quantity_scale');
             const state = this.safeString (market, 'state');
-            const type = 'spot';
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
                 'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': undefined,
-                'type': type,
+                'type': 'spot',
                 'spot': true,
                 'margin': false,
                 'swap': false,
@@ -643,8 +645,8 @@ module.exports = class mexc extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': pricePrecision,
-                    'amount': quantityPrecision,
+                    'price': this.parsePrecision (priceScale),
+                    'amount': this.parsePrecision (quantityScale),
                 },
                 'limits': {
                     'leverage': {

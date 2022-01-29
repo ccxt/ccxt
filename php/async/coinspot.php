@@ -164,23 +164,28 @@ class coinspot extends Exchange {
         return $this->parse_order_book($orderbook, $symbol, null, 'buyorders', 'sellorders', 'rate', 'amount');
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
-        yield $this->load_markets();
-        $response = yield $this->publicGetLatest ($params);
-        $id = $this->market_id($symbol);
-        $id = strtolower($id);
-        $ticker = $response['prices'][$id];
+    public function parse_ticker($ticker, $market = null) {
+        //
+        //     {
+        //         "btc":{
+        //             "bid":"51970",
+        //             "ask":"53000",
+        //             "last":"52806.47"
+        //         }
+        //     }
+        //
+        $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->milliseconds();
-        $last = $this->safe_number($ticker, 'last');
-        return array(
+        $last = $this->safe_string($ticker, 'last');
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -193,7 +198,30 @@ class coinspot extends Exchange {
             'baseVolume' => null,
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market, false);
+    }
+
+    public function fetch_ticker($symbol, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $response = yield $this->publicGetLatest ($params);
+        $id = $market['id'];
+        $id = strtolower($id);
+        $prices = $this->safe_value($response, 'prices');
+        //
+        //     {
+        //         "status":"ok",
+        //         "prices":{
+        //             "btc":{
+        //                 "bid":"52732.47000022",
+        //                 "ask":"53268.0699976",
+        //                 "last":"53284.03"
+        //             }
+        //         }
+        //     }
+        //
+        $ticker = $this->safe_value($prices, $id);
+        return $this->parse_ticker($ticker, $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {

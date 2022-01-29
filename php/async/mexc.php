@@ -36,6 +36,7 @@ class mexc extends Exchange {
                 'cancelOrder' => true,
                 'createMarketOrder' => false,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
@@ -45,7 +46,10 @@ class mexc extends Exchange {
                 'fetchDeposits' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
+                'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => true,
+                'fetchIsolatedPositions' => null,
+                'fetchLeverage' => null,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
@@ -56,6 +60,7 @@ class mexc extends Exchange {
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
                 'fetchPositions' => true,
+                'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
@@ -65,6 +70,7 @@ class mexc extends Exchange {
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
                 'setLeverage' => true,
+                'setMarginMode' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -615,23 +621,19 @@ class mexc extends Exchange {
             list($baseId, $quoteId) = explode('_', $id);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $priceScale = $this->safe_integer($market, 'price_scale');
-            $quantityScale = $this->safe_integer($market, 'quantity_scale');
-            $pricePrecision = 1 / pow(10, $priceScale);
-            $quantityPrecision = 1 / pow(10, $quantityScale);
+            $priceScale = $this->safe_string($market, 'price_scale');
+            $quantityScale = $this->safe_string($market, 'quantity_scale');
             $state = $this->safe_string($market, 'state');
-            $type = 'spot';
             $result[] = array(
                 'id' => $id,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
                 'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'settleId' => null,
-                'type' => $type,
+                'type' => 'spot',
                 'spot' => true,
                 'margin' => false,
                 'swap' => false,
@@ -649,8 +651,8 @@ class mexc extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $pricePrecision,
-                    'amount' => $quantityPrecision,
+                    'price' => $this->parse_precision($priceScale),
+                    'amount' => $this->parse_precision($quantityScale),
                 ),
                 'limits' => array(
                     'leverage' => array(

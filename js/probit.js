@@ -178,6 +178,7 @@ module.exports = class probit extends Exchange {
             },
             'commonCurrencies': {
                 'AUTO': 'Cube',
+                'AZU': 'Azultec',
                 'BCC': 'BCC',
                 'BDP': 'BidiPass',
                 'BIRD': 'Birdchain',
@@ -185,6 +186,8 @@ module.exports = class probit extends Exchange {
                 'BTCBULL': 'BULL',
                 'CBC': 'CryptoBharatCoin',
                 'CHE': 'Chellit',
+                'CLR': 'Color Platform',
+                'CTK': 'Cryptyk',
                 'DIP': 'Dipper',
                 'EGC': 'EcoG9coin',
                 'EPS': 'Epanus',  // conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
@@ -195,8 +198,10 @@ module.exports = class probit extends Exchange {
                 'GOL': 'Goldofir',
                 'GRB': 'Global Reward Bank',
                 'HBC': 'Hybrid Bank Cash',
+                'HUSL': 'The Hustle App',
                 'LBK': 'Legal Block',
                 'ORC': 'Oracle System',
+                'PYE': 'CreamPYE',
                 'ROOK': 'Reckoon',
                 'SOC': 'Soda Coin',
                 'SST': 'SocialSwap',

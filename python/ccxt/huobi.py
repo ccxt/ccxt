@@ -12,7 +12,6 @@ try:
 except NameError:
     basestring = str  # Python 2
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -1242,17 +1241,12 @@ class huobi(Exchange):
             else:
                 pricePrecision = self.safe_number(market, 'price_tick')
                 amountPrecision = 1
-            precision = {
-                'amount': amountPrecision,
-                'price': pricePrecision,
-                'cost': costPrecision,
-            }
             maker = None
             taker = None
             if spot:
                 maker = 0 if (base == 'OMG') else 0.2 / 100
                 taker = 0 if (base == 'OMG') else 0.2 / 100
-            minAmount = self.safe_number(market, 'min-order-amt', math.pow(10, -precision['amount']))
+            minAmount = self.safe_number(market, 'min-order-amt')
             maxAmount = self.safe_number(market, 'max-order-amt')
             minCost = self.safe_number(market, 'min-order-value', 0)
             active = None
@@ -1262,6 +1256,9 @@ class huobi(Exchange):
             elif contract:
                 contractStatus = self.safe_integer(market, 'contract_status')
                 active = (contractStatus == 1)
+            leverageRatio = self.safe_string(market, 'leverage-ratio', '1')
+            superLeverageRatio = self.safe_string(market, 'super-margin-leverage-ratio', '1')
+            hasLeverage = Precise.string_gt(leverageRatio, '1') or Precise.string_gt(superLeverageRatio, '1')
             # 0 Delisting
             # 1 Listing
             # 2 Pending Listing
@@ -1282,35 +1279,44 @@ class huobi(Exchange):
                 'quoteId': quoteId,
                 'settleId': settleId,
                 'type': type,
-                'contract': contract,
                 'spot': spot,
-                'future': future,
+                'margin': (spot and hasLeverage),
                 'swap': swap,
+                'future': future,
+                'option': False,
+                'active': active,
+                'contract': contract,
                 'linear': linear,
                 'inverse': inverse,
-                'expiry': expiry,
-                'expiryDatetime': self.iso8601(expiry),
-                'contractSize': contractSize,
-                'active': active,
-                'precision': precision,
                 'taker': taker,
                 'maker': maker,
+                'contractSize': contractSize,
+                'expiry': expiry,
+                'expiryDatetime': self.iso8601(expiry),
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': amountPrecision,
+                    'price': pricePrecision,
+                    'cost': costPrecision,
+                },
                 'limits': {
+                    'leverage': {
+                        'min': self.parse_number('1'),
+                        'max': self.parse_number(leverageRatio),
+                        'superMax': self.parse_number(superLeverageRatio),
+                    },
                     'amount': {
                         'min': minAmount,
                         'max': maxAmount,
                     },
                     'price': {
-                        'min': pricePrecision,
+                        'min': None,
                         'max': None,
                     },
                     'cost': {
                         'min': minCost,
                         'max': None,
-                    },
-                    'leverage': {
-                        'max': self.safe_number(market, 'leverage-ratio', 1),
-                        'superMax': self.safe_number(market, 'super-margin-leverage-ratio', 1),
                     },
                 },
                 'info': market,

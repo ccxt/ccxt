@@ -308,6 +308,48 @@ class indodax extends Exchange {
         return $this->parse_order_book($orderbook, $symbol, null, 'buy', 'sell');
     }
 
+    public function parse_ticker($ticker, $market = null) {
+        //
+        //     {
+        //         "high":"0.01951",
+        //         "low":"0.01877",
+        //         "vol_eth":"39.38839319",
+        //         "vol_btc":"0.75320886",
+        //         "last":"0.01896",
+        //         "buy":"0.01896",
+        //         "sell":"0.019",
+        //         "server_time":1565248908
+        //     }
+        //
+        $symbol = $this->safe_symbol(null, $market);
+        $timestamp = $this->safe_timestamp($ticker, 'server_time');
+        $baseVolume = 'vol_' . strtolower($market['baseId']);
+        $quoteVolume = 'vol_' . strtolower($market['quoteId']);
+        $last = $this->safe_string($ticker, 'last');
+        return $this->safe_ticker(array(
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'buy'),
+            'bidVolume' => null,
+            'ask' => $this->safe_string($ticker, 'sell'),
+            'askVolume' => null,
+            'vwap' => null,
+            'open' => null,
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => $this->safe_string($ticker, $baseVolume),
+            'quoteVolume' => $this->safe_string($ticker, $quoteVolume),
+            'info' => $ticker,
+        ), $market, false);
+    }
+
     public function fetch_ticker($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
@@ -329,33 +371,8 @@ class indodax extends Exchange {
         //         }
         //     }
         //
-        $ticker = $response['ticker'];
-        $timestamp = $this->safe_timestamp($ticker, 'server_time');
-        $baseVolume = 'vol_' . strtolower($market['baseId']);
-        $quoteVolume = 'vol_' . strtolower($market['quoteId']);
-        $last = $this->safe_number($ticker, 'last');
-        return array(
-            'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'buy'),
-            'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'sell'),
-            'askVolume' => null,
-            'vwap' => null,
-            'open' => null,
-            'close' => $last,
-            'last' => $last,
-            'previousClose' => null,
-            'change' => null,
-            'percentage' => null,
-            'average' => null,
-            'baseVolume' => $this->safe_number($ticker, $baseVolume),
-            'quoteVolume' => $this->safe_number($ticker, $quoteVolume),
-            'info' => $ticker,
-        );
+        $ticker = $this->safe_value($response, 'ticker', array());
+        return $this->parse_ticker($ticker, $market);
     }
 
     public function parse_trade($trade, $market = null) {

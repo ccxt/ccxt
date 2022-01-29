@@ -22,14 +22,19 @@ class eqonex(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,
-                'swap': None,
-                'future': None,
-                'option': None,
+                'margin': False,
+                'swap': None,  # has but not fully implemented
+                'future': None,  # has but not fully implemented
+                'option': False,
                 'cancelOrder': True,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
@@ -129,37 +134,51 @@ class eqonex(Exchange):
         }
         response = await self.publicGetGetInstrumentPairs(self.extend(request, params))
         #
-        #     {
-        #         "instrumentPairs":[
-        #             {
-        #                 "instrumentId":52,
-        #                 "symbol":"BTC/USDC",
-        #                 "quoteId":1,
-        #                 "baseId":3,
-        #                 "price_scale":2,
-        #                 "quantity_scale":6,
-        #                 "securityStatus":1,
-        #                 "securityDesc":"BTC/USDC",  # "BTC/USDC[F]"
-        #                 "assetType":"PAIR",  # "PERPETUAL_SWAP"
-        #                 "currency":"BTC",
-        #                 "contAmtCurr":"USDC",
-        #                 "settlCurrency":"USDC",
-        #                 "commCurrency":"USDC",
-        #                 "cfiCode":"XXXXXX",
-        #                 "securityExchange":"XXXX",
-        #                 "instrumentPricePrecision":2,
-        #                 "minPriceIncrement":1.0,
-        #                 "minPriceIncrementAmount":1.0,
-        #                 "roundLot":1,
-        #                 "minTradeVol":0.001000,
-        #                 "maxTradeVol":0.000000
-        #                 # contracts onlye
-        #                 "qtyType":0,
-        #                 "contractMultiplier":1.0,
-        #                 "issueDate":1598608087000
-        #             },
-        #         ]
-        #     }
+        #    {
+        #        "instrumentPairs": [
+        #            {
+        #                "instrumentId":303,
+        #                "symbol":"BTC/USDC[220325]",
+        #                "quoteId":1,
+        #                "baseId":3,
+        #                "price_scale":2,
+        #                "quantity_scale":6,
+        #                "securityStatus":1,
+        #                "securityDesc":"BTC Dated Future",
+        #                "assetType":"DATED_FUTURE",
+        #                "currency":"BTC",
+        #                "contAmtCurr":"USDC",
+        #                "settlCurrency":"USDC",
+        #                "commCurrency":"USDC",
+        #                "cfiCode":"FFCPSX",
+        #                "securityExchange":"EQOS",
+        #                "micCode":"EQOD",
+        #                "instrumentPricePrecision":2,
+        #                "minPriceIncrement":1.0,
+        #                "minPriceIncrementAmount":1.0,
+        #                "roundLot":100,
+        #                "minTradeVol":0.000100,
+        #                "maxTradeVol":0.000000,
+        #                "qtyType":0,
+        #                "contractMultiplier":1.0,
+        #                "auctionStartTime":0,
+        #                "auctionDuration":0,
+        #                "auctionFrequency":0,
+        #                "auctionPrice":0,
+        #                "auctionVolume":0,
+        #                "marketStatus":"OPEN",
+        #                "underlyingSymbol":"BTC/USDC",
+        #                "underlyingSecurityId":52,
+        #                "underlyingSecuritySource":"M",
+        #                "underlyingSecurityExchange":"EQOC",
+        #                "issueDate":1643256000000,
+        #                "maturityDate":"2022-03-25",
+        #                "maturityTime":"2022-03-25T08:00:00Z",
+        #                "contractExpireTime":1648195200000
+        #            }
+        #            ...
+        #        ]
+        #    }
         #
         instrumentPairs = self.safe_value(response, 'instrumentPairs', [])
         markets = []
@@ -170,60 +189,82 @@ class eqonex(Exchange):
 
     def parse_market(self, market):
         #
-        #     {
-        #         "instrumentId":52,
-        #         "symbol":"BTC/USDC",  # "BTC/USDC[F]"
-        #         "quoteId":1,
-        #         "baseId":3,
-        #         "price_scale":2,
-        #         "quantity_scale":6,
-        #         "securityStatus":1,
-        #         "securityDesc":"BTC/USDC",  # "BTC/USDC[F]"
-        #         "assetType":"PAIR",  # "PERPETUAL_SWAP"
-        #         "currency":"BTC",
-        #         "contAmtCurr":"USDC",
-        #         "settlCurrency":"USDC",
-        #         "commCurrency":"USDC",
-        #         "cfiCode":"XXXXXX",
-        #         "securityExchange":"XXXX",
-        #         "instrumentPricePrecision":2,
-        #         "minPriceIncrement":1.0,
-        #         "minPriceIncrementAmount":1.0,
-        #         "roundLot":1,
-        #         "minTradeVol":0.001000,
-        #         "maxTradeVol":0.000000
-        #         # contracts onlye
-        #         "qtyType":0,
-        #         "contractMultiplier":1.0,
-        #         "issueDate":1598608087000
-        #     }
+        #    {
+        #        "instrumentPairs": [
+        #            {
+        #                "instrumentId":303,
+        #                "symbol":"BTC/USDC[220325]",
+        #                "quoteId":1,
+        #                "baseId":3,
+        #                "price_scale":2,
+        #                "quantity_scale":6,
+        #                "securityStatus":1,
+        #                "securityDesc":"BTC Dated Future",
+        #                "assetType":"DATED_FUTURE",
+        #                "currency":"BTC",
+        #                "contAmtCurr":"USDC",
+        #                "settlCurrency":"USDC",
+        #                "commCurrency":"USDC",
+        #                "cfiCode":"FFCPSX",
+        #                "securityExchange":"EQOS",
+        #                "micCode":"EQOD",
+        #                "instrumentPricePrecision":2,
+        #                "minPriceIncrement":1.0,
+        #                "minPriceIncrementAmount":1.0,
+        #                "roundLot":100,
+        #                "minTradeVol":0.000100,
+        #                "maxTradeVol":0.000000,
+        #                "qtyType":0,
+        #                "contractMultiplier":1.0,
+        #                "auctionStartTime":0,
+        #                "auctionDuration":0,
+        #                "auctionFrequency":0,
+        #                "auctionPrice":0,
+        #                "auctionVolume":0,
+        #                "marketStatus":"OPEN",
+        #                "underlyingSymbol":"BTC/USDC",
+        #                "underlyingSecurityId":52,
+        #                "underlyingSecuritySource":"M",
+        #                "underlyingSecurityExchange":"EQOC",
+        #                "issueDate":1643256000000,
+        #                "maturityDate":"2022-03-25",
+        #                "maturityTime":"2022-03-25T08:00:00Z",
+        #                "contractExpireTime":1648195200000
+        #            }
+        #            ...
+        #        ]
+        #    }
         #
-        id = self.safe_string(market, 'instrumentId')
-        baseId = self.safe_string(market, 'currency')
-        quoteId = self.safe_string(market, 'contAmtCurr')
-        settleId = self.safe_string(market, 'settlCurrency')
-        base = self.safe_currency_code(baseId)
-        quote = self.safe_currency_code(quoteId)
-        settle = self.safe_currency_code(settleId)
         assetType = self.safe_string(market, 'assetType')
         spot = (assetType == 'PAIR')
         swap = (assetType == 'PERPETUAL_SWAP')
+        future = (assetType == 'DATED_FUTURE')
+        contract = swap or future
+        id = self.safe_string(market, 'instrumentId')
+        baseId = self.safe_string(market, 'currency')
+        quoteId = self.safe_string(market, 'contAmtCurr')
+        settleId = self.safe_string(market, 'settlCurrency') if contract else None
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote
         uppercaseId = self.safe_string(market, 'symbol')
         type = 'spot'
         linear = None
         inverse = None
-        contract = False
-        if swap:
+        expiry = self.safe_number(market, 'contractExpireTime')
+        if contract:
             symbol = symbol + ':' + settle
-            type = 'swap'
-            linear = quote == settle
+            linear = (quote == settle)
             inverse = not linear
-            contract = True
-        elif not spot:
-            symbol = uppercaseId
-            type = assetType
-            contract = True
+            if swap:
+                type = 'swap'
+            elif future:
+                symbol = symbol + '-' + self.yymmdd(expiry)
+                type = 'future'
+            else:
+                symbol = uppercaseId
+                type = assetType
         status = self.safe_integer(market, 'securityStatus')
         return {
             'id': id,
@@ -239,20 +280,20 @@ class eqonex(Exchange):
             'spot': spot,
             'margin': False,
             'swap': swap,
-            'future': False,
+            'future': future,
             'option': False,
             'contract': contract,
             'linear': linear,
             'inverse': inverse,
             'contractSize': self.safe_number(market, 'contractMultiplier'),
             'active': (status == 1),
-            'expiry': None,
-            'expiryDatetime': None,
+            'expiry': expiry,
+            'expiryDatetime': self.iso8601(expiry),
             'strike': None,
             'optionType': None,
             'precision': {
-                'amount': self.safe_integer(market, 'quantity_scale'),
                 'price': self.safe_integer(market, 'price_scale'),
+                'amount': self.safe_integer(market, 'quantity_scale'),
             },
             'limits': {
                 'leverage': {

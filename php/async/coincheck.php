@@ -231,6 +231,45 @@ class coincheck extends Exchange {
         return $this->parse_order_book($response, $symbol);
     }
 
+    public function parse_ticker($ticker, $market = null) {
+        //
+        // {
+        //     "last":4192632.0,
+        //     "bid":4192496.0,
+        //     "ask":4193749.0,
+        //     "high":4332000.0,
+        //     "low":4101047.0,
+        //     "volume":2313.43191762,
+        //     "timestamp":1643374115
+        // }
+        //
+        $symbol = $this->safe_symbol(null, $market);
+        $timestamp = $this->safe_timestamp($ticker, 'timestamp');
+        $last = $this->safe_string($ticker, 'last');
+        return $this->safe_ticker(array(
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'bid'),
+            'bidVolume' => null,
+            'ask' => $this->safe_string($ticker, 'ask'),
+            'askVolume' => null,
+            'vwap' => null,
+            'open' => null,
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => $this->safe_string($ticker, 'volume'),
+            'quoteVolume' => null,
+            'info' => $ticker,
+        ), $market, false);
+    }
+
     public function fetch_ticker($symbol, $params = array ()) {
         if ($symbol !== 'BTC/JPY') {
             throw new BadSymbol($this->id . ' fetchTicker () supports BTC/JPY only');
@@ -241,30 +280,18 @@ class coincheck extends Exchange {
             'pair' => $market['id'],
         );
         $ticker = yield $this->publicGetTicker (array_merge($request, $params));
-        $timestamp = $this->safe_timestamp($ticker, 'timestamp');
-        $last = $this->safe_number($ticker, 'last');
-        return array(
-            'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'bid'),
-            'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask'),
-            'askVolume' => null,
-            'vwap' => null,
-            'open' => null,
-            'close' => $last,
-            'last' => $last,
-            'previousClose' => null,
-            'change' => null,
-            'percentage' => null,
-            'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'volume'),
-            'quoteVolume' => null,
-            'info' => $ticker,
-        );
+        //
+        // {
+        //     "last":4192632.0,
+        //     "bid":4192496.0,
+        //     "ask":4193749.0,
+        //     "high":4332000.0,
+        //     "low":4101047.0,
+        //     "volume":2313.43191762,
+        //     "timestamp":1643374115
+        // }
+        //
+        return $this->parse_ticker($ticker, $market);
     }
 
     public function parse_trade($trade, $market = null) {

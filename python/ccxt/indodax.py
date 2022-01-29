@@ -305,6 +305,47 @@ class indodax(Exchange):
         orderbook = self.publicGetPairDepth(self.extend(request, params))
         return self.parse_order_book(orderbook, symbol, None, 'buy', 'sell')
 
+    def parse_ticker(self, ticker, market=None):
+        #
+        #     {
+        #         "high":"0.01951",
+        #         "low":"0.01877",
+        #         "vol_eth":"39.38839319",
+        #         "vol_btc":"0.75320886",
+        #         "last":"0.01896",
+        #         "buy":"0.01896",
+        #         "sell":"0.019",
+        #         "server_time":1565248908
+        #     }
+        #
+        symbol = self.safe_symbol(None, market)
+        timestamp = self.safe_timestamp(ticker, 'server_time')
+        baseVolume = 'vol_' + market['baseId'].lower()
+        quoteVolume = 'vol_' + market['quoteId'].lower()
+        last = self.safe_string(ticker, 'last')
+        return self.safe_ticker({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'buy'),
+            'bidVolume': None,
+            'ask': self.safe_string(ticker, 'sell'),
+            'askVolume': None,
+            'vwap': None,
+            'open': None,
+            'close': last,
+            'last': last,
+            'previousClose': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': self.safe_string(ticker, baseVolume),
+            'quoteVolume': self.safe_string(ticker, quoteVolume),
+            'info': ticker,
+        }, market, False)
+
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
@@ -326,33 +367,8 @@ class indodax(Exchange):
         #         }
         #     }
         #
-        ticker = response['ticker']
-        timestamp = self.safe_timestamp(ticker, 'server_time')
-        baseVolume = 'vol_' + market['baseId'].lower()
-        quoteVolume = 'vol_' + market['quoteId'].lower()
-        last = self.safe_number(ticker, 'last')
-        return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'buy'),
-            'bidVolume': None,
-            'ask': self.safe_number(ticker, 'sell'),
-            'askVolume': None,
-            'vwap': None,
-            'open': None,
-            'close': last,
-            'last': last,
-            'previousClose': None,
-            'change': None,
-            'percentage': None,
-            'average': None,
-            'baseVolume': self.safe_number(ticker, baseVolume),
-            'quoteVolume': self.safe_number(ticker, quoteVolume),
-            'info': ticker,
-        }
+        ticker = self.safe_value(response, 'ticker', {})
+        return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_timestamp(trade, 'date')
