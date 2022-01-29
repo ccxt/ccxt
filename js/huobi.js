@@ -4485,23 +4485,17 @@ module.exports = class huobi extends Exchange {
     async fetchFundingRates (symbols, params = {}) {
         await this.loadMarkets ();
         const options = this.safeValue (this.options, 'fetchFundingRates', {});
-        let method = undefined;
         const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
         let subType = this.safeString (options, 'subType', defaultSubType);
         subType = this.safeString (params, 'subType', subType);
         const request = {
             // 'contract_code': market['id'],
         };
-        const linear = (subType === 'linear');
-        const inverse = (subType === 'inverse');
-        if (linear) {
-            method = 'contractPublicGetLinearSwapApiV1SwapBatchFundingRate';
-        } else if (inverse) {
-            method = 'contractPublicGetSwapApiV1SwapBatchFundingRate';
-        } else {
-            throw new NotSupported (this.id + ' fetchFundingRates() supports linear and inverse swaps only');
-        }
-        params = this.omit (params, [ 'subType' ]);
+        const method = this.getSupportedMapping (subType, {
+            'linear': 'contractPublicGetLinearSwapApiV1SwapBatchFundingRate',
+            'inverse': 'contractPublicGetSwapApiV1SwapBatchFundingRate',
+        });
+        params = this.omit (params, 'subType');
         const response = await this[method] (this.extend (request, params));
         //
         //     {
