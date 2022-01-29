@@ -4783,26 +4783,16 @@ class binance(Exchange):
             self.check_required_credentials()
             query = None
             recvWindow = self.safe_integer(self.options, 'recvWindow', 5000)
+            extendedParams = self.extend({
+                'timestamp': self.nonce(),
+                'recvWindow': recvWindow,
+            }, params)
             if (api == 'sapi') and (path == 'asset/dust'):
-                query = self.urlencode_with_array_repeat(self.extend({
-                    'timestamp': self.nonce(),
-                    'recvWindow': recvWindow,
-                }, params))
-            elif (path == 'batchOrders') or (path.find('sub-account') >= 0):
-                query = self.rawencode(self.extend({
-                    'timestamp': self.nonce(),
-                    'recvWindow': recvWindow,
-                }, params))
-            elif giftcard:
-                query = self.urlencode({
-                    'timestamp': self.nonce(),
-                    'recvWindow': recvWindow,
-                })
+                query = self.urlencode_with_array_repeat(extendedParams)
+            elif (path == 'batchOrders') or (path.find('sub-account') >= 0) or (path == 'capital/withdraw/apply'):
+                query = self.rawencode(extendedParams)
             else:
-                query = self.urlencode(self.extend({
-                    'timestamp': self.nonce(),
-                    'recvWindow': recvWindow,
-                }, params))
+                query = self.urlencode(extendedParams)
             signature = self.hmac(self.encode(query), self.encode(self.secret))
             query += '&' + 'signature=' + signature
             headers = {
