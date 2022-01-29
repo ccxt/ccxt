@@ -570,8 +570,8 @@ module.exports = class gateio extends Exchange {
         // :param params['type']: 'spot', 'margin', 'future' or 'delivery'
         // :param params['settle']: The quote currency
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
+        const spot = (type === 'spot');
         const margin = (type === 'margin');
-        const spot = (type === 'spot') || margin;
         const future = (type === 'future');
         const swap = (type === 'swap');
         const option = (type === 'option');
@@ -1316,7 +1316,7 @@ module.exports = class gateio extends Exchange {
         //     };
         //
         const request = this.prepareRequest (market);
-        const spot = market['spot'];
+        const spotOrMargin = market['spot'] || market['margin'];
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'publicSpotGetOrderBook',
             'margin': 'publicSpotGetOrderBook',
@@ -1390,11 +1390,11 @@ module.exports = class gateio extends Exchange {
         //     }
         //
         let timestamp = this.safeInteger (response, 'current');
-        if (!spot) {
+        if (!spotOrMargin) {
             timestamp = timestamp * 1000;
         }
-        const priceKey = spot ? 0 : 'p';
-        const amountKey = spot ? 1 : 's';
+        const priceKey = spotOrMargin ? 0 : 'p';
+        const amountKey = spotOrMargin ? 1 : 's';
         return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', priceKey, amountKey);
     }
 
@@ -2535,7 +2535,7 @@ module.exports = class gateio extends Exchange {
         const request = {
             'order_id': id,
         };
-        if (market['spot']) {
+        if (market['spot'] || market['margin']) {
             request['currency_pair'] = market['id'];
         } else {
             request['settle'] = market['settleId'];
@@ -2625,7 +2625,7 @@ module.exports = class gateio extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if ((since !== undefined) && market['spot']) {
+        if (since !== undefined && (market['spot'] || market['margin'])) {
             request['start'] = parseInt (since / 1000);
         }
         const method = this.getSupportedMapping (market['type'], {
