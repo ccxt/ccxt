@@ -22,7 +22,7 @@ module.exports = class dydx extends Exchange {
                 'privateAPI': true,
                 'cancelOrder': undefined,
                 'createDepositAddress': undefined,
-                'createOrder': undefined,
+                'createOrder': true,
                 'editOrder': undefined,
                 'fetchBalance': undefined,
                 'fetchCanceledOrders': undefined,
@@ -571,57 +571,101 @@ module.exports = class dydx extends Exchange {
         }, market, false);
     }
 
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        // https://docs.dydx.exchange/?json#create-a-new-order
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+            'side': side.toUpperCase (),
+            'type': type.toUpperCase (), // MARKET, LIMIT, STOP_LIMIT, TRAILING_STOP or TAKE_PROFIT.
+            'size': this.amountToPrecision (market['symbol'], amount),
+        };
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (market['symbol'], price);
+        }
+        const response = await this.privatePostOrders (request);
+        return this.parseOrder (response, market);
+    }
+
+    async createApiKey (params = undefined) { // https://docs.dydx.exchange/#register-api-key
+        const response = await this.privatePostApiKeys (params);
+        return response;
+    }
+
+    async generateApiKey (params = undefined) { // https://docs.dydx.exchange/#recover-default-api-credentials && https://github.com/dydxprotocol/v3-client/blob/f5589b4a9c1501a7a318a5500d5195edfe7e28b2/src/modules/onboarding.ts#L162
+        return {};
+    }
+
+    async makeOnboard (params = undefined) { // https://docs.dydx.exchange/#recover-default-api-credentials
+        const response = await this.privatePostOnboarding (params);
+        return response;
+    }
+
     sign (path, api = 'private', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = this.safeString (this.options, 'version', 'v3');
-        let url = this.urls['api']['private'] + '/' + version + '/' + this.implodeParams (path, params);
-        let payload = undefined;
-        headers = {
-            'Content-Type': 'application/json',
-        };
+        let url = this.urls['api'][api] + '/' + version + '/' + this.implodeParams (path, params);
         let query = undefined;
         if (method === 'GET') {
             query = this.urlencode (params);
             url = url + '?' + query;
-        } else {
-            body = params;
         }
-        const timestamp = this.milliseconds ();
         if (api === 'private') {
+            if (body === undefined) {
+                body = {};
+            }
             if (method === 'GET') {
-                payload = query;
-            } else {
-                payload = body;
+                body = query;
             }
-            if (path === 'onboarding') {
-                if (method === 'POST') {
-                    // onboarding endpoint: POST /v3/onboarding
-                    headers['DYDX-ETHEREUM-ADDRESS'] = this.ethereumAddress;
-                    payload['action'] = 'DYDX-ONBOARDING';
-                    payload['onlySignOn'] = 'https://trade.dydx.exchange';
-                    // EIP-712-compliant Ethereum signature
-                }
-            } else if (method === 'DELETE') {
-                if (path === 'api-keys') {
-                    // Ethereum Key Private Endpoints: POST, DELETE /v3/api-keys
-                    headers['DYDX-TIMESTAMP'] = timestamp;
-                    headers['DYDX-ETHEREUM-ADDRESS'] = this.ethereumAddress;
-                    payload['method'] = 'GET|POST';
-                    payload['requestPath'] = '/v3/api-keys';
-                    payload['body'] = ''; // empty for GET and DELETE
-                    payload['timestamp'] = timestamp;
-                    // EIP-712-compliant Ethereum signature
-                }
-            } else {
-                // All other API Key Private Endpoints
-                headers['DYDX-TIMESTAMP'] = timestamp;
-                headers['DYDX-ETHEREUM-ADDRESS'] = this.ethereumAddress;
-                headers['DYDX-PASSPHRASE'] = this.passPhrase;
-                // SHA-256 HMAC produced as described below, and encoded as a Base64 string
+            if (headers === undefined) {
+                headers = {};
             }
-            const signature = this.hmac (this.encode (payload), this.encode (this.secret));
-            headers['DYDX-SIGNATURE'] = signature;
+            const isoTimestamp = this.iso8601 (this.milliseconds ());
+            headers['DYDX-TIMESTAMP'] = isoTimestamp;
+            if (path === 'onboarding') { // it's only POST
+                // ref: https://github.com/dydxprotocol/v3-client/blob/master/src/modules/eth-private.ts#L42
+                headers['DYDX-ETHEREUM-ADDRESS'] = this.walletAddress;
+                body['action'] = 'DYDX-ONBOARDING';
+                body['onlySignOn'] = 'https://trade.dydx.exchange';
+                const bodyEncoded = this.urlencode (body);
+                const obj = method + path + isoTimestamp + bodyEncoded;
+                const auth = this.walletAddress + 'sha256' + isoTimestamp + this.json (obj);
+                const signature = this.hmac (this.encode (auth), this.encode (this.privateKey), 'sha256');
+                headers['DYDX-SIGNATURE'] = signature;
+            }
+            //     if (path === 'api-keys') {
+            //         // Ethereum Key Private Endpoints: POST, DELETE /v3/api-keys
+            //         headers['DYDX-TIMESTAMP'] = timestamp;
+            //         headers['DYDX-ETHEREUM-ADDRESS'] = this.ethereumAddress;
+            //         body['method'] = 'GET|POST';
+            //         body['requestPath'] = '/v3/api-keys';
+            //         body['body'] = ''; // empty for GET and DELETE
+            //         body['timestamp'] = timestamp;
+            //         // EIP-712-compliant Ethereum signature
+            //     }
+            // } else {
+            //     // All other API Key Private Endpoints
+            //     headers['DYDX-TIMESTAMP'] = timestamp;
+            //     headers['DYDX-ETHEREUM-ADDRESS'] = this.ethereumAddress;
+            //     headers['DYDX-PASSPHRASE'] = this.passPhrase;
+            //     // SHA-256 HMAC produced as described below, and encoded as a Base64 string
+            // }
+            //
+            //
+            // another way:
+            // if (this.apiKey) {
+            //     const signature = this.hmac (this.encode (body), this.encode (this.secret), 'sha256');
+            //     const auth = path + method + isoTimestamp + urlencoded;
+            //     headers['DYDX-SIGNATURE'] = auth; //this.stringToBase64 (signature);
+            //     headers['DYDX-API-KEY'] = this.apiKey;
+            //     headers['DYDX-PASSPHRASE'] = this.passPhrase;
+            // } else {
+            //     const signature = this.hmac (this.encode (body), this.encode (this.privateKey), 'sha256');
+            //     headers['DYDX-SIGNATURE'] = this.stringToBase64 (signature);
+            //     headers['DYDX-ETHEREUM-ADDRESS'] = this.walletAddress;
+            // }
         }
-        return { 'url': url, 'method': method, 'body': payload, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
