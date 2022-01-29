@@ -133,22 +133,35 @@ class bl3p(Exchange):
         orderbook = self.safe_value(response, 'data')
         return self.parse_order_book(orderbook, symbol, None, 'bids', 'asks', 'price_int', 'amount_int')
 
-    async def fetch_ticker(self, symbol, params={}):
-        request = {
-            'market': self.market_id(symbol),
-        }
-        ticker = await self.publicGetMarketTicker(self.extend(request, params))
+    def parse_ticker(self, ticker, market=None):
+        #
+        # {
+        #     "currency":"BTC",
+        #     "last":32654.55595,
+        #     "bid":32552.3642,
+        #     "ask":32703.58231,
+        #     "high":33500,
+        #     "low":31943,
+        #     "timestamp":1643372789,
+        #     "volume":{
+        #         "24h":2.27372413,
+        #         "30d":320.79375456
+        #     }
+        # }
+        #
+        symbol = self.safe_symbol(None, market)
         timestamp = self.safe_timestamp(ticker, 'timestamp')
-        last = self.safe_number(ticker, 'last')
-        return {
+        last = self.safe_string(ticker, 'last')
+        volume = self.safe_value(ticker, 'volume', {})
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -158,10 +171,33 @@ class bl3p(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker['volume'], '24h'),
+            'baseVolume': self.safe_string(volume, '24h'),
             'quoteVolume': None,
             'info': ticker,
+        }, market, False)
+
+    async def fetch_ticker(self, symbol, params={}):
+        market = self.market(symbol)
+        request = {
+            'market': market['id'],
         }
+        ticker = await self.publicGetMarketTicker(self.extend(request, params))
+        #
+        # {
+        #     "currency":"BTC",
+        #     "last":32654.55595,
+        #     "bid":32552.3642,
+        #     "ask":32703.58231,
+        #     "high":33500,
+        #     "low":31943,
+        #     "timestamp":1643372789,
+        #     "volume":{
+        #         "24h":2.27372413,
+        #         "30d":320.79375456
+        #     }
+        # }
+        #
+        return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
         id = self.safe_string(trade, 'trade_id')
