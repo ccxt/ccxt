@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.9.89'
+__version__ = '0.9.90'
 
 # -----------------------------------------------------------------------------
 
@@ -134,6 +134,7 @@ from ccxt.async_support.vcc import vcc                                    # noqa
 from ccxt.async_support.wavesexchange import wavesexchange                # noqa: F401
 from ccxt.async_support.wazirx import wazirx                              # noqa: F401
 from ccxt.async_support.whitebit import whitebit                          # noqa: F401
+from ccxt.async_support.woo import woo                                    # noqa: F401
 from ccxt.async_support.xena import xena                                  # noqa: F401
 from ccxt.async_support.yobit import yobit                                # noqa: F401
 from ccxt.async_support.zaif import zaif                                  # noqa: F401
