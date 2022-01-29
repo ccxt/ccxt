@@ -647,14 +647,6 @@ class bitstamp(Exchange):
                 return self.markets_by_id[marketId]
         return None
 
-    def get_market_from_trades(self, trades):
-        tradesBySymbol = self.index_by(trades, 'symbol')
-        symbols = list(tradesBySymbol.keys())
-        numSymbols = len(symbols)
-        if numSymbols == 1:
-            return self.markets[symbols[0]]
-        return None
-
     def parse_trade(self, trade, market=None):
         #
         # fetchTrades(public)
