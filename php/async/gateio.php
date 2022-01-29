@@ -697,8 +697,6 @@ class gateio extends Exchange {
                     $base = $this->safe_currency_code($baseId);
                     $quote = $this->safe_currency_code($quoteId);
                     $settle = $this->safe_currency_code($settleId);
-                    $linear = $quote === $settle;
-                    $inverse = $base === $settle;
                     $expiry = $this->safe_timestamp($market, 'expire_time');
                     $symbol = '';
                     if ($date !== null) {
@@ -714,12 +712,7 @@ class gateio extends Exchange {
                     $maxPrice = Precise::string_mul($maxMultiplier, $markPrice);
                     $takerPercent = $this->safe_string($market, 'taker_fee_rate');
                     $makerPercent = $this->safe_string($market, 'maker_fee_rate', $takerPercent);
-                    $pricePrecision = $this->safe_number($market, 'order_price_round');
-                    // Fee is in %, so divide by 100
-                    $taker = $this->parse_number(Precise::string_div($takerPercent, '100'));
-                    $maker = $this->parse_number(Precise::string_div($makerPercent, '100'));
                     $result[] = array(
-                        'info' => $market,
                         'id' => $id,
                         'symbol' => $symbol,
                         'base' => $base,
@@ -736,18 +729,18 @@ class gateio extends Exchange {
                         'option' => $option,
                         'active' => true,
                         'contract' => true,
-                        'linear' => $linear,
-                        'inverse' => $inverse,
-                        'taker' => $taker,
-                        'maker' => $maker,
+                        'linear' => ($quote === $settle),
+                        'inverse' => ($base === $settle),
+                        'taker' => $this->parse_number(Precise::string_div($takerPercent, '100')), // Fee is in %, so divide by 100
+                        'maker' => $this->parse_number(Precise::string_div($makerPercent, '100')),
                         'contractSize' => $this->safe_number($market, 'quanto_multiplier'),
                         'expiry' => $expiry,
                         'expiryDatetime' => $this->iso8601($expiry),
                         'strike' => null,
                         'optionType' => null,
                         'precision' => array(
+                            'price' => $this->safe_number($market, 'order_price_round'),
                             'amount' => $this->parse_number('1'),
-                            'price' => $pricePrecision,
                         ),
                         'limits' => array(
                             'leverage' => array(
@@ -759,14 +752,15 @@ class gateio extends Exchange {
                                 'max' => $this->safe_number($market, 'order_size_max'),
                             ),
                             'price' => array(
-                                'min' => $minPrice,
-                                'max' => $maxPrice,
+                                'min' => $this->parse_number($minPrice),
+                                'max' => $this->parse_number($maxPrice),
                             ),
                             'cost' => array(
                                 'min' => null,
                                 'max' => null,
                             ),
                         ),
+                        'info' => $market,
                     );
                 }
             }
@@ -805,21 +799,17 @@ class gateio extends Exchange {
             for ($i = 0; $i < count($response); $i++) {
                 $market = $response[$i];
                 $id = $this->safe_string($market, 'id');
-                $spot = ($type === 'spot');
                 list($baseId, $quoteId) = explode('_', $id);
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
                 $takerPercent = $this->safe_string($market, 'fee');
                 $makerPercent = $this->safe_string($market, 'maker_fee_rate', $takerPercent);
                 $amountPrecisionString = $this->safe_string($market, 'amount_precision');
                 $pricePrecisionString = $this->safe_string($market, 'precision');
-                $amountPrecision = $this->parse_number($this->parse_precision($amountPrecisionString));
-                $pricePrecision = $this->parse_number($this->parse_precision($pricePrecisionString));
                 $tradeStatus = $this->safe_string($market, 'trade_status');
                 $result[] = array(
                     'id' => $id,
-                    'symbol' => $symbol,
+                    'symbol' => $base . '/' . $quote,
                     'base' => $base,
                     'quote' => $quote,
                     'settle' => null,
@@ -832,7 +822,7 @@ class gateio extends Exchange {
                     'swap' => false,
                     'future' => false,
                     'option' => false,
-                    'active' => $tradeStatus === 'tradable',
+                    'active' => ($tradeStatus === 'tradable'),
                     'contract' => false,
                     'linear' => null,
                     'inverse' => null,
@@ -845,8 +835,8 @@ class gateio extends Exchange {
                     'strike' => null,
                     'optionType' => null,
                     'precision' => array(
-                        'amount' => $amountPrecision,
-                        'price' => $pricePrecision,
+                        'price' => $this->parse_precision($amountPrecisionString),
+                        'amount' => $this->parse_precision($pricePrecisionString),
                     ),
                     'limits' => array(
                         'leverage' => array(
@@ -854,11 +844,11 @@ class gateio extends Exchange {
                             'max' => $this->safe_number($market, 'lever', 1),
                         ),
                         'amount' => array(
-                            'min' => $amountPrecision,
+                            'min' => null,
                             'max' => null,
                         ),
                         'price' => array(
-                            'min' => $pricePrecision,
+                            'min' => null,
                             'max' => null,
                         ),
                         'cost' => array(
