@@ -43,7 +43,7 @@ class huobi extends Exchange {
                 'cancelOrders' => true,
                 'createDepositAddress' => null,
                 'createOrder' => true,
-                'createReduceOnlyOrder' => null,
+                'createReduceOnlyOrder' => false,
                 'deposit' => null,
                 'fetchAccounts' => true,
                 'fetchAllTradingFees' => null,
@@ -68,13 +68,13 @@ class huobi extends Exchange {
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
-                'fetchFundingRates' => null,
+                'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => true,
-                'fetchIsolatedPositions' => null,
+                'fetchIsolatedPositions' => false,
                 'fetchL3OrderBook' => null,
                 'fetchLedger' => null,
                 'fetchLedgerEntry' => null,
-                'fetchLeverage' => null,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMyBuys' => null,
@@ -90,7 +90,7 @@ class huobi extends Exchange {
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
                 'fetchPositions' => true,
-                'fetchPositionsRisk' => null,
+                'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => true,
                 'fetchStatus' => null,
                 'fetchTicker' => true,
@@ -109,8 +109,8 @@ class huobi extends Exchange {
                 'loadLeverageBrackets' => null,
                 'reduceMargin' => null,
                 'setLeverage' => true,
-                'setMarginMode' => null,
-                'setPositionMode' => null,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'signIn' => null,
                 'transfer' => true,
                 'withdraw' => true,
@@ -4494,6 +4494,44 @@ class huobi extends Exchange {
         //
         $result = $this->safe_value($response, 'data', array());
         return $this->parse_funding_rate($result, $market);
+    }
+
+    public function fetch_funding_rates($symbols, $params = array ()) {
+        $this->load_markets();
+        $options = $this->safe_value($this->options, 'fetchFundingRates', array());
+        $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
+        $subType = $this->safe_string($options, 'subType', $defaultSubType);
+        $subType = $this->safe_string($params, 'subType', $subType);
+        $request = array(
+            // 'contract_code' => market['id'],
+        );
+        $method = $this->get_supported_mapping($subType, array(
+            'linear' => 'contractPublicGetLinearSwapApiV1SwapBatchFundingRate',
+            'inverse' => 'contractPublicGetSwapApiV1SwapBatchFundingRate',
+        ));
+        $params = $this->omit($params, 'subType');
+        $response = $this->$method (array_merge($request, $params));
+        //
+        //     {
+        //         "status" => "ok",
+        //         "data" => array(
+        //             array(
+        //                 "estimated_rate" => "0.000100000000000000",
+        //                 "funding_rate" => "0.000100000000000000",
+        //                 "contract_code" => "MANA-USDT",
+        //                 "symbol" => "MANA",
+        //                 "fee_asset" => "USDT",
+        //                 "funding_time" => "1643356800000",
+        //                 "next_funding_time" => "1643385600000",
+        //                 "trade_partition":"USDT"
+        //             ),
+        //         ),
+        //         "ts" => 1643346173103
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $result = $this->parse_funding_rates($data);
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

@@ -60,7 +60,7 @@ class huobi(Exchange):
                 'cancelOrders': True,
                 'createDepositAddress': None,
                 'createOrder': True,
-                'createReduceOnlyOrder': None,
+                'createReduceOnlyOrder': False,
                 'deposit': None,
                 'fetchAccounts': True,
                 'fetchAllTradingFees': None,
@@ -85,13 +85,13 @@ class huobi(Exchange):
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
-                'fetchFundingRates': None,
+                'fetchFundingRates': True,
                 'fetchIndexOHLCV': True,
-                'fetchIsolatedPositions': None,
+                'fetchIsolatedPositions': False,
                 'fetchL3OrderBook': None,
                 'fetchLedger': None,
                 'fetchLedgerEntry': None,
-                'fetchLeverage': None,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
                 'fetchMyBuys': None,
@@ -107,7 +107,7 @@ class huobi(Exchange):
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
                 'fetchPositions': True,
-                'fetchPositionsRisk': None,
+                'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': True,
                 'fetchStatus': None,
                 'fetchTicker': True,
@@ -126,8 +126,8 @@ class huobi(Exchange):
                 'loadLeverageBrackets': None,
                 'reduceMargin': None,
                 'setLeverage': True,
-                'setMarginMode': None,
-                'setPositionMode': None,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'signIn': None,
                 'transfer': True,
                 'withdraw': True,
@@ -4240,6 +4240,43 @@ class huobi(Exchange):
         #
         result = self.safe_value(response, 'data', {})
         return self.parse_funding_rate(result, market)
+
+    def fetch_funding_rates(self, symbols, params={}):
+        self.load_markets()
+        options = self.safe_value(self.options, 'fetchFundingRates', {})
+        defaultSubType = self.safe_string(self.options, 'defaultSubType', 'inverse')
+        subType = self.safe_string(options, 'subType', defaultSubType)
+        subType = self.safe_string(params, 'subType', subType)
+        request = {
+            # 'contract_code': market['id'],
+        }
+        method = self.get_supported_mapping(subType, {
+            'linear': 'contractPublicGetLinearSwapApiV1SwapBatchFundingRate',
+            'inverse': 'contractPublicGetSwapApiV1SwapBatchFundingRate',
+        })
+        params = self.omit(params, 'subType')
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "status": "ok",
+        #         "data": [
+        #             {
+        #                 "estimated_rate": "0.000100000000000000",
+        #                 "funding_rate": "0.000100000000000000",
+        #                 "contract_code": "MANA-USDT",
+        #                 "symbol": "MANA",
+        #                 "fee_asset": "USDT",
+        #                 "funding_time": "1643356800000",
+        #                 "next_funding_time": "1643385600000",
+        #                 "trade_partition":"USDT"
+        #             },
+        #         ],
+        #         "ts": 1643346173103
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        result = self.parse_funding_rates(data)
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/'

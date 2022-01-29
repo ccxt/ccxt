@@ -655,16 +655,6 @@ class bitstamp extends Exchange {
         return null;
     }
 
-    public function get_market_from_trades($trades) {
-        $tradesBySymbol = $this->index_by($trades, 'symbol');
-        $symbols = is_array($tradesBySymbol) ? array_keys($tradesBySymbol) : array();
-        $numSymbols = is_array($symbols) ? count($symbols) : 0;
-        if ($numSymbols === 1) {
-            return $this->markets[$symbols[0]];
-        }
-        return null;
-    }
-
     public function parse_trade($trade, $market = null) {
         //
         // fetchTrades (public)
