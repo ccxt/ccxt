@@ -587,8 +587,6 @@ module.exports = class ftx extends Exchange {
                 symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry, '');
             }
             // check if a market is a spot or future market
-            const sizeIncrement = this.safeNumber (market, 'sizeIncrement');
-            const priceIncrement = this.safeNumber (market, 'priceIncrement');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -605,7 +603,6 @@ module.exports = class ftx extends Exchange {
                 'future': isFuture,
                 'option': option,
                 'active': this.safeValue (market, 'enabled'),
-                'derivative': contract,
                 'contract': contract,
                 'linear': true,
                 'inverse': false,
@@ -615,25 +612,25 @@ module.exports = class ftx extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': sizeIncrement,
-                    'price': priceIncrement,
+                    'price': this.safeNumber (market, 'priceIncrement'),
+                    'amount': this.safeNumber (market, 'sizeIncrement'),
                 },
                 'limits': {
+                    'leverage': {
+                        'min': this.parseNumber ('1'),
+                        'max': this.parseNumber ('20'),
+                    },
                     'amount': {
-                        'min': sizeIncrement,
+                        'min': undefined,
                         'max': undefined,
                     },
                     'price': {
-                        'min': priceIncrement,
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
                         'min': undefined,
                         'max': undefined,
-                    },
-                    'leverage': {
-                        'min': this.parseNumber ('1'),
-                        'max': this.parseNumber ('20'),
                     },
                 },
                 'info': market,
