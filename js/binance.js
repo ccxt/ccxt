@@ -5053,11 +5053,7 @@ module.exports = class binance extends Exchange {
             }, params);
             if ((api === 'sapi') && (path === 'asset/dust')) {
                 query = this.urlencodeWithArrayRepeat (extendedParams);
-            } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0)) {
-                query = this.rawencode (extendedParams);
-            } else if (giftcard) {
-                query = this.urlencode (extendedParams);
-            } else if (path === 'capital/withdraw/apply') {
+            } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0) || (path === 'capital/withdraw/apply')) {
                 query = this.rawencode (extendedParams);
             } else {
                 query = this.urlencode (extendedParams);
