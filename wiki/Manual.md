@@ -1965,7 +1965,7 @@ The levels of detail or levels of order book aggregation are often number-labell
 
 If you want to get an L2 order book, whatever the exchange returns, use the `fetchL2OrderBook(symbol, limit, params)` or `fetch_l2_order_book(symbol, limit, params)` unified method for that.
 
-The `limit` argument does not guarantee that the number of bids or asks will always be equal to `limit`. It designates the upper boundary or the maximum, so at some moment in time there may be less than `limit` bids or asks, but never more than `limit` bids or asks. This is the case when the exchange does not have enough orders on the orderbook.
+The `limit` argument does not guarantee that the number of bids or asks will always be equal to `limit`. It designates the upper boundary or the maximum, so at some moment in time there may be less than `limit` bids or asks. This is the case when the exchange does not have enough orders on the orderbook. However, if the underlying exchange API does not support a `limit` parameter for the orderbook endpoint at all, then the `limit` argument will be ignored. CCXT does not trim `bids` and `asks` if the exchange returns more than you request.
 
 ### Market Price
 
