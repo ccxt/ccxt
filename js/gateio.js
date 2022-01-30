@@ -2517,7 +2517,7 @@ module.exports = class gateio extends Exchange {
             'average': undefined,
             'amount': amount,
             'cost': cost,
-            'filled': undefined,
+            'filled': this.safeFloat2 (order, 'amount', 'size') - this.safeFloat (order, 'left'),
             'remaining': remaining,
             'fee': undefined,
             'fees': fees,
