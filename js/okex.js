@@ -3836,18 +3836,13 @@ module.exports = class okex extends Exchange {
             const response = await this.publicGetPublicPositionTiers (this.extend (request, params));
             this.options['leverageBrackets'] = {};
             const data = this.safeValue (response, 'data');
-            const leverageBrackets = {};
+            const leverageBrackets = [];
             for (let i = 0; i < data.length; i++) {
                 const entry = data[i];
-                const marketId = this.safeString (entry, 'instId');
-                const symbol = this.safeSymbol (marketId);
-                if (!(symbol in leverageBrackets)) {
-                    leverageBrackets[symbol] = [];
-                }
                 // we use floats here internally on purpose
                 const floorValue = this.safeFloat (entry, 'minSz');
                 const maintenanceMarginPercentage = this.safeString (entry, 'mmr');
-                leverageBrackets[symbol].push ([ floorValue, maintenanceMarginPercentage ]);
+                leverageBrackets.push ([ floorValue, maintenanceMarginPercentage ]);
             }
             this.options['leverageBrackets'] = leverageBrackets;
         }
