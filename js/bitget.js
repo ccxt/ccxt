@@ -690,6 +690,9 @@ module.exports = class bitget extends Exchange {
                 },
             },
             'precisionMode': TICK_SIZE,
+            'commonCurrencies': {
+                'JADE': 'Jade Protocol',
+            },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
                 'fetchMarkets': [
