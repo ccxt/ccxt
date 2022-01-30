@@ -1076,25 +1076,8 @@ module.exports = class wavesexchange extends Exchange {
         const amountAsset = this.getAssetId (market['baseId']);
         const priceAsset = this.getAssetId (market['quoteId']);
         amount = this.amountToPrecision (symbol, amount);
-        if (type === 'market') {
-            if (price === undefined) {
-                // Waves forces us to pick a minimum buy or sell price (see: https://docs.waves.exchange/en/waves-matcher/matcher-api#order).
-                // To work around this the best way possible without forcing the user to do the same (as it's behaviour unique to this exchange)
-                // We'll get the price from the order book.
-                const orderbook = await this.fetchOrderBook (symbol);
-                let orderbookSide = null;
-                if (side === 'buy') {
-                    orderbookSide = 'asks';
-                } else if (side === 'sell') {
-                    orderbookSide = 'bids';
-                }
-                if (orderbook[orderbookSide].length > 0) {
-                    const orderbookIndex = Math.min (orderbook[orderbookSide].length - 1, 3);
-                    price = orderbook[orderbookSide][orderbookIndex][0];
-                } else {
-                    throw new InvalidOrder ('Orderbook "' + orderbookSide + '" is empty. Can\'t make a market ' + side + '-order!');
-                }
-            }
+        if (price === undefined) {
+            throw new InvalidOrder (this.id + ' market order requires price argument to determine the max price for buy and the min price for sell.');
         }
         price = this.priceToPrecision (symbol, price);
         const orderType = (side === 'buy') ? 0 : 1;
