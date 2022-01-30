@@ -765,6 +765,9 @@ module.exports = class wavesexchange extends Exchange {
         };
         if (since !== undefined) {
             request['timeStart'] = since.toString ();
+            const timeframeUnix = this.parseTimeframe (timeframe) * 1000;
+            request['timeEnd'] = since + (timeframeUnix * limit);
+            request['timeEnd'] = request['timeEnd'].toString ();
         } else {
             const allowedCandles = this.safeInteger (this.options, 'allowedCandles', 1440);
             const timeframeUnix = this.parseTimeframe (timeframe) * 1000;
