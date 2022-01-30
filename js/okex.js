@@ -3818,11 +3818,19 @@ module.exports = class okex extends Exchange {
         await this.loadMarkets ();
         // by default cache the leverage bracket
         // it contains useful stuff like the maintenance margin and initial margin for positions
+        const symbol = this.safeString (params, 'symbol');
+        if (!symbol) {
+            throw new ArgumentsRequired (this.id + '.loadLeverageBrackets requires params.symbol');
+        }
+        const market = this.market (symbol);
+        const type = market['spot'] ? 'MARGIN' : market['type'].toUpperCase ();
         const request = {
-            'instType': this.safeString (params, 'instType', 'SWAP'),
+            'instType': type,
             'tdMode': this.safeString (params, 'tdMode', 'isolated'),
-            'uly': 'BTC-USD',
         };
+        if (type === 'MARGIN') {
+            request['instId'] = market['id'];
+        }
         const leverageBrackets = this.safeValue (this.options, 'leverageBrackets');
         if ((leverageBrackets === undefined) || (reload)) {
             const response = await this.publicGetPublicPositionTiers (this.extend (request, params));
@@ -3831,7 +3839,7 @@ module.exports = class okex extends Exchange {
             const leverageBrackets = {};
             for (let i = 0; i < data.length; i++) {
                 const entry = data[i];
-                const marketId = this.safeString (entry, 'instId');
+                const marketId = this.safeString (entry, 'uly');
                 const symbol = this.safeSymbol (marketId);
                 if (!(symbol in leverageBrackets)) {
                     leverageBrackets[symbol] = [];
