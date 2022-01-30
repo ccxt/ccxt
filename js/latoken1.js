@@ -192,7 +192,6 @@ module.exports = class latoken1 extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const pricePrecisionString = this.safeString (market, 'pricePrecision');
-            const priceLimit = this.parsePrecision (pricePrecisionString);
             const fees = this.safeValue (this.fees, 'trading');
             const defaultTaker = this.safeNumber (fees, 'taker');
             const defaultMaker = this.safeNumber (fees, 'maker');
