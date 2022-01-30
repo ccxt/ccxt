@@ -65,7 +65,7 @@ module.exports = class huobi extends Exchange {
                 'fetchIndexOHLCV': true,
                 'fetchIsolatedPositions': false,
                 'fetchL3OrderBook': undefined,
-                'fetchLedger': undefined,
+                'fetchLedger': true,
                 'fetchLedgerEntry': undefined,
                 'fetchLeverage': false,
                 'fetchMarkets': true,
@@ -5189,5 +5189,128 @@ module.exports = class huobi extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         });
+    }
+
+    parseLedgerEntryType (type) {
+        const types = {
+            'trade': 'trade',
+            'etf': 'trade',
+            'transact-fee': 'fee',
+            'fee-deduction': 'fee',
+            'transfer': 'transfer',
+            'credit': 'credit',
+            'liquidation': 'trade',
+            'interest': 'credit',
+            'deposit': 'deposit',
+            'withdraw': 'withdrawal',
+            'withdraw-fee': 'fee',
+            'exchange': 'exchange',
+            'other-types': 'transfer',
+            'rebate': 'rebate',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        //
+        //  {
+        //             "accountId": 10000001,
+        //             "currency": "usdt",
+        //             "transactAmt": 10.000000000000000000,
+        //             "transactType": "transfer",
+        //             "transferType": "margin-transfer-out",
+        //             "transactId": 0,
+        //             "transactTime": 1629882331066,
+        //             "transferer": 28483123,
+        //             "transferee": 13496526
+        //         }
+        //
+        const id = this.safeString (item, 'transactId');
+        const currencyId = this.safeString (item, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const amount = this.safeNumber (item, 'transactAmt');
+        const transferType = this.safeString (item, 'transferType');
+        const type = this.parseLedgerEntryType (transferType);
+        const direction = this.safeString (item, 'direction');
+        const timestamp = this.safeInteger (item, 'transactTime');
+        const datetime = this.iso8601 (timestamp);
+        const account = this.safeString (item, 'accountId');
+        return {
+            'id': id,
+            'direction': direction,
+            'account': account,
+            'referenceId': id,
+            'referenceAccount': account,
+            'type': type,
+            'currency': code,
+            'amount': amount,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'before': undefined,
+            'after': undefined, // undefined
+            'status': undefined,
+            'fee': undefined,
+            'info': item,
+        };
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const accountId = this.getAccountId (params);
+        const request = {
+            'accountId': accountId,
+            // 'currency': code,
+            // 'transactTypes': 'all', //default value: all; enumerated values: transfer,
+            // 'startTime': 1546272000000,
+            // 'endTime': 1546272000000,
+            // 'sort': asc, // asc, desc
+            // 'limit': 100, // range 1-500
+            // 'fromId': 323 // First record ID in this query (pagination)
+        };
+         let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['from'] = since * 1000000;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // max 5000
+        }
+        const response = await this.spotPrivateGetV2AccountLedger (this.extend (request, params));
+        // {
+        //     "code": 200,
+        //     "message": "success",
+        //     "data": [
+        //         {
+        //             "accountId": 10000001,
+        //             "currency": "usdt",
+        //             "transactAmt": 10.000000000000000000,
+        //             "transactType": "transfer",
+        //             "transferType": "margin-transfer-out",
+        //             "transactId": 0,
+        //             "transactTime": 1629882331066,
+        //             "transferer": 28483123,
+        //             "transferee": 13496526
+        //         },
+        //         {
+        //             "accountId": 10000001,
+        //             "currency": "usdt",
+        //             "transactAmt": -10.000000000000000000,
+        //             "transactType": "transfer",
+        //             "transferType": "margin-transfer-in",
+        //             "transactId": 0,
+        //             "transactTime": 1629882096562,
+        //             "transferer": 13496526,
+        //             "transferee": 28483123
+        //         }
+        //     ],
+        //     "nextId": 1624316679,
+        //     "ok": true
+        // }
+        const data = this.safeValue (response, 'data', []);
+        return this.parseLedger (data, currency, since, limit);
     }
 };
