@@ -710,6 +710,9 @@ class bitget(Exchange):
                 },
             },
             'precisionMode': TICK_SIZE,
+            'commonCurrencies': {
+                'JADE': 'Jade Protocol',
+            },
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
                 'fetchMarkets': [

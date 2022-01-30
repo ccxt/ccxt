@@ -694,6 +694,9 @@ class bitget extends Exchange {
                 ),
             ),
             'precisionMode' => TICK_SIZE,
+            'commonCurrencies' => array(
+                'JADE' => 'Jade Protocol',
+            ),
             'options' => array(
                 'createMarketBuyOrderRequiresPrice' => true,
                 'fetchMarkets' => array(
