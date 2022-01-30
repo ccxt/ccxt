@@ -5255,9 +5255,7 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        await this.loadAccounts ();
-        const accountId = this.getAccountId (params);
+        const accountId = this.fetchAccountIdByType('spot', params);
         const request = {
             'accountId': accountId,
             // 'currency': code,
@@ -5268,16 +5266,17 @@ module.exports = class huobi extends Exchange {
             // 'limit': 100, // range 1-500
             // 'fromId': 323 // First record ID in this query (pagination)
         };
-         let currency = undefined;
+
+        let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
         if (since !== undefined) {
-            request['from'] = since * 1000000;
+            request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // max 5000
+            request['limit'] = limit; // max 500
         }
         const response = await this.spotPrivateGetV2AccountLedger (this.extend (request, params));
         // {
