@@ -3078,6 +3078,7 @@ class huobi extends Exchange {
             'filled' => 'closed',
             'canceled' => 'canceled',
             'submitted' => 'open',
+            'created' => 'open',  // For stop orders
             // contract
             '1' => 'open',
             '2' => 'open',
