@@ -602,27 +602,17 @@ module.exports = class dydx extends Exchange {
         return response; // this.parseOrder (response, market);
     }
 
-    async generateApiKey () {
+    async generateApiKey (generateOrCreate = false) { // https://docs.dydx.exchange/#recover-default-api-credentials
         const { DydxClient } = require ('@dydxprotocol/v3-client');
         const Web3 = require ('web3');
         const web3 = new Web3 ();
         web3.eth.accounts.wallet.add (this.privateKey);
         const client = new DydxClient ('https://api.dydx.exchange', { web3 });
-        const apiCreds = await client.onboarding.recoverDefaultApiCredentials (this.walletAddress);
+        const apiCreds = generateOrCreate ? await client.onboarding.recoverDefaultApiCredentials (this.walletAddress) : await client.ethPrivate.createApiKey (this.walletAddress);
         return apiCreds;
     }
 
-    async fetchApiKey () {
-        const { DydxClient } = require ('@dydxprotocol/v3-client');
-        const Web3 = require ('web3');
-        const web3 = new Web3 ();
-        web3.eth.accounts.wallet.add (this.privateKey);
-        const client = new DydxClient ('https://api.dydx.exchange', { web3 });
-        const apiCreds = await client.ethPrivate.createApiKey ( this.walletAddress );
-        return apiCreds;
-    }
-
-    async generateApiKey2 (params = undefined) { // https://docs.dydx.exchange/#recover-default-api-credentials && https://github.com/dydxprotocol/v3-client/blob/f5589b4a9c1501a7a318a5500d5195edfe7e28b2/src/modules/onboarding.ts#L162
+    async generateApiKey2 (params = undefined) { //  https://github.com/dydxprotocol/v3-client/blob/f5589b4a9c1501a7a318a5500d5195edfe7e28b2/src/modules/onboarding.ts#L162
         return {};
     }
 
@@ -651,7 +641,8 @@ module.exports = class dydx extends Exchange {
             if (headers === undefined) {
                 headers = {};
             }
-            // const paramsEncoded = this.urlencode (params);
+            const paramsEncoded = this.urlencode (params);
+            const paramsJson = this.json (params);
             const isoTimestamp = this.iso8601 (this.milliseconds ());  // new Date ().toISOString ();
             headers['DYDX-TIMESTAMP'] = isoTimestamp;
             if (path === 'onboarding') { // it's only POST
@@ -672,8 +663,6 @@ module.exports = class dydx extends Exchange {
                     body = argumentsBody;
                 }
                 const argumentsBodyJson = this.json (argumentsBody);
-                const paramsJson = this.json (params);
-                const paramsEncoded = this.urlencode (params);
                 const authString = isoTimestamp + method + pathForAuth + paramsEncoded;
                 const authStringJson = this.json (authString);
                 const signature = this.hmac (this.encode (authStringJson), this.encode (this.secret), 'sha256', 'base64');
