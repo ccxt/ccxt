@@ -6,7 +6,8 @@ const Exchange = require ('./base/Exchange');
 const { ExchangeNotAvailable, AuthenticationError, BadSymbol, ExchangeError, InvalidOrder, InsufficientFunds } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 // const Precise = require ('./base/Precise');
-// function c(o){console.log(o);} function x(o){c(o);process.exit();}
+
+function c(o){console.log(o);} function x(o){c(o);process.exit();}
 // ----------------------------------------------------------------------------
 
 module.exports = class dydx extends Exchange {
@@ -35,7 +36,7 @@ module.exports = class dydx extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOrder': undefined,
                 'fetchOrderBook': true,
-                'fetchOrders': undefined,
+                'fetchOrders': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -588,13 +589,46 @@ module.exports = class dydx extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async createApiKey (params = undefined) { // https://docs.dydx.exchange/#register-api-key
-        const response = await this.privatePostApiKeys (params);
-        return response;
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // https://docs.dydx.exchange/?json#create-a-new-order
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.privateGetOrders (request);
+        return response; // this.parseOrder (response, market);
     }
 
-    async generateApiKey (params = undefined) { // https://docs.dydx.exchange/#recover-default-api-credentials && https://github.com/dydxprotocol/v3-client/blob/f5589b4a9c1501a7a318a5500d5195edfe7e28b2/src/modules/onboarding.ts#L162
+    async generateApiKey () {
+        const { DydxClient } = require ('@dydxprotocol/v3-client');
+        const Web3 = require ('web3');
+        const web3 = new Web3 ();
+        web3.eth.accounts.wallet.add (this.privateKey);
+        const client = new DydxClient ('https://api.dydx.exchange', { web3 });
+        const apiCreds = await client.onboarding.recoverDefaultApiCredentials (this.walletAddress);
+        return apiCreds;
+    }
+
+    async fetchApiKey () {
+        const { DydxClient } = require ('@dydxprotocol/v3-client');
+        const Web3 = require ('web3');
+        const web3 = new Web3 ();
+        web3.eth.accounts.wallet.add (this.privateKey);
+        const client = new DydxClient ('https://api.dydx.exchange', { web3 });
+        const apiCreds = await client.ethPrivate.createApiKey ( this.walletAddress );
+        return apiCreds;
+    }
+
+    async generateApiKey2 (params = undefined) { // https://docs.dydx.exchange/#recover-default-api-credentials && https://github.com/dydxprotocol/v3-client/blob/f5589b4a9c1501a7a318a5500d5195edfe7e28b2/src/modules/onboarding.ts#L162
         return {};
+    }
+
+    async registerApiKey (params = undefined) { // https://docs.dydx.exchange/#register-api-key
+        const response = await this.privatePostApiKeys (params);
+        return response;
     }
 
     async makeOnboard (params = undefined) { // https://docs.dydx.exchange/#recover-default-api-credentials
@@ -605,67 +639,77 @@ module.exports = class dydx extends Exchange {
     sign (path, api = 'private', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = this.safeString (this.options, 'version', 'v3');
         let url = this.urls['api'][api] + '/' + version + '/' + this.implodeParams (path, params);
+        const pathForAuth = '/' + version + '/' + this.implodeParams (path, params);
         let query = undefined;
         if (method === 'GET') {
             query = this.urlencode (params);
             url = url + '?' + query;
         }
         if (api === 'private') {
-            if (body === undefined) {
-                body = {};
-            }
-            if (method === 'GET') {
-                body = query;
-            }
+            let isApiKeyBased = false;
+            let isPrivateKeyBased = false;
             if (headers === undefined) {
                 headers = {};
             }
-            const isoTimestamp = this.iso8601 (this.milliseconds ());
+            // const paramsEncoded = this.urlencode (params);
+            const isoTimestamp = this.iso8601 (this.milliseconds ());  // new Date ().toISOString ();
             headers['DYDX-TIMESTAMP'] = isoTimestamp;
             if (path === 'onboarding') { // it's only POST
+                isPrivateKeyBased = true;
+            } else {
+                isApiKeyBased = true;
+            }
+            // now, decide the desired path
+            if (isApiKeyBased) {
+                headers['DYDX-API-KEY'] = this.apiKey;
+                headers['DYDX-PASSPHRASE'] = this.passPhrase;
+                const argumentsBody = {};
+                argumentsBody['timestamp'] = isoTimestamp;
+                argumentsBody['method'] = method;
+                argumentsBody['requestPath'] = pathForAuth;
+                if (method === 'POST') {
+                    argumentsBody['body'] = params;
+                    body = argumentsBody;
+                }
+                const argumentsBodyJson = this.json (argumentsBody);
+                const paramsJson = this.json (params);
+                const paramsEncoded = this.urlencode (params);
+                const authString = isoTimestamp + method + pathForAuth + paramsEncoded;
+                const authStringJson = this.json (authString);
+                const signature = this.hmac (this.encode (authStringJson), this.encode (this.secret), 'sha256', 'base64');
+                headers['DYDX-SIGNATURE'] = signature;
+            } else if (isPrivateKeyBased) {
                 // ref: https://github.com/dydxprotocol/v3-client/blob/master/src/modules/eth-private.ts#L42
                 headers['DYDX-ETHEREUM-ADDRESS'] = this.walletAddress;
                 body['action'] = 'DYDX-ONBOARDING';
                 body['onlySignOn'] = 'https://trade.dydx.exchange';
-                const bodyEncoded = this.urlencode (body);
-                const obj = method + path + isoTimestamp + bodyEncoded;
-                const auth = this.walletAddress + 'sha256' + isoTimestamp + this.json (obj);
-                const signature = this.hmac (this.encode (auth), this.encode (this.privateKey), 'sha256');
+                // const obj = method + path + isoTimestamp + paramsEncoded;
+                // const auth = this.walletAddress + 'sha256' + isoTimestamp + this.json (obj);
+                const signature = this.createDydxSign ({
+                    'requestPath': '/' + version + '/' + path,
+                    'method': method,
+                    'isoTimestamp': isoTimestamp,
+                    // 'data':  { 'market': 'BTC-USD', 'side': 'BUY', 'type': 'LIMIT', 'size': 0.0001, 'price': 3000, },
+                    'data': params,
+                }, this.secret);
                 headers['DYDX-SIGNATURE'] = signature;
             }
-            //     if (path === 'api-keys') {
-            //         // Ethereum Key Private Endpoints: POST, DELETE /v3/api-keys
-            //         headers['DYDX-TIMESTAMP'] = timestamp;
-            //         headers['DYDX-ETHEREUM-ADDRESS'] = this.ethereumAddress;
-            //         body['method'] = 'GET|POST';
-            //         body['requestPath'] = '/v3/api-keys';
-            //         body['body'] = ''; // empty for GET and DELETE
-            //         body['timestamp'] = timestamp;
-            //         // EIP-712-compliant Ethereum signature
-            //     }
-            // } else {
-            //     // All other API Key Private Endpoints
-            //     headers['DYDX-TIMESTAMP'] = timestamp;
-            //     headers['DYDX-ETHEREUM-ADDRESS'] = this.ethereumAddress;
-            //     headers['DYDX-PASSPHRASE'] = this.passPhrase;
-            //     // SHA-256 HMAC produced as described below, and encoded as a Base64 string
-            // }
-            //
-            //
-            // another way:
-            // if (this.apiKey) {
-            //     const signature = this.hmac (this.encode (body), this.encode (this.secret), 'sha256');
-            //     const auth = path + method + isoTimestamp + urlencoded;
-            //     headers['DYDX-SIGNATURE'] = auth; //this.stringToBase64 (signature);
-            //     headers['DYDX-API-KEY'] = this.apiKey;
-            //     headers['DYDX-PASSPHRASE'] = this.passPhrase;
-            // } else {
-            //     const signature = this.hmac (this.encode (body), this.encode (this.privateKey), 'sha256');
-            //     headers['DYDX-SIGNATURE'] = this.stringToBase64 (signature);
-            //     headers['DYDX-ETHEREUM-ADDRESS'] = this.walletAddress;
-            // }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    createDydxSign({
+        requestPath,
+        method,
+        isoTimestamp,
+        data,
+      }, apiSecret) {
+        const messageString = isoTimestamp + method + requestPath + JSON.stringify(data); 
+        const crypto = require ('crypto');
+        return crypto.createHmac (
+          'sha256',
+          Buffer.from (apiSecret, 'base64'),
+        ).update (messageString).digest ('base64');
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
