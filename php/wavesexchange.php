@@ -1055,6 +1055,23 @@ class wavesexchange extends Exchange {
         return $this->from_precision($price, $scale);
     }
 
+    public function safe_get_dynamic($settings) {
+        $orderFee = $this->safe_value($settings, 'orderFee');
+        if (is_array($orderFee) && array_key_exists('dynamic', $orderFee)) {
+            return $this->safe_value($orderFee, 'dynamic');
+        } else {
+            return $this->safe_value($orderFee['composite']['default'], 'dynamic');
+        }
+    }
+
+    public function safe_get_rates($dynamic) {
+        $rates = $this->safe_value($dynamic, 'rates');
+        if ($rates === null) {
+            return array( 'WAVES' => 1 );
+        }
+        return $rates;
+    }
+
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->check_required_dependencies();
         $this->check_required_keys();
@@ -1118,11 +1135,10 @@ class wavesexchange extends Exchange {
         //     "4LHHvYGNKJUg5hj65aGD5vgScvCBmLpdRFtjokvCjSL8"
         //   )
         // }
-        $orderFee = $this->safe_value($settings, 'orderFee');
-        $dynamic = $this->safe_value($orderFee, 'dynamic');
+        $dynamic = $this->safe_get_dynamic($settings);
         $baseMatcherFee = $this->safe_string($dynamic, 'baseFee');
         $wavesMatcherFee = $this->currency_from_precision('WAVES', $baseMatcherFee);
-        $rates = $this->safe_value($dynamic, 'rates');
+        $rates = $this->safe_get_rates($dynamic);
         // choose sponsored assets from the list of $priceAssets above
         $priceAssets = is_array($rates) ? array_keys($rates) : array();
         $matcherFeeAssetId = null;
