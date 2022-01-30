@@ -12,7 +12,6 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
-from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
 
 
@@ -129,7 +128,7 @@ class bigone(Exchange):
                     "Price mulit with amount should larger than AssetPair's min_quote_value": InvalidOrder,
                     '10007': BadRequest,  # parameter error, {"code":10007,"message":"Amount's scale must greater than AssetPair's base scale"}
                     '10011': ExchangeError,  # system error
-                    '10013': OrderNotFound,  # {"code":10013,"message":"Resource not found"}
+                    '10013': BadSymbol,  # {"code":10013,"message":"Resource not found"}
                     '10014': InsufficientFunds,  # {"code":10014,"message":"Insufficient funds"}
                     '10403': PermissionDenied,  # permission denied
                     '10429': RateLimitExceeded,  # too many requests
@@ -180,6 +179,7 @@ class bigone(Exchange):
         #                 },
         #                 "base_scale":3,
         #                 "min_quote_value":"0.0001",
+        #                 "max_quote_value":"35"
         #             },
         #         ]
         #     }
@@ -206,6 +206,7 @@ class bigone(Exchange):
                 'price': int(pricePrecisionString),
             }
             minCost = self.safe_number(market, 'min_quote_value')
+            maxCost = self.safe_number(market, 'max_quote_value')
             entry = {
                 'id': id,
                 'uuid': uuid,
@@ -243,7 +244,7 @@ class bigone(Exchange):
                     },
                     'cost': {
                         'min': minCost,
-                        'max': None,
+                        'max': maxCost,
                     },
                 },
                 'info': market,

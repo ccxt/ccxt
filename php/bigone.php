@@ -122,7 +122,7 @@ class bigone extends Exchange {
                     "Price mulit with amount should larger than AssetPair's min_quote_value" => '\\ccxt\\InvalidOrder',
                     '10007' => '\\ccxt\\BadRequest', // parameter error, array("code":10007,"message":"Amount's scale must greater than AssetPair's base scale")
                     '10011' => '\\ccxt\\ExchangeError', // system error
-                    '10013' => '\\ccxt\\OrderNotFound', // array("code":10013,"message":"Resource not found")
+                    '10013' => '\\ccxt\\BadSymbol', // array("code":10013,"message":"Resource not found")
                     '10014' => '\\ccxt\\InsufficientFunds', // array("code":10014,"message":"Insufficient funds")
                     '10403' => '\\ccxt\\PermissionDenied', // permission denied
                     '10429' => '\\ccxt\\RateLimitExceeded', // too many requests
@@ -174,6 +174,7 @@ class bigone extends Exchange {
         //                 ),
         //                 "base_scale":3,
         //                 "min_quote_value":"0.0001",
+        //                 "max_quote_value":"35"
         //             ),
         //         )
         //     }
@@ -200,6 +201,7 @@ class bigone extends Exchange {
                 'price' => intval($pricePrecisionString),
             );
             $minCost = $this->safe_number($market, 'min_quote_value');
+            $maxCost = $this->safe_number($market, 'max_quote_value');
             $entry = array(
                 'id' => $id,
                 'uuid' => $uuid,
@@ -237,7 +239,7 @@ class bigone extends Exchange {
                     ),
                     'cost' => array(
                         'min' => $minCost,
-                        'max' => null,
+                        'max' => $maxCost,
                     ),
                 ),
                 'info' => $market,
