@@ -5213,17 +5213,17 @@ module.exports = class huobi extends Exchange {
 
     parseLedgerEntry (item, currency = undefined) {
         //
-        //  {
-        //             "accountId": 10000001,
-        //             "currency": "usdt",
-        //             "transactAmt": 10.000000000000000000,
-        //             "transactType": "transfer",
-        //             "transferType": "margin-transfer-out",
-        //             "transactId": 0,
-        //             "transactTime": 1629882331066,
-        //             "transferer": 28483123,
-        //             "transferee": 13496526
-        //         }
+        //     {
+        //         "accountId": 10000001,
+        //         "currency": "usdt",
+        //         "transactAmt": 10.000000000000000000,
+        //         "transactType": "transfer",
+        //         "transferType": "margin-transfer-out",
+        //         "transactId": 0,
+        //         "transactTime": 1629882331066,
+        //         "transferer": 28483123,
+        //         "transferee": 13496526
+        //     }
         //
         const id = this.safeString (item, 'transactId');
         const currencyId = this.safeString (item, 'currency');
@@ -5247,7 +5247,7 @@ module.exports = class huobi extends Exchange {
             'timestamp': timestamp,
             'datetime': datetime,
             'before': undefined,
-            'after': undefined, // undefined
+            'after': undefined,
             'status': undefined,
             'fee': undefined,
             'info': item,
@@ -5260,12 +5260,12 @@ module.exports = class huobi extends Exchange {
         const request = {
             'accountId': accountId,
             // 'currency': code,
-            // 'transactTypes': 'all', //default value: all; enumerated values: transfer,
+            // 'transactTypes': 'all', // default all
             // 'startTime': 1546272000000,
             // 'endTime': 1546272000000,
             // 'sort': asc, // asc, desc
             // 'limit': 100, // range 1-500
-            // 'fromId': 323 // First record ID in this query (pagination)
+            // 'fromId': 323 // first record ID in this query for pagination
         };
         let currency = undefined;
         if (code !== undefined) {
@@ -5279,36 +5279,38 @@ module.exports = class huobi extends Exchange {
             request['limit'] = limit; // max 500
         }
         const response = await this.spotPrivateGetV2AccountLedger (this.extend (request, params));
-        // {
-        //     "code": 200,
-        //     "message": "success",
-        //     "data": [
-        //         {
-        //             "accountId": 10000001,
-        //             "currency": "usdt",
-        //             "transactAmt": 10.000000000000000000,
-        //             "transactType": "transfer",
-        //             "transferType": "margin-transfer-out",
-        //             "transactId": 0,
-        //             "transactTime": 1629882331066,
-        //             "transferer": 28483123,
-        //             "transferee": 13496526
-        //         },
-        //         {
-        //             "accountId": 10000001,
-        //             "currency": "usdt",
-        //             "transactAmt": -10.000000000000000000,
-        //             "transactType": "transfer",
-        //             "transferType": "margin-transfer-in",
-        //             "transactId": 0,
-        //             "transactTime": 1629882096562,
-        //             "transferer": 13496526,
-        //             "transferee": 28483123
-        //         }
-        //     ],
-        //     "nextId": 1624316679,
-        //     "ok": true
-        // }
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "success",
+        //         "data": [
+        //             {
+        //                 "accountId": 10000001,
+        //                 "currency": "usdt",
+        //                 "transactAmt": 10.000000000000000000,
+        //                 "transactType": "transfer",
+        //                 "transferType": "margin-transfer-out",
+        //                 "transactId": 0,
+        //                 "transactTime": 1629882331066,
+        //                 "transferer": 28483123,
+        //                 "transferee": 13496526
+        //             },
+        //             {
+        //                 "accountId": 10000001,
+        //                 "currency": "usdt",
+        //                 "transactAmt": -10.000000000000000000,
+        //                 "transactType": "transfer",
+        //                 "transferType": "margin-transfer-in",
+        //                 "transactId": 0,
+        //                 "transactTime": 1629882096562,
+        //                 "transferer": 13496526,
+        //                 "transferee": 28483123
+        //             }
+        //         ],
+        //         "nextId": 1624316679,
+        //         "ok": true
+        //     }
+        //
         const data = this.safeValue (response, 'data', []);
         return this.parseLedger (data, currency, since, limit);
     }
