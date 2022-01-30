@@ -5255,7 +5255,7 @@ module.exports = class huobi extends Exchange {
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
-        const accountId = this.fetchAccountIdByType('spot', params);
+        const accountId = await this.fetchAccountIdByType ('spot', params);
         const request = {
             'accountId': accountId,
             // 'currency': code,
@@ -5266,7 +5266,6 @@ module.exports = class huobi extends Exchange {
             // 'limit': 100, // range 1-500
             // 'fromId': 323 // First record ID in this query (pagination)
         };
-
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
