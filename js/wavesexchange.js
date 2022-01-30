@@ -1076,8 +1076,9 @@ module.exports = class wavesexchange extends Exchange {
         const amountAsset = this.getAssetId (market['baseId']);
         const priceAsset = this.getAssetId (market['quoteId']);
         amount = this.amountToPrecision (symbol, amount);
-        if (price === undefined) {
-            throw new InvalidOrder (this.id + ' market order requires price argument to determine the max price for buy and the min price for sell.');
+        const isMarketOrder = (type === 'market');
+        if ((isMarketOrder) && (price === undefined)) {
+            throw new InvalidOrder (this.id + ' createOrder() requires a price argument for ' + type + ' orders to determine the max price for buy and the min price for sell');
         }
         price = this.priceToPrecision (symbol, price);
         const orderType = (side === 'buy') ? 0 : 1;
@@ -1213,7 +1214,7 @@ module.exports = class wavesexchange extends Exchange {
         if (matcherFeeAssetId !== 'WAVES') {
             body['matcherFeeAssetId'] = matcherFeeAssetId;
         }
-        if (type === 'market') {
+        if (isMarketOrder) {
             const response = await this.matcherPostMatcherOrderbookMarket (body);
             const value = this.safeValue (response, 'message');
             return this.parseOrder (value, market);
