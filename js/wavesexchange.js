@@ -26,7 +26,7 @@ module.exports = class wavesexchange extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
-                'createMarketOrder': undefined,
+                'createMarketOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
@@ -1076,6 +1076,26 @@ module.exports = class wavesexchange extends Exchange {
         const amountAsset = this.getAssetId (market['baseId']);
         const priceAsset = this.getAssetId (market['quoteId']);
         amount = this.amountToPrecision (symbol, amount);
+        if (type === 'market') {
+            if (price === undefined) {
+                // Waves forces us to pick a minimum buy or sell price (see: https://docs.waves.exchange/en/waves-matcher/matcher-api#order).
+                // To work around this the best way possible without forcing the user to do the same (as it's behaviour unique to this exchange)
+                // We'll get the price from the order book.
+                const orderbook = await this.fetchOrderBook (symbol);
+                let orderbookSide = null;
+                if (side === 'buy') {
+                    orderbookSide = 'asks';
+                } else if (side === 'sell') {
+                    orderbookSide = 'bids';
+                }
+                if (orderbook[orderbookSide].length > 0) {
+                    const orderbookIndex = Math.min (orderbook[orderbookSide].length - 1, 3);
+                    price = orderbook[orderbookSide][orderbookIndex][0];
+                } else {
+                    throw new InvalidOrder ('Orderbook "' + orderbookSide + '" is empty. Can\'t make a market ' + side + '-order!');
+                }
+            }
+        }
         price = this.priceToPrecision (symbol, price);
         const orderType = (side === 'buy') ? 0 : 1;
         const timestamp = this.milliseconds ();
@@ -1210,7 +1230,15 @@ module.exports = class wavesexchange extends Exchange {
         if (matcherFeeAssetId !== 'WAVES') {
             body['matcherFeeAssetId'] = matcherFeeAssetId;
         }
-        const response = await this.matcherPostMatcherOrderbook (body);
+        if (type === 'market') {
+            const response = await this.matcherPostMatcherOrderbookMarket (body);
+            const value = this.safeValue (response, 'message');
+            return this.parseOrder (value, market);
+        } else {
+            const response = await this.matcherPostMatcherOrderbook (body);
+            const value = this.safeValue (response, 'message');
+            return this.parseOrder (value, market);
+        }
         // { success: true,
         //   message:
         //    { version: 3,
@@ -1232,8 +1260,6 @@ module.exports = class wavesexchange extends Exchange {
         //      proofs:
         //       [ '2EG8zgE6Ze1X5EYA8DbfFiPXAtC7NniYBAMFbJUbzwVbHmmCKHornQfS5F32NwkHF4623KWq1U6K126h4TTqyVq' ] },
         //   status: 'OrderAccepted' }
-        const value = this.safeValue (response, 'message');
-        return this.parseOrder (value, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
