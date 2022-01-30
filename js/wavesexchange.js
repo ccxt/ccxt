@@ -26,7 +26,7 @@ module.exports = class wavesexchange extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
-                'createMarketOrder': undefined,
+                'createMarketOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
@@ -1076,6 +1076,10 @@ module.exports = class wavesexchange extends Exchange {
         const amountAsset = this.getAssetId (market['baseId']);
         const priceAsset = this.getAssetId (market['quoteId']);
         amount = this.amountToPrecision (symbol, amount);
+        const isMarketOrder = (type === 'market');
+        if ((isMarketOrder) && (price === undefined)) {
+            throw new InvalidOrder (this.id + ' createOrder() requires a price argument for ' + type + ' orders to determine the max price for buy and the min price for sell');
+        }
         price = this.priceToPrecision (symbol, price);
         const orderType = (side === 'buy') ? 0 : 1;
         const timestamp = this.milliseconds ();
@@ -1210,7 +1214,15 @@ module.exports = class wavesexchange extends Exchange {
         if (matcherFeeAssetId !== 'WAVES') {
             body['matcherFeeAssetId'] = matcherFeeAssetId;
         }
-        const response = await this.matcherPostMatcherOrderbook (body);
+        if (isMarketOrder) {
+            const response = await this.matcherPostMatcherOrderbookMarket (body);
+            const value = this.safeValue (response, 'message');
+            return this.parseOrder (value, market);
+        } else {
+            const response = await this.matcherPostMatcherOrderbook (body);
+            const value = this.safeValue (response, 'message');
+            return this.parseOrder (value, market);
+        }
         // { success: true,
         //   message:
         //    { version: 3,
@@ -1232,8 +1244,6 @@ module.exports = class wavesexchange extends Exchange {
         //      proofs:
         //       [ '2EG8zgE6Ze1X5EYA8DbfFiPXAtC7NniYBAMFbJUbzwVbHmmCKHornQfS5F32NwkHF4623KWq1U6K126h4TTqyVq' ] },
         //   status: 'OrderAccepted' }
-        const value = this.safeValue (response, 'message');
-        return this.parseOrder (value, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
