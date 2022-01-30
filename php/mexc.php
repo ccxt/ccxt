@@ -43,6 +43,7 @@ class mexc extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
@@ -2192,6 +2193,74 @@ class mexc extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $responseCode, $feedback);
             throw new ExchangeError($feedback);
         }
+    }
+
+    public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = null;
+        $request = array(
+            // 'symbol' => $market['id'],
+            // 'position_id' => positionId,
+            // 'page_num' => 1,
+            // 'page_size' => $limit, // default 20, max 100
+        );
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($limit !== null) {
+            $request['page_size'] = $limit;
+        }
+        $response = $this->contractPrivateGetPositionFundingRecords (array_merge($request, $params));
+        //
+        //     {
+        //         "success" => true,
+        //         "code" => 0,
+        //         "data" => {
+        //             "pageSize" => 20,
+        //             "totalCount" => 2,
+        //             "totalPage" => 1,
+        //             "currentPage" => 1,
+        //             "resultList" => array(
+        //                 array(
+        //                     "id" => 7423910,
+        //                     "symbol" => "BTC_USDT",
+        //                     "positionType" => 1,
+        //                     "positionValue" => 29.30024,
+        //                     "funding" => 0.00076180624,
+        //                     "rate" => -0.000026,
+        //                     "settleTime" => 1643299200000
+        //                 ),
+        //                 {
+        //                     "id" => 7416473,
+        //                     "symbol" => "BTC_USDT",
+        //                     "positionType" => 1,
+        //                     "positionValue" => 28.9188,
+        //                     "funding" => 0.0014748588,
+        //                     "rate" => -0.000051,
+        //                     "settleTime" => 1643270400000
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $resultList = $this->safe_value($data, 'resultList', array());
+        $result = array();
+        for ($i = 0; $i < count($resultList); $i++) {
+            $entry = $resultList[$i];
+            $timestamp = $this->safe_string($entry, 'settleTime');
+            $result[] = array(
+                'info' => $entry,
+                'symbol' => $symbol,
+                'code' => null,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'id' => $this->safe_number($entry, 'id'),
+                'amount' => $this->safe_number($entry, 'funding'),
+            );
+        }
+        return $result;
     }
 
     public function parse_funding_rate($fundingRate, $market = null) {
