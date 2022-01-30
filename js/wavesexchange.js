@@ -1050,6 +1050,23 @@ module.exports = class wavesexchange extends Exchange {
         return this.fromPrecision (price, scale);
     }
 
+    safeGetDynamic (settings) {
+        const orderFee = this.safeValue (settings, 'orderFee');
+        if ('dynamic' in orderFee) {
+            return this.safeValue (orderFee, 'dynamic');
+        } else {
+            return this.safeValue (orderFee['composite']['default'], 'dynamic');
+        }
+    }
+
+    safeGetRates (dynamic) {
+        const rates = this.safeValue (dynamic, 'rates');
+        if (rates === undefined) {
+            return { 'WAVES': 1 };
+        }
+        return rates;
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         this.checkRequiredDependencies ();
         this.checkRequiredKeys ();
@@ -1113,11 +1130,10 @@ module.exports = class wavesexchange extends Exchange {
         //     "4LHHvYGNKJUg5hj65aGD5vgScvCBmLpdRFtjokvCjSL8"
         //   ]
         // }
-        const orderFee = this.safeValue (settings, 'orderFee');
-        const dynamic = this.safeValue (orderFee, 'dynamic');
+        const dynamic = this.safeGetDynamic (settings);
         const baseMatcherFee = this.safeString (dynamic, 'baseFee');
         const wavesMatcherFee = this.currencyFromPrecision ('WAVES', baseMatcherFee);
-        const rates = this.safeValue (dynamic, 'rates');
+        const rates = this.safeGetRates (dynamic);
         // choose sponsored assets from the list of priceAssets above
         const priceAssets = Object.keys (rates);
         let matcherFeeAssetId = undefined;

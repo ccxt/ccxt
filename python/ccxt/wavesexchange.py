@@ -1001,6 +1001,19 @@ class wavesexchange(Exchange):
         scale = wavesPrecision - market['precision']['amount'] + market['precision']['price']
         return self.from_precision(price, scale)
 
+    def safe_get_dynamic(self, settings):
+        orderFee = self.safe_value(settings, 'orderFee')
+        if 'dynamic' in orderFee:
+            return self.safe_value(orderFee, 'dynamic')
+        else:
+            return self.safe_value(orderFee['composite']['default'], 'dynamic')
+
+    def safe_get_rates(self, dynamic):
+        rates = self.safe_value(dynamic, 'rates')
+        if rates is None:
+            return {'WAVES': 1}
+        return rates
+
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.check_required_dependencies()
         self.check_required_keys()
@@ -1064,11 +1077,10 @@ class wavesexchange(Exchange):
         #     "4LHHvYGNKJUg5hj65aGD5vgScvCBmLpdRFtjokvCjSL8"
         #   ]
         # }
-        orderFee = self.safe_value(settings, 'orderFee')
-        dynamic = self.safe_value(orderFee, 'dynamic')
+        dynamic = self.safe_get_dynamic(settings)
         baseMatcherFee = self.safe_string(dynamic, 'baseFee')
         wavesMatcherFee = self.currency_from_precision('WAVES', baseMatcherFee)
-        rates = self.safe_value(dynamic, 'rates')
+        rates = self.safe_get_rates(dynamic)
         # choose sponsored assets from the list of priceAssets above
         priceAssets = list(rates.keys())
         matcherFeeAssetId = None
