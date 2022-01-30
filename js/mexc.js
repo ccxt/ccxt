@@ -2166,26 +2166,11 @@ module.exports = class mexc extends Exchange {
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
-        }
-        let pageNum = undefined;
-        let pageSize = undefined;
-        if (params['page_num'] === undefined) {
-            pageNum = 1;
-        } else {
-            pageNum = params['page_num'];
-        }
-        if (params['page_size'] === undefined) {
-            pageSize = 20;
-        } else {
-            pageSize = params['page_size'];
-        }
         const request = {
             // 'symbol': market['id'],
-            // 'position_id: positionId,
-            'page_num': pageNum,
-            'page_size': pageSize,
+            // 'position_id': positionId,
+            // 'page_num': 1,
+            // 'page_size': limit, // default 20, max 100
         };
         if (limit !== undefined) {
             request['page_size'] = limit;
