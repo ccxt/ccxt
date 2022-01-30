@@ -3839,7 +3839,7 @@ module.exports = class okex extends Exchange {
             const leverageBrackets = {};
             for (let i = 0; i < data.length; i++) {
                 const entry = data[i];
-                const marketId = this.safeString (entry, 'uly');
+                const marketId = this.safeString (entry, 'instId');
                 const symbol = this.safeSymbol (marketId);
                 if (!(symbol in leverageBrackets)) {
                     leverageBrackets[symbol] = [];
