@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, OrderNotFound, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -119,7 +119,7 @@ module.exports = class bigone extends Exchange {
                     "Price mulit with amount should larger than AssetPair's min_quote_value": InvalidOrder,
                     '10007': BadRequest, // parameter error, {"code":10007,"message":"Amount's scale must greater than AssetPair's base scale"}
                     '10011': ExchangeError, // system error
-                    '10013': OrderNotFound, // {"code":10013,"message":"Resource not found"}
+                    '10013': BadSymbol, // {"code":10013,"message":"Resource not found"}
                     '10014': InsufficientFunds, // {"code":10014,"message":"Insufficient funds"}
                     '10403': PermissionDenied, // permission denied
                     '10429': RateLimitExceeded, // too many requests
@@ -171,6 +171,7 @@ module.exports = class bigone extends Exchange {
         //                 },
         //                 "base_scale":3,
         //                 "min_quote_value":"0.0001",
+        //                 "max_quote_value":"35"
         //             },
         //         ]
         //     }
@@ -197,6 +198,7 @@ module.exports = class bigone extends Exchange {
                 'price': parseInt (pricePrecisionString),
             };
             const minCost = this.safeNumber (market, 'min_quote_value');
+            const maxCost = this.safeNumber (market, 'max_quote_value');
             const entry = {
                 'id': id,
                 'uuid': uuid,
@@ -234,7 +236,7 @@ module.exports = class bigone extends Exchange {
                     },
                     'cost': {
                         'min': minCost,
-                        'max': undefined,
+                        'max': maxCost,
                     },
                 },
                 'info': market,
