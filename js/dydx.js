@@ -641,8 +641,8 @@ module.exports = class dydx extends Exchange {
             if (headers === undefined) {
                 headers = {};
             }
-            const paramsEncoded = this.urlencode (params);
             const paramsJson = this.json (params);
+            const paramsEncoded = this.urlencode (params);
             const isoTimestamp = this.iso8601 (this.milliseconds ());  // new Date ().toISOString ();
             headers['DYDX-TIMESTAMP'] = isoTimestamp;
             if (path === 'onboarding') { // it's only POST
