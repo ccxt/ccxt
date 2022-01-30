@@ -284,6 +284,7 @@ module.exports = class mexc extends Exchange {
                     '33333': BadSymbol, // {"code":33333,"msg":"currency can not be null"}
                 },
                 'broad': {
+                    'price and quantity must be positive': InvalidOrder, // {"msg":"price and quantity must be positive","code":400}
                 },
             },
         });
@@ -646,8 +647,8 @@ module.exports = class mexc extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.parsePrecision (priceScale),
-                    'amount': this.parsePrecision (quantityScale),
+                    'price': this.parseNumber (this.parsePrecision (priceScale)),
+                    'amount': this.parseNumber (this.parsePrecision (quantityScale)),
                 },
                 'limits': {
                     'leverage': {
@@ -2183,6 +2184,7 @@ module.exports = class mexc extends Exchange {
         const responseCode = this.safeString (response, 'code');
         if ((responseCode !== '200') && (responseCode !== '0')) {
             const feedback = this.id + ' ' + body;
+            this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], responseCode, feedback);
             throw new ExchangeError (feedback);
         }
