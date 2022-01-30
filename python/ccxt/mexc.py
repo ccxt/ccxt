@@ -52,6 +52,7 @@ class mexc(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
@@ -2064,6 +2065,70 @@ class mexc(Exchange):
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], responseCode, feedback)
             raise ExchangeError(feedback)
+
+    def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        market = None
+        request = {
+            # 'symbol': market['id'],
+            # 'position_id': positionId,
+            # 'page_num': 1,
+            # 'page_size': limit,  # default 20, max 100
+        }
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if limit is not None:
+            request['page_size'] = limit
+        response = self.contractPrivateGetPositionFundingRecords(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "code": 0,
+        #         "data": {
+        #             "pageSize": 20,
+        #             "totalCount": 2,
+        #             "totalPage": 1,
+        #             "currentPage": 1,
+        #             "resultList": [
+        #                 {
+        #                     "id": 7423910,
+        #                     "symbol": "BTC_USDT",
+        #                     "positionType": 1,
+        #                     "positionValue": 29.30024,
+        #                     "funding": 0.00076180624,
+        #                     "rate": -0.000026,
+        #                     "settleTime": 1643299200000
+        #                 },
+        #                 {
+        #                     "id": 7416473,
+        #                     "symbol": "BTC_USDT",
+        #                     "positionType": 1,
+        #                     "positionValue": 28.9188,
+        #                     "funding": 0.0014748588,
+        #                     "rate": -0.000051,
+        #                     "settleTime": 1643270400000
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        resultList = self.safe_value(data, 'resultList', [])
+        result = []
+        for i in range(0, len(resultList)):
+            entry = resultList[i]
+            timestamp = self.safe_string(entry, 'settleTime')
+            result.append({
+                'info': entry,
+                'symbol': symbol,
+                'code': None,
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'id': self.safe_number(entry, 'id'),
+                'amount': self.safe_number(entry, 'funding'),
+            })
+        return result
 
     def parse_funding_rate(self, fundingRate, market=None):
         #
