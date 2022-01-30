@@ -1614,8 +1614,6 @@ module.exports = class mexc extends Exchange {
             orderType = 'LIMIT_ORDER';
         } else if ((orderType !== 'POST_ONLY') && (orderType !== 'IMMEDIATE_OR_CANCEL')) {
             throw new InvalidOrder (this.id + ' createOrder() does not support ' + type + ' order type, specify one of LIMIT, LIMIT_ORDER, POST_ONLY or IMMEDIATE_OR_CANCEL');
-        } else {
-            throw new InvalidOrder (this.id + ' createOrder() allows limit orders only');
         }
         const request = {
             'symbol': market['id'],
