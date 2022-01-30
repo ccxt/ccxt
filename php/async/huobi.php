@@ -73,7 +73,7 @@ class huobi extends Exchange {
                 'fetchIndexOHLCV' => true,
                 'fetchIsolatedPositions' => false,
                 'fetchL3OrderBook' => null,
-                'fetchLedger' => null,
+                'fetchLedger' => true,
                 'fetchLedgerEntry' => null,
                 'fetchLeverage' => false,
                 'fetchMarkets' => true,
@@ -5197,5 +5197,129 @@ class huobi extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         ));
+    }
+
+    public function parse_ledger_entry_type($type) {
+        $types = array(
+            'trade' => 'trade',
+            'etf' => 'trade',
+            'transact-fee' => 'fee',
+            'fee-deduction' => 'fee',
+            'transfer' => 'transfer',
+            'credit' => 'credit',
+            'liquidation' => 'trade',
+            'interest' => 'credit',
+            'deposit' => 'deposit',
+            'withdraw' => 'withdrawal',
+            'withdraw-fee' => 'fee',
+            'exchange' => 'exchange',
+            'other-types' => 'transfer',
+            'rebate' => 'rebate',
+        );
+        return $this->safe_string($types, $type, $type);
+    }
+
+    public function parse_ledger_entry($item, $currency = null) {
+        //
+        //     {
+        //         "accountId" => 10000001,
+        //         "currency" => "usdt",
+        //         "transactAmt" => 10.000000000000000000,
+        //         "transactType" => "transfer",
+        //         "transferType" => "margin-transfer-out",
+        //         "transactId" => 0,
+        //         "transactTime" => 1629882331066,
+        //         "transferer" => 28483123,
+        //         "transferee" => 13496526
+        //     }
+        //
+        $id = $this->safe_string($item, 'transactId');
+        $currencyId = $this->safe_string($item, 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $amount = $this->safe_number($item, 'transactAmt');
+        $transferType = $this->safe_string($item, 'transferType');
+        $type = $this->parse_ledger_entry_type($transferType);
+        $direction = $this->safe_string($item, 'direction');
+        $timestamp = $this->safe_integer($item, 'transactTime');
+        $datetime = $this->iso8601($timestamp);
+        $account = $this->safe_string($item, 'accountId');
+        return array(
+            'id' => $id,
+            'direction' => $direction,
+            'account' => $account,
+            'referenceId' => $id,
+            'referenceAccount' => $account,
+            'type' => $type,
+            'currency' => $code,
+            'amount' => $amount,
+            'timestamp' => $timestamp,
+            'datetime' => $datetime,
+            'before' => null,
+            'after' => null,
+            'status' => null,
+            'fee' => null,
+            'info' => $item,
+        );
+    }
+
+    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $accountId = yield $this->fetch_account_id_by_type('spot', $params);
+        $request = array(
+            'accountId' => $accountId,
+            // 'currency' => $code,
+            // 'transactTypes' => 'all', // default all
+            // 'startTime' => 1546272000000,
+            // 'endTime' => 1546272000000,
+            // 'sort' => asc, // asc, desc
+            // 'limit' => 100, // range 1-500
+            // 'fromId' => 323 // first record ID in this query for pagination
+        );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // max 500
+        }
+        $response = yield $this->spotPrivateGetV2AccountLedger (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 200,
+        //         "message" => "success",
+        //         "data" => array(
+        //             array(
+        //                 "accountId" => 10000001,
+        //                 "currency" => "usdt",
+        //                 "transactAmt" => 10.000000000000000000,
+        //                 "transactType" => "transfer",
+        //                 "transferType" => "margin-transfer-out",
+        //                 "transactId" => 0,
+        //                 "transactTime" => 1629882331066,
+        //                 "transferer" => 28483123,
+        //                 "transferee" => 13496526
+        //             ),
+        //             {
+        //                 "accountId" => 10000001,
+        //                 "currency" => "usdt",
+        //                 "transactAmt" => -10.000000000000000000,
+        //                 "transactType" => "transfer",
+        //                 "transferType" => "margin-transfer-in",
+        //                 "transactId" => 0,
+        //                 "transactTime" => 1629882096562,
+        //                 "transferer" => 13496526,
+        //                 "transferee" => 28483123
+        //             }
+        //         ),
+        //         "nextId" => 1624316679,
+        //         "ok" => true
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_ledger($data, $currency, $since, $limit);
     }
 }

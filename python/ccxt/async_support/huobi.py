@@ -89,7 +89,7 @@ class huobi(Exchange):
                 'fetchIndexOHLCV': True,
                 'fetchIsolatedPositions': False,
                 'fetchL3OrderBook': None,
-                'fetchLedger': None,
+                'fetchLedger': True,
                 'fetchLedgerEntry': None,
                 'fetchLeverage': False,
                 'fetchMarkets': True,
@@ -4907,3 +4907,121 @@ class huobi(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         })
+
+    def parse_ledger_entry_type(self, type):
+        types = {
+            'trade': 'trade',
+            'etf': 'trade',
+            'transact-fee': 'fee',
+            'fee-deduction': 'fee',
+            'transfer': 'transfer',
+            'credit': 'credit',
+            'liquidation': 'trade',
+            'interest': 'credit',
+            'deposit': 'deposit',
+            'withdraw': 'withdrawal',
+            'withdraw-fee': 'fee',
+            'exchange': 'exchange',
+            'other-types': 'transfer',
+            'rebate': 'rebate',
+        }
+        return self.safe_string(types, type, type)
+
+    def parse_ledger_entry(self, item, currency=None):
+        #
+        #     {
+        #         "accountId": 10000001,
+        #         "currency": "usdt",
+        #         "transactAmt": 10.000000000000000000,
+        #         "transactType": "transfer",
+        #         "transferType": "margin-transfer-out",
+        #         "transactId": 0,
+        #         "transactTime": 1629882331066,
+        #         "transferer": 28483123,
+        #         "transferee": 13496526
+        #     }
+        #
+        id = self.safe_string(item, 'transactId')
+        currencyId = self.safe_string(item, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
+        amount = self.safe_number(item, 'transactAmt')
+        transferType = self.safe_string(item, 'transferType')
+        type = self.parse_ledger_entry_type(transferType)
+        direction = self.safe_string(item, 'direction')
+        timestamp = self.safe_integer(item, 'transactTime')
+        datetime = self.iso8601(timestamp)
+        account = self.safe_string(item, 'accountId')
+        return {
+            'id': id,
+            'direction': direction,
+            'account': account,
+            'referenceId': id,
+            'referenceAccount': account,
+            'type': type,
+            'currency': code,
+            'amount': amount,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'before': None,
+            'after': None,
+            'status': None,
+            'fee': None,
+            'info': item,
+        }
+
+    async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        accountId = await self.fetch_account_id_by_type('spot', params)
+        request = {
+            'accountId': accountId,
+            # 'currency': code,
+            # 'transactTypes': 'all',  # default all
+            # 'startTime': 1546272000000,
+            # 'endTime': 1546272000000,
+            # 'sort': asc,  # asc, desc
+            # 'limit': 100,  # range 1-500
+            # 'fromId': 323  # first record ID in self query for pagination
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit  # max 500
+        response = await self.spotPrivateGetV2AccountLedger(self.extend(request, params))
+        #
+        #     {
+        #         "code": 200,
+        #         "message": "success",
+        #         "data": [
+        #             {
+        #                 "accountId": 10000001,
+        #                 "currency": "usdt",
+        #                 "transactAmt": 10.000000000000000000,
+        #                 "transactType": "transfer",
+        #                 "transferType": "margin-transfer-out",
+        #                 "transactId": 0,
+        #                 "transactTime": 1629882331066,
+        #                 "transferer": 28483123,
+        #                 "transferee": 13496526
+        #             },
+        #             {
+        #                 "accountId": 10000001,
+        #                 "currency": "usdt",
+        #                 "transactAmt": -10.000000000000000000,
+        #                 "transactType": "transfer",
+        #                 "transferType": "margin-transfer-in",
+        #                 "transactId": 0,
+        #                 "transactTime": 1629882096562,
+        #                 "transferer": 13496526,
+        #                 "transferee": 28483123
+        #             }
+        #         ],
+        #         "nextId": 1624316679,
+        #         "ok": True
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_ledger(data, currency, since, limit)
