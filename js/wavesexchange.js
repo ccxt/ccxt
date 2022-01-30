@@ -770,7 +770,7 @@ module.exports = class wavesexchange extends Exchange {
         limit = Math.min (allowedCandles, limit);
         const duration = this.parseTimeframe (timeframe) * 1000;
         if (since === undefined) {
-            const currentTime = Math.floor (this.milliseconds () / duration) * duration;
+            const currentTime = parseInt (this.milliseconds () / duration) * duration;
             const delta = (limit - 1) * duration;
             const timeStart = currentTime - delta;
             request['timeStart'] = timeStart.toString ();
