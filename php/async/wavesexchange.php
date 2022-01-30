@@ -11,6 +11,7 @@ use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
 use \ccxt\InsufficientFunds;
+use \ccxt\InvalidOrder;
 use \ccxt\Precise;
 
 class wavesexchange extends Exchange {
@@ -32,7 +33,7 @@ class wavesexchange extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
-                'createMarketOrder' => null,
+                'createMarketOrder' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
@@ -1082,6 +1083,10 @@ class wavesexchange extends Exchange {
         $amountAsset = $this->get_asset_id($market['baseId']);
         $priceAsset = $this->get_asset_id($market['quoteId']);
         $amount = $this->amount_to_precision($symbol, $amount);
+        $isMarketOrder = ($type === 'market');
+        if (($isMarketOrder) && ($price === null)) {
+            throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for ' . $type . ' orders to determine the max $price for buy and the min $price for sell');
+        }
         $price = $this->price_to_precision($symbol, $price);
         $orderType = ($side === 'buy') ? 0 : 1;
         $timestamp = $this->milliseconds();
@@ -1216,7 +1221,15 @@ class wavesexchange extends Exchange {
         if ($matcherFeeAssetId !== 'WAVES') {
             $body['matcherFeeAssetId'] = $matcherFeeAssetId;
         }
-        $response = yield $this->matcherPostMatcherOrderbook ($body);
+        if ($isMarketOrder) {
+            $response = yield $this->matcherPostMatcherOrderbookMarket ($body);
+            $value = $this->safe_value($response, 'message');
+            return $this->parse_order($value, $market);
+        } else {
+            $response = yield $this->matcherPostMatcherOrderbook ($body);
+            $value = $this->safe_value($response, 'message');
+            return $this->parse_order($value, $market);
+        }
         // { success => true,
         //   message:
         //    array( version => 3,
@@ -1238,8 +1251,6 @@ class wavesexchange extends Exchange {
         //      proofs:
         //       array( '2EG8zgE6Ze1X5EYA8DbfFiPXAtC7NniYBAMFbJUbzwVbHmmCKHornQfS5F32NwkHF4623KWq1U6K126h4TTqyVq' ) ),
         //   status => 'OrderAccepted' }
-        $value = $this->safe_value($response, 'message');
-        return $this->parse_order($value, $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {

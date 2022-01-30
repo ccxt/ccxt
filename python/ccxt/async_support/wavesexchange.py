@@ -38,7 +38,7 @@ class wavesexchange(Exchange):
                 'option': False,
                 'addMargin': False,
                 'cancelOrder': True,
-                'createMarketOrder': None,
+                'createMarketOrder': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,
@@ -1023,6 +1023,9 @@ class wavesexchange(Exchange):
         amountAsset = self.get_asset_id(market['baseId'])
         priceAsset = self.get_asset_id(market['quoteId'])
         amount = self.amount_to_precision(symbol, amount)
+        isMarketOrder = (type == 'market')
+        if (isMarketOrder) and (price is None):
+            raise InvalidOrder(self.id + ' createOrder() requires a price argument for ' + type + ' orders to determine the max price for buy and the min price for sell')
         price = self.price_to_precision(symbol, price)
         orderType = 0 if (side == 'buy') else 1
         timestamp = self.milliseconds()
@@ -1150,7 +1153,14 @@ class wavesexchange(Exchange):
         }
         if matcherFeeAssetId != 'WAVES':
             body['matcherFeeAssetId'] = matcherFeeAssetId
-        response = await self.matcherPostMatcherOrderbook(body)
+        if isMarketOrder:
+            response = await self.matcherPostMatcherOrderbookMarket(body)
+            value = self.safe_value(response, 'message')
+            return self.parse_order(value, market)
+        else:
+            response = await self.matcherPostMatcherOrderbook(body)
+            value = self.safe_value(response, 'message')
+            return self.parse_order(value, market)
         # {success: True,
         #   message:
         #    {version: 3,
@@ -1172,8 +1182,6 @@ class wavesexchange(Exchange):
         #      proofs:
         #       ['2EG8zgE6Ze1X5EYA8DbfFiPXAtC7NniYBAMFbJUbzwVbHmmCKHornQfS5F32NwkHF4623KWq1U6K126h4TTqyVq']},
         #   status: 'OrderAccepted'}
-        value = self.safe_value(response, 'message')
-        return self.parse_order(value, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
         self.check_required_dependencies()
