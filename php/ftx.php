@@ -475,8 +475,8 @@ class ftx extends Exchange {
         //         name => "BTC-PERP",
         //         enabled =>  true,
         //         postOnly =>  false,
-        //         $priceIncrement => "1.0",
-        //         $sizeIncrement => "0.0001",
+        //         priceIncrement => "1.0",
+        //         sizeIncrement => "0.0001",
         //         minProvideSize => "0.001",
         //         last => "60397.0",
         //         bid => "60387.0",
@@ -513,8 +513,8 @@ class ftx extends Exchange {
         //                expired => false,
         //                enabled => true,
         //                postOnly => false,
-        //                $priceIncrement => "0.0001",
-        //                $sizeIncrement => "1.0",
+        //                priceIncrement => "0.0001",
+        //                sizeIncrement => "1.0",
         //                last => "2.5556",
         //                bid => "2.5555",
         //                ask => "2.5563",
@@ -590,8 +590,6 @@ class ftx extends Exchange {
                 $symbol = $base . '/' . $quote . ':' . $settle . '-' . $this->yymmdd($expiry, '');
             }
             // check if a $market is a $spot or $future $market
-            $sizeIncrement = $this->safe_number($market, 'sizeIncrement');
-            $priceIncrement = $this->safe_number($market, 'priceIncrement');
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -608,7 +606,6 @@ class ftx extends Exchange {
                 'future' => $isFuture,
                 'option' => $option,
                 'active' => $this->safe_value($market, 'enabled'),
-                'derivative' => $contract,
                 'contract' => $contract,
                 'linear' => true,
                 'inverse' => false,
@@ -618,25 +615,25 @@ class ftx extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $sizeIncrement,
-                    'price' => $priceIncrement,
+                    'price' => $this->safe_number($market, 'priceIncrement'),
+                    'amount' => $this->safe_number($market, 'sizeIncrement'),
                 ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => $this->parse_number('1'),
+                        'max' => $this->parse_number('20'),
+                    ),
                     'amount' => array(
-                        'min' => $sizeIncrement,
+                        'min' => null,
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => $priceIncrement,
+                        'min' => null,
                         'max' => null,
                     ),
                     'cost' => array(
                         'min' => null,
                         'max' => null,
-                    ),
-                    'leverage' => array(
-                        'min' => $this->parse_number('1'),
-                        'max' => $this->parse_number('20'),
                     ),
                 ),
                 'info' => $market,

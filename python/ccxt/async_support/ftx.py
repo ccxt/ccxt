@@ -602,8 +602,6 @@ class ftx(Exchange):
                     base = '-'.join(parsedId)
                 symbol = base + '/' + quote + ':' + settle + '-' + self.yymmdd(expiry, '')
             # check if a market is a spot or future market
-            sizeIncrement = self.safe_number(market, 'sizeIncrement')
-            priceIncrement = self.safe_number(market, 'priceIncrement')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -620,7 +618,6 @@ class ftx(Exchange):
                 'future': isFuture,
                 'option': option,
                 'active': self.safe_value(market, 'enabled'),
-                'derivative': contract,
                 'contract': contract,
                 'linear': True,
                 'inverse': False,
@@ -630,25 +627,25 @@ class ftx(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': sizeIncrement,
-                    'price': priceIncrement,
+                    'price': self.safe_number(market, 'priceIncrement'),
+                    'amount': self.safe_number(market, 'sizeIncrement'),
                 },
                 'limits': {
+                    'leverage': {
+                        'min': self.parse_number('1'),
+                        'max': self.parse_number('20'),
+                    },
                     'amount': {
-                        'min': sizeIncrement,
+                        'min': None,
                         'max': None,
                     },
                     'price': {
-                        'min': priceIncrement,
+                        'min': None,
                         'max': None,
                     },
                     'cost': {
                         'min': None,
                         'max': None,
-                    },
-                    'leverage': {
-                        'min': self.parse_number('1'),
-                        'max': self.parse_number('20'),
                     },
                 },
                 'info': market,
