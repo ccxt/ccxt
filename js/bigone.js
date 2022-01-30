@@ -171,6 +171,7 @@ module.exports = class bigone extends Exchange {
         //                 },
         //                 "base_scale":3,
         //                 "min_quote_value":"0.0001",
+        //                 "max_quote_value":"35"
         //             },
         //         ]
         //     }
@@ -197,6 +198,7 @@ module.exports = class bigone extends Exchange {
                 'price': parseInt (pricePrecisionString),
             };
             const minCost = this.safeNumber (market, 'min_quote_value');
+            const maxCost = this.safeNumber (market, 'max_quote_value');
             const entry = {
                 'id': id,
                 'uuid': uuid,
@@ -234,7 +236,7 @@ module.exports = class bigone extends Exchange {
                     },
                     'cost': {
                         'min': minCost,
-                        'max': undefined,
+                        'max': maxCost,
                     },
                 },
                 'info': market,
