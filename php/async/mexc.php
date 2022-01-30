@@ -290,6 +290,7 @@ class mexc extends Exchange {
                     '33333' => '\\ccxt\\BadSymbol', // array("code":33333,"msg":"currency can not be null")
                 ),
                 'broad' => array(
+                    'price and quantity must be positive' => '\\ccxt\\InvalidOrder', // array("msg":"price and quantity must be positive","code":400)
                 ),
             ),
         ));
@@ -652,8 +653,8 @@ class mexc extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->parse_precision($priceScale),
-                    'amount' => $this->parse_precision($quantityScale),
+                    'price' => $this->parse_number($this->parse_precision($priceScale)),
+                    'amount' => $this->parse_number($this->parse_precision($quantityScale)),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -2189,6 +2190,7 @@ class mexc extends Exchange {
         $responseCode = $this->safe_string($response, 'code');
         if (($responseCode !== '200') && ($responseCode !== '0')) {
             $feedback = $this->id . ' ' . $body;
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $responseCode, $feedback);
             throw new ExchangeError($feedback);
         }

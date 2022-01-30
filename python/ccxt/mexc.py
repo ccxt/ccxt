@@ -298,6 +298,7 @@ class mexc(Exchange):
                     '33333': BadSymbol,  # {"code":33333,"msg":"currency can not be null"}
                 },
                 'broad': {
+                    'price and quantity must be positive': InvalidOrder,  # {"msg":"price and quantity must be positive","code":400}
                 },
             },
         })
@@ -641,8 +642,8 @@ class mexc(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.parse_precision(priceScale),
-                    'amount': self.parse_precision(quantityScale),
+                    'price': self.parse_number(self.parse_precision(priceScale)),
+                    'amount': self.parse_number(self.parse_precision(quantityScale)),
                 },
                 'limits': {
                     'leverage': {
@@ -2061,6 +2062,7 @@ class mexc(Exchange):
         responseCode = self.safe_string(response, 'code')
         if (responseCode != '200') and (responseCode != '0'):
             feedback = self.id + ' ' + body
+            self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], responseCode, feedback)
             raise ExchangeError(feedback)
 
