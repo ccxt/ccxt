@@ -139,6 +139,8 @@ module.exports = class btse extends Exchange {
                             'user/fees': 5,
                             'user/open_orders': 5,
                             'user/trade_history': 5,
+                            'user/wallet_history': 5,
+                            'user/wallet': 5,
                         },
                         'post': {
                             'order': 1,
@@ -681,69 +683,126 @@ module.exports = class btse extends Exchange {
         return this.safeInteger (response, 'epoch');
     }
 
+    parseSpotBalance (response) {
+        // [
+        //    {
+        //        "currency":"USD",
+        //        "total":"10000.0",
+        //        "available":"10000.0"
+        //    }
+        // ]
+        const result = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['total'] = this.safeString (balance, 'amount');
+            account['free'] = this.safeString (balance, 'available');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
+    parseFutureBalance (response) {
+        // [
+        // {
+        //     "wallet":"CROSS@",
+        //     "totalValue":"0.0",
+        //     "marginBalance":"0.0",
+        //     "availableBalance":"0.0",
+        //     "unrealisedProfitLoss":"0.0",
+        //     "maintenanceMargin":"0.0",
+        //     "leverage":"0.0",
+        //     "openMargin":"0.0",
+        //     "assets":[
+        //        {
+        //           "balance":"0.0",
+        //           "assetPrice":"1.0",
+        //           "currency":"USD",
+        //           "display":false
+        //        }
+        //     ],
+        //     "assetsInUse":[
+        //     ]
+        //  },
+        //  {
+        //     "wallet":"ISOLATED@LINKPFC-USD",
+        //     "totalValue":"0.0",
+        //     "marginBalance":"0.0",
+        //     "availableBalance":"0.0",
+        //     "unrealisedProfitLoss":"0.0",
+        //     "maintenanceMargin":"0.0",
+        //     "leverage":"0.0",
+        //     "openMargin":"0.0",
+        //     "assets":[
+        //     ],
+        //     "assetsInUse":[
+        //     ]
+        //  }
+        // ]
+        const result = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const wallet = this.safeString (balance, 'wallet');
+            const splittedWallet = wallet.split ('@');
+            const account = this.account ();
+            let code = undefined;
+            if (splittedWallet.length > 1) {
+                const currencyId = this.safeString (splittedWallet, 1);
+                code = this.safeCurrencyCode (currencyId);
+                account['total'] = this.safeString (balance, 'totalValue');
+                account['free'] = this.safeString (balance, 'availableBalance');
+            }
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        const method = this.getSupportedMapping (marketType, {
+        const method = this.getSupportedMapping ('future', {
             'spot': 'spotPrivateGetUserWallet',
             'future': 'futurePrivateGetUserWallet',
         });
         const response = await this[method] (query);
         // spot
-        //     {
-        //         "id": 11,
-        //         "method": "private/get-account-summary",
-        //         "code": 0,
-        //         "result": {
-        //             "accounts": [
-        //                 {
-        //                     "balance": 99999999.905000000000000000,
-        //                     "available": 99999996.905000000000000000,
-        //                     "order": 3.000000000000000000,
-        //                     "stake": 0,
-        //                     "currency": "CRO"
-        //                 }
-        //             ]
-        //         }
+        // [
+        //    {
+        //        "currency":"USD",
+        //        "total":"10000.0",
+        //        "available":"10000.0"
         //     }
+        // ]
         //
-        // swap
-        //     {
-        //       "id" : 1641025392400,
-        //       "method" : "private/user-balance",
-        //       "code" : 0,
-        //       "result" : {
-        //         "data" : [ {
-        //           "total_available_balance" : "109.56000000",
-        //           "total_margin_balance" : "109.56000000",
-        //           "total_initial_margin" : "0.00000000",
-        //           "total_maintenance_margin" : "0.00000000",
-        //           "total_position_cost" : "0.00000000",
-        //           "total_cash_balance" : "109.56000000",
-        //           "total_collateral_value" : "109.56000000",
-        //           "total_session_unrealized_pnl" : "0.00000000",
-        //           "instrument_name" : "USD_Stable_Coin",
-        //           "total_session_realized_pnl" : "0.00000000",
-        //           "position_balances" : [ {
-        //             "quantity" : "109.56000000",
-        //             "collateral_weight" : "1.000000",
-        //             "collateral_amount" : "109.56000000",
-        //             "market_value" : "109.56000000",
-        //             "max_withdrawal_balance" : "109.56000000",
-        //             "instrument_name" : "USD_Stable_Coin"
-        //           } ],
-        //           "total_effective_leverage" : "0.000000",
-        //           "position_limit" : "3000000.00000000",
-        //           "used_position_limit" : "0.00000000",
-        //           "is_liquidating" : false
-        //         } ]
-        //       }
-        //     }
+        // future
+        // [
+        //      {
+        //         "wallet":"CROSS@",
+        //         "totalValue":"0.0",
+        //         "marginBalance":"0.0",
+        //         "availableBalance":"0.0",
+        //         "unrealisedProfitLoss":"0.0",
+        //         "maintenanceMargin":"0.0",
+        //         "leverage":"0.0",
+        //         "openMargin":"0.0",
+        //         "assets":[
+        //            {
+        //               "balance":"0.0",
+        //               "assetPrice":"1.0",
+        //               "currency":"USD",
+        //               "display":false
+        //            }
+        //         ],
+        //         "assetsInUse":[
+        //         ]
+        //      },
+        // ];
         //
         const parser = this.getSupportedMapping (marketType, {
             'spot': 'parseSpotBalance',
-            'future': 'parseSwapBalance',
-            'swap': 'parseSwapBalance',
+            'future': 'parseFutureBalance',
         });
         return this[parser] (response);
     }
