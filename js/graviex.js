@@ -69,10 +69,29 @@ module.exports = class graviex extends Exchange {
                     'get': [
                         'markets',
                         'tickers',
+                        'order_book', // Requires market XXXYYY. Optional: asks_limit, bids_limit.
+                        'depth', // Requires market XXXYYY. Optional: asks_limit, bids_limit.
                         'trades', // Requires market XXXYYY. Optional: limit, timestamp, from, to, order_by
+                        'k', // Requires market XXXYYY. Optional: limit, timestamp, period
+                        'k_with_pending_trades', // Requires market XXXYYY and tradeid. Optional: limit, timestamp, period
                     ],
                 },
                 'private': {
+                    'get': [
+                        'members/me', // Requires access_key, tonce, signature and api secret.
+                        'deposits', // Requires access_key, tonce, signature and api secret. Optional currency, limit and state.
+                        'deposit', // Requires access_key, tonce, signature, txid and api secret.
+                        'deposit_address', // Requires access_key, tonce, signature, currency and api secret.
+                        'orders', // Requires access_key, tonce, signature and api secret. Optional market, state, limit, page, order_by
+                        'order', // Requires access_key, tonce, signature and api secret AND id (unique orderid).
+                        'trades/my', // Requires market XXXYYY, access_key, tonce, signature and api secret . Optional: limit, timestamp, from, to, order_by
+                    ],
+                    'post': [
+                        'orders', // Requires access_key, tonce, signature and api secret AND market, side(sell/buy), volume. Optional price ord_type
+                        'orders/multi', // Requires access_key, tonce, signature and api secret AND market, orders, orders[side(sell/buy)], orders[volume]. Optional orders[price], orders[ord_type]. To create multiple orders at once
+                        'orders/clear', // Requires access_key, tonce, signature and api secret. Optional side(sell/buy) to only clear orders on one side.
+                        'order/delete', // Requires access_key, tonce, signature and api secret AND id (unique orderid).
+                    ],
                 },
             },
             'fees': {
@@ -121,11 +140,16 @@ module.exports = class graviex extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetMarkets ();
+        // {
+        //     "id": "giobtc",
+        //     "name": "GIO/BTC",
+        // };
         const markets = response;
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const id = markets[i]['id'];
-            const symbolParts = markets[i]['name'].split ('/');
+            const market = markets[i];
+            const id = this.safeString (market, 'id');
+            const symbolParts = this.safeString (market, 'name').split ('/');
             const baseId = symbolParts[0];
             const quoteId = symbolParts[1];
             const base = this.commonCurrencyCode (baseId);
@@ -179,9 +203,35 @@ module.exports = class graviex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'market': market['id'].replace ('_', ''),
+            'market': market['id'],
         };
         const response = await this.publicGetTickers (this.extend (request, params));
+        // {
+        //     "name": "GIO/BTC",
+        //     "base_unit": "gio",
+        //     "base_fixed": 4,
+        //     "base_fee": 0.002,
+        //     "quote_unit": "btc",
+        //     "quote_fixed": 8,
+        //     "quote_fee": 0.002,
+        //     "api": true,
+        //     "base_lot": null,
+        //     "quote_lot": null,
+        //     "base_min": "0.00000010",
+        //     "quote_min": "0.00000010",
+        //     "blocks": 260722,
+        //     "block_time": "2022-01-31 14:10:08",
+        //     "wstatus": "on",
+        //     "low": "0.0000005",
+        //     "high": "0.00000058",
+        //     "last": "0.00000058",
+        //     "open": "0.000000510",
+        //     "volume": "70673.0412",
+        //     "volume2": "0.03837782973",
+        //     "sell": "0.00000058",
+        //     "buy": "0.00000055",
+        //     "at": 1643628427,
+        // },
         if (Array.isArray (response)) {
             const firstTicker = this.safeValue (response, 0, {});
             return this.parseTicker (firstTicker, market);
@@ -192,6 +242,34 @@ module.exports = class graviex extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.publicGetTickers (params);
+        // {
+        //   "giobtc": {
+        //     "name": "GIO/BTC",
+        //     "base_unit": "gio",
+        //     "base_fixed": 4,
+        //     "base_fee": 0.002,
+        //     "quote_unit": "btc",
+        //     "quote_fixed": 8,
+        //     "quote_fee": 0.002,
+        //     "api": true,
+        //     "base_lot": null,
+        //     "quote_lot": null,
+        //     "base_min": "0.00000010",
+        //     "quote_min": "0.00000010",
+        //     "blocks": 260722,
+        //     "block_time": "2022-01-31 14:10:08",
+        //     "wstatus": "on",
+        //     "low": "0.0000005",
+        //     "high": "0.00000058",
+        //     "last": "0.00000058",
+        //     "open": "0.000000510",
+        //     "volume": "70673.0412",
+        //     "volume2": "0.03837782973",
+        //     "sell": "0.00000057",
+        //     "buy": "0.00000055",
+        //     "at": 1643628325,
+        //   },
+        // },
         const data = response;
         // let timestamp = data['at'];
         // let tickers = data['ticker'];
@@ -199,7 +277,7 @@ module.exports = class graviex extends Exchange {
         const result = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const market = this.markets_by_id[id];
+            const market = this.safeMarket (id);
             const symbol = market['symbol'];
             result[symbol] = this.parseTicker (response[id], market);
         }
