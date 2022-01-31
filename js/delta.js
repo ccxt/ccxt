@@ -392,7 +392,7 @@ module.exports = class delta extends Exchange {
             const swap = (type === 'perpetual_futures');
             const future = (type === 'futures');
             const option = (callOptions || putOptions || moveOptions);
-            const strike = this.safeNumber (market, 'strike_price');
+            const strike = this.safeString (market, 'strike_price');
             const expiryDatetime = this.safeString (market, 'settlement_time');
             const expiry = this.parse8601 (expiryDatetime);
             const contractSize = this.safeNumber (market, 'contract_value');
@@ -450,7 +450,7 @@ module.exports = class delta extends Exchange {
                 'contractSize': contractSize,
                 'expiry': expiry,
                 'expiryDatetime': expiryDatetime,
-                'strike': strike,
+                'strike': this.parseNumber (strike),
                 'optionType': optionType,
                 'precision': {
                     'price': this.safeNumber (market, 'tick_size'),
