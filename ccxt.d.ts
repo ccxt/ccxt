@@ -58,6 +58,7 @@ declare module 'ccxt' {
         quote: string;
         baseId: string;
         quoteId: string;
+        settle: string;
         settleId?: string;
         type?: string;
         spot?: boolean;
@@ -77,8 +78,6 @@ declare module 'ccxt' {
             price?: { min: number, max: number },
             withdraw?: { min: number, max: number },
         };
-        tierBased: boolean;
-        percentage: boolean;
         taker: number;
         maker: number;
         contractSize?: number;
