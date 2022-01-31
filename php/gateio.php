@@ -834,8 +834,8 @@ class gateio extends Exchange {
                     'strike' => null,
                     'optionType' => null,
                     'precision' => array(
-                        'price' => $this->parse_precision($amountPrecisionString),
-                        'amount' => $this->parse_precision($pricePrecisionString),
+                        'price' => $this->parse_precision($pricePrecisionString),
+                        'amount' => $this->parse_precision($amountPrecisionString),
                     ),
                     'limits' => array(
                         'leverage' => array(

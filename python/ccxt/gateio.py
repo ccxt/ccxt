@@ -839,8 +839,8 @@ class gateio(Exchange):
                     'strike': None,
                     'optionType': None,
                     'precision': {
-                        'price': self.parse_precision(amountPrecisionString),
-                        'amount': self.parse_precision(pricePrecisionString),
+                        'price': self.parse_precision(pricePrecisionString),
+                        'amount': self.parse_precision(amountPrecisionString),
                     },
                     'limits': {
                         'leverage': {
