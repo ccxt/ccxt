@@ -2490,7 +2490,7 @@ module.exports = class gateio extends Exchange {
         const tkfr = this.safeNumber (order, 'tkfr');
         if (mkfr) {
             fees.push ({
-                'currency': this.safeCurrencyCode (this.safeString (order, 'settleId')),
+                'currency': this.safeCurrencyCode (this.safeString (market, 'settleId')),
                 'cost': mkfr,
             });
         }
