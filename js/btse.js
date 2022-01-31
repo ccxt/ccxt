@@ -763,7 +763,9 @@ module.exports = class btse extends Exchange {
                 convertedBody = '';
             }
             const nonce = this.milliseconds ().toString ();
-            const payload = path + nonce + convertedBody;
+            const splittedURL = this.urls['api'][type].split ('/');
+            const version = splittedURL[splittedURL.length - 1];
+            const payload = '/api/' + version + '/' + path + nonce + convertedBody;
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha384');
             headers = {
                 'btse-api': this.apiKey,
