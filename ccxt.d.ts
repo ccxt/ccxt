@@ -47,15 +47,13 @@ declare module 'ccxt' {
     export const exchanges: string[];
 
     export interface MinMax {
-        min: number;
+        min: number | undefined;
         max: number | undefined;
     }
 
     export interface Market {
         id: string;
         symbol: string;
-        base: string;
-        quote: string;
         baseId: string;
         quoteId: string;
         settle: string;
@@ -70,13 +68,13 @@ declare module 'ccxt' {
         contract: boolean;
         linear: boolean;
         inverse: boolean;
-        precision: { base: number, quote: number, amount: number, price: number };
+        precision: { base: number, quote: number, amount: number | undefined, price: number | undefined };
         limits: { 
-            amount?: { min: number, max: number },
-            cost?: { min: number, max: number },
-            leverage?: { min: number, max: number },
-            price?: { min: number, max: number },
-            withdraw?: { min: number, max: number },
+            amount?: MinMax,
+            cost?: MinMax,
+            leverage?: MinMax,
+            price?: MinMax,
+            withdraw?: MinMax,
         };
         taker: number;
         maker: number;
