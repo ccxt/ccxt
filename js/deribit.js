@@ -21,8 +21,8 @@ module.exports = class deribit extends Exchange {
             'rateLimit': 50,
             'has': {
                 'CORS': true,
-                'spot': true,
-                'margin': undefined,
+                'spot': false,
+                'margin': false,
                 'swap': undefined,
                 'future': undefined,
                 'option': undefined,
@@ -32,6 +32,11 @@ module.exports = class deribit extends Exchange {
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -523,8 +528,8 @@ module.exports = class deribit extends Exchange {
                     'strike': strike,
                     'optionType': optionType,
                     'precision': {
-                        'amount': minTradeAmount,
                         'price': tickSize,
+                        'amount': minTradeAmount,
                     },
                     'limits': {
                         'leverage': {
