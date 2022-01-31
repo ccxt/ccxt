@@ -2396,7 +2396,7 @@ class gateio(Exchange):
         tkfr = self.safe_number(order, 'tkfr')
         if mkfr:
             fees.append({
-                'currency': self.safe_currency_code(self.safe_string(order, 'settleId')),
+                'currency': self.safe_currency_code(self.safe_string(market, 'settleId')),
                 'cost': mkfr,
             })
         if tkfr:

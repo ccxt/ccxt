@@ -2496,7 +2496,7 @@ class gateio extends Exchange {
         $tkfr = $this->safe_number($order, 'tkfr');
         if ($mkfr) {
             $fees[] = array(
-                'currency' => $this->safe_currency_code($this->safe_string($order, 'settleId')),
+                'currency' => $this->safe_currency_code($this->safe_string($market, 'settleId')),
                 'cost' => $mkfr,
             );
         }
