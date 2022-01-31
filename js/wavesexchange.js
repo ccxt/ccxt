@@ -763,15 +763,21 @@ module.exports = class wavesexchange extends Exchange {
             'quoteId': market['quoteId'],
             'interval': this.timeframes[timeframe],
         };
-        if (since !== undefined) {
-            request['timeStart'] = since.toString ();
-        } else {
-            const allowedCandles = this.safeInteger (this.options, 'allowedCandles', 1440);
-            const timeframeUnix = this.parseTimeframe (timeframe) * 1000;
-            const currentTime = Math.floor (this.milliseconds () / timeframeUnix) * timeframeUnix;
-            const delta = (allowedCandles - 1) * timeframeUnix;
+        const allowedCandles = this.safeInteger (this.options, 'allowedCandles', 1440);
+        if (limit === undefined) {
+            limit = allowedCandles;
+        }
+        limit = Math.min (allowedCandles, limit);
+        const duration = this.parseTimeframe (timeframe) * 1000;
+        if (since === undefined) {
+            const currentTime = parseInt (this.milliseconds () / duration) * duration;
+            const delta = (limit - 1) * duration;
             const timeStart = currentTime - delta;
             request['timeStart'] = timeStart.toString ();
+        } else {
+            request['timeStart'] = since.toString ();
+            const timeEnd = this.sum (since, duration * limit);
+            request['timeEnd'] = timeEnd.toString ();
         }
         const response = await this.publicGetCandlesBaseIdQuoteId (this.extend (request, params));
         //
