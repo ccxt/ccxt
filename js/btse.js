@@ -35,7 +35,7 @@ module.exports = class btse extends Exchange {
                 'fetchFundingRate': false,
                 'fetchFundingRates': false,
                 'fetchMarkets': true,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
@@ -519,15 +519,33 @@ module.exports = class btse extends Exchange {
     parseTrade (trade, market = undefined) {
         //
         //     {
-        //        "price":2342.419875836,
-        //        "size":0.2036,
-        //        "side":"SELL",
-        //        "symbol":"ETH-USDT",
-        //        "serialId":131094468,
-        //        "timestamp":1643317552000
+        //        "tradeId":"6f634cf5-428b-4e03-bfd6-4eafd1ffb462",
+        //        "orderId":"2af14921-5e92-414b-b67a-d39415aae9bb",
+        //        "username":"lima007",
+        //        "side":"BUY",
+        //        "orderType":"77",
+        //        "triggerType":null,
+        //        "price":"0.0",
+        //        "size":"1",
+        //        "filledPrice":"43800.0",
+        //        "filledSize":"1",
+        //        "triggerPrice":"0.0",
+        //        "base":"BTC",
+        //        "quote":"USD",
+        //        "symbol":"BTCM22",
+        //        "feeCurrency":"USD",
+        //        "feeAmount":"0.0219",
+        //        "wallet":"CROSS@",
+        //        "realizedPnl":"0.0",
+        //        "total":"-0.0219",
+        //        "serialId":"5180917",
+        //        "timestamp":"1643639344646",
+        //        "clOrderID":"_wystkl1643639343571",
+        //        "averageFillPrice":"43800.0"
         //     }
         //
-        const id = this.safeString (trade, 'serialId');
+        const id = this.safeString (trade, 'tradeId');
+        const orderId = this.safeString (trade, 'orderId');
         const timestamp = this.safeInteger (trade, 'timestamp');
         const datetime = this.iso8601 (timestamp);
         const marketId = this.safeString (trade, 'symbol');
@@ -535,20 +553,29 @@ module.exports = class btse extends Exchange {
         const side = this.safeStringLower (trade, 'side');
         const price = this.safeNumber (trade, 'price');
         const amount = this.safeNumber (trade, 'size');
+        const feeCurrencyId = this.safeString (trade, 'feeCurrency');
+        const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+        const feeCost = this.safeNumber (trade, 'feeAmount');
+        const fee = {
+            'cost': feeCost,
+            'currency': feeCurrencyCode,
+        };
+        const type = this.parseOrderType (this.safeString (trade, 'orderType'));
+        const cost = this.safeNumber (trade, 'total');
         return this.safeTrade ({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
             'datetime': datetime,
             'symbol': symbol,
-            'order': id,
-            'type': undefined,
+            'order': orderId,
+            'type': type,
             'side': side,
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
-            'cost': undefined,
-            'fee': undefined,
+            'cost': cost,
+            'fee': fee,
         });
     }
 
@@ -885,7 +912,7 @@ module.exports = class btse extends Exchange {
         const price = this.safeString (order, 'price');
         const type = this.parseOrderType (this.safeInteger (order, 'orderType'));
         const side = this.safeStringLower (order, 'side');
-        const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
+        const timeInForce = this.safeString (order, 'time_in_force');
         const postOnly = this.safeValue (order, 'postOnly');
         const cost = this.safeString (order, 'orderValue');
         return this.safeOrder ({
@@ -963,6 +990,86 @@ module.exports = class btse extends Exchange {
         //  ]
         //
         return this.parseOrders (response, market, since, limit);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a `symbol` argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'spotPrivateGetUserTradeHistory',
+            'future': 'futurePrivateGetUserTradeHistory',
+            'swap': 'futurePrivateGetUserTradeHistory',
+        });
+        const response = await this[method] (this.extend (request, query));
+        // [
+        //     {
+        //        "tradeId":"6f634cf5-428b-4e03-bfd6-4eafd1ffb462",
+        //        "orderId":"2af14921-5e92-414b-b67a-d39415aae9bb",
+        //        "username":"lima007",
+        //        "side":"BUY",
+        //        "orderType":"77",
+        //        "triggerType":null,
+        //        "price":"0.0",
+        //        "size":"1",
+        //        "filledPrice":"43800.0",
+        //        "filledSize":"1",
+        //        "triggerPrice":"0.0",
+        //        "base":"BTC",
+        //        "quote":"USD",
+        //        "symbol":"BTCM22",
+        //        "feeCurrency":"USD",
+        //        "feeAmount":"0.0219",
+        //        "wallet":"CROSS@",
+        //        "realizedPnl":"0.0",
+        //        "total":"-0.0219",
+        //        "serialId":"5180917",
+        //        "timestamp":"1643639344646",
+        //        "clOrderID":"_wystkl1643639343571",
+        //        "averageFillPrice":"43800.0"
+        //     }
+        //  ]
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTradingFee', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'spotPrivateGetUserFees',
+            'future': 'futurePrivateGetUserFees',
+            'swap': 'futurePrivateGetUserFees',
+        });
+        const response = await this[method] (this.extend (request, query));
+        // [
+        //     {
+        //        "symbol":"BTCPFC",
+        //        "makerFee":"-1.0E-4",
+        //        "takerFee":"5.0E-4"
+        //     }
+        //  ]
+        const data = this.safeValue (response, 0, {});
+        return {
+            'info': response,
+            'maker': this.safeNumber (data, 'makerFee'),
+            'taker': this.safeNumber (data, 'takerFee'),
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
