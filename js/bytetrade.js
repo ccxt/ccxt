@@ -291,12 +291,12 @@ module.exports = class bytetrade extends Exchange {
             const price = this.safeValue (limits, 'price', {});
             const precision = this.safeValue (market, 'precision', {});
             const active = this.safeString (market, 'active');
-            let maxAmount = this.safeNumber (amount, 'max');
-            if (maxAmount === -1.0) {
+            let maxAmount = this.safeString (amount, 'max');
+            if (Precise.stringEquals (maxAmount, '-1')) {
                 maxAmount = undefined;
             }
-            let maxPrice = this.safeNumber (price, 'max');
-            if (maxPrice === -1.0) {
+            let maxPrice = this.safeString (price, 'max');
+            if (Precise.stringEquals (maxPrice, '-1')) {
                 maxPrice = undefined;
             }
             const entry = {
@@ -318,11 +318,11 @@ module.exports = class bytetrade extends Exchange {
                 'limits': {
                     'amount': {
                         'min': this.safeNumber (amount, 'min'),
-                        'max': maxAmount,
+                        'max': this.parseNumber (maxAmount),
                     },
                     'price': {
                         'min': this.safeNumber (price, 'min'),
-                        'max': maxPrice,
+                        'max': this.parseNumber (maxPrice),
                     },
                     'cost': {
                         'min': undefined,
