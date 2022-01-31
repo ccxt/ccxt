@@ -1151,6 +1151,39 @@ module.exports = class btse extends Exchange {
         return await this.cancelOrder (undefined, symbol);
     }
 
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        if ((leverage < 1) || (leverage > 100)) {
+            throw new BadRequest (this.id + ' setLeverage leverage should be between 1 and 100');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'leverage': leverage,
+            'symbol': market['id'],
+        };
+        const response = await this.futurePrivatePostLeverage (this.extend (request, params));
+        //
+        //     {
+        //       "code": "0",
+        //       "data": [
+        //         {
+        //           "instId": "BTC-USDT-SWAP",
+        //           "lever": "5",
+        //           "mgnMode": "isolated",
+        //           "posSide": "long"
+        //         }
+        //       ],
+        //       "msg": ""
+        //     }
+        //
+        return response;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const accessibility = api[1];
         const type = api[0];
@@ -1162,14 +1195,15 @@ module.exports = class btse extends Exchange {
         }
         if (accessibility === 'private') {
             this.checkRequiredCredentials ();
-            let convertedBody = body;
-            if (method !== 'POST') {
-                convertedBody = '';
+            if (method !== 'POST' && body === undefined) {
+                body = '';
+            } else {
+                body = this.json (params);
             }
             const nonce = this.milliseconds ().toString ();
             const splittedURL = this.urls['api'][type].split ('/');
             const version = splittedURL[splittedURL.length - 1];
-            const payload = '/api/' + version + '/' + path + nonce + convertedBody;
+            const payload = '/api/' + version + '/' + path + nonce + body;
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha384');
             headers = {
                 'btse-api': this.apiKey,
