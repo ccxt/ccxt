@@ -72,8 +72,8 @@ module.exports = class btse extends Exchange {
                     'future': 'https://api.btse.com/futures/api/v2.1',
                 },
                 'test': {
-                    'spot': 'https://testapi.btse.io/spot',
-                    'future': 'https://testapi.btse.io/futures',
+                    'spot': 'https://testapi.btse.io/spot/api/v3.2',
+                    'future': 'https://testapi.btse.io/futures/api/v2.1',
                 },
                 'www': 'https://www.btse.com/en/home',
                 'doc': 'https://btsecom.github.io/docs/',
@@ -681,6 +681,73 @@ module.exports = class btse extends Exchange {
         return this.safeInteger (response, 'epoch');
     }
 
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'spotPrivateGetUserWallet',
+            'future': 'futurePrivateGetUserWallet',
+        });
+        const response = await this[method] (query);
+        // spot
+        //     {
+        //         "id": 11,
+        //         "method": "private/get-account-summary",
+        //         "code": 0,
+        //         "result": {
+        //             "accounts": [
+        //                 {
+        //                     "balance": 99999999.905000000000000000,
+        //                     "available": 99999996.905000000000000000,
+        //                     "order": 3.000000000000000000,
+        //                     "stake": 0,
+        //                     "currency": "CRO"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        // swap
+        //     {
+        //       "id" : 1641025392400,
+        //       "method" : "private/user-balance",
+        //       "code" : 0,
+        //       "result" : {
+        //         "data" : [ {
+        //           "total_available_balance" : "109.56000000",
+        //           "total_margin_balance" : "109.56000000",
+        //           "total_initial_margin" : "0.00000000",
+        //           "total_maintenance_margin" : "0.00000000",
+        //           "total_position_cost" : "0.00000000",
+        //           "total_cash_balance" : "109.56000000",
+        //           "total_collateral_value" : "109.56000000",
+        //           "total_session_unrealized_pnl" : "0.00000000",
+        //           "instrument_name" : "USD_Stable_Coin",
+        //           "total_session_realized_pnl" : "0.00000000",
+        //           "position_balances" : [ {
+        //             "quantity" : "109.56000000",
+        //             "collateral_weight" : "1.000000",
+        //             "collateral_amount" : "109.56000000",
+        //             "market_value" : "109.56000000",
+        //             "max_withdrawal_balance" : "109.56000000",
+        //             "instrument_name" : "USD_Stable_Coin"
+        //           } ],
+        //           "total_effective_leverage" : "0.000000",
+        //           "position_limit" : "3000000.00000000",
+        //           "used_position_limit" : "0.00000000",
+        //           "is_liquidating" : false
+        //         } ]
+        //       }
+        //     }
+        //
+        const parser = this.getSupportedMapping (marketType, {
+            'spot': 'parseSpotBalance',
+            'future': 'parseSwapBalance',
+            'swap': 'parseSwapBalance',
+        });
+        return this[parser] (response);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const accessibility = api[1];
         const type = api[0];
@@ -689,6 +756,20 @@ module.exports = class btse extends Exchange {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
+        } else {
+            this.checkRequiredCredentials ();
+            let convertedBody = body;
+            if (method === 'GET') {
+                convertedBody = '';
+            }
+            const nonce = this.milliseconds ().toString ();
+            const payload = path + nonce + convertedBody;
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha384');
+            headers = {
+                'btse-api': this.apiKey,
+                'btse-nonce': nonce,
+                'btse-sign': signature,
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
