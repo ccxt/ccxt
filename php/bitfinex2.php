@@ -755,10 +755,50 @@ class bitfinex2 extends bitfinex {
     }
 
     public function parse_ticker($ticker, $market = null) {
+        //
+        // on trading pairs (ex. tBTCUSD)
+        //
+        //     array(
+        //         SYMBOL,
+        //         BID,
+        //         BID_SIZE,
+        //         ASK,
+        //         ASK_SIZE,
+        //         DAILY_CHANGE,
+        //         DAILY_CHANGE_RELATIVE,
+        //         LAST_PRICE,
+        //         VOLUME,
+        //         HIGH,
+        //         LOW
+        //     )
+        //
+        // on funding currencies (ex. fUSD)
+        //
+        //     array(
+        //         SYMBOL,
+        //         FRR,
+        //         BID,
+        //         BID_PERIOD,
+        //         BID_SIZE,
+        //         ASK,
+        //         ASK_PERIOD,
+        //         ASK_SIZE,
+        //         DAILY_CHANGE,
+        //         DAILY_CHANGE_RELATIVE,
+        //         LAST_PRICE,
+        //         VOLUME,
+        //         HIGH,
+        //         LOW,
+        //         _PLACEHOLDER,
+        //         _PLACEHOLDER,
+        //         FRR_AMOUNT_AVAILABLE
+        //     )
+        //
         $timestamp = $this->milliseconds();
         $symbol = $this->safe_symbol(null, $market);
         $length = is_array($ticker) ? count($ticker) : 0;
         $last = $this->safe_string($ticker, $length - 4);
+        $percentage = $this->safe_string($ticker, $length - 5);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -775,7 +815,7 @@ class bitfinex2 extends bitfinex {
             'last' => $last,
             'previousClose' => null,
             'change' => $this->safe_string($ticker, $length - 6),
-            'percentage' => $this->safe_string($ticker, $length - 5) * 100,
+            'percentage' => Precise::string_mul($percentage, '100'),
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, $length - 3),
             'quoteVolume' => null,
@@ -793,6 +833,45 @@ class bitfinex2 extends bitfinex {
             $request['symbols'] = 'ALL';
         }
         $tickers = $this->publicGetTickers (array_merge($request, $params));
+        //
+        //     array(
+        //         // on trading pairs (ex. tBTCUSD)
+        //         array(
+        //             SYMBOL,
+        //             BID,
+        //             BID_SIZE,
+        //             ASK,
+        //             ASK_SIZE,
+        //             DAILY_CHANGE,
+        //             DAILY_CHANGE_RELATIVE,
+        //             LAST_PRICE,
+        //             VOLUME,
+        //             HIGH,
+        //             LOW
+        //         ),
+        //         // on funding currencies (ex. fUSD)
+        //         array(
+        //             SYMBOL,
+        //             FRR,
+        //             BID,
+        //             BID_PERIOD,
+        //             BID_SIZE,
+        //             ASK,
+        //             ASK_PERIOD,
+        //             ASK_SIZE,
+        //             DAILY_CHANGE,
+        //             DAILY_CHANGE_RELATIVE,
+        //             LAST_PRICE,
+        //             VOLUME,
+        //             HIGH,
+        //             LOW,
+        //             _PLACEHOLDER,
+        //             _PLACEHOLDER,
+        //             FRR_AMOUNT_AVAILABLE
+        //         ),
+        //         ...
+        //     )
+        //
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $ticker = $tickers[$i];

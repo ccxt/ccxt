@@ -739,10 +739,50 @@ class bitfinex2(bitfinex):
         return result
 
     def parse_ticker(self, ticker, market=None):
+        #
+        # on trading pairs(ex. tBTCUSD)
+        #
+        #     [
+        #         SYMBOL,
+        #         BID,
+        #         BID_SIZE,
+        #         ASK,
+        #         ASK_SIZE,
+        #         DAILY_CHANGE,
+        #         DAILY_CHANGE_RELATIVE,
+        #         LAST_PRICE,
+        #         VOLUME,
+        #         HIGH,
+        #         LOW
+        #     ]
+        #
+        # on funding currencies(ex. fUSD)
+        #
+        #     [
+        #         SYMBOL,
+        #         FRR,
+        #         BID,
+        #         BID_PERIOD,
+        #         BID_SIZE,
+        #         ASK,
+        #         ASK_PERIOD,
+        #         ASK_SIZE,
+        #         DAILY_CHANGE,
+        #         DAILY_CHANGE_RELATIVE,
+        #         LAST_PRICE,
+        #         VOLUME,
+        #         HIGH,
+        #         LOW,
+        #         _PLACEHOLDER,
+        #         _PLACEHOLDER,
+        #         FRR_AMOUNT_AVAILABLE
+        #     ]
+        #
         timestamp = self.milliseconds()
         symbol = self.safe_symbol(None, market)
         length = len(ticker)
         last = self.safe_string(ticker, length - 4)
+        percentage = self.safe_string(ticker, length - 5)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -759,7 +799,7 @@ class bitfinex2(bitfinex):
             'last': last,
             'previousClose': None,
             'change': self.safe_string(ticker, length - 6),
-            'percentage': self.safe_string(ticker, length - 5) * 100,
+            'percentage': Precise.string_mul(percentage, '100'),
             'average': None,
             'baseVolume': self.safe_string(ticker, length - 3),
             'quoteVolume': None,
@@ -775,6 +815,45 @@ class bitfinex2(bitfinex):
         else:
             request['symbols'] = 'ALL'
         tickers = self.publicGetTickers(self.extend(request, params))
+        #
+        #     [
+        #         # on trading pairs(ex. tBTCUSD)
+        #         [
+        #             SYMBOL,
+        #             BID,
+        #             BID_SIZE,
+        #             ASK,
+        #             ASK_SIZE,
+        #             DAILY_CHANGE,
+        #             DAILY_CHANGE_RELATIVE,
+        #             LAST_PRICE,
+        #             VOLUME,
+        #             HIGH,
+        #             LOW
+        #         ],
+        #         # on funding currencies(ex. fUSD)
+        #         [
+        #             SYMBOL,
+        #             FRR,
+        #             BID,
+        #             BID_PERIOD,
+        #             BID_SIZE,
+        #             ASK,
+        #             ASK_PERIOD,
+        #             ASK_SIZE,
+        #             DAILY_CHANGE,
+        #             DAILY_CHANGE_RELATIVE,
+        #             LAST_PRICE,
+        #             VOLUME,
+        #             HIGH,
+        #             LOW,
+        #             _PLACEHOLDER,
+        #             _PLACEHOLDER,
+        #             FRR_AMOUNT_AVAILABLE
+        #         ],
+        #         ...
+        #     ]
+        #
         result = {}
         for i in range(0, len(tickers)):
             ticker = tickers[i]
