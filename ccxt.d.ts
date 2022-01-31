@@ -68,7 +68,10 @@ declare module 'ccxt' {
         contract: boolean;
         linear: boolean;
         inverse: boolean;
-        precision: { base: number, quote: number, amount: number | undefined, price: number | undefined };
+        precision: {
+            amount: number | undefined,
+            price: number | undefined
+        };
         limits: { 
             amount?: MinMax,
             cost?: MinMax,
