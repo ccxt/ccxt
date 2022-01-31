@@ -741,15 +741,20 @@ class wavesexchange(Exchange):
             'quoteId': market['quoteId'],
             'interval': self.timeframes[timeframe],
         }
-        if since is not None:
-            request['timeStart'] = str(since)
-        else:
-            allowedCandles = self.safe_integer(self.options, 'allowedCandles', 1440)
-            timeframeUnix = self.parse_timeframe(timeframe) * 1000
-            currentTime = int(math.floor(self.milliseconds()) / timeframeUnix) * timeframeUnix
-            delta = (allowedCandles - 1) * timeframeUnix
+        allowedCandles = self.safe_integer(self.options, 'allowedCandles', 1440)
+        if limit is None:
+            limit = allowedCandles
+        limit = min(allowedCandles, limit)
+        duration = self.parse_timeframe(timeframe) * 1000
+        if since is None:
+            currentTime = int(self.milliseconds() / duration) * duration
+            delta = (limit - 1) * duration
             timeStart = currentTime - delta
             request['timeStart'] = str(timeStart)
+        else:
+            request['timeStart'] = str(since)
+            timeEnd = self.sum(since, duration * limit)
+            request['timeEnd'] = str(timeEnd)
         response = await self.publicGetCandlesBaseIdQuoteId(self.extend(request, params))
         #
         #     {

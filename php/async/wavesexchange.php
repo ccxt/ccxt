@@ -770,15 +770,21 @@ class wavesexchange extends Exchange {
             'quoteId' => $market['quoteId'],
             'interval' => $this->timeframes[$timeframe],
         );
-        if ($since !== null) {
-            $request['timeStart'] = (string) $since;
-        } else {
-            $allowedCandles = $this->safe_integer($this->options, 'allowedCandles', 1440);
-            $timeframeUnix = $this->parse_timeframe($timeframe) * 1000;
-            $currentTime = (int) floor($this->milliseconds() / $timeframeUnix) * $timeframeUnix;
-            $delta = ($allowedCandles - 1) * $timeframeUnix;
+        $allowedCandles = $this->safe_integer($this->options, 'allowedCandles', 1440);
+        if ($limit === null) {
+            $limit = $allowedCandles;
+        }
+        $limit = min ($allowedCandles, $limit);
+        $duration = $this->parse_timeframe($timeframe) * 1000;
+        if ($since === null) {
+            $currentTime = intval($this->milliseconds() / $duration) * $duration;
+            $delta = ($limit - 1) * $duration;
             $timeStart = $currentTime - $delta;
             $request['timeStart'] = (string) $timeStart;
+        } else {
+            $request['timeStart'] = (string) $since;
+            $timeEnd = $this->sum($since, $duration * $limit);
+            $request['timeEnd'] = (string) $timeEnd;
         }
         $response = yield $this->publicGetCandlesBaseIdQuoteId (array_merge($request, $params));
         //
