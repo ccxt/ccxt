@@ -82,7 +82,7 @@ module.exports = class wavesexchange extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg',
                 'test': {
-                    'matcher': 'http://matcher-testnet.waves.exchange',
+                    'matcher': 'https://matcher-testnet.waves.exchange',
                     'node': 'https://nodes-testnet.wavesnodes.com',
                     'public': 'https://api-testnet.wavesplatform.com/v0',
                     'private': 'https://api-testnet.waves.exchange/v1',
@@ -90,7 +90,7 @@ module.exports = class wavesexchange extends Exchange {
                     'market': 'https://testnet.waves.exchange/api/v1/forward/marketdata/api/v1',
                 },
                 'api': {
-                    'matcher': 'http://matcher.waves.exchange',
+                    'matcher': 'https://matcher.waves.exchange',
                     'node': 'https://nodes.waves.exchange',
                     'public': 'https://api.wavesplatform.com/v0',
                     'private': 'https://api.waves.exchange/v1',
@@ -284,6 +284,7 @@ module.exports = class wavesexchange extends Exchange {
             'options': {
                 'allowedCandles': 1440,
                 'accessToken': undefined,
+                'createMarketBuyOrderRequiresPrice': true,
                 'matcherPublicKey': undefined,
                 'quotes': undefined,
                 'createOrderDefaultExpiry': 2419200000, // 60 * 60 * 24 * 28 * 1000
@@ -337,6 +338,20 @@ module.exports = class wavesexchange extends Exchange {
     setSandboxMode (enabled) {
         this.options['messagePrefix'] = enabled ? 'T' : 'W';
         return super.setSandboxMode (enabled);
+    }
+
+    async calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        const settings = await this.matcherGetMatcherSettings ();
+        const dynamic = this.safeGetDynamic (settings);
+        const baseMatcherFee = this.safeString (dynamic, 'baseFee');
+        const wavesMatcherFee = parseFloat (this.currencyFromPrecision ('WAVES', baseMatcherFee));
+        return {
+            'type': takerOrMaker,
+            'currency': 'WAVES',
+            // To calculate the rate since Waves has a fixed fee.
+            'rate': wavesMatcherFee / (amount * price),
+            'cost': parseFloat (this.feeToPrecision (symbol, wavesMatcherFee)),
+        };
     }
 
     async getQuotes () {
