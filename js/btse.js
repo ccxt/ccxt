@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, BadSymbol } = require ('./base/errors');
+const { ExchangeError, BadRequest, BadSymbol, ArgumentsRequired } = require ('./base/errors');
 
 module.exports = class btse extends Exchange {
     describe () {
@@ -161,6 +161,7 @@ module.exports = class btse extends Exchange {
             'exceptions': {
                 'exact': {
                     '-1': BadRequest, // {"code":-1,"msg":null,"time":1643322746173,"data":null,"success":false}
+                    '400': BadRequest, // {"code":400,"msg":"BADREQUEST: Symbol can't be null or empty.","time":1643630327438,"data":null,"success":false}
                     '80005': BadSymbol, // {"code":80005,"msg":"BADREQUEST: product_id invalid","time":1643385790496,"data":null,"success":false}
                 },
             },
@@ -327,7 +328,7 @@ module.exports = class btse extends Exchange {
                 expiry = undefined;
             }
             let type = 'swap';
-            if (expiry !== 0) {
+            if (expiry !== undefined) {
                 type = 'future';
                 symbol = symbol + '-' + this.yymmdd (expiry);
             }
@@ -402,6 +403,7 @@ module.exports = class btse extends Exchange {
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'spotPublicGetOrderbookL2',
             'future': 'futurePublicFutureGetOrderbookL2',
+            'swap': 'futurePublicFutureGetOrderbookL2',
         });
         const response = await this[method] (this.extend (request, params));
         //
@@ -437,6 +439,7 @@ module.exports = class btse extends Exchange {
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'spotPublicGetMarketSummary',
             'future': 'futurePublicGetMarketSummary',
+            'swap': 'futurePublicGetMarketSummary',
         });
         const response = await this[method] (this.extend (request, params));
         //
@@ -495,6 +498,7 @@ module.exports = class btse extends Exchange {
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'spotPublicGetTrades',
             'future': 'futurePublicGetTrades',
+            'swap': 'futurePublicGetTrades',
         });
         const response = await this[method] (this.extend (request, params));
         //
@@ -652,6 +656,7 @@ module.exports = class btse extends Exchange {
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'spotPublicGetOhlcv',
             'future': 'futurePublicGetOhlcv',
+            'swap': 'futurePublicGetOhlcv',
         });
         const response = await this[method] (this.extend (request, params));
         //
@@ -674,6 +679,7 @@ module.exports = class btse extends Exchange {
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPublicGetTime',
             'future': 'futurePublicGetTime',
+            'swap': 'futurePublicGetTime',
         });
         const response = await this[method] (query);
         // {
@@ -765,6 +771,7 @@ module.exports = class btse extends Exchange {
         const method = this.getSupportedMapping ('future', {
             'spot': 'spotPrivateGetUserWallet',
             'future': 'futurePrivateGetUserWallet',
+            'swap': 'futurePrivateGetUserWallet',
         });
         const response = await this[method] (query);
         // spot
@@ -803,19 +810,171 @@ module.exports = class btse extends Exchange {
         const parser = this.getSupportedMapping (marketType, {
             'spot': 'parseSpotBalance',
             'future': 'parseFutureBalance',
+            'swap': 'parseFutureBalance',
         });
         return this[parser] (response);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'STATUS_ACTIVE': 'open',
+            // 'CANCELED': 'canceled',
+            // 'FILLED': 'closed',
+            // 'REJECTED': 'rejected',
+            // 'EXPIRED': 'expired',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderType (status) {
+        const statuses = {
+            '76': 'limit',
+            '77': 'market',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrder (order, market = undefined) {
+        // spot/future open orders
+        // [
+        //     {
+        //        "orderType":"76",
+        //        "price":"5.0",
+        //        "size":"10.0",
+        //        "side":"BUY",
+        //        "orderValue":"50.0",
+        //        "filledSize":"0.0",
+        //        "pegPriceMin":"0.0",
+        //        "pegPriceMax":"0.0",
+        //        "pegPriceDeviation":"0.0",
+        //        "cancelDuration":"0",
+        //        "timestamp":"1643630075180",
+        //        "orderID":"8da33067-150f-4525-a40b-991d249bd5a4",
+        //        "triggerOrder":false,
+        //        "triggerPrice":"0.0",
+        //        "triggerOriginalPrice":"0.0",
+        //        "triggerOrderType":"0",
+        //        "triggerTrailingStopDeviation":"0.0",
+        //        "triggerStopPrice":"0.0",
+        //        "symbol":"NEAR-USD",
+        //        "trailValue":"0.0",
+        //        "averageFillPrice":"0.0",
+        //        "fillSize":"0.0",
+        //        "clOrderID":"_utachng1643630074970",
+        //        "orderState":"STATUS_ACTIVE",
+        //        "triggered":false
+        //        "triggerUseLastPrice":false,
+        //        "avgFilledPrice":"0.0", // future only
+        //        "reduceOnly":false, // future only
+        //        "stealth":"1.0", // future only
+        //     }
+        //  ]
+        //
+        const created = this.safeInteger (order, 'timestamp');
+        const marketId = this.safeString (order, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const amount = this.safeString (order, 'size');
+        const filled = this.safeString (order, 'filledSize');
+        const status = this.parseOrderStatus (this.safeString (order, 'orderState'));
+        const average = this.safeString2 (order, 'averageFillPrice', 'avgFilledPrice');
+        const id = this.safeString (order, 'orderID');
+        let clientOrderId = this.safeString (order, 'clOrderID');
+        if (clientOrderId === '') {
+            clientOrderId = undefined;
+        }
+        const price = this.safeString (order, 'price');
+        const type = this.parseOrderType (this.safeInteger (order, 'orderType'));
+        const side = this.safeStringLower (order, 'side');
+        const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
+        const postOnly = this.safeValue (order, 'postOnly');
+        const cost = this.safeString (order, 'orderValue');
+        return this.safeOrder ({
+            'info': order,
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'timestamp': created,
+            'datetime': this.iso8601 (created),
+            'lastTradeTimestamp': undefined,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': filled,
+            'remaining': undefined,
+            'cost': cost,
+            'fee': undefined,
+            'average': average,
+            'trades': [],
+        }, market);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a `symbol` argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'spotPrivateGetUserOpenOrders',
+            'future': 'futurePrivateGetUserOpenOrders',
+            'swap': 'futurePrivateGetUserOpenOrders',
+        });
+        const response = await this[method] (this.extend (request, query));
+        // spot/future open orders
+        // [
+        //     {
+        //        "orderType":"76",
+        //        "price":"5.0",
+        //        "size":"10.0",
+        //        "side":"BUY",
+        //        "orderValue":"50.0",
+        //        "filledSize":"0.0",
+        //        "pegPriceMin":"0.0",
+        //        "pegPriceMax":"0.0",
+        //        "pegPriceDeviation":"0.0",
+        //        "cancelDuration":"0",
+        //        "timestamp":"1643630075180",
+        //        "orderID":"8da33067-150f-4525-a40b-991d249bd5a4",
+        //        "triggerOrder":false,
+        //        "triggerPrice":"0.0",
+        //        "triggerOriginalPrice":"0.0",
+        //        "triggerOrderType":"0",
+        //        "triggerTrailingStopDeviation":"0.0",
+        //        "triggerStopPrice":"0.0",
+        //        "symbol":"NEAR-USD",
+        //        "trailValue":"0.0",
+        //        "averageFillPrice":"0.0",
+        //        "fillSize":"0.0",
+        //        "clOrderID":"_utachng1643630074970",
+        //        "orderState":"STATUS_ACTIVE",
+        //        "triggered":false
+        //        "triggerUseLastPrice":false, // future only
+        //        "reduceOnly":false, // future only
+        //        "stealth":"1.0", // future only
+        //     }
+        //  ]
+        //
+        return this.parseOrders (response, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const accessibility = api[1];
         const type = api[0];
         let url = this.urls['api'][type] + '/' + path;
-        if (accessibility === 'public') {
+        if (method === 'GET') {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
-        } else {
+        }
+        if (accessibility === 'private') {
             this.checkRequiredCredentials ();
             let convertedBody = body;
             if (method === 'GET') {
