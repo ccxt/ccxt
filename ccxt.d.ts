@@ -56,7 +56,7 @@ declare module 'ccxt' {
         symbol: string;
         baseId: string;
         quoteId: string;
-        settle: string;
+        settle?: string;
         settleId?: string;
         type?: string;
         spot?: boolean;
@@ -66,8 +66,8 @@ declare module 'ccxt' {
         option?: boolean;
         active: boolean;
         contract: boolean;
-        linear: boolean;
-        inverse: boolean;
+        linear?: boolean;
+        inverse?: boolean;
         precision: {
             amount: number | undefined,
             price: number | undefined
