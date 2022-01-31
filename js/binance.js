@@ -165,47 +165,51 @@ module.exports = class binance extends Exchange {
             'api': {
                 // the API structure below will need 3-layer apidefs
                 'sapi': {
+                    // IP (api) = 1200 per minute (rateLimit)
+                    // IP (sapi) request rate limit of 12 000 per minute
+                    // 1 IP (sapi) => cost = 0.1
+                    // UID (sapi) request rate limit of 180 000 per minute
+                    // 1 UID (sapi) => cost = 1200 / 180 000 = 0.006667
                     'get': {
-                        'system/status': 1,
+                        'system/status': 0.1,
                         // these endpoints require this.apiKey
-                        'accountSnapshot': 1,
-                        'margin/asset': 1,
+                        'accountSnapshot': 240, // Weight(IP): 2400 => cost = 0.1 * 2400 = 240
+                        'margin/asset': 1, // Weight(IP): 10 => cost = 0.1 * 10 = 1
                         'margin/pair': 1,
-                        'margin/allAssets': 1,
-                        'margin/allPairs': 1,
+                        'margin/allAssets': 0.1,
+                        'margin/allPairs': 0.1,
                         'margin/priceIndex': 1,
                         // these endpoints require this.apiKey + this.secret
                         'asset/assetDividend': 1,
-                        'asset/dribblet': 1,
-                        'asset/transfer': 1,
-                        'asset/assetDetail': 1,
-                        'asset/tradeFee': 1,
-                        'asset/get-funding-asset': 1,
+                        'asset/dribblet': 0.1,
+                        'asset/transfer': 0.1,
+                        'asset/assetDetail': 0.1,
+                        'asset/tradeFee': 0.1,
                         'margin/loan': 1,
                         'margin/repay': 1,
                         'margin/account': 1,
-                        'margin/transfer': 1,
-                        'margin/interestHistory': 1,
-                        'margin/forceLiquidationRec': 1,
+                        'margin/transfer': 0.1,
+                        'margin/interestHistory': 0.1,
+                        'margin/forceLiquidationRec': 0.1,
                         'margin/order': 1,
                         'margin/openOrders': 1,
-                        'margin/allOrders': 1,
+                        'margin/allOrders': 20, // Weight(IP): 200 => cost = 0.1 * 200 = 20
                         'margin/myTrades': 1,
-                        'margin/maxBorrowable': 5,
+                        'margin/maxBorrowable': 5, // Weight(IP): 50 => cost = 0.1 * 50 = 5
                         'margin/maxTransferable': 5,
-                        'margin/isolated/transfer': 1,
+                        'margin/isolated/transfer': 0.1,
                         'margin/isolated/account': 1,
                         'margin/isolated/pair': 1,
                         'margin/isolated/allPairs': 1,
-                        'margin/isolated/accountLimit': 1,
-                        'margin/interestRateHistory': 1,
-                        'margin/orderList': 2,
-                        'margin/allOrderList': 10,
-                        'margin/openOrderList': 3,
-                        'margin/crossMarginData': { 'cost': 1, 'noCoin': 5 },
-                        'margin/isolatedMarginData': { 'cost': 1, 'noCoin': 10 },
-                        'margin/isolatedMarginTier': 1,
-                        'loan/income': 1,
+                        'margin/isolated/accountLimit': 0.1,
+                        'margin/interestRateHistory': 0.1,
+                        'margin/orderList': 1,
+                        'margin/allOrderList': 20, // Weight(IP): 200 => cost = 0.1 * 200 = 20
+                        'margin/openOrderList': 1,
+                        'margin/crossMarginData': { 'cost': 0.1, 'noCoin': 0.5 },
+                        'margin/isolatedMarginData': { 'cost': 0.1, 'noCoin': 1 },
+                        'margin/isolatedMarginTier': 0.1,
+                        'loan/income': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40 TODO ONWARDS
                         'fiat/orders': 1,
                         'fiat/payments': 1,
                         'futures/transfer': 5,
@@ -676,7 +680,7 @@ module.exports = class binance extends Exchange {
                     },
                     'post': {
                         'order/oco': 1,
-                        'order': 4,
+                        'order': 1,
                         'order/test': 1,
                     },
                     'delete': {
