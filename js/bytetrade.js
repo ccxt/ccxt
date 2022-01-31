@@ -234,6 +234,37 @@ module.exports = class bytetrade extends Exchange {
 
     async fetchMarkets (params = {}) {
         const markets = await this.publicGetSymbols (params);
+        //
+        //     [
+        //         {
+        //             "symbol": "122406567911",
+        //             "name": "BTC/USDT",
+        //             "base": "32",
+        //             "quote": "57",
+        //             "marketStatus": 0,
+        //             "baseName": "BTC",
+        //             "quoteName": "USDT",
+        //             "active": true,
+        //             "maker": "0.0008",
+        //             "taker": "0.0008",
+        //             "precision": {
+        //                 "amount": 6,
+        //                 "price": 2,
+        //                 "minPrice":1
+        //             },
+        //             "limits": {
+        //                 "amount": {
+        //                     "min": "0.000001",
+        //                     "max": "-1"
+        //                 },
+        //                 "price": {
+        //                     "min": "0.01",
+        //                     "max": "-1"
+        //                 }
+        //             }
+        //        }
+        //    ]
+        //
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -260,6 +291,14 @@ module.exports = class bytetrade extends Exchange {
             const price = this.safeValue (limits, 'price', {});
             const precision = this.safeValue (market, 'precision', {});
             const active = this.safeString (market, 'active');
+            let maxAmount = this.safeNumber (amount, 'max');
+            if (maxAmount === -1.0) {
+                maxAmount = undefined;
+            }
+            let maxPrice = this.safeNumber (price, 'max');
+            if (maxPrice === -1.0) {
+                maxPrice = undefined;
+            }
             const entry = {
                 'id': id,
                 'symbol': symbol,
@@ -279,11 +318,11 @@ module.exports = class bytetrade extends Exchange {
                 'limits': {
                     'amount': {
                         'min': this.safeNumber (amount, 'min'),
-                        'max': this.safeNumber (amount, 'max'),
+                        'max': maxAmount,
                     },
                     'price': {
                         'min': this.safeNumber (price, 'min'),
-                        'max': this.safeNumber (price, 'max'),
+                        'max': maxPrice,
                     },
                     'cost': {
                         'min': undefined,
