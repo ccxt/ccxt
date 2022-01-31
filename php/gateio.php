@@ -2473,14 +2473,14 @@ class gateio extends Exchange {
             }
         }
         $fees = array();
-        $gtFee = $this->safe_number($order, 'gt_fee');
+        $gtFee = $this->safe_string($order, 'gt_fee');
         if ($gtFee) {
             $fees[] = array(
                 'currency' => 'GT',
                 'cost' => $gtFee,
             );
         }
-        $fee = $this->safe_number($order, 'fee');
+        $fee = $this->safe_string($order, 'fee');
         if ($fee) {
             $fees[] = array(
                 'currency' => $this->safe_currency_code($this->safe_string($order, 'fee_currency')),
@@ -2491,11 +2491,11 @@ class gateio extends Exchange {
         if ($rebate) {
             $fees[] = array(
                 'currency' => $this->safe_currency_code($this->safe_string($order, 'rebated_fee_currency')),
-                'cost' => $this->parse_number(Precise::string_neg($rebate)),
+                'cost' => Precise::string_neg($rebate),
             );
         }
-        $mkfr = $this->safe_number($order, 'mkfr');
-        $tkfr = $this->safe_number($order, 'tkfr');
+        $mkfr = $this->safe_string($order, 'mkfr');
+        $tkfr = $this->safe_string($order, 'tkfr');
         if ($mkfr) {
             $fees[] = array(
                 'currency' => $this->safe_currency_code($this->safe_string($market, 'settleId')),
