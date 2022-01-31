@@ -750,10 +750,50 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        // on trading pairs (ex. tBTCUSD)
+        //
+        //     [
+        //         SYMBOL,
+        //         BID,
+        //         BID_SIZE,
+        //         ASK,
+        //         ASK_SIZE,
+        //         DAILY_CHANGE,
+        //         DAILY_CHANGE_RELATIVE,
+        //         LAST_PRICE,
+        //         VOLUME,
+        //         HIGH,
+        //         LOW
+        //     ]
+        //
+        // on funding currencies (ex. fUSD)
+        //
+        //     [
+        //         SYMBOL,
+        //         FRR,
+        //         BID,
+        //         BID_PERIOD,
+        //         BID_SIZE,
+        //         ASK,
+        //         ASK_PERIOD,
+        //         ASK_SIZE,
+        //         DAILY_CHANGE,
+        //         DAILY_CHANGE_RELATIVE,
+        //         LAST_PRICE,
+        //         VOLUME,
+        //         HIGH,
+        //         LOW,
+        //         _PLACEHOLDER,
+        //         _PLACEHOLDER,
+        //         FRR_AMOUNT_AVAILABLE
+        //     ]
+        //
         const timestamp = this.milliseconds ();
         const symbol = this.safeSymbol (undefined, market);
         const length = ticker.length;
         const last = this.safeString (ticker, length - 4);
+        const percentage = this.safeString (ticker, length - 5);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -770,7 +810,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'last': last,
             'previousClose': undefined,
             'change': this.safeString (ticker, length - 6),
-            'percentage': this.safeString (ticker, length - 5) * 100,
+            'percentage': Precise.stringMul (percentage, '100'),
             'average': undefined,
             'baseVolume': this.safeString (ticker, length - 3),
             'quoteVolume': undefined,
@@ -788,6 +828,45 @@ module.exports = class bitfinex2 extends bitfinex {
             request['symbols'] = 'ALL';
         }
         const tickers = await this.publicGetTickers (this.extend (request, params));
+        //
+        //     [
+        //         // on trading pairs (ex. tBTCUSD)
+        //         [
+        //             SYMBOL,
+        //             BID,
+        //             BID_SIZE,
+        //             ASK,
+        //             ASK_SIZE,
+        //             DAILY_CHANGE,
+        //             DAILY_CHANGE_RELATIVE,
+        //             LAST_PRICE,
+        //             VOLUME,
+        //             HIGH,
+        //             LOW
+        //         ],
+        //         // on funding currencies (ex. fUSD)
+        //         [
+        //             SYMBOL,
+        //             FRR,
+        //             BID,
+        //             BID_PERIOD,
+        //             BID_SIZE,
+        //             ASK,
+        //             ASK_PERIOD,
+        //             ASK_SIZE,
+        //             DAILY_CHANGE,
+        //             DAILY_CHANGE_RELATIVE,
+        //             LAST_PRICE,
+        //             VOLUME,
+        //             HIGH,
+        //             LOW,
+        //             _PLACEHOLDER,
+        //             _PLACEHOLDER,
+        //             FRR_AMOUNT_AVAILABLE
+        //         ],
+        //         ...
+        //     ]
+        //
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = tickers[i];
