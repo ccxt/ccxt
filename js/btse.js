@@ -1,6 +1,5 @@
 'use strict';
 
-const res = require ('express/lib/response');
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest, BadSymbol, ArgumentsRequired } = require ('./base/errors');
 
@@ -53,7 +52,7 @@ module.exports = class btse extends Exchange {
                 'fetchTransactions': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': false,
-                'setLeverage': false,
+                'setLeverage': true,
                 'transfer': false,
                 'withdraw': false,
             },
@@ -1168,20 +1167,58 @@ module.exports = class btse extends Exchange {
         };
         const response = await this.futurePrivatePostLeverage (this.extend (request, params));
         //
-        //     {
-        //       "code": "0",
-        //       "data": [
-        //         {
-        //           "instId": "BTC-USDT-SWAP",
-        //           "lever": "5",
-        //           "mgnMode": "isolated",
-        //           "posSide": "long"
-        //         }
-        //       ],
-        //       "msg": ""
-        //     }
-        //
+        // {
+        //     symbol: 'BTCPFC',
+        //     timestamp: 1643653769782,
+        //     status: 20,
+        //     type: 93,
+        //     message: 'Leverage changed successfully to 5.0'
+        //   }
+        // //
         return response;
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const uppercaseType = type.toUpperCase ();
+        const request = {
+            'symbol': market['id'],
+            'side': side.toUpperCase (),
+            'type': uppercaseType,
+            'size': this.amountToPrecision (symbol, amount),
+        };
+        if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT')) {
+            request['type'] = 'LIMIT';
+            request['price'] = this.priceToPrecision (symbol, price);
+            if (uppercaseType === 'LIMIT') {
+                request['txType'] = 'LIMIT';
+            } else {
+                request['txType'] = 'STOP';
+                const stopPrice = this.safeString (params, 'stopPrice');
+                request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+            }
+        }
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        request['postOnly'] = postOnly;
+        const reduceOnly = this.safeValue (params, 'reduceOnly', false);
+        request['reduceOnly'] = reduceOnly;
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'spotPrivatePostOrder',
+            'future': 'futurePrivatePostOrder',
+            'swap': 'futurePrivatePostOrder',
+        });
+        const response = await this[method] (this.extend (request, query));
+        // {
+        //     "id": 11,
+        //     "method": "private/create-order",
+        //     "result": {
+        //       "order_id": "337843775021233500",
+        //       "client_oid": "my_order_0002"
+        //     }
+        // }
+        return this.parseOrder (response, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -1209,6 +1246,7 @@ module.exports = class btse extends Exchange {
                 'btse-api': this.apiKey,
                 'btse-nonce': nonce,
                 'btse-sign': signature,
+                'Content-Type': 'application/json',
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
