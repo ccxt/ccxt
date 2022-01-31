@@ -77,7 +77,6 @@ declare module 'ccxt' {
             cost?: MinMax,
             leverage?: MinMax,
             price?: MinMax,
-            withdraw?: MinMax,
         };
         taker: number;
         maker: number;
