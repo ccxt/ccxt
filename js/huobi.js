@@ -1771,6 +1771,11 @@ module.exports = class huobi extends Exchange {
                 feeCurrency = this.safeCurrencyCode (this.safeString (trade, 'fee-deduct-currency'));
             }
         }
+        if ((feeCurrency = '') && Precise.stringEquals (feeCost, '0')) {
+            const parts = symbol.split ('/');
+            const quote = this.safeString (parts, 1);
+            feeCurrency = quote;
+        }
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
