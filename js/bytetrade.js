@@ -197,13 +197,13 @@ module.exports = class bytetrade extends Exchange {
             const limits = this.safeValue (currency, 'limits');
             const deposit = this.safeValue (limits, 'deposit');
             const amountPrecision = this.safeInteger (currency, 'basePrecision');
-            let maxDeposit = this.safeNumber (deposit, 'max');
-            if (maxDeposit === -1.0) {
+            let maxDeposit = this.safeString (deposit, 'max');
+            if (Precise.stringEquals (maxDeposit, '-1')) {
                 maxDeposit = undefined;
             }
             const withdraw = this.safeValue (limits, 'withdraw');
-            let maxWithdraw = this.safeNumber (withdraw, 'max');
-            if (maxWithdraw === -1.0) {
+            let maxWithdraw = this.safeString (withdraw, 'max');
+            if (Precise.stringEquals (maxWithdraw, '-1')) {
                 maxWithdraw = undefined;
             }
             result[code] = {
@@ -219,11 +219,11 @@ module.exports = class bytetrade extends Exchange {
                     'amount': { 'min': undefined, 'max': undefined },
                     'deposit': {
                         'min': this.safeNumber (deposit, 'min'),
-                        'max': maxDeposit,
+                        'max': this.parseNumber (maxDeposit),
                     },
                     'withdraw': {
                         'min': this.safeNumber (withdraw, 'min'),
-                        'max': maxWithdraw,
+                        'max': this.parseNumber (maxWithdraw),
                     },
                 },
                 'info': currency,
