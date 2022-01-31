@@ -839,8 +839,8 @@ class gateio(Exchange):
                     'strike': None,
                     'optionType': None,
                     'precision': {
-                        'price': self.parse_precision(pricePrecisionString),
-                        'amount': self.parse_precision(amountPrecisionString),
+                        'price': self.parse_number(self.parse_precision(pricePrecisionString)),
+                        'amount': self.parse_number(self.parse_precision(amountPrecisionString)),
                     },
                     'limits': {
                         'leverage': {
@@ -2346,13 +2346,16 @@ class gateio(Exchange):
         amountRaw = self.safe_string_2(order, 'amount', 'size')
         amount = Precise.string_abs(amountRaw)
         price = self.safe_string(order, 'price')
-        # average = self.safe_string(order, 'fill_price')
         remaining = self.safe_string(order, 'left')
-        cost = self.safe_string(order, 'filled_total')  # same as filled_price
+        # 'filled_total': same as fill_price(spots), not existing(swap)
+        cost = self.safe_string(order, 'filled_total')
         rawStatus = None
         side = None
+        average = None
         contract = self.safe_value(market, 'contract')
         if contract:
+            # fill price is the price per contract for swaps, but the cost for spot
+            average = self.safe_string(order, 'fill_price')
             if amount:
                 side = 'buy' if Precise.string_gt(amountRaw, '0') else 'sell'
             else:
@@ -2374,13 +2377,13 @@ class gateio(Exchange):
             else:
                 type = 'market'
         fees = []
-        gtFee = self.safe_number(order, 'gt_fee')
+        gtFee = self.safe_string(order, 'gt_fee')
         if gtFee:
             fees.append({
                 'currency': 'GT',
                 'cost': gtFee,
             })
-        fee = self.safe_number(order, 'fee')
+        fee = self.safe_string(order, 'fee')
         if fee:
             fees.append({
                 'currency': self.safe_currency_code(self.safe_string(order, 'fee_currency')),
@@ -2390,10 +2393,10 @@ class gateio(Exchange):
         if rebate:
             fees.append({
                 'currency': self.safe_currency_code(self.safe_string(order, 'rebated_fee_currency')),
-                'cost': self.parse_number(Precise.string_neg(rebate)),
+                'cost': Precise.string_neg(rebate),
             })
-        mkfr = self.safe_number(order, 'mkfr')
-        tkfr = self.safe_number(order, 'tkfr')
+        mkfr = self.safe_string(order, 'mkfr')
+        tkfr = self.safe_string(order, 'tkfr')
         if mkfr:
             fees.append({
                 'currency': self.safe_currency_code(self.safe_string(market, 'settleId')),
@@ -2418,7 +2421,7 @@ class gateio(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
-            'average': None,
+            'average': average,
             'amount': amount,
             'cost': cost,
             'filled': None,

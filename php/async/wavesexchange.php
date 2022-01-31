@@ -89,7 +89,7 @@ class wavesexchange extends Exchange {
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg',
                 'test' => array(
-                    'matcher' => 'http://matcher-testnet.waves.exchange',
+                    'matcher' => 'https://matcher-testnet.waves.exchange',
                     'node' => 'https://nodes-testnet.wavesnodes.com',
                     'public' => 'https://api-testnet.wavesplatform.com/v0',
                     'private' => 'https://api-testnet.waves.exchange/v1',
@@ -97,7 +97,7 @@ class wavesexchange extends Exchange {
                     'market' => 'https://testnet.waves.exchange/api/v1/forward/marketdata/api/v1',
                 ),
                 'api' => array(
-                    'matcher' => 'http://matcher.waves.exchange',
+                    'matcher' => 'https://matcher.waves.exchange',
                     'node' => 'https://nodes.waves.exchange',
                     'public' => 'https://api.wavesplatform.com/v0',
                     'private' => 'https://api.waves.exchange/v1',
@@ -291,6 +291,7 @@ class wavesexchange extends Exchange {
             'options' => array(
                 'allowedCandles' => 1440,
                 'accessToken' => null,
+                'createMarketBuyOrderRequiresPrice' => true,
                 'matcherPublicKey' => null,
                 'quotes' => null,
                 'createOrderDefaultExpiry' => 2419200000, // 60 * 60 * 24 * 28 * 1000
@@ -344,6 +345,24 @@ class wavesexchange extends Exchange {
     public function set_sandbox_mode($enabled) {
         $this->options['messagePrefix'] = $enabled ? 'T' : 'W';
         return parent::set_sandbox_mode($enabled);
+    }
+
+    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+        $settings = yield $this->matcherGetMatcherSettings ();
+        $dynamic = $this->safe_get_dynamic($settings);
+        $baseMatcherFee = $this->safe_string($dynamic, 'baseFee');
+        $amountAsString = $this->number_to_string($amount);
+        $priceAsString = $this->number_to_string($price);
+        $wavesMatcherFee = $this->currency_from_precision('WAVES', $baseMatcherFee);
+        $feeCost = $this->fee_to_precision($symbol, $this->parse_number($wavesMatcherFee));
+        $feeRate = Precise::string_div($wavesMatcherFee, Precise::string_mul($amountAsString, $priceAsString));
+        return array(
+            'type' => $takerOrMaker,
+            'currency' => 'WAVES',
+            // To calculate the rate since Waves has a fixed fee.
+            'rate' => $this->parse_number($feeRate),
+            'cost' => $this->parse_number($feeCost),
+        );
     }
 
     public function get_quotes() {

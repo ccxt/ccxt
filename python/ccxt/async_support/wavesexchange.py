@@ -94,7 +94,7 @@ class wavesexchange(Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg',
                 'test': {
-                    'matcher': 'http://matcher-testnet.waves.exchange',
+                    'matcher': 'https://matcher-testnet.waves.exchange',
                     'node': 'https://nodes-testnet.wavesnodes.com',
                     'public': 'https://api-testnet.wavesplatform.com/v0',
                     'private': 'https://api-testnet.waves.exchange/v1',
@@ -102,7 +102,7 @@ class wavesexchange(Exchange):
                     'market': 'https://testnet.waves.exchange/api/v1/forward/marketdata/api/v1',
                 },
                 'api': {
-                    'matcher': 'http://matcher.waves.exchange',
+                    'matcher': 'https://matcher.waves.exchange',
                     'node': 'https://nodes.waves.exchange',
                     'public': 'https://api.wavesplatform.com/v0',
                     'private': 'https://api.waves.exchange/v1',
@@ -296,6 +296,7 @@ class wavesexchange(Exchange):
             'options': {
                 'allowedCandles': 1440,
                 'accessToken': None,
+                'createMarketBuyOrderRequiresPrice': True,
                 'matcherPublicKey': None,
                 'quotes': None,
                 'createOrderDefaultExpiry': 2419200000,  # 60 * 60 * 24 * 28 * 1000
@@ -348,6 +349,23 @@ class wavesexchange(Exchange):
     def set_sandbox_mode(self, enabled):
         self.options['messagePrefix'] = 'T' if enabled else 'W'
         return super(wavesexchange, self).set_sandbox_mode(enabled)
+
+    async def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
+        settings = await self.matcherGetMatcherSettings()
+        dynamic = self.safe_get_dynamic(settings)
+        baseMatcherFee = self.safe_string(dynamic, 'baseFee')
+        amountAsString = self.number_to_string(amount)
+        priceAsString = self.number_to_string(price)
+        wavesMatcherFee = self.currency_from_precision('WAVES', baseMatcherFee)
+        feeCost = self.fee_to_precision(symbol, self.parse_number(wavesMatcherFee))
+        feeRate = Precise.string_div(wavesMatcherFee, Precise.string_mul(amountAsString, priceAsString))
+        return {
+            'type': takerOrMaker,
+            'currency': 'WAVES',
+            # To calculate the rate since Waves has a fixed fee.
+            'rate': self.parse_number(feeRate),
+            'cost': self.parse_number(feeCost),
+        }
 
     async def get_quotes(self):
         quotes = self.safe_value(self.options, 'quotes')

@@ -202,12 +202,12 @@ class bytetrade(Exchange):
             limits = self.safe_value(currency, 'limits')
             deposit = self.safe_value(limits, 'deposit')
             amountPrecision = self.safe_integer(currency, 'basePrecision')
-            maxDeposit = self.safe_number(deposit, 'max')
-            if maxDeposit == -1.0:
+            maxDeposit = self.safe_string(deposit, 'max')
+            if Precise.string_equals(maxDeposit, '-1'):
                 maxDeposit = None
             withdraw = self.safe_value(limits, 'withdraw')
-            maxWithdraw = self.safe_number(withdraw, 'max')
-            if maxWithdraw == -1.0:
+            maxWithdraw = self.safe_string(withdraw, 'max')
+            if Precise.string_equals(maxWithdraw, '-1'):
                 maxWithdraw = None
             result[code] = {
                 'id': id,
@@ -222,11 +222,11 @@ class bytetrade(Exchange):
                     'amount': {'min': None, 'max': None},
                     'deposit': {
                         'min': self.safe_number(deposit, 'min'),
-                        'max': maxDeposit,
+                        'max': self.parse_number(maxDeposit),
                     },
                     'withdraw': {
                         'min': self.safe_number(withdraw, 'min'),
-                        'max': maxWithdraw,
+                        'max': self.parse_number(maxWithdraw),
                     },
                 },
                 'info': currency,
@@ -235,6 +235,37 @@ class bytetrade(Exchange):
 
     async def fetch_markets(self, params={}):
         markets = await self.publicGetSymbols(params)
+        #
+        #     [
+        #         {
+        #             "symbol": "122406567911",
+        #             "name": "BTC/USDT",
+        #             "base": "32",
+        #             "quote": "57",
+        #             "marketStatus": 0,
+        #             "baseName": "BTC",
+        #             "quoteName": "USDT",
+        #             "active": True,
+        #             "maker": "0.0008",
+        #             "taker": "0.0008",
+        #             "precision": {
+        #                 "amount": 6,
+        #                 "price": 2,
+        #                 "minPrice":1
+        #             },
+        #             "limits": {
+        #                 "amount": {
+        #                     "min": "0.000001",
+        #                     "max": "-1"
+        #                 },
+        #                 "price": {
+        #                     "min": "0.01",
+        #                     "max": "-1"
+        #                 }
+        #             }
+        #        }
+        #    ]
+        #
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -258,6 +289,12 @@ class bytetrade(Exchange):
             price = self.safe_value(limits, 'price', {})
             precision = self.safe_value(market, 'precision', {})
             active = self.safe_string(market, 'active')
+            maxAmount = self.safe_string(amount, 'max')
+            if Precise.string_equals(maxAmount, '-1'):
+                maxAmount = None
+            maxPrice = self.safe_string(price, 'max')
+            if Precise.string_equals(maxPrice, '-1'):
+                maxPrice = None
             entry = {
                 'id': id,
                 'symbol': symbol,
@@ -277,11 +314,11 @@ class bytetrade(Exchange):
                 'limits': {
                     'amount': {
                         'min': self.safe_number(amount, 'min'),
-                        'max': self.safe_number(amount, 'max'),
+                        'max': self.parse_number(maxAmount),
                     },
                     'price': {
                         'min': self.safe_number(price, 'min'),
-                        'max': self.safe_number(price, 'max'),
+                        'max': self.parse_number(maxPrice),
                     },
                     'cost': {
                         'min': None,
