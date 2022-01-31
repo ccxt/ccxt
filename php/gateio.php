@@ -834,8 +834,8 @@ class gateio extends Exchange {
                     'strike' => null,
                     'optionType' => null,
                     'precision' => array(
-                        'price' => $this->parse_precision($pricePrecisionString),
-                        'amount' => $this->parse_precision($amountPrecisionString),
+                        'price' => $this->parse_number($this->parse_precision($pricePrecisionString)),
+                        'amount' => $this->parse_number($this->parse_precision($amountPrecisionString)),
                     ),
                     'limits' => array(
                         'leverage' => array(
@@ -2437,13 +2437,16 @@ class gateio extends Exchange {
         $amountRaw = $this->safe_string_2($order, 'amount', 'size');
         $amount = Precise::string_abs($amountRaw);
         $price = $this->safe_string($order, 'price');
-        // $average = $this->safe_string($order, 'fill_price');
         $remaining = $this->safe_string($order, 'left');
-        $cost = $this->safe_string($order, 'filled_total'); // same as filled_price
+        // 'filled_total' => same as fill_price (spots), not existing (swap)
+        $cost = $this->safe_string($order, 'filled_total');
         $rawStatus = null;
         $side = null;
+        $average = null;
         $contract = $this->safe_value($market, 'contract');
         if ($contract) {
+            // fill $price is the $price per $contract for swaps, but the $cost for spot
+            $average = $this->safe_string($order, 'fill_price');
             if ($amount) {
                 $side = Precise::string_gt($amountRaw, '0') ? 'buy' : 'sell';
             } else {
@@ -2519,7 +2522,7 @@ class gateio extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
-            'average' => null,
+            'average' => $average,
             'amount' => $amount,
             'cost' => $cost,
             'filled' => null,
