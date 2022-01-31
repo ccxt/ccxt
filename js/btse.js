@@ -1,5 +1,6 @@
 'use strict';
 
+const res = require ('express/lib/response');
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest, BadSymbol, ArgumentsRequired } = require ('./base/errors');
 
@@ -116,7 +117,7 @@ module.exports = class btse extends Exchange {
                             'order': 1,
                         },
                         'delete': {
-                            'order/cancelAllAfter': 1,
+                            'order': 1,
                         },
                     },
                 },
@@ -145,6 +146,7 @@ module.exports = class btse extends Exchange {
                         'post': {
                             'order': 1,
                             'order/peg': 1,
+                            'order/cancelAllAfter': 1,
                             'order/close_position': 1,
                             'risk_limit': 1,
                             'leverage': 1,
@@ -153,7 +155,7 @@ module.exports = class btse extends Exchange {
                             'order': 1,
                         },
                         'delete': {
-                            'order/cancelAllAfter': 1,
+                            'order': 1,
                         },
                     },
                 },
@@ -897,6 +899,30 @@ module.exports = class btse extends Exchange {
         //     }
         //  ]
         //
+        // cancelOrder
+        //     {
+        //        "status":"6",
+        //        "symbol":"BTCPFC",
+        //        "orderType":"76",
+        //        "price":"1500.0",
+        //        "side":"BUY",
+        //        "size":"6",
+        //        "orderID":"65ce6903-8e81-49fd-b044-e5b61ce76265",
+        //        "timestamp":"1643641928863",
+        //        "triggerPrice":"0.0",
+        //        "trigger":false,
+        //        "deviation":"100.0",
+        //        "stealth":"100.0",
+        //        "message":"",
+        //        "avgFillPrice":"0.0",
+        //        "fillSize":"0.0",
+        //        "clOrderID":"_aulpds1643630208116",
+        //        "originalSize":"6.0",
+        //        "postOnly":false,
+        //        "remainingSize":"6.0",
+        //        "time_in_force":"GTC"
+        //     }
+        //
         const created = this.safeInteger (order, 'timestamp');
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
@@ -1072,11 +1098,64 @@ module.exports = class btse extends Exchange {
         };
     }
 
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires a `symbol` argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (id !== undefined) {
+            request['orderId'] = id;
+        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'spotPrivateDeleteOrder',
+            'future': 'futurePrivateDeleteOrder',
+            'swap': 'futurePrivateDeleteOrder',
+        });
+        const response = await this[method] (this.extend (request, query));
+        // [
+        //     {
+        //        "status":"6",
+        //        "symbol":"BTCPFC",
+        //        "orderType":"76",
+        //        "price":"1500.0",
+        //        "side":"BUY",
+        //        "size":"6",
+        //        "orderID":"65ce6903-8e81-49fd-b044-e5b61ce76265",
+        //        "timestamp":"1643641928863",
+        //        "triggerPrice":"0.0",
+        //        "trigger":false,
+        //        "deviation":"100.0",
+        //        "stealth":"100.0",
+        //        "message":"",
+        //        "avgFillPrice":"0.0",
+        //        "fillSize":"0.0",
+        //        "clOrderID":"_aulpds1643630208116",
+        //        "originalSize":"6.0",
+        //        "postOnly":false,
+        //        "remainingSize":"6.0",
+        //        "time_in_force":"GTC"
+        //     }
+        //  ]
+        return this.parseOrders (response);
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders requires a `symbol` argument');
+        }
+        return await this.cancelOrder (undefined, symbol);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const accessibility = api[1];
         const type = api[0];
         let url = this.urls['api'][type] + '/' + path;
-        if (method === 'GET') {
+        if (method !== 'POST') {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
@@ -1084,7 +1163,7 @@ module.exports = class btse extends Exchange {
         if (accessibility === 'private') {
             this.checkRequiredCredentials ();
             let convertedBody = body;
-            if (method === 'GET') {
+            if (method !== 'POST') {
                 convertedBody = '';
             }
             const nonce = this.milliseconds ().toString ();
