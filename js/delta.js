@@ -385,7 +385,6 @@ module.exports = class delta extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
-            let symbol = id;
             const callOptions = (type === 'call_options');
             const putOptions = (type === 'put_options');
             const moveOptions = (type === 'move_options');
@@ -393,33 +392,37 @@ module.exports = class delta extends Exchange {
             const swap = (type === 'perpetual_futures');
             const future = (type === 'futures');
             const option = (callOptions || putOptions || moveOptions);
-            const contract = (swap || future || option);
             const strike = this.safeNumber (market, 'strike_price');
             const expiryDatetime = this.safeString (market, 'settlement_time');
             const expiry = this.parse8601 (expiryDatetime);
             const contractSize = this.safeNumber (market, 'contract_value');
             const linear = (settle === base);
             let optionType = undefined;
-            if (swap) {
-                type = 'swap';
-                symbol = base + '/' + quote + ':' + settle;
-            } else if (future) {
-                type = 'future';
-                symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry);
-            } else if (option) {
-                type = 'option';
-                let letter = 'C';
-                optionType = 'call';
-                if (putOptions) {
-                    letter = 'P';
-                    optionType = 'put';
-                } else if (moveOptions) {
-                    letter = 'M';
-                    optionType = 'move';
+            let symbol = base + '/' + quote;
+            if (swap || future || option) {
+                symbol = symbol + ':' + settle;
+                if (future || option) {
+                    symbol = symbol + '-' + this.yymmdd (expiry);
+                    if (option) {
+                        type = 'option';
+                        let letter = 'C';
+                        optionType = 'call';
+                        if (putOptions) {
+                            letter = 'P';
+                            optionType = 'put';
+                        } else if (moveOptions) {
+                            letter = 'M';
+                            optionType = 'move';
+                        }
+                        symbol = symbol + ':' + strike + ':' + letter;
+                    } else {
+                        type = 'future';
+                    }
+                } else {
+                    type = 'swap';
                 }
-                symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry) + ':' + strike + ':' + letter;
-            } else if (spot) {
-                symbol = base + '/' + quote;
+            } else {
+                symbol = id;
             }
             const state = this.safeString (market, 'state');
             result.push ({
@@ -434,14 +437,14 @@ module.exports = class delta extends Exchange {
                 'settleId': settleId,
                 'type': type,
                 'spot': spot,
-                'margin': spot ? undefined : false,
+                'margin': (spot ? undefined : false),
                 'swap': swap,
                 'future': future,
                 'option': option,
                 'active': (state === 'live'),
-                'contract': contract,
-                'linear': spot ? undefined : linear,
-                'inverse': spot ? undefined : !linear,
+                'contract': !spot,
+                'linear': (spot ? undefined : linear),
+                'inverse': (spot ? undefined : !linear),
                 'taker': this.safeNumber (market, 'taker_commission_rate'),
                 'maker': this.safeNumber (market, 'maker_commission_rate'),
                 'contractSize': contractSize,
