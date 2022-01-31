@@ -2432,13 +2432,16 @@ module.exports = class gateio extends Exchange {
         const amountRaw = this.safeString2 (order, 'amount', 'size');
         const amount = Precise.stringAbs (amountRaw);
         const price = this.safeString (order, 'price');
-        // const average = this.safeString (order, 'fill_price');
         const remaining = this.safeString (order, 'left');
-        const cost = this.safeString (order, 'filled_total'); // same as filled_price
+        // 'filled_total': same as fill_price (spots), not existing (swap)
+        const cost = this.safeString (order, 'filled_total');
         let rawStatus = undefined;
         let side = undefined;
+        let average = undefined;
         const contract = this.safeValue (market, 'contract');
         if (contract) {
+            // fill price is the price per contract for swaps, but the cost for spot
+            average = this.safeString (order, 'fill_price');
             if (amount) {
                 side = Precise.stringGt (amountRaw, '0') ? 'buy' : 'sell';
             } else {
@@ -2514,7 +2517,7 @@ module.exports = class gateio extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
-            'average': undefined,
+            'average': average,
             'amount': amount,
             'cost': cost,
             'filled': undefined,
