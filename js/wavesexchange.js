@@ -344,13 +344,17 @@ module.exports = class wavesexchange extends Exchange {
         const settings = await this.matcherGetMatcherSettings ();
         const dynamic = this.safeGetDynamic (settings);
         const baseMatcherFee = this.safeString (dynamic, 'baseFee');
-        const wavesMatcherFee = parseFloat (this.currencyFromPrecision ('WAVES', baseMatcherFee));
+        const amountAsString = this.numberToString (amount);
+        const priceAsString = this.priceToString (price);
+        const wavesMatcherFee = this.currencyFromPrecision ('WAVES', baseMatcherFee);
+        const feeCost = this.feeToPrecision (symbol, this.parseNumber (wavesMatcherFee));
+        const feeRate = Precise.stringDiv (wavesMatcherFee, Precise.stringMul (amountAsString, priceAsString));
         return {
             'type': takerOrMaker,
             'currency': 'WAVES',
             // To calculate the rate since Waves has a fixed fee.
-            'rate': wavesMatcherFee / (amount * price),
-            'cost': parseFloat (this.feeToPrecision (symbol, wavesMatcherFee)),
+            'rate': this.parseNumber (feeRate),
+            'cost': this.parseNumber (feeCost),
         };
     }
 
