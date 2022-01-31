@@ -2465,14 +2465,14 @@ module.exports = class gateio extends Exchange {
             }
         }
         const fees = [];
-        const gtFee = this.safeNumber (order, 'gt_fee');
+        const gtFee = this.safeString (order, 'gt_fee');
         if (gtFee) {
             fees.push ({
                 'currency': 'GT',
                 'cost': gtFee,
             });
         }
-        const fee = this.safeNumber (order, 'fee');
+        const fee = this.safeString (order, 'fee');
         if (fee) {
             fees.push ({
                 'currency': this.safeCurrencyCode (this.safeString (order, 'fee_currency')),
@@ -2483,11 +2483,11 @@ module.exports = class gateio extends Exchange {
         if (rebate) {
             fees.push ({
                 'currency': this.safeCurrencyCode (this.safeString (order, 'rebated_fee_currency')),
-                'cost': this.parseNumber (Precise.stringNeg (rebate)),
+                'cost': Precise.stringNeg (rebate),
             });
         }
-        const mkfr = this.safeNumber (order, 'mkfr');
-        const tkfr = this.safeNumber (order, 'tkfr');
+        const mkfr = this.safeString (order, 'mkfr');
+        const tkfr = this.safeString (order, 'tkfr');
         if (mkfr) {
             fees.push ({
                 'currency': this.safeCurrencyCode (this.safeString (order, 'settleId')),
