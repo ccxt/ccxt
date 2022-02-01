@@ -1186,23 +1186,23 @@ module.exports = class btse extends Exchange {
             'symbol': market['id'],
             'side': side.toUpperCase (),
             'type': uppercaseType,
-            'size': this.amountToPrecision (symbol, amount),
+            'txType': 'LIMIT', // default value
+            'size': parseFloat (this.amountToPrecision (symbol, amount)),
         };
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clOrderID', this.uuid16 ());
+        request['clOrderID'] = clientOrderId;
         if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT')) {
+            if (price === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + type + 'order');
+            }
             request['type'] = 'LIMIT';
             request['price'] = this.priceToPrecision (symbol, price);
-            if (uppercaseType === 'LIMIT') {
-                request['txType'] = 'LIMIT';
-            } else {
+            const stopPrice = this.safeString (params, 'stopPrice');
+            if (stopPrice !== undefined) {
                 request['txType'] = 'STOP';
-                const stopPrice = this.safeString (params, 'stopPrice');
-                request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+                request['stopPrice'] = parseFloat (this.priceToPrecision (symbol, stopPrice));
             }
         }
-        const postOnly = this.safeValue (params, 'postOnly', false);
-        request['postOnly'] = postOnly;
-        const reduceOnly = this.safeValue (params, 'reduceOnly', false);
-        request['reduceOnly'] = reduceOnly;
         const [ marketType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostOrder',
