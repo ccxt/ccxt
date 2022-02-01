@@ -58,14 +58,21 @@ declare module 'ccxt' {
         quote: string;
         baseId: string;
         quoteId: string;
+        active: boolean;
         type?: string;
         spot?: boolean;
         margin?: boolean;
         swap?: boolean;
         future?: boolean;
         option?: boolean;
-        active: boolean;
+        strike?: number;
+        optionType?: string;
         contract: boolean;
+        contractSize?: number;
+        expiry?: number;
+        settle?: string;
+        settleId?: string;
+        expiryDatetime?: string;
         linear?: boolean;
         inverse?: boolean;
         precision: {
@@ -83,13 +90,6 @@ declare module 'ccxt' {
         percentage: boolean;
         tierBased: boolean;
         feeSide: string;
-        contractSize?: number;
-        expiry?: number;
-        settle?: string;
-        settleId?: string;
-        expiryDatetime?: string;
-        strike?: number;
-        optionType?: string;
         info: any;
     }
 
