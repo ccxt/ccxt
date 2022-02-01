@@ -898,7 +898,7 @@ module.exports = class btse extends Exchange {
         //     }
         //  ]
         //
-        // cancelOrder
+        // cancelOrder/create order
         //     {
         //        "status":"6",
         //        "symbol":"BTCPFC",
@@ -926,9 +926,9 @@ module.exports = class btse extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const amount = this.safeString (order, 'size');
-        const filled = this.safeString (order, 'filledSize');
+        const filled = this.safeString2 (order, 'filledSize', 'fillSize');
         const status = this.parseOrderStatus (this.safeString (order, 'orderState'));
-        const average = this.safeString2 (order, 'averageFillPrice', 'avgFilledPrice');
+        const average = this.safeString2 (order, 'averageFillPrice', 'avgFillPrice');
         const id = this.safeString (order, 'orderID');
         let clientOrderId = this.safeString (order, 'clOrderID');
         if (clientOrderId === '') {
@@ -1210,15 +1210,31 @@ module.exports = class btse extends Exchange {
             'swap': 'futurePrivatePostOrder',
         });
         const response = await this[method] (this.extend (request, query));
-        // {
-        //     "id": 11,
-        //     "method": "private/create-order",
-        //     "result": {
-        //       "order_id": "337843775021233500",
-        //       "client_oid": "my_order_0002"
+        // [
+        //     {
+        //        "status":"2",
+        //        "symbol":"BTCPFC",
+        //        "orderType":"76",
+        //        "price":"1500.0",
+        //        "side":"BUY",
+        //        "size":"1",
+        //        "orderID":"5771e5f4-196a-4c9d-975a-3617a07ac4d7",
+        //        "timestamp":"1643710575930",
+        //        "triggerPrice":"0.0",
+        //        "trigger":false,
+        //        "deviation":"100.0",
+        //        "stealth":"100.0",
+        //        "message":"",
+        //        "avgFillPrice":"0.0",
+        //        "fillSize":"0.0",
+        //        "clOrderID":"",
+        //        "originalSize":"1.0",
+        //        "postOnly":false,
+        //        "remainingSize":"1.0",
+        //        "time_in_force":"GTC"
         //     }
-        // }
-        return this.parseOrder (response, market);
+        // ]
+        return this.parseOrders (response, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -1232,22 +1248,23 @@ module.exports = class btse extends Exchange {
         }
         if (accessibility === 'private') {
             this.checkRequiredCredentials ();
-            if (method !== 'POST' && body === undefined) {
-                body = '';
-            } else {
+            if (method === 'POST') {
                 body = this.json (params);
+                headers = {
+                    'Content-Type': 'application/json',
+                };
             }
             const nonce = this.milliseconds ().toString ();
             const splittedURL = this.urls['api'][type].split ('/');
             const version = splittedURL[splittedURL.length - 1];
-            const payload = '/api/' + version + '/' + path + nonce + body;
+            const convertedBody = body ? body : '';
+            const payload = '/api/' + version + '/' + path + nonce + convertedBody;
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha384');
-            headers = {
+            headers = this.extend (headers, {
                 'btse-api': this.apiKey,
                 'btse-nonce': nonce,
                 'btse-sign': signature,
-                'Content-Type': 'application/json',
-            };
+            });
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
