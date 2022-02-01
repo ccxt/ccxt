@@ -1538,8 +1538,7 @@ module.exports = class bitfinex2 extends bitfinex {
         } else if (transactionLength === 22) {
             id = this.safeString (transaction, 0);
             const currencyId = this.safeString (transaction, 1);
-            currency = this.safeCurrency (currencyId, currency);
-            code = currency['code'];
+            code = this.safeCurrencyCode (currencyId, currency);
             timestamp = this.safeInteger (transaction, 5);
             updated = this.safeInteger (transaction, 6);
             status = this.parseTransactionStatus (this.safeString (transaction, 9));
@@ -1816,25 +1815,18 @@ module.exports = class bitfinex2 extends bitfinex {
         //         ]
         //     ]
         //
-        const itemLength = item.length;
-        let id = undefined;
-        let code = undefined;
-        let timestamp = undefined;
-        let amount = undefined;
-        let after = undefined;
         let type = undefined;
-        let description = undefined;
-        if (itemLength === 9) {
-            id = this.safeString (item, 0);
-            const currencyId = this.safeString (item, 1);
-            currency = this.safeCurrency (currencyId, currency);
-            code = currency['code'];
-            timestamp = this.safeInteger (item, 3);
-            amount = this.safeFloat (item, 5);
-            after = this.safeFloat (item, 6);
-            description = this.safeString (item, 8);
-            const splitDescription = description.split (' @ ');
-            type = this.parseLedgerEntryType (splitDescription[0].toLowerCase ());
+        const id = this.safeString (item, 0);
+        const currencyId = this.safeString (item, 1);
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const timestamp = this.safeInteger (item, 3);
+        const amount = this.safeNumber (item, 5);
+        const after = this.safeNumber (item, 6);
+        const description = this.safeString (item, 8);
+        if (description !== undefined) {
+            const parts = description.split (' @ ');
+            const first = this.safeStringLower (parts, 0);
+            type = this.parseLedgerEntryType (first);
         }
         return {
             'id': id,
