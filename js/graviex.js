@@ -24,7 +24,8 @@ module.exports = class graviex extends Exchange {
                 'fetchBalance': false,
                 'fetchCurrencies': false,
                 'fetchTrades': true,
-                'fetchOHLCV': false,
+                'fetchSimpleTrades': true,
+                'fetchOHLCV': true,
                 'fetchOrders': false,
                 'fetchOrder': false,
                 'fetchOrderBook': false,
@@ -72,8 +73,9 @@ module.exports = class graviex extends Exchange {
                         'order_book', // Requires market XXXYYY. Optional: asks_limit, bids_limit.
                         'depth', // Requires market XXXYYY. Optional: asks_limit, bids_limit.
                         'trades', // Requires market XXXYYY. Optional: limit, timestamp, from, to, order_by
+                        'trades_simple', // Requires market XXXYYY.
                         'k', // Requires market XXXYYY. Optional: limit, timestamp, period
-                        'k_with_pending_trades', // Requires market XXXYYY and tradeid. Optional: limit, timestamp, period
+                        'k_with_pending_trades', // API endpoints exists almost same as k endpoint skipping for now.
                     ],
                 },
                 'private': {
@@ -287,21 +289,35 @@ module.exports = class graviex extends Exchange {
 
     parseTrade (trade, market = undefined) {
         const price = this.safeString2 (trade, 'p', 'price');
-        const amount = this.safeString (trade, 'volume');
+        const amount = this.safeString2 (trade, 'volume', 'amount');
         const funds = this.safeString (trade, 'funds');
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const datetime = this.safeValue (trade, 'created_at');
-        const timestamp = this.parse_date (datetime);
+        let timestamp = this.parse_date (datetime);
         let id = this.safeString2 (trade, 't', 'a');
-        id = this.safeString2 (trade, 'id', 'tradeId', id);
+        id = this.safeString2 (trade, 'id', 'tid', id);
         const side = this.safeValue (trade, 'side');
         const fee = undefined;
         const cost = undefined;
+        let type = undefined;
         let takerOrMaker = undefined;
         const orderId = this.safeString (trade, 'id');
         if ('side' in trade) {
             if (trade['side'] === 'buy') {
+                takerOrMaker = 'maker';
+            } else {
+                takerOrMaker = 'taker';
+            }
+        }
+        if ('date' in trade) {
+            timestamp = this.safeInteger2 (trade, 'T', 'date');
+        }
+        if ('type' in trade) {
+            type = this.safeValue (trade, 'type');
+        }
+        if ('type' in trade) {
+            if (trade['type'] === 'buy') {
                 takerOrMaker = 'maker';
             } else {
                 takerOrMaker = 'taker';
@@ -314,7 +330,7 @@ module.exports = class graviex extends Exchange {
             'symbol': symbol,
             'id': id,
             'order': orderId,
-            'type': undefined,
+            'type': type,
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
@@ -359,6 +375,75 @@ module.exports = class graviex extends Exchange {
         //     },
         // ],
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchSimpleTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        const response = await this.publicGetTradesSimple (this.extend (request));
+        // [
+        //     {
+        //         "tid": 14474652,
+        //         "type": "buy",
+        //         "date": 1643706195,
+        //         "price": "0.00000058",
+        //         "amount": "172.4655"
+        //     },
+        //     {
+        //         "tid": 14474645,
+        //         "type": "buy",
+        //         "date": 1643705999,
+        //         "price": "0.00000058",
+        //         "amount": "133.0"
+        //     },
+        // ],
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        return [
+            this.safeInteger (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const defaultLimit = 50;
+        const maxLimit = 1500;
+        limit = (limit === undefined) ? defaultLimit : Math.min (limit, maxLimit);
+        const request = {
+            'market': market['id'],
+            'limit': limit,
+        };
+        const response = await this.publicGetK (this.extend (request));
+        // [
+        //     [
+        //         1643719320,
+        //         6.5e-7,
+        //         6.5e-7,
+        //         6.5e-7,
+        //         6.5e-7,
+        //         0,
+        //     ],
+        //     [
+        //         1643719380,
+        //         6.5e-7,
+        //         6.5e-7,
+        //         6.5e-7,
+        //         6.5e-7,
+        //         0,
+        //     ],
+        // ],
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     nonce () {
