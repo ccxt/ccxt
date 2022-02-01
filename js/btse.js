@@ -16,7 +16,7 @@ module.exports = class btse extends Exchange {
             'has': {
                 'CORS': false,
                 'spot': true,
-                'margin': undefined,
+                'margin': true,
                 'swap': true,
                 'future': true,
                 'option': false,
@@ -28,7 +28,7 @@ module.exports = class btse extends Exchange {
                 'fetchBidsAsks': false,
                 'fetchClosedOrders': false,
                 'fetchCurrencies': false,
-                'fetchDepositAddress': false,
+                'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': false,
                 'fetchFundingFees': false,
@@ -1318,7 +1318,7 @@ module.exports = class btse extends Exchange {
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
-            'amount': parseFloat (amount),
+            'amount': amount.toString (),
             'address': address,
         };
         if (tag !== undefined) {
