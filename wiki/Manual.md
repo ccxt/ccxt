@@ -759,7 +759,7 @@ Each currency is an associative array (aka dictionary) with the following keys:
     'maker':    0.0016,       // maker fee rate, 0.0016 = 0.16%
     'percentage': true,       // whether the taker and maker fee rate is a multiplier or a fixed flat amount
     'tierBased': false,       // whether the fee depends on your trading tier (your trading volume)
-    'feeSide': 'get' ,        // string literal can be 'get', 'give', 'base', 'quote', 'other'
+    'feeSide': 'get',         // string literal can be 'get', 'give', 'base', 'quote', 'other'
     'precision': {            // number of decimal digits "after the dot"
         'price': 8,           // integer or float for TICK_SIZE roundingMode, might be missing if not supplied by the exchange
         'amount': 8,          // integer, might be missing if not supplied by the exchange
