@@ -58,23 +58,28 @@ declare module 'ccxt' {
         quote: string;
         baseId: string;
         quoteId: string;
-        active: boolean;
+        active?: boolean | undefined;
         type?: string;
         spot?: boolean;
         margin?: boolean;
         swap?: boolean;
         future?: boolean;
         option?: boolean;
-        strike?: number;
-        optionType?: string;
-        contract: boolean;
-        contractSize?: number;
-        expiry?: number;
-        settle?: string;
-        settleId?: string;
-        expiryDatetime?: string;
-        linear?: boolean;
-        inverse?: boolean;
+        contract?: boolean;
+        settle?: string | undefined;
+        settleId?: string | undefined;
+        contractSize?: number | undefined;
+        linear?: boolean | undefined;
+        inverse?: boolean | undefined;
+        expiry?: number | undefined;
+        expiryDatetime?: string | undefined;
+        strike?: number | undefined;
+        optionType?: string | undefined;
+        taker?: number | undefined;
+        maker?: number | undefined;
+        percentage?: boolean | undefined;
+        tierBased?: boolean | undefined;
+        feeSide?: string | undefined;
         precision: {
             amount: number | undefined,
             price: number | undefined
@@ -85,11 +90,6 @@ declare module 'ccxt' {
             leverage?: MinMax,
             price?: MinMax,
         };
-        taker: number;
-        maker: number;
-        percentage: boolean;
-        tierBased: boolean;
-        feeSide: string;
         info: any;
     }
 
