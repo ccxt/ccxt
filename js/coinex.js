@@ -18,9 +18,9 @@ module.exports = class coinex extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
-                'swap': undefined,
-                'future': undefined,
+                'margin': undefined, // has but unimplemented
+                'swap': undefined, // has but unimplemented
+                'future': undefined, // has but unimplemented
                 'option': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
@@ -249,7 +249,7 @@ module.exports = class coinex extends Exchange {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': false,
+                'margin': undefined,
                 'swap': false,
                 'future': false,
                 'option': false,
