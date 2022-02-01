@@ -236,16 +236,16 @@ module.exports = class mercado extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        // {
-        //     "high":"103.96000000",
-        //     "low":"95.00000000",
-        //     "vol":"2227.67806598",
-        //     "last":"97.91591000",
-        //     "buy":"95.52760000",
-        //     "sell":"97.91475000",
-        //     "open":"99.79955000",
-        //     "date":1643382606
-        // }
+        //     {
+        //         "high":"103.96000000",
+        //         "low":"95.00000000",
+        //         "vol":"2227.67806598",
+        //         "last":"97.91591000",
+        //         "buy":"95.52760000",
+        //         "sell":"97.91475000",
+        //         "open":"99.79955000",
+        //         "date":1643382606
+        //     }
         //
         const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.safeTimestamp (ticker, 'date');
@@ -283,16 +283,18 @@ module.exports = class mercado extends Exchange {
         const response = await this.publicGetCoinTicker (this.extend (request, params));
         const ticker = this.safeValue (response, 'ticker', {});
         //
-        // {
-        //     "high":"103.96000000",
-        //     "low":"95.00000000",
-        //     "vol":"2227.67806598",
-        //     "last":"97.91591000",
-        //     "buy":"95.52760000",
-        //     "sell":"97.91475000",
-        //     "open":"99.79955000",
-        //     "date":1643382606
-        // }
+        //     {
+        //         "ticker": {
+        //             "high":"1549.82293000",
+        //             "low":"1503.00011000",
+        //             "vol":"81.82827101",
+        //             "last":"1533.15000000",
+        //             "buy":"1533.21018000",
+        //             "sell":"1540.09000000",
+        //             "open":"1524.71089000",
+        //             "date":1643691671
+        //         }
+        //     }
         //
         return this.parseTicker (ticker, market);
     }
