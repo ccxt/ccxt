@@ -218,7 +218,7 @@ module.exports = class lykke extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetAssetpairs ();
+        const response = await this.publicGetAssetpairs (params);
         const markets = this.safeValue (response, 'payload', []);
         //
         //     {
@@ -447,10 +447,8 @@ module.exports = class lykke extends Exchange {
         await this.loadMarkets ();
         const request = {
             'assetPairId': this.marketId (symbol),
+            'depth': limit, // default 0
         };
-        if (limit !== undefined) {
-            request['depth'] = limit; // max 100, default 20
-        }
         const response = await this.publicGetOrderbooks (this.extend (request, params));
         const payload = this.safeValue (response, 'payload', []);
         //
