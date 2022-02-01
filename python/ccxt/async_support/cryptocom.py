@@ -881,7 +881,7 @@ class cryptocom(Exchange):
         if postOnly:
             request['exec_inst'] = 'POST_ONLY'
             params = self.omit(params, ['postOnly'])
-        marketType, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
+        marketType, query = self.handle_market_type_and_params('createOrder', market, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotPrivatePostPrivateCreateOrder',
             'future': 'derivativesPrivatePostPrivateCreateOrder',

@@ -904,7 +904,7 @@ class cryptocom extends Exchange {
             $request['exec_inst'] = 'POST_ONLY';
             $params = $this->omit($params, array( 'postOnly' ));
         }
-        list($marketType, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
+        list($marketType, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'spotPrivatePostPrivateCreateOrder',
             'future' => 'derivativesPrivatePostPrivateCreateOrder',
