@@ -734,7 +734,7 @@ module.exports = class btse extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeString (balance, 'amount');
+            account['total'] = this.safeString (balance, 'total');
             account['free'] = this.safeString (balance, 'available');
             result[code] = account;
         }
@@ -743,26 +743,32 @@ module.exports = class btse extends Exchange {
 
     parseFutureBalance (response) {
         // [
-        // {
-        //     "wallet":"CROSS@",
-        //     "totalValue":"0.0",
-        //     "marginBalance":"0.0",
-        //     "availableBalance":"0.0",
-        //     "unrealisedProfitLoss":"0.0",
-        //     "maintenanceMargin":"0.0",
-        //     "leverage":"0.0",
-        //     "openMargin":"0.0",
-        //     "assets":[
-        //        {
-        //           "balance":"0.0",
-        //           "assetPrice":"1.0",
-        //           "currency":"USD",
-        //           "display":false
-        //        }
-        //     ],
-        //     "assetsInUse":[
-        //     ]
-        //  },
+        //   {
+        //       "wallet":"CROSS@",
+        //       "totalValue":"1999.7766",
+        //       "marginBalance":"1995.2805514",
+        //       "availableBalance":"1995.083540344",
+        //       "unrealisedProfitLoss":"-4.4960486",
+        //       "maintenanceMargin":"0.197011056",
+        //       "leverage":"0.01969845863150531",
+        //       "openMargin":"0.0",
+        //       "assets":[
+        //          {
+        //             "balance":"1999.7766",
+        //             "assetPrice":"1.0",
+        //             "currency":"USD",
+        //             "display":false
+        //          }
+        //       ],
+        //       "assetsInUse":[
+        //          {
+        //             "balance":"4.693059656",
+        //             "assetPrice":"0.0",
+        //             "currency":"USD",
+        //             "display":false
+        //          }
+        //       ]
+        //    }
         //  {
         //     "wallet":"ISOLATED@LINKPFC-USD",
         //     "totalValue":"0.0",
@@ -781,17 +787,22 @@ module.exports = class btse extends Exchange {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
-            const wallet = this.safeString (balance, 'wallet');
-            const splittedWallet = wallet.split ('@');
-            const account = this.account ();
-            let code = undefined;
-            if (splittedWallet.length > 1) {
-                const currencyId = this.safeString (splittedWallet, 1);
-                code = this.safeCurrencyCode (currencyId);
-                account['total'] = this.safeString (balance, 'totalValue');
-                account['free'] = this.safeString (balance, 'availableBalance');
+            const assets = this.safeValue (balance, 'assets', []);
+            const assetsInUse = this.safeValue (balance, 'assetsInUse', []);
+            if (assets.length > 0) {
+                for (let v = 0; v < assets.length; v++) {
+                    const asset = assets[v];
+                    const currencyId = this.safeString (asset, 'currency');
+                    const code = this.safeCurrencyCode (currencyId);
+                    const account = this.account ();
+                    account['total'] = this.safeString (asset, 'balance');
+                    if (assetsInUse.indexOf (v) !== -1) {
+                        account['used'] = this.safeString (assetsInUse[v], 'balance');
+                    }
+                    account['free'] = this.safeString (balance, 'availableBalance');
+                    result[code] = account;
+                }
             }
-            result[code] = account;
         }
         return this.safeBalance (result);
     }
@@ -799,7 +810,7 @@ module.exports = class btse extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        const method = this.getSupportedMapping ('future', {
+        const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivateGetUserWallet',
             'future': 'futurePrivateGetUserWallet',
             'swap': 'futurePrivateGetUserWallet',
@@ -816,26 +827,46 @@ module.exports = class btse extends Exchange {
         //
         // future
         // [
-        //      {
-        //         "wallet":"CROSS@",
-        //         "totalValue":"0.0",
-        //         "marginBalance":"0.0",
-        //         "availableBalance":"0.0",
-        //         "unrealisedProfitLoss":"0.0",
-        //         "maintenanceMargin":"0.0",
-        //         "leverage":"0.0",
-        //         "openMargin":"0.0",
-        //         "assets":[
-        //            {
-        //               "balance":"0.0",
-        //               "assetPrice":"1.0",
-        //               "currency":"USD",
-        //               "display":false
-        //            }
-        //         ],
-        //         "assetsInUse":[
-        //         ]
-        //      },
+        //    {
+        //       "wallet":"CROSS@",
+        //       "totalValue":"1999.7766",
+        //       "marginBalance":"1995.27478958",
+        //       "availableBalance":"1995.077807405",
+        //       "unrealisedProfitLoss":"-4.50181042",
+        //       "maintenanceMargin":"0.196982175",
+        //       "leverage":"0.01969517188397688",
+        //       "openMargin":"0.0",
+        //       "assets":[
+        //          {
+        //             "balance":"1999.7766",
+        //             "assetPrice":"1.0",
+        //             "currency":"USD",
+        //             "display":false
+        //          }
+        //       ],
+        //       "assetsInUse":[
+        //          {
+        //             "balance":"4.698792595",
+        //             "assetPrice":"0.0",
+        //             "currency":"USD",
+        //             "display":false
+        //          }
+        //       ]
+        //     }
+        //   {
+        //      "wallet":"ISOLATED@LINKPFC-USD",
+        //      "totalValue":"0.0",
+        //      "marginBalance":"0.0",
+        //      "availableBalance":"0.0",
+        //      "unrealisedProfitLoss":"0.0",
+        //      "maintenanceMargin":"0.0",
+        //      "leverage":"0.0",
+        //      "openMargin":"0.0",
+        //      "assets":[
+        //      ],
+        //      "assetsInUse":[
+        //      ]
+        //   }
         // ];
         //
         const parser = this.getSupportedMapping (marketType, {
