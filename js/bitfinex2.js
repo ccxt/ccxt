@@ -1796,7 +1796,7 @@ module.exports = class bitfinex2 extends bitfinex {
         } else if (type.indexOf ('payment') >= 0) {
             return 'payout';
         } else {
-            return undefined;
+            return type;
         }
     }
 
