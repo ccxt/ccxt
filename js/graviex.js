@@ -23,7 +23,7 @@ module.exports = class graviex extends Exchange {
                 'fetchTickers': true,
                 'fetchBalance': false,
                 'fetchCurrencies': false,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchOHLCV': false,
                 'fetchOrders': false,
                 'fetchOrder': false,
@@ -283,6 +283,82 @@ module.exports = class graviex extends Exchange {
             result[symbol] = this.parseTicker (response[id], market);
         }
         return result;
+    }
+
+    parseTrade (trade, market = undefined) {
+        const price = this.safeString2 (trade, 'p', 'price');
+        const amount = this.safeString (trade, 'volume');
+        const funds = this.safeString (trade, 'funds');
+        const marketId = this.safeString (trade, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const datetime = this.safeValue (trade, 'created_at');
+        const timestamp = this.parse_date (datetime);
+        let id = this.safeString2 (trade, 't', 'a');
+        id = this.safeString2 (trade, 'id', 'tradeId', id);
+        const side = this.safeValue (trade, 'side');
+        const fee = undefined;
+        const cost = undefined;
+        let takerOrMaker = undefined;
+        const orderId = this.safeString (trade, 'id');
+        if ('side' in trade) {
+            if (trade['side'] === 'buy') {
+                takerOrMaker = 'maker';
+            } else {
+                takerOrMaker = 'taker';
+            }
+        }
+        return this.safeTrade ({
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'id': id,
+            'order': orderId,
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': price,
+            'funds': funds,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
+        }, market);
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        const query = this.omit (params, 'type');
+        if (limit !== undefined) {
+            request['limit'] = limit; // default: 500
+        }
+        const response = await this.publicGetTrades (this.extend (request, query));
+        // [
+        //     {
+        //         "id": 14473952,
+        //         "at": 1643681026,
+        //         "price": "0.00000056",
+        //         "volume": "0.2",
+        //         "funds": "0.000000112",
+        //         "market": "giobtc",
+        //         "created_at": "2022-02-01T05:03:46+03:00",
+        //         "side": "sell"
+        //     },
+        //     {
+        //         "id": 14473615,
+        //         "at": 1643670349,
+        //         "price": "0.00000059",
+        //         "volume": "515.0136",
+        //         "funds": "0.000303858024",
+        //         "market": "giobtc",
+        //         "created_at": "2022-02-01T02:05:49+03:00",
+        //         "side": "buy"
+        //     },
+        // ],
+        return this.parseTrades (response, market, since, limit);
     }
 
     nonce () {
