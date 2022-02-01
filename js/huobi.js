@@ -1767,14 +1767,12 @@ module.exports = class huobi extends Exchange {
         const filledPoints = this.safeString (trade, 'filled-points');
         if (filledPoints !== undefined) {
             if ((feeCost === undefined) || Precise.stringEquals (feeCost, '0')) {
-                feeCost = filledPoints;
-                feeCurrency = this.safeCurrencyCode (this.safeString (trade, 'fee-deduct-currency'));
+                const feeDeductCurrency = this.safeString (trade, 'fee-deduct-currency');
+                if (feeDeductCurrency !== '') {
+                    feeCost = filledPoints;
+                    feeCurrency = this.safeCurrencyCode (feeDeductCurrency);
+                }
             }
-        }
-        if ((feeCurrency === '') && Precise.stringEquals (feeCost, '0')) {
-            const parts = symbol.split ('/');
-            const quote = this.safeString (parts, 1);
-            feeCurrency = quote;
         }
         if (feeCost !== undefined) {
             fee = {
