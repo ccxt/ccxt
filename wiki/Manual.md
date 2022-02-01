@@ -769,8 +769,8 @@ Each currency is an associative array (aka dictionary) with the following keys:
         'cost':  { ... },     // same limits for order cost = price * amount
         'leverage': { ... },  // same min/max limits for the leverage of the order
     },
-    'strike': 1641370465121   // the unix expiry timestamp in milliseconds
-    'optionType': 'spot'      // update it later
+    'strike': 4000            // price at which a put or call option can be exercised
+    'optionType': 'call'      // call or put string, call option represents an option with the right to buy and put an option with the right to sell
     'info':      { ... },     // the original unparsed market info from the exchange
 }
 ```
@@ -789,6 +789,8 @@ Each market is an associative array (aka dictionary) with the following keys:
 - `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
 - `precision`. Precision accepted in order values by exchanges upon order placement for price, amount and cost. (The value inside this property depend on the [`exchange.precisionMode`](#precision-mode)).
 - `limits`. The minimums and maximums for prices, amounts (volumes) and costs (where cost = price * amount).
+- `optionType`. The type of the option, `call` option represents an option with the right to buy and `put` an option with the right to sell.
+- `strike`. Price at which an option can be bought or sold when it is exercised.
 
 ## Active status
 
