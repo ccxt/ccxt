@@ -238,35 +238,55 @@ module.exports = class coinex extends Exchange {
             if (tradingName === id) {
                 symbol = id;
             }
-            const precision = {
-                'amount': this.safeInteger (market, 'trading_decimal'),
-                'price': this.safeInteger (market, 'pricing_decimal'),
-            };
-            const active = undefined;
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': undefined,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
                 'taker': this.safeNumber (market, 'taker_fee_rate'),
                 'maker': this.safeNumber (market, 'maker_fee_rate'),
-                'info': market,
-                'precision': precision,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': this.safeInteger (market, 'pricing_decimal'),
+                    'amount': this.safeInteger (market, 'trading_decimal'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'min_amount'),
                         'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
+                'info': market,
             });
         }
         return result;
