@@ -18,35 +18,49 @@ module.exports = class lykke extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
-                'swap': undefined,
-                'future': undefined,
-                'option': undefined,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'editOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchDeposits': false,
+                'fetchDeposits': true,
                 'fetchFundingFees': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchIndexOHLCV': true,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': 'emulated',
-                'fetchIndexOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchOrderTrades': true,
+                'fetchPositions': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': false,
                 'fetchTrades': true,
                 'fetchTradingFees': false,
+                'fetchWithdrawals': true,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': 'Minute',
@@ -71,10 +85,6 @@ module.exports = class lykke extends Exchange {
                     'public': 'https://hft-apiv2.lykke.com/api',
                     'private': 'https://hft-apiv2.lykke.com/api',
                 },
-                // 'test': {
-                //     'public': 'https://hft-service-dev.lykkex.net/api',
-                //     'private': 'https://hft-service-dev.lykkex.net/api',
-                // },
                 'www': 'https://www.lykke.com',
                 'doc': [
                     'https://hft-apiv2.lykke.com/swagger/ui/index.html',
@@ -99,6 +109,7 @@ module.exports = class lykke extends Exchange {
                 'private': {
                     'get': [
                         'balance',
+                        'trades',
                         'trades/order/{OrderId}',
                         'orders/active',
                         'orders/closed',
@@ -106,11 +117,6 @@ module.exports = class lykke extends Exchange {
                         'operations',
                         'operations/deposits/addresses',
                         'operations/deposits/addresses/{AssetId}',
-                        /////
-                        'Orders',
-                        'Orders/{id}',
-                        'Wallets',
-                        'History/trades',
                     ],
                     'post': [
                         'orders/limit',
@@ -118,21 +124,10 @@ module.exports = class lykke extends Exchange {
                         'orders/bulk',
                         'operations/withdrawals',
                         'operations/deposits/addresses',
-                        /////
-                        'Orders/limit',
-                        'Orders/market',
-                        'Orders/{id}/Cancel',
-                        'Orders/v2/market',
-                        'Orders/v2/limit',
-                        'Orders/stoplimit',
-                        'Orders/bulk',
                     ],
                     'delete': [
                         'orders',
                         'orders/{OrderId}',
-                        /////
-                        'Orders',
-                        'Orders/{id}',
                     ],
                 },
             },
@@ -163,29 +158,34 @@ module.exports = class lykke extends Exchange {
         const response = await this.publicGetAssets (params);
         const currencies = this.safeValue (response, 'payload', []);
         //
-        // {
-        //     "assetId":"07e55cf2-3553-4cf9-9ad6-d50f234a47ea",
-        //     "name":"Erc20 token Zilliqa (0x05f4a42e251f2d52b8ed15e9fedaacfcef1fad27)",
-        //     "symbol":"ZIL",
-        //     "accuracy":6,
-        //     "multiplierPower":12,
-        //     "assetAddress":"",
-        //     "blockchainIntegrationLayerId":"",
-        //     "blockchain":"ethereum",
-        //     "type":"erc20Token",
-        //     "isTradable":true,
-        //     "isTrusted":true,
-        //     "kycNeeded":true,
-        //     "blockchainWithdrawal":true,
-        //     "cashoutMinimalAmount":0.0,
-        //     "lowVolumeAmount":null,
-        //     "lykkeEntityId":"LYKKE NL",
-        //     "siriusAssetId":0,
-        //     "siriusBlockchainId":null,
-        //     "blockchainIntegrationType":"none",
-        //     "blockchainDepositEnabled":false,
-        //     "isDisabled":false
-        // }
+        //     {
+        //         "payload":[
+        //             {
+        //                 "assetId":"115a60c2-0da1-40f9-a7f2-41da723b9074",
+        //                 "name":"Monaco Token",
+        //                 "symbol":"MCO",
+        //                 "accuracy":6,
+        //                 "multiplierPower":8,
+        //                 "assetAddress":"",
+        //                 "blockchainIntegrationLayerId":"",
+        //                 "blockchain":"ethereum",
+        //                 "type":"erc20Token",
+        //                 "isTradable":true,
+        //                 "isTrusted":true,
+        //                 "kycNeeded":false,
+        //                 "blockchainWithdrawal":true,
+        //                 "cashoutMinimalAmount":0.1,
+        //                 "lowVolumeAmount":null,
+        //                 "lykkeEntityId":"LYKKE NL",
+        //                 "siriusAssetId":0,
+        //                 "siriusBlockchainId":null,
+        //                 "blockchainIntegrationType":"none",
+        //                 "blockchainDepositEnabled":false,
+        //                 "isDisabled":false
+        //             }
+        //         ],
+        //         "error":null
+        //     }
         //
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
@@ -219,20 +219,25 @@ module.exports = class lykke extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetAssetpairs ();
-        //
-        // {
-        //     "assetPairId":"AAVEBTC",
-        //     "baseAssetId":"c9e55548-dae5-44fc-bebd-e72249cb19f3",
-        //     "quoteAssetId":"BTC",
-        //     "name":"AAVE/BTC",
-        //     "priceAccuracy":6,
-        //     "baseAssetAccuracy":6,
-        //     "quoteAssetAccuracy":8,
-        //     "minVolume":0.001,
-        //     "minOppositeVolume":0.0001
-        // }
-        //
         const markets = this.safeValue (response, 'payload', []);
+        //
+        //     {
+        //         "payload":[
+        //             {
+        //                 "assetPairId":"AAVEBTC",
+        //                 "baseAssetId":"c9e55548-dae5-44fc-bebd-e72249cb19f3",
+        //                 "quoteAssetId":"BTC",
+        //                 "name":"AAVE/BTC",
+        //                 "priceAccuracy":6,
+        //                 "baseAssetAccuracy":6,
+        //                 "quoteAssetAccuracy":8,
+        //                 "minVolume":0.001,
+        //                 "minOppositeVolume":0.0001
+        //             }
+        //         ],
+        //         "error":null
+        //     }
+        //
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -381,29 +386,35 @@ module.exports = class lykke extends Exchange {
         //
         // publicGetTickers
         //
-        // [
         //     {
-        //         "assetPairId":"BTCUSD",
-        //         "volumeBase":2.56905016,
-        //         "volumeQuote":95653.8730,
-        //         "priceChange":-0.0367945778541765034194707584,
-        //         "lastPrice":36840.0,
-        //         "high":38371.645,
-        //         "low":35903.356,
-        //         "timestamp":1643295740729
+        //         "payload":[
+        //             {
+        //                 "assetPairId":"BTCUSD",
+        //                 "volumeBase":0.78056880,
+        //                 "volumeQuote":29782.5169,
+        //                 "priceChange":0.0436602362590968619931324699,
+        //                 "lastPrice":38626.885,
+        //                 "high":38742.896,
+        //                 "low":36872.498,
+        //                 "timestamp":1643687822840
+        //             }
+        //         ],
+        //         "error":null
         //     }
-        // ]
         //
         // publicGetPrices
         //
-        // [
         //     {
-        //         "assetPairId":"BTCUSD",
-        //         "bid":36181.521,
-        //         "ask":36244.492,
-        //         "timestamp":1643305510990
+        //         "payload":[
+        //             {
+        //                 "assetPairId":"BTCUSD",
+        //                 "bid":38597.936,
+        //                 "ask":38640.311,
+        //                 "timestamp":1643688350847
+        //             }
+        //         ],
+        //         "error":null
         //     }
-        // ]
         //
         return this.parseTicker (this.safeValue (ticker, 0, {}), market);
     }
@@ -413,18 +424,21 @@ module.exports = class lykke extends Exchange {
         const response = await this.publicGetTickers (params);
         const tickers = this.safeValue (response, 'payload', []);
         //
-        // [
         //     {
-        //         "assetPairId":"BTCUSD",
-        //         "volumeBase":2.56905016,
-        //         "volumeQuote":95653.8730,
-        //         "priceChange":-0.0367945778541765034194707584,
-        //         "lastPrice":36840.0,
-        //         "high":38371.645,
-        //         "low":35903.356,
-        //         "timestamp":1643295740729
+        //         "payload":[
+        //             {
+        //                 "assetPairId":"BTCUSD",
+        //                 "volumeBase":0.78056880,
+        //                 "volumeQuote":29782.5169,
+        //                 "priceChange":0.0436602362590968619931324699,
+        //                 "lastPrice":38626.885,
+        //                 "high":38742.896,
+        //                 "low":36872.498,
+        //                 "timestamp":1643687822840
+        //             }
+        //         ],
+        //         "error":null
         //     }
-        // ]
         //
         return this.parseTickers (tickers, symbols);
     }
@@ -438,27 +452,30 @@ module.exports = class lykke extends Exchange {
             request['depth'] = limit; // max 100, default 20
         }
         const response = await this.publicGetOrderbooks (this.extend (request, params));
+        const payload = this.safeValue (response, 'payload', []);
         //
-        // [
         //     {
-        //         assetPairId: 'BTCUSD',
-        //         timestamp: '1643298038203',
-        //         bids: [
+        //         "payload":[
         //             {
-        //                 "v":0.59034382,
-        //                 "p":36665.329
+        //                 assetPairId: 'BTCUSD',
+        //                 timestamp: '1643298038203',
+        //                 bids: [
+        //                     {
+        //                         "v":0.59034382,
+        //                         "p":36665.329
+        //                     }
+        //                 ],
+        //                 asks: [
+        //                     {
+        //                         "v":-0.003,
+        //                         "p":36729.686
+        //                     }
+        //                 ]
         //             }
         //         ],
-        //         asks: [
-        //             {
-        //                 "v":-0.003,
-        //                 "p":36729.686
-        //             }
-        //         ]
+        //         "error":null
         //     }
-        // ]
         //
-        const payload = this.safeValue (response, 'payload', []);
         const orderbook = this.safeValue (payload, 0, {});
         const timestamp = this.safeString (orderbook, 'timestamp');
         return this.parseOrderBook (orderbook, symbol, timestamp, 'bids', 'asks', 'p', 'v');
@@ -549,22 +566,25 @@ module.exports = class lykke extends Exchange {
         const request = {
             'AssetPairId': market['id'],
             'offset': 0, // (optional) Skip the specified number of elements.
-            'take': limit, //(optional) Take the specified number of elements.
+            'take': limit, // (optional) Take the specified number of elements.
         };
         const response = await this.publicGetTradesPublicAssetPairId (this.extend (request, params));
-        //
-        // [
-        //     {
-        //         "id":"71df1f0c-be4e-4d45-b809-c108fad5f2a8",
-        //         "assetPairId":"BTCUSD",
-        //         "timestamp":1643345958414,
-        //         "volume":0.00010996,
-        //         "price":37205.723,
-        //         "side":"buy"
-        //      }
-        //  ]
-        //
         const result = this.safeValue (response, 'payload', []);
+        //
+        //     {
+        //         "payload":[
+        //             {
+        //                 "id":"71df1f0c-be4e-4d45-b809-c108fad5f2a8",
+        //                 "assetPairId":"BTCUSD",
+        //                 "timestamp":1643345958414,
+        //                 "volume":0.00010996,
+        //                 "price":37205.723,
+        //                 "side":"buy"
+        //             }
+        //         ],
+        //         "error":null
+        //     }
+        //
         return this.parseTrades (result, market, since, limit);
     }
 
@@ -579,7 +599,7 @@ module.exports = class lykke extends Exchange {
             const used = this.safeString (balance, 'reserved');
             account['free'] = free;
             account['used'] = used;
-            account['total'] = Precise.stringAdd(free, used);
+            account['total'] = Precise.stringAdd (free, used);
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -590,14 +610,17 @@ module.exports = class lykke extends Exchange {
         const response = await this.privateGetBalance (params);
         const payload = this.safeValue (response, 'payload', []);
         //
-        // [
         //     {
-        //         "assetId":"BTCUSD",
-        //         "available":0.0001,
-        //         "timestamp":1643345958414,
-        //         "reserved":0.00001,
-        //      }
-        //  ]
+        //         "payload":[
+        //             {
+        //                 "assetId":"BTCUSD",
+        //                 "available":0.0001,
+        //                 "timestamp":1643345958414,
+        //                 "reserved":0.00001,
+        //             }
+        //         ],
+        //         "error":null
+        //     }
         //
         return this.parseBalance (payload);
     }
@@ -693,7 +716,7 @@ module.exports = class lykke extends Exchange {
             market = this.market (symbol);
             request['assetPairId'] = market['id'];
         }
-        const response = await this.privateGetHistoryTrades (this.extend (request, params));
+        const response = await this.privateGetTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -725,7 +748,7 @@ module.exports = class lykke extends Exchange {
         if (type === 'limit') {
             query['Price'] = price;
         }
-        const method = 'privatePostOrdersV2' + this.capitalize (type);
+        const method = 'privatePostOrders' + this.capitalize (type);
         const result = await this[method] (this.extend (query, params));
         //
         // market
@@ -769,7 +792,7 @@ module.exports = class lykke extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await this.privateGetOrdersId (this.extend (request, params));
+        const response = await this.privateGetOrdersOrderId (this.extend (request, params));
         return this.parseOrder (response);
     }
 
