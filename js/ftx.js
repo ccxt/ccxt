@@ -47,6 +47,7 @@ module.exports = class ftx extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': true,
@@ -61,7 +62,7 @@ module.exports = class ftx extends Exchange {
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': undefined,
+                'fetchFundingRates': false,
                 'fetchIndexOHLCV': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -72,7 +73,9 @@ module.exports = class ftx extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
+                'fetchPosition': false,
                 'fetchPositions': true,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -80,8 +83,10 @@ module.exports = class ftx extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFees': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
                 'setLeverage': true,
                 'setMarginMode': false, // FTX only supports cross margin
+                'setPositionMode': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -1501,6 +1506,13 @@ module.exports = class ftx extends Exchange {
         //
         const result = this.safeValue (response, 'result', []);
         return this.parseOrder (result, market);
+    }
+
+    async createReduceOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        const request = {
+            'reduceOnly': true,
+        };
+        return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
     }
 
     async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
