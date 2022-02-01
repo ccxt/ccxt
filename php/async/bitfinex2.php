@@ -46,6 +46,7 @@ class bitfinex2 extends bitfinex {
                 'fetchDepositAddress' => true,
                 'fetchFundingFees' => null,
                 'fetchIndexOHLCV' => false,
+                'fetchLedger' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -1543,8 +1544,7 @@ class bitfinex2 extends bitfinex {
         } else if ($transactionLength === 22) {
             $id = $this->safe_string($transaction, 0);
             $currencyId = $this->safe_string($transaction, 1);
-            $currency = $this->safe_currency($currencyId, $currency);
-            $code = $currency['code'];
+            $code = $this->safe_currency_code($currencyId, $currency);
             $timestamp = $this->safe_integer($transaction, 5);
             $updated = $this->safe_integer($transaction, 6);
             $status = $this->parse_transaction_status($this->safe_string($transaction, 9));
@@ -1783,5 +1783,109 @@ class bitfinex2 extends bitfinex {
             throw new ExchangeError($this->id . ' ' . $errorText . ' (#' . $errorCode . ')');
         }
         return $response;
+    }
+
+    public function parse_ledger_entry_type($type) {
+        if ($type === null) {
+            return null;
+        } else if (mb_strpos($type, 'fee') !== false || mb_strpos($type, 'charged') !== false) {
+            return 'fee';
+        } else if (mb_strpos($type, 'exchange') !== false || mb_strpos($type, 'position') !== false) {
+            return 'trade';
+        } else if (mb_strpos($type, 'rebate') !== false) {
+            return 'rebate';
+        } else if (mb_strpos($type, 'deposit') !== false || mb_strpos($type, 'withdrawal') !== false) {
+            return 'transaction';
+        } else if (mb_strpos($type, 'transfer') !== false) {
+            return 'transfer';
+        } else if (mb_strpos($type, 'payment') !== false) {
+            return 'payout';
+        } else {
+            return $type;
+        }
+    }
+
+    public function parse_ledger_entry($item, $currency = null) {
+        //
+        //     array(
+        //         array(
+        //             2531822314, // ID => Ledger identifier
+        //             "USD", // CURRENCY => The symbol of the $currency (ex. "BTC")
+        //             null, // PLACEHOLDER
+        //             1573521810000, // MTS => Timestamp in milliseconds
+        //             null, // PLACEHOLDER
+        //             0.01644445, // AMOUNT => Amount of funds moved
+        //             0, // BALANCE => New balance
+        //             null, // PLACEHOLDER
+        //             "Settlement @ 185.79 on wallet margin" // DESCRIPTION => Description of ledger transaction
+        //         )
+        //     )
+        //
+        $type = null;
+        $id = $this->safe_string($item, 0);
+        $currencyId = $this->safe_string($item, 1);
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $timestamp = $this->safe_integer($item, 3);
+        $amount = $this->safe_number($item, 5);
+        $after = $this->safe_number($item, 6);
+        $description = $this->safe_string($item, 8);
+        if ($description !== null) {
+            $parts = explode(' @ ', $description);
+            $first = $this->safe_string_lower($parts, 0);
+            $type = $this->parse_ledger_entry_type($first);
+        }
+        return array(
+            'id' => $id,
+            'direction' => null,
+            'account' => null,
+            'referenceId' => $id,
+            'referenceAccount' => null,
+            'type' => $type,
+            'currency' => $code,
+            'amount' => $amount,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'before' => null,
+            'after' => $after,
+            'status' => null,
+            'fee' => null,
+            'info' => $item,
+        );
+    }
+
+    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        yield $this->load_markets();
+        $currency = null;
+        $request = array();
+        $method = 'privatePostAuthRLedgersHist';
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['uppercaseId'];
+            $method = 'privatePostAuthRLedgersCurrencyHist';
+        }
+        if ($since !== null) {
+            $request['start'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // max 2500
+        }
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        //     array(
+        //         array(
+        //             2531822314, // ID => Ledger identifier
+        //             "USD", // CURRENCY => The symbol of the $currency (ex. "BTC")
+        //             null, // PLACEHOLDER
+        //             1573521810000, // MTS => Timestamp in milliseconds
+        //             null, // PLACEHOLDER
+        //             0.01644445, // AMOUNT => Amount of funds moved
+        //             0, // BALANCE => New balance
+        //             null, // PLACEHOLDER
+        //             "Settlement @ 185.79 on wallet margin" // DESCRIPTION => Description of ledger transaction
+        //         )
+        //     )
+        //
+        return $this->parse_ledger($response, $currency, $since, $limit);
     }
 }
