@@ -265,6 +265,7 @@ class hitbtc extends Exchange {
                 '2020' => '\\ccxt\\InvalidOrder', // "Price not a valid number"
                 '20002' => '\\ccxt\\OrderNotFound', // canceling non-existent order
                 '20001' => '\\ccxt\\InsufficientFunds', // array("error":array("code":20001,"message":"Insufficient funds","description":"Check that the funds are sufficient, given commissions"))
+                '20010' => '\\ccxt\\BadSymbol', // array("error":array("code":20010,"message":"Exchange temporary closed","description":"Exchange market for this symbol is temporary closed"))
             ),
         ));
     }

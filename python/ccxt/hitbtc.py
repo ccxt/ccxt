@@ -274,6 +274,7 @@ class hitbtc(Exchange):
                 '2020': InvalidOrder,  # "Price not a valid number"
                 '20002': OrderNotFound,  # canceling non-existent order
                 '20001': InsufficientFunds,  # {"error":{"code":20001,"message":"Insufficient funds","description":"Check that the funds are sufficient, given commissions"}}
+                '20010': BadSymbol,  # {"error":{"code":20010,"message":"Exchange temporary closed","description":"Exchange market for self symbol is temporary closed"}}
             },
         })
 
