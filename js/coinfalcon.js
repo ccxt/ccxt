@@ -94,6 +94,26 @@ module.exports = class coinfalcon extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetMarkets (params);
+        //
+        //    {
+        //        "data": [
+        //            {
+        //                "name": "ETH-BTC",
+        //                "precision": 6,
+        //                "min_volume": "0.00000001",
+        //                "min_price": "0.000001",
+        //                "volume": "0.015713",
+        //                "last_price": "0.069322",
+        //                "highest_bid": "0.063892",
+        //                "lowest_ask": "0.071437",
+        //                "change_in_24h": "2.85",
+        //                "size_precision": 8,
+        //                "price_precision": 6
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
         const markets = this.safeValue (response, 'data');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
