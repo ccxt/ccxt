@@ -454,7 +454,7 @@ module.exports = class delta extends Exchange {
                 'optionType': optionType,
                 'precision': {
                     'price': this.safeNumber (market, 'tick_size'),
-                    'amount': this.parseNumber ('1.0'), // number of contracts
+                    'amount': this.parseNumber ('1'), // number of contracts
                 },
                 'limits': {
                     'leverage': {
@@ -462,7 +462,7 @@ module.exports = class delta extends Exchange {
                         'max': undefined, // this.safeNumber (market, 'max_leverage_notional');
                     },
                     'amount': {
-                        'min': 1.0,
+                        'min': this.parseNumber ('1'),
                         'max': this.safeNumber (market, 'position_size_limit'),
                     },
                     'price': {
