@@ -459,7 +459,7 @@ module.exports = class delta extends Exchange {
                 'limits': {
                     'leverage': {
                         'min': undefined,
-                        'max': undefined, // this.safeNumber (market, 'max_leverage_notional');
+                        'max': undefined,
                     },
                     'amount': {
                         'min': this.parseNumber ('1'),
