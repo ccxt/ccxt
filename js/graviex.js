@@ -28,7 +28,7 @@ module.exports = class graviex extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOrders': false,
                 'fetchOrder': false,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchL2OrderBook': false,
                 'fetchOrderTrades': false,
@@ -70,7 +70,6 @@ module.exports = class graviex extends Exchange {
                     'get': [
                         'markets',
                         'tickers',
-                        'order_book', // Requires market XXXYYY. Optional: asks_limit, bids_limit.
                         'depth', // Requires market XXXYYY. Optional: asks_limit, bids_limit.
                         'trades', // Requires market XXXYYY. Optional: limit, timestamp, from, to, order_by
                         'trades_simple', // Requires market XXXYYY.
@@ -80,6 +79,7 @@ module.exports = class graviex extends Exchange {
                 },
                 'private': {
                     'get': [
+                        'order_book', // Requires access_key, tonce, signature and market XXXYYY.
                         'members/me', // Requires access_key, tonce, signature and api secret.
                         'deposits', // Requires access_key, tonce, signature and api secret. Optional currency, limit and state.
                         'deposit', // Requires access_key, tonce, signature, txid and api secret.
@@ -444,6 +444,42 @@ module.exports = class graviex extends Exchange {
         //     ],
         // ],
         return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100,
+        }
+        const response = await this.publicGetDepth (this.extend (request, params));
+        // {
+        //   "timestamp": 1643721617,
+        //   "asks": [
+        //     [
+        //       "0.00000253",
+        //       "120.0"
+        //     ],
+        //     [
+        //       "0.0000025",
+        //       "2424.0288"
+        //     ],
+        //     [
+        //       "0.00000249",
+        //       "77.577"
+        //     ],
+        //     [
+        //       "0.00000248",
+        //       "12.5"
+        //     ],
+        // },
+        const timestamp = this.safeInteger (response, 'timestamp');
+        const orderbook = this.parseOrderBook (response, symbol, timestamp);
+        orderbook['nonce'] = this.milliseconds ();
+        return orderbook;
     }
 
     nonce () {
