@@ -362,9 +362,9 @@ module.exports = class binance extends Exchange {
                         'lending/daily/purchase': 0.1,
                         'lending/daily/redeem': 0.1,
                         // liquid swap endpoints
-                        'bswap/liquidityAdd': 1000, // TODO Weight(UID): 1000 + (Additional: 1 request every 3 seconds)
-                        'bswap/liquidityRemove': 1000, // TODO Weight(UID): 1000 + (Additional: 1 request every three seconds)
-                        'bswap/swap': 1000, // TODO Weight(UID): 1000 + (Additional: 1 request every three seconds)
+                        'bswap/liquidityAdd': 60, // Weight(UID): 1000 + (Additional: 1 request every 3 seconds =  0.333 requests per second) => cost = ( 1000 / rateLimit ) / 0.333 = 60.0000006
+                        'bswap/liquidityRemove': 60, // Weight(UID): 1000 + (Additional: 1 request every three seconds)
+                        'bswap/swap': 60, // Weight(UID): 1000 + (Additional: 1 request every three seconds)
                         'bswap/claimRewards': 6.667, // Weight(UID): 1000 => cost = 0.006667 * 1000 = 6.667
                         // leveraged token endpoints
                         'blvt/subscribe': 0.1,
