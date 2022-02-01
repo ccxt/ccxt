@@ -574,38 +574,39 @@ module.exports = class coinbase extends Exchange {
                     const quoteCurrency = data[j];
                     const quoteId = this.safeString (quoteCurrency, 'id');
                     const quote = this.safeCurrencyCode (quoteId);
-                    const symbol = base + '/' + quote;
-                    const id = baseId + '-' + quoteId;
                     result.push ({
-                        'id': id,
-                        'symbol': symbol,
+                        'id': baseId + '-' + quoteId,
+                        'symbol': base + '/' + quote,
                         'base': base,
                         'quote': quote,
+                        'settle': undefined,
                         'baseId': baseId,
                         'quoteId': quoteId,
+                        'settleId': undefined,
                         'type': 'spot',
                         'spot': true,
                         'margin': false,
-                        'future': false,
                         'swap': false,
+                        'future': false,
                         'option': false,
-                        'optionType': undefined,
-                        'strike': undefined,
+                        'active': undefined,
+                        'contract': false,
                         'linear': undefined,
                         'inverse': undefined,
-                        'contract': false,
                         'contractSize': undefined,
-                        'settle': undefined,
-                        'settleId': undefined,
                         'expiry': undefined,
                         'expiryDatetime': undefined,
-                        'active': undefined,
-                        'info': quoteCurrency,
+                        'strike': undefined,
+                        'optionType': undefined,
                         'precision': {
-                            'amount': undefined,
                             'price': undefined,
+                            'amount': undefined,
                         },
                         'limits': {
+                            'leverage': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
                             'amount': {
                                 'min': undefined,
                                 'max': undefined,
@@ -618,10 +619,8 @@ module.exports = class coinbase extends Exchange {
                                 'min': this.safeNumber (quoteCurrency, 'min_size'),
                                 'max': undefined,
                             },
-                            'leverage': {
-                                'max': 1,
-                            },
                         },
+                        'info': quoteCurrency,
                     });
                 }
             }
