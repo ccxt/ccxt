@@ -1781,8 +1781,9 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     parseLedgerEntryType (type) {
-        // if it contains fee
-        if (type.indexOf ('fee') >= 0 || type.indexOf ('charged') >= 0) {
+        if (type === undefined) {
+            return undefined;
+        } else if (type.indexOf ('fee') >= 0 || type.indexOf ('charged') >= 0) {
             return 'fee';
         } else if (type.indexOf ('exchange') >= 0 || type.indexOf ('position') >= 0) {
             return 'trade';
