@@ -29,9 +29,9 @@ class cryptocom(Exchange):
             'has': {
                 'CORS': False,
                 'spot': True,
-                'margin': None,
-                'swap': None,
-                'future': None,
+                'margin': None,  # has but not fully implemented
+                'swap': None,  # has but not fully implemented
+                'future': None,  # has but not fully implemented
                 'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
@@ -311,61 +311,56 @@ class cryptocom(Exchange):
             quoteId = self.safe_string(market, 'quote_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
             priceDecimals = self.safe_string(market, 'price_decimals')
             minPrice = self.parse_precision(priceDecimals)
-            precision = {
-                'amount': self.safe_integer(market, 'quantity_decimals'),
-                'price': int(priceDecimals),
-            }
             minQuantity = self.safe_string(market, 'min_quantity')
-            minCost = self.parse_number(Precise.string_mul(minQuantity, minPrice))
-            maxQuantity = self.safe_number(market, 'max_quantity')
-            margin = self.safe_value(market, 'margin_trading_enabled')
             result.append({
-                'info': market,
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'linear': None,
-                'inverse': None,
-                'settle': None,
                 'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'margin': margin,
-                'future': False,
+                'margin': self.safe_value(market, 'margin_trading_enabled'),
                 'swap': False,
+                'future': False,
                 'option': False,
-                'optionType': None,
-                'strike': None,
+                'active': None,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
                 'expiry': None,
                 'expiryDatetime': None,
-                'contract': False,
-                'contractSize': None,
-                'active': None,
-                'precision': precision,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': int(priceDecimals),
+                    'amount': self.safe_integer(market, 'quantity_decimals'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.parse_number(minQuantity),
-                        'max': maxQuantity,
+                        'max': self.safe_number(market, 'max_quantity'),
                     },
                     'price': {
                         'min': self.parse_number(minPrice),
                         'max': None,
                     },
                     'cost': {
-                        'min': minCost,
-                        'max': None,
-                    },
-                    'leverage': {
-                        'min': None,
+                        'min': self.parse_number(Precise.string_mul(minQuantity, minPrice)),
                         'max': None,
                     },
                 },
+                'info': market,
             })
         futuresResponse = await self.derivativesPublicGetPublicGetInstruments()
         #
@@ -418,41 +413,39 @@ class cryptocom(Exchange):
                 type = 'future'
                 symbol = symbol + '-' + self.yymmdd(expiry)
             contractSize = self.safe_number(market, 'contract_size')
-            marketId = self.safe_string(market, 'symbol')
-            maxLeverage = self.safe_number(market, 'max_leverage')
-            active = self.safe_value(market, 'tradable')
-            pricePrecision = self.safe_integer(market, 'quote_decimals')
-            amountPrecision = self.safe_integer(market, 'quantity_decimals')
             result.append({
-                'info': market,
-                'id': marketId,
+                'id': self.safe_string(market, 'symbol'),
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'linear': True,
-                'inverse': False,
-                'settle': quote,
                 'settleId': quoteId,
                 'type': type,
                 'spot': False,
                 'margin': False,
-                'future': future,
                 'swap': swap,
+                'future': future,
                 'option': False,
-                'optionType': None,
-                'strike': None,
+                'active': self.safe_value(market, 'tradable'),
+                'contract': True,
+                'linear': True,
+                'inverse': False,
+                'contractSize': contractSize,
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
-                'contract': True,
-                'contractSize': contractSize,
-                'active': active,
+                'strike': None,
+                'optionType': None,
                 'precision': {
-                    'price': pricePrecision,
-                    'amount': amountPrecision,
+                    'price': self.safe_integer(market, 'quote_decimals'),
+                    'amount': self.safe_integer(market, 'quantity_decimals'),
                 },
                 'limits': {
+                    'leverage': {
+                        'min': self.parse_number('1'),
+                        'max': self.safe_number(market, 'max_leverage'),
+                    },
                     'amount': {
                         'min': self.parse_number(contractSize),
                         'max': None,
@@ -465,11 +458,8 @@ class cryptocom(Exchange):
                         'min': None,
                         'max': None,
                     },
-                    'leverage': {
-                        'min': None,
-                        'max': maxLeverage,
-                    },
                 },
+                'info': market,
             })
         return result
 
