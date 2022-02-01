@@ -29,7 +29,7 @@ class ascendex(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,
+                'margin': None,  # has but not fully inplemented
                 'swap': True,
                 'future': False,
                 'option': False,
@@ -513,18 +513,10 @@ class ascendex(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             settle = self.safe_currency_code(settleId)
-            precision = {
-                'amount': self.safe_number(market, 'lotSize'),
-                'price': self.safe_number(market, 'tickSize'),
-            }
             status = self.safe_string(market, 'status')
-            active = (status == 'Normal')
             spot = settle is None
             swap = not spot
-            type = 'swap' if swap else 'spot'
-            margin = self.safe_value(market, 'marginTradable', False)
             linear = True if swap else None
-            contractSize = self.parse_number('1') if swap else None
             minQty = self.safe_number(market, 'minQty')
             maxQty = self.safe_number(market, 'maxQty')
             minPrice = self.safe_number(market, 'tickSize')
@@ -545,6 +537,7 @@ class ascendex(Exchange):
                 quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote + ':' + settle
             fee = self.safe_number(market, 'commissionReserveRate')
+            marginTradable = self.safe_value(market, 'marginTradable', False)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -554,24 +547,27 @@ class ascendex(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': type,
+                'type': 'swap' if swap else 'spot',
                 'spot': spot,
-                'margin': margin,
+                'margin': marginTradable if spot else None,
                 'swap': swap,
                 'future': False,
                 'option': False,
-                'active': active,
+                'active': (status == 'Normal'),
                 'contract': swap,
                 'linear': linear,
                 'inverse': not linear if swap else None,
                 'taker': fee,
                 'maker': fee,
-                'contractSize': contractSize,
+                'contractSize': self.parse_number('1') if swap else None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
-                'precision': precision,
+                'precision': {
+                    'price': self.safe_number(market, 'tickSize'),
+                    'amount': self.safe_number(market, 'lotSize'),
+                },
                 'limits': {
                     'leverage': {
                         'min': None,
