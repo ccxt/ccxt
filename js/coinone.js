@@ -133,6 +133,27 @@ module.exports = class coinone extends Exchange {
             'currency': 'all',
         };
         const response = await this.publicGetTicker (request);
+        //
+        //    {
+        //        "result": "success",
+        //        "errorCode": "0",
+        //        "timestamp": "1643676668",
+        //        "xec": {
+        //          "currency": "xec",
+        //          "first": "0.0914",
+        //          "low": "0.0894",
+        //          "high": "0.096",
+        //          "last": "0.0937",
+        //          "volume": "1673283662.9797",
+        //          "yesterday_first": "0.0929",
+        //          "yesterday_low": "0.0913",
+        //          "yesterday_high": "0.0978",
+        //          "yesterday_last": "0.0913",
+        //          "yesterday_volume": "1167285865.4571"
+        //        },
+        //        ...
+        //    }
+        //
         const result = [];
         const quoteId = 'krw';
         const quote = this.safeCurrencyCode (quoteId);
@@ -160,7 +181,7 @@ module.exports = class coinone extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': true,
+                'active': undefined,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
