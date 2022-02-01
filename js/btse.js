@@ -1386,15 +1386,14 @@ module.exports = class btse extends Exchange {
         }
         if (accessibility === 'private') {
             this.checkRequiredCredentials ();
+            headers = {};
             if (method === 'POST') {
                 body = this.json (params);
-                headers = {
-                    'Content-Type': 'application/json',
-                };
+                headers['Content-Type'] = 'application/json';
             }
             const nonce = this.milliseconds ().toString ();
             const splittedURL = this.urls['api'][type].split ('/');
-            const version = splittedURL[splittedURL.length - 1];
+            const version = this.safeString (splittedURL, splittedURL.length - 1);
             const convertedBody = body ? body : '';
             const payload = '/api/' + version + '/' + path + nonce + convertedBody;
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha384');
