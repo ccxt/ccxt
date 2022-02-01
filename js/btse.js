@@ -54,8 +54,8 @@ module.exports = class btse extends Exchange {
                 'fetchTransfers': false,
                 'fetchWithdrawals': false,
                 'setLeverage': true,
-                'transfer': false,
-                'withdraw': false,
+                'transfer': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -165,6 +165,7 @@ module.exports = class btse extends Exchange {
                 'exact': {
                     '-1': BadRequest, // {"code":-1,"msg":null,"time":1643322746173,"data":null,"success":false}
                     '400': BadRequest, // {"code":400,"msg":"BADREQUEST: Symbol can't be null or empty.","time":1643630327438,"data":null,"success":false}
+                    '10071': BadRequest, // {"code":10071,"msg":"BADREQUEST: 转账参数错误","time":1643727219192,"data":null,"success":false}
                     '80005': BadSymbol, // {"code":80005,"msg":"BADREQUEST: product_id invalid","time":1643385790496,"data":null,"success":false}
                 },
             },
@@ -856,6 +857,7 @@ module.exports = class btse extends Exchange {
             '10': 'opended',
             '15': 'rejected',
             'STATUS_ACTIVE': 'open',
+            'STATUS_INACTIVE': 'closed',
         };
         return this.safeString (statuses, status, status);
     }
@@ -1291,6 +1293,47 @@ module.exports = class btse extends Exchange {
             'tag': undefined,
             'network': undefined,
             'info': response,
+        };
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        // internal transfers only
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+            'amount': amount,
+            'to': toAccount, // internal account id
+        };
+        const toUserMail = this.safeString (params, 'toUserMail');
+        if (toUserMail) {
+            throw new ArgumentsRequired (this.id + ' transfer requires a `toUserMail` argument');
+        }
+        return await this.spotPrivatePostUserWalletTransfer (this.extend (request, params));
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'amount': parseFloat (amount),
+            'address': address,
+        };
+        if (tag !== undefined) {
+            request['tag'] = tag;
+        }
+        const response = await this.spotPrivatePostUserWalletWithdraw (this.extend (request, params));
+        //
+        //  {
+        //       "withdraw_id": "<withdrawal ID>"
+        //  }
+        //
+        const id = this.safeString (response, 'withdraw_id');
+        return {
+            'info': response,
+            'id': id,
         };
     }
 
