@@ -324,53 +324,52 @@ module.exports = class binance extends Exchange {
                         'giftcard/verify': 0.1,
                     },
                     'post': {
-                        'asset/dust': 1,
-                        'asset/transfer': 1,
-                        'asset/get-funding-asset': 1,
-                        'account/disableFastWithdrawSwitch': 1,
-                        'account/enableFastWithdrawSwitch': 1,
-                        'account/apiRestrictions/ipRestriction': 1,
-                        'account/apiRestrictions/ipRestriction/ipList': 1,
-                        'capital/withdraw/apply': 1,
-                        'margin/transfer': 1,
-                        'margin/loan': 1,
-                        'margin/repay': 1,
-                        'margin/order': 4,
-                        'margin/order/oco': 1,
-                        'margin/isolated/create': 1,
-                        'margin/isolated/transfer': 1,
-                        'margin/isolated/account': 1,
-                        'bnbBurn': 1,
-                        'sub-account/margin/transfer': 1,
-                        'sub-account/margin/enable': 1,
-                        // 'sub-account/margin/enable': 1,
-                        'sub-account/futures/enable': 1,
-                        'sub-account/futures/transfer': 1,
-                        'sub-account/futures/internalTransfer': 1,
-                        'sub-account/transfer/subToSub': 1,
-                        'sub-account/transfer/subToMaster': 1,
-                        'sub-account/universalTransfer': 1,
-                        'managed-subaccount/deposit': 1,
-                        'managed-subaccount/withdraw': 1,
-                        'userDataStream': 1,
-                        'userDataStream/isolated': 1,
-                        'futures/transfer': 1,
-                        'futures/loan/borrow': 20,
-                        'futures/loan/repay': 20,
-                        'futures/loan/adjustCollateral': 20,
+                        'asset/dust': 0.06667, // Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
+                        'asset/transfer': 0.1,
+                        'asset/get-funding-asset': 0.1,
+                        'account/disableFastWithdrawSwitch': 0.1,
+                        'account/enableFastWithdrawSwitch': 0.1,
+                        // 'account/apiRestrictions/ipRestriction': 1, discontinued
+                        // 'account/apiRestrictions/ipRestriction/ipList': 1, discontinued
+                        'capital/withdraw/apply': 0.1,
+                        'margin/transfer': 1, // Weight(IP): 600 => cost = 0.1 * 600 = 60
+                        'margin/loan': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'margin/repay': 20.001,
+                        'margin/order': 0.040002, // Weight(UID): 6 => cost = 0.006667 * 6 = 0.040002
+                        'margin/order/oco': 0.040002,
+                        // 'margin/isolated/create': 1, discontinued
+                        'margin/isolated/transfer': 4.0002, // Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
+                        'margin/isolated/account': 2.0001, // Weight(UID): 300 => cost = 0.006667 * 300 = 2.0001
+                        'bnbBurn': 0.1,
+                        'sub-account/margin/transfer': 4.0002, // Weight(UID): 600 => cost =  0.006667 * 600 = 4.0002
+                        'sub-account/margin/enable': 0.1,
+                        'sub-account/futures/enable': 0.1,
+                        'sub-account/futures/transfer': 0.1,
+                        'sub-account/futures/internalTransfer': 0.1,
+                        'sub-account/transfer/subToSub': 0.1,
+                        'sub-account/transfer/subToMaster': 0.1,
+                        'sub-account/universalTransfer': 0.1,
+                        'managed-subaccount/deposit': 0.1,
+                        'managed-subaccount/withdraw': 0.1,
+                        'userDataStream': 0.1,
+                        'userDataStream/isolated': 0.1,
+                        'futures/transfer': 0.1,
+                        'futures/loan/borrow': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'futures/loan/repay': 20.001,
+                        'futures/loan/adjustCollateral': 20.001,
                         // lending
-                        'lending/customizedFixed/purchase': 1,
-                        'lending/daily/purchase': 1,
-                        'lending/daily/redeem': 1,
+                        'lending/customizedFixed/purchase': 0.1,
+                        'lending/daily/purchase': 0.1,
+                        'lending/daily/redeem': 0.1,
                         // liquid swap endpoints
-                        'bswap/liquidityAdd': 2,
-                        'bswap/liquidityRemove': 2,
-                        'bswap/swap': 2,
-                        'bswap/claimRewards': 1,
+                        'bswap/liquidityAdd': 1000, // TODO Weight(UID): 1000 + (Additional: 1 request every 3 seconds)
+                        'bswap/liquidityRemove': 1000, // TODO Weight(UID): 1000 + (Additional: 1 request every three seconds)
+                        'bswap/swap': 1000, // TODO Weight(UID): 1000 + (Additional: 1 request every three seconds)
+                        'bswap/claimRewards': 6.667, // Weight(UID): 1000 => cost = 0.006667 * 1000 = 6.667
                         // leveraged token endpoints
-                        'blvt/subscribe': 1,
-                        'blvt/redeem': 1,
-                        // brokerage API
+                        'blvt/subscribe': 0.1,
+                        'blvt/redeem': 0.1,
+                        // brokerage API TODO: NO MENTION OF RATELIMITS IN BROKERAGE DOCS
                         'apiReferral/customization': 1,
                         'apiReferral/userCustomization': 1,
                         'apiReferral/rebate/historicalRecord': 1,
@@ -394,22 +393,23 @@ module.exports = class binance extends Exchange {
                         'broker/universalTransfer': 1,
                         'broker/subAccountApi/permission/universalTransfer': 1,
                         'broker/subAccountApi/permission/vanillaOptions': 1,
-                        'giftcard/createCode': 1,
-                        'giftcard/redeemCode': 1,
+                        //
+                        'giftcard/createCode': 0.1,
+                        'giftcard/redeemCode': 0.1,
                     },
                     'put': {
-                        'userDataStream': 1,
-                        'userDataStream/isolated': 1,
+                        'userDataStream': 0.1,
+                        'userDataStream/isolated': 0.1,
                     },
                     'delete': {
-                        'account/apiRestrictions/ipRestriction/ipList': 1,
-                        'margin/openOrders': 1,
-                        'margin/order': 1,
-                        'margin/orderList': 1,
-                        'margin/isolated/account': 1,
-                        'userDataStream': 1,
-                        'userDataStream/isolated': 1,
-                        // brokerage API
+                        // 'account/apiRestrictions/ipRestriction/ipList': 1, discontinued
+                        'margin/openOrders': 0.1,
+                        'margin/order': 0.0066667, // Weight(UID): 1 => cost = 0.006667
+                        'margin/orderList': 0.0066667,
+                        'margin/isolated/account': 1, // Weight(UID): 300 => cost =  0.006667 * 300 = 2.0001
+                        'userDataStream': 0.1,
+                        'userDataStream/isolated': 0.1,
+                        // brokerage API TODO NO MENTION OF RATELIMIT IN BROKERAGE DOCS
                         'broker/subAccountApi': 1,
                         'broker/subAccountApi/ipRestriction/ipList': 1,
                     },
