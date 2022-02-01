@@ -17,11 +17,12 @@ module.exports = class btse extends Exchange {
                 'CORS': false,
                 'spot': true,
                 'margin': undefined,
-                'swap': undefined,
-                'future': undefined,
-                'option': undefined,
+                'swap': true,
+                'future': true,
+                'option': false,
                 'cancelAllOrders': false,
                 'cancelOrder': false,
+                'createDepositAddress': true,
                 'createOrder': true,
                 'fetchBalance': false,
                 'fetchBidsAsks': false,
@@ -102,6 +103,7 @@ module.exports = class btse extends Exchange {
                             'user/trade_history': 5,
                             'user/wallet_history': 5,
                             'user/wallet': 5,
+                            'user/wallet/address': 5,
                         },
                         'post': {
                             'order': 1,
@@ -1241,6 +1243,55 @@ module.exports = class btse extends Exchange {
         //     }
         // ]
         return this.parseOrders (response, market);
+    }
+
+    async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.spotPrivatePostUserWalletAddress (this.extend (request, params));
+        // [
+        //     {
+        //         'address': 'Blockchain address',
+        //         'created': 1592627542,
+        //     },
+        // ];
+        const data = this.safeValue (response, 0, []);
+        const address = this.safeString (data, 'address');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': undefined,
+            'info': response,
+        };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.spotPrivateGetUserWalletAddress (this.extend (request, params));
+        // [
+        //     {
+        //       "address": "Blockchain address",
+        //       "created": 1592627542
+        //     }
+        //   ]
+        const data = this.safeValue (response, 0, {});
+        const address = this.safeValue (data, 'address');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': undefined,
+            'network': undefined,
+            'info': response,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
