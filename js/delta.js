@@ -437,14 +437,14 @@ module.exports = class delta extends Exchange {
                 'settleId': settleId,
                 'type': type,
                 'spot': spot,
-                'margin': (spot ? undefined : false),
+                'margin': spot ? undefined : false,
                 'swap': swap,
                 'future': future,
                 'option': option,
                 'active': (state === 'live'),
                 'contract': !spot,
-                'linear': (spot ? undefined : linear),
-                'inverse': (spot ? undefined : !linear),
+                'linear': spot ? undefined : linear,
+                'inverse': spot ? undefined : !linear,
                 'taker': this.safeNumber (market, 'taker_commission_rate'),
                 'maker': this.safeNumber (market, 'maker_commission_rate'),
                 'contractSize': contractSize,
@@ -454,7 +454,7 @@ module.exports = class delta extends Exchange {
                 'optionType': optionType,
                 'precision': {
                     'price': this.safeNumber (market, 'tick_size'),
-                    'amount': 1.0, // number of contracts
+                    'amount': this.parseNumber ('1.0'), // number of contracts
                 },
                 'limits': {
                     'leverage': {
