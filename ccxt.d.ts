@@ -54,10 +54,10 @@ declare module 'ccxt' {
     export interface Market {
         id: string;
         symbol: string;
+        base: string;
+        quote: string;
         baseId: string;
         quoteId: string;
-        settle?: string;
-        settleId?: string;
         type?: string;
         spot?: boolean;
         margin?: boolean;
@@ -80,10 +80,15 @@ declare module 'ccxt' {
         };
         taker: number;
         maker: number;
+        percentage: boolean;
+        tierBased: boolean;
+        feeSide: string;
         contractSize?: number;
         expiry?: number;
-        strike?: number;
+        settle?: string;
+        settleId?: string;
         expiryDatetime?: string;
+        strike?: number;
         optionType?: string;
         info: any;
     }
