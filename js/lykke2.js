@@ -3,11 +3,12 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const { NotSupported, ExchangeError, BadRequest, InsufficientFunds, InvalidOrder, DuplicateOrderId } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class lykke extends Exchange {
+module.exports = class lykke2 extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'lykke2',
@@ -148,6 +149,38 @@ module.exports = class lykke extends Exchange {
                         'BTC': 0,
                     },
                 },
+            },
+            'exceptions': {
+                'exact': {
+                    '1001': ExchangeError,
+                    '1100': ExchangeError,
+                    '1101': ExchangeError,
+                    '2000': BadRequest,
+                    '2001': InsufficientFunds,
+                    '2202': DuplicateOrderId,
+                    '2003': ExchangeError,
+                    '2004': NotSupported,
+                    '2005': ExchangeError,
+                    '2006': InsufficientFunds,
+                    '2007': InsufficientFunds,
+                    '2008': InsufficientFunds,
+                    '2009': ExchangeError,
+                    '2010': InsufficientFunds,
+                    '2011': InvalidOrder,
+                    '2012': InvalidOrder,
+                    '2013': InvalidOrder,
+                    '2014': InvalidOrder,
+                    '2015': InvalidOrder,
+                    '2016': InvalidOrder,
+                    '2017': InvalidOrder,
+                    '2018': InvalidOrder,
+                    '2019': InvalidOrder,
+                    '2020': InvalidOrder,
+                    '2021': InvalidOrder,
+                    '2022': InvalidOrder,
+                    '2023': ExchangeError,
+                },
+                'broad': {},
             },
             'commonCurrencies': {
             },
@@ -519,13 +552,13 @@ module.exports = class lykke extends Exchange {
         //         Price: 9847.427,
         //         Fee: { Amount: null, Type: 'Unknown', FeeAssetId: null }
         //     },
-        const marketId = this.safeString (trade, 'AssetPairId');
+        const marketId = this.safeString (trade, 'assetPairId');
         const symbol = this.safeSymbol (marketId, market);
-        const id = this.safeString2 (trade, 'id', 'Id');
-        const orderId = this.safeString (trade, 'OrderId');
-        const timestamp = this.parse8601 (this.safeString2 (trade, 'dateTime', 'DateTime'));
-        const priceString = this.safeString2 (trade, 'price', 'Price');
-        let amountString = this.safeString2 (trade, 'volume', 'Amount');
+        const id = this.safeString2 (trade, 'id', 'id');
+        const orderId = this.safeString (trade, 'orderId');
+        const timestamp = this.parse8601 (this.safeString2 (trade, 'timestamp', 'timestamp'));
+        const priceString = this.safeString2 (trade, 'price', 'price');
+        let amountString = this.safeString2 (trade, 'volume', 'amount');
         let side = this.safeStringLower (trade, 'action');
         if (side === undefined) {
             side = (amountString[0] === '-') ? 'sell' : 'buy';
@@ -888,5 +921,20 @@ module.exports = class lykke extends Exchange {
             'network': this.safeNetwork (networkId),
             'info': response,
         };
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return;
+        }
+        const error = this.safeValue (response, 'error', {});
+        const errorCode = this.safeString (error, 'code');
+        if ((errorCode !== undefined) && (errorCode !== '0')) {
+            const feedback = this.id + ' ' + body;
+            const message = this.safeString (error, 'message');
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            throw new ExchangeError (feedback);
+        }
     }
 };
