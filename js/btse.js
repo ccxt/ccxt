@@ -37,7 +37,7 @@ module.exports = class btse extends Exchange {
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOpenOrders': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': false,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
@@ -1189,8 +1189,10 @@ module.exports = class btse extends Exchange {
             'txType': 'LIMIT', // default value
             'size': parseFloat (this.amountToPrecision (symbol, amount)),
         };
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clOrderID', this.uuid16 ());
-        request['clOrderID'] = clientOrderId;
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clOrderID');
+        if (clientOrderId !== undefined) {
+            request['clOrderID'] = clientOrderId;
+        }
         if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT')) {
             if (price === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + type + 'order');
