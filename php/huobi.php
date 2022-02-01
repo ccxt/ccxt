@@ -1774,8 +1774,11 @@ class huobi extends Exchange {
         $filledPoints = $this->safe_string($trade, 'filled-points');
         if ($filledPoints !== null) {
             if (($feeCost === null) || Precise::string_equals($feeCost, '0')) {
-                $feeCost = $filledPoints;
-                $feeCurrency = $this->safe_currency_code($this->safe_string($trade, 'fee-deduct-currency'));
+                $feeDeductCurrency = $this->safe_string($trade, 'fee-deduct-currency');
+                if ($feeDeductCurrency !== '') {
+                    $feeCost = $filledPoints;
+                    $feeCurrency = $this->safe_currency_code($feeDeductCurrency);
+                }
             }
         }
         if ($feeCost !== null) {
