@@ -845,11 +845,15 @@ module.exports = class btse extends Exchange {
 
     parseOrderStatus (status) {
         const statuses = {
+            '1': 'open',
+            '2': 'open',
+            '4': 'closed',
+            '5': 'open',
+            '6': 'canceled',
+            '9': 'canceled',
+            '10': 'opended',
+            '15': 'rejected',
             'STATUS_ACTIVE': 'open',
-            // 'CANCELED': 'canceled',
-            // 'FILLED': 'closed',
-            // 'REJECTED': 'rejected',
-            // 'EXPIRED': 'expired',
         };
         return this.safeString (statuses, status, status);
     }
@@ -927,7 +931,7 @@ module.exports = class btse extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const amount = this.safeString (order, 'size');
         const filled = this.safeString2 (order, 'filledSize', 'fillSize');
-        const status = this.parseOrderStatus (this.safeString (order, 'orderState'));
+        const status = this.parseOrderStatus (this.safeString2 (order, 'orderState', 'status'));
         const average = this.safeString2 (order, 'averageFillPrice', 'avgFillPrice');
         const id = this.safeString (order, 'orderID');
         let clientOrderId = this.safeString (order, 'clOrderID');
