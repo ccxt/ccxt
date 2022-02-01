@@ -223,7 +223,7 @@ module.exports = class lykke2 extends Exchange {
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
-            const id = this.safeString (currency, 'lykkeEntityId');
+            const id = this.safeString (currency, 'assetId');
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'name');
             const type = this.safeString (currency, 'type');
@@ -242,8 +242,14 @@ module.exports = class lykke2 extends Exchange {
                 'fee': undefined,
                 'precision': this.safeNumber (currency, 'accuracy'),
                 'limits': {
-                    'withdraw': { 'min': this.safeValue (currency, 'cashoutMinimalAmount'), 'max': undefined },
-                    'amount': { 'min': this.safeValue (currency, 'lowVolumeAmount'), 'max': undefined },
+                    'withdraw': {
+                        'min': this.safeValue (currency, 'cashoutMinimalAmount'),
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeValue (currency, 'lowVolumeAmount'),
+                        'max': undefined,
+                    },
                 },
             };
         }
