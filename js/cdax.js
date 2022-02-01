@@ -25,7 +25,7 @@ module.exports = class cdax extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
+                'margin': undefined, // has but unimplemented
                 'swap': undefined,
                 'future': undefined,
                 'option': undefined,
@@ -40,7 +40,13 @@ module.exports = class cdax extends Exchange {
                 'fetchDepositAddress': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -221,7 +227,6 @@ module.exports = class cdax extends Exchange {
                 'fetchOrdersByStatesMethod': 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
                 'fetchOpenOrdersMethod': 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
                 'createMarketBuyOrderRequiresPrice': true,
-                'fetchMarketsMethod': 'publicGetCommonSymbols',
                 'fetchBalanceMethod': 'privateGetAccountAccountsIdBalance',
                 'createOrderMethod': 'privatePostOrderOrdersPlace',
                 'language': 'en-US',
@@ -272,39 +277,45 @@ module.exports = class cdax extends Exchange {
         };
         const response = await this.publicGetCommonExchange (this.extend (request, params));
         //
-        //     { status:   "ok",
-        //         data: {                                  symbol: "aidocbtc",
-        //                              'buy-limit-must-less-than':  1.1,
-        //                          'sell-limit-must-greater-than':  0.9,
-        //                         'limit-order-must-greater-than':  1,
-        //                            'limit-order-must-less-than':  5000000,
-        //                    'market-buy-order-must-greater-than':  0.0001,
-        //                       'market-buy-order-must-less-than':  100,
-        //                   'market-sell-order-must-greater-than':  1,
-        //                      'market-sell-order-must-less-than':  500000,
-        //                       'circuit-break-when-greater-than':  10000,
-        //                          'circuit-break-when-less-than':  10,
-        //                 'market-sell-order-rate-must-less-than':  0.1,
-        //                  'market-buy-order-rate-must-less-than':  0.1        } }
+        //    {
+        //        status:   "ok",
+        //        data: {
+        //            'symbol': "aidocbtc",
+        //            'buy-limit-must-less-than':  1.1,
+        //            'sell-limit-must-greater-than':  0.9,
+        //            'limit-order-must-greater-than':  1,
+        //            'limit-order-must-less-than':  5000000,
+        //            'market-buy-order-must-greater-than':  0.0001,
+        //            'market-buy-order-must-less-than':  100,
+        //            'market-sell-order-must-greater-than':  1,
+        //            'market-sell-order-must-less-than':  500000,
+        //            'circuit-break-when-greater-than':  10000,
+        //            'circuit-break-when-less-than':  10,
+        //            'market-sell-order-rate-must-less-than':  0.1,
+        //            'market-buy-order-rate-must-less-than':  0.1
+        //        }
+        //    }
         //
         return this.parseTradingLimits (this.safeValue (response, 'data', {}));
     }
 
     parseTradingLimits (limits, symbol = undefined, params = {}) {
         //
-        //   {                                  symbol: "aidocbtc",
-        //                  'buy-limit-must-less-than':  1.1,
-        //              'sell-limit-must-greater-than':  0.9,
-        //             'limit-order-must-greater-than':  1,
-        //                'limit-order-must-less-than':  5000000,
+        //    {
+        //        'symbol': "aidocbtc",
+        //        'buy-limit-must-less-than':  1.1,
+        //        'sell-limit-must-greater-than':  0.9,
+        //        'limit-order-must-greater-than':  1,
+        //        'limit-order-must-less-than':  5000000,
         //        'market-buy-order-must-greater-than':  0.0001,
-        //           'market-buy-order-must-less-than':  100,
-        //       'market-sell-order-must-greater-than':  1,
-        //          'market-sell-order-must-less-than':  500000,
-        //           'circuit-break-when-greater-than':  10000,
-        //              'circuit-break-when-less-than':  10,
-        //     'market-sell-order-rate-must-less-than':  0.1,
-        //      'market-buy-order-rate-must-less-than':  0.1        }
+        //        'market-buy-order-must-less-than':  100,
+        //        'market-sell-order-must-greater-than':  1,
+        //        'market-sell-order-must-less-than':  500000,
+        //        'circuit-break-when-greater-than':  10000,
+        //        'circuit-break-when-less-than':  10,
+        //        'market-sell-order-rate-must-less-than':  0.1,
+        //        'market-buy-order-rate-must-less-than':  0.1
+        //    }
         //
         return {
             'info': limits,
@@ -322,8 +333,36 @@ module.exports = class cdax extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const method = this.options['fetchMarketsMethod'];
-        const response = await this[method] (params);
+        const response = await this.publicGetCommonSymbols (params);
+        //
+        //    {
+        //        "status": "ok",
+        //        "data": [
+        //            {
+        //                "base-currency": "ckb",
+        //                "quote-currency": "usdt",
+        //                "price-precision": 6,
+        //                "amount-precision": 2,
+        //                "symbol-partition": "default",
+        //                "symbol": "ckbusdt",
+        //                "state": "online",
+        //                "value-precision": 8,
+        //                "min-order-amt": 1,
+        //                "max-order-amt": 140000000,
+        //                "min-order-value": 5,
+        //                "limit-order-min-order-amt": 1,
+        //                "limit-order-max-order-amt": 140000000,
+        //                "limit-order-max-buy-amt": 140000000,
+        //                "limit-order-max-sell-amt": 140000000,
+        //                "sell-market-min-order-amt": 1,
+        //                "sell-market-max-order-amt": 14000000,
+        //                "buy-market-max-order-value": 200000,
+        //                "api-trading": "enabled",
+        //                "tags": ""
+        //            },
+        //        ]
+        //    }
+        //
         const markets = this.safeValue (response, 'data');
         const numMarkets = markets.length;
         if (numMarkets < 1) {
@@ -334,65 +373,56 @@ module.exports = class cdax extends Exchange {
             const market = markets[i];
             const baseId = this.safeString (market, 'base-currency');
             const quoteId = this.safeString (market, 'quote-currency');
-            const id = baseId + quoteId;
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const precision = {
-                'amount': this.safeInteger (market, 'amount-precision'),
-                'price': this.safeInteger (market, 'price-precision'),
-                'cost': this.safeInteger (market, 'value-precision'),
-            };
-            const maker = (base === 'OMG') ? 0 : 0.2 / 100;
-            const taker = (base === 'OMG') ? 0 : 0.2 / 100;
-            const minAmount = this.safeNumber (market, 'min-order-amt', Math.pow (10, -precision['amount']));
-            const maxAmount = this.safeNumber (market, 'max-order-amt');
-            const minCost = this.safeNumber (market, 'min-order-value', 0);
             const state = this.safeString (market, 'state');
-            const active = (state === 'online');
             result.push ({
-                'id': id,
-                'symbol': symbol,
+                'id': baseId + quoteId,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': false,
+                'margin': undefined,
                 'future': false,
                 'swap': false,
                 'option': false,
-                'optionType': undefined,
-                'strike': undefined,
+                'active': (state === 'online'),
+                'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'contract': false,
+                'taker': (base === 'OMG') ? 0 : 0.002,
+                'maker': (base === 'OMG') ? 0 : 0.002,
                 'contractSize': undefined,
-                'settle': undefined,
-                'settleId': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
-                'active': active,
-                'precision': precision,
-                'taker': taker,
-                'maker': maker,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': this.safeInteger (market, 'price-precision'),
+                    'amount': this.safeInteger (market, 'amount-precision'),
+                    'cost': this.safeInteger (market, 'value-precision'),
+                },
                 'limits': {
-                    'amount': {
-                        'min': minAmount,
-                        'max': maxAmount,
-                    },
-                    'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': minCost,
-                        'max': undefined,
-                    },
                     'leverage': {
                         'max': this.safeNumber (market, 'leverage-ratio', 1),
                         'superMax': this.safeNumber (market, 'super-margin-leverage-ratio', 1),
+                    },
+                    'amount': {
+                        'min': this.safeNumber (market, 'min-order-amt'),
+                        'max': this.safeNumber (market, 'max-order-amt'),
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'min-order-value', 0),
+                        'max': undefined,
                     },
                 },
                 'info': market,
