@@ -224,19 +224,36 @@ module.exports = class coinmate extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'spot': true,
                 'active': undefined,
-                'maker': fees['maker'],
-                'taker': fees['taker'],
-                'info': market,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': this.safeNumber (fees, 'taker'),
+                'maker': this.safeNumber (fees, 'maker'),
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
                 'precision': {
                     'price': this.safeInteger (market, 'priceDecimals'),
                     'amount': this.safeInteger (market, 'lotDecimals'),
                 },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'minAmount'),
                         'max': undefined,
@@ -250,6 +267,7 @@ module.exports = class coinmate extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': market,
             });
         }
         return result;
