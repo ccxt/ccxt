@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, BadSymbol, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, BadRequest, BadSymbol, ArgumentsRequired, InsufficientFunds, PermissionDenied, InvalidOrder } = require ('./base/errors');
 
 module.exports = class btse extends Exchange {
     describe () {
@@ -10,7 +10,7 @@ module.exports = class btse extends Exchange {
             'name': 'BTSE',
             'countries': [ 'VG' ], // British Virgin Islands
             'version': 'v1',
-            'rateLimit': 13.333,
+            'rateLimit': 1000 / 75,
             // ordering 75 per second => 1000 / 75 = 13.33 (cost = 1)
             // query 15 req per second => 75/15 = cost = 5
             'has': {
@@ -161,10 +161,17 @@ module.exports = class btse extends Exchange {
                     },
                 },
             },
+            'options': {
+                'defaultType': 'spot',
+            },
             'exceptions': {
                 'exact': {
                     '-1': BadRequest, // {"code":-1,"msg":null,"time":1643322746173,"data":null,"success":false}
-                    '400': BadRequest, // {"code":400,"msg":"BADREQUEST: Symbol can't be null or empty.","time":1643630327438,"data":null,"success":false}
+                    '400': BadRequest, // {"code":400,"msg":"Bad Request","time":1643740010897,"data":null,"success":false}
+                    '403': PermissionDenied, // {"code":403,"msg":"FORBIDDEN: invalid API key","time":1643739538434,"data":null,"success":false}
+                    '4002': InvalidOrder, // {"code":4002,"msg":"BADREQUEST: The order size cannot be less than the minimum","time":1643739721769,"data":null,"success":false}
+                    '4005': InvalidOrder, // btse {"code":4005,"msg":"BADREQUEST: The order price cannot be less than minimum","time":1643739806754,"data":null,"success":false}
+                    '51523': InsufficientFunds, // {"code":51523,"msg":"BADREQUEST: Insufficient wallet balance","time":1643739392461,"data":null,"success":false}
                     '10071': BadRequest, // {"code":10071,"msg":"BADREQUEST: 转账参数错误","time":1643727219192,"data":null,"success":false}
                     '80005': BadSymbol, // {"code":80005,"msg":"BADREQUEST: product_id invalid","time":1643385790496,"data":null,"success":false}
                 },
@@ -1241,7 +1248,7 @@ module.exports = class btse extends Exchange {
             const stopPrice = this.safeString (params, 'stopPrice');
             if (stopPrice !== undefined) {
                 request['txType'] = 'STOP';
-                request['stopPrice'] = parseFloat (this.priceToPrecision (symbol, stopPrice));
+                request['triggerPrice'] = parseFloat (this.priceToPrecision (symbol, stopPrice));
             }
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
