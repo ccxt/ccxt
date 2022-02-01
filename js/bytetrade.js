@@ -285,12 +285,10 @@ module.exports = class bytetrade extends Exchange {
             if (quoteId in this.commonCurrencies) {
                 quote = this.commonCurrencies[quoteId];
             }
-            const symbol = base + '/' + quote;
             const limits = this.safeValue (market, 'limits', {});
             const amount = this.safeValue (limits, 'amount', {});
             const price = this.safeValue (limits, 'price', {});
             const precision = this.safeValue (market, 'precision', {});
-            const active = this.safeString (market, 'active');
             let maxAmount = this.safeString (amount, 'max');
             if (Precise.stringEquals (maxAmount, '-1')) {
                 maxAmount = undefined;
@@ -301,21 +299,40 @@ module.exports = class bytetrade extends Exchange {
             }
             const entry = {
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
+                'normalSymbol': normalSymbol,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': this.safeString (market, 'active'),
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': this.safeNumber (market, 'taker'),
+                'maker': this.safeNumber (market, 'maker'),
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (precision, 'amount'),
                     'price': this.safeInteger (precision, 'price'),
+                    'amount': this.safeInteger (precision, 'amount'),
                 },
-                'normalSymbol': normalSymbol,
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (amount, 'min'),
                         'max': this.parseNumber (maxAmount),
@@ -329,6 +346,7 @@ module.exports = class bytetrade extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': market,
             };
             result.push (entry);
         }
