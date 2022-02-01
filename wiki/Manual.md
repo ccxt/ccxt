@@ -739,25 +739,27 @@ Each currency is an associative array (aka dictionary) with the following keys:
     'baseId':  'btc',         // any string, exchange-specific base currency id
     'quoteId': 'usd',         // any string, exchange-specific quote currency id
     'active':   true,         // boolean, market status
-    'taker':    0.002,        // taker fee rate, 0.002 = 0.2%
-    'maker':    0.0016,       // maker fee rate, 0.0016 = 0.16%
-    'type':    'spot'         // spot for spot, future for expiry futures, swap for perpetual swaps, 'option' for options
-    'linear':   true          // the contract is a linear contract (settled in quote currency)
-    'inverse':  false         // the contract is an inverse contract (settled in base currency)
-    'contractSize': 1         // the size of one contract, only used if `contract` is true
+    'type':    'spot',        // spot for spot, future for expiry futures, swap for perpetual swaps, 'option' for options
     'spot':     true,         // whether the market is a spot market
     'margin':   true,         // whether the market is a margin market
     'future':   false,        // whether the market is a expiring future
     'swap':     false,        // whether the market is a perpetual swap
     'option':   false,        // whether the market is an option contract
     'contract': false,        // whether the market is a future, a perpetual swap, or an option
-    'settleId': 'usdt'        // the currencyId of that the contract will settle in, only set if `contract` is true
-    'settle':   'USDT'        // the unified currency code that the contract will settle in, only set if `contract` is true
-    'expiry':  1641370465121  // the unix expiry timestamp in milliseconds, undefined for everything except market['type'] `future`
-    'expiryDatetime': '2022-03-26T00:00:00.000Z' // The datetime contract will in iso8601 format
+    'settle':   'USDT',       // the unified currency code that the contract will settle in, only set if `contract` is true
+    'settleId': 'usdt',       // the currencyId of that the contract will settle in, only set if `contract` is true
+    'contractSize': 1,        // the size of one contract, only used if `contract` is true
+    'linear':   true,         // the contract is a linear contract (settled in quote currency)
+    'inverse':  false,        // the contract is an inverse contract (settled in base currency)
+    'expiry':  1641370465121, // the unix expiry timestamp in milliseconds, undefined for everything except market['type'] `future`
+    'expiryDatetime': '2022-03-26T00:00:00.000Z', // The datetime contract will in iso8601 format
+    'strike': 4000,           // price at which a put or call option can be exercised
+    'optionType': 'call',     // call or put string, call option represents an option with the right to buy and put an option with the right to sell
+    'taker':    0.002,        // taker fee rate, 0.002 = 0.2%
+    'maker':    0.0016,       // maker fee rate, 0.0016 = 0.16%
     'percentage': true,       // whether the taker and maker fee rate is a multiplier or a fixed flat amount
     'tierBased': false,       // whether the fee depends on your trading tier (your trading volume)
-    'feeSide': 'get'          // string literal can be 'get', 'give', 'base', 'quote', 'other'
+    'feeSide': 'get',         // string literal can be 'get', 'give', 'base', 'quote', 'other'
     'precision': {            // number of decimal digits "after the dot"
         'price': 8,           // integer or float for TICK_SIZE roundingMode, might be missing if not supplied by the exchange
         'amount': 8,          // integer, might be missing if not supplied by the exchange
@@ -770,6 +772,7 @@ Each currency is an associative array (aka dictionary) with the following keys:
         },
         'price': { ... },     // same min/max limits for the price of the order
         'cost':  { ... },     // same limits for order cost = price * amount
+        'leverage': { ... },  // same min/max limits for the leverage of the order
     },
     'info':      { ... },     // the original unparsed market info from the exchange
 }
@@ -791,6 +794,8 @@ Each market is an associative array (aka dictionary) with the following keys:
 - `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
 - `precision`. Precision accepted in order values by exchanges upon order placement for price, amount and cost. (The value inside this property depend on the [`exchange.precisionMode`](#precision-mode)).
 - `limits`. The minimums and maximums for prices, amounts (volumes) and costs (where cost = price * amount).
+- `optionType`. The type of the option, `call` option represents an option with the right to buy and `put` an option with the right to sell.
+- `strike`. Price at which an option can be bought or sold when it is exercised.
 
 ## Active status
 
