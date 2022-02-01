@@ -40,6 +40,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'fetchDepositAddress': true,
                 'fetchFundingFees': undefined,
                 'fetchIndexOHLCV': false,
+                'fetchLedger': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -1537,8 +1538,7 @@ module.exports = class bitfinex2 extends bitfinex {
         } else if (transactionLength === 22) {
             id = this.safeString (transaction, 0);
             const currencyId = this.safeString (transaction, 1);
-            currency = this.safeCurrency (currencyId, currency);
-            code = currency['code'];
+            code = this.safeCurrencyCode (currencyId, currency);
             timestamp = this.safeInteger (transaction, 5);
             updated = this.safeInteger (transaction, 6);
             status = this.parseTransactionStatus (this.safeString (transaction, 9));
@@ -1777,5 +1777,109 @@ module.exports = class bitfinex2 extends bitfinex {
             throw new ExchangeError (this.id + ' ' + errorText + ' (#' + errorCode + ')');
         }
         return response;
+    }
+
+    parseLedgerEntryType (type) {
+        if (type === undefined) {
+            return undefined;
+        } else if (type.indexOf ('fee') >= 0 || type.indexOf ('charged') >= 0) {
+            return 'fee';
+        } else if (type.indexOf ('exchange') >= 0 || type.indexOf ('position') >= 0) {
+            return 'trade';
+        } else if (type.indexOf ('rebate') >= 0) {
+            return 'rebate';
+        } else if (type.indexOf ('deposit') >= 0 || type.indexOf ('withdrawal') >= 0) {
+            return 'transaction';
+        } else if (type.indexOf ('transfer') >= 0) {
+            return 'transfer';
+        } else if (type.indexOf ('payment') >= 0) {
+            return 'payout';
+        } else {
+            return type;
+        }
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        //
+        //     [
+        //         [
+        //             2531822314, // ID: Ledger identifier
+        //             "USD", // CURRENCY: The symbol of the currency (ex. "BTC")
+        //             null, // PLACEHOLDER
+        //             1573521810000, // MTS: Timestamp in milliseconds
+        //             null, // PLACEHOLDER
+        //             0.01644445, // AMOUNT: Amount of funds moved
+        //             0, // BALANCE: New balance
+        //             null, // PLACEHOLDER
+        //             "Settlement @ 185.79 on wallet margin" // DESCRIPTION: Description of ledger transaction
+        //         ]
+        //     ]
+        //
+        let type = undefined;
+        const id = this.safeString (item, 0);
+        const currencyId = this.safeString (item, 1);
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const timestamp = this.safeInteger (item, 3);
+        const amount = this.safeNumber (item, 5);
+        const after = this.safeNumber (item, 6);
+        const description = this.safeString (item, 8);
+        if (description !== undefined) {
+            const parts = description.split (' @ ');
+            const first = this.safeStringLower (parts, 0);
+            type = this.parseLedgerEntryType (first);
+        }
+        return {
+            'id': id,
+            'direction': undefined,
+            'account': undefined,
+            'referenceId': id,
+            'referenceAccount': undefined,
+            'type': type,
+            'currency': code,
+            'amount': amount,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'before': undefined,
+            'after': after,
+            'status': undefined,
+            'fee': undefined,
+            'info': item,
+        };
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {};
+        let method = 'privatePostAuthRLedgersHist';
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['uppercaseId'];
+            method = 'privatePostAuthRLedgersCurrencyHist';
+        }
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // max 2500
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     [
+        //         [
+        //             2531822314, // ID: Ledger identifier
+        //             "USD", // CURRENCY: The symbol of the currency (ex. "BTC")
+        //             null, // PLACEHOLDER
+        //             1573521810000, // MTS: Timestamp in milliseconds
+        //             null, // PLACEHOLDER
+        //             0.01644445, // AMOUNT: Amount of funds moved
+        //             0, // BALANCE: New balance
+        //             null, // PLACEHOLDER
+        //             "Settlement @ 185.79 on wallet margin" // DESCRIPTION: Description of ledger transaction
+        //         ]
+        //     ]
+        //
+        return this.parseLedger (response, currency, since, limit);
     }
 };
