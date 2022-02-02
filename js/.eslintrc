@@ -42,7 +42,7 @@
     "no-nested-ternary": "error",
     "eqeqeq": "error",
     "quotes": ["error", "single", { "avoidEscape": true }],
-    "no-unused-vars": ["error", { "argsIgnorePattern": "^(symbol|price|tag|since|limit|params|market|timeframe|api|path|code|currency|response|requestHeaders|requestBody|bidsKey|asksKey|context|config|type)" }],
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^(symbol|price|tag|since|limit|params|market|timeframe|api|path|code|currency|response|requestHeaders|requestBody|bidsKey|asksKey|context|config|type|priceKey|amountKey)" }],
     "new-parens": "error",
     "new-cap": ["error"],
     "no-var": "error",
