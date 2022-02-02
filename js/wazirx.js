@@ -15,7 +15,7 @@ module.exports = class wazirx extends Exchange {
             'has': {
                 'CORS': false,
                 'spot': true,
-                'margin': undefined, // exists but currently unimplemented
+                'margin': undefined, // has but unimplemented
                 'swap': false,
                 'future': false,
                 'option': false,

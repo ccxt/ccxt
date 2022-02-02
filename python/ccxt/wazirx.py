@@ -28,7 +28,7 @@ class wazirx(Exchange):
             'has': {
                 'CORS': False,
                 'spot': True,
-                'margin': None,  # exists but currently unimplemented
+                'margin': None,  # has but unimplemented
                 'swap': False,
                 'future': False,
                 'option': False,

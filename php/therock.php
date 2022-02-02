@@ -21,7 +21,7 @@ class therock extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null, // has, but unimplemented
+                'margin' => null, // has but unimplemented
                 'swap' => false,
                 'future' => false,
                 'option' => false,
@@ -32,6 +32,7 @@ class therock extends Exchange {
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
+                'fetchFundingRateHistories' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,

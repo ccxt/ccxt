@@ -23,9 +23,9 @@ class cryptocom extends Exchange {
             'has' => array(
                 'CORS' => false,
                 'spot' => true,
-                'margin' => null,
-                'swap' => null,
-                'future' => null,
+                'margin' => null, // has but not fully implemented
+                'swap' => null, // has but not fully implemented
+                'future' => null, // has but not fully implemented
                 'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
@@ -306,61 +306,56 @@ class cryptocom extends Exchange {
             $quoteId = $this->safe_string($market, 'quote_currency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
             $priceDecimals = $this->safe_string($market, 'price_decimals');
             $minPrice = $this->parse_precision($priceDecimals);
-            $precision = array(
-                'amount' => $this->safe_integer($market, 'quantity_decimals'),
-                'price' => intval($priceDecimals),
-            );
             $minQuantity = $this->safe_string($market, 'min_quantity');
-            $minCost = $this->parse_number(Precise::string_mul($minQuantity, $minPrice));
-            $maxQuantity = $this->safe_number($market, 'max_quantity');
-            $margin = $this->safe_value($market, 'margin_trading_enabled');
             $result[] = array(
-                'info' => $market,
                 'id' => $id,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'linear' => null,
-                'inverse' => null,
-                'settle' => null,
                 'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'margin' => $margin,
-                'future' => false,
+                'margin' => $this->safe_value($market, 'margin_trading_enabled'),
                 'swap' => false,
+                'future' => false,
                 'option' => false,
-                'optionType' => null,
-                'strike' => null,
+                'active' => null,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
-                'contract' => false,
-                'contractSize' => null,
-                'active' => null,
-                'precision' => $precision,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'price' => intval($priceDecimals),
+                    'amount' => $this->safe_integer($market, 'quantity_decimals'),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->parse_number($minQuantity),
-                        'max' => $maxQuantity,
+                        'max' => $this->safe_number($market, 'max_quantity'),
                     ),
                     'price' => array(
                         'min' => $this->parse_number($minPrice),
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => $minCost,
-                        'max' => null,
-                    ),
-                    'leverage' => array(
-                        'min' => null,
+                        'min' => $this->parse_number(Precise::string_mul($minQuantity, $minPrice)),
                         'max' => null,
                     ),
                 ),
+                'info' => $market,
             );
         }
         $futuresResponse = yield $this->derivativesPublicGetPublicGetInstruments ();
@@ -416,41 +411,39 @@ class cryptocom extends Exchange {
                 $symbol = $symbol . '-' . $this->yymmdd($expiry);
             }
             $contractSize = $this->safe_number($market, 'contract_size');
-            $marketId = $this->safe_string($market, 'symbol');
-            $maxLeverage = $this->safe_number($market, 'max_leverage');
-            $active = $this->safe_value($market, 'tradable');
-            $pricePrecision = $this->safe_integer($market, 'quote_decimals');
-            $amountPrecision = $this->safe_integer($market, 'quantity_decimals');
             $result[] = array(
-                'info' => $market,
-                'id' => $marketId,
+                'id' => $this->safe_string($market, 'symbol'),
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'linear' => true,
-                'inverse' => false,
-                'settle' => $quote,
                 'settleId' => $quoteId,
                 'type' => $type,
                 'spot' => false,
                 'margin' => false,
-                'future' => $future,
                 'swap' => $swap,
+                'future' => $future,
                 'option' => false,
-                'optionType' => null,
-                'strike' => null,
+                'active' => $this->safe_value($market, 'tradable'),
+                'contract' => true,
+                'linear' => true,
+                'inverse' => false,
+                'contractSize' => $contractSize,
                 'expiry' => $expiry,
                 'expiryDatetime' => $this->iso8601($expiry),
-                'contract' => true,
-                'contractSize' => $contractSize,
-                'active' => $active,
+                'strike' => null,
+                'optionType' => null,
                 'precision' => array(
-                    'price' => $pricePrecision,
-                    'amount' => $amountPrecision,
+                    'price' => $this->safe_integer($market, 'quote_decimals'),
+                    'amount' => $this->safe_integer($market, 'quantity_decimals'),
                 ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => $this->parse_number('1'),
+                        'max' => $this->safe_number($market, 'max_leverage'),
+                    ),
                     'amount' => array(
                         'min' => $this->parse_number($contractSize),
                         'max' => null,
@@ -463,11 +456,8 @@ class cryptocom extends Exchange {
                         'min' => null,
                         'max' => null,
                     ),
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => $maxLeverage,
-                    ),
                 ),
+                'info' => $market,
             );
         }
         return $result;
@@ -915,7 +905,7 @@ class cryptocom extends Exchange {
             $request['exec_inst'] = 'POST_ONLY';
             $params = $this->omit($params, array( 'postOnly' ));
         }
-        list($marketType, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
+        list($marketType, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'spotPrivatePostPrivateCreateOrder',
             'future' => 'derivativesPrivatePostPrivateCreateOrder',

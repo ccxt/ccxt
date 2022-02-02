@@ -21,9 +21,9 @@ class coinex extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null,
-                'swap' => null,
-                'future' => null,
+                'margin' => null, // has but unimplemented
+                'swap' => null, // has but unimplemented
+                'future' => null, // has but unimplemented
                 'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
@@ -241,35 +241,55 @@ class coinex extends Exchange {
             if ($tradingName === $id) {
                 $symbol = $id;
             }
-            $precision = array(
-                'amount' => $this->safe_integer($market, 'trading_decimal'),
-                'price' => $this->safe_integer($market, 'pricing_decimal'),
-            );
-            $active = null;
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'active' => $active,
+                'margin' => null,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => null,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
                 'taker' => $this->safe_number($market, 'taker_fee_rate'),
                 'maker' => $this->safe_number($market, 'maker_fee_rate'),
-                'info' => $market,
-                'precision' => $precision,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'price' => $this->safe_integer($market, 'pricing_decimal'),
+                    'amount' => $this->safe_integer($market, 'trading_decimal'),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->safe_number($market, 'min_amount'),
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision['price']),
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => null,
                         'max' => null,
                     ),
                 ),
+                'info' => $market,
             );
         }
         return $result;

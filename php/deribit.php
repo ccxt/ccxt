@@ -24,8 +24,8 @@ class deribit extends Exchange {
             'rateLimit' => 50,
             'has' => array(
                 'CORS' => true,
-                'spot' => true,
-                'margin' => null,
+                'spot' => false,
+                'margin' => false,
                 'swap' => null,
                 'future' => null,
                 'option' => null,
@@ -35,6 +35,11 @@ class deribit extends Exchange {
                 'createOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
@@ -492,7 +497,8 @@ class deribit extends Exchange {
                         $type = 'option';
                         $strike = $this->safe_number($market, 'strike');
                         $optionType = $this->safe_string($market, 'option_type');
-                        $symbol = $symbol . ':' . $this->number_to_string($strike) . ':' . $optionType;
+                        $letter = ($optionType === 'call') ? 'C' : 'P';
+                        $symbol = $symbol . ':' . $this->number_to_string($strike) . ':' . $letter;
                     } else {
                         $type = 'future';
                     }
@@ -526,8 +532,8 @@ class deribit extends Exchange {
                     'strike' => $strike,
                     'optionType' => $optionType,
                     'precision' => array(
-                        'amount' => $minTradeAmount,
                         'price' => $tickSize,
+                        'amount' => $minTradeAmount,
                     ),
                     'limits' => array(
                         'leverage' => array(

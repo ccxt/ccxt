@@ -23,7 +23,7 @@ class whitebit extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null,
+                'margin' => null, // has but unimplemented
                 'swap' => false,
                 'future' => false,
                 'option' => false,

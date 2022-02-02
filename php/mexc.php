@@ -26,10 +26,10 @@ class mexc extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null,
+                'margin' => null, // has but unimplemented
                 'swap' => true,
-                'future' => null,
-                'option' => null,
+                'future' => false,
+                'option' => false,
                 'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,

@@ -20,7 +20,7 @@ module.exports = class ascendex extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
+                'margin': undefined, // has but not fully inplemented
                 'swap': true,
                 'future': false,
                 'option': false,
@@ -508,18 +508,10 @@ module.exports = class ascendex extends Exchange {
             let base = this.safeCurrencyCode (baseId);
             let quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
-            const precision = {
-                'amount': this.safeNumber (market, 'lotSize'),
-                'price': this.safeNumber (market, 'tickSize'),
-            };
             const status = this.safeString (market, 'status');
-            const active = (status === 'Normal');
             const spot = settle === undefined;
             const swap = !spot;
-            const type = swap ? 'swap' : 'spot';
-            const margin = this.safeValue (market, 'marginTradable', false);
             const linear = swap ? true : undefined;
-            const contractSize = swap ? this.parseNumber ('1') : undefined;
             let minQty = this.safeNumber (market, 'minQty');
             let maxQty = this.safeNumber (market, 'maxQty');
             let minPrice = this.safeNumber (market, 'tickSize');
@@ -541,6 +533,7 @@ module.exports = class ascendex extends Exchange {
                 symbol = base + '/' + quote + ':' + settle;
             }
             const fee = this.safeNumber (market, 'commissionReserveRate');
+            const marginTradable = this.safeValue (market, 'marginTradable', false);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -550,24 +543,27 @@ module.exports = class ascendex extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': type,
+                'type': swap ? 'swap' : 'spot',
                 'spot': spot,
-                'margin': margin,
+                'margin': spot ? marginTradable : undefined,
                 'swap': swap,
                 'future': false,
                 'option': false,
-                'active': active,
+                'active': (status === 'Normal'),
                 'contract': swap,
                 'linear': linear,
                 'inverse': swap ? !linear : undefined,
                 'taker': fee,
                 'maker': fee,
-                'contractSize': contractSize,
+                'contractSize': swap ? this.parseNumber ('1') : undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'precision': precision,
+                'precision': {
+                    'price': this.safeNumber (market, 'tickSize'),
+                    'amount': this.safeNumber (market, 'lotSize'),
+                },
                 'limits': {
                     'leverage': {
                         'min': undefined,

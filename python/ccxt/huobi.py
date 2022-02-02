@@ -1737,8 +1737,10 @@ class huobi(Exchange):
         filledPoints = self.safe_string(trade, 'filled-points')
         if filledPoints is not None:
             if (feeCost is None) or Precise.string_equals(feeCost, '0'):
-                feeCost = filledPoints
-                feeCurrency = self.safe_currency_code(self.safe_string(trade, 'fee-deduct-currency'))
+                feeDeductCurrency = self.safe_string(trade, 'fee-deduct-currency')
+                if feeDeductCurrency != '':
+                    feeCost = filledPoints
+                    feeCurrency = self.safe_currency_code(feeDeductCurrency)
         if feeCost is not None:
             fee = {
                 'cost': feeCost,

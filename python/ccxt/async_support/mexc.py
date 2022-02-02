@@ -35,10 +35,10 @@ class mexc(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,
+                'margin': None,  # has but unimplemented
                 'swap': True,
-                'future': None,
-                'option': None,
+                'future': False,
+                'option': False,
                 'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,

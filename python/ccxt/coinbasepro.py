@@ -40,9 +40,9 @@ class coinbasepro(Exchange):
             'has': {
                 'CORS': True,
                 'spot': True,
-                'margin': None,
-                'swap': None,
-                'future': None,
+                'margin': None,  # has but not fully inplemented
+                'swap': None,  # has but not fully inplemented
+                'future': None,  # has but not fully inplemented
                 'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
@@ -328,48 +328,48 @@ class coinbasepro(Exchange):
             quoteId = self.safe_string(market, 'quote_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            priceLimits = {
-                'min': self.safe_number(market, 'quote_increment'),
-                'max': None,
-            }
-            precision = {
-                'amount': self.safe_number(market, 'base_increment'),
-                'price': self.safe_number(market, 'quote_increment'),
-            }
             status = self.safe_string(market, 'status')
-            active = (status == 'online')
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
-                'symbol': symbol,
-                'baseId': baseId,
-                'quoteId': quoteId,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'margin': False,
-                'future': False,
+                'margin': self.safe_value(market, 'margin_enabled'),
                 'swap': False,
+                'future': False,
                 'option': False,
-                'optionType': None,
-                'strike': None,
+                'active': (status == 'online'),
+                'contract': False,
                 'linear': None,
                 'inverse': None,
-                'contract': False,
                 'contractSize': None,
-                'settle': None,
-                'settleId': None,
                 'expiry': None,
                 'expiryDatetime': None,
-                'active': active,
-                'precision': precision,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': self.safe_number(market, 'quote_increment'),
+                    'amount': self.safe_number(market, 'base_increment'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(market, 'base_min_size'),
                         'max': self.safe_number(market, 'base_max_size'),
                     },
-                    'price': priceLimits,
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
                     'cost': {
                         'min': self.safe_number(market, 'min_market_funds'),
                         'max': self.safe_number(market, 'max_market_funds'),

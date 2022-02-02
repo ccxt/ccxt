@@ -240,16 +240,16 @@ class mercado extends Exchange {
 
     public function parse_ticker($ticker, $market = null) {
         //
-        // {
-        //     "high":"103.96000000",
-        //     "low":"95.00000000",
-        //     "vol":"2227.67806598",
-        //     "last":"97.91591000",
-        //     "buy":"95.52760000",
-        //     "sell":"97.91475000",
-        //     "open":"99.79955000",
-        //     "date":1643382606
-        // }
+        //     {
+        //         "high":"103.96000000",
+        //         "low":"95.00000000",
+        //         "vol":"2227.67806598",
+        //         "last":"97.91591000",
+        //         "buy":"95.52760000",
+        //         "sell":"97.91475000",
+        //         "open":"99.79955000",
+        //         "date":1643382606
+        //     }
         //
         $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->safe_timestamp($ticker, 'date');
@@ -287,16 +287,18 @@ class mercado extends Exchange {
         $response = yield $this->publicGetCoinTicker (array_merge($request, $params));
         $ticker = $this->safe_value($response, 'ticker', array());
         //
-        // {
-        //     "high":"103.96000000",
-        //     "low":"95.00000000",
-        //     "vol":"2227.67806598",
-        //     "last":"97.91591000",
-        //     "buy":"95.52760000",
-        //     "sell":"97.91475000",
-        //     "open":"99.79955000",
-        //     "date":1643382606
-        // }
+        //     {
+        //         "ticker" => {
+        //             "high":"1549.82293000",
+        //             "low":"1503.00011000",
+        //             "vol":"81.82827101",
+        //             "last":"1533.15000000",
+        //             "buy":"1533.21018000",
+        //             "sell":"1540.09000000",
+        //             "open":"1524.71089000",
+        //             "date":1643691671
+        //         }
+        //     }
         //
         return $this->parse_ticker($ticker, $market);
     }

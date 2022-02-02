@@ -35,23 +35,38 @@ class crex24(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,
-                'swap': None,
-                'future': None,
-                'option': None,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchFundingFees': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -59,6 +74,10 @@ class crex24(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -66,6 +85,10 @@ class crex24(Exchange):
                 'fetchTradingFees': None,  # actually, True, but will be implemented later
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -300,18 +323,6 @@ class crex24(Exchange):
             quoteId = self.safe_string(market, 'quoteCurrency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            tickSize = self.safe_number(market, 'tickSize')
-            minPrice = self.safe_number(market, 'minPrice')
-            maxPrice = self.safe_number(market, 'maxPrice')
-            minAmount = self.safe_number(market, 'minVolume')
-            maxAmount = self.safe_number(market, 'maxVolume')
-            minCost = self.safe_number(market, 'minQuoteVolume')
-            maxCost = self.safe_number(market, 'maxQuoteVolume')
-            precision = {
-                'amount': minAmount,
-                'price': tickSize,
-            }
             maker = None
             taker = None
             feeSchedule = self.safe_string(market, 'feeSchedule')
@@ -326,35 +337,56 @@ class crex24(Exchange):
                             taker = self.safe_number(feeRates[k], 'taker')
                             break
                     break
-            active = (market['state'] == 'active')
+            state = self.safe_string(market, 'state')
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
-                'precision': precision,
-                'maker': maker,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': (state == 'active'),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
                 'taker': taker,
+                'maker': maker,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': self.safe_number(market, 'tickSize'),
+                    'amount': self.safe_number(market, 'volumeIncrement'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
-                        'min': minAmount,
-                        'max': maxAmount,
+                        'min': self.safe_number(market, 'minVolume'),
+                        'max': self.safe_number(market, 'maxVolume'),
                     },
                     'price': {
-                        'min': minPrice,
-                        'max': maxPrice,
+                        'min': self.safe_number(market, 'minPrice'),
+                        'max': self.safe_number(market, 'maxPrice'),
                     },
                     'cost': {
-                        'min': minCost,
-                        'max': maxCost,
+                        'min': self.safe_number(market, 'minQuoteVolume'),
+                        'max': self.safe_number(market, 'maxQuoteVolume'),
                     },
                 },
+                'info': market,
             })
         return result
 

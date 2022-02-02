@@ -21,7 +21,7 @@ class wazirx extends Exchange {
             'has' => array(
                 'CORS' => false,
                 'spot' => true,
-                'margin' => null, // exists but currently unimplemented
+                'margin' => null, // has but unimplemented
                 'swap' => false,
                 'future' => false,
                 'option' => false,
