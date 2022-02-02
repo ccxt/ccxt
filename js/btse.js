@@ -16,7 +16,7 @@ module.exports = class btse extends Exchange {
             'has': {
                 'CORS': false,
                 'spot': true,
-                'margin': false,
+                'margin': true,
                 'swap': true,
                 'future': true,
                 'option': false,
