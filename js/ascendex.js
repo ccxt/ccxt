@@ -2221,8 +2221,12 @@ module.exports = class ascendex extends Exchange {
     }
 
     async setMarginMode (marginType, symbol = undefined, params = {}) {
+        marginType = marginType.toLowerCase ();
+        if (marginType === 'cross') {
+            marginType = 'crossed'
+        }
         if (marginType !== 'isolated' && marginType !== 'crossed') {
-            throw new BadRequest (this.id + ' setMarginMode() marginType argument should be isolated or crossed');
+            throw new BadRequest (this.id + ' setMarginMode() marginType argument should be ISOLATED or CROSS');
         }
         await this.loadMarkets ();
         await this.loadAccounts ();
