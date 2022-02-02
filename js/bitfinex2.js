@@ -382,17 +382,17 @@ module.exports = class bitfinex2 extends bitfinex {
         // pub:list:pair:exchange,pub:list:pair:margin,pub:list:pair:futures,pub:info:pair
         const v2response = await this.publicGetConfPubListPairFutures (params);
         const v1response = await this.v1GetSymbolsDetails (params);
-        const futuresMarketIds = this.safeValue (v2response, 0, []);
+        const swapMarketIds = this.safeValue (v2response, 0, []);
         const result = [];
         for (let i = 0; i < v1response.length; i++) {
             const market = v1response[i];
             let id = this.safeStringUpper (market, 'pair');
             let spot = true;
-            if (this.inArray (id, futuresMarketIds)) {
+            if (this.inArray (id, swapMarketIds)) {
                 spot = false;
             }
-            const future = !spot;
-            const type = spot ? 'spot' : 'future';
+            const swap = !spot;
+            const type = spot ? 'spot' : 'swap';
             let baseId = undefined;
             let quoteId = undefined;
             if (id.indexOf (':') >= 0) {
@@ -442,10 +442,10 @@ module.exports = class bitfinex2 extends bitfinex {
                 'limits': limits,
                 'info': market,
                 'type': type,
-                'swap': false,
+                'swap': swap,
                 'spot': spot,
                 'margin': margin,
-                'future': future,
+                'future': false,
             });
         }
         return result;
