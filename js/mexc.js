@@ -21,10 +21,10 @@ module.exports = class mexc extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
+                'margin': undefined, // has but unimplemented
                 'swap': true,
-                'future': undefined,
-                'option': undefined,
+                'future': false,
+                'option': false,
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
