@@ -19,7 +19,7 @@ module.exports = class therock extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined, // has, but unimplemented
+                'margin': undefined, // has but unimplemented
                 'swap': false,
                 'future': false,
                 'option': false,
@@ -30,6 +30,7 @@ module.exports = class therock extends Exchange {
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
+                'fetchFundingRateHistories': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
