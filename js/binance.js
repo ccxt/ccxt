@@ -165,9 +165,10 @@ module.exports = class binance extends Exchange {
             'api': {
                 // the API structure below will need 3-layer apidefs
                 'sapi': {
-                    // IP (api) = 1200 per minute (rateLimit)
+                    // IP (api) = 1200 per minute => (rateLimit = 50)
                     // IP (sapi) request rate limit of 12 000 per minute
                     // 1 IP (sapi) => cost = 0.1
+                    // 10 IP (sapi) => cost = 1
                     // UID (sapi) request rate limit of 180 000 per minute
                     // 1 UID (sapi) => cost = 1200 / 180 000 = 0.006667
                     'get': {
@@ -224,7 +225,7 @@ module.exports = class binance extends Exchange {
                         'rebate/taxQuery': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
                         'capital/config/getall': 1, // get networks for withdrawing USDT ERC20 vs USDT Omni
-                        'capital/deposit/address': 1,
+                        'capital/deposit/address': 10,
                         'capital/deposit/hisrec': 0.1,
                         'capital/deposit/subAddress': 0.1,
                         'capital/deposit/subHisrec': 0.1,
@@ -406,7 +407,7 @@ module.exports = class binance extends Exchange {
                         'margin/openOrders': 0.1,
                         'margin/order': 0.0066667, // Weight(UID): 1 => cost = 0.006667
                         'margin/orderList': 0.0066667,
-                        'margin/isolated/account': 1, // Weight(UID): 300 => cost =  0.006667 * 300 = 2.0001
+                        'margin/isolated/account': 2.0001, // Weight(UID): 300 => cost =  0.006667 * 300 = 2.0001
                         'userDataStream': 0.1,
                         'userDataStream/isolated': 0.1,
                         // brokerage API TODO NO MENTION OF RATELIMIT IN BROKERAGE DOCS
