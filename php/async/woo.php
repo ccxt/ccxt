@@ -24,7 +24,7 @@ class woo extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null, // has but unimplemented
+                'margin' => true,
                 'swap' => false,
                 'future' => false,
                 'option' => false,
@@ -308,7 +308,7 @@ class woo extends Exchange {
                 'settleId' => null,
                 'type' => $marketTypeVal,
                 'spot' => $isSpot,
-                'margin' => false,
+                'margin' => true,
                 'swap' => false,
                 'future' => false,
                 'option' => false,

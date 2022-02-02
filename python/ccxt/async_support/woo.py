@@ -29,7 +29,7 @@ class woo(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,  # has but unimplemented
+                'margin': True,
                 'swap': False,
                 'future': False,
                 'option': False,
@@ -312,7 +312,7 @@ class woo(Exchange):
                 'settleId': None,
                 'type': marketTypeVal,
                 'spot': isSpot,
-                'margin': False,
+                'margin': True,
                 'swap': False,
                 'future': False,
                 'option': False,
