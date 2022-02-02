@@ -5034,7 +5034,6 @@ class binance extends Exchange {
                 throw new AuthenticationError($this->id . ' historicalTrades endpoint requires `apiKey` credential');
             }
         }
-        $giftcard = ($api === 'sapi') && (mb_strpos($path, 'gift') !== false) && ($method === 'POST');
         $userDataStream = ($path === 'userDataStream') || ($path === 'listenKey');
         if ($userDataStream) {
             if ($this->apiKey) {
@@ -5071,10 +5070,6 @@ class binance extends Exchange {
             );
             if (($method === 'GET') || ($method === 'DELETE') || ($api === 'wapi')) {
                 $url .= '?' . $query;
-            } else if ($giftcard) {
-                $url .= '?' . $query;
-                $headers['Content-Type'] = 'application/json';
-                $body = $this->json($params);
             } else {
                 $body = $query;
                 $headers['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -5367,8 +5362,7 @@ class binance extends Exchange {
 
     public function verify_gift_code($id, $params = array ()) {
         $request = array(
-            'type' => 'CODE',
-            'value' => $id,
+            'referenceNo' => $id,
         );
         $response = $this->sapiGetGiftcardVerify (array_merge($request, $params));
         //

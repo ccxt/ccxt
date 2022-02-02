@@ -4766,7 +4766,6 @@ class binance(Exchange):
                 }
             else:
                 raise AuthenticationError(self.id + ' historicalTrades endpoint requires `apiKey` credential')
-        giftcard = (api == 'sapi') and (path.find('gift') >= 0) and (method == 'POST')
         userDataStream = (path == 'userDataStream') or (path == 'listenKey')
         if userDataStream:
             if self.apiKey:
@@ -4800,10 +4799,6 @@ class binance(Exchange):
             }
             if (method == 'GET') or (method == 'DELETE') or (api == 'wapi'):
                 url += '?' + query
-            elif giftcard:
-                url += '?' + query
-                headers['Content-Type'] = 'application/json'
-                body = self.json(params)
             else:
                 body = query
                 headers['Content-Type'] = 'application/x-www-form-urlencoded'
@@ -5057,8 +5052,7 @@ class binance(Exchange):
 
     async def verify_gift_code(self, id, params={}):
         request = {
-            'type': 'CODE',
-            'value': id,
+            'referenceNo': id,
         }
         response = await self.sapiGetGiftcardVerify(self.extend(request, params))
         #
