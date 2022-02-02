@@ -531,7 +531,10 @@ module.exports = class xena extends Exchange {
         const mdEntry = this.safeValue (response, 'mdEntry', []);
         const mdEntriesByType = this.groupBy (mdEntry, 'mdEntryType');
         const lastUpdateTime = this.safeInteger (response, 'lastUpdateTime');
-        const timestamp = parseInt (lastUpdateTime / 1000000);
+        let timestamp = undefined;
+        if (lastUpdateTime !== undefined) {
+            timestamp = parseInt (lastUpdateTime / 1000000);
+        }
         return this.parseOrderBook (mdEntriesByType, symbol, timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize');
     }
 
