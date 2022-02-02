@@ -10,6 +10,7 @@ const errorHierarchy = {
             'ArgumentsRequired': {},
             'BadRequest': {
                 'BadSymbol': {},
+                'NoChange': {}
             },
             'BadResponse': {
                 'NullResponse': {},
