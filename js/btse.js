@@ -16,15 +16,15 @@ module.exports = class btse extends Exchange {
             'has': {
                 'CORS': false,
                 'spot': true,
-                'margin': true,
+                'margin': false,
                 'swap': true,
                 'future': true,
                 'option': false,
                 'cancelAllOrders': false,
-                'cancelOrder': false,
+                'cancelOrder': true,
                 'createDepositAddress': true,
                 'createOrder': true,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchClosedOrders': false,
                 'fetchCurrencies': false,
@@ -48,7 +48,7 @@ module.exports = class btse extends Exchange {
                 'fetchTickers': false,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFee': false,
+                'fetchTradingFee': true,
                 'fetchTradingFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': false,
@@ -230,10 +230,11 @@ module.exports = class btse extends Exchange {
             const minQuantity = this.safeNumber (market, 'minOrderSize');
             const maxQuantity = this.safeNumber (market, 'maxOrderSize');
             const minPriceIncrement = this.safeNumber (market, 'minPriceIncrement');
+            const minValidPrice = this.safeNumber (market, 'minValidPrice');
             const active = this.safeString (market, 'active');
             const precision = {
-                'amount': this.safeInteger (market, 'minQty'),
-                'price': minQuantity,
+                'amount': minQuantity,
+                'price': minValidPrice,
             };
             result.push ({
                 'info': market,
@@ -886,7 +887,7 @@ module.exports = class btse extends Exchange {
 
     parseOrderStatus (status) {
         const statuses = {
-            '1': 'open',
+            '1': 'rejected',
             '2': 'open',
             '4': 'closed',
             '5': 'open',
