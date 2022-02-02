@@ -173,6 +173,21 @@ async function loadExchange (exchange) {
 
 //-----------------------------------------------------------------------------
 
+function getTestSymbol (exchange, symbols) {
+    let symbol = undefined
+    for (let i = 0; i < symbols.length; i++) {
+        const s = symbols[i]
+        const market = exchange.safeValue (exchange.markets, s)
+        if (market !== undefined) {
+            const active = exchange.safeValue (market, 'active')
+            if (active || (active === undefined)) {
+                symbol = s
+            }
+        }
+    }
+    return symbol
+}
+
 async function testExchange (exchange) {
 
     const codes = [
@@ -217,8 +232,7 @@ async function testExchange (exchange) {
 
     await loadExchange (exchange)
 
-    let symbol = exchange.symbols[0]
-    const symbols = [
+    let symbol = getTestSymbol (exchange, [
         'BTC/USD',
         'BTC/USDT',
         'BTC/CNY',
@@ -230,29 +244,21 @@ async function testExchange (exchange) {
         'BTC/JPY',
         'LTC/BTC',
         'ZRX/WETH',
-    ]
+    ])
 
-    for (let i = 0; i < symbols.length; i++) {
-        const s = symbols[i]
-        if (exchange.symbols.includes (s)) {
-            if ('active' in exchange.markets[s]) {
-                if (exchange.markets[s]['active'] === undefined) {
-                    symbol = s
-                } else if (exchange.markets[s]['active']) {
-                    symbol = s
-                }
-            } else {
-                symbol = s
-            }
-            break
-        }
+    if (symbol === undefined) {
+        const markets = Object.values (exchange.markets)
+        const activeMarkets = markets.filter ((market) => !exchange.safeValue (market, 'active', false))
+        const activeSymbols = activeMarkets.map (market => market['symbol'])
+        symbol = getTestSymbol (exchange, activeSymbols)
     }
 
-    if (exchange.id === 'okex') {
-        // okex has different order creation params for spot and futures markets
-        // this forces okex to use a spot market until there is a way to test
-        // several markets per exchange
-        symbol = 'BTC/USDT'
+    if (symbol === undefined) {
+        symbol = getTestSymbol (exchange, exchange.symbols)
+    }
+
+    if (symbol === undefined) {
+        symbol = exchange.symbols[0]
     }
 
     console.log ('SYMBOL:', symbol)
