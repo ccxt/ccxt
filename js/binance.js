@@ -5028,7 +5028,6 @@ module.exports = class binance extends Exchange {
                 throw new AuthenticationError (this.id + ' historicalTrades endpoint requires `apiKey` credential');
             }
         }
-        const giftcard = (api === 'sapi') && (path.indexOf ('gift') >= 0) && (method === 'POST');
         const userDataStream = (path === 'userDataStream') || (path === 'listenKey');
         if (userDataStream) {
             if (this.apiKey) {
@@ -5065,10 +5064,6 @@ module.exports = class binance extends Exchange {
             };
             if ((method === 'GET') || (method === 'DELETE') || (api === 'wapi')) {
                 url += '?' + query;
-            } else if (giftcard) {
-                url += '?' + query;
-                headers['Content-Type'] = 'application/json';
-                body = this.json (params);
             } else {
                 body = query;
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -5361,8 +5356,7 @@ module.exports = class binance extends Exchange {
 
     async verifyGiftCode (id, params = {}) {
         const request = {
-            'type': 'CODE',
-            'value': id,
+            'referenceNo': id,
         };
         const response = await this.sapiGetGiftcardVerify (this.extend (request, params));
         //
