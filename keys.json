@@ -8,6 +8,7 @@
     "bitforex":      { "skip": true },
     "bitget":        { "skip": true },
     "bitmart":       { "skip": true },
+    "bitstamp1":     { "skip": true },
     "btcmarkets":    { "skip": true },
     "braziliex":     { "skip": true },
     "buda":          { "skip": true },

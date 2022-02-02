@@ -348,10 +348,10 @@ function test_exchange($exchange) {
         $markets = array_values($exchange->markets);
         $activeMarkets = array_filter(function($market) use ($exchange) {
             return !$exchange->safe_value($market, 'active', false);
-        });
+        }, $markets);
         $activeSymbols = array_map(function($market) {
             return $market['symbol'];
-        });
+        }, $activeMarkets);
         $symbol = get_test_symbol($exchange, $activeSymbols);
     }
 
