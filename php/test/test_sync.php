@@ -315,7 +315,53 @@ function try_all_proxies($exchange, $proxies) {
     }
 }
 
+function get_test_symbol($exchange, $symbols) {
+    $symbol = null;
+    foreach ($symbols as $s) {
+        $market = $exchange->safe_value($exchange->markets, $s);
+        if ($market !== null) {
+            $active = $exchange->safe_value($market, 'active');
+            if ($active || $active === null) {
+                $symbol = $s;
+            }
+        }
+    }
+    return $symbol;
+}
+
 function test_exchange($exchange) {
+
+    $symbol = get_test_symbol($exchange, array(
+        'BTC/USD',
+        'BTC/USDT',
+        'BTC/CNY',
+        'BTC/EUR',
+        'BTC/ETH',
+        'ETH/BTC',
+        'ETH/USDT',
+        'BTC/JPY',
+        'LTC/BTC',
+        'USD/SLL',
+    ));
+
+    if ($symbol === null) {
+        $markets = array_values($exchange->markets);
+        $activeMarkets = array_filter(function($market) use ($exchange) {
+            return !$exchange->safe_value($market, 'active', false);
+        }, $markets);
+        $activeSymbols = array_map(function($market) {
+            return $market['symbol'];
+        }, $activeMarkets);
+        $symbol = get_test_symbol($exchange, $activeSymbols);
+    }
+
+    if ($symbol === null) {
+        $symbol = get_test_symbol($exchange, $exchange->symbols);
+    }
+
+    if ($symbol === null) {
+        $symbol = $exchange->symbols[0];
+    }
 
     $symbol = is_array($exchange->symbols) ? current($exchange->symbols) : '';
     $symbols = array(
