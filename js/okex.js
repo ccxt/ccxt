@@ -2985,7 +2985,7 @@ module.exports = class okex extends Exchange {
         const marginMode = this.safeStringLower (params, 'mgnMode');
         params = this.omit (params, [ 'mgnMode' ]);
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
-            throw new BadRequest (this.id + ' setLeverage params["mgnMode"] must be either "cross" or "isolated"');
+            throw new BadRequest (this.id + ' fetchLeverage params["mgnMode"] must be either cross or isolated');
         }
         const market = this.market (symbol);
         const request = {
@@ -3609,7 +3609,7 @@ module.exports = class okex extends Exchange {
         const marginMode = this.safeStringLower (params, 'mgnMode');
         params = this.omit (params, [ 'mgnMode' ]);
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
-            throw new BadRequest (this.id + ' setLeverage params["mgnMode"] must be either "cross" or "isolated"');
+            throw new BadRequest (this.id + ' setLeverage params["mgnMode"] must be either cross or isolated');
         }
         const request = {
             'lever': leverage,
@@ -3665,8 +3665,9 @@ module.exports = class okex extends Exchange {
         }
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        marginType = marginType.toLowerCase ();
         if ((marginType !== 'cross') && (marginType !== 'isolated')) {
-            throw new BadRequest (this.id + ' setMarginMode marginType must be either "cross" or "isolated"');
+            throw new BadRequest (this.id + ' setMarginMode marginType must be either cross or isolated');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
