@@ -22,7 +22,7 @@ module.exports = class woo extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined, // has but unimplemented
+                'margin': true,
                 'swap': false,
                 'future': false,
                 'option': false,
@@ -306,7 +306,7 @@ module.exports = class woo extends Exchange {
                 'settleId': undefined,
                 'type': marketTypeVal,
                 'spot': isSpot,
-                'margin': false,
+                'margin': true,
                 'swap': false,
                 'future': false,
                 'option': false,
