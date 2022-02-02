@@ -29,29 +29,52 @@ class bytetrade(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,
-                'swap': None,
-                'future': None,
-                'option': None,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': None,
             },
             'timeframes': {
@@ -283,12 +306,10 @@ class bytetrade(Exchange):
                 base = self.commonCurrencies[baseId]
             if quoteId in self.commonCurrencies:
                 quote = self.commonCurrencies[quoteId]
-            symbol = base + '/' + quote
             limits = self.safe_value(market, 'limits', {})
             amount = self.safe_value(limits, 'amount', {})
             price = self.safe_value(limits, 'price', {})
             precision = self.safe_value(market, 'precision', {})
-            active = self.safe_string(market, 'active')
             maxAmount = self.safe_string(amount, 'max')
             if Precise.string_equals(maxAmount, '-1'):
                 maxAmount = None
@@ -297,21 +318,40 @@ class bytetrade(Exchange):
                 maxPrice = None
             entry = {
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
+                'normalSymbol': normalSymbol,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': self.safe_string(market, 'active'),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'taker': self.safe_number(market, 'taker'),
+                'maker': self.safe_number(market, 'maker'),
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(precision, 'amount'),
                     'price': self.safe_integer(precision, 'price'),
+                    'amount': self.safe_integer(precision, 'amount'),
                 },
-                'normalSymbol': normalSymbol,
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(amount, 'min'),
                         'max': self.parse_number(maxAmount),
@@ -325,6 +365,7 @@ class bytetrade(Exchange):
                         'max': None,
                     },
                 },
+                'info': market,
             }
             result.append(entry)
         return result

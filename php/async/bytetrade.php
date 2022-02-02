@@ -27,29 +27,52 @@ class bytetrade extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null,
-                'swap' => null,
-                'future' => null,
-                'option' => null,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'withdraw' => null,
             ),
             'timeframes' => array(
@@ -290,12 +313,10 @@ class bytetrade extends Exchange {
             if (is_array($this->commonCurrencies) && array_key_exists($quoteId, $this->commonCurrencies)) {
                 $quote = $this->commonCurrencies[$quoteId];
             }
-            $symbol = $base . '/' . $quote;
             $limits = $this->safe_value($market, 'limits', array());
             $amount = $this->safe_value($limits, 'amount', array());
             $price = $this->safe_value($limits, 'price', array());
             $precision = $this->safe_value($market, 'precision', array());
-            $active = $this->safe_string($market, 'active');
             $maxAmount = $this->safe_string($amount, 'max');
             if (Precise::string_equals($maxAmount, '-1')) {
                 $maxAmount = null;
@@ -306,21 +327,40 @@ class bytetrade extends Exchange {
             }
             $entry = array(
                 'id' => $id,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
+                'normalSymbol' => $normalSymbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'info' => $market,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'active' => $active,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => $this->safe_string($market, 'active'),
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'taker' => $this->safe_number($market, 'taker'),
+                'maker' => $this->safe_number($market, 'maker'),
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($precision, 'amount'),
                     'price' => $this->safe_integer($precision, 'price'),
+                    'amount' => $this->safe_integer($precision, 'amount'),
                 ),
-                'normalSymbol' => $normalSymbol,
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->safe_number($amount, 'min'),
                         'max' => $this->parse_number($maxAmount),
@@ -334,6 +374,7 @@ class bytetrade extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'info' => $market,
             );
             $result[] = $entry;
         }
