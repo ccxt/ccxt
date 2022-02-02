@@ -27,9 +27,9 @@ class bitmart extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null,
-                'swap' => null,
-                'future' => null,
+                'margin' => null, // has but unimplemented
+                'swap' => null, // has but unimplemented
+                'future' => null, // has but unimplemented
                 'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,

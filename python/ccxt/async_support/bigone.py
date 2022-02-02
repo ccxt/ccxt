@@ -27,9 +27,9 @@ class bigone(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,
-                'swap': None,
-                'future': None,
+                'margin': None,  # has but unimplemented
+                'swap': None,  # has but unimplemented
+                'future': None,  # has but unimplemented
                 'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
