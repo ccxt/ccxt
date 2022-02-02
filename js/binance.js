@@ -4972,7 +4972,7 @@ module.exports = class binance extends Exchange {
         } else if (market['inverse']) {
             method = 'dapiPrivatePostMarginType';
         } else {
-            throw NotSupported (this.id + ' setMarginMode() supports linear and inverse contracts only');
+            throw new NotSupported (this.id + ' setMarginMode() supports linear and inverse contracts only');
         }
         const request = {
             'symbol': market['id'],
@@ -5133,6 +5133,13 @@ module.exports = class binance extends Exchange {
             // on a temporary ban, the API key is valid, but disabled for a while
             if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
                 throw new DDoSProtection (this.id + ' temporary banned: ' + body);
+            }
+            if (message === 'No need to change margin type.') {
+                // not an error
+                // https://github.com/ccxt/ccxt/issues/11268
+                // https://github.com/ccxt/ccxt/pull/11624
+                // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request             // binanceusdm {"code":-4046,"msg":"No need to change margin type."}
+                return undefined;
             }
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
