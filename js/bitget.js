@@ -23,7 +23,7 @@ module.exports = class bitget extends Exchange {
                 'margin': false,
                 'swap': undefined, // has but unimplemented
                 'future': undefined, // has but unimplemented
-                'option': undefined,
+                'option': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
