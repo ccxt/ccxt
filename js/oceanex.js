@@ -25,8 +25,8 @@ module.exports = class oceanex extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
-                'swap': undefined,
+                'margin': false,
+                'swap': undefined, // has but unimplemented
                 'future': undefined,
                 'option': undefined,
                 'cancelAllOrders': true,
@@ -36,6 +36,11 @@ module.exports = class oceanex extends Exchange {
                 'createOrder': true,
                 'fetchAllTradingFees': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchFundingFees': undefined,
                 'fetchMarkets': true,
