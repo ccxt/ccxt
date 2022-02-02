@@ -29,8 +29,8 @@ class oceanex extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null,
-                'swap' => null,
+                'margin' => false,
+                'swap' => null, // has but unimplemented
                 'future' => null,
                 'option' => null,
                 'cancelAllOrders' => true,
@@ -40,6 +40,11 @@ class oceanex extends Exchange {
                 'createOrder' => true,
                 'fetchAllTradingFees' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchFundingFees' => null,
                 'fetchMarkets' => true,

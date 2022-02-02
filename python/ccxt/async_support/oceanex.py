@@ -33,8 +33,8 @@ class oceanex(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,
-                'swap': None,
+                'margin': False,
+                'swap': None,  # has but unimplemented
                 'future': None,
                 'option': None,
                 'cancelAllOrders': True,
@@ -44,6 +44,11 @@ class oceanex(Exchange):
                 'createOrder': True,
                 'fetchAllTradingFees': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchFundingFees': None,
                 'fetchMarkets': True,

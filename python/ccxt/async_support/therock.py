@@ -25,7 +25,7 @@ class therock(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,  # has, but unimplemented
+                'margin': None,  # has but unimplemented
                 'swap': False,
                 'future': False,
                 'option': False,
@@ -36,6 +36,7 @@ class therock(Exchange):
                 'fetchDeposits': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
+                'fetchFundingRateHistories': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,

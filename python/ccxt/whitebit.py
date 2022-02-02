@@ -31,7 +31,7 @@ class whitebit(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,
+                'margin': None,  # has but unimplemented
                 'swap': False,
                 'future': False,
                 'option': False,
