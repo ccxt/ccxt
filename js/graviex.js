@@ -21,7 +21,7 @@ module.exports = class graviex extends Exchange {
                 'fetchMarkets': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchCurrencies': false,
                 'fetchTrades': true,
                 'fetchSimpleTrades': true,
@@ -482,14 +482,65 @@ module.exports = class graviex extends Exchange {
         return orderbook;
     }
 
+    parseBalance (response) {
+        const balances = this.safeValue (response, 'accounts_filtered');
+        const result = { 'info': balances };
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'locked');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetMembersMe (params);
+        return this.parseBalance (response);
+    }
+
     nonce () {
         return this.milliseconds ();
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + path;
-        if (Object.keys (params).length) {
-            url += '?' + this.urlencode (params);
+        const request = '/webapi/v3/' + path;
+        const query = this.omit (params, this.extractParams (path));
+        if (api === 'public') {
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
+            }
+        } else {
+            this.checkRequiredCredentials ();
+            const nonce = this.nonce ().toString ();
+            const query = this.urlencode (this.extend ({
+                'access_key': this.apiKey,
+                'tonce': nonce,
+            }, params));
+            const payload = method + '|' + request + '|' + query;
+            // const signed = this.hmac (payload, this.secret, 'sha256');
+            const signed = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256');
+            const suffix = query + '&signature=' + signed;
+            // const tonce = this.nonce ();
+            // params['tonce'] = tonce;
+            // params['access_key'] = this.apiKey;
+            // const sorted = this.keysort (params);
+            // let paramencoded = this.urlencode (sorted);
+            // const sign_str = method + '|' + request + '|' + paramencoded;
+            // const signature = this.hmac (sign_str, this.secret, 'sha256');
+            // sorted['signature'] = signature;
+            // paramencoded = this.urlencode (sorted);
+            if (method === 'GET') {
+                url += '?' + suffix;
+            } else {
+                body = suffix;
+                headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
