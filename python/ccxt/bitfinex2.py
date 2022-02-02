@@ -392,16 +392,16 @@ class bitfinex2(bitfinex):
         # pub:list:pair:exchange,pub:list:pair:margin,pub:list:pair:futures,pub:info:pair
         v2response = self.publicGetConfPubListPairFutures(params)
         v1response = self.v1GetSymbolsDetails(params)
-        futuresMarketIds = self.safe_value(v2response, 0, [])
+        swapMarketIds = self.safe_value(v2response, 0, [])
         result = []
         for i in range(0, len(v1response)):
             market = v1response[i]
             id = self.safe_string_upper(market, 'pair')
             spot = True
-            if self.in_array(id, futuresMarketIds):
+            if self.in_array(id, swapMarketIds):
                 spot = False
-            future = not spot
-            type = 'spot' if spot else 'future'
+            swap = not spot
+            type = 'spot' if spot else 'swap'
             baseId = None
             quoteId = None
             if id.find(':') >= 0:
@@ -450,10 +450,10 @@ class bitfinex2(bitfinex):
                 'limits': limits,
                 'info': market,
                 'type': type,
-                'swap': False,
+                'swap': swap,
                 'spot': spot,
                 'margin': margin,
-                'future': future,
+                'future': False,
             })
         return result
 
