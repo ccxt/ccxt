@@ -20,15 +20,20 @@ module.exports = class bitget extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
-                'swap': undefined,
-                'future': undefined,
+                'margin': false,
+                'swap': undefined, // has but unimplemented
+                'future': undefined, // has but unimplemented
                 'option': undefined,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDeposits': true,
