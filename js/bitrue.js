@@ -142,8 +142,8 @@ module.exports = class bitrue extends Exchange {
                     'feeSide': 'get',
                     'tierBased': false,
                     'percentage': true,
-                    'taker': this.parseNumber ('0.0098'),
-                    'maker': this.parseNumber ('0.0098'),
+                    'taker': this.parseNumber ('0.00098'),
+                    'maker': this.parseNumber ('0.00098'),
                 },
                 'future': {
                     'trading': {
