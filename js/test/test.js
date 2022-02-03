@@ -247,6 +247,18 @@ async function testExchange (exchange) {
     ])
 
     if (symbol === undefined) {
+        for (let i = 0; i < codes.length; i++) {
+            const markets = Object.values (exchange.markets)
+            const activeMarkets = markets.filter ((market) => (market['base'] === codes[i]))
+            if (activeMarkets.length) {
+                const activeSymbols = activeMarkets.map (market => market['symbol'])
+                symbol = getTestSymbol (exchange, activeSymbols)
+                break;
+            }
+        }
+    }
+
+    if (symbol === undefined) {
         const markets = Object.values (exchange.markets)
         const activeMarkets = markets.filter ((market) => !exchange.safeValue (market, 'active', false))
         const activeSymbols = activeMarkets.map (market => market['symbol'])

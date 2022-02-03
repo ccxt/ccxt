@@ -3,7 +3,6 @@
     "aofex":         { "skip": true },
     "bcex":          { "skip": true },
     "bibox":         { "has": { "fetchCurrencies": false }},
-    "bit2c":         { "skip": true },
     "bitbns":        { "skip": true },
     "bitcoincom":    { "skip": true },
     "bitforex":      { "skip": true },
