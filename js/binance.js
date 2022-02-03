@@ -4777,7 +4777,7 @@ module.exports = class binance extends Exchange {
         return this.options['leverageBrackets'];
     }
 
-    async fetchLeverageBrackets (params = {}) {
+    async fetchLeverageTiers (params = {}) {
         await this.loadMarkets ();
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchLeverageBrackets', undefined, params);
         let method = undefined;
@@ -4801,54 +4801,8 @@ module.exports = class binance extends Exchange {
         //                    "notionalFloor":0,
         //                    "maintMarginRatio": 0.01,
         //                    "cum":0.0
-        //                },{
-        //                    "bracket":2,
-        //                    "initialLeverage": 20,
-        //                    "notionalCap": 150000,
-        //                    "notionalFloor": 50000,
-        //                    "maintMarginRatio": 0.025,
-        //                    "cum":750.0
         //                },
-        //                {
-        //                    "bracket": 3,
-        //                    "initialLeverage": 10,
-        //                    "notionalCap": 250000,
-        //                    "notionalFloor": 150000,
-        //                    "maintMarginRatio": 0.05,
-        //                    "cum": 4500.0
-        //                },
-        //                {
-        //                    "bracket": 4,
-        //                    "initialLeverage": 5,
-        //                    "notionalCap": 500000,
-        //                    "notionalFloor": 250000,
-        //                    "maintMarginRatio": 0.1,
-        //                    "cum": 17000.0
-        //                },
-        //                {
-        //                    "bracket": 5,
-        //                    "initialLeverage": 4,
-        //                    "notionalCap": 1000000,
-        //                    "notionalFloor": 500000,
-        //                    "maintMarginRatio": 0.125,
-        //                    "cum": 29500.0
-        //                },
-        //                {
-        //                    "bracket": 6,
-        //                    "initialLeverage": 2,
-        //                    "notionalCap": 2000000,
-        //                    "notionalFloor": 1000000,
-        //                    "maintMarginRatio": 0.25,
-        //                    "cum": 154500.0
-        //                },
-        //                {
-        //                    "bracket": 7,
-        //                    "initialLeverage": 1,
-        //                    "notionalCap": 50000000,
-        //                    "notionalFloor": 2000000,
-        //                    "maintMarginRatio": 0.5,
-        //                    "cum": 654500.0
-        //                }
+        //                ...
         //            ]
         //        }
         //    ]
@@ -4866,8 +4820,8 @@ module.exports = class binance extends Exchange {
                     'notionalFloor': this.safeFloat2 (bracket, 'notionalFloor', 'qtyFloor'),
                     'notionalCap': this.safeNumber (bracket, 'notionalCap'),
                     'maintenanceMarginRatio': this.safeNumber (bracket, 'maintMarginRatio'),
-                    'maintenanceAmount': this.safeNumber (bracket, 'cum'),
                     'maxLeverage': this.safeNumber (bracket, 'initialLeverage'),
+                    'maintenanceAmount': this.safeNumber (bracket, 'cum'),
                     'info': bracket,
                 });
             }
