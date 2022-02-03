@@ -1373,7 +1373,7 @@ module.exports = class hollaex extends Exchange {
             const expiresString = expires.toString ();
             let auth = method + path + expiresString;
             headers = {
-                'api-key': this.encode (this.apiKey),
+                'api-key': this.apiKey,
                 'api-expires': expiresString,
             };
             if (method === 'POST') {
