@@ -118,7 +118,8 @@ class okex(Exchange):
                 'fetchTradingFees': None,
                 'fetchTradingLimits': None,
                 'fetchTransactions': None,
-                'fetchTransfers': None,
+                'fetchTransfer': True,
+                'fetchTransfers': False,
                 'fetchWithdrawal': None,
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': None,
@@ -3198,6 +3199,21 @@ class okex(Exchange):
         #         "to": "18"
         #     }
         #
+        # fetchTransfer
+        #
+        #     {
+        #         "amt": "5",
+        #         "ccy": "USDT",
+        #         "from": "18",
+        #         "instId": "",
+        #         "state": "success",
+        #         "subAcct": "",
+        #         "to": "6",
+        #         "toInstId": "",
+        #         "transId": "464424732",
+        #         "type": "0"
+        #     }
+        #
         id = self.safe_string(transfer, 'transId')
         currencyId = self.safe_string(transfer, 'ccy')
         code = self.safe_currency_code(currencyId, currency)
@@ -3207,8 +3223,8 @@ class okex(Exchange):
         typesByAccount = self.safe_value(self.options, 'typesByAccount', {})
         fromAccount = self.safe_string(typesByAccount, fromAccountId)
         toAccount = self.safe_string(typesByAccount, toAccountId)
-        timestamp = None
-        status = None
+        timestamp = self.milliseconds()
+        status = self.safe_string(transfer, 'state')
         return {
             'info': transfer,
             'id': id,
@@ -3220,6 +3236,40 @@ class okex(Exchange):
             'toAccount': toAccount,
             'status': status,
         }
+
+    def fetch_transfer(self, id, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {
+            'transId': id,
+            # 'type': 0,  # default is 0 transfer within account, 1 master to sub, 2 sub to master
+        }
+        response = self.privateGetAssetTransferState(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "amt": "5",
+        #                 "ccy": "USDT",
+        #                 "from": "18",
+        #                 "instId": "",
+        #                 "state": "success",
+        #                 "subAcct": "",
+        #                 "to": "6",
+        #                 "toInstId": "",
+        #                 "transId": "464424732",
+        #                 "type": "0"
+        #             }
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        resultArray = []
+        for i in range(0, len(data)):
+            transfer = data[i]
+            resultArray.append(self.parse_transfer(transfer, None))
+        return self.filter_by_since_limit(resultArray, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         isArray = isinstance(params, list)

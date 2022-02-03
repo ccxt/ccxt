@@ -96,7 +96,8 @@ class okex extends Exchange {
                 'fetchTradingFees' => null,
                 'fetchTradingLimits' => null,
                 'fetchTransactions' => null,
-                'fetchTransfers' => null,
+                'fetchTransfer' => true,
+                'fetchTransfers' => false,
                 'fetchWithdrawal' => null,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => null,
@@ -3337,6 +3338,21 @@ class okex extends Exchange {
         //         "to" => "18"
         //     }
         //
+        // fetchTransfer
+        //
+        //     {
+        //         "amt" => "5",
+        //         "ccy" => "USDT",
+        //         "from" => "18",
+        //         "instId" => "",
+        //         "state" => "success",
+        //         "subAcct" => "",
+        //         "to" => "6",
+        //         "toInstId" => "",
+        //         "transId" => "464424732",
+        //         "type" => "0"
+        //     }
+        //
         $id = $this->safe_string($transfer, 'transId');
         $currencyId = $this->safe_string($transfer, 'ccy');
         $code = $this->safe_currency_code($currencyId, $currency);
@@ -3346,8 +3362,8 @@ class okex extends Exchange {
         $typesByAccount = $this->safe_value($this->options, 'typesByAccount', array());
         $fromAccount = $this->safe_string($typesByAccount, $fromAccountId);
         $toAccount = $this->safe_string($typesByAccount, $toAccountId);
-        $timestamp = null;
-        $status = null;
+        $timestamp = $this->milliseconds();
+        $status = $this->safe_string($transfer, 'state');
         return array(
             'info' => $transfer,
             'id' => $id,
@@ -3359,6 +3375,42 @@ class okex extends Exchange {
             'toAccount' => $toAccount,
             'status' => $status,
         );
+    }
+
+    public function fetch_transfer($id, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $request = array(
+            'transId' => $id,
+            // 'type' => 0, // default is 0 $transfer within account, 1 master to sub, 2 sub to master
+        );
+        $response = yield $this->privateGetAssetTransferState (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             {
+        //                 "amt" => "5",
+        //                 "ccy" => "USDT",
+        //                 "from" => "18",
+        //                 "instId" => "",
+        //                 "state" => "success",
+        //                 "subAcct" => "",
+        //                 "to" => "6",
+        //                 "toInstId" => "",
+        //                 "transId" => "464424732",
+        //                 "type" => "0"
+        //             }
+        //         ),
+        //         "msg" => ""
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $resultArray = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $transfer = $data[$i];
+            $resultArray[] = $this->parse_transfer($transfer, null);
+        }
+        return $this->filter_by_since_limit($resultArray, $since, $limit);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
