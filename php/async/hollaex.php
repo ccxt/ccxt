@@ -89,6 +89,7 @@ class hollaex extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/75841031-ca375180-5ddd-11ea-8417-b975674c23cb.jpg',
+                'test' => 'https://api.sandbox.hollaex.com',
                 'api' => 'https://api.hollaex.com',
                 'www' => 'https://hollaex.com',
                 'doc' => 'https://apidocs.hollaex.com',
@@ -1374,7 +1375,7 @@ class hollaex extends Exchange {
             $expiresString = (string) $expires;
             $auth = $method . $path . $expiresString;
             $headers = array(
-                'api-key' => $this->encode($this->apiKey),
+                'api-key' => $this->apiKey,
                 'api-expires' => $expiresString,
             );
             if ($method === 'POST') {

@@ -2859,8 +2859,11 @@ module.exports = class bybit extends Exchange {
             throw new ArgumentsRequired (this.id + '.setMarginMode requires a leverage parameter');
         }
         marginType = marginType.toUpperCase ();
-        if ((marginType !== 'ISOLATED') && (marginType !== 'CROSSED')) {
-            throw new BadRequest (this.id + ' marginType must be either isolated or crossed');
+        if (marginType === 'CROSSED') { // * Deprecated, use 'CROSS' instead
+            marginType = 'CROSS';
+        }
+        if ((marginType !== 'ISOLATED') && (marginType !== 'CROSS')) {
+            throw new BadRequest (this.id + ' marginType must be either isolated or cross');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);

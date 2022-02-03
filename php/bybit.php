@@ -2861,8 +2861,11 @@ class bybit extends Exchange {
             throw new ArgumentsRequired($this->id . '.setMarginMode requires a $leverage parameter');
         }
         $marginType = strtoupper($marginType);
-        if (($marginType !== 'ISOLATED') && ($marginType !== 'CROSSED')) {
-            throw new BadRequest($this->id . ' $marginType must be either isolated or crossed');
+        if ($marginType === 'CROSSED') { // * Deprecated, use 'CROSS' instead
+            $marginType = 'CROSS';
+        }
+        if (($marginType !== 'ISOLATED') && ($marginType !== 'CROSS')) {
+            throw new BadRequest($this->id . ' $marginType must be either isolated or cross');
         }
         $this->load_markets();
         $market = $this->market($symbol);

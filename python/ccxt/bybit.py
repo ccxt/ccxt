@@ -2744,8 +2744,10 @@ class bybit(Exchange):
         if leverage is None:
             raise ArgumentsRequired(self.id + '.setMarginMode requires a leverage parameter')
         marginType = marginType.upper()
-        if (marginType != 'ISOLATED') and (marginType != 'CROSSED'):
-            raise BadRequest(self.id + ' marginType must be either isolated or crossed')
+        if marginType == 'CROSSED':  # * Deprecated, use 'CROSS' instead
+            marginType = 'CROSS'
+        if (marginType != 'ISOLATED') and (marginType != 'CROSS'):
+            raise BadRequest(self.id + ' marginType must be either isolated or cross')
         self.load_markets()
         market = self.market(symbol)
         method = None

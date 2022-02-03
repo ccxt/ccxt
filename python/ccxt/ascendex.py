@@ -2139,8 +2139,11 @@ class ascendex(Exchange):
         return self.v2PrivateAccountGroupPostFuturesLeverage(self.extend(request, params))
 
     def set_margin_mode(self, marginType, symbol=None, params={}):
+        marginType = marginType.lower()
+        if marginType == 'cross':
+            marginType = 'crossed'
         if marginType != 'isolated' and marginType != 'crossed':
-            raise BadRequest(self.id + ' setMarginMode() marginType argument should be isolated or crossed')
+            raise BadRequest(self.id + ' setMarginMode() marginType argument should be isolated or cross')
         self.load_markets()
         self.load_accounts()
         market = self.market(symbol)
