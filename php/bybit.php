@@ -1676,7 +1676,7 @@ class bybit extends Exchange {
         }
         $status = $this->parse_order_status($this->safe_string_2($order, 'order_status', 'stop_order_status'));
         $side = $this->safe_string_lower($order, 'side');
-        $feeCostString = Precise::string_abs($this->safe_string($order, 'cum_exec_fee'));
+        $feeCostString = $this->safe_string($order, 'cum_exec_fee');
         $fee = null;
         if ($feeCostString !== null) {
             $fee = array(
