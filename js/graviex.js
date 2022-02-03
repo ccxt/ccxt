@@ -33,7 +33,7 @@ module.exports = class graviex extends Exchange {
                 'fetchOrderBooks': false,
                 'fetchL2OrderBook': false,
                 'fetchOrderTrades': false,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchWithdrawals': false,
                 'fetchDeposit': true,
                 'fetchDeposits': true,
@@ -732,7 +732,7 @@ module.exports = class graviex extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchMyTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
@@ -772,7 +772,6 @@ module.exports = class graviex extends Exchange {
                 'tonce': nonce,
             }, params));
             const payload = method + '|' + request + '|' + query;
-            console.log(payload);
             // const signed = this.hmac (payload, this.secret, 'sha256');
             const signed = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256');
             const suffix = query + '&signature=' + signed;
