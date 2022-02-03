@@ -720,20 +720,10 @@ module.exports = class okex extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const account = data[i];
             const accountId = this.safeString (account, 'uid');
-            let accountLevel = undefined;
             const type = this.safeString (account, 'acctLv');
-            if (type === '1') {
-                accountLevel = 'Simple';
-            } else if (type === '2') {
-                accountLevel = 'Single-currency margin';
-            } else if (type === '3') {
-                accountLevel = 'Multi-currency margin';
-            } else {
-                accountLevel = 'Portfolio margin';
-            }
             result.push ({
                 'id': accountId,
-                'type': accountLevel,
+                'type': type,
                 'currency': undefined,
                 'info': account,
             });
