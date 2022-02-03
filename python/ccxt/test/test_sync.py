@@ -431,6 +431,21 @@ def test_exchange(exchange, symbol=None):
         ])
 
         if symbol is None:
+            for code in codes:
+                markets = list(exchange.markets.values())
+                activeMarkets = [market for market in markets if market['base'] == code]
+                if len(activeMarkets):
+                    activeSymbols = [market['symbol'] for market in activeMarkets]
+                    symbol = get_test_symbol(exchange, activeSymbols)
+                    break
+
+        if symbol is None:
+            markets = list(exchange.markets.values())
+            activeMarkets = [market for market in markets if market['base'] in codes]
+            activeSymbols = [market['symbol'] for market in activeMarkets]
+            symbol = get_test_symbol(exchange, activeSymbols)
+
+        if symbol is None:
             markets = list(exchange.markets.values())
             activeMarkets = [market for market in markets if not exchange.safe_value(market, 'active', False)]
             activeSymbols = [market['symbol'] for market in activeMarkets]

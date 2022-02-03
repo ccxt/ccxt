@@ -1330,8 +1330,11 @@ class kucoin(Exchange):
         # bool
         isActive = self.safe_value(order, 'isActive', False)
         cancelExist = self.safe_value(order, 'cancelExist', False)
+        stop = self.safe_string(order, 'stop')
+        stopTriggered = self.safe_value(order, 'stopTriggered', False)
         status = 'open' if isActive else 'closed'
-        status = 'canceled' if cancelExist else status
+        cancelExistWithStop = cancelExist or (not isActive and stop and not stopTriggered)
+        status = 'canceled' if cancelExistWithStop else status
         fee = {
             'currency': feeCurrency,
             'cost': feeCost,
