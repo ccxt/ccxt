@@ -4021,6 +4021,66 @@ module.exports = class okx extends Exchange {
         return this.options['leverageBrackets'];
     }
 
+    async fetchLeverageTiers (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (!symbol) {
+            throw new ArgumentsRequired (this.id + '.fetchLeverageBrackets requires params.symbol');
+        }
+        const market = this.market (symbol);
+        const type = market['spot'] ? 'MARGIN' : market['type'].toUpperCase ();
+        const uly = this.safeString (market['info'], 'uly');
+        if (!uly) {
+            throw new BadRequest (this.id + '.fetchLeverageTiers cannot fetch leverage tiers for ' + symbol);
+        }
+        const request = {
+            'instType': type,
+            'tdMode': this.safeString (params, 'tdMode', 'isolated'),
+            'uly': uly,
+        };
+        if (type === 'MARGIN') {
+            request['instId'] = market['id'];
+        }
+        const response = await this.publicGetPublicPositionTiers (this.extend (request, params));
+        //
+        //    {
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "baseMaxLoan": "500",
+        //                "imr": "0.1",
+        //                "instId": "ETH-USDT",
+        //                "maxLever": "10",
+        //                "maxSz": "500",
+        //                "minSz": "0",
+        //                "mmr": "0.03",
+        //                "optMgnFactor": "0",
+        //                "quoteMaxLoan": "200000",
+        //                "tier": "1",
+        //                "uly": ""
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        const brackets = [];
+        for (let i = 0; i < data.length; i++) {
+            const tier = data[i];
+            brackets.push ({
+                'tier': this.safeInteger (tier, 'tier'),
+                'notionalFloor': this.safeNumber (tier, 'minSz'),
+                'notionalCap': this.safeNumber (tier, 'maxSz'),
+                'maintenanceMarginRatio': this.safeNumber (tier, 'mmr'),
+                'maxLeverage': this.safeNumber (tier, 'maxLever'),
+                'maintenanceAmount': undefined,
+                'info': tier,
+            });
+        }
+        const result = {};
+        result[symbol] = brackets;
+        return result;
+    }
+
     setSandboxMode (enable) {
         super.setSandboxMode (enable);
         if (enable) {
