@@ -1305,6 +1305,12 @@ class kraken extends Exchange {
         //         "descr":array("order":"sell 167.28002676 ADAXBT @ stop loss 0.00003280 -> limit 0.00003212")
         //     }
         //
+        //
+        //     {
+        //         "txid":["OVHMJV-BZW2V-6NZFWF"],
+        //         "descr":array("order":"sell 0.00100000 ETHUSD @ stop loss 2677.00 -> limit 2577.00 with 5:1 leverage")
+        //     }
+        //
         $description = $this->safe_value($order, 'descr', array());
         $orderDescription = $this->safe_string($description, 'order');
         $side = null;
@@ -1312,15 +1318,18 @@ class kraken extends Exchange {
         $marketId = null;
         $price = null;
         $amount = null;
+        $stopPrice = null;
         if ($orderDescription !== null) {
             $parts = explode(' ', $orderDescription);
-            $partsLength = is_array($parts) ? count($parts) : 0;
             $side = $this->safe_string($parts, 0);
             $amount = $this->safe_string($parts, 1);
             $marketId = $this->safe_string($parts, 2);
             $type = $this->safe_string($parts, 4);
-            if (($type === 'limit') || ($type === 'stop')) {
-                $price = $this->safe_string($parts, $partsLength - 1);
+            if ($type === 'stop') {
+                $stopPrice = $this->safe_string($parts, 6);
+                $price = $this->safe_string($parts, 9);
+            } else if ($type === 'limit') {
+                $price = $this->safe_string($parts, 5);
             }
         }
         $side = $this->safe_string($description, 'type', $side);
@@ -1372,7 +1381,7 @@ class kraken extends Exchange {
         }
         $clientOrderId = $this->safe_string($order, 'userref');
         $rawTrades = $this->safe_value($order, 'trades');
-        $stopPrice = $this->safe_number($order, 'stopprice');
+        $stopPrice = $this->safe_number($order, 'stopprice', $stopPrice);
         return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
