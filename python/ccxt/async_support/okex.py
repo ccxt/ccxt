@@ -2871,7 +2871,7 @@ class okex(Exchange):
         marginMode = self.safe_string_lower(params, 'mgnMode')
         params = self.omit(params, ['mgnMode'])
         if (marginMode != 'cross') and (marginMode != 'isolated'):
-            raise BadRequest(self.id + ' setLeverage params["mgnMode"] must be either "cross" or "isolated"')
+            raise BadRequest(self.id + ' fetchLeverage params["mgnMode"] must be either cross or isolated')
         market = self.market(symbol)
         request = {
             'instId': market['id'],
@@ -3461,7 +3461,7 @@ class okex(Exchange):
         marginMode = self.safe_string_lower(params, 'mgnMode')
         params = self.omit(params, ['mgnMode'])
         if (marginMode != 'cross') and (marginMode != 'isolated'):
-            raise BadRequest(self.id + ' setLeverage params["mgnMode"] must be either "cross" or "isolated"')
+            raise BadRequest(self.id + ' setLeverage params["mgnMode"] must be either cross or isolated')
         request = {
             'lever': leverage,
             'mgnMode': marginMode,
@@ -3512,8 +3512,9 @@ class okex(Exchange):
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        marginType = marginType.lower()
         if (marginType != 'cross') and (marginType != 'isolated'):
-            raise BadRequest(self.id + ' setMarginMode marginType must be either "cross" or "isolated"')
+            raise BadRequest(self.id + ' setMarginMode marginType must be either cross or isolated')
         await self.load_markets()
         market = self.market(symbol)
         lever = self.safe_integer(params, 'lever')

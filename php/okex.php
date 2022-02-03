@@ -2990,7 +2990,7 @@ class okex extends Exchange {
         $marginMode = $this->safe_string_lower($params, 'mgnMode');
         $params = $this->omit($params, array( 'mgnMode' ));
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
-            throw new BadRequest($this->id . ' setLeverage $params["mgnMode"] must be either "cross" or "isolated"');
+            throw new BadRequest($this->id . ' fetchLeverage $params["mgnMode"] must be either cross or isolated');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -3614,7 +3614,7 @@ class okex extends Exchange {
         $marginMode = $this->safe_string_lower($params, 'mgnMode');
         $params = $this->omit($params, array( 'mgnMode' ));
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
-            throw new BadRequest($this->id . ' setLeverage $params["mgnMode"] must be either "cross" or "isolated"');
+            throw new BadRequest($this->id . ' setLeverage $params["mgnMode"] must be either cross or isolated');
         }
         $request = array(
             'lever' => $leverage,
@@ -3670,8 +3670,9 @@ class okex extends Exchange {
         }
         // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        $marginType = strtolower($marginType);
         if (($marginType !== 'cross') && ($marginType !== 'isolated')) {
-            throw new BadRequest($this->id . ' setMarginMode $marginType must be either "cross" or "isolated"');
+            throw new BadRequest($this->id . ' setMarginMode $marginType must be either cross or isolated');
         }
         $this->load_markets();
         $market = $this->market($symbol);

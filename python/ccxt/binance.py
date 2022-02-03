@@ -4709,8 +4709,10 @@ class binance(Exchange):
         # {"code": 200, "msg": "success"}
         #
         marginType = marginType.upper()
+        if marginType == 'CROSS':
+            marginType = 'CROSSED'
         if (marginType != 'ISOLATED') and (marginType != 'CROSSED'):
-            raise BadRequest(self.id + ' marginType must be either isolated or crossed')
+            raise BadRequest(self.id + ' marginType must be either isolated or cross')
         self.load_markets()
         market = self.market(symbol)
         method = None

@@ -2226,8 +2226,12 @@ class ascendex extends Exchange {
     }
 
     public function set_margin_mode($marginType, $symbol = null, $params = array ()) {
+        $marginType = strtolower($marginType);
+        if ($marginType === 'cross') {
+            $marginType = 'crossed';
+        }
         if ($marginType !== 'isolated' && $marginType !== 'crossed') {
-            throw new BadRequest($this->id . ' setMarginMode() $marginType argument should be isolated or crossed');
+            throw new BadRequest($this->id . ' setMarginMode() $marginType argument should be isolated or cross');
         }
         $this->load_markets();
         $this->load_accounts();

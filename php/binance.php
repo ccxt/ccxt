@@ -4967,8 +4967,11 @@ class binance extends Exchange {
         // array( "code" => 200, "msg" => "success" )
         //
         $marginType = strtoupper($marginType);
+        if ($marginType === 'CROSS') {
+            $marginType = 'CROSSED';
+        }
         if (($marginType !== 'ISOLATED') && ($marginType !== 'CROSSED')) {
-            throw new BadRequest($this->id . ' $marginType must be either isolated or crossed');
+            throw new BadRequest($this->id . ' $marginType must be either isolated or cross');
         }
         $this->load_markets();
         $market = $this->market($symbol);
