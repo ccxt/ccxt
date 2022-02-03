@@ -1674,7 +1674,7 @@ module.exports = class bybit extends Exchange {
         }
         const status = this.parseOrderStatus (this.safeString2 (order, 'order_status', 'stop_order_status'));
         const side = this.safeStringLower (order, 'side');
-        const feeCostString = Precise.stringAbs (this.safeString (order, 'cum_exec_fee'));
+        const feeCostString = this.safeString (order, 'cum_exec_fee');
         let fee = undefined;
         if (feeCostString !== undefined) {
             fee = {
