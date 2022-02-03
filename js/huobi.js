@@ -67,6 +67,7 @@ module.exports = class huobi extends Exchange {
                 'fetchLedger': true,
                 'fetchLedgerEntry': undefined,
                 'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyBuys': undefined,
@@ -5425,5 +5426,76 @@ module.exports = class huobi extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseLedger (data, currency, since, limit);
+    }
+
+    async fetchLeverageTiers (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            if (!market['contract']) {
+                throw new BadRequest (this.id + '.fetchLeverageTiers symbol supports contract markets only');
+            }
+            request['contract_code'] = market['id'];
+        }
+        const response = await this.contractPublicGetLinearSwapApiV1SwapAdjustfactor (this.extend (request, params));
+        //
+        //    {
+        //        "status": "ok",
+        //        "data": [
+        //            {
+        //                "symbol": "MANA",
+        //                "contract_code": "MANA-USDT",
+        //                "margin_mode": "isolated",
+        //                "trade_partition": "USDT",
+        //                "list": [
+        //                    {
+        //                        "lever_rate": 75,
+        //                        "ladders": [
+        //                            {
+        //                                "ladder": 0,
+        //                                "min_size": 0,
+        //                                "max_size": 999,
+        //                                "adjust_factor": 0.7
+        //                            },
+        //                            ...
+        //                        ]
+        //                    }
+        //                    ...
+        //                ]
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        const tiers = {};
+        for (let i = 0; i < data.length; i++) {
+            const market = data[i];
+            const leverages = {};
+            const list = this.safeValue (market, 'list', []);
+            for (let j = 0; j < list.length; j++) {
+                const obj = list[j];
+                const leverage = this.safeString (obj, 'lever_rate');
+                const brackets = [];
+                const ladders = this.safeValue (obj, 'ladders', []);
+                for (let k = 0; k < ladders.length; k++) {
+                    const bracket = ladders[k];
+                    const adjustFactor = this.safeString (bracket, 'adjust_factor');
+                    brackets.push ({
+                        'tier': this.safeInteger (bracket, 'ladder'),
+                        'notionalCurrency': market['base'],
+                        'notionalFloor': this.safeNumber (bracket, 'min_size'),
+                        'notionalCap': this.safeNumber (bracket, 'max_size'),
+                        'maintenanceMarginRate': this.parseNumber (Precise.stringDiv (adjustFactor, leverage)),
+                        'maxLeverage': this.parseNumber (leverage),
+                        'info': bracket,
+                    });
+                }
+                leverages[leverage] = brackets;
+            }
+            tiers[market['contract_code']] = leverages;
+        }
+        return tiers;
     }
 };
