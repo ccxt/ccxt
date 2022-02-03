@@ -35,7 +35,8 @@ module.exports = class graviex extends Exchange {
                 'fetchOrderTrades': false,
                 'fetchMyTrades': false,
                 'fetchWithdrawals': false,
-                'fetchDeposits': false,
+                'fetchDeposit': true,
+                'fetchDeposits': true,
                 'fetchDepositAddress': true,
                 'createOrder': false,
                 'cancelOrder': false,
@@ -538,6 +539,113 @@ module.exports = class graviex extends Exchange {
         const response = await this.privateGetDepositAddress (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
         return this.parseDepositAddress (data, currency);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        // [
+        //     {
+        //         "id": 4831985,
+        //         "currency": "ltc",
+        //         "amount": "0.14108256",
+        //         "fee": "0.0",
+        //         "txid": "c0d50a556a48e16f86b571651fd6199ce122ace9e2843e71e953b22db3eaf007",
+        //         "uid": null,
+        //         "created_at": "2022-02-01T18:10:32+03:00",
+        //         "confirmations": "6",
+        //         "done_at": null,
+        //         "state": "accepted"
+        //     }
+        // ]
+        const timestamp = this.parse8601 (this.safeString (transaction, 'created_at'));
+        const id = this.safeString (transaction, 'id');
+        const txid = this.safeString (transaction, 'txid');
+        const cancelRequested = this.safeValue (transaction, 'cancel_requested');
+        const type = (cancelRequested === undefined) ? 'deposit' : 'withdrawal';
+        const amount = this.safeNumber (transaction, 'amount');
+        const currencyId = this.safeString (transaction, 'currency');
+        const confirmations = this.safeString (transaction, 'confirmations');
+        const code = this.safeCurrencyCode (currencyId);
+        let status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
+        const statusCode = this.safeString (transaction, 'code');
+        if (cancelRequested) {
+            status = 'canceled';
+        } else if (status === undefined) {
+            status = this.parseTransactionStatus (statusCode);
+        }
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'confirmations': confirmations,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+        };
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'initiated': 'pending',
+            'needs_create': 'pending',
+            'credited': 'ok',
+            'confirmed': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    async fetchDeposit (id, code = undefined, params = {}) {
+        if (id === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposit() requires a txid argument');
+        }
+        await this.loadMarkets ();
+        const request = {
+            'txid': id,
+        };
+        const response = await this.privateGetDeposit (this.extend (request, params));
+        // {
+        //   "id": 4831985,
+        //   "currency": "ltc",
+        //   "amount": "0.14108256",
+        //   "fee": "0.0",
+        //   "txid": "c0d50a556a48e16f86b571651fd6199ce122ace9e2843e71e953b22db3eaf007",
+        //   "uid": null,
+        //   "created_at": "2022-02-01T18:10:32+03:00",
+        //   "confirmations": "6",
+        //   "done_at": null,
+        //   "state": "accepted"
+        // }
+        // const data = this.safeValue (response, 'data', {});
+        // const deposit = this.safeValue (data, 'deposit', {});
+        return this.parseTransaction (response);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const response = await this.privateGetDeposits (params);
+        // const data = this.safeValue (response, 'data', {});
+        // const deposits = this.safeValue (response);
+        // [
+        //     {
+        //         "id": 4831985,
+        //         "currency": "ltc",
+        //         "amount": "0.14108256",
+        //         "fee": "0.0",
+        //         "txid": "c0d50a556a48e16f86b571651fd6199ce122ace9e2843e71e953b22db3eaf007",
+        //         "uid": null,
+        //         "created_at": "2022-02-01T18:10:32+03:00",
+        //         "confirmations": "6",
+        //         "done_at": null,
+        //         "state": "accepted"
+        //     }
+        // ]
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     nonce () {
