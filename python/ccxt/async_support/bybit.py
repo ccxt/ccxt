@@ -1649,7 +1649,7 @@ class bybit(Exchange):
             lastTradeTimestamp = None
         status = self.parse_order_status(self.safe_string_2(order, 'order_status', 'stop_order_status'))
         side = self.safe_string_lower(order, 'side')
-        feeCostString = Precise.string_abs(self.safe_string(order, 'cum_exec_fee'))
+        feeCostString = self.safe_string(order, 'cum_exec_fee')
         fee = None
         if feeCostString is not None:
             fee = {
