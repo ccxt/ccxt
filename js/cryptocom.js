@@ -234,6 +234,7 @@ module.exports = class cryptocom extends Exchange {
                     '10009': BadRequest,
                     '20001': BadRequest,
                     '20002': InsufficientFunds,
+                    '20005': NotSupported, // {"id":"123xxx","method":"private/margin/xxx","code":"20005","message":"ACCOUNT_NOT_FOUND"}
                     '30003': BadSymbol,
                     '30004': BadRequest,
                     '30005': BadRequest,
