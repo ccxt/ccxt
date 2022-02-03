@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "612afdb4c5f43bfad184636ae480a949",
+    "content-hash": "8b85ab3f93346781b0ae2179a1d35ff3",
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.71.27",
+            "version": "1.72.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "072733c408ac8b3cec6c0c97b1abdb53991af471"
+                "reference": "b94fdbccca0842fc1d83885e18f582667969210d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/072733c408ac8b3cec6c0c97b1abdb53991af471",
-                "reference": "072733c408ac8b3cec6c0c97b1abdb53991af471",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/b94fdbccca0842fc1d83885e18f582667969210d",
+                "reference": "b94fdbccca0842fc1d83885e18f582667969210d",
                 "shasum": ""
             },
             "require": {
@@ -41,13 +41,13 @@
             },
             "type": "library",
             "autoload": {
+                "files": [
+                    "ccxt.php"
+                ],
                 "psr-4": {
                     "ccxt\\": "php/",
                     "ccxt_async\\": "php/async/"
-                },
-                "files": [
-                    "ccxt.php"
-                ]
+                }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -280,7 +280,7 @@
             ],
             "support": {
                 "issues": "https://github.com/ccxt/ccxt/issues",
-                "source": "https://github.com/ccxt/ccxt/tree/1.71.27"
+                "source": "https://github.com/ccxt/ccxt/tree/1.72.6"
             },
             "funding": [
                 {
@@ -288,7 +288,7 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2022-01-29T16:27:22+00:00"
+            "time": "2022-02-03T22:41:41+00:00"
         },
         {
             "name": "evenement/evenement",
