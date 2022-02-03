@@ -1370,8 +1370,8 @@ module.exports = class kucoin extends Exchange {
         const stop = this.safeString (order, 'stop');
         const stopTriggered = this.safeValue (order, 'stopTriggered', false);
         let status = isActive ? 'open' : 'closed';
-        const canceleExistWithStop = cancelExist || (!isActive && stop && !stopTriggered);
-        status = canceleExistWithStop ? 'canceled' : status;
+        const cancelExistWithStop = cancelExist || (!isActive && stop && !stopTriggered);
+        status = cancelExistWithStop ? 'canceled' : status;
         const fee = {
             'currency': feeCurrency,
             'cost': feeCost,
