@@ -3372,9 +3372,6 @@ module.exports = class okex extends Exchange {
     }
 
     async fetchTransfer (id, since = undefined, limit = undefined, params = {}) {
-        if (id === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTransfer requires a transfer id argument');
-        }
         await this.loadMarkets ();
         const request = {
             'transId': id,
