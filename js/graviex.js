@@ -26,8 +26,8 @@ module.exports = class graviex extends Exchange {
                 'fetchTrades': true,
                 'fetchSimpleTrades': true,
                 'fetchOHLCV': true,
-                'fetchOrders': false,
-                'fetchOrder': false,
+                'fetchOrders': true,
+                'fetchOrder': true,
                 'fetchDepth': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
@@ -646,6 +646,90 @@ module.exports = class graviex extends Exchange {
         //     }
         // ]
         return this.parseTransactions (response, currency, since, limit);
+    }
+
+    parseOrder (order, market = undefined) {
+        const id = this.safeString (order, 'id');
+        const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
+        const sideType = this.safeString (order, 'order_type');
+        let orderType = undefined;
+        let side = undefined;
+        if (sideType !== undefined) {
+            const parts = sideType.split ('_');
+            side = this.safeString (parts, 0);
+            orderType = this.safeString (parts, 1);
+        }
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'market_amount');
+        const remaining = this.safeString (order, 'market_amount_remaining');
+        const open = this.safeValue (order, 'open', false);
+        const closeReason = this.safeString (order, 'close_reason');
+        let status = undefined;
+        if (open) {
+            status = 'open';
+        } else if (closeReason === 'canceled') {
+            status = 'canceled';
+        } else {
+            status = 'closed';
+        }
+        const marketId = this.safeString (order, 'market_string');
+        market = this.safeMarket (marketId, market, '_');
+        const symbol = market['symbol'];
+        const rawTrades = this.safeValue (order, 'trades', []);
+        return this.safeOrder ({
+            'info': order,
+            'id': id,
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': orderType,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'stopPrice': undefined,
+            'average': undefined,
+            'amount': amount,
+            'remaining': remaining,
+            'filled': undefined,
+            'status': status,
+            'fee': undefined,
+            'fees': undefined,
+            'cost': undefined,
+            'trades': rawTrades,
+        }, market);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        if (id === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a order id argument');
+        }
+        await this.loadMarkets ();
+        const request = {
+        };
+        if (id !== undefined) {
+            request['id'] = id;
+        }
+        const response = await this.privateGetOrder (this.extend (request, params));
+        const data = this.safeValue (response, 'data', {});
+        const order = this.safeValue (data, 'order', {});
+        return this.parseOrder (order);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+        };
+        const market = this.market (symbol);
+        if (symbol !== undefined) {
+            request['market'] = this.marketId (symbol);
+        }
+        const response = await this.privateGetOrders (this.extend (request, params));
+        const data = this.safeValue (response, 'data', {});
+        const orders = this.safeValue (data, 'orders', []);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     nonce () {
