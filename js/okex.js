@@ -90,7 +90,8 @@ module.exports = class okex extends Exchange {
                 'fetchTradingFees': undefined,
                 'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
-                'fetchTransfers': undefined,
+                'fetchTransfer': true,
+                'fetchTransfers': false,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': undefined,
@@ -3331,6 +3332,21 @@ module.exports = class okex extends Exchange {
         //         "to": "18"
         //     }
         //
+        // fetchTransfer
+        //
+        //     {
+        //         "amt": "5",
+        //         "ccy": "USDT",
+        //         "from": "18",
+        //         "instId": "",
+        //         "state": "success",
+        //         "subAcct": "",
+        //         "to": "6",
+        //         "toInstId": "",
+        //         "transId": "464424732",
+        //         "type": "0"
+        //     }
+        //
         const id = this.safeString (transfer, 'transId');
         const currencyId = this.safeString (transfer, 'ccy');
         const code = this.safeCurrencyCode (currencyId, currency);
@@ -3340,8 +3356,8 @@ module.exports = class okex extends Exchange {
         const typesByAccount = this.safeValue (this.options, 'typesByAccount', {});
         const fromAccount = this.safeString (typesByAccount, fromAccountId);
         const toAccount = this.safeString (typesByAccount, toAccountId);
-        const timestamp = undefined;
-        const status = undefined;
+        const timestamp = this.milliseconds ();
+        const status = this.safeString (transfer, 'state');
         return {
             'info': transfer,
             'id': id,
@@ -3353,6 +3369,42 @@ module.exports = class okex extends Exchange {
             'toAccount': toAccount,
             'status': status,
         };
+    }
+
+    async fetchTransfer (id, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'transId': id,
+            // 'type': 0, // default is 0 transfer within account, 1 master to sub, 2 sub to master
+        };
+        const response = await this.privateGetAssetTransferState (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "amt": "5",
+        //                 "ccy": "USDT",
+        //                 "from": "18",
+        //                 "instId": "",
+        //                 "state": "success",
+        //                 "subAcct": "",
+        //                 "to": "6",
+        //                 "toInstId": "",
+        //                 "transId": "464424732",
+        //                 "type": "0"
+        //             }
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const resultArray = [];
+        for (let i = 0; i < data.length; i++) {
+            const transfer = data[i];
+            resultArray.push (this.parseTransfer (transfer, undefined));
+        }
+        return this.filterBySinceLimit (resultArray, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
