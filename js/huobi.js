@@ -5354,4 +5354,73 @@ module.exports = class huobi extends Exchange {
         const data = this.safeValue (response, 'data', []);
         return this.parseLedger (data, currency, since, limit);
     }
+
+    async fetchLeverageTiers (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (symbol) {
+            const market = this.market (symbol);
+            if (!market['contract']) {
+                throw new BadRequest (this.id + '.fetchLeverageBrackets symbol supports contract markets only');
+            }
+            request['symbol'] = market['id'];
+        }
+        const response = await this.contractPublicGetLinearSwapApiV1SwapAdjustfactor (this.extend (request, params));
+        //
+        //    {
+        //        "status": "ok",
+        //        "data": [
+        //            {
+        //                "symbol": "MANA",
+        //                "contract_code": "MANA-USDT",
+        //                "margin_mode": "isolated",
+        //                "trade_partition": "USDT",
+        //                "list": [
+        //                    {
+        //                        "lever_rate": 75,
+        //                        "ladders": [
+        //                            {
+        //                                "ladder": 0,
+        //                                "min_size": 0,
+        //                                "max_size": 999,
+        //                                "adjust_factor": 0.7
+        //                            },
+        //                            ...
+        //                        ]
+        //                    }
+        //                    ...
+        //                ]
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const market = data[i];
+            const list = this.safeValue (market, 'list', []);
+            const brackets = [];
+            for (let j = 0; j < list.length; j++) {
+                const obj = list[j];
+                const leverage = this.safeString (obj, 'lever_rate');
+                const ladders = this.safeValue (obj, 'ladders', []);
+                for (let k = 0; k < ladders.length; k++) {
+                    const bracket = ladders[k];
+                    const adjustFactor = this.safeString (bracket, 'adjust_factor');
+                    brackets.push ({
+                        'tier': this.safeInteger (bracket, 'ladder'),
+                        'notionalFloor': this.safeNumber (bracket, 'min_size'),
+                        'notionalCap': this.safeNumber (bracket, 'max_size'),
+                        'maintenanceMarginRatio': this.parseNumber (Precise.stringDiv (adjustFactor, leverage)),
+                        'maxLeverage': this.parseNumber (leverage),
+                        'maintenanceAmount': undefined,
+                        'info': bracket,
+                    });
+                }
+                result[market['symbol']] = brackets;
+            }
+        }
+        return result;
+    }
 };
