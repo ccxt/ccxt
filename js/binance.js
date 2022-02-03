@@ -4817,6 +4817,7 @@ module.exports = class binance extends Exchange {
             for (let j = 0; j < brackets.length; j++) {
                 const bracket = brackets[j];
                 result.push ({
+                    'tier': this.safeNumber (bracket, 'bracket'),
                     'notionalFloor': this.safeFloat2 (bracket, 'notionalFloor', 'qtyFloor'),
                     'notionalCap': this.safeNumber (bracket, 'notionalCap'),
                     'maintenanceMarginRatio': this.safeNumber (bracket, 'maintMarginRatio'),

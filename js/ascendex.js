@@ -2290,6 +2290,7 @@ module.exports = class ascendex extends Exchange {
                         const bracket = marginRequirements[j];
                         const maintenanceMarginRatio = this.safeString (bracket, 'maintenanceMarginRate');
                         brackets.push ({
+                            'tier': j,
                             'notionalFloor': this.safeNumber (bracket, 'positionNotionalLowerBound'),
                             'notionalCap': this.safeNumber (bracket, 'positionNotionalUpperBound'),
                             'maintenanceMarginRatio': this.parseNumber (maintenanceMarginRatio),
