@@ -1312,7 +1312,6 @@ module.exports = class kraken extends Exchange {
         let stopPrice = undefined;
         if (orderDescription !== undefined) {
             const parts = orderDescription.split (' ');
-            const partsLength = parts.length;
             side = this.safeString (parts, 0);
             amount = this.safeString (parts, 1);
             marketId = this.safeString (parts, 2);
