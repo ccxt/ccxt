@@ -148,7 +148,6 @@ function printUsage () {
 const printHumanReadable = (exchange, result) => {
 
     if (Array.isArray (result) || table) {
-
         result = Object.values (result)
         let arrayOfObjects = (typeof result[0] === 'object')
 
@@ -184,9 +183,7 @@ const printHumanReadable = (exchange, result) => {
                 console.dir (result, { depth: null })
                 log (result.length, 'objects');
             }
-
     } else {
-
         console.dir (result, { depth: null})
     }
 }
@@ -255,30 +252,17 @@ async function main () {
                 let end = exchange.milliseconds ()
 
                 while (true) {
-
                     try {
-
                         const result = await exchange[methodName] (... args)
-
                         end = exchange.milliseconds ()
-
                         console.log (end - start, 'ms')
-
                         start = end
-
                         printHumanReadable (exchange, result)
-
-
                     } catch (e) {
-
                         if (e instanceof ExchangeError) {
-
                             log.red (e.constructor.name, e.message)
-
                         } else if (e instanceof NetworkError) {
-
                             log.yellow (e.constructor.name, e.message)
-
                         }
 
                         log.dim ('---------------------------------------------------')
@@ -299,16 +283,11 @@ async function main () {
                 }
 
             } else if (exchange[methodName] === undefined) {
-
                 log.red (exchange.id + '.' + methodName + ': no such property')
-
             } else {
-
                 printHumanReadable (exchange, exchange[methodName])
             }
-
         } else {
-
             console.log (exchange)
         }
     }
