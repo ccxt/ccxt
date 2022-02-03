@@ -387,9 +387,9 @@ function test_exchange($exchange) {
     if ($symbol === null) {
         $markets = array_values($exchange->markets);
         foreach ($codes as $code) {
-            $activeMarkets = array_filter(function($market) use ($exchange, $code) {
+            $activeMarkets = array_filter($markets, function($market) use ($exchange, $code) {
                 return $market['base'] === $code;
-            }, $markets);
+            });
             if (count($activeMarkets)) {
                 $activeSymbols = array_map(function($market) {
                     return $market['symbol'];
@@ -402,9 +402,9 @@ function test_exchange($exchange) {
 
     if ($symbol === null) {
         $markets = array_values($exchange->markets);
-        $activeMarkets = array_filter(function($market) use ($exchange) {
+        $activeMarkets = array_filter($markets, function($market) use ($exchange) {
             return !$exchange->safe_value($market, 'active', false);
-        }, $markets);
+        });
         $activeSymbols = array_map(function($market) {
             return $market['symbol'];
         }, $activeMarkets);
