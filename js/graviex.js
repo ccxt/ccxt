@@ -732,6 +732,26 @@ module.exports = class graviex extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
+    async fetchMyTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const request = {
+            'desc': true,
+        };
+        let market = undefined;
+        const numericId = this.safeValue (params, 'market_id');
+        if (numericId !== undefined) {
+            request['market'] = numericId; // mutually exclusive with market_string
+        } else if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        const response = await this.privateGetTradesMy (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
+    }
+
     nonce () {
         return this.milliseconds ();
     }
@@ -752,6 +772,7 @@ module.exports = class graviex extends Exchange {
                 'tonce': nonce,
             }, params));
             const payload = method + '|' + request + '|' + query;
+            console.log(payload);
             // const signed = this.hmac (payload, this.secret, 'sha256');
             const signed = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256');
             const suffix = query + '&signature=' + signed;
