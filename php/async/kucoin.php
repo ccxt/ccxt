@@ -1333,9 +1333,9 @@ class kucoin extends Exchange {
         //         "fee" => "0",            // $fee
         //         "feeCurrency" => "USDT", // charge $fee currency
         //         "stp" => "",             // self trade prevention,include CN,CO,DC,CB
-        //         "stop" => "",            // stop $type
-        //         "stopTriggered" => false,  // stop $order is triggered
-        //         "stopPrice" => "0",      // stop $price
+        //         "stop" => "",            // $stop $type
+        //         "stopTriggered" => false,  // $stop $order is triggered
+        //         "stopPrice" => "0",      // $stop $price
         //         "timeInForce" => "GTC",  // time InForce,include GTC,GTT,IOC,FOK
         //         "postOnly" => false,     // $postOnly
         //         "hidden" => false,       // hidden $order
@@ -1370,8 +1370,11 @@ class kucoin extends Exchange {
         // bool
         $isActive = $this->safe_value($order, 'isActive', false);
         $cancelExist = $this->safe_value($order, 'cancelExist', false);
+        $stop = $this->safe_string($order, 'stop');
+        $stopTriggered = $this->safe_value($order, 'stopTriggered', false);
         $status = $isActive ? 'open' : 'closed';
-        $status = $cancelExist ? 'canceled' : $status;
+        $cancelExistWithStop = $cancelExist || (!$isActive && $stop && !$stopTriggered);
+        $status = $cancelExistWithStop ? 'canceled' : $status;
         $fee = array(
             'currency' => $feeCurrency,
             'cost' => $feeCost,
