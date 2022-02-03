@@ -90,7 +90,8 @@ module.exports = class okex extends Exchange {
                 'fetchTradingFees': undefined,
                 'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
-                'fetchTransfers': true,
+                'fetchTransfer': true,
+                'fetchTransfers': false,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': undefined,
@@ -3331,7 +3332,7 @@ module.exports = class okex extends Exchange {
         //         "to": "18"
         //     }
         //
-        // fetchTransfers
+        // fetchTransfer
         //
         //     {
         //         "amt": "5",
@@ -3370,20 +3371,15 @@ module.exports = class okex extends Exchange {
         };
     }
 
-    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!('transId' in params)) {
-            throw new ArgumentsRequired (this.id + ' fetchTransfers requires a transfer id param');
+    async fetchTransfer (id, since = undefined, limit = undefined, params = {}) {
+        if (id === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTransfer requires a transfer id argument');
         }
         await this.loadMarkets ();
-        let currency = undefined;
         const request = {
-            'transId': params['transId'],
+            'transId': id,
             // 'type': 0, // default is 0 transfer within account, 1 master to sub, 2 sub to master
         };
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['currency'] = currency['id'];
-        }
         const response = await this.privateGetAssetTransferState (this.extend (request, params));
         //
         //     {
@@ -3409,7 +3405,7 @@ module.exports = class okex extends Exchange {
         const resultArray = [];
         for (let i = 0; i < data.length; i++) {
             const transfer = data[i];
-            resultArray.push (this.parseTransfer (transfer, currency));
+            resultArray.push (this.parseTransfer (transfer, undefined));
         }
         return this.filterBySinceLimit (resultArray, since, limit);
     }
