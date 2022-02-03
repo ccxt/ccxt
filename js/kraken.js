@@ -1296,6 +1296,12 @@ module.exports = class kraken extends Exchange {
         //         "descr":{"order":"sell 167.28002676 ADAXBT @ stop loss 0.00003280 -> limit 0.00003212"}
         //     }
         //
+        //
+        //     {
+        //         "txid":["OVHMJV-BZW2V-6NZFWF"],
+        //         "descr":{"order":"sell 0.00100000 ETHUSD @ stop loss 2677.00 -> limit 2577.00 with 5:1 leverage"}
+        //     }
+        //
         const description = this.safeValue (order, 'descr', {});
         const orderDescription = this.safeString (description, 'order');
         let side = undefined;
@@ -1303,6 +1309,7 @@ module.exports = class kraken extends Exchange {
         let marketId = undefined;
         let price = undefined;
         let amount = undefined;
+        let stopPrice = undefined;
         if (orderDescription !== undefined) {
             const parts = orderDescription.split (' ');
             const partsLength = parts.length;
@@ -1310,8 +1317,11 @@ module.exports = class kraken extends Exchange {
             amount = this.safeString (parts, 1);
             marketId = this.safeString (parts, 2);
             type = this.safeString (parts, 4);
-            if ((type === 'limit') || (type === 'stop')) {
-                price = this.safeString (parts, partsLength - 1);
+            if (type === 'stop') {
+                stopPrice = this.safeString (parts, 6);
+                price = this.safeString (parts, 9);
+            } else if (type === 'limit') {
+                price = this.safeString (parts, 5);
             }
         }
         side = this.safeString (description, 'type', side);
@@ -1363,7 +1373,7 @@ module.exports = class kraken extends Exchange {
         }
         const clientOrderId = this.safeString (order, 'userref');
         const rawTrades = this.safeValue (order, 'trades');
-        const stopPrice = this.safeNumber (order, 'stopprice');
+        stopPrice = this.safeNumber (order, 'stopprice', stopPrice);
         return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
