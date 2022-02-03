@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-// const { AuthenticationError, InsufficientFunds } = require ('./base/errors');
+const { ArgumentsRequired } = require ('./base/errors');
 // const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
@@ -35,7 +35,7 @@ module.exports = class graviex extends Exchange {
                 'fetchMyTrades': false,
                 'fetchWithdrawals': false,
                 'fetchDeposits': false,
-                'fetchDepositAddress': false,
+                'fetchDepositAddress': true,
                 'createOrder': false,
                 'cancelOrder': false,
                 'createOcoOrder': false,
@@ -97,35 +97,6 @@ module.exports = class graviex extends Exchange {
                 },
             },
             'fees': {
-                'trading': {
-                    'percentage': true,
-                    'maker': this.parseNumber ('0.001'),
-                    'taker': this.parseNumber ('0.2'),
-                },
-                'funding': {
-                    'withdraw': {
-                        'BTC': 0.0004,
-                        'ETH': 0.022,
-                        'DOGE': 2.0,
-                        'NYC': 1.0,
-                        'XMR': 0.02,
-                        'PIVX': 0.2,
-                        'NEM': 0.05,
-                        'SCAVO': 5.0,
-                        'SEDO': 5.0,
-                        'USDT': 3.0,
-                        'GDM': 0.3,
-                        'PIRL': 0.005,
-                        'PK': 0.1,
-                        'ORM': 10,
-                        'NCP': 10,
-                        'ETM': 10,
-                        'USD': 0,
-                        'EUR': 0,
-                        'RUB': 0,
-                        'other': 0.002,
-                    },
-                },
             },
             'limits': {
                 'amount': {
@@ -273,10 +244,10 @@ module.exports = class graviex extends Exchange {
         //     "at": 1643628325,
         //   },
         // },
-        const data = response;
+        // const data = response;
         // let timestamp = data['at'];
         // let tickers = data['ticker'];
-        const ids = Object.keys (data);
+        const ids = Object.keys (response);
         const result = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
@@ -447,6 +418,9 @@ module.exports = class graviex extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderBook() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -500,7 +474,55 @@ module.exports = class graviex extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetMembersMe (params);
+        // {
+        //     "sn": "GRAK6GDVXKNVIEX",
+        //     "name": null,
+        //     "email": "XXXXXXXXXXXXX",
+        //     "activated": true,
+        //     "verified": false,
+        //     "accounts_filtered": [
+        //     {
+        //         "currency": "gio",
+        //         "name": "GravioCoin",
+        //         "balance": "0.0",
+        //         "locked": "0.0",
+        //         "status": "ok",
+        //         "is_purged": false,
+        //         "is_coin": true
+        //     }
+        //     ]
+        // }
         return this.parseBalance (response);
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        const code = (currency === undefined) ? undefined : currency['code'];
+        let address = this.safeString (depositAddress, 'address');
+        let tag = undefined;
+        if (address !== undefined) {
+            const parts = address.split (':');
+            address = this.safeString (parts, 0);
+            tag = this.safeString (parts, 1);
+        }
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'network': undefined,
+            'info': depositAddress,
+        };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'].toLowerCase (),
+        };
+        const response = await this.privateGetDepositAddress (this.extend (request, params));
+        const data = this.safeValue (response, 'data', {});
+        return this.parseDepositAddress (data, currency);
     }
 
     nonce () {
