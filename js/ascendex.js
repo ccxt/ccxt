@@ -654,7 +654,6 @@ module.exports = class ascendex extends Exchange {
             const balance = collaterals[i];
             const code = this.safeCurrencyCode (this.safeString (balance, 'asset'));
             const account = this.account ();
-            account['free'] = undefined;
             account['total'] = this.safeString (balance, 'balance');
             result[code] = account;
         }
