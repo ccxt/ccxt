@@ -28,6 +28,7 @@ module.exports = class graviex extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOrders': false,
                 'fetchOrder': false,
+                'fetchDepth': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchL2OrderBook': false,
@@ -417,7 +418,7 @@ module.exports = class graviex extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchDepth (symbol, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrderBook() requires a symbol argument');
         }
@@ -493,6 +494,20 @@ module.exports = class graviex extends Exchange {
         //     ]
         // }
         return this.parseBalance (response);
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderBook() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const request = {
+            'market': this.marketId (symbol),
+        };
+        const response = await this.privateGetOrderBook (this.extend (request, params));
+        const orderbook = this.safeValue (response, 'payload');
+        const timestamp = this.parse8601 (this.safeString (orderbook, 'updated_at'));
+        return this.parseOrderBook (orderbook, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
