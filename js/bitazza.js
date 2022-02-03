@@ -6,6 +6,7 @@
 // - 'secret',
 // - 'uid' (userId in the api info)
 // - 'login' (the email address used to log into the UI)
+// - 'password' (the password used to log into the UI)
 
 const ndax = require ('./ndax.js');
 
