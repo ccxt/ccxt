@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds, InvalidOrder, BadSymbol, PermissionDenied, BadRequest } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -2264,6 +2265,44 @@ module.exports = class ascendex extends Exchange {
             throw new BadSymbol (this.id + ' setMarginMode() supports futures contracts only');
         }
         return await this.v2PrivateAccountGroupPostFuturesMarginType (this.extend (request, params));
+    }
+
+    async fetchLeverageBrackets (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let symbols = undefined;
+        if (symbol) {
+            const market = this.market (symbol);
+            if (!market['contract']) {
+                throw new BadRequest (this.id + ' fetchLeverageBrackets symbol supports contract markets only');
+            }
+            symbols = [ symbol ];
+        } else {
+            symbols = this.symbols;
+        }
+        const result = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market (symbols[i]);
+            if (market['contract']) {
+                const marginRequirements = this.safeValue (market['info'], 'marginRequirements');
+                if (marginRequirements) {
+                    const brackets = [];
+                    for (let j = 0; j < marginRequirements.length; j++) {
+                        const bracket = marginRequirements[j];
+                        const maintenanceMarginRatio = this.safeString (bracket, 'maintenanceMarginRate');
+                        brackets.push ({
+                            'notionalFloor': this.safeNumber (bracket, 'positionNotionalLowerBound'),
+                            'notionalCap': this.safeNumber (bracket, 'positionNotionalUpperBound'),
+                            'maintenanceMarginRatio': this.parseNumber (maintenanceMarginRatio),
+                            'maintenanceAmount': undefined,
+                            'maxLeverage': this.parseNumber (Precise.stringDiv ('1', maintenanceMarginRatio)),
+                            'info': bracket,
+                        });
+                    }
+                    result[market['symbol']] = brackets;
+                }
+            }
+        }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
