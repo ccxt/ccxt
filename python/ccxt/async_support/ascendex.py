@@ -639,6 +639,23 @@ class ascendex(Exchange):
             result[code] = account
         return self.safe_balance(result)
 
+    def parse_swap_balance(self, response):
+        timestamp = self.milliseconds()
+        result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
+        data = self.safe_value(response, 'data', {})
+        collaterals = self.safe_value(data, 'collaterals', [])
+        for i in range(0, len(collaterals)):
+            balance = collaterals[i]
+            code = self.safe_currency_code(self.safe_string(balance, 'asset'))
+            account = self.account()
+            account['total'] = self.safe_string(balance, 'balance')
+            result[code] = account
+        return self.safe_balance(result)
+
     async def fetch_balance(self, params={}):
         await self.load_markets()
         await self.load_accounts()
@@ -655,7 +672,7 @@ class ascendex(Exchange):
         method = self.get_supported_mapping(marketType, {
             'spot': defaultMethod,
             'margin': defaultMethod,
-            'swap': 'v1PrivateAccountGroupGetFuturesCollateralBalance',
+            'swap': 'v2PrivateAccountGroupGetFuturesPosition',
         })
         if accountCategory == 'cash':
             request['account-category'] = accountCategory
@@ -689,21 +706,24 @@ class ascendex(Exchange):
         #         ]
         #     }
         #
-        # futures
+        # swap
         #
         #     {
-        #         "code":0,
-        #         "data":[
-        #             {"asset":"BTC","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"9456.59"},
-        #             {"asset":"ETH","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"235.95"},
-        #             {"asset":"USDT","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"1"},
-        #             {"asset":"USDC","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"1.00035"},
-        #             {"asset":"PAX","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"1.00045"},
-        #             {"asset":"USDTR","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"1"}
-        #         ]
+        #         "code": 0,
+        #         "data": {
+        #             "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        #             "ac": "FUTURES",
+        #             "collaterals": [
+        #                 {"asset":"ADA","balance":"0.355803","referencePrice":"1.05095","discountFactor":"0.9"},
+        #                 {"asset":"USDT","balance":"0.000014519","referencePrice":"1","discountFactor":"1"}
+        #             ],
+        #         }j
         #     }
         #
-        return self.parse_balance(response)
+        if marketType == 'swap':
+            return self.parse_swap_balance(response)
+        else:
+            return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
