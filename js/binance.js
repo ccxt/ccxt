@@ -5138,7 +5138,8 @@ module.exports = class binance extends Exchange {
                 // not an error
                 // https://github.com/ccxt/ccxt/issues/11268
                 // https://github.com/ccxt/ccxt/pull/11624
-                // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request             // binanceusdm {"code":-4046,"msg":"No need to change margin type."}
+                // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
+                // binanceusdm {"code":-4046,"msg":"No need to change margin type."}
                 return undefined;
             }
             const feedback = this.id + ' ' + body;
