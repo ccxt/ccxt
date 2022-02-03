@@ -14,8 +14,10 @@ module.exports = class lykke2 extends Exchange {
             'id': 'lykke2',
             'name': 'Lykke',
             'countries': [ 'UK' ],
-            'version': 'v2',
-            'rateLimit': 120, // different rate limits
+            'version': '2',
+            // 300 requests per minute per method => 60000ms / 300 = 200 (/api/orders/*)
+            // 120 requests per minute per method => ( 60000ms / rateLimit ) / 120 = cost = 2.5 (/api/*)
+            'rateLimit': 200, // TODO: optimize https://lykkecity.github.io/Trading-API/#request-rate-limits
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -95,41 +97,41 @@ module.exports = class lykke2 extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'assetpairs',
-                        'assetpairs/{id}',
-                        'assets',
-                        'assets/{id}',
-                        'isalive',
-                        'orderbooks',
-                        'tickers',
-                        'prices',
-                        'trades/public/{AssetPairId}',
-                    ],
+                    'get': {
+                        'assetpairs': 2.5,
+                        'assetpairs/{id}': 2.5,
+                        'assets': 2.5,
+                        'assets/{id}': 2.5,
+                        'isalive': 2.5,
+                        'orderbooks': 2.5,
+                        'tickers': 2.5,
+                        'prices': 2.5,
+                        'trades/public/{AssetPairId}': 2.5,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'balance',
-                        'trades',
-                        'trades/order/{OrderId}',
-                        'orders/active',
-                        'orders/closed',
-                        'orders/{OrderId}',
-                        'operations',
-                        'operations/deposits/addresses',
-                        'operations/deposits/addresses/{AssetId}',
-                    ],
-                    'post': [
-                        'orders/limit',
-                        'orders/market',
-                        'orders/bulk',
-                        'operations/withdrawals',
-                        'operations/deposits/addresses',
-                    ],
-                    'delete': [
-                        'orders',
-                        'orders/{OrderId}',
-                    ],
+                    'get': {
+                        'balance': 2.5,
+                        'trades': 2.5,
+                        'trades/order/{OrderId}': 2.5,
+                        'orders/active': 1,
+                        'orders/closed': 1,
+                        'orders/{OrderId}': 1,
+                        'operations': 2.5,
+                        'operations/deposits/addresses': 2.5,
+                        'operations/deposits/addresses/{AssetId}': 2.5,
+                    },
+                    'post': {
+                        'orders/limit': 1,
+                        'orders/market': 1,
+                        'orders/bulk': 1,
+                        'operations/withdrawals': 2.5,
+                        'operations/deposits/addresses': 2.5,
+                    },
+                    'delete': {
+                        'orders': 1,
+                        'orders/{OrderId}': 1,
+                    },
                 },
             },
             'fees': {
@@ -482,7 +484,7 @@ module.exports = class lykke2 extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = 0, params = {}) {
         await this.loadMarkets ();
         const request = {
             'assetPairId': this.marketId (symbol),
@@ -558,11 +560,12 @@ module.exports = class lykke2 extends Exchange {
         //         Price: 9847.427,
         //         Fee: { Amount: null, Type: 'Unknown', FeeAssetId: null }
         //     },
+        //
         const marketId = this.safeString (trade, 'assetPairId');
         const symbol = this.safeSymbol (marketId, market);
         const id = this.safeString2 (trade, 'id', 'id');
         const orderId = this.safeString (trade, 'orderId');
-        const timestamp = this.parse8601 (this.safeString2 (trade, 'timestamp', 'timestamp'));
+        const timestamp = this.safeNumber (trade, 'timestamp', 'timestamp');
         const priceString = this.safeString2 (trade, 'price', 'price');
         let amountString = this.safeString2 (trade, 'volume', 'amount');
         let side = this.safeStringLower (trade, 'action');
