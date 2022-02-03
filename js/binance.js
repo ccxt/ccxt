@@ -4961,8 +4961,11 @@ module.exports = class binance extends Exchange {
         // { "code": 200, "msg": "success" }
         //
         marginType = marginType.toUpperCase ();
+        if (marginType === 'CROSS') {
+            marginType = 'CROSSED';
+        }
         if ((marginType !== 'ISOLATED') && (marginType !== 'CROSSED')) {
-            throw new BadRequest (this.id + ' marginType must be either isolated or crossed');
+            throw new BadRequest (this.id + ' marginType must be either isolated or cross');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
