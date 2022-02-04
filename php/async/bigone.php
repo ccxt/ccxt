@@ -191,55 +191,51 @@ class bigone extends Exchange {
             $quoteId = $this->safe_string($quoteAsset, 'symbol');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $amountPrecisionString = $this->safe_string($market, 'base_scale');
-            $pricePrecisionString = $this->safe_string($market, 'quote_scale');
-            $amountLimit = $this->parse_precision($amountPrecisionString);
-            $priceLimit = $this->parse_precision($pricePrecisionString);
-            $precision = array(
-                'amount' => intval($amountPrecisionString),
-                'price' => intval($pricePrecisionString),
-            );
-            $minCost = $this->safe_number($market, 'min_quote_value');
-            $maxCost = $this->safe_number($market, 'max_quote_value');
             $entry = array(
                 'id' => $id,
                 'uuid' => $uuid,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
                 'margin' => false,
                 'future' => false,
                 'swap' => false,
                 'option' => false,
+                'active' => true,
+                'contract' => false,
                 'linear' => null,
                 'inverse' => null,
+                'contractSize' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
-                'optionType' => null,
                 'strike' => null,
-                'contract' => false,
-                'contractSize' => null,
-                'settle' => null,
-                'settleId' => null,
-                'active' => true,
-                'precision' => $precision,
+                'optionType' => null,
+                'precision' => array(
+                    'price' => $this->safe_number($market, 'quote_scale'),
+                    'amount' => $this->safe_number($market, 'base_scale'),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
-                        'min' => $this->parse_number($amountLimit),
+                        'min' => null,
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => $this->parse_number($priceLimit),
+                        'min' => null,
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => $minCost,
-                        'max' => $maxCost,
+                        'min' => $this->safe_number($market, 'min_quote_value'),
+                        'max' => $this->safe_number($market, 'max_quote_value'),
                     ),
                 ),
                 'info' => $market,
