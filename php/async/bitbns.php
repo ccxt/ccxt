@@ -225,18 +225,18 @@ class bitbns extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
+                'active' => null,
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
                 'contractSize' => null,
-                'active' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($marketPrecision, 'amount'),
                     'price' => $this->safe_integer($marketPrecision, 'price'),
+                    'amount' => $this->safe_integer($marketPrecision, 'amount'),
                 ),
                 'limits' => array(
                     'leverage' => array(
