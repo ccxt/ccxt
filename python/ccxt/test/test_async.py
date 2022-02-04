@@ -396,6 +396,7 @@ def get_test_symbol(exchange, symbols):
             active = exchange.safe_value(market, 'active')
             if active or (active is None):
                 symbol = s
+                break
     return symbol
 
 

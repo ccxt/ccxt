@@ -182,6 +182,7 @@ function getTestSymbol (exchange, symbols) {
             const active = exchange.safeValue (market, 'active')
             if (active || (active === undefined)) {
                 symbol = s
+                break;
             }
         }
     }
