@@ -1655,7 +1655,10 @@ class bybit extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $id = $this->safe_string_2($order, 'order_id', 'stop_order_id');
         $type = $this->safe_string_lower($order, 'order_type');
-        $price = $this->safe_string($order, 'price');
+        $price = null;
+        if ($type !== 'market') {
+            $price = $this->safe_string($order, 'price');
+        }
         $average = $this->safe_string($order, 'average_price');
         $amount = $this->safe_string($order, 'qty');
         $cost = $this->safe_string($order, 'cum_exec_value');
