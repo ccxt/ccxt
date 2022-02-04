@@ -2509,6 +2509,11 @@ class ftx extends Exchange {
                 'info' => $item,
             );
         }
+        $keys = is_array($borrowRateHistories) ? array_keys($borrowRateHistories) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            $borrowRateHistories[$key] = $this->filter_by_currency_since_limit($borrowRateHistories[$key], $key, $since, $limit);
+        }
         return $borrowRateHistories;
     }
 
@@ -2518,7 +2523,7 @@ class ftx extends Exchange {
         if ($borrowRateHistory === null) {
             throw new BadRequest($this->id . '.fetchBorrowRateHistory returned no data for ' . $code);
         } else {
-            return $this->filter_by_currency_since_limit($borrowRateHistory, $code, $since, $limit);
+            return $borrowRateHistory;
         }
     }
 }

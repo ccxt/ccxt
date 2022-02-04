@@ -2398,6 +2398,10 @@ class ftx(Exchange):
                 'datetime': datetime,
                 'info': item,
             })
+        keys = list(borrowRateHistories.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            borrowRateHistories[key] = self.filter_by_currency_since_limit(borrowRateHistories[key], key, since, limit)
         return borrowRateHistories
 
     async def fetch_borrow_rate_history(self, code, since=None, limit=None, params={}):
@@ -2406,4 +2410,4 @@ class ftx(Exchange):
         if borrowRateHistory is None:
             raise BadRequest(self.id + '.fetchBorrowRateHistory returned no data for ' + code)
         else:
-            return self.filter_by_currency_since_limit(borrowRateHistory, code, since, limit)
+            return borrowRateHistory
