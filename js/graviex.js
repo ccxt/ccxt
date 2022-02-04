@@ -39,7 +39,7 @@ module.exports = class graviex extends Exchange {
                 'fetchDeposit': true,
                 'fetchDeposits': true,
                 'fetchDepositAddress': true,
-                'createOrder': false,
+                'createOrder': true,
                 'cancelOrder': false,
                 'createOcoOrder': false,
             },
@@ -769,6 +769,25 @@ module.exports = class graviex extends Exchange {
         }
         const response = await this.privateGetTradesHistory (this.extend (request));
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a symbol argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
+        }
+        await this.loadMarkets ();
+        const request = {
+            'market': this.marketId (symbol),
+            'side': side,
+            'volume': type,
+            'price': this.amountToPrecision (symbol, amount),
+        };
+        const response = await this.privatePostOrders (this.extend (request));
+        // const order = this.safeValue (response, 'order');
+        return this.parseOrder (response);
     }
 
     nonce () {
