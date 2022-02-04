@@ -484,12 +484,14 @@ module.exports = class lykke2 extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    async fetchOrderBook (symbol, limit = 0, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'assetPairId': this.marketId (symbol),
-            'depth': limit, // default 0
         };
+        if (limit !== undefined) {
+            request['depth'] = limit; // default 0
+        }
         const response = await this.publicGetOrderbooks (this.extend (request, params));
         const payload = this.safeValue (response, 'payload', []);
         //
@@ -565,7 +567,7 @@ module.exports = class lykke2 extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const id = this.safeString2 (trade, 'id', 'id');
         const orderId = this.safeString (trade, 'orderId');
-        const timestamp = this.safeNumber (trade, 'timestamp', 'timestamp');
+        const timestamp = this.safeInteger (trade, 'timestamp');
         const priceString = this.safeString2 (trade, 'price', 'price');
         let amountString = this.safeString2 (trade, 'volume', 'amount');
         let side = this.safeStringLower (trade, 'action');
