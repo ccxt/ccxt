@@ -283,18 +283,19 @@ module.exports = class zb extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'active': true,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
-                'active': true,
+                'maintenanceMarginRatio': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': parseInt (amountPrecisionString),
                     'price': parseInt (pricePrecisionString),
+                    'amount': parseInt (amountPrecisionString),
                 },
                 'limits': {
                     'leverage': {

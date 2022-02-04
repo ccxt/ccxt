@@ -470,6 +470,7 @@ module.exports = class huobijp extends Exchange {
                 'taker': fee,
                 'maker': fee,
                 'contractSize': undefined,
+                'maintenanceMarginRatio': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,

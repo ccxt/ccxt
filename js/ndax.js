@@ -442,6 +442,7 @@ module.exports = class ndax extends Exchange {
                 'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
+                'maintenanceMarginRatio': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
