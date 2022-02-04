@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountNotEnabled
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
@@ -246,6 +247,7 @@ class cryptocom(Exchange):
                     '10009': BadRequest,
                     '20001': BadRequest,
                     '20002': InsufficientFunds,
+                    '20005': AccountNotEnabled,  # {"id":"123xxx","method":"private/margin/xxx","code":"20005","message":"ACCOUNT_NOT_FOUND"}
                     '30003': BadSymbol,
                     '30004': BadRequest,
                     '30005': BadRequest,

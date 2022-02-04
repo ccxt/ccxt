@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.72.12'
+__version__ = '1.72.13'
 
 # -----------------------------------------------------------------------------
 
@@ -25,6 +25,7 @@ from ccxt.base.errors import ExchangeError                  # noqa: F401
 from ccxt.base.errors import AuthenticationError            # noqa: F401
 from ccxt.base.errors import PermissionDenied               # noqa: F401
 from ccxt.base.errors import AccountSuspended               # noqa: F401
+from ccxt.base.errors import AccountNotEnabled              # noqa: F401
 from ccxt.base.errors import ArgumentsRequired              # noqa: F401
 from ccxt.base.errors import BadRequest                     # noqa: F401
 from ccxt.base.errors import BadSymbol                      # noqa: F401

@@ -239,6 +239,7 @@ class cryptocom extends Exchange {
                     '10009' => '\\ccxt\\BadRequest',
                     '20001' => '\\ccxt\\BadRequest',
                     '20002' => '\\ccxt\\InsufficientFunds',
+                    '20005' => '\\ccxt\\AccountNotEnabled', // array("id":"123xxx","method":"private/margin/xxx","code":"20005","message":"ACCOUNT_NOT_FOUND")
                     '30003' => '\\ccxt\\BadSymbol',
                     '30004' => '\\ccxt\\BadRequest',
                     '30005' => '\\ccxt\\BadRequest',

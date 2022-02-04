@@ -17,6 +17,7 @@ declare module 'ccxt' {
     export class AuthenticationError extends ExchangeError {}
     export class PermissionDenied extends AuthenticationError {}
     export class AccountSuspended extends AuthenticationError {}
+    export class AccountNotEnabled extends AuthenticationError {}
     export class ArgumentsRequired extends ExchangeError {}
     export class BadRequest extends ExchangeError {}
     export class BadSymbol extends BadRequest {}
