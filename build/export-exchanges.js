@@ -172,8 +172,8 @@ function createMarkdownListOfExchanges (exchanges) {
 
 function createMarkdownListOfCertifiedExchanges (exchanges) {
     return exchanges.map ((exchange) => {
-        // const discount = getReferralDiscountBadgeLink (exchange)
-        return { ... createMarkdownExchange (exchange) /*, discount */ }
+        const discount = getReferralDiscountBadgeLink (exchange)
+        return { ... createMarkdownExchange (exchange), discount }
     })
 }
 
