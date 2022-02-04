@@ -159,7 +159,7 @@ class okx(Exchange):
                 'www': 'https://www.okx.com',
                 'doc': 'https://www.okx.com/docs-v5/en/',
                 'fees': 'https://www.okx.com/pages/products/fees.html',
-                # 'referral': 'https://www.okx.com/join/1888677',
+                'referral': 'https://www.okx.com/join/1888677',
                 'test': {
                     'rest': 'https://{hostname}',
                 },
