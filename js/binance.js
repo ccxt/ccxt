@@ -3952,6 +3952,10 @@ module.exports = class binance extends Exchange {
             request['network'] = network;
             params = this.omit (params, 'network');
         }
+        const withdrawOrderId = this.safeString (params, 'withdrawOrderId');
+        if (withdrawOrderId === undefined) {
+            request['withdrawOrderId'] = this.uuid22 ();
+        }
         const response = await this.sapiPostCapitalWithdrawApply (this.extend (request, params));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
         return {
