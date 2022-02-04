@@ -1855,11 +1855,12 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        // Currency symbol is optional https://github.com/ccxt/ccxt/issues/11842
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         //
         //     const request = {
         //         'currency_pair': market['id'],
