@@ -2,6 +2,7 @@
     "binancecoinm": { "skip": true },
     "bitcoincom": { "skip": true },
     "bitmart": { "skip": true },
+    "bitmex": { "skip": true },
     "bitfinex": { "skip": true },
     "currencycom": { "skip": true },
     "cdax": { "skip": true },
