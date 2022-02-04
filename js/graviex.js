@@ -25,6 +25,7 @@ module.exports = class graviex extends Exchange {
                 'fetchCurrencies': false,
                 'fetchTrades': true,
                 'fetchSimpleTrades': true,
+                'fetchTradesHistory': true,
                 'fetchOHLCV': true,
                 'fetchOrders': true,
                 'fetchOrder': true,
@@ -89,6 +90,7 @@ module.exports = class graviex extends Exchange {
                         'orders', // Requires access_key, tonce, signature and api secret. Optional market, state, limit, page, order_by
                         'order', // Requires access_key, tonce, signature and api secret AND id (unique orderid).
                         'trades/my', // Requires market XXXYYY, access_key, tonce, signature and api secret . Optional: limit, timestamp, from, to, order_by
+                        'trades/history', // Requires market XXXYYY, access_key, tonce, signature and api secret . Optional: limit, timestamp, from, to, order_by
                     ],
                     'post': [
                         'orders', // Requires access_key, tonce, signature and api secret AND market, side(sell/buy), volume. Optional price ord_type
@@ -749,6 +751,23 @@ module.exports = class graviex extends Exchange {
             request['market'] = market['id'];
         }
         const response = await this.privateGetTradesMy (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchTradesHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        const request = {
+            'order_by': 'desc',
+        };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = this.marketId (symbol);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default: 500
+        }
+        const response = await this.privateGetTradesHistory (this.extend (request));
         return this.parseTrades (response, market, since, limit);
     }
 
