@@ -199,7 +199,7 @@ module.exports = class bitbank extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeNumber (entry, 'price_digits'),
+                    'price': this.safeInteger (entry, 'price_digits'),
                     'amount': this.safeInteger (entry, 'amount_digits'),
                 },
                 'limits': {
