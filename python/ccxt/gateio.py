@@ -1808,10 +1808,21 @@ class gateio(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
-        market = self.market(symbol)
+        market = None
+        request = {}
+        type = None
+        type, params = self.handle_market_type_and_params('fetchMyTrades', None, params)
+        if symbol:
+            market = self.market(symbol)
+            request = self.prepare_request(market)
+            type = market['type']
+        else:
+            if type == 'swap' or type == 'future':
+                settle = self.safe_string_lower(params, 'settle')
+                if not settle:
+                    raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument or a settle parameter for ' + type + ' markets')
+                request['settle'] = settle
         #
         #     request = {
         #         'currency_pair': market['id'],
@@ -1823,13 +1834,12 @@ class gateio(Exchange):
         #         # 'to': self.milliseconds(),  # default to current time
         #     }
         #
-        request = self.prepare_request(market)
         if limit is not None:
             request['limit'] = limit  # default 100, max 1000
         if since is not None:
             request['from'] = int(since / 1000)
             # request['to'] = since + 7 * 24 * 60 * 60
-        method = self.get_supported_mapping(market['type'], {
+        method = self.get_supported_mapping(type, {
             'spot': 'privateSpotGetMyTrades',
             'margin': 'privateSpotGetMyTrades',
             'swap': 'privateFuturesGetSettleMyTrades',
