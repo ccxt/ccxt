@@ -43,6 +43,7 @@ module.exports = class graviex extends Exchange {
                 'cancelOrder': true,
                 'clearOrder': true,
                 'createOcoOrder': false,
+                'createOrders': false,
             },
             'timeframes': {
                 '1m': '1',
@@ -822,6 +823,22 @@ module.exports = class graviex extends Exchange {
             throw new OrderNotFound (this.id + ' ' + this.json (order));
         }
         return order;
+    }
+
+    async createOrders (symbol, orders, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+            'orders': orders,
+        };
+        // orders: [{"side":"buy", "volume":.2, "price":1001}, {"side":"sell", "volume":0.2, "price":1002}]
+        const response = await this.privatePostOrdersMulti (this.extend (request, params));
+        const data = response['data'];
+        return this.parseOrders (data);
     }
 
     nonce () {
