@@ -190,6 +190,8 @@ function getTestSymbol (exchange, symbols) {
 
 async function testExchange (exchange) {
 
+    await loadExchange (exchange)
+
     const codes = [
         'BTC',
         'ETH',
@@ -229,8 +231,6 @@ async function testExchange (exchange) {
             code = codes[i]
         }
     }
-
-    await loadExchange (exchange)
 
     let symbol = getTestSymbol (exchange, [
         'BTC/USD',
