@@ -124,7 +124,7 @@ module.exports = class okx extends Exchange {
             },
             'hostname': 'www.okx.com', // or aws.okx.com
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg',
                 'api': {
                     'rest': 'https://{hostname}',
                 },
