@@ -1653,7 +1653,10 @@ module.exports = class bybit extends Exchange {
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const id = this.safeString2 (order, 'order_id', 'stop_order_id');
         const type = this.safeStringLower (order, 'order_type');
-        const price = this.safeString (order, 'price');
+        let price = undefined;
+        if (type !== 'market') {
+            price = this.safeString (order, 'price');
+        }
         const average = this.safeString (order, 'average_price');
         const amount = this.safeString (order, 'qty');
         const cost = this.safeString (order, 'cum_exec_value');
