@@ -2273,13 +2273,13 @@ module.exports = class ascendex extends Exchange {
         if (symbol) {
             const market = this.market (symbol);
             if (!market['contract']) {
-                throw new BadRequest (this.id + ' fetchLeverageBrackets symbol supports contract markets only');
+                throw new BadRequest (this.id + ' fetchLeverageTiers symbol supports contract markets only');
             }
             symbols = [ symbol ];
         } else {
             symbols = this.symbols;
         }
-        const result = [];
+        const tiers = {};
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
             if (market['contract']) {
@@ -2299,11 +2299,11 @@ module.exports = class ascendex extends Exchange {
                             'info': bracket,
                         });
                     }
-                    result[market['symbol']] = brackets;
+                    tiers[market['symbol']] = brackets;
                 }
             }
         }
-        return result;
+        return tiers;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
