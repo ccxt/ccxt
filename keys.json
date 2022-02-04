@@ -13,6 +13,7 @@
     "kucoin": { "skip": true },
     "ndax": { "skip": true },
     "okcoin": { "skip": true },
+    "okex": { "skip": true },
     "ripio": { "skip": true },
     "upbit": { "skip": true },
     "zipmex": { "skip": true }
