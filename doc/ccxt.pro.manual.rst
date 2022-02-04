@@ -438,11 +438,11 @@ The CCXT Pro library currently supports the following 37 cryptocurrency exchange
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg
-          :target: https://www.huobi.com
+          :target: https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223
           :alt: huobi
      
      - huobi
-     - `Huobi <https://www.huobi.com>`__
+     - `Huobi <https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://huobiapi.github.io/docs/spot/v1/cn/
           :alt: API Version 1
@@ -549,11 +549,11 @@ The CCXT Pro library currently supports the following 37 cryptocurrency exchange
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg
-          :target: https://www.okx.com
+          :target: https://www.okx.com/join/1888677
           :alt: okx
      
      - okx
-     - `OKX <https://www.okx.com>`__
+     - `OKX <https://www.okx.com/join/1888677>`__
      - .. image:: https://img.shields.io/badge/5-lightgray
           :target: https://www.okx.com/docs-v5/en/
           :alt: API Version 5
