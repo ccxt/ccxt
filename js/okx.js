@@ -3989,7 +3989,7 @@ module.exports = class okx extends Exchange {
     async fetchLeverageTiers (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         if (!symbol) {
-            throw new ArgumentsRequired (this.id + '.fetchLeverageBrackets requires params.symbol');
+            throw new ArgumentsRequired (this.id + '.fetchLeverageTiers requires params.symbol');
         }
         const market = this.market (symbol);
         const type = market['spot'] ? 'MARGIN' : market['type'].toUpperCase ();

@@ -3164,7 +3164,7 @@ module.exports = class bybit extends Exchange {
         //    }
         //
         const result = this.safeValue (response, 'result');
-        const tiers = [];
+        const tiers = {};
         let tier = 1;
         let notionalFloor = 0;
         for (let i = 0; i < result.length; i++) {

@@ -4779,14 +4779,14 @@ module.exports = class binance extends Exchange {
 
     async fetchLeverageTiers (params = {}) {
         await this.loadMarkets ();
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchLeverageBrackets', undefined, params);
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchLeverageTiers', undefined, params);
         let method = undefined;
         if (type === 'future') {
             method = 'fapiPrivateGetLeverageBracket';
         } else if (type === 'delivery') {
             method = 'dapiPrivateV2GetLeverageBracket';
         } else {
-            throw new NotSupported (this.id + ' fetchLeverageBrackets() supports linear and inverse contracts only');
+            throw new NotSupported (this.id + ' fetchLeverageTiers() supports linear and inverse contracts only');
         }
         const response = await this[method] (query);
         //
