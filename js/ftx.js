@@ -2505,6 +2505,11 @@ module.exports = class ftx extends Exchange {
                 'info': item,
             });
         }
+        const keys = Object.keys (borrowRateHistories);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            borrowRateHistories[key] = this.filterByCurrencySinceLimit (borrowRateHistories[key], key, since, limit);
+        }
         return borrowRateHistories;
     }
 
@@ -2514,7 +2519,7 @@ module.exports = class ftx extends Exchange {
         if (borrowRateHistory === undefined) {
             throw new BadRequest (this.id + '.fetchBorrowRateHistory returned no data for ' + code);
         } else {
-            return this.filterByCurrencySinceLimit (borrowRateHistory, code, since, limit);
+            return borrowRateHistory;
         }
     }
 };
