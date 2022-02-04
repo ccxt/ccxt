@@ -1629,7 +1629,7 @@ module.exports = class kucoinfutures extends kucoin {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const tiers = [];
+        const tiers = {};
         for (let i = 0; i < data.length; i++) {
             const tier = data[i];
             const symbol = this.safeSymbol (this.safeString (tier, 'symbol'));
