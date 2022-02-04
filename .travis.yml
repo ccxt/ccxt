@@ -21,6 +21,7 @@ before_install:
 - pip install requests[security]
 - git pull --tags --no-rebase
 - phpenv global 7.4.2
+- pecl channel-update pecl.php.net
 - pecl install ds
 - php -i | grep php.ini
 - composer install
