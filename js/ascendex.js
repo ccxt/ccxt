@@ -641,6 +641,25 @@ module.exports = class ascendex extends Exchange {
         return this.safeBalance (result);
     }
 
+    parseSwapBalance (response) {
+        const timestamp = this.milliseconds ();
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        const data = this.safeValue (response, 'data', {});
+        const collaterals = this.safeValue (data, 'collaterals', []);
+        for (let i = 0; i < collaterals.length; i++) {
+            const balance = collaterals[i];
+            const code = this.safeCurrencyCode (this.safeString (balance, 'asset'));
+            const account = this.account ();
+            account['total'] = this.safeString (balance, 'balance');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -657,7 +676,7 @@ module.exports = class ascendex extends Exchange {
         const method = this.getSupportedMapping (marketType, {
             'spot': defaultMethod,
             'margin': defaultMethod,
-            'swap': 'v1PrivateAccountGroupGetFuturesCollateralBalance',
+            'swap': 'v2PrivateAccountGroupGetFuturesPosition',
         });
         if (accountCategory === 'cash') {
             request['account-category'] = accountCategory;
@@ -692,21 +711,25 @@ module.exports = class ascendex extends Exchange {
         //         ]
         //     }
         //
-        // futures
+        // swap
         //
         //     {
-        //         "code":0,
-        //         "data":[
-        //             {"asset":"BTC","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"9456.59"},
-        //             {"asset":"ETH","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"235.95"},
-        //             {"asset":"USDT","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"1"},
-        //             {"asset":"USDC","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"1.00035"},
-        //             {"asset":"PAX","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"1.00045"},
-        //             {"asset":"USDTR","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"1"}
-        //         ]
+        //         "code": 0,
+        //         "data": {
+        //             "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //             "ac": "FUTURES",
+        //             "collaterals": [
+        //                 {"asset":"ADA","balance":"0.355803","referencePrice":"1.05095","discountFactor":"0.9"},
+        //                 {"asset":"USDT","balance":"0.000014519","referencePrice":"1","discountFactor":"1"}
+        //             ],
+        //         }j
         //     }
         //
-        return this.parseBalance (response);
+        if (marketType === 'swap') {
+            return this.parseSwapBalance (response);
+        } else {
+            return this.parseBalance (response);
+        }
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

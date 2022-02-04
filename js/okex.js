@@ -34,7 +34,7 @@ module.exports = class okex extends Exchange {
                 'createOrder': true,
                 'createReduceOnlyOrder': undefined,
                 'deposit': undefined,
-                'fetchAccounts': undefined,
+                'fetchAccounts': true,
                 'fetchAllTradingFees': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
@@ -693,6 +693,43 @@ module.exports = class okex extends Exchange {
         const data = this.safeValue (response, 'data', []);
         const first = this.safeValue (data, 0, {});
         return this.safeInteger (first, 'ts');
+    }
+
+    async fetchAccounts (params = {}) {
+        const response = await this.privateGetAccountConfig (params);
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "acctLv": "2",
+        //                 "autoLoan": false,
+        //                 "ctIsoMode": "automatic",
+        //                 "greeksType": "PA",
+        //                 "level": "Lv1",
+        //                 "levelTmp": "",
+        //                 "mgnIsoMode": "automatic",
+        //                 "posMode": "long_short_mode",
+        //                 "uid": "88018754289672195"
+        //             }
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const account = data[i];
+            const accountId = this.safeString (account, 'uid');
+            const type = this.safeString (account, 'acctLv');
+            result.push ({
+                'id': accountId,
+                'type': type,
+                'currency': undefined,
+                'info': account,
+            });
+        }
+        return result;
     }
 
     async fetchMarkets (params = {}) {

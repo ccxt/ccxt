@@ -4987,7 +4987,7 @@ class binance extends Exchange {
         } else if ($market['inverse']) {
             $method = 'dapiPrivatePostMarginType';
         } else {
-            throw NotSupported ($this->id . ' setMarginMode() supports linear and inverse contracts only');
+            throw new NotSupported($this->id . ' setMarginMode() supports linear and inverse contracts only');
         }
         $request = array(
             'symbol' => $market['id'],
@@ -5141,13 +5141,21 @@ class binance extends Exchange {
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742
             if (($error === '200') || Precise::string_equals($error, '0')) {
-                return;
+                return null;
             }
             // a workaround for array("code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
             // despite that their $message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
             if (($error === '-2015') && $this->options['hasAlreadyAuthenticatedSuccessfully']) {
                 throw new DDoSProtection($this->id . ' temporary banned => ' . $body);
+            }
+            if ($message === 'No need to change margin type.') {
+                // not an $error
+                // https://github.com/ccxt/ccxt/issues/11268
+                // https://github.com/ccxt/ccxt/pull/11624
+                // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
+                // binanceusdm array("code":-4046,"msg":"No need to change margin type.")
+                return true;
             }
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);

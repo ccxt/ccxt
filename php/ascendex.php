@@ -646,6 +646,25 @@ class ascendex extends Exchange {
         return $this->safe_balance($result);
     }
 
+    public function parse_swap_balance($response) {
+        $timestamp = $this->milliseconds();
+        $result = array(
+            'info' => $response,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
+        $data = $this->safe_value($response, 'data', array());
+        $collaterals = $this->safe_value($data, 'collaterals', array());
+        for ($i = 0; $i < count($collaterals); $i++) {
+            $balance = $collaterals[$i];
+            $code = $this->safe_currency_code($this->safe_string($balance, 'asset'));
+            $account = $this->account();
+            $account['total'] = $this->safe_string($balance, 'balance');
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         $this->load_accounts();
@@ -662,7 +681,7 @@ class ascendex extends Exchange {
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => $defaultMethod,
             'margin' => $defaultMethod,
-            'swap' => 'v1PrivateAccountGroupGetFuturesCollateralBalance',
+            'swap' => 'v2PrivateAccountGroupGetFuturesPosition',
         ));
         if ($accountCategory === 'cash') {
             $request['account-category'] = $accountCategory;
@@ -697,21 +716,25 @@ class ascendex extends Exchange {
         //         )
         //     }
         //
-        // futures
+        // swap
         //
         //     {
-        //         "code":0,
-        //         "data":array(
-        //             array("asset":"BTC","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"9456.59"),
-        //             array("asset":"ETH","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"235.95"),
-        //             array("asset":"USDT","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"1"),
-        //             array("asset":"USDC","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"1.00035"),
-        //             array("asset":"PAX","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"1.00045"),
-        //             array("asset":"USDTR","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"1")
-        //         )
+        //         "code" => 0,
+        //         "data" => array(
+        //             "accountId" => "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //             "ac" => "FUTURES",
+        //             "collaterals" => array(
+        //                 array("asset":"ADA","balance":"0.355803","referencePrice":"1.05095","discountFactor":"0.9"),
+        //                 array("asset":"USDT","balance":"0.000014519","referencePrice":"1","discountFactor":"1")
+        //             ),
+        //         )j
         //     }
         //
-        return $this->parse_balance($response);
+        if ($marketType === 'swap') {
+            return $this->parse_swap_balance($response);
+        } else {
+            return $this->parse_balance($response);
+        }
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
