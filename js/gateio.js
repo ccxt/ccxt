@@ -2321,7 +2321,7 @@ module.exports = class gateio extends Exchange {
         } else {
             if (contract) {
                 // contract conditional order
-                const rule = (side === 'sell') ? 1 : 2;
+                const rule = (side === 'buy') ? 1 : 2;
                 request = {
                     'initial': {
                         'contract': market['id'],
@@ -2360,7 +2360,7 @@ module.exports = class gateio extends Exchange {
                 params = this.omit (params, 'account');
                 const defaultExpiration = this.safeInteger (options, 'expiration');
                 const expiration = this.safeInteger (params, 'expiration', defaultExpiration);
-                const rule = (side === 'sell') ? '>=' : '<=';
+                const rule = (side === 'buy') ? '>=' : '<=';
                 const triggerPrice = this.safeValue (trigger, 'price', stopPrice);
                 request = {
                     'trigger': {
@@ -2609,6 +2609,7 @@ module.exports = class gateio extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
+        const isStop = this.safeValue (params, 'isStop', false);
         const market = this.market (symbol);
         const request = {
             'order_id': id,
@@ -2618,12 +2619,22 @@ module.exports = class gateio extends Exchange {
         } else {
             request['settle'] = market['settleId'];
         }
-        const method = this.getSupportedMapping (market['type'], {
-            'spot': 'privateSpotGetOrdersOrderId',
-            'margin': 'privateSpotGetOrdersOrderId',
-            'swap': 'privateFuturesGetSettleOrdersOrderId',
-            'future': 'privateDeliveryGetSettlePriceOrdersOrderId',
-        });
+        let method = undefined;
+        if (isStop) {
+            method = this.getSupportedMapping (market['type'], {
+                'spot': 'privateSpotGetPriceOrdersOrderId',
+                'margin': 'privateSpotGetPriceOrdersOrderId',
+                'swap': 'privateFuturesGetSettlePriceOrdersOrderId',
+                'future': 'privateDeliveryGetSettlePriceOrdersOrderId',
+            });
+        } else {
+            method = this.getSupportedMapping (market['type'], {
+                'spot': 'privateSpotGetOrdersOrderId',
+                'margin': 'privateSpotGetOrdersOrderId',
+                'swap': 'privateFuturesGetSettleOrdersOrderId',
+                'future': 'privateDeliveryGetSettleOrdersOrderId',
+            });
+        }
         const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response, market);
     }
