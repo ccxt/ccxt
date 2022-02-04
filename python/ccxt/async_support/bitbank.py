@@ -12,7 +12,6 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.precise import Precise
 
 
 class bitbank(Exchange):
@@ -180,12 +179,6 @@ class bitbank(Exchange):
             quoteId = self.safe_string(entry, 'quote_asset')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            maker = self.safe_number(entry, 'maker_fee_rate_quote')
-            taker = self.safe_number(entry, 'taker_fee_rate_quote')
-            pricePrecisionString = self.safe_string(entry, 'price_digits')
-            priceLimit = self.parse_precision(pricePrecisionString)
-            minAmountString = self.safe_string(entry, 'unit_amount')
-            minCost = Precise.string_mul(minAmountString, priceLimit)
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -205,15 +198,15 @@ class bitbank(Exchange):
                 'contract': False,
                 'linear': None,
                 'inverse': None,
-                'maker': maker,
-                'taker': taker,
+                'taker': self.safe_number(entry, 'taker_fee_rate_quote'),
+                'maker': self.safe_number(entry, 'maker_fee_rate_quote'),
                 'contractSize': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': int(pricePrecisionString),
+                    'price': self.safe_integer(entry, 'price_digits'),
                     'amount': self.safe_integer(entry, 'amount_digits'),
                 },
                 'limits': {
@@ -226,11 +219,11 @@ class bitbank(Exchange):
                         'max': self.safe_number(entry, 'limit_max_amount'),
                     },
                     'price': {
-                        'min': self.parse_number(priceLimit),
+                        'min': None,
                         'max': None,
                     },
                     'cost': {
-                        'min': self.parse_number(minCost),
+                        'min': None,
                         'max': None,
                     },
                 },
