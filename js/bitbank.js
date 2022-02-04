@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired } = require ('./base/errors');
-const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -173,12 +172,6 @@ module.exports = class bitbank extends Exchange {
             const quoteId = this.safeString (entry, 'quote_asset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const maker = this.safeNumber (entry, 'maker_fee_rate_quote');
-            const taker = this.safeNumber (entry, 'taker_fee_rate_quote');
-            const pricePrecisionString = this.safeString (entry, 'price_digits');
-            const priceLimit = this.parsePrecision (pricePrecisionString);
-            const minAmountString = this.safeString (entry, 'unit_amount');
-            const minCost = Precise.stringMul (minAmountString, priceLimit);
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -198,15 +191,15 @@ module.exports = class bitbank extends Exchange {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'maker': maker,
-                'taker': taker,
+                'taker': this.safeNumber (entry, 'taker_fee_rate_quote'),
+                'maker': this.safeNumber (entry, 'maker_fee_rate_quote'),
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': parseInt (pricePrecisionString),
+                    'price': this.safeInteger (entry, 'price_digits'),
                     'amount': this.safeInteger (entry, 'amount_digits'),
                 },
                 'limits': {
@@ -219,11 +212,11 @@ module.exports = class bitbank extends Exchange {
                         'max': this.safeNumber (entry, 'limit_max_amount'),
                     },
                     'price': {
-                        'min': this.parseNumber (priceLimit),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
-                        'min': this.parseNumber (minCost),
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
