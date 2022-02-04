@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired } = require ('./base/errors');
+const { ArgumentsRequired, OrderNotFound } = require ('./base/errors');
 // const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
@@ -40,7 +40,8 @@ module.exports = class graviex extends Exchange {
                 'fetchDeposits': true,
                 'fetchDepositAddress': true,
                 'createOrder': true,
-                'cancelOrder': false,
+                'cancelOrder': true,
+                'clearOrder': true,
                 'createOcoOrder': false,
             },
             'timeframes': {
@@ -788,6 +789,39 @@ module.exports = class graviex extends Exchange {
         const response = await this.privatePostOrders (this.extend (request));
         // const order = this.safeValue (response, 'order');
         return this.parseOrder (response);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        if (id === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a side argument');
+        }
+        await this.loadMarkets ();
+        const request = {
+            'id': id,
+        };
+        const response = await this.privatePostOrderDelete (this.extend (request, params));
+        const order = this.parseOrder (response);
+        const status = order['status'];
+        if (status === 'closed' || status === 'canceled') {
+            throw new OrderNotFound (this.id + ' ' + this.json (order));
+        }
+        return order;
+    }
+
+    async clearOrder (side = undefined, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+        };
+        if (side !== undefined) {
+            request['side'] = side;
+        }
+        const response = await this.privatePostOrdersClear (this.extend (request, params));
+        const order = this.parseOrder (response);
+        const status = order['status'];
+        if (status === 'closed' || status === 'canceled') {
+            throw new OrderNotFound (this.id + ' ' + this.json (order));
+        }
+        return order;
     }
 
     nonce () {
