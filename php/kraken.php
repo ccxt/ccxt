@@ -501,7 +501,7 @@ class kraken extends Exchange {
                 'limits' => array(
                     'leverage' => array(
                         'min' => $this->parse_number('1'),
-                        'max' => $this->safe_value($leverageBuy, $leverageBuyLength - 1, 1),
+                        'max' => $this->safe_number($leverageBuy, $leverageBuyLength - 1, 1),
                     ),
                     'amount' => array(
                         'min' => $this->safe_number($market, 'ordermin'),
