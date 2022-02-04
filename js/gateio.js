@@ -1866,7 +1866,7 @@ module.exports = class gateio extends Exchange {
             type = market['type'];
         } else {
             if (type === 'swap' || type === 'future') {
-                const settle = this.safeString (params, 'settle');
+                const settle = this.safeStringLower (params, 'settle');
                 if (!settle) {
                     throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument or a settle parameter for ' + type + ' markets');
                 }
