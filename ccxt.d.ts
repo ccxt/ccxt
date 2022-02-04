@@ -536,9 +536,8 @@ declare module 'ccxt' {
     export class ndax extends Exchange {}
     export class novadax extends Exchange {}
     export class oceanex extends Exchange {}
-    export class okcoin extends okex3 {}
+    export class okcoin extends Exchange {}
     export class okex extends Exchange {}
-    export class okex3 extends Exchange {}
     export class okex5 extends okex {}
     export class paymium extends Exchange {}
     export class phemex extends Exchange {}
@@ -660,7 +659,6 @@ declare module 'ccxt' {
         | 'oceanex'
         | 'okcoin'
         | 'okex'
-        | 'okex3'
         | 'okex5'
         | 'paymium'
         | 'phemex'

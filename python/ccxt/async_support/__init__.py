@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.72.13'
+__version__ = '1.72.15'
 
 # -----------------------------------------------------------------------------
 
@@ -145,7 +145,6 @@ from ccxt.async_support.novadax import novadax                            # noqa
 from ccxt.async_support.oceanex import oceanex                            # noqa: F401
 from ccxt.async_support.okcoin import okcoin                              # noqa: F401
 from ccxt.async_support.okex import okex                                  # noqa: F401
-from ccxt.async_support.okex3 import okex3                                # noqa: F401
 from ccxt.async_support.okex5 import okex5                                # noqa: F401
 from ccxt.async_support.paymium import paymium                            # noqa: F401
 from ccxt.async_support.phemex import phemex                              # noqa: F401
@@ -265,7 +264,6 @@ exchanges = [
     'oceanex',
     'okcoin',
     'okex',
-    'okex3',
     'okex5',
     'paymium',
     'phemex',
