@@ -144,10 +144,10 @@ module.exports = class huobi extends Exchange {
                     'v2Private': 'https://{hostname}',
                 },
                 'www': 'https://www.huobi.com',
-                // 'referral': {
-                //     'url': 'https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223',
-                //     'discount': 0.15,
-                // },
+                'referral': {
+                    'url': 'https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223',
+                    'discount': 0.15,
+                },
                 'doc': [
                     'https://huobiapi.github.io/docs/spot/v1/cn/',
                     'https://huobiapi.github.io/docs/dm/v1/cn/',

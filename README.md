@@ -20,7 +20,9 @@ Current feature list:
 
 ## Sponsored Promotion
 
-[![Huobi Futures Now Available In CCXT 1.68+](https://user-images.githubusercontent.com/1294454/150618153-e818845e-ba2e-4d60-8b1d-4ff47e09270d.png)](https://github.com/ccxt/ccxt/issues/11606)
+[![Huobi Futures Now Available In CCXT](https://user-images.githubusercontent.com/1294454/150618153-e818845e-ba2e-4d60-8b1d-4ff47e09270d.png)](https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223)
+
+[![OKEX is now OKX](https://user-images.githubusercontent.com/1294454/152485987-b2197494-1c1f-4a64-99e4-94bc48b84e69.jpg)](https://www.okx.com/join/1888677)
 
 [![CCXT Pro – A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals](https://user-images.githubusercontent.com/1294454/106092533-865ce180-613f-11eb-8d67-0830771fde32.png)](https://ccxt.pro)
 
