@@ -51,7 +51,6 @@ Exchange::$exchanges = array(
     'ndax',
     'okcoin',
     'okex',
-    'okex3',
     'phemex',
     'poloniex',
     'ripio',

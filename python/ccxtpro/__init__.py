@@ -8,7 +8,7 @@ import ccxt.async_support as ccxt
 
 # -----------------------------------------------------------------------------
 
-__version__ = '0.9.93'
+__version__ = '0.9.94'
 
 # -----------------------------------------------------------------------------
 
@@ -172,7 +172,6 @@ from ccxtpro.kucoin import kucoin                                         # noqa
 from ccxtpro.ndax import ndax                                             # noqa: F401
 from ccxtpro.okcoin import okcoin                                         # noqa: F401
 from ccxtpro.okex import okex                                             # noqa: F401
-from ccxtpro.okex3 import okex3                                           # noqa: F401
 from ccxtpro.phemex import phemex                                         # noqa: F401
 from ccxtpro.poloniex import poloniex                                     # noqa: F401
 from ccxtpro.ripio import ripio                                           # noqa: F401
