@@ -2621,7 +2621,7 @@ module.exports = class gateio extends Exchange {
         }
         // }
         if (contract) {
-            type = (timeInForce === 'IOC') ? 'market' : 'limit';
+            type = (timeInForce === 'IOC' && price === '0') ? 'market' : 'limit';
             side = Precise.stringGt (amount, '0') ? 'buy' : 'sell';
         }
         const timestamp = this.safeTimestamp2 (order, 'create_time', 'ctime');
