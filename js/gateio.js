@@ -1855,11 +1855,24 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        let market = undefined;
+        let request = {};
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', undefined, params);
+        if (symbol) {
+            market = this.market (symbol);
+            request = this.prepareRequest (market);
+            type = market['type'];
+        } else {
+            if (type === 'swap' || type === 'future') {
+                const settle = this.safeStringLower (params, 'settle');
+                if (!settle) {
+                    throw new ArgumentsRequired (this.id + '.fetchMyTrades requires one of symbol or params.settle when trading ' + type);
+                }
+                request['settle'] = settle;
+            }
+        }
         //
         //     const request = {
         //         'currency_pair': market['id'],
@@ -1871,7 +1884,6 @@ module.exports = class gateio extends Exchange {
         //         // 'to': this.milliseconds (), // default to current time
         //     };
         //
-        const request = this.prepareRequest (market);
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
@@ -1879,7 +1891,7 @@ module.exports = class gateio extends Exchange {
             request['from'] = parseInt (since / 1000);
             // request['to'] = since + 7 * 24 * 60 * 60;
         }
-        const method = this.getSupportedMapping (market['type'], {
+        const method = this.getSupportedMapping (type, {
             'spot': 'privateSpotGetMyTrades',
             'margin': 'privateSpotGetMyTrades',
             'swap': 'privateFuturesGetSettleMyTrades',
