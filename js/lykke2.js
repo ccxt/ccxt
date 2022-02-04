@@ -607,8 +607,8 @@ module.exports = class lykke2 extends Exchange {
         }
         const request = {
             'AssetPairId': market['id'],
-            'offset': 0, // (optional) Skip the specified number of elements.
-            'take': limit, // (optional) Take the specified number of elements.
+            'offset': 0,
+            'take': limit,
         };
         const response = await this.publicGetTradesPublicAssetPairId (this.extend (request, params));
         const result = this.safeValue (response, 'payload', []);
