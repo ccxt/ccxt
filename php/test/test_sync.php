@@ -323,6 +323,7 @@ function get_test_symbol($exchange, $symbols) {
             $active = $exchange->safe_value($market, 'active');
             if ($active || $active === null) {
                 $symbol = $s;
+                break;
             }
         }
     }
