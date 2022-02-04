@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.72.16'
+__version__ = '1.72.17'
 
 # ----------------------------------------------------------------------------
 
@@ -164,6 +164,7 @@ from ccxt.oceanex import oceanex                            # noqa: F401
 from ccxt.okcoin import okcoin                              # noqa: F401
 from ccxt.okex import okex                                  # noqa: F401
 from ccxt.okex5 import okex5                                # noqa: F401
+from ccxt.okx import okx                                    # noqa: F401
 from ccxt.paymium import paymium                            # noqa: F401
 from ccxt.phemex import phemex                              # noqa: F401
 from ccxt.poloniex import poloniex                          # noqa: F401
@@ -283,6 +284,7 @@ exchanges = [
     'okcoin',
     'okex',
     'okex5',
+    'okx',
     'paymium',
     'phemex',
     'poloniex',
