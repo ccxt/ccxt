@@ -62,7 +62,7 @@ class okex(Exchange):
                 'createOrder': True,
                 'createReduceOnlyOrder': None,
                 'deposit': None,
-                'fetchAccounts': None,
+                'fetchAccounts': True,
                 'fetchAllTradingFees': None,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
@@ -717,6 +717,41 @@ class okex(Exchange):
         data = self.safe_value(response, 'data', [])
         first = self.safe_value(data, 0, {})
         return self.safe_integer(first, 'ts')
+
+    def fetch_accounts(self, params={}):
+        response = self.privateGetAccountConfig(params)
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "acctLv": "2",
+        #                 "autoLoan": False,
+        #                 "ctIsoMode": "automatic",
+        #                 "greeksType": "PA",
+        #                 "level": "Lv1",
+        #                 "levelTmp": "",
+        #                 "mgnIsoMode": "automatic",
+        #                 "posMode": "long_short_mode",
+        #                 "uid": "88018754289672195"
+        #             }
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        result = []
+        for i in range(0, len(data)):
+            account = data[i]
+            accountId = self.safe_string(account, 'uid')
+            type = self.safe_string(account, 'acctLv')
+            result.append({
+                'id': accountId,
+                'type': type,
+                'currency': None,
+                'info': account,
+            })
+        return result
 
     def fetch_markets(self, params={}):
         types = self.safe_value(self.options, 'fetchMarkets')

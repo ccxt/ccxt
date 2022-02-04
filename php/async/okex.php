@@ -40,7 +40,7 @@ class okex extends Exchange {
                 'createOrder' => true,
                 'createReduceOnlyOrder' => null,
                 'deposit' => null,
-                'fetchAccounts' => null,
+                'fetchAccounts' => true,
                 'fetchAllTradingFees' => null,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
@@ -699,6 +699,43 @@ class okex extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $first = $this->safe_value($data, 0, array());
         return $this->safe_integer($first, 'ts');
+    }
+
+    public function fetch_accounts($params = array ()) {
+        $response = yield $this->privateGetAccountConfig ($params);
+        //
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             {
+        //                 "acctLv" => "2",
+        //                 "autoLoan" => false,
+        //                 "ctIsoMode" => "automatic",
+        //                 "greeksType" => "PA",
+        //                 "level" => "Lv1",
+        //                 "levelTmp" => "",
+        //                 "mgnIsoMode" => "automatic",
+        //                 "posMode" => "long_short_mode",
+        //                 "uid" => "88018754289672195"
+        //             }
+        //         ),
+        //         "msg" => ""
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $result = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $account = $data[$i];
+            $accountId = $this->safe_string($account, 'uid');
+            $type = $this->safe_string($account, 'acctLv');
+            $result[] = array(
+                'id' => $accountId,
+                'type' => $type,
+                'currency' => null,
+                'info' => $account,
+            );
+        }
+        return $result;
     }
 
     public function fetch_markets($params = array ()) {
