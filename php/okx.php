@@ -27,14 +27,14 @@ class okx extends \ccxt\async\okx {
             'urls' => array(
                 'api' => array(
                     'ws' => array(
-                        'public' => 'wss://ws.okex.com:8443/ws/v5/public', // wss://wsaws.okex.com:8443/ws/v5/public
-                        'private' => 'wss://ws.okex.com:8443/ws/v5/private', // wss://wsaws.okex.com:8443/ws/v5/private
+                        'public' => 'wss://ws.okx.com:8443/ws/v5/public', // wss://wsaws.okx.com:8443/ws/v5/public
+                        'private' => 'wss://ws.okx.com:8443/ws/v5/private', // wss://wsaws.okx.com:8443/ws/v5/private
                     ),
                 ),
                 'test' => array(
                     'ws' => array(
-                        'public' => 'wss://wspap.okex.com:8443/ws/v5/public?brokerId=9999',
-                        'private' => 'wss://wspap.okex.com:8443/ws/v5/private?brokerId=9999',
+                        'public' => 'wss://wspap.okx.com:8443/ws/v5/public?brokerId=9999',
+                        'private' => 'wss://wspap.okx.com:8443/ws/v5/private?brokerId=9999',
                     ),
                 ),
             ),
