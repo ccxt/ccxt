@@ -121,29 +121,100 @@ async def test_private(exchange, symbol, code):
 
 # -----------------------------------------------------------------------------
 
+def get_test_symbol(exchange, symbols):
+    symbol = None
+    for s in symbols:
+        market = exchange.safe_value(exchange.markets, s)
+        if market is not None:
+            active = exchange.safe_value(market, 'active')
+            if active or (active is None):
+                symbol = s
+                break
+    return symbol
+
+
 async def test_exchange(exchange):
     print(exchange.id)
     # delay = 2
-    keys = list(exchange.markets.keys())
-    symbol = keys[0]
-    symbols = [
-        # 'NEO/USDT',
-        'BTC/KRW',
+
+    codes = [
+        'BTC',
+        'ETH',
+        'XRP',
+        'LTC',
+        'BCH',
+        'EOS',
+        'BNB',
+        'BSV',
+        'USDT',
+        'ATOM',
+        'BAT',
+        'BTG',
+        'DASH',
+        'DOGE',
+        'ETC',
+        'IOTA',
+        'LSK',
+        'MKR',
+        'NEO',
+        'PAX',
+        'QTUM',
+        'TRX',
+        'TUSD',
+        'USD',
+        'USDC',
+        'WAVES',
+        'XEM',
+        'XMR',
+        'ZEC',
+        'ZRX',
+    ]
+
+    code = codes[0]
+    for i in range(0, len(codes)):
+        if codes[i] in exchange.currencies:
+            code = codes[i]
+
+    symbol = get_test_symbol(exchange, [
         'BTC/USD',
         'BTC/USDT',
         'BTC/CNY',
         'BTC/EUR',
         'BTC/ETH',
         'ETH/BTC',
+        'ETH/USDT',
         'BTC/JPY',
         'LTC/BTC',
         'USD/SLL',
-    ]
-    for s in symbols:
-        if s in keys:
-            symbol = s
-            break
-    code = 'ETH'
+    ])
+
+    if symbol is None:
+        for code in codes:
+            markets = list(exchange.markets.values())
+            activeMarkets = [market for market in markets if market['base'] == code]
+            if len(activeMarkets):
+                activeSymbols = [market['symbol'] for market in activeMarkets]
+                symbol = get_test_symbol(exchange, activeSymbols)
+                break
+
+    if symbol is None:
+        markets = list(exchange.markets.values())
+        activeMarkets = [market for market in markets if market['base'] in codes]
+        activeSymbols = [market['symbol'] for market in activeMarkets]
+        symbol = get_test_symbol(exchange, activeSymbols)
+
+    if symbol is None:
+        markets = list(exchange.markets.values())
+        activeMarkets = [market for market in markets if not exchange.safe_value(market, 'active', False)]
+        activeSymbols = [market['symbol'] for market in activeMarkets]
+        symbol = get_test_symbol(exchange, activeSymbols)
+
+    if symbol is None:
+        symbol = get_test_symbol(exchange, exchange.symbols)
+
+    if symbol is None:
+        symbol = exchange.symbols[0]
+
     if symbol.find('.d') < 0:
         await test_public(exchange, symbol)
         await test_private(exchange, symbol, code)
