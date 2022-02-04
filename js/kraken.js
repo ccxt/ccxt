@@ -492,7 +492,7 @@ module.exports = class kraken extends Exchange {
                 'limits': {
                     'leverage': {
                         'min': this.parseNumber ('1'),
-                        'max': this.safeValue (leverageBuy, leverageBuyLength - 1, 1),
+                        'max': this.safeNumber (leverageBuy, leverageBuyLength - 1, 1),
                     },
                     'amount': {
                         'min': this.safeNumber (market, 'ordermin'),
