@@ -196,55 +196,51 @@ class bigone(Exchange):
             quoteId = self.safe_string(quoteAsset, 'symbol')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            amountPrecisionString = self.safe_string(market, 'base_scale')
-            pricePrecisionString = self.safe_string(market, 'quote_scale')
-            amountLimit = self.parse_precision(amountPrecisionString)
-            priceLimit = self.parse_precision(pricePrecisionString)
-            precision = {
-                'amount': int(amountPrecisionString),
-                'price': int(pricePrecisionString),
-            }
-            minCost = self.safe_number(market, 'min_quote_value')
-            maxCost = self.safe_number(market, 'max_quote_value')
             entry = {
                 'id': id,
                 'uuid': uuid,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
                 'margin': False,
                 'future': False,
                 'swap': False,
                 'option': False,
+                'active': True,
+                'contract': False,
                 'linear': None,
                 'inverse': None,
+                'contractSize': None,
                 'expiry': None,
                 'expiryDatetime': None,
-                'optionType': None,
                 'strike': None,
-                'contract': False,
-                'contractSize': None,
-                'settle': None,
-                'settleId': None,
-                'active': True,
-                'precision': precision,
+                'optionType': None,
+                'precision': {
+                    'price': self.safe_number(market, 'quote_scale'),
+                    'amount': self.safe_number(market, 'base_scale'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
-                        'min': self.parse_number(amountLimit),
+                        'min': None,
                         'max': None,
                     },
                     'price': {
-                        'min': self.parse_number(priceLimit),
+                        'min': None,
                         'max': None,
                     },
                     'cost': {
-                        'min': minCost,
-                        'max': maxCost,
+                        'min': self.safe_number(market, 'min_quote_value'),
+                        'max': self.safe_number(market, 'max_quote_value'),
                     },
                 },
                 'info': market,

@@ -471,57 +471,55 @@ class bitfinex extends Exchange {
             }
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $precision = array(
-                'price' => $this->safe_integer($market, 'price_precision'),
-                // https://docs.bitfinex.com/docs/introduction#amount-$precision
-                // The amount field allows up to 8 decimals.
-                // Anything exceeding this will be rounded to the 8th decimal.
-                'amount' => 8,
-            );
-            $minAmountString = $this->safe_string($market, 'minimum_order_size');
-            $maxAmountString = $this->safe_string($market, 'maximum_order_size');
-            $limits = array(
-                'amount' => array(
-                    'min' => $this->parse_number($minAmountString),
-                    'max' => $this->parse_number($maxAmountString),
-                ),
-                'price' => array(
-                    'min' => $this->parse_number('1e-8'),
-                    'max' => null,
-                ),
-            );
-            $limits['cost'] = array(
-                'min' => null,
-                'max' => null,
-            );
-            $margin = $this->safe_value($market, 'margin');
             $result[] = array(
                 'id' => $id,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'active' => true,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'margin' => $margin,
+                'margin' => $this->safe_value($market, 'margin'),
                 'future' => false,
                 'swap' => false,
                 'option' => false,
-                'optionType' => null,
-                'strike' => null,
+                'active' => true,
+                'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                'contract' => false,
                 'contractSize' => null,
-                'settle' => null,
-                'settleId' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
-                'precision' => $precision,
-                'limits' => $limits,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'price' => $this->safe_integer($market, 'price_precision'),
+                    // https://docs.bitfinex.com/docs/introduction#amount-precision
+                    // The amount field allows up to 8 decimals.
+                    // Anything exceeding this will be rounded to the 8th decimal.
+                    'amount' => $this->parse_number('8'),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => $this->safe_number($market, 'minimum_order_size'),
+                        'max' => $this->safe_number($market, 'maximum_order_size'),
+                    ),
+                    'price' => array(
+                        'min' => $this->parse_number('1e-8'),
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => $this->safe_number($market, 'minimum_margin'),
+                        'max' => null,
+                    ),
+                ),
                 'info' => $market,
             );
         }

@@ -1860,11 +1860,24 @@ class gateio extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-        }
         $this->load_markets();
-        $market = $this->market($symbol);
+        $market = null;
+        $request = array();
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchMyTrades', null, $params);
+        if ($symbol) {
+            $market = $this->market($symbol);
+            $request = $this->prepare_request($market);
+            $type = $market['type'];
+        } else {
+            if ($type === 'swap' || $type === 'future') {
+                $settle = $this->safe_string_lower($params, 'settle');
+                if (!$settle) {
+                    throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument or a $settle parameter for ' . $type . ' markets');
+                }
+                $request['settle'] = $settle;
+            }
+        }
         //
         //     $request = array(
         //         'currency_pair' => $market['id'],
@@ -1876,7 +1889,6 @@ class gateio extends Exchange {
         //         // 'to' => $this->milliseconds(), // default to current time
         //     );
         //
-        $request = $this->prepare_request($market);
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 1000
         }
@@ -1884,7 +1896,7 @@ class gateio extends Exchange {
             $request['from'] = intval($since / 1000);
             // $request['to'] = $since + 7 * 24 * 60 * 60;
         }
-        $method = $this->get_supported_mapping($market['type'], array(
+        $method = $this->get_supported_mapping($type, array(
             'spot' => 'privateSpotGetMyTrades',
             'margin' => 'privateSpotGetMyTrades',
             'swap' => 'privateFuturesGetSettleMyTrades',

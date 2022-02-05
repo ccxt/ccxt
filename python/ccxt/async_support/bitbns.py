@@ -226,18 +226,18 @@ class bitbns(Exchange):
                 'swap': False,
                 'future': False,
                 'option': False,
+                'active': None,
                 'contract': False,
                 'linear': None,
                 'inverse': None,
                 'contractSize': None,
-                'active': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(marketPrecision, 'amount'),
                     'price': self.safe_integer(marketPrecision, 'price'),
+                    'amount': self.safe_integer(marketPrecision, 'amount'),
                 },
                 'limits': {
                     'leverage': {

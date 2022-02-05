@@ -513,7 +513,7 @@ class kraken(Exchange):
                 'limits': {
                     'leverage': {
                         'min': self.parse_number('1'),
-                        'max': self.safe_value(leverageBuy, leverageBuyLength - 1, 1),
+                        'max': self.safe_number(leverageBuy, leverageBuyLength - 1, 1),
                     },
                     'amount': {
                         'min': self.safe_number(market, 'ordermin'),

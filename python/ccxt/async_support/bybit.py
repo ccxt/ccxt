@@ -1631,7 +1631,9 @@ class bybit(Exchange):
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         id = self.safe_string_2(order, 'order_id', 'stop_order_id')
         type = self.safe_string_lower(order, 'order_type')
-        price = self.safe_string(order, 'price')
+        price = None
+        if type != 'market':
+            price = self.safe_string(order, 'price')
         average = self.safe_string(order, 'average_price')
         amount = self.safe_string(order, 'qty')
         cost = self.safe_string(order, 'cum_exec_value')
