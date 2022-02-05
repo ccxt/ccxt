@@ -236,6 +236,7 @@ class bitrue(Exchange):
             # exchange-specific options
             'options': {
                 # 'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades
+                'fetchMyTradesMethod': 'v2PrivateGetMyTrades',  # v1PrivateGetMyTrades
                 'hasAlreadyAuthenticatedSuccessfully': False,
                 'recvWindow': 5 * 1000,  # 5 sec, binance default
                 'timeDifference': 0,  # the difference between system clock and Binance clock
@@ -917,7 +918,7 @@ class bitrue(Exchange):
         if 'commission' in trade:
             fee = {
                 'cost': self.safe_string(trade, 'commission'),
-                'currency': self.safe_currency_code(self.safe_string(trade, 'commissionAsset')),
+                'currency': self.safe_currency_code(self.safe_string(trade, 'commissionAssert')),
             }
         takerOrMaker = None
         if 'isMaker' in trade:
@@ -1256,6 +1257,9 @@ class bitrue(Exchange):
         return self.parse_order(response, market)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        method = self.safe_string(self.options, 'fetchMyTradesMethod', 'v2PrivateGetMyTrades')
+        if (symbol is None) and (method == 'v2PrivateGetMyTrades'):
+            raise ArgumentsRequired(self.id + ' v2PrivateGetMyTrades() requires a symbol argument')
         await self.load_markets()
         request = {
             # 'symbol': market['id'],
@@ -1272,7 +1276,7 @@ class bitrue(Exchange):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        response = await self.v1PrivateGetMyTrades(self.extend(request, params))
+        response = await getattr(self, method)(self.extend(request, params))
         #
         #     [
         #         {
