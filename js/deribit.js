@@ -41,6 +41,7 @@ module.exports = class deribit extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchHistoricalVolatility': true,
+                'fetchLeverageTiers': false,
                 'fetchIndexOHLCV': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
