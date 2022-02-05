@@ -4037,7 +4037,6 @@ module.exports = class okx extends Exchange {
                 'notionalCap': this.safeNumber (tier, 'maxSz'),
                 'maintenanceMarginRatio': this.safeNumber (tier, 'mmr'),
                 'maxLeverage': this.safeNumber (tier, 'maxLever'),
-                'maintenanceAmount': undefined,
                 'info': tier,
             });
         }

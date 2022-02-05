@@ -3182,7 +3182,6 @@ module.exports = class bybit extends Exchange {
                 'notionalCap': notionalCap,
                 'maintenanceMarginRatio': this.safeNumber (item, 'maintain_margin'),
                 'maxLeverage': this.safeNumber (item, 'max_leverage'),
-                'maintenanceAmount': undefined,
                 'info': item,
             });
             tier += 1;

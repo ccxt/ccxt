@@ -5414,7 +5414,6 @@ module.exports = class huobi extends Exchange {
                         'notionalCap': this.safeNumber (bracket, 'max_size'),
                         'maintenanceMarginRatio': this.parseNumber (Precise.stringDiv (adjustFactor, leverage)),
                         'maxLeverage': this.parseNumber (leverage),
-                        'maintenanceAmount': undefined,
                         'info': bracket,
                     });
                 }
