@@ -45,6 +45,7 @@ module.exports = class mexc extends Exchange {
                 'fetchIndexOHLCV': true,
                 'fetchIsolatedPositions': undefined,
                 'fetchLeverage': undefined,
+                'fetchLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
