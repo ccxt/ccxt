@@ -219,6 +219,7 @@ module.exports = class bitrue extends Exchange {
             // exchange-specific options
             'options': {
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
+                'fetchMyTradesMethod': 'v2PrivateGetMyTrades', // v1PrivateGetMyTrades
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'recvWindow': 5 * 1000, // 5 sec, binance default
                 'timeDifference': 0, // the difference between system clock and Binance clock
@@ -930,7 +931,7 @@ module.exports = class bitrue extends Exchange {
         if ('commission' in trade) {
             fee = {
                 'cost': this.safeString (trade, 'commission'),
-                'currency': this.safeCurrencyCode (this.safeString (trade, 'commissionAsset')),
+                'currency': this.safeCurrencyCode (this.safeString (trade, 'commissionAssert')),
             };
         }
         let takerOrMaker = undefined;
@@ -1300,6 +1301,10 @@ module.exports = class bitrue extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const method = this.safeString (this.options, 'fetchMyTradesMethod', 'v2PrivateGetMyTrades');
+        if ((symbol === undefined) && (method === 'v2PrivateGetMyTrades')) {
+            throw new ArgumentsRequired (this.id + ' v2PrivateGetMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const request = {
             // 'symbol': market['id'],
@@ -1319,7 +1324,7 @@ module.exports = class bitrue extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v1PrivateGetMyTrades (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     [
         //         {
