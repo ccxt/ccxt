@@ -3854,12 +3854,12 @@ module.exports = class okx extends Exchange {
         await this.loadMarkets ();
         const request = {
             // 'ccy': currency['id'],
-            // 'after': since, // Pagination of data to return records earlier than the requested ts,
-            // 'before': this.milliseconds (), // Pagination of data to return records newer than the requested ts,
+            // 'after': this.milliseconds (), // Pagination of data to return records earlier than the requested ts,
+            // 'before': since, // Pagination of data to return records newer than the requested ts,
             // 'limit': limit, // default is 100 and maximum is 100
         };
         if (since !== undefined) {
-            request['after'] = since;
+            request['before'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -3897,16 +3897,21 @@ module.exports = class okx extends Exchange {
                 'datetime': this.iso8601 (timestamp),
             });
         }
+        const keys = Object.keys (borrowRateHistories);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            borrowRateHistories[key] = this.filterByCurrencySinceLimit (borrowRateHistories[key], key, since, limit);
+        }
         return borrowRateHistories;
     }
 
     async fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {}) {
-        const histories = await this.fetchBorrowRateHistories (since, limit, params);
-        const borrowRateHistory = this.safeValue (histories, code);
-        if (borrowRateHistory === undefined) {
+        const codeObject = JSON.parse ('{"ccy": "' + code + '"}');
+        const histories = await this.fetchBorrowRateHistories (since, limit, codeObject, params);
+        if (histories === undefined) {
             throw new BadRequest (this.id + '.fetchBorrowRateHistory returned no data for ' + code);
         } else {
-            return this.filterByCurrencySinceLimit (borrowRateHistory, code, since, limit);
+            return histories;
         }
     }
 
