@@ -63,6 +63,7 @@ module.exports = class binance extends Exchange {
                 'fetchL3OrderBook': undefined,
                 'fetchLedger': undefined,
                 'fetchLeverage': undefined,
+                'fetchLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyBuys': undefined,
