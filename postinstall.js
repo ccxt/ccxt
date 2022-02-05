@@ -77,19 +77,27 @@ function pad (string) {
 }
 
 async function main () {
-    const data = await getData()
 
-    colorFunctions['blue'] (ascii.join ('\n'))
-    colorFunctions['red'] (pad (`Stars: ${data.stars}`))
-    colorFunctions['red'] (pad (`Forks: ${data.forks}`))
-    colorFunctions['red'] (pad (`Contributors: ${data.contributors}`))
-    colorFunctions['red'] (pad (`Size: ${data.size}MB`))
-    colorFunctions['yellow'] ('\n' + pad ('Thanks for installing ccxt 🙏'))
-    colorFunctions['gray'] (pad ('Please consider donating to our open collective'))
-    colorFunctions['gray'] (pad ('to help us maintain this package.'))
-    colorFunctions['yellow'] (pad ('👉 Donate: https://opencollective.com/ccxt/donate 🎉'))
-    colorFunctions['white'] (pad (`Thanks to our ${data.backers} backers we are operating on an annual budget of $${data.budget}`))
-    colorFunctions['yellow'] (footer.join ('\n'))
+    try {
+
+        const data = await getData()
+
+        colorFunctions['blue'] (ascii.join ('\n'))
+        colorFunctions['red'] (pad (`Stars: ${data.stars}`))
+        colorFunctions['red'] (pad (`Forks: ${data.forks}`))
+        colorFunctions['red'] (pad (`Contributors: ${data.contributors}`))
+        colorFunctions['red'] (pad (`Size: ${data.size}MB`))
+        colorFunctions['yellow'] ('\n' + pad ('Thanks for installing ccxt 🙏'))
+        colorFunctions['gray'] (pad ('Please consider donating to our open collective'))
+        colorFunctions['gray'] (pad ('to help us maintain this package.'))
+        colorFunctions['yellow'] (pad ('👉 Donate: https://opencollective.com/ccxt/donate 🎉'))
+        colorFunctions['white'] (pad (`Thanks to our ${data.backers} backers we are operating on an annual budget of $${data.budget}`))
+        colorFunctions['yellow'] (footer.join ('\n'))
+
+    } catch (e) {
+
+        // console.log (e.constructor.name, e.message)
+    }
 }
 
 main()
