@@ -43,7 +43,7 @@ module.exports = class okx extends Exchange {
                 'fetchBorrowRateHistory': undefined,
                 'fetchBorrowRates': true,
                 'fetchBorrowRatesPerSymbol': false,
-                'fetchCanceledOrders': undefined,
+                'fetchCanceledOrders': true,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
@@ -2227,6 +2227,84 @@ module.exports = class okx extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
+    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const defaultType = this.safeString (this.options, 'defaultType');
+        const options = this.safeValue (this.options, 'fetchCanceledOrders', {});
+        let type = this.safeString (options, 'type', defaultType);
+        type = this.safeString (params, 'type', type);
+        params = this.omit (params, 'type');
+        const request = {
+            // 'instType': type.toUpperCase (), // SPOT, MARGIN, SWAP, FUTURES, OPTION
+            // 'uly': currency['id'],
+            // 'instId': market['id'],
+            // 'ordType': 'limit', // market, limit, post_only, fok, ioc, comma-separated
+            // 'state': 'filled', // filled, canceled
+            // 'after': orderId,
+            // 'before': orderId,
+            // 'limit': limit, // default 100, max 100
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            if (market['futures'] || market['swap']) {
+                type = market['type'];
+            }
+            request['instId'] = market['id'];
+        }
+        request['instType'] = type.toUpperCase ();
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100, max 100
+        }
+        request['state'] = 'canceled';
+        const method = this.safeString (options, 'method', 'privateGetTradeOrdersHistory');
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "code":"0",
+        //         "data":[
+        //             {
+        //                 "accFillSz":"0",
+        //                 "avgPx":"",
+        //                 "cTime":"1621910749815",
+        //                 "category":"normal",
+        //                 "ccy":"",
+        //                 "clOrdId":"",
+        //                 "fee":"0",
+        //                 "feeCcy":"ETH",
+        //                 "fillPx":"",
+        //                 "fillSz":"0",
+        //                 "fillTime":"",
+        //                 "instId":"ETH-USDT",
+        //                 "instType":"SPOT",
+        //                 "lever":"",
+        //                 "ordId":"317251910906576896",
+        //                 "ordType":"limit",
+        //                 "pnl":"0",
+        //                 "posSide":"net",
+        //                 "px":"2000",
+        //                 "rebate":"0",
+        //                 "rebateCcy":"USDT",
+        //                 "side":"buy",
+        //                 "slOrdPx":"",
+        //                 "slTriggerPx":"",
+        //                 "state":"live",
+        //                 "sz":"0.001",
+        //                 "tag":"",
+        //                 "tdMode":"cash",
+        //                 "tpOrdPx":"",
+        //                 "tpTriggerPx":"",
+        //                 "tradeId":"",
+        //                 "uTime":"1621910749815"
+        //             }
+        //         ],
+        //         "msg":""
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
+    }
+
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const defaultType = this.safeString (this.options, 'defaultType');
@@ -2256,6 +2334,7 @@ module.exports = class okx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
         }
+        request['state'] = 'filled';
         const method = this.safeString (options, 'method', 'privateGetTradeOrdersHistory');
         const response = await this[method] (this.extend (request, params));
         //
