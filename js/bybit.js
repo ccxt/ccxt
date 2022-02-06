@@ -1228,6 +1228,9 @@ module.exports = class bybit extends Exchange {
         //         "symbol": "BTCUSD",
         //         "funding_rate": "0.00010000",
         //         "funding_rate_timestamp": 1577433600
+        //          OR for some pairs (ex: BTC/USDT)
+        //         "funding_rate_timestamp":"2022-02-05T08:00:00.000Z"
+        //
         //     },
         //     "ext_info": null,
         //     "time_now": "1577445586.446797",
@@ -1238,7 +1241,15 @@ module.exports = class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result');
         const fundingRate = this.safeNumber (result, 'funding_rate');
-        const fundingTime = this.safeInteger (result, 'funding_rate_timestamp') * 1000;
+        let fundingTime = this.safeInteger (result, 'funding_rate_timestamp');
+        let dateTime = undefined;
+        if (fundingTime !== undefined) {
+            fundingTime = fundingTime * 1000;
+            dateTime = this.iso8601 (fundingTime);
+        } else {
+            dateTime = this.safeString (result, 'funding_rate_timestamp');
+            fundingTime = this.parse8601 (dateTime);
+        }
         const nextFundingTime = this.sum (fundingTime, 8 * 3600000);
         const currentTime = this.milliseconds ();
         return {
@@ -1249,7 +1260,7 @@ module.exports = class bybit extends Exchange {
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
             'timestamp': currentTime,
-            'datetime': this.iso8601 (currentTime),
+            'datetime': dateTime,
             'fundingRate': fundingRate,
             'fundingTimestamp': fundingTime,
             'fundingDatetime': this.iso8601 (fundingTime),
