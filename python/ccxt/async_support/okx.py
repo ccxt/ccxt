@@ -3818,6 +3818,7 @@ class okx(Exchange):
         return await self.modify_margin_helper(symbol, amount, 'add', params)
 
     def set_sandbox_mode(self, enable):
+        super(okx, self).set_sandbox_mode(enable)
         if enable:
             self.headers['x-simulated-trading'] = '1'
         elif 'x-simulated-trading' in self.headers:

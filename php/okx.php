@@ -3993,6 +3993,7 @@ class okx extends Exchange {
     }
 
     public function set_sandbox_mode($enable) {
+        parent::set_sandbox_mode($enable);
         if ($enable) {
             $this->headers['x-simulated-trading'] = '1';
         } else if (is_array($this->headers) && array_key_exists('x-simulated-trading', $this->headers)) {
