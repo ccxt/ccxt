@@ -2532,7 +2532,7 @@ class gateio(Exchange):
         if limit is not None:
             request['limit'] = limit
         if since is not None and (market['spot'] or market['margin']):
-            request['start'] = int(since / 1000)
+            request['from'] = int(since / 1000)
         method = self.get_supported_mapping(market['type'], {
             'spot': 'privateSpotGetOrders',
             'margin': 'privateSpotGetOrders',

@@ -2647,7 +2647,7 @@ class gateio extends Exchange {
             $request['limit'] = $limit;
         }
         if ($since !== null && ($market['spot'] || $market['margin'])) {
-            $request['start'] = intval($since / 1000);
+            $request['from'] = intval($since / 1000);
         }
         $method = $this->get_supported_mapping($market['type'], array(
             'spot' => 'privateSpotGetOrders',
