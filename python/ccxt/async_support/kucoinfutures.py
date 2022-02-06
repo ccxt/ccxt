@@ -1100,10 +1100,11 @@ class kucoinfutures(kucoin):
         cost = Precise.string_div(rawCost, leverage)
         average = None
         if Precise.string_gt(filled, '0'):
+            contractSize = self.safe_string(market, 'contractSize')
             if market['linear']:
-                average = Precise.string_div(rawCost, Precise.string_mul(market['contractSize'], filled))
+                average = Precise.string_div(rawCost, Precise.string_mul(contractSize, filled))
             else:
-                average = Precise.string_div(Precise.string_mul(market['contractSize'], filled), rawCost)
+                average = Precise.string_div(Precise.string_mul(contractSize, filled), rawCost)
         # precision reported by their api is 8 d.p.
         # average = Precise.string_div(rawCost, Precise.string_mul(filled, market['contractSize']))
         # bool

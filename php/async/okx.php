@@ -49,7 +49,7 @@ class okx extends Exchange {
                 'fetchBorrowRateHistory' => null,
                 'fetchBorrowRates' => true,
                 'fetchBorrowRatesPerSymbol' => false,
-                'fetchCanceledOrders' => null,
+                'fetchCanceledOrders' => true,
                 'fetchClosedOrder' => null,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
@@ -2233,6 +2233,88 @@ class okx extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
+    public function fetch_canceled_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        $options = $this->safe_value($this->options, 'fetchCanceledOrders', array());
+        $type = $this->safe_string($options, 'type', $defaultType);
+        $type = $this->safe_string($params, 'type', $type);
+        $params = $this->omit($params, 'type');
+        $request = array(
+            // 'instType' => strtoupper($type), // SPOT, MARGIN, SWAP, FUTURES, OPTION
+            // 'uly' => currency['id'],
+            // 'instId' => $market['id'],
+            // 'ordType' => 'limit', // $market, $limit, post_only, fok, ioc, comma-separated
+            // 'state' => 'filled', // filled, canceled
+            // 'after' => orderId,
+            // 'before' => orderId,
+            // 'limit' => $limit, // default 100, max 100
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            if ($market['futures'] || $market['swap']) {
+                $type = $market['type'];
+            }
+            $request['instId'] = $market['id'];
+        }
+        $request['instType'] = strtoupper($type);
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default 100, max 100
+        }
+        $request['state'] = 'canceled';
+        $method = $this->safe_string($options, 'method', 'privateGetTradeOrdersHistory');
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             {
+        //                 "accFillSz" => "0",
+        //                 "avgPx" => "",
+        //                 "cTime" => "1644037822494",
+        //                 "category" => "normal",
+        //                 "ccy" => "",
+        //                 "clOrdId" => "",
+        //                 "fee" => "0",
+        //                 "feeCcy" => "BTC",
+        //                 "fillPx" => "",
+        //                 "fillSz" => "0",
+        //                 "fillTime" => "",
+        //                 "instId" => "BTC-USDT",
+        //                 "instType" => "SPOT",
+        //                 "lever" => "",
+        //                 "ordId" => "410059580352409602",
+        //                 "ordType" => "limit",
+        //                 "pnl" => "0",
+        //                 "posSide" => "net",
+        //                 "px" => "30000",
+        //                 "rebate" => "0",
+        //                 "rebateCcy" => "USDT",
+        //                 "side" => "buy",
+        //                 "slOrdPx" => "",
+        //                 "slTriggerPx" => "",
+        //                 "slTriggerPxType" => "",
+        //                 "source" => "",
+        //                 "state" => "canceled",
+        //                 "sz" => "0.0005452",
+        //                 "tag" => "",
+        //                 "tdMode" => "cash",
+        //                 "tgtCcy" => "",
+        //                 "tpOrdPx" => "",
+        //                 "tpTriggerPx" => "",
+        //                 "tpTriggerPxType" => "",
+        //                 "tradeId" => "",
+        //                 "uTime" => "1644038165667"
+        //             }
+        //         ),
+        //         "msg" => ""
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_orders($data, $market, $since, $limit);
+    }
+
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         $defaultType = $this->safe_string($this->options, 'defaultType');
@@ -2262,6 +2344,7 @@ class okx extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 100
         }
+        $request['state'] = 'filled';
         $method = $this->safe_string($options, 'method', 'privateGetTradeOrdersHistory');
         $response = yield $this->$method (array_merge($request, $params));
         //

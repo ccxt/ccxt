@@ -222,6 +222,7 @@ class bitrue extends Exchange {
             // exchange-specific options
             'options' => array(
                 // 'fetchTradesMethod' => 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
+                'fetchMyTradesMethod' => 'v2PrivateGetMyTrades', // v1PrivateGetMyTrades
                 'hasAlreadyAuthenticatedSuccessfully' => false,
                 'recvWindow' => 5 * 1000, // 5 sec, binance default
                 'timeDifference' => 0, // the difference between system clock and Binance clock
@@ -933,7 +934,7 @@ class bitrue extends Exchange {
         if (is_array($trade) && array_key_exists('commission', $trade)) {
             $fee = array(
                 'cost' => $this->safe_string($trade, 'commission'),
-                'currency' => $this->safe_currency_code($this->safe_string($trade, 'commissionAsset')),
+                'currency' => $this->safe_currency_code($this->safe_string($trade, 'commissionAssert')),
             );
         }
         $takerOrMaker = null;
@@ -1303,6 +1304,10 @@ class bitrue extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $method = $this->safe_string($this->options, 'fetchMyTradesMethod', 'v2PrivateGetMyTrades');
+        if (($symbol === null) && ($method === 'v2PrivateGetMyTrades')) {
+            throw new ArgumentsRequired($this->id . ' v2PrivateGetMyTrades() requires a $symbol argument');
+        }
         $this->load_markets();
         $request = array(
             // 'symbol' => $market['id'],
@@ -1322,7 +1327,7 @@ class bitrue extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->v1PrivateGetMyTrades (array_merge($request, $params));
+        $response = $this->$method (array_merge($request, $params));
         //
         //     array(
         //         {

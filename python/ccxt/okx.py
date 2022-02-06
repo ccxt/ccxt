@@ -71,7 +71,7 @@ class okx(Exchange):
                 'fetchBorrowRateHistory': None,
                 'fetchBorrowRates': True,
                 'fetchBorrowRatesPerSymbol': False,
-                'fetchCanceledOrders': None,
+                'fetchCanceledOrders': True,
                 'fetchClosedOrder': None,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
@@ -2153,6 +2153,84 @@ class okx(Exchange):
         data = self.safe_value(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
+    def fetch_canceled_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        defaultType = self.safe_string(self.options, 'defaultType')
+        options = self.safe_value(self.options, 'fetchCanceledOrders', {})
+        type = self.safe_string(options, 'type', defaultType)
+        type = self.safe_string(params, 'type', type)
+        params = self.omit(params, 'type')
+        request = {
+            # 'instType': type.upper(),  # SPOT, MARGIN, SWAP, FUTURES, OPTION
+            # 'uly': currency['id'],
+            # 'instId': market['id'],
+            # 'ordType': 'limit',  # market, limit, post_only, fok, ioc, comma-separated
+            # 'state': 'filled',  # filled, canceled
+            # 'after': orderId,
+            # 'before': orderId,
+            # 'limit': limit,  # default 100, max 100
+        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            if market['futures'] or market['swap']:
+                type = market['type']
+            request['instId'] = market['id']
+        request['instType'] = type.upper()
+        if limit is not None:
+            request['limit'] = limit  # default 100, max 100
+        request['state'] = 'canceled'
+        method = self.safe_string(options, 'method', 'privateGetTradeOrdersHistory')
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "accFillSz": "0",
+        #                 "avgPx": "",
+        #                 "cTime": "1644037822494",
+        #                 "category": "normal",
+        #                 "ccy": "",
+        #                 "clOrdId": "",
+        #                 "fee": "0",
+        #                 "feeCcy": "BTC",
+        #                 "fillPx": "",
+        #                 "fillSz": "0",
+        #                 "fillTime": "",
+        #                 "instId": "BTC-USDT",
+        #                 "instType": "SPOT",
+        #                 "lever": "",
+        #                 "ordId": "410059580352409602",
+        #                 "ordType": "limit",
+        #                 "pnl": "0",
+        #                 "posSide": "net",
+        #                 "px": "30000",
+        #                 "rebate": "0",
+        #                 "rebateCcy": "USDT",
+        #                 "side": "buy",
+        #                 "slOrdPx": "",
+        #                 "slTriggerPx": "",
+        #                 "slTriggerPxType": "",
+        #                 "source": "",
+        #                 "state": "canceled",
+        #                 "sz": "0.0005452",
+        #                 "tag": "",
+        #                 "tdMode": "cash",
+        #                 "tgtCcy": "",
+        #                 "tpOrdPx": "",
+        #                 "tpTriggerPx": "",
+        #                 "tpTriggerPxType": "",
+        #                 "tradeId": "",
+        #                 "uTime": "1644038165667"
+        #             }
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_orders(data, market, since, limit)
+
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         defaultType = self.safe_string(self.options, 'defaultType')
@@ -2179,6 +2257,7 @@ class okx(Exchange):
         request['instType'] = type.upper()
         if limit is not None:
             request['limit'] = limit  # default 100, max 100
+        request['state'] = 'filled'
         method = self.safe_string(options, 'method', 'privateGetTradeOrdersHistory')
         response = getattr(self, method)(self.extend(request, params))
         #
