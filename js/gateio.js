@@ -2695,7 +2695,8 @@ module.exports = class gateio extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
-        const isStop = this.safeValue (params, 'isStop', false);
+        const stop = this.safeValue2 (params, 'is_stop_order', 'stop', false);
+        params = this.omit (params, [ 'is_stop_order', 'stop' ]);
         const market = this.market (symbol);
         const request = {
             'order_id': id,
@@ -2706,7 +2707,7 @@ module.exports = class gateio extends Exchange {
             request['settle'] = market['settleId'];
         }
         let method = undefined;
-        if (isStop) {
+        if (stop) {
             method = this.getSupportedMapping (market['type'], {
                 'spot': 'privateSpotGetPriceOrdersOrderId',
                 'margin': 'privateSpotGetPriceOrdersOrderId',
