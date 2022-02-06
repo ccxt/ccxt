@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fd097f55c0c4193d20369b5cd5ec3307",
+    "content-hash": "173bb2518789c2069e7ccb23ceb0d6d3",
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.72.20",
+            "version": "1.72.35",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "a552ee00d875fdc977bc786a4724b000ad709446"
+                "reference": "50ff6d21431b2f87bc0d7a7c671c34b52d01ef99"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/a552ee00d875fdc977bc786a4724b000ad709446",
-                "reference": "a552ee00d875fdc977bc786a4724b000ad709446",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/50ff6d21431b2f87bc0d7a7c671c34b52d01ef99",
+                "reference": "50ff6d21431b2f87bc0d7a7c671c34b52d01ef99",
                 "shasum": ""
             },
             "require": {
@@ -280,7 +280,7 @@
             ],
             "support": {
                 "issues": "https://github.com/ccxt/ccxt/issues",
-                "source": "https://github.com/ccxt/ccxt/tree/1.72.20"
+                "source": "https://github.com/ccxt/ccxt/tree/1.72.35"
             },
             "funding": [
                 {
@@ -288,7 +288,7 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2022-02-04T10:13:47+00:00"
+            "time": "2022-02-06T11:39:51+00:00"
         },
         {
             "name": "evenement/evenement",
@@ -1178,12 +1178,12 @@
             },
             "type": "library",
             "autoload": {
-                "psr-4": {
-                    "React\\Promise\\": "src/"
-                },
                 "files": [
                     "src/functions_include.php"
-                ]
+                ],
+                "psr-4": {
+                    "React\\Promise\\": "src/"
+                }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -1316,12 +1316,12 @@
             },
             "type": "library",
             "autoload": {
-                "psr-4": {
-                    "React\\Promise\\Timer\\": "src/"
-                },
                 "files": [
                     "src/functions_include.php"
-                ]
+                ],
+                "psr-4": {
+                    "React\\Promise\\Timer\\": "src/"
+                }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
