@@ -51,7 +51,7 @@ module.exports = class lykke2 extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchOrderTrades': true,
                 'fetchPositions': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -226,7 +226,7 @@ module.exports = class lykke2 extends Exchange {
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'assetId');
-            const code = this.safeCurrencyCode (id);
+            const code = this.safeString (currency, 'symbol');
             const name = this.safeString (currency, 'name');
             const type = this.safeString (currency, 'type');
             const deposit = this.safeValue (currency, 'blockchainDepositEnabled');
@@ -533,7 +533,6 @@ module.exports = class lykke2 extends Exchange {
         //
         //  public fetchTrades
         //
-        // [
         //     {
         //         "id":"71df1f0c-be4e-4d45-b809-c108fad5f2a8",
         //         "assetPairId":"BTCUSD",
@@ -542,47 +541,39 @@ module.exports = class lykke2 extends Exchange {
         //         "price":37205.723,
         //         "side":"buy"
         //      }
-        //  ]
         //
         //  private fetchMyTrades
-        //     {
-        //         Id: '3500b83c-9963-4349-b3ee-b3e503073cea',
-        //         OrderId: '83b50feb-8615-4dc6-b606-8a4168ecd708',
-        //         DateTime: '2020-05-19T11:17:39.31+00:00',
-        //         Timestamp: '2020-05-19T11:17:39.31+00:00',
-        //         State: null,
-        //         Amount: -0.004,
-        //         BaseVolume: -0.004,
-        //         QuotingVolume: 39.3898,
-        //         Asset: 'BTC',
-        //         BaseAssetId: 'BTC',
-        //         QuotingAssetId: 'USD',
-        //         AssetPair: 'BTCUSD',
-        //         AssetPairId: 'BTCUSD',
-        //         Price: 9847.427,
-        //         Fee: { Amount: null, Type: 'Unknown', FeeAssetId: null }
-        //     },
+        //         {
+        //             "id":"813a3ffa-1c4b-45cb-b13f-1c077ea2748b",
+        //             "timestamp":1644155923357,
+        //             "assetPairId":"BCHEUR",
+        //             "orderId":"1b367978-7e4f-454b-b870-64040d484443",
+        //             "role":"Taker",
+        //             "side":"sell",
+        //             "price":280.569,
+        //             "baseVolume":0.01,
+        //             "quoteVolume":2.8056,
+        //             "baseAssetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
+        //             "quoteAssetId":"EUR",
+        //             "fee":null
+        //         }
         //
         const marketId = this.safeString (trade, 'assetPairId');
         const symbol = this.safeSymbol (marketId, market);
         const id = this.safeString2 (trade, 'id', 'id');
         const orderId = this.safeString (trade, 'orderId');
         const timestamp = this.safeInteger (trade, 'timestamp');
-        const priceString = this.safeString2 (trade, 'price', 'price');
-        let amountString = this.safeString2 (trade, 'volume', 'amount');
-        let side = this.safeStringLower (trade, 'action');
-        if (side === undefined) {
-            side = (amountString[0] === '-') ? 'sell' : 'buy';
+        const price = this.safeString2 (trade, 'price', 'price');
+        let amount = this.safeString2 (trade, 'volume', 'amount');
+        if (amount === undefined) {
+            amount = this.safeString2 (trade, 'baseVolume', 'amount');
         }
-        amountString = Precise.stringAbs (amountString);
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        const side = this.safeStringLower (trade, 'side');
         const fee = {
             'cost': 0, // There are no fees for trading.
             'currency': market['quote'],
         };
-        return {
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -594,9 +585,9 @@ module.exports = class lykke2 extends Exchange {
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -631,6 +622,16 @@ module.exports = class lykke2 extends Exchange {
     }
 
     parseBalance (response) {
+        //
+        //     [
+        //         {
+        //             "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
+        //             "available":0.1,
+        //             "reserved":0.0,
+        //             "timestamp":1644146723620
+        //         }
+        //     ]
+        //
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -655,10 +656,10 @@ module.exports = class lykke2 extends Exchange {
         //     {
         //         "payload":[
         //             {
-        //                 "assetId":"BTCUSD",
-        //                 "available":0.0001,
-        //                 "timestamp":1643345958414,
-        //                 "reserved":0.00001,
+        //                 "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
+        //                 "available":0.1,
+        //                 "reserved":0.0,
+        //                 "timestamp":1644146723620
         //             }
         //         ],
         //         "error":null
@@ -685,43 +686,33 @@ module.exports = class lykke2 extends Exchange {
     parseOrder (order, market = undefined) {
         //
         //     {
-        //         "Id": "string",
-        //         "Status": "Unknown",
-        //         "AssetPairId": "string",
-        //         "Volume": 0,
-        //         "Price": 0,
-        //         "RemainingVolume": 0,
-        //         "LastMatchTime": "2020-03-26T20:58:50.710Z",
-        //         "CreatedAt": "2020-03-26T20:58:50.710Z",
-        //         "Type": "Unknown",
-        //         "LowerLimitPrice": 0,
-        //         "LowerPrice": 0,
-        //         "UpperLimitPrice": 0,
-        //         "UpperPrice": 0
+        //         "id":"1b367978-7e4f-454b-b870-64040d484443",
+        //         "timestamp":1644155923357,
+        //         "lastTradeTimestamp":1644155923357,
+        //         "status":"Matched",
+        //         "assetPairId":"BCHEUR",
+        //         "type":"Market",
+        //         "side":"Sell",
+        //         "price":280.569,
+        //         "volume":0.01,
+        //         "filledVolume":0.01,
+        //         "remainingVolume":0.0,
+        //         "cost":2.80569
         //     }
         //
-        const status = this.parseOrderStatus (this.safeString (order, 'Status'));
-        const marketId = this.safeString (order, 'AssetPairId');
+        const id = this.safeString (order, 'id');
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const marketId = this.safeString (order, 'assetPairId');
         const symbol = this.safeSymbol (marketId, market);
-        const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'LastMatchTime'));
-        let timestamp = undefined;
-        if (('Registered' in order) && (order['Registered'])) {
-            timestamp = this.parse8601 (order['Registered']);
-        } else if (('CreatedAt' in order) && (order['CreatedAt'])) {
-            timestamp = this.parse8601 (order['CreatedAt']);
-        }
-        const price = this.safeString (order, 'Price');
-        let side = undefined;
-        let amount = this.safeString (order, 'Volume');
-        const isAmountLessThanZero = Precise.stringLt (amount, '0');
-        if (isAmountLessThanZero) {
-            side = 'sell';
-            amount = Precise.stringAbs (amount);
-        } else {
-            side = 'buy';
-        }
-        const remaining = Precise.stringAbs (this.safeString (order, 'RemainingVolume'));
-        const id = this.safeString (order, 'Id');
+        const type = this.safeString (order, 'type');
+        const lastTradeTimestamp = this.safeInteger (order, 'lastTradeTimestamp');
+        const timestamp = this.safeInteger (order, 'timestamp');
+        const price = this.safeString (order, 'price');
+        const side = this.safeString (order, 'side');
+        const amount = this.safeString (order, 'volume');
+        const remaining = this.safeString (order, 'remainingVolume');
+        const filled = this.safeString (order, 'filledVolume');
+        const cost = this.safeString (order, 'cost');
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -730,16 +721,16 @@ module.exports = class lykke2 extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
-            'type': undefined,
+            'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
             'price': price,
             'stopPrice': undefined,
-            'cost': undefined,
-            'average': undefined,
             'amount': amount,
-            'filled': undefined,
+            'cost': cost,
+            'average': undefined,
+            'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': undefined,
@@ -747,66 +738,44 @@ module.exports = class lykke2 extends Exchange {
         }, market);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {};
-        let market = undefined;
-        if (limit !== undefined) {
-            request['take'] = limit; // How many maximum items have to be returned, max 1000 default 100.
-        }
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['assetPairId'] = market['id'];
-        }
-        const response = await this.privateGetTrades (this.extend (request, params));
-        return this.parseTrades (response, market, since, limit);
-    }
-
-    async cancelOrder (id, symbol = undefined, params = {}) {
-        const request = { 'id': id };
-        return await this.privateDeleteOrdersId (this.extend (request, params));
-    }
-
-    async cancelAllOrders (symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {};
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['assetPairId'] = market['id'];
-        }
-        return await this.privateDeleteOrders (this.extend (request, params));
-    }
-
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const query = {
-            'AssetPairId': market['id'],
-            'OrderAction': this.capitalize (side),
-            'Volume': amount,
-            'Asset': market['baseId'],
+            'assetPairId': market['id'],
+            'side': this.capitalize (side),
+            'volume': amount,
         };
         if (type === 'limit') {
-            query['Price'] = price;
+            query['price'] = price;
         }
         const method = 'privatePostOrders' + this.capitalize (type);
         const result = await this[method] (this.extend (query, params));
         //
         // market
         //
-        //     {
-        //         "Price": 0
-        //     }
+        //         {
+        //             "payload":{
+        //                 "orderId":"2b98ec26-8410-49b6-9f37-1fb2150e2299",
+        //                 "price":280.699
+        //             },
+        //             "error":null
+        //         }
         //
         // limit
         //
-        //     {
-        //         "Id":"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-        //     }
+        //         {
+        //             "payload":{
+        //                 "orderId":"27be8802-30be-40ca-bf40-ec886b309c5b"
+        //             },
+        //             "error":null
+        //         }
         //
-        const id = this.safeString (result, 'Id');
-        price = this.safeNumber (result, 'Price');
+        const payload = this.safeValue (result, 'payload');
+        const id = this.safeString (payload, 'orderId');
+        if (type === 'market') {
+            price = this.safeNumber (payload, 'price');
+        }
         return {
             'id': id,
             'info': result,
@@ -829,37 +798,168 @@ module.exports = class lykke2 extends Exchange {
         };
     }
 
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        const request = {
+            'OrderId': id,
+        };
+        //
+        //     {
+        //         "payload":null,
+        //         "error":null
+        //     }
+        //
+        return await this.privateDeleteOrdersOrderId (this.extend (request, params));
+    }
+
+    async cancelAllOrders (side, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'side': this.capitalize (side),
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['assetPairId'] = market['id'];
+        }
+        //
+        //     {
+        //         "payload":null,
+        //         "error":null
+        //     }
+        //
+        return await this.privateDeleteOrders (this.extend (request, params));
+    }
+
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            'id': id,
+            'OrderId': id,
         };
         const response = await this.privateGetOrdersOrderId (this.extend (request, params));
-        return this.parseOrder (response);
+        const payload = this.safeValue (response, 'payload');
+        //
+        //     {
+        //         "payload":{
+        //             "id":"1b367978-7e4f-454b-b870-64040d484443",
+        //             "timestamp":1644155923357,
+        //             "lastTradeTimestamp":1644155923357,
+        //             "status":"Matched",
+        //             "assetPairId":"BCHEUR",
+        //             "type":"Market",
+        //             "side":"Sell",
+        //             "price":280.569,
+        //             "volume":0.01,
+        //             "filledVolume":0.01,
+        //             "remainingVolume":0.0,
+        //             "cost":2.80569
+        //         },
+        //         "error":null
+        //     }
+        //
+        return this.parseOrder (payload);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetOrders (params);
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        return this.parseOrders (response, market, since, limit);
-    }
-
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'status': 'InOrderBook',
-        };
-        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+        const request = {};
+        const response = await this.privateGetOrdersActive (this.extend (request, params));
+        const payload = this.safeValue (response, 'payload');
+        //
+        //     {
+        //         "payload":[
+        //             {
+        //                 "id":"b26f58f5-8542-4b4c-9815-91562b523cc3",
+        //                 "timestamp":1644157177155,
+        //                 "lastTradeTimestamp":null,
+        //                 "status":"Placed",
+        //                 "assetPairId":"BCHEUR",
+        //                 "type":"Limit",
+        //                 "side":"Sell",
+        //                 "price":666.666,
+        //                 "volume":0.01,
+        //                 "filledVolume":0.00,
+        //                 "remainingVolume":0.01,
+        //                 "cost":0.00000
+        //             }
+        //         ],
+        //         "error":null
+        //     }
+        //
+        return this.parseOrders (payload, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'status': 'Matched',
-        };
-        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {};
+        const response = await this.privateGetOrdersClosed (this.extend (request, params));
+        const payload = this.safeValue (response, 'payload');
+        //
+        //     {
+        //         "payload":[
+        //             {
+        //                 "id":"1b367978-7e4f-454b-b870-64040d484443",
+        //                 "timestamp":1644155923357,
+        //                 "lastTradeTimestamp":1644155923357,
+        //                 "status":"Matched",
+        //                 "assetPairId":"BCHEUR",
+        //                 "type":"Market",
+        //                 "side":"Sell",
+        //                 "price":280.569,
+        //                 "volume":0.01,
+        //                 "filledVolume":0.01,
+        //                 "remainingVolume":0.0,
+        //                 "cost":2.80569
+        //             }
+        //         ],
+        //         "error":null
+        //     }
+        //
+        return this.parseOrders (payload, market, since, limit);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (limit !== undefined) {
+            request['take'] = limit; // How many maximum items have to be returned, max 1000 default 100.
+        }
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['assetPairId'] = market['id'];
+        }
+        const response = await this.privateGetTrades (this.extend (request, params));
+        const payload = this.safeValue (response, 'payload');
+        //
+        //     {
+        //         "payload":[
+        //             {
+        //                 "id":"813a3ffa-1c4b-45cb-b13f-1c077ea2748b",
+        //                 "timestamp":1644155923357,
+        //                 "assetPairId":"BCHEUR",
+        //                 "orderId":"1b367978-7e4f-454b-b870-64040d484443",
+        //                 "role":"Taker",
+        //                 "side":"sell",
+        //                 "price":280.569,
+        //                 "baseVolume":0.01,
+        //                 "quoteVolume":2.8056,
+        //                 "baseAssetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
+        //                 "quoteAssetId":"EUR",
+        //                 "fee":null
+        //             }
+        //         ],
+        //         "error":null
+        //     }
+        //
+        return this.parseTrades (payload, market, since, limit);
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
@@ -869,6 +969,143 @@ module.exports = class lykke2 extends Exchange {
             amount = -amount;
         }
         return [ price, amount ];
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'AssetId': this.safeString (currency, 'id'),
+        };
+        const response = await this.privateGetOperationsDepositsAddressesAssetId (this.extend (request, params));
+        //
+        //     {
+        //         "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
+        //         "symbol":"BCH",
+        //         "address":null,
+        //         "baseAddress":null,
+        //         "addressExtension":null,
+        //         "state":"Active"
+        //     }
+        //
+        const address = this.safeString (response, 'baseAddress');
+        const tag = this.safeString (response, 'addressExtension');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'network': undefined,
+            'info': response,
+        };
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchDeposits
+        //
+        //
+        //         {
+        //             "operationId":"787201c8-f1cc-45c0-aec1-fa06eeea426b",
+        //             "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
+        //             "totalVolume":0.1,
+        //             "fee":0.0,
+        //             "type":"deposit",
+        //             "timestamp":1644146723620
+        //         }
+        //
+        // fetchWithdrawals
+        //
+        //         {
+        //             "operationId":"787201c8-f1cc-45c0-aec1-fa06eeea426b",
+        //             "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
+        //             "totalVolume":0.1,
+        //             "fee":0.01,
+        //             "type":"withdrawal",
+        //             "timestamp":1644146723620
+        //         }
+        //
+        const code = this.safeCurrencyCode (this.safeString (transaction, 'coin'));
+        const id = this.safeString (transaction, 'operationId');
+        const amount = this.safeNumber (transaction, 'totalVolume');
+        const timestamp = this.safeInteger (transaction, 'timestamp');
+        const fee = this.safeNumber (transaction, 'fee');
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'type': undefined,
+            'amount': amount,
+            'currency': code,
+            'status': undefined,
+            'updated': undefined,
+            'fee': {
+                'currency': code,
+                'cost': fee,
+                'rate': undefined,
+            },
+        };
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetOperations (params);
+        const payload = this.safeValue (response, 'payload', []);
+        //
+        //     {
+        //         "payload":[
+        //             {
+        //                 "operationId":"787201c8-f1cc-45c0-aec1-fa06eeea426b",
+        //                 "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
+        //                 "totalVolume":0.1,
+        //                 "fee":0.0,
+        //                 "type":"deposit",
+        //                 "timestamp":1644146723620
+        //             }
+        //         ],
+        //         "error":null
+        //     }
+        //
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        return this.parseTransactions (payload, currency, since, limit, { 'type': 'deposit' });
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetOperations (params);
+        const payload = this.safeValue (response, 'payload', []);
+        //
+        //     {
+        //         "payload":[
+        //             {
+        //                 "operationId":"787201c8-f1cc-45c0-aec1-fa06eeea426b",
+        //                 "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
+        //                 "totalVolume":0.1,
+        //                 "fee":0.0,
+        //                 "type":"deposit",
+        //                 "timestamp":1644146723620
+        //             }
+        //         ],
+        //         "error":null
+        //     }
+        //
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        return this.parseTransactions (payload, currency, since, limit, { 'type': 'withdrawal' });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -901,37 +1138,6 @@ module.exports = class lykke2 extends Exchange {
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
-    async fetchDepositAddress (code, params = {}) {
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'AssetId': this.safeString (currency, 'id'),
-        };
-        const response = await this.privateGetOperationsDepositsAddressesAssetId (this.extend (request, params));
-        //
-        //     {
-        //         "success": true,
-        //         "result": {
-        //             "address": "0x83a127952d266A6eA306c40Ac62A4a70668FE3BE",
-        //             "tag": null,
-        //             "method": "erc20",
-        //             "coin": null
-        //         }
-        //     }
-        //
-        const result = this.safeValue (response, 'payload', {});
-        const networkId = this.safeString (result, 'method');
-        const address = this.safeString (result, 'address');
-        this.checkAddress (address);
-        return {
-            'currency': code,
-            'address': address,
-            'tag': this.safeString (result, 'tag'),
-            'network': this.safeNetwork (networkId),
-            'info': response,
-        };
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
