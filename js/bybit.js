@@ -1228,8 +1228,8 @@ module.exports = class bybit extends Exchange {
         //         "symbol": "BTCUSD",
         //         "funding_rate": "0.00010000",
         //         "funding_rate_timestamp": 1577433600
-        //          OR for some pairs (ex: BTC/USDT)
-        //         "funding_rate_timestamp":"2022-02-05T08:00:00.000Z"
+        //         // some pairs like BTC/USDT return an iso8601 string in funding_rate_timestamp
+        //         // "funding_rate_timestamp":"2022-02-05T08:00:00.000Z"
         //
         //     },
         //     "ext_info": null,
