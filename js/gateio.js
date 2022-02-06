@@ -2641,7 +2641,7 @@ module.exports = class gateio extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined && (market['spot'] || market['margin'])) {
-            request['start'] = parseInt (since / 1000);
+            request['from'] = parseInt (since / 1000);
         }
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'privateSpotGetOrders',
