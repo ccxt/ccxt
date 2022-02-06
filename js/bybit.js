@@ -1255,7 +1255,7 @@ module.exports = class bybit extends Exchange {
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
             'timestamp': currentTime,
-            'datetime': dateTime,
+            'datetime': this.iso8601 (currentTime),
             'fundingRate': fundingRate,
             'fundingTimestamp': fundingTimestamp,
             'fundingDatetime': this.iso8601 (fundingTimestamp),
