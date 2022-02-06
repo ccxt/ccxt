@@ -1245,7 +1245,7 @@ module.exports = class bybit extends Exchange {
         if (fundingTimestamp === undefined) {
             fundingTimestamp = this.parse8601 (this.safeString (result, 'funding_rate_timestamp'));
         }
-        const nextFundingTime = this.sum (fundingTime, 8 * 3600000);
+        const nextFundingTime = this.sum (fundingTimestamp, 8 * 3600000);
         const currentTime = this.milliseconds ();
         return {
             'info': result,
