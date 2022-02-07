@@ -1230,6 +1230,9 @@ class bybit extends Exchange {
         //         "symbol" => "BTCUSD",
         //         "funding_rate" => "0.00010000",
         //         "funding_rate_timestamp" => 1577433600
+        //         // some pairs like BTC/USDT return an iso8601 string in funding_rate_timestamp
+        //         // "funding_rate_timestamp":"2022-02-05T08:00:00.000Z"
+        //
         //     ),
         //     "ext_info" => null,
         //     "time_now" => "1577445586.446797",
@@ -1240,8 +1243,11 @@ class bybit extends Exchange {
         //
         $result = $this->safe_value($response, 'result');
         $fundingRate = $this->safe_number($result, 'funding_rate');
-        $fundingTime = $this->safe_integer($result, 'funding_rate_timestamp') * 1000;
-        $nextFundingTime = $this->sum($fundingTime, 8 * 3600000);
+        $fundingTimestamp = $this->safe_timestamp($result, 'funding_rate_timestamp');
+        if ($fundingTimestamp === null) {
+            $fundingTimestamp = $this->parse8601($this->safe_string($result, 'funding_rate_timestamp'));
+        }
+        $nextFundingTimestamp = $this->sum($fundingTimestamp, 8 * 3600000);
         $currentTime = $this->milliseconds();
         return array(
             'info' => $result,
@@ -1253,11 +1259,11 @@ class bybit extends Exchange {
             'timestamp' => $currentTime,
             'datetime' => $this->iso8601($currentTime),
             'fundingRate' => $fundingRate,
-            'fundingTimestamp' => $fundingTime,
-            'fundingDatetime' => $this->iso8601($fundingTime),
+            'fundingTimestamp' => $fundingTimestamp,
+            'fundingDatetime' => $this->iso8601($fundingTimestamp),
             'nextFundingRate' => null,
-            'nextFundingTimestamp' => $nextFundingTime,
-            'nextFundingDatetime' => $this->iso8601($nextFundingTime),
+            'nextFundingTimestamp' => $nextFundingTimestamp,
+            'nextFundingDatetime' => $this->iso8601($nextFundingTimestamp),
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,

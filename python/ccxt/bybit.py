@@ -1228,6 +1228,9 @@ class bybit(Exchange):
         #         "symbol": "BTCUSD",
         #         "funding_rate": "0.00010000",
         #         "funding_rate_timestamp": 1577433600
+        #         # some pairs like BTC/USDT return an iso8601 string in funding_rate_timestamp
+        #         # "funding_rate_timestamp":"2022-02-05T08:00:00.000Z"
+        #
         #     },
         #     "ext_info": null,
         #     "time_now": "1577445586.446797",
@@ -1238,8 +1241,10 @@ class bybit(Exchange):
         #
         result = self.safe_value(response, 'result')
         fundingRate = self.safe_number(result, 'funding_rate')
-        fundingTime = self.safe_integer(result, 'funding_rate_timestamp') * 1000
-        nextFundingTime = self.sum(fundingTime, 8 * 3600000)
+        fundingTimestamp = self.safe_timestamp(result, 'funding_rate_timestamp')
+        if fundingTimestamp is None:
+            fundingTimestamp = self.parse8601(self.safe_string(result, 'funding_rate_timestamp'))
+        nextFundingTimestamp = self.sum(fundingTimestamp, 8 * 3600000)
         currentTime = self.milliseconds()
         return {
             'info': result,
@@ -1251,11 +1256,11 @@ class bybit(Exchange):
             'timestamp': currentTime,
             'datetime': self.iso8601(currentTime),
             'fundingRate': fundingRate,
-            'fundingTimestamp': fundingTime,
-            'fundingDatetime': self.iso8601(fundingTime),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': self.iso8601(fundingTimestamp),
             'nextFundingRate': None,
-            'nextFundingTimestamp': nextFundingTime,
-            'nextFundingDatetime': self.iso8601(nextFundingTime),
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
