@@ -944,7 +944,7 @@ module.exports = class hollaex extends Exchange {
         }
         const stopPrice = this.safeFloat2 (params, 'stopPrice', 'stop');
         if (stopPrice !== undefined) {
-            request['stop'] = parseFloat (this.priceToPrecision (symbol, stopPrice));
+            request['stop'] = this.normalizeNumberIfNeeded (parseFloat (this.priceToPrecision (symbol, stopPrice)));
             params = this.omit (params, [ 'stopPrice', 'stop' ]);
         }
         const response = await this.privatePostOrder (this.extend (request, params));
