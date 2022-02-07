@@ -20,7 +20,7 @@ const prop = (o, k) => (isObject (o) ? o[k] : undefined)
 /*  .............................................   */
 
 const asFloat   = x => ((isNumber (x) || isString (x)) ? parseFloat (x)     : NaN)
-    , asInteger = x => ((isNumber (x) || isString (x)) ? parseInt   (x, 10) : NaN)
+    , asInteger = x => ((isNumber (x) || isString (x)) ? Math.round(Number(x)) : NaN)
 
 /*  .............................................   */
 

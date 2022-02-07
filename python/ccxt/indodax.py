@@ -25,25 +25,48 @@ class indodax(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,
-                'swap': None,
-                'future': None,
-                'option': None,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelOrder': True,
                 'createMarketOrder': None,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': None,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': None,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': None,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'version': '2.0',  # as of 9 April 2018
@@ -166,57 +189,55 @@ class indodax(Exchange):
             quoteId = self.safe_string(market, 'base_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            taker = self.safe_number(market, 'trade_fee_percent')
             isMaintenance = self.safe_integer(market, 'is_maintenance')
-            active = False if (isMaintenance) else True
-            pricePrecision = self.safe_integer(market, 'price_round')
-            precision = {
-                'amount': 8,
-                'price': pricePrecision,
-            }
-            limits = {
-                'amount': {
-                    'min': self.safe_number(market, 'trade_min_traded_currency'),
-                    'max': None,
-                },
-                'price': {
-                    'min': self.safe_number(market, 'trade_min_base_currency'),
-                    'max': None,
-                },
-                'cost': {
-                    'min': None,
-                    'max': None,
-                },
-            }
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
                 'margin': False,
                 'future': False,
                 'swap': False,
                 'option': False,
-                'optionType': None,
-                'strike': None,
+                'active': False if isMaintenance else True,
+                'contract': False,
                 'linear': None,
                 'inverse': None,
-                'contract': False,
+                'taker': self.safe_number(market, 'trade_fee_percent'),
                 'contractSize': None,
-                'settle': None,
-                'settleId': None,
                 'expiry': None,
                 'expiryDatetime': None,
-                'active': active,
-                'taker': taker,
+                'strike': None,
+                'optionType': None,
                 'percentage': True,
-                'precision': precision,
-                'limits': limits,
+                'precision': {
+                    'amount': 8,
+                    'price': self.safe_integer(market, 'price_round'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': self.safe_number(market, 'trade_min_traded_currency'),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': self.safe_number(market, 'trade_min_base_currency'),
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
                 'info': market,
             })
         return result
@@ -284,6 +305,47 @@ class indodax(Exchange):
         orderbook = self.publicGetPairDepth(self.extend(request, params))
         return self.parse_order_book(orderbook, symbol, None, 'buy', 'sell')
 
+    def parse_ticker(self, ticker, market=None):
+        #
+        #     {
+        #         "high":"0.01951",
+        #         "low":"0.01877",
+        #         "vol_eth":"39.38839319",
+        #         "vol_btc":"0.75320886",
+        #         "last":"0.01896",
+        #         "buy":"0.01896",
+        #         "sell":"0.019",
+        #         "server_time":1565248908
+        #     }
+        #
+        symbol = self.safe_symbol(None, market)
+        timestamp = self.safe_timestamp(ticker, 'server_time')
+        baseVolume = 'vol_' + market['baseId'].lower()
+        quoteVolume = 'vol_' + market['quoteId'].lower()
+        last = self.safe_string(ticker, 'last')
+        return self.safe_ticker({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'buy'),
+            'bidVolume': None,
+            'ask': self.safe_string(ticker, 'sell'),
+            'askVolume': None,
+            'vwap': None,
+            'open': None,
+            'close': last,
+            'last': last,
+            'previousClose': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': self.safe_string(ticker, baseVolume),
+            'quoteVolume': self.safe_string(ticker, quoteVolume),
+            'info': ticker,
+        }, market, False)
+
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
@@ -305,33 +367,8 @@ class indodax(Exchange):
         #         }
         #     }
         #
-        ticker = response['ticker']
-        timestamp = self.safe_timestamp(ticker, 'server_time')
-        baseVolume = 'vol_' + market['baseId'].lower()
-        quoteVolume = 'vol_' + market['quoteId'].lower()
-        last = self.safe_number(ticker, 'last')
-        return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'buy'),
-            'bidVolume': None,
-            'ask': self.safe_number(ticker, 'sell'),
-            'askVolume': None,
-            'vwap': None,
-            'open': None,
-            'close': last,
-            'last': last,
-            'previousClose': None,
-            'change': None,
-            'percentage': None,
-            'average': None,
-            'baseVolume': self.safe_number(ticker, baseVolume),
-            'quoteVolume': self.safe_number(ticker, quoteVolume),
-            'info': ticker,
-        }
+        ticker = self.safe_value(response, 'ticker', {})
+        return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_timestamp(trade, 'date')

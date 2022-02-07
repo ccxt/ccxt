@@ -68,6 +68,7 @@ class ftx(Exchange):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': True,
@@ -82,7 +83,7 @@ class ftx(Exchange):
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
-                'fetchFundingRates': None,
+                'fetchFundingRates': False,
                 'fetchIndexOHLCV': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
@@ -93,7 +94,9 @@ class ftx(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
+                'fetchPosition': False,
                 'fetchPositions': True,
+                'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -101,8 +104,10 @@ class ftx(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFees': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
                 'setLeverage': True,
                 'setMarginMode': False,  # FTX only supports cross margin
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -602,8 +607,6 @@ class ftx(Exchange):
                     base = '-'.join(parsedId)
                 symbol = base + '/' + quote + ':' + settle + '-' + self.yymmdd(expiry, '')
             # check if a market is a spot or future market
-            sizeIncrement = self.safe_number(market, 'sizeIncrement')
-            priceIncrement = self.safe_number(market, 'priceIncrement')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -620,7 +623,6 @@ class ftx(Exchange):
                 'future': isFuture,
                 'option': option,
                 'active': self.safe_value(market, 'enabled'),
-                'derivative': contract,
                 'contract': contract,
                 'linear': True,
                 'inverse': False,
@@ -630,25 +632,25 @@ class ftx(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': sizeIncrement,
-                    'price': priceIncrement,
+                    'price': self.safe_number(market, 'priceIncrement'),
+                    'amount': self.safe_number(market, 'sizeIncrement'),
                 },
                 'limits': {
+                    'leverage': {
+                        'min': self.parse_number('1'),
+                        'max': self.parse_number('20'),
+                    },
                     'amount': {
-                        'min': sizeIncrement,
+                        'min': None,
                         'max': None,
                     },
                     'price': {
-                        'min': priceIncrement,
+                        'min': None,
                         'max': None,
                     },
                     'cost': {
                         'min': None,
                         'max': None,
-                    },
-                    'leverage': {
-                        'min': self.parse_number('1'),
-                        'max': self.parse_number('20'),
                     },
                 },
                 'info': market,
@@ -1474,6 +1476,12 @@ class ftx(Exchange):
         #
         result = self.safe_value(response, 'result', [])
         return self.parse_order(result, market)
+
+    def create_reduce_only_order(self, symbol, type, side, amount, price=None, params={}):
+        request = {
+            'reduceOnly': True,
+        }
+        return self.create_order(symbol, type, side, amount, price, self.extend(request, params))
 
     def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -2390,6 +2398,10 @@ class ftx(Exchange):
                 'datetime': datetime,
                 'info': item,
             })
+        keys = list(borrowRateHistories.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            borrowRateHistories[key] = self.filter_by_currency_since_limit(borrowRateHistories[key], key, since, limit)
         return borrowRateHistories
 
     def fetch_borrow_rate_history(self, code, since=None, limit=None, params={}):
@@ -2398,4 +2410,4 @@ class ftx(Exchange):
         if borrowRateHistory is None:
             raise BadRequest(self.id + '.fetchBorrowRateHistory returned no data for ' + code)
         else:
-            return self.filter_by_currency_since_limit(borrowRateHistory, code, since, limit)
+            return borrowRateHistory

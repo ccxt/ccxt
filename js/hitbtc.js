@@ -24,22 +24,35 @@ module.exports = class hitbtc extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
-                'swap': undefined,
-                'future': undefined,
-                'option': undefined,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
                 'cancelOrder': true,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': undefined,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrder': true,
@@ -48,12 +61,20 @@ module.exports = class hitbtc extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': undefined,
                 'fetchOrderTrades': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': undefined,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -241,6 +262,7 @@ module.exports = class hitbtc extends Exchange {
                 '2020': InvalidOrder, // "Price not a valid number"
                 '20002': OrderNotFound, // canceling non-existent order
                 '20001': InsufficientFunds, // {"error":{"code":20001,"message":"Insufficient funds","description":"Check that the funds are sufficient, given commissions"}}
+                '20010': BadSymbol, // {"error":{"code":20010,"message":"Exchange temporary closed","description":"Exchange market for this symbol is temporary closed"}}
             },
         });
     }
@@ -273,8 +295,8 @@ module.exports = class hitbtc extends Exchange {
             const quoteId = this.safeString (market, 'quoteCurrency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            let symbol = base + '/' + quote;
             // bequant fix
+            let symbol = base + '/' + quote;
             if (id.indexOf ('_') >= 0) {
                 symbol = id;
             }
@@ -282,30 +304,43 @@ module.exports = class hitbtc extends Exchange {
             const stepString = this.safeString (market, 'tickSize');
             const lot = this.parseNumber (lotString);
             const step = this.parseNumber (stepString);
-            const precision = {
-                'price': step,
-                'amount': lot,
-            };
-            const taker = this.safeNumber (market, 'takeLiquidityRate');
-            const maker = this.safeNumber (market, 'provideLiquidityRate');
             const feeCurrencyId = this.safeString (market, 'feeCurrency');
-            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             result.push (this.extend (this.fees['trading'], {
-                'info': market,
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'active': true,
-                'taker': taker,
-                'maker': maker,
-                'precision': precision,
-                'feeCurrency': feeCurrencyCode,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': this.safeNumber (market, 'takeLiquidityRate'),
+                'maker': this.safeNumber (market, 'provideLiquidityRate'),
+                'feeCurrency': this.safeCurrencyCode (feeCurrencyId),
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': step,
+                    'amount': lot,
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': lot,
                         'max': undefined,
@@ -319,6 +354,7 @@ module.exports = class hitbtc extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': market,
             }));
         }
         return result;

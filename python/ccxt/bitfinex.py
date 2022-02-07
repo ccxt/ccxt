@@ -39,8 +39,8 @@ class bitfinex(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,
-                'swap': None,
+                'margin': None,  # has but unimplemented
+                'swap': None,  # has but unimplemented
                 'future': None,
                 'option': None,
                 'cancelAllOrders': True,
@@ -479,57 +479,55 @@ class bitfinex(Exchange):
                 quoteId = id[3:6]
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            precision = {
-                'price': self.safe_integer(market, 'price_precision'),
-                # https://docs.bitfinex.com/docs/introduction#amount-precision
-                # The amount field allows up to 8 decimals.
-                # Anything exceeding self will be rounded to the 8th decimal.
-                'amount': 8,
-            }
-            minAmountString = self.safe_string(market, 'minimum_order_size')
-            maxAmountString = self.safe_string(market, 'maximum_order_size')
-            limits = {
-                'amount': {
-                    'min': self.parse_number(minAmountString),
-                    'max': self.parse_number(maxAmountString),
-                },
-                'price': {
-                    'min': self.parse_number('1e-8'),
-                    'max': None,
-                },
-            }
-            limits['cost'] = {
-                'min': None,
-                'max': None,
-            }
-            margin = self.safe_value(market, 'margin')
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': True,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'margin': margin,
+                'margin': self.safe_value(market, 'margin'),
                 'future': False,
                 'swap': False,
                 'option': False,
-                'optionType': None,
-                'strike': None,
+                'active': True,
+                'contract': False,
                 'linear': None,
                 'inverse': None,
-                'contract': False,
                 'contractSize': None,
-                'settle': None,
-                'settleId': None,
                 'expiry': None,
                 'expiryDatetime': None,
-                'precision': precision,
-                'limits': limits,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': self.safe_integer(market, 'price_precision'),
+                    # https://docs.bitfinex.com/docs/introduction#amount-precision
+                    # The amount field allows up to 8 decimals.
+                    # Anything exceeding self will be rounded to the 8th decimal.
+                    'amount': self.parse_number('8'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': self.safe_number(market, 'minimum_order_size'),
+                        'max': self.safe_number(market, 'maximum_order_size'),
+                    },
+                    'price': {
+                        'min': self.parse_number('1e-8'),
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': self.safe_number(market, 'minimum_margin'),
+                        'max': None,
+                    },
+                },
                 'info': market,
             })
         return result

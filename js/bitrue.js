@@ -22,35 +22,32 @@ module.exports = class bitrue extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
-                'swap': undefined,
+                'margin': false,
+                'swap': undefined, // has but unimplemented
                 'future': undefined,
-                'option': undefined,
+                'option': false,
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': true,
                 'fetchFundingFees': false,
-                'fetchFundingHistory': false,
-                'fetchFundingRate': false,
-                'fetchFundingRateHistory': false,
-                'fetchFundingRates': false,
-                'fetchIndexOHLCV': false,
                 'fetchMarkets': true,
-                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': 'emulated',
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
-                'fetchPositions': false,
-                'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -61,8 +58,6 @@ module.exports = class bitrue extends Exchange {
                 'fetchTransactions': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': true,
-                'setLeverage': false,
-                'setMarginMode': false,
                 'transfer': false,
                 'withdraw': true,
             },
@@ -147,8 +142,8 @@ module.exports = class bitrue extends Exchange {
                     'feeSide': 'get',
                     'tierBased': false,
                     'percentage': true,
-                    'taker': this.parseNumber ('0.0098'),
-                    'maker': this.parseNumber ('0.0098'),
+                    'taker': this.parseNumber ('0.00098'),
+                    'maker': this.parseNumber ('0.00098'),
                 },
                 'future': {
                     'trading': {
@@ -224,6 +219,7 @@ module.exports = class bitrue extends Exchange {
             // exchange-specific options
             'options': {
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
+                'fetchMyTradesMethod': 'v2PrivateGetMyTrades', // v1PrivateGetMyTrades
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'recvWindow': 5 * 1000, // 5 sec, binance default
                 'timeDifference': 0, // the difference between system clock and Binance clock
@@ -935,7 +931,7 @@ module.exports = class bitrue extends Exchange {
         if ('commission' in trade) {
             fee = {
                 'cost': this.safeString (trade, 'commission'),
-                'currency': this.safeCurrencyCode (this.safeString (trade, 'commissionAsset')),
+                'currency': this.safeCurrencyCode (this.safeString (trade, 'commissionAssert')),
             };
         }
         let takerOrMaker = undefined;
@@ -1305,6 +1301,10 @@ module.exports = class bitrue extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const method = this.safeString (this.options, 'fetchMyTradesMethod', 'v2PrivateGetMyTrades');
+        if ((symbol === undefined) && (method === 'v2PrivateGetMyTrades')) {
+            throw new ArgumentsRequired (this.id + ' v2PrivateGetMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const request = {
             // 'symbol': market['id'],
@@ -1324,7 +1324,7 @@ module.exports = class bitrue extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v1PrivateGetMyTrades (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     [
         //         {

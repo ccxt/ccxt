@@ -21,9 +21,9 @@ module.exports = class coinbasepro extends Exchange {
             'has': {
                 'CORS': true,
                 'spot': true,
-                'margin': undefined,
-                'swap': undefined,
-                'future': undefined,
+                'margin': undefined, // has but not fully inplemented
+                'swap': undefined, // has but not fully inplemented
+                'future': undefined, // has but not fully inplemented
                 'option': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
@@ -312,48 +312,48 @@ module.exports = class coinbasepro extends Exchange {
             const quoteId = this.safeString (market, 'quote_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const priceLimits = {
-                'min': this.safeNumber (market, 'quote_increment'),
-                'max': undefined,
-            };
-            const precision = {
-                'amount': this.safeNumber (market, 'base_increment'),
-                'price': this.safeNumber (market, 'quote_increment'),
-            };
             const status = this.safeString (market, 'status');
-            const active = (status === 'online');
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
-                'symbol': symbol,
-                'baseId': baseId,
-                'quoteId': quoteId,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': false,
-                'future': false,
+                'margin': this.safeValue (market, 'margin_enabled'),
                 'swap': false,
+                'future': false,
                 'option': false,
-                'optionType': undefined,
-                'strike': undefined,
+                'active': (status === 'online'),
+                'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'contract': false,
                 'contractSize': undefined,
-                'settle': undefined,
-                'settleId': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
-                'active': active,
-                'precision': precision,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': this.safeNumber (market, 'quote_increment'),
+                    'amount': this.safeNumber (market, 'base_increment'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'base_min_size'),
                         'max': this.safeNumber (market, 'base_max_size'),
                     },
-                    'price': priceLimits,
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'cost': {
                         'min': this.safeNumber (market, 'min_market_funds'),
                         'max': this.safeNumber (market, 'max_market_funds'),

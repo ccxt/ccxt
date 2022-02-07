@@ -43,7 +43,7 @@ class huobi extends Exchange {
                 'cancelOrders' => true,
                 'createDepositAddress' => null,
                 'createOrder' => true,
-                'createReduceOnlyOrder' => null,
+                'createReduceOnlyOrder' => false,
                 'deposit' => null,
                 'fetchAccounts' => true,
                 'fetchAllTradingFees' => null,
@@ -68,13 +68,13 @@ class huobi extends Exchange {
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
-                'fetchFundingRates' => null,
+                'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => true,
-                'fetchIsolatedPositions' => null,
+                'fetchIsolatedPositions' => false,
                 'fetchL3OrderBook' => null,
-                'fetchLedger' => null,
+                'fetchLedger' => true,
                 'fetchLedgerEntry' => null,
-                'fetchLeverage' => null,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMyBuys' => null,
@@ -90,7 +90,7 @@ class huobi extends Exchange {
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
                 'fetchPositions' => true,
-                'fetchPositionsRisk' => null,
+                'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => true,
                 'fetchStatus' => null,
                 'fetchTicker' => true,
@@ -109,8 +109,8 @@ class huobi extends Exchange {
                 'loadLeverageBrackets' => null,
                 'reduceMargin' => null,
                 'setLeverage' => true,
-                'setMarginMode' => null,
-                'setPositionMode' => null,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'signIn' => null,
                 'transfer' => true,
                 'withdraw' => true,
@@ -151,10 +151,10 @@ class huobi extends Exchange {
                     'v2Private' => 'https://{hostname}',
                 ),
                 'www' => 'https://www.huobi.com',
-                // 'referral' => array(
-                //     'url' => 'https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223',
-                //     'discount' => 0.15,
-                // ),
+                'referral' => array(
+                    'url' => 'https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223',
+                    'discount' => 0.15,
+                ),
                 'doc' => array(
                     'https://huobiapi.github.io/docs/spot/v1/cn/',
                     'https://huobiapi.github.io/docs/dm/v1/cn/',
@@ -763,7 +763,13 @@ class huobi extends Exchange {
                 'exact' => array(
                     // err-code
                     '1017' => '\\ccxt\\OrderNotFound', // array("status":"error","err_code":1017,"err_msg":"Order doesnt exist.","ts":1640550859242)
+                    '1034' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1034,"err_msg":"Incorrect field of order price type.","ts":1643802870182)
+                    '1036' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1036,"err_msg":"Incorrect field of open long form.","ts":1643802518986)
+                    '1039' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1039,"err_msg":"Buy price must be lower than 39270.9USDT. Sell price must exceed 37731USDT.","ts":1643802374403)
+                    '1041' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1041,"err_msg":"The order amount exceeds the limit (170000Cont), please modify and order again.","ts":1643802784940)
+                    '1047' => '\\ccxt\\InsufficientFunds', // array("status":"error","err_code":1047,"err_msg":"Insufficient margin available.","ts":1643802672652)
                     '1066' => '\\ccxt\\BadSymbol', // array("status":"error","err_code":1066,"err_msg":"The symbol field cannot be empty. Please re-enter.","ts":1640550819147)
+                    '1067' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1067,"err_msg":"The client_order_id field is invalid. Please re-enter.","ts":1643802119413)
                     '1013' => '\\ccxt\\BadSymbol', // array("status":"error","err_code":1013,"err_msg":"This contract symbol doesnt exist.","ts":1640550459583)
                     '1094' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1094,"err_msg":"The leverage cannot be empty, please switch the leverage or contact customer service","ts":1640496946243)
                     'bad-request' => '\\ccxt\\BadRequest',
@@ -1091,12 +1097,12 @@ class huobi extends Exchange {
         //             array(
         //                 "base-currency":"xrp3s",
         //                 "quote-currency":"usdt",
-        //                 "price-$precision":4,
-        //                 "amount-$precision":4,
+        //                 "price-precision":4,
+        //                 "amount-precision":4,
         //                 "symbol-partition":"innovation",
         //                 "symbol":"xrp3susdt",
         //                 "state":"online",
-        //                 "value-$precision":8,
+        //                 "value-precision":8,
         //                 "min-order-amt":0.01,
         //                 "max-order-amt":1616.4353,
         //                 "min-order-value":5,
@@ -1252,18 +1258,13 @@ class huobi extends Exchange {
                 $pricePrecision = $this->safe_number($market, 'price_tick');
                 $amountPrecision = 1;
             }
-            $precision = array(
-                'amount' => $amountPrecision,
-                'price' => $pricePrecision,
-                'cost' => $costPrecision,
-            );
             $maker = null;
             $taker = null;
             if ($spot) {
                 $maker = ($base === 'OMG') ? 0 : 0.2 / 100;
                 $taker = ($base === 'OMG') ? 0 : 0.2 / 100;
             }
-            $minAmount = $this->safe_number($market, 'min-order-amt', pow(10, -$precision['amount']));
+            $minAmount = $this->safe_number($market, 'min-order-amt');
             $maxAmount = $this->safe_number($market, 'max-order-amt');
             $minCost = $this->safe_number($market, 'min-order-value', 0);
             $active = null;
@@ -1274,6 +1275,9 @@ class huobi extends Exchange {
                 $contractStatus = $this->safe_integer($market, 'contract_status');
                 $active = ($contractStatus === 1);
             }
+            $leverageRatio = $this->safe_string($market, 'leverage-ratio', '1');
+            $superLeverageRatio = $this->safe_string($market, 'super-margin-leverage-ratio', '1');
+            $hasLeverage = Precise::string_gt($leverageRatio, '1') || Precise::string_gt($superLeverageRatio, '1');
             // 0 Delisting
             // 1 Listing
             // 2 Pending Listing
@@ -1294,35 +1298,44 @@ class huobi extends Exchange {
                 'quoteId' => $quoteId,
                 'settleId' => $settleId,
                 'type' => $type,
-                'contract' => $contract,
                 'spot' => $spot,
-                'future' => $future,
+                'margin' => ($spot && $hasLeverage),
                 'swap' => $swap,
+                'future' => $future,
+                'option' => false,
+                'active' => $active,
+                'contract' => $contract,
                 'linear' => $linear,
                 'inverse' => $inverse,
-                'expiry' => $expiry,
-                'expiryDatetime' => $this->iso8601($expiry),
-                'contractSize' => $contractSize,
-                'active' => $active,
-                'precision' => $precision,
                 'taker' => $taker,
                 'maker' => $maker,
+                'contractSize' => $contractSize,
+                'expiry' => $expiry,
+                'expiryDatetime' => $this->iso8601($expiry),
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $amountPrecision,
+                    'price' => $pricePrecision,
+                    'cost' => $costPrecision,
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => $this->parse_number('1'),
+                        'max' => $this->parse_number($leverageRatio),
+                        'superMax' => $this->parse_number($superLeverageRatio),
+                    ),
                     'amount' => array(
                         'min' => $minAmount,
                         'max' => $maxAmount,
                     ),
                     'price' => array(
-                        'min' => $pricePrecision,
+                        'min' => null,
                         'max' => null,
                     ),
                     'cost' => array(
                         'min' => $minCost,
                         'max' => null,
-                    ),
-                    'leverage' => array(
-                        'max' => $this->safe_number($market, 'leverage-ratio', 1),
-                        'superMax' => $this->safe_number($market, 'super-margin-leverage-ratio', 1),
                     ),
                 ),
                 'info' => $market,
@@ -1767,8 +1780,11 @@ class huobi extends Exchange {
         $filledPoints = $this->safe_string($trade, 'filled-points');
         if ($filledPoints !== null) {
             if (($feeCost === null) || Precise::string_equals($feeCost, '0')) {
-                $feeCost = $filledPoints;
-                $feeCurrency = $this->safe_currency_code($this->safe_string($trade, 'fee-deduct-currency'));
+                $feeDeductCurrency = $this->safe_string($trade, 'fee-deduct-currency');
+                if ($feeDeductCurrency !== '') {
+                    $feeCost = $filledPoints;
+                    $feeCurrency = $this->safe_currency_code($feeDeductCurrency);
+                }
             }
         }
         if ($feeCost !== null) {
@@ -3070,6 +3086,7 @@ class huobi extends Exchange {
             'filled' => 'closed',
             'canceled' => 'canceled',
             'submitted' => 'open',
+            'created' => 'open',  // For stop orders
             // contract
             '1' => 'open',
             '2' => 'open',
@@ -4489,6 +4506,44 @@ class huobi extends Exchange {
         return $this->parse_funding_rate($result, $market);
     }
 
+    public function fetch_funding_rates($symbols, $params = array ()) {
+        $this->load_markets();
+        $options = $this->safe_value($this->options, 'fetchFundingRates', array());
+        $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
+        $subType = $this->safe_string($options, 'subType', $defaultSubType);
+        $subType = $this->safe_string($params, 'subType', $subType);
+        $request = array(
+            // 'contract_code' => market['id'],
+        );
+        $method = $this->get_supported_mapping($subType, array(
+            'linear' => 'contractPublicGetLinearSwapApiV1SwapBatchFundingRate',
+            'inverse' => 'contractPublicGetSwapApiV1SwapBatchFundingRate',
+        ));
+        $params = $this->omit($params, 'subType');
+        $response = $this->$method (array_merge($request, $params));
+        //
+        //     {
+        //         "status" => "ok",
+        //         "data" => array(
+        //             array(
+        //                 "estimated_rate" => "0.000100000000000000",
+        //                 "funding_rate" => "0.000100000000000000",
+        //                 "contract_code" => "MANA-USDT",
+        //                 "symbol" => "MANA",
+        //                 "fee_asset" => "USDT",
+        //                 "funding_time" => "1643356800000",
+        //                 "next_funding_time" => "1643385600000",
+        //                 "trade_partition":"USDT"
+        //             ),
+        //         ),
+        //         "ts" => 1643346173103
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $result = $this->parse_funding_rates($data);
+        return $this->filter_by_array($result, 'symbol', $symbols);
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/';
         $query = $this->omit($params, $this->extract_params($path));
@@ -5150,5 +5205,129 @@ class huobi extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         ));
+    }
+
+    public function parse_ledger_entry_type($type) {
+        $types = array(
+            'trade' => 'trade',
+            'etf' => 'trade',
+            'transact-fee' => 'fee',
+            'fee-deduction' => 'fee',
+            'transfer' => 'transfer',
+            'credit' => 'credit',
+            'liquidation' => 'trade',
+            'interest' => 'credit',
+            'deposit' => 'deposit',
+            'withdraw' => 'withdrawal',
+            'withdraw-fee' => 'fee',
+            'exchange' => 'exchange',
+            'other-types' => 'transfer',
+            'rebate' => 'rebate',
+        );
+        return $this->safe_string($types, $type, $type);
+    }
+
+    public function parse_ledger_entry($item, $currency = null) {
+        //
+        //     {
+        //         "accountId" => 10000001,
+        //         "currency" => "usdt",
+        //         "transactAmt" => 10.000000000000000000,
+        //         "transactType" => "transfer",
+        //         "transferType" => "margin-transfer-out",
+        //         "transactId" => 0,
+        //         "transactTime" => 1629882331066,
+        //         "transferer" => 28483123,
+        //         "transferee" => 13496526
+        //     }
+        //
+        $id = $this->safe_string($item, 'transactId');
+        $currencyId = $this->safe_string($item, 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $amount = $this->safe_number($item, 'transactAmt');
+        $transferType = $this->safe_string($item, 'transferType');
+        $type = $this->parse_ledger_entry_type($transferType);
+        $direction = $this->safe_string($item, 'direction');
+        $timestamp = $this->safe_integer($item, 'transactTime');
+        $datetime = $this->iso8601($timestamp);
+        $account = $this->safe_string($item, 'accountId');
+        return array(
+            'id' => $id,
+            'direction' => $direction,
+            'account' => $account,
+            'referenceId' => $id,
+            'referenceAccount' => $account,
+            'type' => $type,
+            'currency' => $code,
+            'amount' => $amount,
+            'timestamp' => $timestamp,
+            'datetime' => $datetime,
+            'before' => null,
+            'after' => null,
+            'status' => null,
+            'fee' => null,
+            'info' => $item,
+        );
+    }
+
+    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $accountId = $this->fetch_account_id_by_type('spot', $params);
+        $request = array(
+            'accountId' => $accountId,
+            // 'currency' => $code,
+            // 'transactTypes' => 'all', // default all
+            // 'startTime' => 1546272000000,
+            // 'endTime' => 1546272000000,
+            // 'sort' => asc, // asc, desc
+            // 'limit' => 100, // range 1-500
+            // 'fromId' => 323 // first record ID in this query for pagination
+        );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // max 500
+        }
+        $response = $this->spotPrivateGetV2AccountLedger (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 200,
+        //         "message" => "success",
+        //         "data" => array(
+        //             array(
+        //                 "accountId" => 10000001,
+        //                 "currency" => "usdt",
+        //                 "transactAmt" => 10.000000000000000000,
+        //                 "transactType" => "transfer",
+        //                 "transferType" => "margin-transfer-out",
+        //                 "transactId" => 0,
+        //                 "transactTime" => 1629882331066,
+        //                 "transferer" => 28483123,
+        //                 "transferee" => 13496526
+        //             ),
+        //             {
+        //                 "accountId" => 10000001,
+        //                 "currency" => "usdt",
+        //                 "transactAmt" => -10.000000000000000000,
+        //                 "transactType" => "transfer",
+        //                 "transferType" => "margin-transfer-in",
+        //                 "transactId" => 0,
+        //                 "transactTime" => 1629882096562,
+        //                 "transferer" => 13496526,
+        //                 "transferee" => 28483123
+        //             }
+        //         ),
+        //         "nextId" => 1624316679,
+        //         "ok" => true
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_ledger($data, $currency, $since, $limit);
     }
 }

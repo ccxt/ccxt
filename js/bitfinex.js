@@ -23,8 +23,8 @@ module.exports = class bitfinex extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
-                'swap': undefined,
+                'margin': undefined, // has but unimplemented
+                'swap': undefined, // has but unimplemented
                 'future': undefined,
                 'option': undefined,
                 'cancelAllOrders': true,
@@ -469,57 +469,55 @@ module.exports = class bitfinex extends Exchange {
             }
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const precision = {
-                'price': this.safeInteger (market, 'price_precision'),
-                // https://docs.bitfinex.com/docs/introduction#amount-precision
-                // The amount field allows up to 8 decimals.
-                // Anything exceeding this will be rounded to the 8th decimal.
-                'amount': 8,
-            };
-            const minAmountString = this.safeString (market, 'minimum_order_size');
-            const maxAmountString = this.safeString (market, 'maximum_order_size');
-            const limits = {
-                'amount': {
-                    'min': this.parseNumber (minAmountString),
-                    'max': this.parseNumber (maxAmountString),
-                },
-                'price': {
-                    'min': this.parseNumber ('1e-8'),
-                    'max': undefined,
-                },
-            };
-            limits['cost'] = {
-                'min': undefined,
-                'max': undefined,
-            };
-            const margin = this.safeValue (market, 'margin');
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': true,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': margin,
+                'margin': this.safeValue (market, 'margin'),
                 'future': false,
                 'swap': false,
                 'option': false,
-                'optionType': undefined,
-                'strike': undefined,
+                'active': true,
+                'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'contract': false,
                 'contractSize': undefined,
-                'settle': undefined,
-                'settleId': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
-                'precision': precision,
-                'limits': limits,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': this.safeInteger (market, 'price_precision'),
+                    // https://docs.bitfinex.com/docs/introduction#amount-precision
+                    // The amount field allows up to 8 decimals.
+                    // Anything exceeding this will be rounded to the 8th decimal.
+                    'amount': this.parseNumber ('8'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (market, 'minimum_order_size'),
+                        'max': this.safeNumber (market, 'maximum_order_size'),
+                    },
+                    'price': {
+                        'min': this.parseNumber ('1e-8'),
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'minimum_margin'),
+                        'max': undefined,
+                    },
+                },
                 'info': market,
             });
         }

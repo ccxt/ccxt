@@ -23,15 +23,20 @@ class bitget extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null,
-                'swap' => null,
-                'future' => null,
-                'option' => null,
+                'margin' => false,
+                'swap' => null, // has but unimplemented
+                'future' => null, // has but unimplemented
+                'option' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDeposits' => true,
@@ -693,6 +698,9 @@ class bitget extends Exchange {
                 ),
             ),
             'precisionMode' => TICK_SIZE,
+            'commonCurrencies' => array(
+                'JADE' => 'Jade Protocol',
+            ),
             'options' => array(
                 'createMarketBuyOrderRequiresPrice' => true,
                 'fetchMarkets' => array(
@@ -1104,7 +1112,6 @@ class bitget extends Exchange {
         }
         $baseVolume = $this->safe_string_2($ticker, 'amount', 'volume_24h');
         $quoteVolume = $this->safe_string($ticker, 'vol');
-        $vwap = $this->vwap($baseVolume, $quoteVolume);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -1115,7 +1122,7 @@ class bitget extends Exchange {
             'bidVolume' => $bidVolume,
             'ask' => $ask,
             'askVolume' => $askVolume,
-            'vwap' => $vwap,
+            'vwap' => null,
             'open' => $open,
             'close' => $last,
             'last' => $last,

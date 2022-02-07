@@ -21,8 +21,8 @@ class bw extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null,
-                'swap' => null,
+                'margin' => null, // has but unimplemented
+                'swap' => null, // has but unimplemented
                 'future' => null,
                 'option' => null,
                 'cancelAllOrders' => null,

@@ -23,23 +23,46 @@ class itbit(Exchange):
             'has': {
                 'CORS': True,
                 'spot': True,
-                'margin': None,
-                'swap': None,
-                'future': None,
-                'option': None,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelOrder': True,
                 'createMarketOrder': None,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
                 'fetchTransactions': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg',
@@ -111,34 +134,49 @@ class itbit(Exchange):
         orderbook = self.publicGetMarketsSymbolOrderBook(self.extend(request, params))
         return self.parse_order_book(orderbook, symbol)
 
-    def fetch_ticker(self, symbol, params={}):
-        self.load_markets()
-        request = {
-            'symbol': self.market_id(symbol),
-        }
-        ticker = self.publicGetMarketsSymbolTicker(self.extend(request, params))
+    def parse_ticker(self, ticker, market=None):
+        #
+        # {
+        #     "pair":"XBTUSD",
+        #     "bid":"36734.50",
+        #     "bidAmt":"0.01000000",
+        #     "ask":"36734.75",
+        #     "askAmt":"0.30750480",
+        #     "lastPrice":"36721.75",
+        #     "lastAmt":"0.00070461",
+        #     "volume24h":"275.50596346",
+        #     "volumeToday":"118.19025141",
+        #     "high24h":"37510.50",
+        #     "low24h":"35542.75",
+        #     "highToday":"37510.50",
+        #     "lowToday":"36176.50",
+        #     "openToday":"37156.50",
+        #     "vwapToday":"37008.22463903",
+        #     "vwap24h":"36580.27146808",
+        #     "serverTimeUTC":"2022-01-28T14:46:32.4472864Z"
+        # }
+        #
+        symbol = self.safe_symbol(None, market)
         serverTimeUTC = self.safe_string(ticker, 'serverTimeUTC')
         if not serverTimeUTC:
             raise ExchangeError(self.id + ' fetchTicker returned a bad response: ' + self.json(ticker))
         timestamp = self.parse8601(serverTimeUTC)
-        vwap = self.safe_number(ticker, 'vwap24h')
-        baseVolume = self.safe_number(ticker, 'volume24h')
-        quoteVolume = None
-        if baseVolume is not None and vwap is not None:
-            quoteVolume = baseVolume * vwap
-        last = self.safe_number(ticker, 'lastPrice')
-        return {
+        vwap = self.safe_string(ticker, 'vwap24h')
+        baseVolume = self.safe_string(ticker, 'volume24h')
+        quoteVolume = Precise.string_mul(baseVolume, vwap)
+        last = self.safe_string(ticker, 'lastPrice')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high24h'),
-            'low': self.safe_number(ticker, 'low24h'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'high24h'),
+            'low': self.safe_string(ticker, 'low24h'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
-            'open': self.safe_number(ticker, 'openToday'),
+            'open': self.safe_string(ticker, 'openToday'),
             'close': last,
             'last': last,
             'previousClose': None,
@@ -148,7 +186,37 @@ class itbit(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
+        }, market, False)
+
+    def fetch_ticker(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
         }
+        ticker = self.publicGetMarketsSymbolTicker(self.extend(request, params))
+        #
+        # {
+        #     "pair":"XBTUSD",
+        #     "bid":"36734.50",
+        #     "bidAmt":"0.01000000",
+        #     "ask":"36734.75",
+        #     "askAmt":"0.30750480",
+        #     "lastPrice":"36721.75",
+        #     "lastAmt":"0.00070461",
+        #     "volume24h":"275.50596346",
+        #     "volumeToday":"118.19025141",
+        #     "high24h":"37510.50",
+        #     "low24h":"35542.75",
+        #     "highToday":"37510.50",
+        #     "lowToday":"36176.50",
+        #     "openToday":"37156.50",
+        #     "vwapToday":"37008.22463903",
+        #     "vwap24h":"36580.27146808",
+        #     "serverTimeUTC":"2022-01-28T14:46:32.4472864Z"
+        # }
+        #
+        return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
         #

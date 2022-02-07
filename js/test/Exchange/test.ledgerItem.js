@@ -21,7 +21,7 @@ module.exports = (exchange, item, code, now) => {
     assert ('type' in item)
     // expect (item.type).to.be.oneOf (['trade', 'transaction', 'margin', 'cashback', 'referral', 'transfer', 'fee', /* TODO: add more types here */ ])
     assert ('currency' in item)
-    assert (item['currency'] in exchange.currecies)
+    assert (item['currency'] in exchange.currencies)
     assert ('amount' in item)
     assert ((item['amount'] === undefined) || (typeof item['amount'] === 'number'))
     assert ('before' in item)

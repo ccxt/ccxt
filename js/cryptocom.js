@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported } = require ('./base/errors');
+const { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 module.exports = class cryptocom extends Exchange {
@@ -17,9 +17,9 @@ module.exports = class cryptocom extends Exchange {
             'has': {
                 'CORS': false,
                 'spot': true,
-                'margin': undefined,
-                'swap': undefined,
-                'future': undefined,
+                'margin': undefined, // has but not fully implemented
+                'swap': undefined, // has but not fully implemented
+                'future': undefined, // has but not fully implemented
                 'option': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
@@ -234,6 +234,7 @@ module.exports = class cryptocom extends Exchange {
                     '10009': BadRequest,
                     '20001': BadRequest,
                     '20002': InsufficientFunds,
+                    '20005': AccountNotEnabled, // {"id":"123xxx","method":"private/margin/xxx","code":"20005","message":"ACCOUNT_NOT_FOUND"}
                     '30003': BadSymbol,
                     '30004': BadRequest,
                     '30005': BadRequest,
@@ -300,61 +301,56 @@ module.exports = class cryptocom extends Exchange {
             const quoteId = this.safeString (market, 'quote_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
             const priceDecimals = this.safeString (market, 'price_decimals');
             const minPrice = this.parsePrecision (priceDecimals);
-            const precision = {
-                'amount': this.safeInteger (market, 'quantity_decimals'),
-                'price': parseInt (priceDecimals),
-            };
             const minQuantity = this.safeString (market, 'min_quantity');
-            const minCost = this.parseNumber (Precise.stringMul (minQuantity, minPrice));
-            const maxQuantity = this.safeNumber (market, 'max_quantity');
-            const margin = this.safeValue (market, 'margin_trading_enabled');
             result.push ({
-                'info': market,
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'linear': undefined,
-                'inverse': undefined,
-                'settle': undefined,
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': margin,
-                'future': false,
+                'margin': this.safeValue (market, 'margin_trading_enabled'),
                 'swap': false,
+                'future': false,
                 'option': false,
-                'optionType': undefined,
-                'strike': undefined,
+                'active': undefined,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
-                'contract': false,
-                'contractSize': undefined,
-                'active': undefined,
-                'precision': precision,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': parseInt (priceDecimals),
+                    'amount': this.safeInteger (market, 'quantity_decimals'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.parseNumber (minQuantity),
-                        'max': maxQuantity,
+                        'max': this.safeNumber (market, 'max_quantity'),
                     },
                     'price': {
                         'min': this.parseNumber (minPrice),
                         'max': undefined,
                     },
                     'cost': {
-                        'min': minCost,
-                        'max': undefined,
-                    },
-                    'leverage': {
-                        'min': undefined,
+                        'min': this.parseNumber (Precise.stringMul (minQuantity, minPrice)),
                         'max': undefined,
                     },
                 },
+                'info': market,
             });
         }
         const futuresResponse = await this.derivativesPublicGetPublicGetInstruments ();
@@ -410,41 +406,39 @@ module.exports = class cryptocom extends Exchange {
                 symbol = symbol + '-' + this.yymmdd (expiry);
             }
             const contractSize = this.safeNumber (market, 'contract_size');
-            const marketId = this.safeString (market, 'symbol');
-            const maxLeverage = this.safeNumber (market, 'max_leverage');
-            const active = this.safeValue (market, 'tradable');
-            const pricePrecision = this.safeInteger (market, 'quote_decimals');
-            const amountPrecision = this.safeInteger (market, 'quantity_decimals');
             result.push ({
-                'info': market,
-                'id': marketId,
+                'id': this.safeString (market, 'symbol'),
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'linear': true,
-                'inverse': false,
-                'settle': quote,
                 'settleId': quoteId,
                 'type': type,
                 'spot': false,
                 'margin': false,
-                'future': future,
                 'swap': swap,
+                'future': future,
                 'option': false,
-                'optionType': undefined,
-                'strike': undefined,
+                'active': this.safeValue (market, 'tradable'),
+                'contract': true,
+                'linear': true,
+                'inverse': false,
+                'contractSize': contractSize,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
-                'contract': true,
-                'contractSize': contractSize,
-                'active': active,
+                'strike': undefined,
+                'optionType': undefined,
                 'precision': {
-                    'price': pricePrecision,
-                    'amount': amountPrecision,
+                    'price': this.safeInteger (market, 'quote_decimals'),
+                    'amount': this.safeInteger (market, 'quantity_decimals'),
                 },
                 'limits': {
+                    'leverage': {
+                        'min': this.parseNumber ('1'),
+                        'max': this.safeNumber (market, 'max_leverage'),
+                    },
                     'amount': {
                         'min': this.parseNumber (contractSize),
                         'max': undefined,
@@ -457,11 +451,8 @@ module.exports = class cryptocom extends Exchange {
                         'min': undefined,
                         'max': undefined,
                     },
-                    'leverage': {
-                        'min': undefined,
-                        'max': maxLeverage,
-                    },
                 },
+                'info': market,
             });
         }
         return result;
@@ -909,7 +900,7 @@ module.exports = class cryptocom extends Exchange {
             request['exec_inst'] = 'POST_ONLY';
             params = this.omit (params, [ 'postOnly' ]);
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateCreateOrder',
             'future': 'derivativesPrivatePostPrivateCreateOrder',
@@ -1493,8 +1484,12 @@ module.exports = class cryptocom extends Exchange {
         const takerOrMaker = this.safeStringLower2 (trade, 'liquidity_indicator', 'taker_side');
         const order = this.safeString (trade, 'order_id');
         let fee = undefined;
-        const feeCost = Precise.stringNeg (this.safeString2 (trade, 'fee', 'fees'));
+        let feeCost = this.safeString2 (trade, 'fee', 'fees');
         if (feeCost !== undefined) {
+            const contract = this.safeValue (market, 'contract', false);
+            if (contract) {
+                feeCost = Precise.stringNeg (feeCost);
+            }
             let feeCurrency = undefined;
             if (market['spot']) {
                 feeCurrency = this.safeString (trade, 'fee_currency');

@@ -27,14 +27,14 @@ module.exports = class aax extends Exchange {
                 'margin': false,
                 'swap': true,
                 'future': false,
-                'option': undefined,
+                'option': false,
                 'addMargin': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': undefined,
                 'createDepositAddress': undefined,
                 'createOrder': true,
-                'createReduceOnlyOrder': undefined,
+                'createReduceOnlyOrder': false,
                 'deposit': undefined,
                 'editOrder': true,
                 'fetchAccounts': undefined,
@@ -42,6 +42,7 @@ module.exports = class aax extends Exchange {
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
                 'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
@@ -59,7 +60,7 @@ module.exports = class aax extends Exchange {
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': undefined,
+                'fetchFundingRates': false,
                 'fetchIndexOHLCV': true,
                 'fetchIsolatedPositions': undefined,
                 'fetchL3OrderBook': undefined,
@@ -81,7 +82,7 @@ module.exports = class aax extends Exchange {
                 'fetchOrderTrades': undefined,
                 'fetchPosition': undefined,
                 'fetchPositions': undefined,
-                'fetchPositionsRisk': undefined,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': true,
                 'fetchStatus': true,
                 'fetchTicker': 'emulated',
@@ -98,8 +99,8 @@ module.exports = class aax extends Exchange {
                 'fetchWithdrawalWhitelist': undefined,
                 'loadLeverageBrackets': undefined,
                 'reduceMargin': undefined,
-                'setLeverage': undefined,
-                'setMarginMode': undefined,
+                'setLeverage': true,
+                'setMarginMode': false,
                 'setPositionMode': undefined,
                 'signIn': undefined,
                 'transfer': undefined,
@@ -488,21 +489,21 @@ module.exports = class aax extends Exchange {
                 'swap': swap,
                 'future': false,
                 'option': false,
+                'active': (status === 'enable'),
                 'contract': swap,
                 'linear': linear,
                 'inverse': inverse,
                 'taker': this.safeNumber (market, 'takerFee'),
                 'maker': this.safeNumber (market, 'makerFee'),
                 'contractSize': contractSize,
-                'active': (status === 'enable'),
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'quanto': quanto,
                 'precision': {
-                    'amount': this.safeNumber (market, 'lotSize'),
                     'price': this.safeNumber (market, 'tickSize'),
+                    'amount': this.safeNumber (market, 'lotSize'),
                 },
                 'limits': {
                     'leverage': {
@@ -2287,6 +2288,25 @@ module.exports = class aax extends Exchange {
             });
         }
         return result;
+    }
+
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        if ((leverage < 1) || (leverage > 100)) {
+            throw new BadRequest (this.id + ' leverage should be between 1 and 100');
+        }
+        const market = this.market (symbol);
+        if (market['type'] !== 'swap') {
+            throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
+        }
+        const request = {
+            'symbol': market['id'],
+            'leverage': leverage,
+        };
+        return await this.privatePostFuturesPositionLeverage (this.extend (request, params));
     }
 
     nonce () {

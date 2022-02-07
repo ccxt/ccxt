@@ -19,18 +19,25 @@ module.exports = class zaif extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
-                'swap': undefined,
-                'future': undefined,
-                'option': undefined,
+                'margin': undefined, // has but unimplemented
+                'swap': false,
+                'future': false,
+                'option': false,
                 'cancelOrder': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
                 'withdraw': true,
@@ -261,29 +268,33 @@ module.exports = class zaif extends Exchange {
         return this.parseOrderBook (response, symbol);
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'pair': this.marketId (symbol),
-        };
-        const ticker = await this.publicGetTickerPair (this.extend (request, params));
+    parseTicker (ticker, market = undefined) {
+        //
+        // {
+        //     "last": 9e-08,
+        //     "high": 1e-07,
+        //     "low": 9e-08,
+        //     "vwap": 0.0,
+        //     "volume": 135250.0,
+        //     "bid": 9e-08,
+        //     "ask": 1e-07
+        // }
+        //
+        const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.milliseconds ();
-        const vwap = this.safeNumber (ticker, 'vwap');
-        const baseVolume = this.safeNumber (ticker, 'volume');
-        let quoteVolume = undefined;
-        if (baseVolume !== undefined && vwap !== undefined) {
-            quoteVolume = baseVolume * vwap;
-        }
-        const last = this.safeNumber (ticker, 'last');
-        return {
+        const vwap = this.safeString (ticker, 'vwap');
+        const baseVolume = this.safeString (ticker, 'volume');
+        const quoteVolume = Precise.stringMul (baseVolume, vwap);
+        const last = this.safeString (ticker, 'last');
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': vwap,
             'open': undefined,
@@ -296,7 +307,28 @@ module.exports = class zaif extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
+        }, market, false);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'pair': market['id'],
         };
+        const ticker = await this.publicGetTickerPair (this.extend (request, params));
+        //
+        // {
+        //     "last": 9e-08,
+        //     "high": 1e-07,
+        //     "low": 9e-08,
+        //     "vwap": 0.0,
+        //     "volume": 135250.0,
+        //     "bid": 9e-08,
+        //     "ask": 1e-07
+        // }
+        //
+        return this.parseTicker (ticker, market);
     }
 
     parseTrade (trade, market = undefined) {

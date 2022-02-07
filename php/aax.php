@@ -8,6 +8,7 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
+use \ccxt\BadSymbol;
 use \ccxt\OrderNotFound;
 
 class aax extends Exchange {
@@ -29,14 +30,14 @@ class aax extends Exchange {
                 'margin' => false,
                 'swap' => true,
                 'future' => false,
-                'option' => null,
+                'option' => false,
                 'addMargin' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => null,
                 'createDepositAddress' => null,
                 'createOrder' => true,
-                'createReduceOnlyOrder' => null,
+                'createReduceOnlyOrder' => false,
                 'deposit' => null,
                 'editOrder' => true,
                 'fetchAccounts' => null,
@@ -44,6 +45,7 @@ class aax extends Exchange {
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
                 'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
@@ -61,7 +63,7 @@ class aax extends Exchange {
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
-                'fetchFundingRates' => null,
+                'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => true,
                 'fetchIsolatedPositions' => null,
                 'fetchL3OrderBook' => null,
@@ -69,7 +71,7 @@ class aax extends Exchange {
                 'fetchLedgerEntry' => null,
                 'fetchLeverage' => null,
                 'fetchMarkets' => true,
-                'fetchMarkOHLCV' => false,
+                'fetchMarkOHLCV' => true,
                 'fetchMyBuys' => null,
                 'fetchMySells' => null,
                 'fetchMyTrades' => true,
@@ -83,7 +85,7 @@ class aax extends Exchange {
                 'fetchOrderTrades' => null,
                 'fetchPosition' => null,
                 'fetchPositions' => null,
-                'fetchPositionsRisk' => null,
+                'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => 'emulated',
@@ -100,8 +102,8 @@ class aax extends Exchange {
                 'fetchWithdrawalWhitelist' => null,
                 'loadLeverageBrackets' => null,
                 'reduceMargin' => null,
-                'setLeverage' => null,
-                'setMarginMode' => null,
+                'setLeverage' => true,
+                'setMarginMode' => false,
                 'setPositionMode' => null,
                 'signIn' => null,
                 'transfer' => null,
@@ -490,21 +492,21 @@ class aax extends Exchange {
                 'swap' => $swap,
                 'future' => false,
                 'option' => false,
+                'active' => ($status === 'enable'),
                 'contract' => $swap,
                 'linear' => $linear,
                 'inverse' => $inverse,
                 'taker' => $this->safe_number($market, 'takerFee'),
                 'maker' => $this->safe_number($market, 'makerFee'),
                 'contractSize' => $contractSize,
-                'active' => ($status === 'enable'),
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
                 'quanto' => $quanto,
                 'precision' => array(
-                    'amount' => $this->safe_number($market, 'lotSize'),
                     'price' => $this->safe_number($market, 'tickSize'),
+                    'amount' => $this->safe_number($market, 'lotSize'),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -896,6 +898,13 @@ class aax extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+    }
+
+    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'mark',
+        );
+        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_premium_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -2282,6 +2291,25 @@ class aax extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+        }
+        if (($leverage < 1) || ($leverage > 100)) {
+            throw new BadRequest($this->id . ' $leverage should be between 1 and 100');
+        }
+        $market = $this->market($symbol);
+        if ($market['type'] !== 'swap') {
+            throw new BadSymbol($this->id . ' setLeverage() supports swap contracts only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'leverage' => $leverage,
+        );
+        return $this->privatePostFuturesPositionLeverage (array_merge($request, $params));
     }
 
     public function nonce() {

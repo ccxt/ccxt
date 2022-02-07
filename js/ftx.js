@@ -47,6 +47,7 @@ module.exports = class ftx extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': true,
@@ -61,7 +62,7 @@ module.exports = class ftx extends Exchange {
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': undefined,
+                'fetchFundingRates': false,
                 'fetchIndexOHLCV': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -72,7 +73,9 @@ module.exports = class ftx extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
+                'fetchPosition': false,
                 'fetchPositions': true,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -80,8 +83,10 @@ module.exports = class ftx extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFees': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
                 'setLeverage': true,
                 'setMarginMode': false, // FTX only supports cross margin
+                'setPositionMode': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -587,8 +592,6 @@ module.exports = class ftx extends Exchange {
                 symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry, '');
             }
             // check if a market is a spot or future market
-            const sizeIncrement = this.safeNumber (market, 'sizeIncrement');
-            const priceIncrement = this.safeNumber (market, 'priceIncrement');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -605,7 +608,6 @@ module.exports = class ftx extends Exchange {
                 'future': isFuture,
                 'option': option,
                 'active': this.safeValue (market, 'enabled'),
-                'derivative': contract,
                 'contract': contract,
                 'linear': true,
                 'inverse': false,
@@ -615,25 +617,25 @@ module.exports = class ftx extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': sizeIncrement,
-                    'price': priceIncrement,
+                    'price': this.safeNumber (market, 'priceIncrement'),
+                    'amount': this.safeNumber (market, 'sizeIncrement'),
                 },
                 'limits': {
+                    'leverage': {
+                        'min': this.parseNumber ('1'),
+                        'max': this.parseNumber ('20'),
+                    },
                     'amount': {
-                        'min': sizeIncrement,
+                        'min': undefined,
                         'max': undefined,
                     },
                     'price': {
-                        'min': priceIncrement,
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
                         'min': undefined,
                         'max': undefined,
-                    },
-                    'leverage': {
-                        'min': this.parseNumber ('1'),
-                        'max': this.parseNumber ('20'),
                     },
                 },
                 'info': market,
@@ -1504,6 +1506,13 @@ module.exports = class ftx extends Exchange {
         //
         const result = this.safeValue (response, 'result', []);
         return this.parseOrder (result, market);
+    }
+
+    async createReduceOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        const request = {
+            'reduceOnly': true,
+        };
+        return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
     }
 
     async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
@@ -2496,6 +2505,11 @@ module.exports = class ftx extends Exchange {
                 'info': item,
             });
         }
+        const keys = Object.keys (borrowRateHistories);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            borrowRateHistories[key] = this.filterByCurrencySinceLimit (borrowRateHistories[key], key, since, limit);
+        }
         return borrowRateHistories;
     }
 
@@ -2505,7 +2519,7 @@ module.exports = class ftx extends Exchange {
         if (borrowRateHistory === undefined) {
             throw new BadRequest (this.id + '.fetchBorrowRateHistory returned no data for ' + code);
         } else {
-            return this.filterByCurrencySinceLimit (borrowRateHistory, code, since, limit);
+            return borrowRateHistory;
         }
     }
 };

@@ -1231,6 +1231,9 @@ class bybit extends Exchange {
         //         "symbol" => "BTCUSD",
         //         "funding_rate" => "0.00010000",
         //         "funding_rate_timestamp" => 1577433600
+        //         // some pairs like BTC/USDT return an iso8601 string in funding_rate_timestamp
+        //         // "funding_rate_timestamp":"2022-02-05T08:00:00.000Z"
+        //
         //     ),
         //     "ext_info" => null,
         //     "time_now" => "1577445586.446797",
@@ -1241,8 +1244,11 @@ class bybit extends Exchange {
         //
         $result = $this->safe_value($response, 'result');
         $fundingRate = $this->safe_number($result, 'funding_rate');
-        $fundingTime = $this->safe_integer($result, 'funding_rate_timestamp') * 1000;
-        $nextFundingTime = $this->sum($fundingTime, 8 * 3600000);
+        $fundingTimestamp = $this->safe_timestamp($result, 'funding_rate_timestamp');
+        if ($fundingTimestamp === null) {
+            $fundingTimestamp = $this->parse8601($this->safe_string($result, 'funding_rate_timestamp'));
+        }
+        $nextFundingTimestamp = $this->sum($fundingTimestamp, 8 * 3600000);
         $currentTime = $this->milliseconds();
         return array(
             'info' => $result,
@@ -1254,11 +1260,11 @@ class bybit extends Exchange {
             'timestamp' => $currentTime,
             'datetime' => $this->iso8601($currentTime),
             'fundingRate' => $fundingRate,
-            'fundingTimestamp' => $fundingTime,
-            'fundingDatetime' => $this->iso8601($fundingTime),
+            'fundingTimestamp' => $fundingTimestamp,
+            'fundingDatetime' => $this->iso8601($fundingTimestamp),
             'nextFundingRate' => null,
-            'nextFundingTimestamp' => $nextFundingTime,
-            'nextFundingDatetime' => $this->iso8601($nextFundingTime),
+            'nextFundingTimestamp' => $nextFundingTimestamp,
+            'nextFundingDatetime' => $this->iso8601($nextFundingTimestamp),
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
@@ -1656,7 +1662,10 @@ class bybit extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $id = $this->safe_string_2($order, 'order_id', 'stop_order_id');
         $type = $this->safe_string_lower($order, 'order_type');
-        $price = $this->safe_string($order, 'price');
+        $price = null;
+        if ($type !== 'market') {
+            $price = $this->safe_string($order, 'price');
+        }
         $average = $this->safe_string($order, 'average_price');
         $amount = $this->safe_string($order, 'qty');
         $cost = $this->safe_string($order, 'cum_exec_value');
@@ -1677,7 +1686,7 @@ class bybit extends Exchange {
         }
         $status = $this->parse_order_status($this->safe_string_2($order, 'order_status', 'stop_order_status'));
         $side = $this->safe_string_lower($order, 'side');
-        $feeCostString = Precise::string_abs($this->safe_string($order, 'cum_exec_fee'));
+        $feeCostString = $this->safe_string($order, 'cum_exec_fee');
         $fee = null;
         if ($feeCostString !== null) {
             $fee = array(
@@ -2862,8 +2871,11 @@ class bybit extends Exchange {
             throw new ArgumentsRequired($this->id . '.setMarginMode requires a $leverage parameter');
         }
         $marginType = strtoupper($marginType);
-        if (($marginType !== 'ISOLATED') && ($marginType !== 'CROSSED')) {
-            throw new BadRequest($this->id . ' $marginType must be either isolated or crossed');
+        if ($marginType === 'CROSSED') { // * Deprecated, use 'CROSS' instead
+            $marginType = 'CROSS';
+        }
+        if (($marginType !== 'ISOLATED') && ($marginType !== 'CROSS')) {
+            throw new BadRequest($this->id . ' $marginType must be either isolated or cross');
         }
         yield $this->load_markets();
         $market = $this->market($symbol);

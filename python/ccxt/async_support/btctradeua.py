@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.precise import Precise
 
 
 class btctradeua(Exchange):
@@ -30,6 +31,7 @@ class btctradeua(Exchange):
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
@@ -160,13 +162,14 @@ class btctradeua(Exchange):
                 orderbook['asks'] = asks['list']
         return self.parse_order_book(orderbook, symbol, None, 'bids', 'asks', 'price', 'currency_trade')
 
-    async def fetch_ticker(self, symbol, params={}):
-        await self.load_markets()
-        request = {
-            'symbol': self.market_id(symbol),
-        }
-        response = await self.publicGetJapanStatHighSymbol(self.extend(request, params))
-        ticker = self.safe_value(response, 'trades')
+    def parse_ticker(self, ticker, market=None):
+        #
+        # [
+        #     [1640789101000, 1292663.0, 1311823.61303, 1295794.252, 1311823.61303, 0.030175],
+        #     [1640790902000, 1311823.61303, 1310820.96, 1290000.0, 1290000.0, 0.042533],
+        # ],
+        #
+        symbol = self.safe_symbol(None, market)
         timestamp = self.milliseconds()
         result = {
             'symbol': symbol,
@@ -196,22 +199,42 @@ class btctradeua(Exchange):
             for i in range(start, len(ticker)):
                 candle = ticker[i]
                 if result['open'] is None:
-                    result['open'] = self.safe_number(candle, 1)
-                high = self.safe_number(candle, 2)
-                if (result['high'] is None) or ((high is not None) and (result['high'] < high)):
+                    result['open'] = self.safe_string(candle, 1)
+                high = self.safe_string(candle, 2)
+                if (result['high'] is None) or ((high is not None) and Precise.string_lt(result['high'], high)):
                     result['high'] = high
-                low = self.safe_number(candle, 3)
-                if (result['low'] is None) or ((low is not None) and (result['low'] > low)):
+                low = self.safe_string(candle, 3)
+                if (result['low'] is None) or ((low is not None) and Precise.string_lt(result['low'], low)):
                     result['low'] = low
-                baseVolume = self.safe_number(candle, 5)
+                baseVolume = self.safe_string(candle, 5)
                 if result['baseVolume'] is None:
                     result['baseVolume'] = baseVolume
                 else:
-                    result['baseVolume'] = self.sum(result['baseVolume'], baseVolume)
+                    result['baseVolume'] = Precise.string_add(result['baseVolume'], baseVolume)
             last = tickerLength - 1
-            result['last'] = self.safe_number(ticker[last], 4)
+            result['last'] = self.safe_string(ticker[last], 4)
             result['close'] = result['last']
-        return result
+        return self.safe_ticker(result, market, False)
+
+    async def fetch_ticker(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.publicGetJapanStatHighSymbol(self.extend(request, params))
+        ticker = self.safe_value(response, 'trades')
+        #
+        # {
+        #     "status": True,
+        #     "volume_trade": "0.495703",
+        #     "trades": [
+        #         [1640789101000, 1292663.0, 1311823.61303, 1295794.252, 1311823.61303, 0.030175],
+        #         [1640790902000, 1311823.61303, 1310820.96, 1290000.0, 1290000.0, 0.042533],
+        #     ],
+        # }
+        #
+        return self.parse_ticker(ticker, market)
 
     def convert_month_name_to_string(self, cyrillic):
         months = {

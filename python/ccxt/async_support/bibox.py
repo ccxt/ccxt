@@ -35,8 +35,8 @@ class bibox(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,
-                'swap': None,
+                'margin': None,  # has but unimplemented
+                'swap': None,  # has but unimplemented
                 'future': None,
                 'option': None,
                 'cancelOrder': True,
@@ -233,44 +233,46 @@ class bibox(Exchange):
             if areaId == 16:
                 # TODO: update to v3 api
                 continue
-            precision = {
-                'amount': self.safe_number(market, 'amount_scale'),
-                'price': self.safe_number(market, 'decimal'),
-            }
             result.append({
                 'id': id,
                 'numericId': numericId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': type,
                 'spot': spot,
                 'margin': False,
                 'future': False,
                 'swap': False,
                 'option': False,
-                'optionType': None,
-                'strike': None,
+                'contract': False,
                 'linear': None,
                 'inverse': None,
-                'contract': False,
                 'contractSize': None,
-                'settle': None,
-                'settleId': None,
+                'active': None,
                 'expiry': None,
                 'expiryDatetime': None,
-                'active': None,
-                'info': market,
-                'precision': precision,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': self.safe_number(market, 'decimal'),
+                    'amount': self.safe_number(market, 'amount_scale'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
+                        'min': None,
                         'max': None,
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
+                        'min': None,
                         'max': None,
                     },
                     'cost': {
@@ -278,6 +280,7 @@ class bibox(Exchange):
                         'max': None,
                     },
                 },
+                'info': market,
             })
         return result
 

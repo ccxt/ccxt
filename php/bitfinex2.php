@@ -26,8 +26,8 @@ class bitfinex2 extends bitfinex {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null,
-                'swap' => null,
+                'margin' => null, // has but unimplemented
+                'swap' => null, // has but unimplemented
                 'future' => null,
                 'option' => null,
                 'cancelAllOrders' => true,
@@ -45,6 +45,7 @@ class bitfinex2 extends bitfinex {
                 'fetchDepositAddress' => true,
                 'fetchFundingFees' => null,
                 'fetchIndexOHLCV' => false,
+                'fetchLedger' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -386,17 +387,17 @@ class bitfinex2 extends bitfinex {
         // pub:list:pair:exchange,pub:list:pair:$margin,pub:list:pair:futures,pub:info:pair
         $v2response = $this->publicGetConfPubListPairFutures ($params);
         $v1response = $this->v1GetSymbolsDetails ($params);
-        $futuresMarketIds = $this->safe_value($v2response, 0, array());
+        $swapMarketIds = $this->safe_value($v2response, 0, array());
         $result = array();
         for ($i = 0; $i < count($v1response); $i++) {
             $market = $v1response[$i];
             $id = $this->safe_string_upper($market, 'pair');
             $spot = true;
-            if ($this->in_array($id, $futuresMarketIds)) {
+            if ($this->in_array($id, $swapMarketIds)) {
                 $spot = false;
             }
-            $future = !$spot;
-            $type = $spot ? 'spot' : 'future';
+            $swap = !$spot;
+            $type = $spot ? 'spot' : 'swap';
             $baseId = null;
             $quoteId = null;
             if (mb_strpos($id, ':') !== false) {
@@ -446,10 +447,10 @@ class bitfinex2 extends bitfinex {
                 'limits' => $limits,
                 'info' => $market,
                 'type' => $type,
-                'swap' => false,
+                'swap' => $swap,
                 'spot' => $spot,
                 'margin' => $margin,
-                'future' => $future,
+                'future' => false,
             );
         }
         return $result;
@@ -755,10 +756,50 @@ class bitfinex2 extends bitfinex {
     }
 
     public function parse_ticker($ticker, $market = null) {
+        //
+        // on trading pairs (ex. tBTCUSD)
+        //
+        //     array(
+        //         SYMBOL,
+        //         BID,
+        //         BID_SIZE,
+        //         ASK,
+        //         ASK_SIZE,
+        //         DAILY_CHANGE,
+        //         DAILY_CHANGE_RELATIVE,
+        //         LAST_PRICE,
+        //         VOLUME,
+        //         HIGH,
+        //         LOW
+        //     )
+        //
+        // on funding currencies (ex. fUSD)
+        //
+        //     array(
+        //         SYMBOL,
+        //         FRR,
+        //         BID,
+        //         BID_PERIOD,
+        //         BID_SIZE,
+        //         ASK,
+        //         ASK_PERIOD,
+        //         ASK_SIZE,
+        //         DAILY_CHANGE,
+        //         DAILY_CHANGE_RELATIVE,
+        //         LAST_PRICE,
+        //         VOLUME,
+        //         HIGH,
+        //         LOW,
+        //         _PLACEHOLDER,
+        //         _PLACEHOLDER,
+        //         FRR_AMOUNT_AVAILABLE
+        //     )
+        //
         $timestamp = $this->milliseconds();
         $symbol = $this->safe_symbol(null, $market);
         $length = is_array($ticker) ? count($ticker) : 0;
         $last = $this->safe_string($ticker, $length - 4);
+        $percentage = $this->safe_string($ticker, $length - 5);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -775,7 +816,7 @@ class bitfinex2 extends bitfinex {
             'last' => $last,
             'previousClose' => null,
             'change' => $this->safe_string($ticker, $length - 6),
-            'percentage' => $this->safe_string($ticker, $length - 5) * 100,
+            'percentage' => Precise::string_mul($percentage, '100'),
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, $length - 3),
             'quoteVolume' => null,
@@ -793,6 +834,45 @@ class bitfinex2 extends bitfinex {
             $request['symbols'] = 'ALL';
         }
         $tickers = $this->publicGetTickers (array_merge($request, $params));
+        //
+        //     array(
+        //         // on trading pairs (ex. tBTCUSD)
+        //         array(
+        //             SYMBOL,
+        //             BID,
+        //             BID_SIZE,
+        //             ASK,
+        //             ASK_SIZE,
+        //             DAILY_CHANGE,
+        //             DAILY_CHANGE_RELATIVE,
+        //             LAST_PRICE,
+        //             VOLUME,
+        //             HIGH,
+        //             LOW
+        //         ),
+        //         // on funding currencies (ex. fUSD)
+        //         array(
+        //             SYMBOL,
+        //             FRR,
+        //             BID,
+        //             BID_PERIOD,
+        //             BID_SIZE,
+        //             ASK,
+        //             ASK_PERIOD,
+        //             ASK_SIZE,
+        //             DAILY_CHANGE,
+        //             DAILY_CHANGE_RELATIVE,
+        //             LAST_PRICE,
+        //             VOLUME,
+        //             HIGH,
+        //             LOW,
+        //             _PLACEHOLDER,
+        //             _PLACEHOLDER,
+        //             FRR_AMOUNT_AVAILABLE
+        //         ),
+        //         ...
+        //     )
+        //
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $ticker = $tickers[$i];
@@ -1463,8 +1543,7 @@ class bitfinex2 extends bitfinex {
         } else if ($transactionLength === 22) {
             $id = $this->safe_string($transaction, 0);
             $currencyId = $this->safe_string($transaction, 1);
-            $currency = $this->safe_currency($currencyId, $currency);
-            $code = $currency['code'];
+            $code = $this->safe_currency_code($currencyId, $currency);
             $timestamp = $this->safe_integer($transaction, 5);
             $updated = $this->safe_integer($transaction, 6);
             $status = $this->parse_transaction_status($this->safe_string($transaction, 9));
@@ -1703,5 +1782,109 @@ class bitfinex2 extends bitfinex {
             throw new ExchangeError($this->id . ' ' . $errorText . ' (#' . $errorCode . ')');
         }
         return $response;
+    }
+
+    public function parse_ledger_entry_type($type) {
+        if ($type === null) {
+            return null;
+        } else if (mb_strpos($type, 'fee') !== false || mb_strpos($type, 'charged') !== false) {
+            return 'fee';
+        } else if (mb_strpos($type, 'exchange') !== false || mb_strpos($type, 'position') !== false) {
+            return 'trade';
+        } else if (mb_strpos($type, 'rebate') !== false) {
+            return 'rebate';
+        } else if (mb_strpos($type, 'deposit') !== false || mb_strpos($type, 'withdrawal') !== false) {
+            return 'transaction';
+        } else if (mb_strpos($type, 'transfer') !== false) {
+            return 'transfer';
+        } else if (mb_strpos($type, 'payment') !== false) {
+            return 'payout';
+        } else {
+            return $type;
+        }
+    }
+
+    public function parse_ledger_entry($item, $currency = null) {
+        //
+        //     array(
+        //         array(
+        //             2531822314, // ID => Ledger identifier
+        //             "USD", // CURRENCY => The symbol of the $currency (ex. "BTC")
+        //             null, // PLACEHOLDER
+        //             1573521810000, // MTS => Timestamp in milliseconds
+        //             null, // PLACEHOLDER
+        //             0.01644445, // AMOUNT => Amount of funds moved
+        //             0, // BALANCE => New balance
+        //             null, // PLACEHOLDER
+        //             "Settlement @ 185.79 on wallet margin" // DESCRIPTION => Description of ledger transaction
+        //         )
+        //     )
+        //
+        $type = null;
+        $id = $this->safe_string($item, 0);
+        $currencyId = $this->safe_string($item, 1);
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $timestamp = $this->safe_integer($item, 3);
+        $amount = $this->safe_number($item, 5);
+        $after = $this->safe_number($item, 6);
+        $description = $this->safe_string($item, 8);
+        if ($description !== null) {
+            $parts = explode(' @ ', $description);
+            $first = $this->safe_string_lower($parts, 0);
+            $type = $this->parse_ledger_entry_type($first);
+        }
+        return array(
+            'id' => $id,
+            'direction' => null,
+            'account' => null,
+            'referenceId' => $id,
+            'referenceAccount' => null,
+            'type' => $type,
+            'currency' => $code,
+            'amount' => $amount,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'before' => null,
+            'after' => $after,
+            'status' => null,
+            'fee' => null,
+            'info' => $item,
+        );
+    }
+
+    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $this->load_markets();
+        $currency = null;
+        $request = array();
+        $method = 'privatePostAuthRLedgersHist';
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['uppercaseId'];
+            $method = 'privatePostAuthRLedgersCurrencyHist';
+        }
+        if ($since !== null) {
+            $request['start'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // max 2500
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
+        //     array(
+        //         array(
+        //             2531822314, // ID => Ledger identifier
+        //             "USD", // CURRENCY => The symbol of the $currency (ex. "BTC")
+        //             null, // PLACEHOLDER
+        //             1573521810000, // MTS => Timestamp in milliseconds
+        //             null, // PLACEHOLDER
+        //             0.01644445, // AMOUNT => Amount of funds moved
+        //             0, // BALANCE => New balance
+        //             null, // PLACEHOLDER
+        //             "Settlement @ 185.79 on wallet margin" // DESCRIPTION => Description of ledger transaction
+        //         )
+        //     )
+        //
+        return $this->parse_ledger($response, $currency, $since, $limit);
     }
 }

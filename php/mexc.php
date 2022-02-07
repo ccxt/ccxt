@@ -26,15 +26,16 @@ class mexc extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null,
+                'margin' => null, // has but unimplemented
                 'swap' => true,
-                'future' => null,
-                'option' => null,
+                'future' => false,
+                'option' => false,
                 'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createMarketOrder' => false,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
@@ -42,8 +43,15 @@ class mexc extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => true,
+                'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => true,
+                'fetchIsolatedPositions' => null,
+                'fetchLeverage' => null,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -52,6 +60,8 @@ class mexc extends Exchange {
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
                 'fetchPositions' => true,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -60,6 +70,7 @@ class mexc extends Exchange {
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
                 'setLeverage' => true,
+                'setMarginMode' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -278,6 +289,7 @@ class mexc extends Exchange {
                     '33333' => '\\ccxt\\BadSymbol', // array("code":33333,"msg":"currency can not be null")
                 ),
                 'broad' => array(
+                    'price and quantity must be positive' => '\\ccxt\\InvalidOrder', // array("msg":"price and quantity must be positive","code":400)
                 ),
             ),
         ));
@@ -538,13 +550,13 @@ class mexc extends Exchange {
                 'swap' => true,
                 'future' => false,
                 'option' => false,
+                'active' => ($state === '0'),
                 'contract' => true,
                 'linear' => true,
                 'inverse' => false,
                 'taker' => $this->safe_number($market, 'takerFeeRate'),
                 'maker' => $this->safe_number($market, 'makerFeeRate'),
                 'contractSize' => $this->safe_number($market, 'contractSize'),
-                'active' => ($state === '0'),
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
@@ -610,23 +622,19 @@ class mexc extends Exchange {
             list($baseId, $quoteId) = explode('_', $id);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $priceScale = $this->safe_integer($market, 'price_scale');
-            $quantityScale = $this->safe_integer($market, 'quantity_scale');
-            $pricePrecision = 1 / pow(10, $priceScale);
-            $quantityPrecision = 1 / pow(10, $quantityScale);
+            $priceScale = $this->safe_string($market, 'price_scale');
+            $quantityScale = $this->safe_string($market, 'quantity_scale');
             $state = $this->safe_string($market, 'state');
-            $type = 'spot';
             $result[] = array(
                 'id' => $id,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
                 'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'settleId' => null,
-                'type' => $type,
+                'type' => 'spot',
                 'spot' => true,
                 'margin' => false,
                 'swap' => false,
@@ -644,8 +652,8 @@ class mexc extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $pricePrecision,
-                    'amount' => $quantityPrecision,
+                    'price' => $this->parse_number($this->parse_precision($priceScale)),
+                    'amount' => $this->parse_number($this->parse_precision($quantityScale)),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -1154,6 +1162,27 @@ class mexc extends Exchange {
         ];
     }
 
+    public function fetch_premium_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'premiumIndex',
+        );
+        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'index',
+        );
+        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'mark',
+        );
+        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+    }
+
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
@@ -1592,8 +1621,6 @@ class mexc extends Exchange {
             $orderType = 'LIMIT_ORDER';
         } else if (($orderType !== 'POST_ONLY') && ($orderType !== 'IMMEDIATE_OR_CANCEL')) {
             throw new InvalidOrder($this->id . ' createOrder() does not support ' . $type . ' order $type, specify one of LIMIT, LIMIT_ORDER, POST_ONLY or IMMEDIATE_OR_CANCEL');
-        } else {
-            throw new InvalidOrder($this->id . ' createOrder() allows limit orders only');
         }
         $request = array(
             'symbol' => $market['id'],
@@ -2162,9 +2189,143 @@ class mexc extends Exchange {
         $responseCode = $this->safe_string($response, 'code');
         if (($responseCode !== '200') && ($responseCode !== '0')) {
             $feedback = $this->id . ' ' . $body;
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $responseCode, $feedback);
             throw new ExchangeError($feedback);
         }
+    }
+
+    public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = null;
+        $request = array(
+            // 'symbol' => $market['id'],
+            // 'position_id' => positionId,
+            // 'page_num' => 1,
+            // 'page_size' => $limit, // default 20, max 100
+        );
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($limit !== null) {
+            $request['page_size'] = $limit;
+        }
+        $response = $this->contractPrivateGetPositionFundingRecords (array_merge($request, $params));
+        //
+        //     {
+        //         "success" => true,
+        //         "code" => 0,
+        //         "data" => {
+        //             "pageSize" => 20,
+        //             "totalCount" => 2,
+        //             "totalPage" => 1,
+        //             "currentPage" => 1,
+        //             "resultList" => array(
+        //                 array(
+        //                     "id" => 7423910,
+        //                     "symbol" => "BTC_USDT",
+        //                     "positionType" => 1,
+        //                     "positionValue" => 29.30024,
+        //                     "funding" => 0.00076180624,
+        //                     "rate" => -0.000026,
+        //                     "settleTime" => 1643299200000
+        //                 ),
+        //                 {
+        //                     "id" => 7416473,
+        //                     "symbol" => "BTC_USDT",
+        //                     "positionType" => 1,
+        //                     "positionValue" => 28.9188,
+        //                     "funding" => 0.0014748588,
+        //                     "rate" => -0.000051,
+        //                     "settleTime" => 1643270400000
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $resultList = $this->safe_value($data, 'resultList', array());
+        $result = array();
+        for ($i = 0; $i < count($resultList); $i++) {
+            $entry = $resultList[$i];
+            $timestamp = $this->safe_string($entry, 'settleTime');
+            $result[] = array(
+                'info' => $entry,
+                'symbol' => $symbol,
+                'code' => null,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'id' => $this->safe_number($entry, 'id'),
+                'amount' => $this->safe_number($entry, 'funding'),
+            );
+        }
+        return $result;
+    }
+
+    public function parse_funding_rate($fundingRate, $market = null) {
+        //
+        //     {
+        //         "symbol" => "BTC_USDT",
+        //         "fundingRate" => 0.000014,
+        //         "maxFundingRate" => 0.003,
+        //         "minFundingRate" => -0.003,
+        //         "collectCycle" => 8,
+        //         "nextSettleTime" => 1643241600000,
+        //         "timestamp" => 1643240373359
+        //     }
+        //
+        $nextFundingRate = $this->safe_number($fundingRate, 'fundingRate');
+        $nextFundingTimestamp = $this->safe_integer($fundingRate, 'nextSettleTime');
+        $marketId = $this->safe_string($fundingRate, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $timestamp = $this->safe_integer($fundingRate, 'timestamp');
+        $datetime = $this->iso8601($timestamp);
+        return array(
+            'info' => $fundingRate,
+            'symbol' => $symbol,
+            'markPrice' => null,
+            'indexPrice' => null,
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $datetime,
+            'fundingRate' => null,
+            'fundingTimestamp' => null,
+            'fundingDatetime' => null,
+            'nextFundingRate' => $nextFundingRate,
+            'nextFundingTimestamp' => $nextFundingTimestamp,
+            'nextFundingDatetime' => $this->iso8601($nextFundingTimestamp),
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+        );
+    }
+
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->contractPublicGetFundingRateSymbol (array_merge($request, $params));
+        //
+        //     {
+        //         "success" => true,
+        //         "code" => 0,
+        //         "data" => {
+        //             "symbol" => "BTC_USDT",
+        //             "fundingRate" => 0.000014,
+        //             "maxFundingRate" => 0.003,
+        //             "minFundingRate" => -0.003,
+        //             "collectCycle" => 8,
+        //             "nextSettleTime" => 1643241600000,
+        //             "timestamp" => 1643240373359
+        //         }
+        //     }
+        //
+        $result = $this->safe_value($response, 'data', array());
+        return $this->parse_funding_rate($result, $market);
     }
 
     public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {

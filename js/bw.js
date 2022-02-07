@@ -18,8 +18,8 @@ module.exports = class bw extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
-                'swap': undefined,
+                'margin': undefined, // has but unimplemented
+                'swap': undefined, // has but unimplemented
                 'future': undefined,
                 'option': undefined,
                 'cancelAllOrders': undefined,

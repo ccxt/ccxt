@@ -42,9 +42,9 @@ class huobijp(Exchange):
                 'CORS': None,
                 'spot': True,
                 'margin': None,
-                'swap': None,
-                'future': None,
-                'option': None,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
@@ -56,7 +56,13 @@ class huobijp(Exchange):
                 'fetchDepositAddress': False,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -400,6 +406,38 @@ class huobijp(Exchange):
     def fetch_markets(self, params={}):
         method = self.options['fetchMarketsMethod']
         response = getattr(self, method)(params)
+        #
+        #    {
+        #        "status": "ok",
+        #        "data": [
+        #            {
+        #                "base-currency": "xrp",
+        #                "quote-currency": "btc",
+        #                "price-precision": 9,
+        #                "amount-precision": 2,
+        #                "symbol-partition": "default",
+        #                "symbol": "xrpbtc",
+        #                "state": "online",
+        #                "value-precision": 8,
+        #                "min-order-amt": 1,
+        #                "max-order-amt": 5000000,
+        #                "min-order-value": 0.0001,
+        #                "limit-order-min-order-amt": 1,
+        #                "limit-order-max-order-amt": 5000000,
+        #                "limit-order-max-buy-amt": 5000000,
+        #                "limit-order-max-sell-amt": 5000000,
+        #                "sell-market-min-order-amt": 1,
+        #                "sell-market-max-order-amt": 500000,
+        #                "buy-market-max-order-value": 100,
+        #                "leverage-ratio": 5,
+        #                "super-margin-leverage-ratio": 3,
+        #                "api-trading": "enabled",
+        #                "tags": ""
+        #            }
+        #            ...
+        #         ]
+        #    }
+        #
         markets = self.safe_value(response, 'data')
         numMarkets = len(markets)
         if numMarkets < 1:
@@ -409,51 +447,61 @@ class huobijp(Exchange):
             market = markets[i]
             baseId = self.safe_string(market, 'base-currency')
             quoteId = self.safe_string(market, 'quote-currency')
-            id = baseId + quoteId
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            precision = {
-                'amount': self.safe_integer(market, 'amount-precision'),
-                'price': self.safe_integer(market, 'price-precision'),
-                'cost': self.safe_integer(market, 'value-precision'),
-            }
-            maker = 0 if (base == 'OMG') else 0.2 / 100
-            taker = 0 if (base == 'OMG') else 0.2 / 100
-            minAmount = self.safe_number(market, 'min-order-amt', math.pow(10, -precision['amount']))
-            maxAmount = self.safe_number(market, 'max-order-amt')
-            minCost = self.safe_number(market, 'min-order-value', 0)
             state = self.safe_string(market, 'state')
-            active = (state == 'online')
+            leverageRatio = self.safe_string(market, 'leverage-ratio', '1')
+            superLeverageRatio = self.safe_string(market, 'super-margin-leverage-ratio', '1')
+            margin = Precise.string_gt(leverageRatio, '1') or Precise.string_gt(superLeverageRatio, '1')
+            fee = 0 if (base == 'OMG') else 0.2 / 100
             result.append({
-                'id': id,
-                'symbol': symbol,
+                'id': baseId + quoteId,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
-                'precision': precision,
-                'taker': taker,
-                'maker': maker,
+                'margin': margin,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': (state == 'online'),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'taker': fee,
+                'maker': fee,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': self.safe_integer(market, 'price-precision'),
+                    'amount': self.safe_integer(market, 'amount-precision'),
+                    'cost': self.safe_integer(market, 'value-precision'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': self.parse_number('1'),
+                        'max': self.parse_number(leverageRatio),
+                        'superMax': self.parse_number(superLeverageRatio),
+                    },
                     'amount': {
-                        'min': minAmount,
-                        'max': maxAmount,
+                        'min': self.safe_number(market, 'min-order-amt'),
+                        'max': self.safe_number(market, 'max-order-amt'),
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
+                        'min': None,
                         'max': None,
                     },
                     'cost': {
-                        'min': minCost,
+                        'min': self.safe_number(market, 'min-order-value'),
                         'max': None,
-                    },
-                    'leverage': {
-                        'max': self.safe_number(market, 'leverage-ratio', 1),
-                        'superMax': self.safe_number(market, 'super-margin-leverage-ratio', 1),
                     },
                 },
                 'info': market,

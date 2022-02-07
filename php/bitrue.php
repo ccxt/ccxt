@@ -25,35 +25,32 @@ class bitrue extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null,
-                'swap' => null,
+                'margin' => false,
+                'swap' => null, // has but unimplemented
                 'future' => null,
-                'option' => null,
+                'option' => false,
                 'cancelAllOrders' => false,
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => false,
                 'fetchDeposits' => true,
                 'fetchFundingFees' => false,
-                'fetchFundingHistory' => false,
-                'fetchFundingRate' => false,
-                'fetchFundingRateHistory' => false,
-                'fetchFundingRates' => false,
-                'fetchIndexOHLCV' => false,
                 'fetchMarkets' => true,
-                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => 'emulated',
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
-                'fetchPositions' => false,
-                'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -64,8 +61,6 @@ class bitrue extends Exchange {
                 'fetchTransactions' => false,
                 'fetchTransfers' => false,
                 'fetchWithdrawals' => true,
-                'setLeverage' => false,
-                'setMarginMode' => false,
                 'transfer' => false,
                 'withdraw' => true,
             ),
@@ -150,8 +145,8 @@ class bitrue extends Exchange {
                     'feeSide' => 'get',
                     'tierBased' => false,
                     'percentage' => true,
-                    'taker' => $this->parse_number('0.0098'),
-                    'maker' => $this->parse_number('0.0098'),
+                    'taker' => $this->parse_number('0.00098'),
+                    'maker' => $this->parse_number('0.00098'),
                 ),
                 'future' => array(
                     'trading' => array(
@@ -227,6 +222,7 @@ class bitrue extends Exchange {
             // exchange-specific options
             'options' => array(
                 // 'fetchTradesMethod' => 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
+                'fetchMyTradesMethod' => 'v2PrivateGetMyTrades', // v1PrivateGetMyTrades
                 'hasAlreadyAuthenticatedSuccessfully' => false,
                 'recvWindow' => 5 * 1000, // 5 sec, binance default
                 'timeDifference' => 0, // the difference between system clock and Binance clock
@@ -938,7 +934,7 @@ class bitrue extends Exchange {
         if (is_array($trade) && array_key_exists('commission', $trade)) {
             $fee = array(
                 'cost' => $this->safe_string($trade, 'commission'),
-                'currency' => $this->safe_currency_code($this->safe_string($trade, 'commissionAsset')),
+                'currency' => $this->safe_currency_code($this->safe_string($trade, 'commissionAssert')),
             );
         }
         $takerOrMaker = null;
@@ -1308,6 +1304,10 @@ class bitrue extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $method = $this->safe_string($this->options, 'fetchMyTradesMethod', 'v2PrivateGetMyTrades');
+        if (($symbol === null) && ($method === 'v2PrivateGetMyTrades')) {
+            throw new ArgumentsRequired($this->id . ' v2PrivateGetMyTrades() requires a $symbol argument');
+        }
         $this->load_markets();
         $request = array(
             // 'symbol' => $market['id'],
@@ -1327,7 +1327,7 @@ class bitrue extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->v1PrivateGetMyTrades (array_merge($request, $params));
+        $response = $this->$method (array_merge($request, $params));
         //
         //     array(
         //         {

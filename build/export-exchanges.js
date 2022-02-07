@@ -172,8 +172,8 @@ function createMarkdownListOfExchanges (exchanges) {
 
 function createMarkdownListOfCertifiedExchanges (exchanges) {
     return exchanges.map ((exchange) => {
-        // const discount = getReferralDiscountBadgeLink (exchange)
-        return { ... createMarkdownExchange (exchange) /*, discount */ }
+        const discount = getReferralDiscountBadgeLink (exchange)
+        return { ... createMarkdownExchange (exchange), discount }
     })
 }
 
@@ -311,7 +311,7 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
 
     const certifiedExchanges = arrayOfExchanges.filter (exchange => exchange.certified)
     if (certifiedExchangesPaths && certifiedExchanges.length) {
-        const certifiedExchangesMarkdownTable = createMarkdownTable (certifiedExchanges, createMarkdownListOfCertifiedExchanges, [ 3 ])
+        const certifiedExchangesMarkdownTable = createMarkdownTable (certifiedExchanges, createMarkdownListOfCertifiedExchanges, [ 3, 6 ])
             , certifiedExchangesReplacement = '$1' + certifiedExchangesMarkdownTable + "\n"
             , certifiedExchangesRegex = new RegExp ("^(## Certified Cryptocurrency Exchanges\n{3})(?:\\|.+\\|$\n)+", 'm')
         for (const path of certifiedExchangesPaths) {

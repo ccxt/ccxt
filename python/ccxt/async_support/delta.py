@@ -378,74 +378,101 @@ class delta(Exchange):
             # settlingAsset = self.safe_value(market, 'settling_asset', {})
             quotingAsset = self.safe_value(market, 'quoting_asset', {})
             underlyingAsset = self.safe_value(market, 'underlying_asset', {})
+            settlingAsset = self.safe_value(market, 'settling_asset')
             baseId = self.safe_string(underlyingAsset, 'symbol')
             quoteId = self.safe_string(quotingAsset, 'symbol')
+            settleId = self.safe_string(settlingAsset, 'symbol')
             id = self.safe_string(market, 'symbol')
             numericId = self.safe_integer(market, 'id')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = id
-            swap = False
-            future = False
-            option = False
-            if type == 'perpetual_futures':
-                type = 'swap'
-                swap = True
-                future = False
-                option = False
-                if id.find('_') < 0:
-                    symbol = base + '/' + quote
-            elif (type == 'call_options') or (type == 'put_options') or (type == 'move_options'):
-                type = 'option'
-                swap = False
-                option = True
-                future = False
-            elif type == 'futures':
-                type = 'future'
-                swap = False
-                option = False
-                future = True
-            precision = {
-                'amount': 1.0,  # number of contracts
-                'price': self.safe_number(market, 'tick_size'),
-            }
-            limits = {
-                'amount': {
-                    'min': 1.0,
-                    'max': self.safe_number(market, 'position_size_limit'),
-                },
-                'price': {
-                    'min': precision['price'],
-                    'max': None,
-                },
-                'cost': {
-                    'min': self.safe_number(market, 'min_size'),
-                    'max': None,
-                },
-            }
+            settle = self.safe_currency_code(settleId)
+            callOptions = (type == 'call_options')
+            putOptions = (type == 'put_options')
+            moveOptions = (type == 'move_options')
+            spot = (type == 'spot')
+            swap = (type == 'perpetual_futures')
+            future = (type == 'futures')
+            option = (callOptions or putOptions or moveOptions)
+            strike = self.safe_string(market, 'strike_price')
+            expiryDatetime = self.safe_string(market, 'settlement_time')
+            expiry = self.parse8601(expiryDatetime)
+            contractSize = self.safe_number(market, 'contract_value')
+            linear = (settle == base)
+            optionType = None
+            symbol = base + '/' + quote
+            if swap or future or option:
+                symbol = symbol + ':' + settle
+                if future or option:
+                    symbol = symbol + '-' + self.yymmdd(expiry)
+                    if option:
+                        type = 'option'
+                        letter = 'C'
+                        optionType = 'call'
+                        if putOptions:
+                            letter = 'P'
+                            optionType = 'put'
+                        elif moveOptions:
+                            letter = 'M'
+                            optionType = 'move'
+                        symbol = symbol + ':' + strike + ':' + letter
+                    else:
+                        type = 'future'
+                else:
+                    type = 'swap'
+            else:
+                symbol = id
             state = self.safe_string(market, 'state')
-            active = (state == 'live')
-            maker = self.safe_number(market, 'maker_commission_rate')
-            taker = self.safe_number(market, 'taker_commission_rate')
             result.append({
                 'id': id,
                 'numericId': numericId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': settleId,
                 'type': type,
-                'spot': False,
-                'option': option,
+                'spot': spot,
+                'margin': None if spot else False,
                 'swap': swap,
                 'future': future,
-                'maker': maker,
-                'taker': taker,
-                'precision': precision,
-                'limits': limits,
+                'option': option,
+                'active': (state == 'live'),
+                'contract': not spot,
+                'linear': None if spot else linear,
+                'inverse': None if spot else not linear,
+                'taker': self.safe_number(market, 'taker_commission_rate'),
+                'maker': self.safe_number(market, 'maker_commission_rate'),
+                'contractSize': contractSize,
+                'expiry': expiry,
+                'expiryDatetime': expiryDatetime,
+                'strike': self.parse_number(strike),
+                'optionType': optionType,
+                'precision': {
+                    'price': self.safe_number(market, 'tick_size'),
+                    'amount': self.parse_number('1'),  # number of contracts
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': self.parse_number('1'),
+                        'max': self.safe_number(market, 'position_size_limit'),
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': self.safe_number(market, 'min_size'),
+                        'max': None,
+                    },
+                },
                 'info': market,
-                'active': active,
             })
         return result
 

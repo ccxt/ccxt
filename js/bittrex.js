@@ -26,6 +26,7 @@ module.exports = class bittrex extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createDepositAddress': true,
@@ -34,8 +35,10 @@ module.exports = class bittrex extends Exchange {
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
@@ -46,6 +49,7 @@ module.exports = class bittrex extends Exchange {
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': 'emulated',
@@ -241,6 +245,7 @@ module.exports = class bittrex extends Exchange {
             },
             'commonCurrencies': {
                 'BIFI': 'Bifrost Finance',
+                'BTR': 'BTRIPS',
                 'MEME': 'Memetic', // conflict with Meme Inu
                 'MER': 'Mercury', // conflict with Mercurial Finance
                 'PROS': 'Pros.Finance',

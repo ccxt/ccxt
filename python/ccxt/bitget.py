@@ -40,15 +40,20 @@ class bitget(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,
-                'swap': None,
-                'future': None,
-                'option': None,
+                'margin': False,
+                'swap': None,  # has but unimplemented
+                'future': None,  # has but unimplemented
+                'option': False,
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'createOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDeposits': True,
@@ -710,6 +715,9 @@ class bitget(Exchange):
                 },
             },
             'precisionMode': TICK_SIZE,
+            'commonCurrencies': {
+                'JADE': 'Jade Protocol',
+            },
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
                 'fetchMarkets': [
@@ -1099,7 +1107,6 @@ class bitget(Exchange):
             ask = self.safe_string(ask, 0)
         baseVolume = self.safe_string_2(ticker, 'amount', 'volume_24h')
         quoteVolume = self.safe_string(ticker, 'vol')
-        vwap = self.vwap(baseVolume, quoteVolume)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1110,7 +1117,7 @@ class bitget(Exchange):
             'bidVolume': bidVolume,
             'ask': ask,
             'askVolume': askVolume,
-            'vwap': vwap,
+            'vwap': None,
             'open': open,
             'close': last,
             'last': last,

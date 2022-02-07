@@ -20,15 +20,20 @@ module.exports = class bitget extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
-                'swap': undefined,
-                'future': undefined,
-                'option': undefined,
+                'margin': false,
+                'swap': undefined, // has but unimplemented
+                'future': undefined, // has but unimplemented
+                'option': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDeposits': true,
@@ -690,6 +695,9 @@ module.exports = class bitget extends Exchange {
                 },
             },
             'precisionMode': TICK_SIZE,
+            'commonCurrencies': {
+                'JADE': 'Jade Protocol',
+            },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
                 'fetchMarkets': [
@@ -1101,7 +1109,6 @@ module.exports = class bitget extends Exchange {
         }
         const baseVolume = this.safeString2 (ticker, 'amount', 'volume_24h');
         const quoteVolume = this.safeString (ticker, 'vol');
-        const vwap = this.vwap (baseVolume, quoteVolume);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1112,7 +1119,7 @@ module.exports = class bitget extends Exchange {
             'bidVolume': bidVolume,
             'ask': ask,
             'askVolume': askVolume,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': open,
             'close': last,
             'last': last,

@@ -52,12 +52,10 @@ class kraken(Exchange):
                 'swap': False,
                 'future': False,
                 'option': False,
-                'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createDepositAddress': True,
                 'createOrder': True,
-                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
@@ -84,7 +82,6 @@ class kraken(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrderTrades': 'emulated',
                 'fetchPositions': True,
-                'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -92,10 +89,8 @@ class kraken(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFees': True,
                 'fetchWithdrawals': True,
-                'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,  # Kraken only supports cross margin
-                'setPositionMode': False,
                 'withdraw': True,
             },
             'marketsByAltname': {},
@@ -518,7 +513,7 @@ class kraken(Exchange):
                 'limits': {
                     'leverage': {
                         'min': self.parse_number('1'),
-                        'max': self.safe_value(leverageBuy, leverageBuyLength - 1, 1),
+                        'max': self.safe_number(leverageBuy, leverageBuyLength - 1, 1),
                     },
                     'amount': {
                         'min': self.safe_number(market, 'ordermin'),
@@ -737,8 +732,9 @@ class kraken(Exchange):
         }, market, False)
 
     def fetch_tickers(self, symbols=None, params={}):
+        if symbols is None:
+            raise ArgumentsRequired(self.id + ' fetchTickers() requires a symbols argument, an array of symbols')
         self.load_markets()
-        symbols = self.symbols if (symbols is None) else symbols
         marketIds = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
@@ -1250,6 +1246,12 @@ class kraken(Exchange):
         #         "descr":{"order":"sell 167.28002676 ADAXBT @ stop loss 0.00003280 -> limit 0.00003212"}
         #     }
         #
+        #
+        #     {
+        #         "txid":["OVHMJV-BZW2V-6NZFWF"],
+        #         "descr":{"order":"sell 0.00100000 ETHUSD @ stop loss 2677.00 -> limit 2577.00 with 5:1 leverage"}
+        #     }
+        #
         description = self.safe_value(order, 'descr', {})
         orderDescription = self.safe_string(description, 'order')
         side = None
@@ -1257,15 +1259,18 @@ class kraken(Exchange):
         marketId = None
         price = None
         amount = None
+        stopPrice = None
         if orderDescription is not None:
             parts = orderDescription.split(' ')
-            partsLength = len(parts)
             side = self.safe_string(parts, 0)
             amount = self.safe_string(parts, 1)
             marketId = self.safe_string(parts, 2)
             type = self.safe_string(parts, 4)
-            if (type == 'limit') or (type == 'stop'):
-                price = self.safe_string(parts, partsLength - 1)
+            if type == 'stop':
+                stopPrice = self.safe_string(parts, 6)
+                price = self.safe_string(parts, 9)
+            elif type == 'limit':
+                price = self.safe_string(parts, 5)
         side = self.safe_string(description, 'type', side)
         type = self.safe_string(description, 'ordertype', type)
         marketId = self.safe_string(description, 'pair', marketId)
@@ -1308,7 +1313,7 @@ class kraken(Exchange):
             id = self.safe_string(txid, 0)
         clientOrderId = self.safe_string(order, 'userref')
         rawTrades = self.safe_value(order, 'trades')
-        stopPrice = self.safe_number(order, 'stopprice')
+        stopPrice = self.safe_number(order, 'stopprice', stopPrice)
         return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,

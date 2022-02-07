@@ -36,22 +36,35 @@ class hitbtc(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,
-                'swap': None,
-                'future': None,
-                'option': None,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelOrder': True,
                 'createDepositAddress': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': None,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrder': True,
@@ -60,12 +73,20 @@ class hitbtc(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': None,
                 'fetchOrderTrades': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': None,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -253,6 +274,7 @@ class hitbtc(Exchange):
                 '2020': InvalidOrder,  # "Price not a valid number"
                 '20002': OrderNotFound,  # canceling non-existent order
                 '20001': InsufficientFunds,  # {"error":{"code":20001,"message":"Insufficient funds","description":"Check that the funds are sufficient, given commissions"}}
+                '20010': BadSymbol,  # {"error":{"code":20010,"message":"Exchange temporary closed","description":"Exchange market for self symbol is temporary closed"}}
             },
         })
 
@@ -283,38 +305,51 @@ class hitbtc(Exchange):
             quoteId = self.safe_string(market, 'quoteCurrency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
             # bequant fix
+            symbol = base + '/' + quote
             if id.find('_') >= 0:
                 symbol = id
             lotString = self.safe_string(market, 'quantityIncrement')
             stepString = self.safe_string(market, 'tickSize')
             lot = self.parse_number(lotString)
             step = self.parse_number(stepString)
-            precision = {
-                'price': step,
-                'amount': lot,
-            }
-            taker = self.safe_number(market, 'takeLiquidityRate')
-            maker = self.safe_number(market, 'provideLiquidityRate')
             feeCurrencyId = self.safe_string(market, 'feeCurrency')
-            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             result.append(self.extend(self.fees['trading'], {
-                'info': market,
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'active': True,
-                'taker': taker,
-                'maker': maker,
-                'precision': precision,
-                'feeCurrency': feeCurrencyCode,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'taker': self.safe_number(market, 'takeLiquidityRate'),
+                'maker': self.safe_number(market, 'provideLiquidityRate'),
+                'feeCurrency': self.safe_currency_code(feeCurrencyId),
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': step,
+                    'amount': lot,
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': lot,
                         'max': None,
@@ -328,6 +363,7 @@ class hitbtc(Exchange):
                         'max': None,
                     },
                 },
+                'info': market,
             }))
         return result
 

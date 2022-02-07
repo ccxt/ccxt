@@ -22,29 +22,52 @@ module.exports = class bytetrade extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
-                'swap': undefined,
-                'future': undefined,
-                'option': undefined,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'withdraw': undefined,
             },
             'timeframes': {
@@ -197,13 +220,13 @@ module.exports = class bytetrade extends Exchange {
             const limits = this.safeValue (currency, 'limits');
             const deposit = this.safeValue (limits, 'deposit');
             const amountPrecision = this.safeInteger (currency, 'basePrecision');
-            let maxDeposit = this.safeNumber (deposit, 'max');
-            if (maxDeposit === -1.0) {
+            let maxDeposit = this.safeString (deposit, 'max');
+            if (Precise.stringEquals (maxDeposit, '-1')) {
                 maxDeposit = undefined;
             }
             const withdraw = this.safeValue (limits, 'withdraw');
-            let maxWithdraw = this.safeNumber (withdraw, 'max');
-            if (maxWithdraw === -1.0) {
+            let maxWithdraw = this.safeString (withdraw, 'max');
+            if (Precise.stringEquals (maxWithdraw, '-1')) {
                 maxWithdraw = undefined;
             }
             result[code] = {
@@ -219,11 +242,11 @@ module.exports = class bytetrade extends Exchange {
                     'amount': { 'min': undefined, 'max': undefined },
                     'deposit': {
                         'min': this.safeNumber (deposit, 'min'),
-                        'max': maxDeposit,
+                        'max': this.parseNumber (maxDeposit),
                     },
                     'withdraw': {
                         'min': this.safeNumber (withdraw, 'min'),
-                        'max': maxWithdraw,
+                        'max': this.parseNumber (maxWithdraw),
                     },
                 },
                 'info': currency,
@@ -234,6 +257,37 @@ module.exports = class bytetrade extends Exchange {
 
     async fetchMarkets (params = {}) {
         const markets = await this.publicGetSymbols (params);
+        //
+        //     [
+        //         {
+        //             "symbol": "122406567911",
+        //             "name": "BTC/USDT",
+        //             "base": "32",
+        //             "quote": "57",
+        //             "marketStatus": 0,
+        //             "baseName": "BTC",
+        //             "quoteName": "USDT",
+        //             "active": true,
+        //             "maker": "0.0008",
+        //             "taker": "0.0008",
+        //             "precision": {
+        //                 "amount": 6,
+        //                 "price": 2,
+        //                 "minPrice":1
+        //             },
+        //             "limits": {
+        //                 "amount": {
+        //                     "min": "0.000001",
+        //                     "max": "-1"
+        //                 },
+        //                 "price": {
+        //                     "min": "0.01",
+        //                     "max": "-1"
+        //                 }
+        //             }
+        //        }
+        //    ]
+        //
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -254,42 +308,68 @@ module.exports = class bytetrade extends Exchange {
             if (quoteId in this.commonCurrencies) {
                 quote = this.commonCurrencies[quoteId];
             }
-            const symbol = base + '/' + quote;
             const limits = this.safeValue (market, 'limits', {});
             const amount = this.safeValue (limits, 'amount', {});
             const price = this.safeValue (limits, 'price', {});
             const precision = this.safeValue (market, 'precision', {});
-            const active = this.safeString (market, 'active');
+            let maxAmount = this.safeString (amount, 'max');
+            if (Precise.stringEquals (maxAmount, '-1')) {
+                maxAmount = undefined;
+            }
+            let maxPrice = this.safeString (price, 'max');
+            if (Precise.stringEquals (maxPrice, '-1')) {
+                maxPrice = undefined;
+            }
             const entry = {
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
+                'normalSymbol': normalSymbol,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': this.safeString (market, 'active'),
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': this.safeNumber (market, 'taker'),
+                'maker': this.safeNumber (market, 'maker'),
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (precision, 'amount'),
                     'price': this.safeInteger (precision, 'price'),
+                    'amount': this.safeInteger (precision, 'amount'),
                 },
-                'normalSymbol': normalSymbol,
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (amount, 'min'),
-                        'max': this.safeNumber (amount, 'max'),
+                        'max': this.parseNumber (maxAmount),
                     },
                     'price': {
                         'min': this.safeNumber (price, 'min'),
-                        'max': this.safeNumber (price, 'max'),
+                        'max': this.parseNumber (maxPrice),
                     },
                     'cost': {
                         'min': undefined,
                         'max': undefined,
                     },
                 },
+                'info': market,
             };
             result.push (entry);
         }

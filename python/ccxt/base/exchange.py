@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.70.66'
+__version__ = '1.72.37'
 
 # -----------------------------------------------------------------------------
 
@@ -671,8 +671,9 @@ class Exchange(object):
 
         except HTTPError as e:
             details = ' '.join([self.id, method, url])
-            self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
-            self.handle_http_status_code(http_status_code, http_status_text, url, method, http_response)
+            skip_further_error_handling = self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
+            if not skip_further_error_handling:
+                self.handle_http_status_code(http_status_code, http_status_text, url, method, http_response)
             raise ExchangeError(details) from e
 
         except requestsConnectionError as e:

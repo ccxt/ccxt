@@ -12,9 +12,10 @@ before_install:
 - set -e
 - . $HOME/.nvm/nvm.sh
 - nvm ls
+- nvm ls-remote
 # - nvm install 14.9.0 -v
 # - nvm use 14.9.0
-- nvm use stable
+- nvm install v16.13.2
 - rm -rf node_modules
 - npm install
 - git checkout package.json package-lock.json

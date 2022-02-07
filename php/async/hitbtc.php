@@ -28,22 +28,35 @@ class hitbtc extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null,
-                'swap' => null,
-                'future' => null,
-                'option' => null,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => null,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrder' => true,
@@ -52,12 +65,20 @@ class hitbtc extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => null,
                 'fetchOrderTrades' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => null,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -245,6 +266,7 @@ class hitbtc extends Exchange {
                 '2020' => '\\ccxt\\InvalidOrder', // "Price not a valid number"
                 '20002' => '\\ccxt\\OrderNotFound', // canceling non-existent order
                 '20001' => '\\ccxt\\InsufficientFunds', // array("error":array("code":20001,"message":"Insufficient funds","description":"Check that the funds are sufficient, given commissions"))
+                '20010' => '\\ccxt\\BadSymbol', // array("error":array("code":20010,"message":"Exchange temporary closed","description":"Exchange market for this symbol is temporary closed"))
             ),
         ));
     }
@@ -277,8 +299,8 @@ class hitbtc extends Exchange {
             $quoteId = $this->safe_string($market, 'quoteCurrency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
             // bequant fix
+            $symbol = $base . '/' . $quote;
             if (mb_strpos($id, '_') !== false) {
                 $symbol = $id;
             }
@@ -286,30 +308,43 @@ class hitbtc extends Exchange {
             $stepString = $this->safe_string($market, 'tickSize');
             $lot = $this->parse_number($lotString);
             $step = $this->parse_number($stepString);
-            $precision = array(
-                'price' => $step,
-                'amount' => $lot,
-            );
-            $taker = $this->safe_number($market, 'takeLiquidityRate');
-            $maker = $this->safe_number($market, 'provideLiquidityRate');
             $feeCurrencyId = $this->safe_string($market, 'feeCurrency');
-            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $result[] = array_merge($this->fees['trading'], array(
-                'info' => $market,
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
                 'active' => true,
-                'taker' => $taker,
-                'maker' => $maker,
-                'precision' => $precision,
-                'feeCurrency' => $feeCurrencyCode,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'taker' => $this->safe_number($market, 'takeLiquidityRate'),
+                'maker' => $this->safe_number($market, 'provideLiquidityRate'),
+                'feeCurrency' => $this->safe_currency_code($feeCurrencyId),
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'price' => $step,
+                    'amount' => $lot,
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $lot,
                         'max' => null,
@@ -323,6 +358,7 @@ class hitbtc extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'info' => $market,
             ));
         }
         return $result;

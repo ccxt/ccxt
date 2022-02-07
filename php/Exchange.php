@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.70.66';
+$version = '1.72.37';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.70.66';
+    const VERSION = '1.72.37';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -155,8 +155,8 @@ class Exchange {
         'oceanex',
         'okcoin',
         'okex',
-        'okex3',
         'okex5',
+        'okx',
         'paymium',
         'phemex',
         'poloniex',
@@ -173,6 +173,7 @@ class Exchange {
         'wavesexchange',
         'wazirx',
         'whitebit',
+        'woo',
         'xena',
         'yobit',
         'zaif',
@@ -1767,9 +1768,10 @@ class Exchange {
             throw new ExchangeNotAvailable(implode(' ', array($url, $method, $curl_errno, $curl_error)));
         }
 
-        $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response, $headers, $body);
-        $this->handle_http_status_code($http_status_code, $http_status_text, $url, $method, $result);
-
+        $skip_further_error_handling = $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response, $headers, $body);
+        if (!$skip_further_error_handling) {
+            $this->handle_http_status_code($http_status_code, $http_status_text, $url, $method, $result);
+        }
         // check if $curl_errno is not zero
         if ($curl_errno) {
             throw new NetworkError($this->id . ' unknown error: ' . strval($curl_errno) . ' ' . $curl_error);

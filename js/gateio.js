@@ -691,8 +691,6 @@ module.exports = class gateio extends Exchange {
                     const base = this.safeCurrencyCode (baseId);
                     const quote = this.safeCurrencyCode (quoteId);
                     const settle = this.safeCurrencyCode (settleId);
-                    const linear = quote === settle;
-                    const inverse = base === settle;
                     const expiry = this.safeTimestamp (market, 'expire_time');
                     let symbol = '';
                     if (date !== undefined) {
@@ -708,12 +706,7 @@ module.exports = class gateio extends Exchange {
                     const maxPrice = Precise.stringMul (maxMultiplier, markPrice);
                     const takerPercent = this.safeString (market, 'taker_fee_rate');
                     const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
-                    const pricePrecision = this.safeNumber (market, 'order_price_round');
-                    // Fee is in %, so divide by 100
-                    const taker = this.parseNumber (Precise.stringDiv (takerPercent, '100'));
-                    const maker = this.parseNumber (Precise.stringDiv (makerPercent, '100'));
                     result.push ({
-                        'info': market,
                         'id': id,
                         'symbol': symbol,
                         'base': base,
@@ -730,18 +723,18 @@ module.exports = class gateio extends Exchange {
                         'option': option,
                         'active': true,
                         'contract': true,
-                        'linear': linear,
-                        'inverse': inverse,
-                        'taker': taker,
-                        'maker': maker,
+                        'linear': (quote === settle),
+                        'inverse': (base === settle),
+                        'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')), // Fee is in %, so divide by 100
+                        'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
                         'contractSize': this.safeNumber (market, 'quanto_multiplier'),
                         'expiry': expiry,
                         'expiryDatetime': this.iso8601 (expiry),
                         'strike': undefined,
                         'optionType': undefined,
                         'precision': {
+                            'price': this.safeNumber (market, 'order_price_round'),
                             'amount': this.parseNumber ('1'),
-                            'price': pricePrecision,
                         },
                         'limits': {
                             'leverage': {
@@ -753,14 +746,15 @@ module.exports = class gateio extends Exchange {
                                 'max': this.safeNumber (market, 'order_size_max'),
                             },
                             'price': {
-                                'min': minPrice,
-                                'max': maxPrice,
+                                'min': this.parseNumber (minPrice),
+                                'max': this.parseNumber (maxPrice),
                             },
                             'cost': {
                                 'min': undefined,
                                 'max': undefined,
                             },
                         },
+                        'info': market,
                     });
                 }
             }
@@ -799,21 +793,17 @@ module.exports = class gateio extends Exchange {
             for (let i = 0; i < response.length; i++) {
                 const market = response[i];
                 const id = this.safeString (market, 'id');
-                const spot = (type === 'spot');
                 const [ baseId, quoteId ] = id.split ('_');
                 const base = this.safeCurrencyCode (baseId);
                 const quote = this.safeCurrencyCode (quoteId);
-                const symbol = base + '/' + quote;
                 const takerPercent = this.safeString (market, 'fee');
                 const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
                 const amountPrecisionString = this.safeString (market, 'amount_precision');
                 const pricePrecisionString = this.safeString (market, 'precision');
-                const amountPrecision = this.parseNumber (this.parsePrecision (amountPrecisionString));
-                const pricePrecision = this.parseNumber (this.parsePrecision (pricePrecisionString));
                 const tradeStatus = this.safeString (market, 'trade_status');
                 result.push ({
                     'id': id,
-                    'symbol': symbol,
+                    'symbol': base + '/' + quote,
                     'base': base,
                     'quote': quote,
                     'settle': undefined,
@@ -826,7 +816,7 @@ module.exports = class gateio extends Exchange {
                     'swap': false,
                     'future': false,
                     'option': false,
-                    'active': tradeStatus === 'tradable',
+                    'active': (tradeStatus === 'tradable'),
                     'contract': false,
                     'linear': undefined,
                     'inverse': undefined,
@@ -839,8 +829,8 @@ module.exports = class gateio extends Exchange {
                     'strike': undefined,
                     'optionType': undefined,
                     'precision': {
-                        'amount': amountPrecision,
-                        'price': pricePrecision,
+                        'price': this.parseNumber (this.parsePrecision (pricePrecisionString)),
+                        'amount': this.parseNumber (this.parsePrecision (amountPrecisionString)),
                     },
                     'limits': {
                         'leverage': {
@@ -848,11 +838,11 @@ module.exports = class gateio extends Exchange {
                             'max': this.safeNumber (market, 'lever', 1),
                         },
                         'amount': {
-                            'min': amountPrecision,
+                            'min': undefined,
                             'max': undefined,
                         },
                         'price': {
-                            'min': pricePrecision,
+                            'min': undefined,
                             'max': undefined,
                         },
                         'cost': {
@@ -1865,11 +1855,24 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        let market = undefined;
+        let request = {};
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', undefined, params);
+        if (symbol) {
+            market = this.market (symbol);
+            request = this.prepareRequest (market);
+            type = market['type'];
+        } else {
+            if (type === 'swap' || type === 'future') {
+                const settle = this.safeStringLower (params, 'settle');
+                if (!settle) {
+                    throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument or a settle parameter for ' + type + ' markets');
+                }
+                request['settle'] = settle;
+            }
+        }
         //
         //     const request = {
         //         'currency_pair': market['id'],
@@ -1881,7 +1884,6 @@ module.exports = class gateio extends Exchange {
         //         // 'to': this.milliseconds (), // default to current time
         //     };
         //
-        const request = this.prepareRequest (market);
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
@@ -1889,7 +1891,7 @@ module.exports = class gateio extends Exchange {
             request['from'] = parseInt (since / 1000);
             // request['to'] = since + 7 * 24 * 60 * 60;
         }
-        const method = this.getSupportedMapping (market['type'], {
+        const method = this.getSupportedMapping (type, {
             'spot': 'privateSpotGetMyTrades',
             'margin': 'privateSpotGetMyTrades',
             'swap': 'privateFuturesGetSettleMyTrades',
@@ -2442,13 +2444,16 @@ module.exports = class gateio extends Exchange {
         const amountRaw = this.safeString2 (order, 'amount', 'size');
         const amount = Precise.stringAbs (amountRaw);
         const price = this.safeString (order, 'price');
-        // const average = this.safeString (order, 'fill_price');
         const remaining = this.safeString (order, 'left');
-        const cost = this.safeString (order, 'filled_total'); // same as filled_price
+        // 'filled_total': same as fill_price (spots), not existing (swap)
+        const cost = this.safeString (order, 'filled_total');
         let rawStatus = undefined;
         let side = undefined;
+        let average = undefined;
         const contract = this.safeValue (market, 'contract');
         if (contract) {
+            // fill price is the price per contract for swaps, but the cost for spot
+            average = this.safeString (order, 'fill_price');
             if (amount) {
                 side = Precise.stringGt (amountRaw, '0') ? 'buy' : 'sell';
             } else {
@@ -2475,14 +2480,14 @@ module.exports = class gateio extends Exchange {
             }
         }
         const fees = [];
-        const gtFee = this.safeNumber (order, 'gt_fee');
+        const gtFee = this.safeString (order, 'gt_fee');
         if (gtFee) {
             fees.push ({
                 'currency': 'GT',
                 'cost': gtFee,
             });
         }
-        const fee = this.safeNumber (order, 'fee');
+        const fee = this.safeString (order, 'fee');
         if (fee) {
             fees.push ({
                 'currency': this.safeCurrencyCode (this.safeString (order, 'fee_currency')),
@@ -2493,14 +2498,14 @@ module.exports = class gateio extends Exchange {
         if (rebate) {
             fees.push ({
                 'currency': this.safeCurrencyCode (this.safeString (order, 'rebated_fee_currency')),
-                'cost': this.parseNumber (Precise.stringNeg (rebate)),
+                'cost': Precise.stringNeg (rebate),
             });
         }
-        const mkfr = this.safeNumber (order, 'mkfr');
-        const tkfr = this.safeNumber (order, 'tkfr');
+        const mkfr = this.safeString (order, 'mkfr');
+        const tkfr = this.safeString (order, 'tkfr');
         if (mkfr) {
             fees.push ({
-                'currency': this.safeCurrencyCode (this.safeString (order, 'settleId')),
+                'currency': this.safeCurrencyCode (this.safeString (market, 'settleId')),
                 'cost': mkfr,
             });
         }
@@ -2524,7 +2529,7 @@ module.exports = class gateio extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
-            'average': undefined,
+            'average': average,
             'amount': amount,
             'cost': cost,
             'filled': undefined,
@@ -2636,7 +2641,7 @@ module.exports = class gateio extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined && (market['spot'] || market['margin'])) {
-            request['start'] = parseInt (since / 1000);
+            request['from'] = parseInt (since / 1000);
         }
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'privateSpotGetOrders',

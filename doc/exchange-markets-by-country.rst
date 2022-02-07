@@ -243,6 +243,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :target: https://api.latoken.com
           :alt: API Version 1
      
+   * - Cayman Islands
+     - .. image:: https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg
+          :target: https://referral.woo.org/BAJS6oNmZb3vi3RGA
+          :alt: woo
+     
+     - woo
+     - `WOO X <https://referral.woo.org/BAJS6oNmZb3vi3RGA>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://docs.woo.org/
+          :alt: API Version 1
+     
    * - Chile
      - .. image:: https://user-images.githubusercontent.com/1294454/47380619-8a029200-d706-11e8-91e0-8a391fe48de3.jpg
           :target: https://www.buda.com
@@ -322,11 +333,11 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
    * - China
      - .. image:: https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg
-          :target: https://www.huobi.com
+          :target: https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223
           :alt: huobi
      
      - huobi
-     - `Huobi <https://www.huobi.com>`__
+     - `Huobi <https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://huobiapi.github.io/docs/spot/v1/cn/
           :alt: API Version 1
@@ -365,26 +376,15 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 3
      
    * - China
-     - .. image:: https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg
-          :target: https://www.okex.com
-          :alt: okex
+     - .. image:: https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg
+          :target: https://www.okx.com/join/1888677
+          :alt: okx
      
-     - okex
-     - `OKEX <https://www.okex.com>`__
+     - okx
+     - `OKX <https://www.okx.com/join/1888677>`__
      - .. image:: https://img.shields.io/badge/5-lightgray
-          :target: https://www.okex.com/docs-v5/en/
+          :target: https://www.okx.com/docs-v5/en/
           :alt: API Version 5
-     
-   * - China
-     - .. image:: https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg
-          :target: https://www.okex.com/join/1888677
-          :alt: okex3
-     
-     - okex3
-     - `OKEX <https://www.okex.com/join/1888677>`__
-     - .. image:: https://img.shields.io/badge/3-lightgray
-          :target: https://www.okex.com/docs/en/
-          :alt: API Version 3
      
    * - China
      - .. image:: https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg
@@ -1553,14 +1553,14 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 3
      
    * - US
-     - .. image:: https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg
-          :target: https://www.okex.com
-          :alt: okex
+     - .. image:: https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg
+          :target: https://www.okx.com/join/1888677
+          :alt: okx
      
-     - okex
-     - `OKEX <https://www.okex.com>`__
+     - okx
+     - `OKX <https://www.okx.com/join/1888677>`__
      - .. image:: https://img.shields.io/badge/5-lightgray
-          :target: https://www.okex.com/docs-v5/en/
+          :target: https://www.okx.com/docs-v5/en/
           :alt: API Version 5
      
    * - US

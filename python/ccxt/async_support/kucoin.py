@@ -57,7 +57,9 @@ class kucoin(Exchange):
                 'fetchDeposits': True,
                 'fetchFundingFee': True,
                 'fetchFundingHistory': False,
+                'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
                 'fetchL3OrderBook': True,
                 'fetchLedger': True,
@@ -547,9 +549,6 @@ class kucoin(Exchange):
             baseId, quoteId = id.split('-')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            active = self.safe_value(market, 'enableTrading')
-            margin = self.safe_value(market, 'isMarginEnabled')
             baseMaxSize = self.safe_number(market, 'baseMaxSize')
             baseMinSizeString = self.safe_string(market, 'baseMinSize')
             quoteMaxSizeString = self.safe_string(market, 'quoteMaxSize')
@@ -557,49 +556,59 @@ class kucoin(Exchange):
             quoteMaxSize = self.parse_number(quoteMaxSizeString)
             quoteMinSize = self.safe_number(market, 'quoteMinSize')
             # quoteIncrement = self.safe_number(market, 'quoteIncrement')
-            precision = {
-                'amount': self.precision_from_string(self.safe_string(market, 'baseIncrement')),
-                'price': self.precision_from_string(self.safe_string(market, 'priceIncrement')),
-            }
-            limits = {
-                'amount': {
-                    'min': baseMinSize,
-                    'max': baseMaxSize,
-                },
-                'price': {
-                    'min': self.safe_number(market, 'priceIncrement'),
-                    'max': self.parse_number(Precise.string_div(quoteMaxSizeString, baseMinSizeString)),
-                },
-                'cost': {
-                    'min': quoteMinSize,
-                    'max': quoteMaxSize,
-                },
-                'leverage': {
-                    'max': self.safe_number(market, 'maxLeverage', 1),  # * Don't default to 1 for margin markets, leverage is located elsewhere
-                },
-            }
             ticker = self.safe_value(tickersByMarketId, id, {})
             makerFeeRate = self.safe_string(ticker, 'makerFeeRate')
             takerFeeRate = self.safe_string(ticker, 'makerFeeRate')
             makerCoefficient = self.safe_string(ticker, 'makerCoefficient')
             takerCoefficient = self.safe_string(ticker, 'takerCoefficient')
-            maker = self.parse_number(Precise.string_mul(makerFeeRate, makerCoefficient))
-            taker = self.parse_number(Precise.string_mul(takerFeeRate, takerCoefficient))
             result.append({
                 'id': id,
-                'symbol': symbol,
-                'baseId': baseId,
-                'quoteId': quoteId,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'margin': margin,
-                'active': active,
-                'maker': maker,
-                'taker': taker,
-                'precision': precision,
-                'limits': limits,
+                'margin': self.safe_value(market, 'isMarginEnabled'),
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': self.safe_value(market, 'enableTrading'),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'taker': self.parse_number(Precise.string_mul(takerFeeRate, takerCoefficient)),
+                'maker': self.parse_number(Precise.string_mul(makerFeeRate, makerCoefficient)),
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': self.precision_from_string(self.safe_string(market, 'priceIncrement')),
+                    'amount': self.precision_from_string(self.safe_string(market, 'baseIncrement')),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': baseMinSize,
+                        'max': baseMaxSize,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': quoteMinSize,
+                        'max': quoteMaxSize,
+                    },
+                },
                 'info': market,
             })
         return result
@@ -1321,8 +1330,11 @@ class kucoin(Exchange):
         # bool
         isActive = self.safe_value(order, 'isActive', False)
         cancelExist = self.safe_value(order, 'cancelExist', False)
+        stop = self.safe_string(order, 'stop')
+        stopTriggered = self.safe_value(order, 'stopTriggered', False)
         status = 'open' if isActive else 'closed'
-        status = 'canceled' if cancelExist else status
+        cancelExistWithStop = cancelExist or (not isActive and stop and not stopTriggered)
+        status = 'canceled' if cancelExistWithStop else status
         fee = {
             'currency': feeCurrency,
             'cost': feeCost,

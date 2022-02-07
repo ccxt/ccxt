@@ -24,8 +24,8 @@ class bibox extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null,
-                'swap' => null,
+                'margin' => null, // has but unimplemented
+                'swap' => null, // has but unimplemented
                 'future' => null,
                 'option' => null,
                 'cancelOrder' => true,
@@ -225,44 +225,46 @@ class bibox extends Exchange {
                 // TODO => update to v3 api
                 continue;
             }
-            $precision = array(
-                'amount' => $this->safe_number($market, 'amount_scale'),
-                'price' => $this->safe_number($market, 'decimal'),
-            );
             $result[] = array(
                 'id' => $id,
                 'numericId' => $numericId,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => $type,
                 'spot' => $spot,
                 'margin' => false,
                 'future' => false,
                 'swap' => false,
                 'option' => false,
-                'optionType' => null,
-                'strike' => null,
+                'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                'contract' => false,
                 'contractSize' => null,
-                'settle' => null,
-                'settleId' => null,
+                'active' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
-                'active' => null,
-                'info' => $market,
-                'precision' => $precision,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'price' => $this->safe_number($market, 'decimal'),
+                    'amount' => $this->safe_number($market, 'amount_scale'),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
-                        'min' => pow(10, -$precision['amount']),
+                        'min' => null,
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision['price']),
+                        'min' => null,
                         'max' => null,
                     ),
                     'cost' => array(
@@ -270,6 +272,7 @@ class bibox extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'info' => $market,
             );
         }
         return $result;

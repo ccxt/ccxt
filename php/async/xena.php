@@ -34,6 +34,11 @@ class xena extends Exchange {
                 'editOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
@@ -540,7 +545,10 @@ class xena extends Exchange {
         $mdEntry = $this->safe_value($response, 'mdEntry', array());
         $mdEntriesByType = $this->group_by($mdEntry, 'mdEntryType');
         $lastUpdateTime = $this->safe_integer($response, 'lastUpdateTime');
-        $timestamp = intval($lastUpdateTime / 1000000);
+        $timestamp = null;
+        if ($lastUpdateTime !== null) {
+            $timestamp = intval($lastUpdateTime / 1000000);
+        }
         return $this->parse_order_book($mdEntriesByType, $symbol, $timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize');
     }
 

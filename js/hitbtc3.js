@@ -18,9 +18,9 @@ module.exports = class hitbtc3 extends Exchange {
             'has': {
                 'CORS': false,
                 'spot': true,
-                'margin': undefined,
-                'swap': undefined,
-                'future': undefined,
+                'margin': undefined, // has but not fully unimplemented
+                'swap': undefined, // has but not fully unimplemented
+                'future': undefined, // has but not fully unimplemented
                 'option': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
@@ -364,8 +364,6 @@ module.exports = class hitbtc3 extends Exchange {
             const stepString = this.safeString (market, 'tick_size');
             const lot = this.parseNumber (lotString);
             const step = this.parseNumber (stepString);
-            const taker = this.safeNumber (market, 'take_rate');
-            const maker = this.safeNumber (market, 'make_rate');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -381,13 +379,13 @@ module.exports = class hitbtc3 extends Exchange {
                 'swap': swap,
                 'future': future,
                 'option': option,
+                'active': true,
                 'contract': contract,
                 'linear': linear,
                 'inverse': inverse,
-                'taker': taker,
-                'maker': maker,
+                'taker': this.safeNumber (market, 'take_rate'),
+                'maker': this.safeNumber (market, 'make_rate'),
                 'contractSize': contractSize,
-                'active': true,
                 'expiry': expiry,
                 'expiryDatetime': undefined,
                 'strike': undefined,
@@ -399,7 +397,7 @@ module.exports = class hitbtc3 extends Exchange {
                 },
                 'limits': {
                     'leverage': {
-                        'min': 1,
+                        'min': this.parseNumber ('1'),
                         'max': this.safeNumber (market, 'max_initial_leverage', 1),
                     },
                     'amount': {
@@ -476,8 +474,7 @@ module.exports = class hitbtc3 extends Exchange {
                 const precision = this.safeNumber (rawNetwork, 'precision_payout');
                 const payinEnabledNetwork = this.safeValue (entry, 'payin_enabled', false);
                 const payoutEnabledNetwork = this.safeValue (entry, 'payout_enabled', false);
-                const transferEnabledNetwork = this.safeValue (entry, 'transfer_enabled', false);
-                const active = payinEnabledNetwork && payoutEnabledNetwork && transferEnabledNetwork;
+                const activeNetwork = payinEnabledNetwork && payoutEnabledNetwork;
                 if (payinEnabledNetwork && !depositEnabled) {
                     depositEnabled = true;
                 } else if (!payinEnabledNetwork) {
@@ -493,7 +490,7 @@ module.exports = class hitbtc3 extends Exchange {
                     'id': networkId,
                     'network': network,
                     'fee': fee,
-                    'active': active,
+                    'active': activeNetwork,
                     'deposit': payinEnabledNetwork,
                     'withdraw': payoutEnabledNetwork,
                     'precision': precision,

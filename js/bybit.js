@@ -1228,6 +1228,9 @@ module.exports = class bybit extends Exchange {
         //         "symbol": "BTCUSD",
         //         "funding_rate": "0.00010000",
         //         "funding_rate_timestamp": 1577433600
+        //         // some pairs like BTC/USDT return an iso8601 string in funding_rate_timestamp
+        //         // "funding_rate_timestamp":"2022-02-05T08:00:00.000Z"
+        //
         //     },
         //     "ext_info": null,
         //     "time_now": "1577445586.446797",
@@ -1238,8 +1241,11 @@ module.exports = class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result');
         const fundingRate = this.safeNumber (result, 'funding_rate');
-        const fundingTime = this.safeInteger (result, 'funding_rate_timestamp') * 1000;
-        const nextFundingTime = this.sum (fundingTime, 8 * 3600000);
+        let fundingTimestamp = this.safeTimestamp (result, 'funding_rate_timestamp');
+        if (fundingTimestamp === undefined) {
+            fundingTimestamp = this.parse8601 (this.safeString (result, 'funding_rate_timestamp'));
+        }
+        const nextFundingTimestamp = this.sum (fundingTimestamp, 8 * 3600000);
         const currentTime = this.milliseconds ();
         return {
             'info': result,
@@ -1251,11 +1257,11 @@ module.exports = class bybit extends Exchange {
             'timestamp': currentTime,
             'datetime': this.iso8601 (currentTime),
             'fundingRate': fundingRate,
-            'fundingTimestamp': fundingTime,
-            'fundingDatetime': this.iso8601 (fundingTime),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601 (fundingTimestamp),
             'nextFundingRate': undefined,
-            'nextFundingTimestamp': nextFundingTime,
-            'nextFundingDatetime': this.iso8601 (nextFundingTime),
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': this.iso8601 (nextFundingTimestamp),
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
@@ -1653,7 +1659,10 @@ module.exports = class bybit extends Exchange {
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const id = this.safeString2 (order, 'order_id', 'stop_order_id');
         const type = this.safeStringLower (order, 'order_type');
-        const price = this.safeString (order, 'price');
+        let price = undefined;
+        if (type !== 'market') {
+            price = this.safeString (order, 'price');
+        }
         const average = this.safeString (order, 'average_price');
         const amount = this.safeString (order, 'qty');
         const cost = this.safeString (order, 'cum_exec_value');
@@ -1674,7 +1683,7 @@ module.exports = class bybit extends Exchange {
         }
         const status = this.parseOrderStatus (this.safeString2 (order, 'order_status', 'stop_order_status'));
         const side = this.safeStringLower (order, 'side');
-        const feeCostString = Precise.stringAbs (this.safeString (order, 'cum_exec_fee'));
+        const feeCostString = this.safeString (order, 'cum_exec_fee');
         let fee = undefined;
         if (feeCostString !== undefined) {
             fee = {
@@ -2859,8 +2868,11 @@ module.exports = class bybit extends Exchange {
             throw new ArgumentsRequired (this.id + '.setMarginMode requires a leverage parameter');
         }
         marginType = marginType.toUpperCase ();
-        if ((marginType !== 'ISOLATED') && (marginType !== 'CROSSED')) {
-            throw new BadRequest (this.id + ' marginType must be either isolated or crossed');
+        if (marginType === 'CROSSED') { // * Deprecated, use 'CROSS' instead
+            marginType = 'CROSS';
+        }
+        if ((marginType !== 'ISOLATED') && (marginType !== 'CROSS')) {
+            throw new BadRequest (this.id + ' marginType must be either isolated or cross');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);

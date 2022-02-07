@@ -37,8 +37,8 @@ class bitfinex2(bitfinex):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,
-                'swap': None,
+                'margin': None,  # has but unimplemented
+                'swap': None,  # has but unimplemented
                 'future': None,
                 'option': None,
                 'cancelAllOrders': True,
@@ -56,6 +56,7 @@ class bitfinex2(bitfinex):
                 'fetchDepositAddress': True,
                 'fetchFundingFees': None,
                 'fetchIndexOHLCV': False,
+                'fetchLedger': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -391,16 +392,16 @@ class bitfinex2(bitfinex):
         # pub:list:pair:exchange,pub:list:pair:margin,pub:list:pair:futures,pub:info:pair
         v2response = await self.publicGetConfPubListPairFutures(params)
         v1response = await self.v1GetSymbolsDetails(params)
-        futuresMarketIds = self.safe_value(v2response, 0, [])
+        swapMarketIds = self.safe_value(v2response, 0, [])
         result = []
         for i in range(0, len(v1response)):
             market = v1response[i]
             id = self.safe_string_upper(market, 'pair')
             spot = True
-            if self.in_array(id, futuresMarketIds):
+            if self.in_array(id, swapMarketIds):
                 spot = False
-            future = not spot
-            type = 'spot' if spot else 'future'
+            swap = not spot
+            type = 'spot' if spot else 'swap'
             baseId = None
             quoteId = None
             if id.find(':') >= 0:
@@ -449,10 +450,10 @@ class bitfinex2(bitfinex):
                 'limits': limits,
                 'info': market,
                 'type': type,
-                'swap': False,
+                'swap': swap,
                 'spot': spot,
                 'margin': margin,
-                'future': future,
+                'future': False,
             })
         return result
 
@@ -739,10 +740,50 @@ class bitfinex2(bitfinex):
         return result
 
     def parse_ticker(self, ticker, market=None):
+        #
+        # on trading pairs(ex. tBTCUSD)
+        #
+        #     [
+        #         SYMBOL,
+        #         BID,
+        #         BID_SIZE,
+        #         ASK,
+        #         ASK_SIZE,
+        #         DAILY_CHANGE,
+        #         DAILY_CHANGE_RELATIVE,
+        #         LAST_PRICE,
+        #         VOLUME,
+        #         HIGH,
+        #         LOW
+        #     ]
+        #
+        # on funding currencies(ex. fUSD)
+        #
+        #     [
+        #         SYMBOL,
+        #         FRR,
+        #         BID,
+        #         BID_PERIOD,
+        #         BID_SIZE,
+        #         ASK,
+        #         ASK_PERIOD,
+        #         ASK_SIZE,
+        #         DAILY_CHANGE,
+        #         DAILY_CHANGE_RELATIVE,
+        #         LAST_PRICE,
+        #         VOLUME,
+        #         HIGH,
+        #         LOW,
+        #         _PLACEHOLDER,
+        #         _PLACEHOLDER,
+        #         FRR_AMOUNT_AVAILABLE
+        #     ]
+        #
         timestamp = self.milliseconds()
         symbol = self.safe_symbol(None, market)
         length = len(ticker)
         last = self.safe_string(ticker, length - 4)
+        percentage = self.safe_string(ticker, length - 5)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -759,7 +800,7 @@ class bitfinex2(bitfinex):
             'last': last,
             'previousClose': None,
             'change': self.safe_string(ticker, length - 6),
-            'percentage': self.safe_string(ticker, length - 5) * 100,
+            'percentage': Precise.string_mul(percentage, '100'),
             'average': None,
             'baseVolume': self.safe_string(ticker, length - 3),
             'quoteVolume': None,
@@ -775,6 +816,45 @@ class bitfinex2(bitfinex):
         else:
             request['symbols'] = 'ALL'
         tickers = await self.publicGetTickers(self.extend(request, params))
+        #
+        #     [
+        #         # on trading pairs(ex. tBTCUSD)
+        #         [
+        #             SYMBOL,
+        #             BID,
+        #             BID_SIZE,
+        #             ASK,
+        #             ASK_SIZE,
+        #             DAILY_CHANGE,
+        #             DAILY_CHANGE_RELATIVE,
+        #             LAST_PRICE,
+        #             VOLUME,
+        #             HIGH,
+        #             LOW
+        #         ],
+        #         # on funding currencies(ex. fUSD)
+        #         [
+        #             SYMBOL,
+        #             FRR,
+        #             BID,
+        #             BID_PERIOD,
+        #             BID_SIZE,
+        #             ASK,
+        #             ASK_PERIOD,
+        #             ASK_SIZE,
+        #             DAILY_CHANGE,
+        #             DAILY_CHANGE_RELATIVE,
+        #             LAST_PRICE,
+        #             VOLUME,
+        #             HIGH,
+        #             LOW,
+        #             _PLACEHOLDER,
+        #             _PLACEHOLDER,
+        #             FRR_AMOUNT_AVAILABLE
+        #         ],
+        #         ...
+        #     ]
+        #
         result = {}
         for i in range(0, len(tickers)):
             ticker = tickers[i]
@@ -1386,8 +1466,7 @@ class bitfinex2(bitfinex):
         elif transactionLength == 22:
             id = self.safe_string(transaction, 0)
             currencyId = self.safe_string(transaction, 1)
-            currency = self.safe_currency(currencyId, currency)
-            code = currency['code']
+            code = self.safe_currency_code(currencyId, currency)
             timestamp = self.safe_integer(transaction, 5)
             updated = self.safe_integer(transaction, 6)
             status = self.parse_transaction_status(self.safe_string(transaction, 9))
@@ -1604,3 +1683,99 @@ class bitfinex2(bitfinex):
             self.throw_broadly_matched_exception(self.exceptions['broad'], errorText, feedback)
             raise ExchangeError(self.id + ' ' + errorText + '(#' + errorCode + ')')
         return response
+
+    def parse_ledger_entry_type(self, type):
+        if type is None:
+            return None
+        elif type.find('fee') >= 0 or type.find('charged') >= 0:
+            return 'fee'
+        elif type.find('exchange') >= 0 or type.find('position') >= 0:
+            return 'trade'
+        elif type.find('rebate') >= 0:
+            return 'rebate'
+        elif type.find('deposit') >= 0 or type.find('withdrawal') >= 0:
+            return 'transaction'
+        elif type.find('transfer') >= 0:
+            return 'transfer'
+        elif type.find('payment') >= 0:
+            return 'payout'
+        else:
+            return type
+
+    def parse_ledger_entry(self, item, currency=None):
+        #
+        #     [
+        #         [
+        #             2531822314,  # ID: Ledger identifier
+        #             "USD",  # CURRENCY: The symbol of the currency(ex. "BTC")
+        #             null,  # PLACEHOLDER
+        #             1573521810000,  # MTS: Timestamp in milliseconds
+        #             null,  # PLACEHOLDER
+        #             0.01644445,  # AMOUNT: Amount of funds moved
+        #             0,  # BALANCE: New balance
+        #             null,  # PLACEHOLDER
+        #             "Settlement @ 185.79 on wallet margin"  # DESCRIPTION: Description of ledger transaction
+        #         ]
+        #     ]
+        #
+        type = None
+        id = self.safe_string(item, 0)
+        currencyId = self.safe_string(item, 1)
+        code = self.safe_currency_code(currencyId, currency)
+        timestamp = self.safe_integer(item, 3)
+        amount = self.safe_number(item, 5)
+        after = self.safe_number(item, 6)
+        description = self.safe_string(item, 8)
+        if description is not None:
+            parts = description.split(' @ ')
+            first = self.safe_string_lower(parts, 0)
+            type = self.parse_ledger_entry_type(first)
+        return {
+            'id': id,
+            'direction': None,
+            'account': None,
+            'referenceId': id,
+            'referenceAccount': None,
+            'type': type,
+            'currency': code,
+            'amount': amount,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'before': None,
+            'after': after,
+            'status': None,
+            'fee': None,
+            'info': item,
+        }
+
+    async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        await self.load_markets()
+        currency = None
+        request = {}
+        method = 'privatePostAuthRLedgersHist'
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['uppercaseId']
+            method = 'privatePostAuthRLedgersCurrencyHist'
+        if since is not None:
+            request['start'] = since
+        if limit is not None:
+            request['limit'] = limit  # max 2500
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        #     [
+        #         [
+        #             2531822314,  # ID: Ledger identifier
+        #             "USD",  # CURRENCY: The symbol of the currency(ex. "BTC")
+        #             null,  # PLACEHOLDER
+        #             1573521810000,  # MTS: Timestamp in milliseconds
+        #             null,  # PLACEHOLDER
+        #             0.01644445,  # AMOUNT: Amount of funds moved
+        #             0,  # BALANCE: New balance
+        #             null,  # PLACEHOLDER
+        #             "Settlement @ 185.79 on wallet margin"  # DESCRIPTION: Description of ledger transaction
+        #         ]
+        #     ]
+        #
+        return self.parse_ledger(response, currency, since, limit)

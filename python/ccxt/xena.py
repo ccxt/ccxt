@@ -36,6 +36,11 @@ class xena(Exchange):
                 'editOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
@@ -528,7 +533,9 @@ class xena(Exchange):
         mdEntry = self.safe_value(response, 'mdEntry', [])
         mdEntriesByType = self.group_by(mdEntry, 'mdEntryType')
         lastUpdateTime = self.safe_integer(response, 'lastUpdateTime')
-        timestamp = int(lastUpdateTime / 1000000)
+        timestamp = None
+        if lastUpdateTime is not None:
+            timestamp = int(lastUpdateTime / 1000000)
         return self.parse_order_book(mdEntriesByType, symbol, timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize')
 
     def fetch_accounts(self, params={}):

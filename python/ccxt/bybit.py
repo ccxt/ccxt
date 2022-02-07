@@ -1228,6 +1228,9 @@ class bybit(Exchange):
         #         "symbol": "BTCUSD",
         #         "funding_rate": "0.00010000",
         #         "funding_rate_timestamp": 1577433600
+        #         # some pairs like BTC/USDT return an iso8601 string in funding_rate_timestamp
+        #         # "funding_rate_timestamp":"2022-02-05T08:00:00.000Z"
+        #
         #     },
         #     "ext_info": null,
         #     "time_now": "1577445586.446797",
@@ -1238,8 +1241,10 @@ class bybit(Exchange):
         #
         result = self.safe_value(response, 'result')
         fundingRate = self.safe_number(result, 'funding_rate')
-        fundingTime = self.safe_integer(result, 'funding_rate_timestamp') * 1000
-        nextFundingTime = self.sum(fundingTime, 8 * 3600000)
+        fundingTimestamp = self.safe_timestamp(result, 'funding_rate_timestamp')
+        if fundingTimestamp is None:
+            fundingTimestamp = self.parse8601(self.safe_string(result, 'funding_rate_timestamp'))
+        nextFundingTimestamp = self.sum(fundingTimestamp, 8 * 3600000)
         currentTime = self.milliseconds()
         return {
             'info': result,
@@ -1251,11 +1256,11 @@ class bybit(Exchange):
             'timestamp': currentTime,
             'datetime': self.iso8601(currentTime),
             'fundingRate': fundingRate,
-            'fundingTimestamp': fundingTime,
-            'fundingDatetime': self.iso8601(fundingTime),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': self.iso8601(fundingTimestamp),
             'nextFundingRate': None,
-            'nextFundingTimestamp': nextFundingTime,
-            'nextFundingDatetime': self.iso8601(nextFundingTime),
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
@@ -1631,7 +1636,9 @@ class bybit(Exchange):
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         id = self.safe_string_2(order, 'order_id', 'stop_order_id')
         type = self.safe_string_lower(order, 'order_type')
-        price = self.safe_string(order, 'price')
+        price = None
+        if type != 'market':
+            price = self.safe_string(order, 'price')
         average = self.safe_string(order, 'average_price')
         amount = self.safe_string(order, 'qty')
         cost = self.safe_string(order, 'cum_exec_value')
@@ -1649,7 +1656,7 @@ class bybit(Exchange):
             lastTradeTimestamp = None
         status = self.parse_order_status(self.safe_string_2(order, 'order_status', 'stop_order_status'))
         side = self.safe_string_lower(order, 'side')
-        feeCostString = Precise.string_abs(self.safe_string(order, 'cum_exec_fee'))
+        feeCostString = self.safe_string(order, 'cum_exec_fee')
         fee = None
         if feeCostString is not None:
             fee = {
@@ -2744,8 +2751,10 @@ class bybit(Exchange):
         if leverage is None:
             raise ArgumentsRequired(self.id + '.setMarginMode requires a leverage parameter')
         marginType = marginType.upper()
-        if (marginType != 'ISOLATED') and (marginType != 'CROSSED'):
-            raise BadRequest(self.id + ' marginType must be either isolated or crossed')
+        if marginType == 'CROSSED':  # * Deprecated, use 'CROSS' instead
+            marginType = 'CROSS'
+        if (marginType != 'ISOLATED') and (marginType != 'CROSS'):
+            raise BadRequest(self.id + ' marginType must be either isolated or cross')
         self.load_markets()
         market = self.market(symbol)
         method = None

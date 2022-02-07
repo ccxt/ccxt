@@ -376,76 +376,105 @@ module.exports = class delta extends Exchange {
             // const settlingAsset = this.safeValue (market, 'settling_asset', {});
             const quotingAsset = this.safeValue (market, 'quoting_asset', {});
             const underlyingAsset = this.safeValue (market, 'underlying_asset', {});
+            const settlingAsset = this.safeValue (market, 'settling_asset');
             const baseId = this.safeString (underlyingAsset, 'symbol');
             const quoteId = this.safeString (quotingAsset, 'symbol');
+            const settleId = this.safeString (settlingAsset, 'symbol');
             const id = this.safeString (market, 'symbol');
             const numericId = this.safeInteger (market, 'id');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            let symbol = id;
-            let swap = false;
-            let future = false;
-            let option = false;
-            if (type === 'perpetual_futures') {
-                type = 'swap';
-                swap = true;
-                future = false;
-                option = false;
-                if (id.indexOf ('_') < 0) {
-                    symbol = base + '/' + quote;
+            const settle = this.safeCurrencyCode (settleId);
+            const callOptions = (type === 'call_options');
+            const putOptions = (type === 'put_options');
+            const moveOptions = (type === 'move_options');
+            const spot = (type === 'spot');
+            const swap = (type === 'perpetual_futures');
+            const future = (type === 'futures');
+            const option = (callOptions || putOptions || moveOptions);
+            const strike = this.safeString (market, 'strike_price');
+            const expiryDatetime = this.safeString (market, 'settlement_time');
+            const expiry = this.parse8601 (expiryDatetime);
+            const contractSize = this.safeNumber (market, 'contract_value');
+            const linear = (settle === base);
+            let optionType = undefined;
+            let symbol = base + '/' + quote;
+            if (swap || future || option) {
+                symbol = symbol + ':' + settle;
+                if (future || option) {
+                    symbol = symbol + '-' + this.yymmdd (expiry);
+                    if (option) {
+                        type = 'option';
+                        let letter = 'C';
+                        optionType = 'call';
+                        if (putOptions) {
+                            letter = 'P';
+                            optionType = 'put';
+                        } else if (moveOptions) {
+                            letter = 'M';
+                            optionType = 'move';
+                        }
+                        symbol = symbol + ':' + strike + ':' + letter;
+                    } else {
+                        type = 'future';
+                    }
+                } else {
+                    type = 'swap';
                 }
-            } else if ((type === 'call_options') || (type === 'put_options') || (type === 'move_options')) {
-                type = 'option';
-                swap = false;
-                option = true;
-                future = false;
-            } else if (type === 'futures') {
-                type = 'future';
-                swap = false;
-                option = false;
-                future = true;
+            } else {
+                symbol = id;
             }
-            const precision = {
-                'amount': 1.0, // number of contracts
-                'price': this.safeNumber (market, 'tick_size'),
-            };
-            const limits = {
-                'amount': {
-                    'min': 1.0,
-                    'max': this.safeNumber (market, 'position_size_limit'),
-                },
-                'price': {
-                    'min': precision['price'],
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': this.safeNumber (market, 'min_size'),
-                    'max': undefined,
-                },
-            };
             const state = this.safeString (market, 'state');
-            const active = (state === 'live');
-            const maker = this.safeNumber (market, 'maker_commission_rate');
-            const taker = this.safeNumber (market, 'taker_commission_rate');
             result.push ({
                 'id': id,
                 'numericId': numericId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': settleId,
                 'type': type,
-                'spot': false,
-                'option': option,
+                'spot': spot,
+                'margin': spot ? undefined : false,
                 'swap': swap,
                 'future': future,
-                'maker': maker,
-                'taker': taker,
-                'precision': precision,
-                'limits': limits,
+                'option': option,
+                'active': (state === 'live'),
+                'contract': !spot,
+                'linear': spot ? undefined : linear,
+                'inverse': spot ? undefined : !linear,
+                'taker': this.safeNumber (market, 'taker_commission_rate'),
+                'maker': this.safeNumber (market, 'maker_commission_rate'),
+                'contractSize': contractSize,
+                'expiry': expiry,
+                'expiryDatetime': expiryDatetime,
+                'strike': this.parseNumber (strike),
+                'optionType': optionType,
+                'precision': {
+                    'price': this.safeNumber (market, 'tick_size'),
+                    'amount': this.parseNumber ('1'), // number of contracts
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.parseNumber ('1'),
+                        'max': this.safeNumber (market, 'position_size_limit'),
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'min_size'),
+                        'max': undefined,
+                    },
+                },
                 'info': market,
-                'active': active,
             });
         }
         return result;

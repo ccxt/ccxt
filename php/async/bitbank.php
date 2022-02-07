@@ -8,7 +8,6 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
-use \ccxt\Precise;
 
 class bitbank extends Exchange {
 
@@ -21,13 +20,20 @@ class bitbank extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null,
+                'margin' => false,
                 'swap' => false,
                 'future' => false,
                 'option' => false,
+                'addMargin' => false,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchDepositAddress' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
@@ -42,6 +48,7 @@ class bitbank extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchPosition' => false,
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
@@ -49,6 +56,7 @@ class bitbank extends Exchange {
                 'fetchTrades' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
+                'setMarginMode' => false,
                 'setPositionMode' => false,
                 'withdraw' => true,
             ),
@@ -167,12 +175,6 @@ class bitbank extends Exchange {
             $quoteId = $this->safe_string($entry, 'quote_asset');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $maker = $this->safe_number($entry, 'maker_fee_rate_quote');
-            $taker = $this->safe_number($entry, 'taker_fee_rate_quote');
-            $pricePrecisionString = $this->safe_string($entry, 'price_digits');
-            $priceLimit = $this->parse_precision($pricePrecisionString);
-            $minAmountString = $this->safe_string($entry, 'unit_amount');
-            $minCost = Precise::string_mul($minAmountString, $priceLimit);
             $result[] = array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
@@ -192,15 +194,15 @@ class bitbank extends Exchange {
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                'maker' => $maker,
-                'taker' => $taker,
+                'taker' => $this->safe_number($entry, 'taker_fee_rate_quote'),
+                'maker' => $this->safe_number($entry, 'maker_fee_rate_quote'),
                 'contractSize' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => intval($pricePrecisionString),
+                    'price' => $this->safe_integer($entry, 'price_digits'),
                     'amount' => $this->safe_integer($entry, 'amount_digits'),
                 ),
                 'limits' => array(
@@ -213,11 +215,11 @@ class bitbank extends Exchange {
                         'max' => $this->safe_number($entry, 'limit_max_amount'),
                     ),
                     'price' => array(
-                        'min' => $this->parse_number($priceLimit),
+                        'min' => null,
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => $this->parse_number($minCost),
+                        'min' => null,
                         'max' => null,
                     ),
                 ),

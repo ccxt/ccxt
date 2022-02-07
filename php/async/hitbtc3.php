@@ -27,9 +27,9 @@ class hitbtc3 extends Exchange {
             'has' => array(
                 'CORS' => false,
                 'spot' => true,
-                'margin' => null,
-                'swap' => null,
-                'future' => null,
+                'margin' => null, // has but not fully unimplemented
+                'swap' => null, // has but not fully unimplemented
+                'future' => null, // has but not fully unimplemented
                 'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
@@ -373,8 +373,6 @@ class hitbtc3 extends Exchange {
             $stepString = $this->safe_string($market, 'tick_size');
             $lot = $this->parse_number($lotString);
             $step = $this->parse_number($stepString);
-            $taker = $this->safe_number($market, 'take_rate');
-            $maker = $this->safe_number($market, 'make_rate');
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -390,13 +388,13 @@ class hitbtc3 extends Exchange {
                 'swap' => $swap,
                 'future' => $future,
                 'option' => $option,
+                'active' => true,
                 'contract' => $contract,
                 'linear' => $linear,
                 'inverse' => $inverse,
-                'taker' => $taker,
-                'maker' => $maker,
+                'taker' => $this->safe_number($market, 'take_rate'),
+                'maker' => $this->safe_number($market, 'make_rate'),
                 'contractSize' => $contractSize,
-                'active' => true,
                 'expiry' => $expiry,
                 'expiryDatetime' => null,
                 'strike' => null,
@@ -408,7 +406,7 @@ class hitbtc3 extends Exchange {
                 ),
                 'limits' => array(
                     'leverage' => array(
-                        'min' => 1,
+                        'min' => $this->parse_number('1'),
                         'max' => $this->safe_number($market, 'max_initial_leverage', 1),
                     ),
                     'amount' => array(
@@ -485,8 +483,7 @@ class hitbtc3 extends Exchange {
                 $precision = $this->safe_number($rawNetwork, 'precision_payout');
                 $payinEnabledNetwork = $this->safe_value($entry, 'payin_enabled', false);
                 $payoutEnabledNetwork = $this->safe_value($entry, 'payout_enabled', false);
-                $transferEnabledNetwork = $this->safe_value($entry, 'transfer_enabled', false);
-                $active = $payinEnabledNetwork && $payoutEnabledNetwork && $transferEnabledNetwork;
+                $activeNetwork = $payinEnabledNetwork && $payoutEnabledNetwork;
                 if ($payinEnabledNetwork && !$depositEnabled) {
                     $depositEnabled = true;
                 } else if (!$payinEnabledNetwork) {
@@ -502,7 +499,7 @@ class hitbtc3 extends Exchange {
                     'id' => $networkId,
                     'network' => $network,
                     'fee' => $fee,
-                    'active' => $active,
+                    'active' => $activeNetwork,
                     'deposit' => $payinEnabledNetwork,
                     'withdraw' => $payoutEnabledNetwork,
                     'precision' => $precision,
