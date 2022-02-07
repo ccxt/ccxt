@@ -44,6 +44,7 @@ module.exports = class graviex extends Exchange {
                 'clearOrder': true,
                 'createOcoOrder': false,
                 'createOrders': false,
+                'fetchOrdersHistory': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -93,6 +94,7 @@ module.exports = class graviex extends Exchange {
                         'order', // Requires access_key, tonce, signature and api secret AND id (unique orderid).
                         'trades/my', // Requires market XXXYYY, access_key, tonce, signature and api secret . Optional: limit, timestamp, from, to, order_by
                         'trades/history', // Requires market XXXYYY, access_key, tonce, signature and api secret . Optional: limit, timestamp, from, to, order_by
+                        'orders/history', // Requires market XXXYYY, access_key, tonce, signature and api secret . Optional: limit, timestamp, from, to, order_by
                     ],
                     'post': [
                         'orders', // Requires access_key, tonce, signature and api secret AND market, side(sell/buy), volume. Optional price ord_type
@@ -425,7 +427,7 @@ module.exports = class graviex extends Exchange {
 
     async fetchDepth (symbol, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrderBook() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchDepth() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -510,24 +512,53 @@ module.exports = class graviex extends Exchange {
             'market': this.marketId (symbol),
         };
         const response = await this.privateGetOrderBook (this.extend (request, params));
-        const orderbook = this.safeValue (response, 'payload');
-        const timestamp = this.parse8601 (this.safeString (orderbook, 'updated_at'));
-        return this.parseOrderBook (orderbook, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
+        // {
+        //   "asks": [
+        //     {
+        //       "id": 288323066,
+        //       "at": 1644211934,
+        //       "side": "sell",
+        //       "ord_type": "limit",
+        //       "price": "0.003074559",
+        //       "avg_price": "0.0",
+        //       "state": "wait",
+        //       "market": "ltcbtc",
+        //       "created_at": "2022-02-07T08:32:14+03:00",
+        //       "volume": "10.2778",
+        //       "remaining_volume": "10.2778",
+        //       "executed_volume": "0.0",
+        //       "trades_count": 0,
+        //       "strategy": null
+        //     },
+        //     {
+        //       "id": 288322948,
+        //       "at": 1644211864,
+        //       "side": "sell",
+        //       "ord_type": "limit",
+        //       "price": "0.00307456",
+        //       "avg_price": "0.0",
+        //       "state": "wait",
+        //       "market": "ltcbtc",
+        //       "created_at": "2022-02-07T08:31:04+03:00",
+        //       "volume": "1.0",
+        //       "remaining_volume": "1.0",
+        //       "executed_volume": "0.0",
+        //       "trades_count": 0,
+        //       "strategy": null
+        //     },
+        //   ]
+        // }
+        const timestamp = this.parse8601 (this.safeString (response, 'created_at'));
+        return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', 'price', 'avg_price');
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
         const code = (currency === undefined) ? undefined : currency['code'];
-        let address = this.safeString (depositAddress, 'address');
-        let tag = undefined;
-        if (address !== undefined) {
-            const parts = address.split (':');
-            address = this.safeString (parts, 0);
-            tag = this.safeString (parts, 1);
-        }
-        this.checkAddress (address);
+        const tag = undefined;
+        this.checkAddress (depositAddress);
         return {
             'currency': code,
-            'address': address,
+            'address': depositAddress,
             'tag': tag,
             'network': undefined,
             'info': depositAddress,
@@ -541,8 +572,9 @@ module.exports = class graviex extends Exchange {
             'currency': currency['id'].toLowerCase (),
         };
         const response = await this.privateGetDepositAddress (this.extend (request, params));
-        const data = this.safeValue (response, 'data', {});
-        return this.parseDepositAddress (data, currency);
+        // "\"MJhWAUptMUrMo8Jb9G7xsPfSQjeWSWJh2q\""
+        const parsedResponse = JSON.parse (response);
+        return this.parseDepositAddress (parsedResponse, currency);
     }
 
     parseTransaction (transaction, currency = undefined) {
@@ -653,55 +685,50 @@ module.exports = class graviex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        // [
+        //   {
+        //     "id": 287792646,
+        //     "at": 1643956089,
+        //     "side": "sell",
+        //     "ord_type": "limit",
+        //     "price": "0.141",
+        //     "avg_price": "0.0",
+        //     "state": "cancel",
+        //     "market": "ltcbtc",
+        //     "created_at": "2022-02-04T09:28:09+03:00",
+        //     "volume": "0.141",
+        //     "remaining_volume": "0.141",
+        //     "executed_volume": "0.0",
+        //     "trades_count": 0,
+        //     "strategy": null
+        //   }
+        // ]
         const id = this.safeString (order, 'id');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
-        const sideType = this.safeString (order, 'order_type');
-        let orderType = undefined;
-        let side = undefined;
-        if (sideType !== undefined) {
-            const parts = sideType.split ('_');
-            side = this.safeString (parts, 0);
-            orderType = this.safeString (parts, 1);
-        }
+        const sideType = this.safeString (order, 'ord_type');
+        const side = this.safeString (order, 'side');
         const price = this.safeString (order, 'price');
-        const amount = this.safeString (order, 'market_amount');
-        const remaining = this.safeString (order, 'market_amount_remaining');
-        const open = this.safeValue (order, 'open', false);
-        const closeReason = this.safeString (order, 'close_reason');
-        let status = undefined;
-        if (open) {
-            status = 'open';
-        } else if (closeReason === 'canceled') {
-            status = 'canceled';
-        } else {
-            status = 'closed';
-        }
-        const marketId = this.safeString (order, 'market_string');
+        const amount = this.safeString (order, 'avg_price');
+        const remaining = this.safeString (order, 'remaining_volume');
+        // const open = this.safeValue (order, 'open', false);
+        // const closeReason = this.safeString (order, 'close_reason');
+        const status = this.safeString (order, 'state');
+        const marketId = this.safeString (order, 'remaining_volume');
         market = this.safeMarket (marketId, market, '_');
         const symbol = market['symbol'];
         const rawTrades = this.safeValue (order, 'trades', []);
         return this.safeOrder ({
             'info': order,
             'id': id,
-            'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
             'symbol': symbol,
-            'type': orderType,
-            'timeInForce': undefined,
-            'postOnly': undefined,
+            'type': sideType,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
-            'average': undefined,
             'amount': amount,
             'remaining': remaining,
-            'filled': undefined,
             'status': status,
-            'fee': undefined,
-            'fees': undefined,
-            'cost': undefined,
             'trades': rawTrades,
         }, market);
     }
@@ -717,23 +744,37 @@ module.exports = class graviex extends Exchange {
             request['id'] = id;
         }
         const response = await this.privateGetOrder (this.extend (request, params));
-        const data = this.safeValue (response, 'data', {});
-        const order = this.safeValue (data, 'order', {});
-        return this.parseOrder (order);
+        // {
+        //   "id": 288336422,
+        //   "at": 1644217763,
+        //   "side": "sell",
+        //   "ord_type": "limit",
+        //   "price": "0.141",
+        //   "avg_price": "0.0",
+        //   "state": "wait",
+        //   "market": "ltcbtc",
+        //   "created_at": "2022-02-07T10:09:23+03:00",
+        //   "volume": "0.141",
+        //   "remaining_volume": "0.141",
+        //   "executed_volume": "0.0",
+        //   "trades_count": 0,
+        //   "trades": [],
+        //   "strategy": null
+        // }
+        return this.parseOrder (response);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
         };
-        const market = this.market (symbol);
+        let market = undefined;
         if (symbol !== undefined) {
             request['market'] = this.marketId (symbol);
+            market = this.market (symbol);
         }
         const response = await this.privateGetOrders (this.extend (request, params));
-        const data = this.safeValue (response, 'data', {});
-        const orders = this.safeValue (data, 'orders', []);
-        return this.parseOrders (orders, market, since, limit);
+        return this.parseOrders (response, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -788,7 +829,22 @@ module.exports = class graviex extends Exchange {
             'price': this.amountToPrecision (symbol, amount),
         };
         const response = await this.privatePostOrders (this.extend (request));
-        // const order = this.safeValue (response, 'order');
+        // {
+        //   "id": 288336422,
+        //   "at": 1644217763,
+        //   "side": "sell",
+        //   "ord_type": "limit",
+        //   "price": "0.141",
+        //   "avg_price": "0.0",
+        //   "state": "wait",
+        //   "market": "ltcbtc",
+        //   "created_at": "2022-02-07T10:09:23+03:00",
+        //   "volume": "0.141",
+        //   "remaining_volume": "0.141",
+        //   "executed_volume": "0.0",
+        //   "trades_count": 0,
+        //   "strategy": null
+        // }
         return this.parseOrder (response);
     }
 
@@ -801,6 +857,23 @@ module.exports = class graviex extends Exchange {
             'id': id,
         };
         const response = await this.privatePostOrderDelete (this.extend (request, params));
+        // {
+        //   "id": 288336422,
+        //   "at": 1644217763,
+        //   "side": "sell",
+        //   "ord_type": "limit",
+        //   "price": "0.141",
+        //   "avg_price": "0.0",
+        //   "state": "wait",
+        //   "market": "ltcbtc",
+        //   "created_at": "2022-02-07T10:09:23+03:00",
+        //   "volume": "0.141",
+        //   "remaining_volume": "0.141",
+        //   "executed_volume": "0.0",
+        //   "trades_count": 0,
+        //   "trades": [],
+        //   "strategy": null
+        // }
         const order = this.parseOrder (response);
         const status = order['status'];
         if (status === 'closed' || status === 'canceled') {
@@ -841,8 +914,61 @@ module.exports = class graviex extends Exchange {
         return this.parseOrders (data);
     }
 
+    async fetchOrdersHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'order_by': 'desc',
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            request['market'] = this.marketId (symbol);
+            market = this.market (symbol);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default: 500
+        }
+        const response = await this.privateGetOrdersHistory (this.extend (request, params));
+        // [
+        //   {
+        //     "id": 287792646,
+        //     "at": 1643956089,
+        //     "side": "sell",
+        //     "ord_type": "limit",
+        //     "price": "0.141",
+        //     "avg_price": "0.0",
+        //     "state": "cancel",
+        //     "market": "ltcbtc",
+        //     "created_at": "2022-02-04T09:28:09+03:00",
+        //     "volume": "0.141",
+        //     "remaining_volume": "0.141",
+        //     "executed_volume": "0.0",
+        //     "trades_count": 0,
+        //     "strategy": null
+        //   }
+        // ]
+        return this.parseOrders (response, market, since, limit);
+    }
+
     nonce () {
         return this.milliseconds ();
+    }
+
+    encodeParams (params) {
+        if ('orders' in params) {
+            const orders = params['orders'];
+            let query = this.urlencode (this.keysort (this.omit (params, 'orders')));
+            for (let i = 0; i < orders.length; i++) {
+                const order = orders[i];
+                const keys = Object.keys (order);
+                for (let k = 0; k < keys.length; k++) {
+                    const key = keys[k];
+                    const value = order[key];
+                    query += '&orders%5B%5D%5B' + key + '%5D=' + value.toString ();
+                }
+            }
+            return query;
+        }
+        return this.urlencode (this.keysort (params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -856,23 +982,13 @@ module.exports = class graviex extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
-            const query = this.urlencode (this.extend ({
+            const query = this.encodeParams (this.extend ({
                 'access_key': this.apiKey,
                 'tonce': nonce,
             }, params));
             const payload = method + '|' + request + '|' + query;
-            // const signed = this.hmac (payload, this.secret, 'sha256');
             const signed = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256');
             const suffix = query + '&signature=' + signed;
-            // const tonce = this.nonce ();
-            // params['tonce'] = tonce;
-            // params['access_key'] = this.apiKey;
-            // const sorted = this.keysort (params);
-            // let paramencoded = this.urlencode (sorted);
-            // const sign_str = method + '|' + request + '|' + paramencoded;
-            // const signature = this.hmac (sign_str, this.secret, 'sha256');
-            // sorted['signature'] = signature;
-            // paramencoded = this.urlencode (sorted);
             if (method === 'GET') {
                 url += '?' + suffix;
             } else {
