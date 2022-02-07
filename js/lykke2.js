@@ -37,7 +37,7 @@ module.exports = class lykke2 extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchDeposits': true,
+                'fetchDeposits': false,
                 'fetchFundingFees': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -60,7 +60,8 @@ module.exports = class lykke2 extends Exchange {
                 'fetchTime': false,
                 'fetchTrades': true,
                 'fetchTradingFees': false,
-                'fetchWithdrawals': true,
+                'fetchTransactions': true,
+                'fetchWithdrawals': false,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'withdraw': true,
@@ -1002,34 +1003,22 @@ module.exports = class lykke2 extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         //
-        // fetchDeposits
+        //     {
+        //         "operationId":"787201c8-f1cc-45c0-aec1-fa06eeea426b",
+        //         "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
+        //         "totalVolume":0.1,
+        //         "fee":0.0,
+        //         "type":"deposit",
+        //         "timestamp":1644146723620
+        //     }
         //
-        //
-        //         {
-        //             "operationId":"787201c8-f1cc-45c0-aec1-fa06eeea426b",
-        //             "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
-        //             "totalVolume":0.1,
-        //             "fee":0.0,
-        //             "type":"deposit",
-        //             "timestamp":1644146723620
-        //         }
-        //
-        // fetchWithdrawals
-        //
-        //         {
-        //             "operationId":"787201c8-f1cc-45c0-aec1-fa06eeea426b",
-        //             "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
-        //             "totalVolume":0.1,
-        //             "fee":0.01,
-        //             "type":"withdrawal",
-        //             "timestamp":1644146723620
-        //         }
-        //
-        const code = this.safeCurrencyCode (this.safeString (transaction, 'coin'));
         const id = this.safeString (transaction, 'operationId');
+        const assetId = this.safeString (transaction, 'assetId');
+        const code = this.safeCurrencyCode (assetId, currency);
         const amount = this.safeNumber (transaction, 'totalVolume');
-        const timestamp = this.safeInteger (transaction, 'timestamp');
         const fee = this.safeNumber (transaction, 'fee');
+        const type = this.safeString (transaction, 'type');
+        const timestamp = this.safeInteger (transaction, 'timestamp');
         return {
             'info': transaction,
             'id': id,
@@ -1043,7 +1032,7 @@ module.exports = class lykke2 extends Exchange {
             'tagFrom': undefined,
             'tag': undefined,
             'tagTo': undefined,
-            'type': undefined,
+            'type': type,
             'amount': amount,
             'currency': code,
             'status': undefined,
@@ -1056,9 +1045,16 @@ module.exports = class lykke2 extends Exchange {
         };
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetOperations (params);
+        const request = {
+            // 'offset': 0,
+            // 'take': 1,
+        };
+        if (limit !== undefined) {
+            request['take'] = limit;
+        }
+        const response = await this.privateGetOperations (this.extend (request, params));
         const payload = this.safeValue (response, 'payload', []);
         //
         //     {
@@ -1079,33 +1075,7 @@ module.exports = class lykke2 extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        return this.parseTransactions (payload, currency, since, limit, { 'type': 'deposit' });
-    }
-
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetOperations (params);
-        const payload = this.safeValue (response, 'payload', []);
-        //
-        //     {
-        //         "payload":[
-        //             {
-        //                 "operationId":"787201c8-f1cc-45c0-aec1-fa06eeea426b",
-        //                 "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
-        //                 "totalVolume":0.1,
-        //                 "fee":0.0,
-        //                 "type":"deposit",
-        //                 "timestamp":1644146723620
-        //             }
-        //         ],
-        //         "error":null
-        //     }
-        //
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-        }
-        return this.parseTransactions (payload, currency, since, limit, { 'type': 'withdrawal' });
+        return this.parseTransactions (payload, currency, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
