@@ -939,7 +939,11 @@ module.exports = class hollaex extends Exchange {
             // 'meta': {}, // other options such as post_only
         };
         if (type !== 'market') {
-            request['price'] = price;
+            let convertedPrice = parseFloat (this.priceToPrecision (symbol, price));
+            if (convertedPrice % 1 === 0) {
+                convertedPrice = parseInt (convertedPrice);
+            }
+            request['price'] = convertedPrice;
         }
         const stopPrice = this.safeFloat2 (params, 'stopPrice', 'stop');
         if (stopPrice !== undefined) {
