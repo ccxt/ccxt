@@ -244,6 +244,7 @@ module.exports = class kraken extends Exchange {
                 'delistedMarketsById': {},
                 // cannot withdraw/deposit these
                 'inactiveCurrencies': [ 'CAD', 'USD', 'JPY', 'GBP' ],
+                'fetchTickersMaxLength': 4096,
                 'networks': {
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
