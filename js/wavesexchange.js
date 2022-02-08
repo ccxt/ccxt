@@ -130,6 +130,7 @@ module.exports = class wavesexchange extends Exchange {
                         'matcher/orderbook/market',
                         'matcher/orderbook/cancel',
                         'matcher/orderbook/{baseId}/{quoteId}/cancel',
+                        'matcher/orderbook/{amountAsset}/{priceAsset}/calculateFee',
                         'matcher/debug/saveSnapshots',
                         'matcher/orders/{address}/cancel',
                         'matcher/orders/cancel/{orderId}',
@@ -341,8 +342,33 @@ module.exports = class wavesexchange extends Exchange {
         return super.setSandboxMode (enabled);
     }
 
+    async getFeesForAsset (symbol, side, amount, price, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = this.extend ({
+            'amountAsset': market['baseId'],
+            'priceAsset': market['quoteId'],
+            'orderType': side,
+            'amount': amount,
+            'price': price,
+        }, params);
+        return await this.matcherPostMatcherOrderbookAmountAssetPriceAssetCalculateFee(request);
+    }
+
     async calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         const settings = await this.matcherGetMatcherSettings ();
+        const customKeys = Object.keys (settings['orderFee']['composite']['custom']);
+        const markets = Object.keys (this.markets);
+        for (let i = 0; i < customKeys.length; i++) {
+            const key = customKeys[i];
+            for (let v = 0; v < markets.length; v++) {
+                const market = this.markets[markets[v]];
+                if (market['id'] === key) {
+                    console.log ('Custom Market:', v);
+                    break;
+                }
+            }
+        }
         const dynamic = this.safeGetDynamic (settings);
         const baseMatcherFee = this.safeString (dynamic, 'baseFee');
         const amountAsString = this.numberToString (amount);
@@ -616,7 +642,8 @@ module.exports = class wavesexchange extends Exchange {
         } else if (api === 'matcher') {
             if (method === 'POST') {
                 headers = {
-                    'content-type': 'application/json',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
                 };
                 body = this.json (query);
             } else {
@@ -1095,7 +1122,7 @@ module.exports = class wavesexchange extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         this.checkRequiredDependencies ();
-        this.checkRequiredKeys ();
+        // this.checkRequiredKeys ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const matcherPublicKey = await this.getMatcherPublicKey ();
@@ -1160,11 +1187,22 @@ module.exports = class wavesexchange extends Exchange {
         //     "4LHHvYGNKJUg5hj65aGD5vgScvCBmLpdRFtjokvCjSL8"
         //   ]
         // }
-        const dynamic = this.safeGetDynamic (settings);
-        const baseMatcherFee = this.safeString (dynamic, 'baseFee');
-        const wavesMatcherFee = this.currencyFromPrecision ('WAVES', baseMatcherFee);
-        const rates = this.safeGetRates (dynamic);
+        // const dynamic = this.safeGetDynamic (settings);
+        // const baseMatcherFee = this.safeString (dynamic, 'baseFee');
+        // const wavesMatcherFee = this.currencyFromPrecision ('WAVES', baseMatcherFee);
+        // const rates = this.safeGetRates (dynamic);
         // choose sponsored assets from the list of priceAssets above
+        const matcherFees = this.getFeesForAsset(symbol, side, amount, price);
+        // {
+        //     "base":{
+        //        "feeAssetId":"WAVES",
+        //        "matcherFee":"1000000"
+        //     },
+        //     "discount":{
+        //        "feeAssetId":"EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc",
+        //        "matcherFee":"4077612"
+        //     }
+        //  }
         const priceAssets = Object.keys (rates);
         let matcherFeeAssetId = undefined;
         let matcherFee = undefined;
@@ -1177,7 +1215,9 @@ module.exports = class wavesexchange extends Exchange {
             const floatWavesMatcherFee = parseFloat (wavesMatcherFee);
             if (balances['WAVES']['free'] > floatWavesMatcherFee) {
                 matcherFeeAssetId = 'WAVES';
-                matcherFee = baseMatcherFee;
+                const base = this.safeValue(matcherFees, 'base');
+                const wavesMatcherFee = this.safeInteger(base, 'matcherFee');
+                matcherFee = wavesMatcherFee;
             } else {
                 for (let i = 0; i < priceAssets.length; i++) {
                     const assetId = priceAssets[i];
@@ -1190,6 +1230,13 @@ module.exports = class wavesexchange extends Exchange {
                     }
                 }
             }
+        }
+
+        // check if the discounted fee was selected
+        const discount = this.safeValue(matcherFees, 'discount');
+        const discountFeeAssetId = this.safeString(discount, 'feeAssetId');
+        if (discountFeeAssetId == matcherFeeAssetId) {
+            matcherFee = this.safeInteger(discount, 'matcherFee');
         }
         if (matcherFeeAssetId === undefined) {
             throw InsufficientFunds (this.id + ' not enough funds to cover the fee, specify feeAssetId in params or options, or buy some WAVES');
