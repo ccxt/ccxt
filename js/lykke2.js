@@ -1016,6 +1016,10 @@ module.exports = class lykke2 extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         //
+        // withdraw
+        //     "3035b1ad-2005-4587-a986-1f7966be78e0"
+        //
+        // fetchTransactions
         //     {
         //         "operationId":"787201c8-f1cc-45c0-aec1-fa06eeea426b",
         //         "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
@@ -1025,7 +1029,10 @@ module.exports = class lykke2 extends Exchange {
         //         "timestamp":1644146723620
         //     }
         //
-        const id = this.safeString (transaction, 'operationId');
+        let id = this.safeString (transaction, 'operationId');
+        if (id === undefined) {
+            id = transaction;
+        }
         const assetId = this.safeString (transaction, 'assetId');
         const code = this.safeCurrencyCode (assetId, currency);
         const amount = this.safeNumber (transaction, 'totalVolume');
@@ -1091,6 +1098,26 @@ module.exports = class lykke2 extends Exchange {
         return this.parseTransactions (payload, currency, since, limit);
     }
 
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        await this.loadMarkets ();
+        this.checkAddress (address);
+        const currency = this.currency (code);
+        const request = {
+            'assetId': currency['id'],
+            'volume': amount,
+            'destinationAddress': address,
+            // 'destinationAddressExtension': tag,
+        };
+        if (tag !== undefined) {
+            request['destinationAddressExtension'] = tag;
+        }
+        const response = await this.privatePostOperationsWithdrawals (this.extend (request, params));
+        //
+        //     "3035b1ad-2005-4587-a986-1f7966be78e0"
+        //
+        return this.parseTransaction (response, currency);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
@@ -1114,6 +1141,9 @@ module.exports = class lykke2 extends Exchange {
                 if (Object.keys (params).length) {
                     body = this.json (params);
                 }
+            }
+            if (path === 'operations/withdrawals') {
+                headers['X-Request-ID'] = this.uuid ();
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
