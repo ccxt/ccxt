@@ -344,17 +344,12 @@ module.exports = class bitstamp extends Exchange {
             const quoteId = quote.toLowerCase ();
             base = this.safeCurrencyCode (base);
             quote = this.safeCurrencyCode (quote);
-            const amountPrecisionString = this.safeString (market, 'base_decimals');
-            const pricePrecisionString = this.safeString (market, 'counter_decimals');
-            const amountLimit = this.parsePrecision (amountPrecisionString);
-            const priceLimit = this.parsePrecision (pricePrecisionString);
             const minimumOrder = this.safeString (market, 'minimum_order');
             const parts = minimumOrder.split (' ');
-            const cost = parts[0];
-            // let [ cost, currency ] = market['minimum_order'].split (' ');
-            const trading = this.safeString (market, 'trading');
+            const status = this.safeString (market, 'trading');
             result.push ({
                 'id': this.safeString (market, 'url_symbol'),
+                'marketId': baseId + '_' + quoteId,
                 'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
@@ -362,14 +357,13 @@ module.exports = class bitstamp extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': undefined,
-                'marketId': baseId + '_' + quoteId,
                 'type': 'spot',
                 'spot': true,
                 'margin': false,
                 'future': false,
                 'swap': false,
                 'option': false,
-                'active': (trading === 'Enabled'),
+                'active': (status === 'Enabled'),
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -379,8 +373,8 @@ module.exports = class bitstamp extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': parseInt (pricePrecisionString),
-                    'amount': parseInt (amountPrecisionString),
+                    'price': this.parsePrecision (this.safeString (market, 'counter_decimals')),
+                    'amount': this.parsePrecision (this.safeString (market, 'base_decimals')),
                 },
                 'limits': {
                     'leverage': {
@@ -388,15 +382,15 @@ module.exports = class bitstamp extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': this.parseNumber (amountLimit),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'price': {
-                        'min': this.parseNumber (priceLimit),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
-                        'min': this.parseNumber (cost),
+                        'min': this.safeNumber (parts, 0),
                         'max': undefined,
                     },
                 },
