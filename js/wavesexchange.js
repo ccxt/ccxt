@@ -1135,7 +1135,7 @@ module.exports = class wavesexchange extends Exchange {
         const timestamp = this.milliseconds ();
         const defaultExpiryDelta = this.safeInteger (this.options, 'createOrderDefaultExpiry', 2419200000);
         const expiration = this.sum (timestamp, defaultExpiryDelta);
-        const matcherFees = this.getFeesForAsset(symbol, side, amount, price);
+        const matcherFees = await this.getFeesForAsset(symbol, side, amount, price);
         // {
         //     "base":{
         //        "feeAssetId":"WAVES",
@@ -1146,6 +1146,57 @@ module.exports = class wavesexchange extends Exchange {
         //        "matcherFee":"4077612"
         //     }
         //  }
+        const settings = await this.matcherGetMatcherSettings ();
+        // {
+        //   "orderVersions": [
+        //     1,
+        //     2,
+        //     3
+        //   ],
+        //   "success": true,
+        //   "matcherPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
+        //   "orderFee": {
+        //     "dynamic": {
+        //       "baseFee": 300000,
+        //       "rates": {
+        //         "34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ": 1.0257813,
+        //         "62LyMjcr2DtiyF5yVXFhoQ2q414VPPJXjsNYp72SuDCH": 0.01268146,
+        //         "HZk1mbfuJpmxU1Fs4AX5MWLVYtctsNcg6e2C6VKqK8zk": 0.05232404,
+        //         "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS": 0.00023985,
+        //         "4LHHvYGNKJUg5hj65aGD5vgScvCBmLpdRFtjokvCjSL8": 19.5967716,
+        //         "474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu": 0.00937073,
+        //         "DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p": 2.19825,
+        //         "B3uGHFRpSUuGEDWjqB9LWWxafQj8VTvpMucEyoxzws5H": 0.03180264,
+        //         "zMFqXuoyrn5w17PFurTqxB7GsS71fp9dfk6XFwxbPCy": 0.00996631,
+        //         "5WvPKSJXzVE2orvbkJ8wsQmmQKqTv9sGBPksV4adViw3": 0.03254476,
+        //         "WAVES": 1,
+        //         "BrjUWjndUanm5VsJkbUip8VRYy6LWJePtxya3FNv4TQa": 0.03703704
+        //       }
+        //     }
+        //   },
+        //   "networkByte": 87,
+        //   "matcherVersion": "2.1.4.8",
+        //   "status": "SimpleResponse",
+        //   "priceAssets": [
+        //     "Ft8X1v1LTa1ABafufpaCWyVj8KkaxUWE6xBhW6sNFJck",
+        //     "DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p",
+        //     "34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ",
+        //     "Gtb1WRznfchDnTh37ezoDTJ4wcoKaRsKqKjJjy7nm2zU",
+        //     "2mX5DzVKWrAJw8iwdJnV2qtoeVG9h5nTDpTqC1wb1WEN",
+        //     "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
+        //     "WAVES",
+        //     "474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu",
+        //     "zMFqXuoyrn5w17PFurTqxB7GsS71fp9dfk6XFwxbPCy",
+        //     "62LyMjcr2DtiyF5yVXFhoQ2q414VPPJXjsNYp72SuDCH",
+        //     "HZk1mbfuJpmxU1Fs4AX5MWLVYtctsNcg6e2C6VKqK8zk",
+        //     "B3uGHFRpSUuGEDWjqB9LWWxafQj8VTvpMucEyoxzws5H",
+        //     "5WvPKSJXzVE2orvbkJ8wsQmmQKqTv9sGBPksV4adViw3",
+        //     "BrjUWjndUanm5VsJkbUip8VRYy6LWJePtxya3FNv4TQa",
+        //     "4LHHvYGNKJUg5hj65aGD5vgScvCBmLpdRFtjokvCjSL8"
+        //   ]
+        // }
+        const dynamic = this.safeGetDynamic (settings);
+        const rates = this.safeGetRates (dynamic);
         const priceAssets = Object.keys (rates);
         let matcherFeeAssetId = undefined;
         let matcherFee = undefined;
