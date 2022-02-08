@@ -1125,70 +1125,14 @@ module.exports = class wavesexchange extends Exchange {
         const matcherPublicKey = await this.getMatcherPublicKey ();
         const amountAsset = this.getAssetId (market['baseId']);
         const priceAsset = this.getAssetId (market['quoteId']);
-        amount = this.amountToPrecision (symbol, amount);
         const isMarketOrder = (type === 'market');
         if ((isMarketOrder) && (price === undefined)) {
             throw new InvalidOrder (this.id + ' createOrder() requires a price argument for ' + type + ' orders to determine the max price for buy and the min price for sell');
         }
-        price = this.priceToPrecision (symbol, price);
         const orderType = (side === 'buy') ? 0 : 1;
         const timestamp = this.milliseconds ();
         const defaultExpiryDelta = this.safeInteger (this.options, 'createOrderDefaultExpiry', 2419200000);
         const expiration = this.sum (timestamp, defaultExpiryDelta);
-        const settings = await this.matcherGetMatcherSettings ();
-        // {
-        //   "orderVersions": [
-        //     1,
-        //     2,
-        //     3
-        //   ],
-        //   "success": true,
-        //   "matcherPublicKey": "9cpfKN9suPNvfeUNphzxXMjcnn974eme8ZhWUjaktzU5",
-        //   "orderFee": {
-        //     "dynamic": {
-        //       "baseFee": 300000,
-        //       "rates": {
-        //         "34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ": 1.0257813,
-        //         "62LyMjcr2DtiyF5yVXFhoQ2q414VPPJXjsNYp72SuDCH": 0.01268146,
-        //         "HZk1mbfuJpmxU1Fs4AX5MWLVYtctsNcg6e2C6VKqK8zk": 0.05232404,
-        //         "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS": 0.00023985,
-        //         "4LHHvYGNKJUg5hj65aGD5vgScvCBmLpdRFtjokvCjSL8": 19.5967716,
-        //         "474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu": 0.00937073,
-        //         "DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p": 2.19825,
-        //         "B3uGHFRpSUuGEDWjqB9LWWxafQj8VTvpMucEyoxzws5H": 0.03180264,
-        //         "zMFqXuoyrn5w17PFurTqxB7GsS71fp9dfk6XFwxbPCy": 0.00996631,
-        //         "5WvPKSJXzVE2orvbkJ8wsQmmQKqTv9sGBPksV4adViw3": 0.03254476,
-        //         "WAVES": 1,
-        //         "BrjUWjndUanm5VsJkbUip8VRYy6LWJePtxya3FNv4TQa": 0.03703704
-        //       }
-        //     }
-        //   },
-        //   "networkByte": 87,
-        //   "matcherVersion": "2.1.4.8",
-        //   "status": "SimpleResponse",
-        //   "priceAssets": [
-        //     "Ft8X1v1LTa1ABafufpaCWyVj8KkaxUWE6xBhW6sNFJck",
-        //     "DG2xFkPdDwKUoBkzGAhQtLpSGzfXLiCYPEzeKH2Ad24p",
-        //     "34N9YcEETLWn93qYQ64EsP1x89tSruJU44RrEMSXXEPJ",
-        //     "Gtb1WRznfchDnTh37ezoDTJ4wcoKaRsKqKjJjy7nm2zU",
-        //     "2mX5DzVKWrAJw8iwdJnV2qtoeVG9h5nTDpTqC1wb1WEN",
-        //     "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
-        //     "WAVES",
-        //     "474jTeYx2r2Va35794tCScAXWJG9hU2HcgxzMowaZUnu",
-        //     "zMFqXuoyrn5w17PFurTqxB7GsS71fp9dfk6XFwxbPCy",
-        //     "62LyMjcr2DtiyF5yVXFhoQ2q414VPPJXjsNYp72SuDCH",
-        //     "HZk1mbfuJpmxU1Fs4AX5MWLVYtctsNcg6e2C6VKqK8zk",
-        //     "B3uGHFRpSUuGEDWjqB9LWWxafQj8VTvpMucEyoxzws5H",
-        //     "5WvPKSJXzVE2orvbkJ8wsQmmQKqTv9sGBPksV4adViw3",
-        //     "BrjUWjndUanm5VsJkbUip8VRYy6LWJePtxya3FNv4TQa",
-        //     "4LHHvYGNKJUg5hj65aGD5vgScvCBmLpdRFtjokvCjSL8"
-        //   ]
-        // }
-        // const dynamic = this.safeGetDynamic (settings);
-        // const baseMatcherFee = this.safeString (dynamic, 'baseFee');
-        // const wavesMatcherFee = this.currencyFromPrecision ('WAVES', baseMatcherFee);
-        // const rates = this.safeGetRates (dynamic);
-        // choose sponsored assets from the list of priceAssets above
         const matcherFees = this.getFeesForAsset(symbol, side, amount, price);
         // {
         //     "base":{
@@ -1238,6 +1182,7 @@ module.exports = class wavesexchange extends Exchange {
         if (matcherFeeAssetId === undefined) {
             throw InsufficientFunds (this.id + ' not enough funds to cover the fee, specify feeAssetId in params or options, or buy some WAVES');
         }
+        
         if (matcherFee === undefined) {
             const wavesPrecision = this.safeInteger (this.options, 'wavesPrecision', 8);
             const rate = this.safeString (rates, matcherFeeAssetId);
@@ -1248,6 +1193,10 @@ module.exports = class wavesexchange extends Exchange {
             // ceil the fee
             matcherFee = Precise.stringDiv (Precise.stringAdd (matcherFee, '1'), '1', 0);
         }
+
+        amount = this.amountToPrecision (symbol, amount);
+        price = this.priceToPrecision (symbol, price);
+
         const byteArray = [
             this.numberToBE (3, 1),
             this.base58ToBinary (this.apiKey),
