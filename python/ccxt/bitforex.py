@@ -144,6 +144,19 @@ class bitforex(Exchange):
 
     def fetch_markets(self, params={}):
         response = self.publicGetApiV1MarketSymbols(params)
+        #
+        #    {
+        #        "data": [
+        #            {
+        #                "amountPrecision":4,
+        #                "minOrderAmount":3.0E-4,
+        #                "pricePrecision":2,
+        #                "symbol":"coin-usdt-btc"
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
         data = response['data']
         result = []
         for i in range(0, len(data)):
@@ -154,38 +167,52 @@ class bitforex(Exchange):
             quoteId = symbolParts[1]
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            active = True
-            precision = {
-                'amount': self.safe_integer(market, 'amountPrecision'),
-                'price': self.safe_integer(market, 'pricePrecision'),
-            }
-            limits = {
-                'amount': {
-                    'min': self.safe_number(market, 'minOrderAmount'),
-                    'max': None,
-                },
-                'price': {
-                    'min': None,
-                    'max': None,
-                },
-                'cost': {
-                    'min': None,
-                    'max': None,
-                },
-            }
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
-                'precision': precision,
-                'limits': limits,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': True,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDateTime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': self.safe_integer(market, 'pricePrecision'),
+                    'amount': self.safe_integer(market, 'amountPrecision'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': self.safe_number(market, 'minOrderAmount'),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
                 'info': market,
             })
         return result
