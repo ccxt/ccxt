@@ -348,7 +348,6 @@ class bitpanda(Exchange):
             quote = self.safe_currency_code(quoteId)
             state = self.safe_string(market, 'state')
             result.append({
-                'info': market,
                 'id': id,
                 'symbol': base + '/' + quote,
                 'base': base,
@@ -372,11 +371,9 @@ class bitpanda(Exchange):
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
-                'deposit': None,
-                'withdraw': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'amount_precision'),
                     'price': self.safe_integer(market, 'market_precision'),
+                    'amount': self.safe_integer(market, 'amount_precision'),
                 },
                 'limits': {
                     'leverage': {
@@ -396,6 +393,7 @@ class bitpanda(Exchange):
                         'max': None,
                     },
                 },
+                'info': market,
             })
         return result
 
