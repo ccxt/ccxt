@@ -345,6 +345,8 @@ module.exports = class wavesexchange extends Exchange {
     async getFeesForAsset (symbol, side, amount, price, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        amount = this.amountToPrecision (symbol, amount);
+        price = this.priceToPrecision (symbol, price);
         const request = this.extend ({
             'amountAsset': market['baseId'],
             'priceAsset': market['quoteId'],
