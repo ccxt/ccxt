@@ -157,10 +157,12 @@ module.exports = class bitflyer extends Exchange {
                 quoteId = currencies[2]
             } else if (future) {
                 const alias = this.safeString(market, 'alias');
-                const currencyId = this.safeString (alias.split('_'), 0);
+                const splitAlias = alias.split('_');
+                const currencyId = this.safeString (splitAlias, 0);
                 baseId = currencyId.slice (0,-3);
                 quoteId = currencyId.slice (-3);
-                const date = this.safeString (id.split(currencyId), 1);
+                const splitId = id.split(currencyId);
+                const date = this.safeString (splitId, 1);
                 const rfc2616 = this.rfc2616(date);
                 expiry = this.parseDate(rfc2616);
                 type = 'future';
