@@ -187,7 +187,6 @@ module.exports = class bithumb extends Exchange {
                 }
                 const market = data[currencyId];
                 const base = this.safeCurrencyCode (currencyId);
-                const symbol = currencyId + '/' + quote;
                 let active = true;
                 if (Array.isArray (market)) {
                     const numElements = market.length;
@@ -197,18 +196,37 @@ module.exports = class bithumb extends Exchange {
                 }
                 const entry = this.deepExtend ({
                     'id': currencyId,
-                    'symbol': symbol,
+                    'symbol': base + '/' + quote,
                     'base': base,
                     'quote': quote,
-                    'info': market,
+                    'settle': undefined,
+                    'baseId': currencyId,
+                    'quoteId': undefined,
+                    'settleId': undefined,
                     'type': 'spot',
                     'spot': true,
+                    'margin': false,
+                    'swap': false,
+                    'future': false,
+                    'option': false,
                     'active': active,
+                    'contract': false,
+                    'linear': undefined,
+                    'inverse': undefined,
+                    'contractSize': undefined,
+                    'expiry': undefined,
+                    'expiryDateTime': undefined,
+                    'strike': undefined,
+                    'optionType': undefined,
                     'precision': {
-                        'amount': 4,
-                        'price': 4,
+                        'price': this.parseNumber ('4'),
+                        'amount': this.parseNumber ('4'),
                     },
                     'limits': {
+                        'leverage': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                         'amount': {
                             'min': undefined,
                             'max': undefined,
@@ -219,8 +237,7 @@ module.exports = class bithumb extends Exchange {
                         },
                         'cost': {}, // set via options
                     },
-                    'baseId': undefined,
-                    'quoteId': undefined,
+                    'info': market,
                 }, extension);
                 result.push (entry);
             }
