@@ -2029,8 +2029,9 @@ class gateio extends Exchange {
             $request['limit'] = $limit;
         }
         if ($since !== null) {
-            $request['from'] = intval($since / 1000);
-            $request['to'] = $since + 30 * 24 * 60 * 60;
+            $start = intval($since / 1000);
+            $request['from'] = $start;
+            $request['to'] = $this->sum($start, 30 * 24 * 60 * 60);
         }
         $response = $this->privateWalletGetDeposits (array_merge($request, $params));
         return $this->parse_transactions($response, $currency);
@@ -2048,8 +2049,9 @@ class gateio extends Exchange {
             $request['limit'] = $limit;
         }
         if ($since !== null) {
-            $request['from'] = intval($since / 1000);
-            $request['to'] = $since + 30 * 24 * 60 * 60;
+            $start = intval($since / 1000);
+            $request['from'] = $start;
+            $request['to'] = $this->sum($start, 30 * 24 * 60 * 60);
         }
         $response = $this->privateWalletGetWithdrawals (array_merge($request, $params));
         return $this->parse_transactions($response, $currency);

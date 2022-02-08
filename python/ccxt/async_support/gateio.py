@@ -1967,8 +1967,9 @@ class gateio(Exchange):
         if limit is not None:
             request['limit'] = limit
         if since is not None:
-            request['from'] = int(since / 1000)
-            request['to'] = since + 30 * 24 * 60 * 60
+            start = int(since / 1000)
+            request['from'] = start
+            request['to'] = self.sum(start, 30 * 24 * 60 * 60)
         response = await self.privateWalletGetDeposits(self.extend(request, params))
         return self.parse_transactions(response, currency)
 
@@ -1982,8 +1983,9 @@ class gateio(Exchange):
         if limit is not None:
             request['limit'] = limit
         if since is not None:
-            request['from'] = int(since / 1000)
-            request['to'] = since + 30 * 24 * 60 * 60
+            start = int(since / 1000)
+            request['from'] = start
+            request['to'] = self.sum(start, 30 * 24 * 60 * 60)
         response = await self.privateWalletGetWithdrawals(self.extend(request, params))
         return self.parse_transactions(response, currency)
 
