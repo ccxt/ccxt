@@ -1128,7 +1128,11 @@ module.exports = class binance extends ccxt.binance {
             clientOrderId = this.safeString (order, 'c');
         }
         const stopPrice = this.safeFloat2 (order, 'P', 'sp');
-        const timeInForce = this.safeString (order, 'f');
+        let timeInForce = this.safeString (order, 'f');
+        if (timeInForce === 'GTX') {
+            // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
+            timeInForce = 'PO';
+        }
         return {
             'info': order,
             'symbol': symbol,
