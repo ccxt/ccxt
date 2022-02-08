@@ -185,14 +185,12 @@ class bitso extends Exchange {
             $quote = strtoupper($quoteId);
             $base = $this->safe_currency_code($base);
             $quote = $this->safe_currency_code($quote);
-            $defaultPricePrecision = $this->safe_number($this->options['precision'], $quote, $this->options['defaultPrecision']);
-            $pricePrecision = $this->safe_number($market, 'tick_size', $defaultPricePrecision);
             $fees = $this->safe_value($market, 'fees', array());
             $flatRate = $this->safe_value($fees, 'flat_rate', array());
-            $makerString = $this->safe_string($flatRate, 'maker');
             $takerString = $this->safe_string($flatRate, 'taker');
-            $maker = $this->parse_number(Precise::string_div($makerString, '100'));
+            $makerString = $this->safe_string($flatRate, 'maker');
             $taker = $this->parse_number(Precise::string_div($takerString, '100'));
+            $maker = $this->parse_number(Precise::string_div($makerString, '100'));
             $feeTiers = $this->safe_value($fees, 'structure', array());
             $fee = array(
                 'taker' => $taker,
@@ -219,6 +217,7 @@ class bitso extends Exchange {
                 'maker' => $makerFees,
             );
             $fee['tiers'] = $tiers;
+            $defaultPricePrecision = $this->safe_number($this->options['precision'], $quote, $this->options['defaultPrecision']);
             $result[] = array_merge(array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
@@ -246,8 +245,8 @@ class bitso extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
+                    'price' => $this->safe_number($market, 'tick_size', $defaultPricePrecision),
                     'amount' => $this->safe_number($this->options['precision'], $base, $this->options['defaultPrecision']),
-                    'price' => $pricePrecision,
                 ),
                 'limits' => array(
                     'leverage' => array(

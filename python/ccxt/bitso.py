@@ -193,14 +193,12 @@ class bitso(Exchange):
             quote = quoteId.upper()
             base = self.safe_currency_code(base)
             quote = self.safe_currency_code(quote)
-            defaultPricePrecision = self.safe_number(self.options['precision'], quote, self.options['defaultPrecision'])
-            pricePrecision = self.safe_number(market, 'tick_size', defaultPricePrecision)
             fees = self.safe_value(market, 'fees', {})
             flatRate = self.safe_value(fees, 'flat_rate', {})
-            makerString = self.safe_string(flatRate, 'maker')
             takerString = self.safe_string(flatRate, 'taker')
-            maker = self.parse_number(Precise.string_div(makerString, '100'))
+            makerString = self.safe_string(flatRate, 'maker')
             taker = self.parse_number(Precise.string_div(takerString, '100'))
+            maker = self.parse_number(Precise.string_div(makerString, '100'))
             feeTiers = self.safe_value(fees, 'structure', [])
             fee = {
                 'taker': taker,
@@ -225,6 +223,7 @@ class bitso(Exchange):
                 'maker': makerFees,
             }
             fee['tiers'] = tiers
+            defaultPricePrecision = self.safe_number(self.options['precision'], quote, self.options['defaultPrecision'])
             result.append(self.extend({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -252,8 +251,8 @@ class bitso(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
+                    'price': self.safe_number(market, 'tick_size', defaultPricePrecision),
                     'amount': self.safe_number(self.options['precision'], base, self.options['defaultPrecision']),
-                    'price': pricePrecision,
                 },
                 'limits': {
                     'leverage': {
