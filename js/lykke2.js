@@ -1029,16 +1029,24 @@ module.exports = class lykke2 extends Exchange {
         //         "timestamp":1644146723620
         //     }
         //
-        let id = this.safeString (transaction, 'operationId');
-        if (id === undefined) {
+        let id = undefined;
+        let assetId = undefined;
+        let code = undefined;
+        let amount = undefined;
+        let fee = undefined;
+        let type = undefined;
+        let timestamp = undefined;
+        if (typeof transaction === 'string') {
             id = transaction;
+        } else {
+            id = this.safeString (transaction, 'operationId');
+            assetId = this.safeString (transaction, 'assetId');
+            code = this.safeCurrencyCode (assetId, currency);
+            amount = this.safeNumber (transaction, 'totalVolume');
+            fee = this.safeNumber (transaction, 'fee');
+            type = this.safeString (transaction, 'type');
+            timestamp = this.safeInteger (transaction, 'timestamp');
         }
-        const assetId = this.safeString (transaction, 'assetId');
-        const code = this.safeCurrencyCode (assetId, currency);
-        const amount = this.safeNumber (transaction, 'totalVolume');
-        const fee = this.safeNumber (transaction, 'fee');
-        const type = this.safeString (transaction, 'type');
-        const timestamp = this.safeInteger (transaction, 'timestamp');
         return {
             'info': transaction,
             'id': id,
