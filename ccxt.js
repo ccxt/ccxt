@@ -36,7 +36,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.72.51'
+const version = '1.72.52'
 
 Exchange.ccxtVersion = version
 
