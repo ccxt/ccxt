@@ -832,11 +832,10 @@ class okx extends Exchange {
         if ($contract) {
             $symbol = $symbol . ':' . $settle;
             $expiry = $this->safe_integer($market, 'expTime');
-            if ($expiry !== null) {
+            if ($futures) {
                 $ymd = $this->yymmdd($expiry);
                 $symbol = $symbol . '-' . $ymd;
-            }
-            if ($option) {
+            } else if ($option) {
                 $strikePrice = $this->safe_string($market, 'stk');
                 $optionType = $this->safe_string($market, 'optType');
                 $symbol = $symbol . '-' . $strikePrice . '-' . $optionType;

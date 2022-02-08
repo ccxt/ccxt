@@ -842,10 +842,10 @@ class okx(Exchange):
         if contract:
             symbol = symbol + ':' + settle
             expiry = self.safe_integer(market, 'expTime')
-            if expiry is not None:
+            if futures:
                 ymd = self.yymmdd(expiry)
                 symbol = symbol + '-' + ymd
-            if option:
+            elif option:
                 strikePrice = self.safe_string(market, 'stk')
                 optionType = self.safe_string(market, 'optType')
                 symbol = symbol + '-' + strikePrice + '-' + optionType
