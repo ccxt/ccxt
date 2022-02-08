@@ -364,17 +364,12 @@ class bitstamp(Exchange):
             quoteId = quote.lower()
             base = self.safe_currency_code(base)
             quote = self.safe_currency_code(quote)
-            amountPrecisionString = self.safe_string(market, 'base_decimals')
-            pricePrecisionString = self.safe_string(market, 'counter_decimals')
-            amountLimit = self.parse_precision(amountPrecisionString)
-            priceLimit = self.parse_precision(pricePrecisionString)
             minimumOrder = self.safe_string(market, 'minimum_order')
             parts = minimumOrder.split(' ')
-            cost = parts[0]
-            # cost, currency = market['minimum_order'].split(' ')
-            trading = self.safe_string(market, 'trading')
+            status = self.safe_string(market, 'trading')
             result.append({
                 'id': self.safe_string(market, 'url_symbol'),
+                'marketId': baseId + '_' + quoteId,
                 'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
@@ -382,14 +377,13 @@ class bitstamp(Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': None,
-                'marketId': baseId + '_' + quoteId,
                 'type': 'spot',
                 'spot': True,
                 'margin': False,
                 'future': False,
                 'swap': False,
                 'option': False,
-                'active': (trading == 'Enabled'),
+                'active': (status == 'Enabled'),
                 'contract': False,
                 'linear': None,
                 'inverse': None,
@@ -399,8 +393,8 @@ class bitstamp(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': int(pricePrecisionString),
-                    'amount': int(amountPrecisionString),
+                    'price': self.parse_precision(self.safe_string(market, 'counter_decimals')),
+                    'amount': self.parse_precision(self.safe_string(market, 'base_decimals')),
                 },
                 'limits': {
                     'leverage': {
@@ -408,15 +402,15 @@ class bitstamp(Exchange):
                         'max': None,
                     },
                     'amount': {
-                        'min': self.parse_number(amountLimit),
+                        'min': None,
                         'max': None,
                     },
                     'price': {
-                        'min': self.parse_number(priceLimit),
+                        'min': None,
                         'max': None,
                     },
                     'cost': {
-                        'min': self.parse_number(cost),
+                        'min': self.safe_number(parts, 0),
                         'max': None,
                     },
                 },
