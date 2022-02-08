@@ -341,7 +341,6 @@ module.exports = class bitpanda extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const state = this.safeString (market, 'state');
             result.push ({
-                'info': market,
                 'id': id,
                 'symbol': base + '/' + quote,
                 'base': base,
@@ -365,11 +364,9 @@ module.exports = class bitpanda extends Exchange {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'amount_precision'),
                     'price': this.safeInteger (market, 'market_precision'),
+                    'amount': this.safeInteger (market, 'amount_precision'),
                 },
                 'limits': {
                     'leverage': {
@@ -389,6 +386,7 @@ module.exports = class bitpanda extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': market,
             });
         }
         return result;
