@@ -1121,7 +1121,7 @@ module.exports = class wavesexchange extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         this.checkRequiredDependencies ();
-        // this.checkRequiredKeys ();
+        this.checkRequiredKeys ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const matcherPublicKey = await this.getMatcherPublicKey ();
@@ -1181,6 +1181,7 @@ module.exports = class wavesexchange extends Exchange {
         if (discountFeeAssetId == matcherFeeAssetId) {
             matcherFee = this.safeInteger(discount, 'matcherFee');
         }
+
         if (matcherFeeAssetId === undefined) {
             throw InsufficientFunds (this.id + ' not enough funds to cover the fee, specify feeAssetId in params or options, or buy some WAVES');
         }
