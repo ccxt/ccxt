@@ -1165,18 +1165,19 @@ module.exports = class wavesexchange extends Exchange {
         const balances = await this.fetchBalance ();
         if (matcherFeeAssetId !== undefined) {
             if (baseFeeAssetId !== matcherFeeAssetId && discountFeeAssetId !== matcherFeeAssetId) {
-                throw InvalidOrder (this.id + ' asset fee must be ' + baseFeeAssetId + ' or ' + discountFeeAssetId);
+                throw new InvalidOrder (this.id + ' asset fee id must be ' + baseFeeAssetId + ' or ' + discountFeeAssetId);
             }
+            const matcherFeeAsset = this.safeCurrencyCode (matcherFeeAssetId);
             const rawMatcherFee = (matcherFeeAssetId === baseFeeAssetId) ? baseMatcherFee : discountMatcherFee;
-            const floatMatcherFee = parseFloat (this.currencyFromPrecision (matcherFeeAssetId, rawMatcherFee));
-            if (balances[matcherFeeAssetId]['free'] >= floatMatcherFee) {
+            const floatMatcherFee = parseFloat (this.currencyFromPrecision (matcherFeeAsset, rawMatcherFee));
+            if (balances[matcherFeeAsset]['free'] >= floatMatcherFee) {
                 matcherFee = this.parseNumber (rawMatcherFee);
             } else {
-                throw InsufficientFunds (this.id + ' not enough funds of the selected asset fee');
+                throw new InsufficientFunds (this.id + ' not enough funds of the selected asset fee');
             }
         }
         if (matcherFeeAssetId === undefined) {
-            // try if we can the pay the fee using the base or discount asset
+            // try if we can the pay the fee using the base first then discount asset
             const floatBaseMatcherFee = parseFloat (this.currencyFromPrecision (baseFeeAsset, baseMatcherFee));
             if (balances[baseFeeAsset]['free'] >= floatBaseMatcherFee) {
                 matcherFeeAssetId = baseFeeAssetId;
@@ -1190,7 +1191,7 @@ module.exports = class wavesexchange extends Exchange {
             }
         }
         if (matcherFeeAssetId === undefined) {
-            throw InsufficientFunds (this.id + ' not enough funds to cover the fee, specify feeAssetId in params or options, or buy some WAVES');
+            throw new InsufficientFunds (this.id + ' not enough funds to cover the fee');
         }
         amount = this.amountToPrecision (symbol, amount);
         price = this.priceToPrecision (symbol, price);
