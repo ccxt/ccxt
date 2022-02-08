@@ -1192,16 +1192,6 @@ module.exports = class wavesexchange extends Exchange {
         if (matcherFeeAssetId === undefined) {
             throw InsufficientFunds (this.id + ' not enough funds to cover the fee, specify feeAssetId in params or options, or buy some WAVES');
         }
-        // if (matcherFee === undefined) {
-        //     const wavesPrecision = this.safeInteger (this.options, 'wavesPrecision', 8);
-        //     const rate = this.safeString (rates, matcherFeeAssetId);
-        //     const code = this.safeCurrencyCode (matcherFeeAssetId);
-        //     const currency = this.currency (code);
-        //     const newPrecison = wavesPrecision - currency['precision'];
-        //     matcherFee = this.fromPrecision (Precise.stringMul (rate, baseMatcherFee), newPrecison);
-        //     // ceil the fee
-        //     matcherFee = Precise.stringDiv (Precise.stringAdd (matcherFee, '1'), '1', 0);
-        // }
         amount = this.amountToPrecision (symbol, amount);
         price = this.priceToPrecision (symbol, price);
         const byteArray = [
