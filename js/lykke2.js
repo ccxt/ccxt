@@ -554,6 +554,7 @@ module.exports = class lykke2 extends Exchange {
         //
         const marketId = this.safeString (trade, 'assetPairId');
         const symbol = this.safeSymbol (marketId, market);
+        market = this.safeMarket (marketId, market);
         const id = this.safeString2 (trade, 'id', 'id');
         const orderId = this.safeString (trade, 'orderId');
         const timestamp = this.safeInteger (trade, 'timestamp');
@@ -564,7 +565,7 @@ module.exports = class lykke2 extends Exchange {
         }
         const side = this.safeStringLower (trade, 'side');
         const fee = {
-            'cost': 0, // There are no fees for trading.
+            'cost': this.parseNumber ('0'), // There are no fees for trading.
             'currency': market['quote'],
         };
         return this.safeTrade ({
@@ -636,7 +637,6 @@ module.exports = class lykke2 extends Exchange {
             const used = this.safeString (balance, 'reserved');
             account['free'] = free;
             account['used'] = used;
-            account['total'] = Precise.stringAdd (free, used);
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -805,10 +805,10 @@ module.exports = class lykke2 extends Exchange {
         return await this.privateDeleteOrdersOrderId (this.extend (request, params));
     }
 
-    async cancelAllOrders (side, symbol = undefined, params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            'side': this.capitalize (side),
+            // 'side': 'Buy',
         };
         let market = undefined;
         if (symbol !== undefined) {
@@ -977,12 +977,9 @@ module.exports = class lykke2 extends Exchange {
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
-        const price = this.safeNumber (bidask, priceKey);
-        let amount = this.safeNumber (bidask, amountKey);
-        if (amount < 0) {
-            amount = -amount;
-        }
-        return [ price, amount ];
+        const price = this.safeString (bidask, priceKey);
+        const amount = Precise.stringAbs (this.safeString (bidask, amountKey));
+        return [ this.parseNumber (price), this.parseNumber (amount) ];
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -1043,9 +1040,13 @@ module.exports = class lykke2 extends Exchange {
             assetId = this.safeString (transaction, 'assetId');
             code = this.safeCurrencyCode (assetId, currency);
             amount = this.safeNumber (transaction, 'totalVolume');
-            fee = this.safeNumber (transaction, 'fee');
             type = this.safeString (transaction, 'type');
             timestamp = this.safeInteger (transaction, 'timestamp');
+            const feeCost = this.safeNumber (transaction, 'fee');
+            fee = {
+                'currency': code,
+                'cost': feeCost,
+            };
         }
         return {
             'info': transaction,
@@ -1065,11 +1066,7 @@ module.exports = class lykke2 extends Exchange {
             'currency': code,
             'status': undefined,
             'updated': undefined,
-            'fee': {
-                'currency': code,
-                'cost': fee,
-                'rate': undefined,
-            },
+            'fee': fee,
         };
     }
 
