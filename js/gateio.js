@@ -2024,7 +2024,7 @@ module.exports = class gateio extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            const start = parseInt (since / 1000)
+            const start = parseInt (since / 1000);
             request['from'] = start;
             request['to'] = this.sum (start, 30 * 24 * 60 * 60);
         }
@@ -2044,7 +2044,7 @@ module.exports = class gateio extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            const start = parseInt (since / 1000)
+            const start = parseInt (since / 1000);
             request['from'] = start;
             request['to'] = this.sum (start, 30 * 24 * 60 * 60);
         }
