@@ -22,9 +22,9 @@ class bitflyer(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,  # has but unimplemented
-                'swap': None,  # has but unimplemented
-                'future': None,  # has but unimplemented
+                'margin': False,
+                'swap': None,  # has but not fully implemented
+                'future': None,  # has but not fully implemented
                 'option': False,
                 'cancelOrder': True,
                 'createOrder': True,
@@ -101,10 +101,63 @@ class bitflyer(Exchange):
             },
         })
 
+    def parse_expiry_date(self, expiry):
+        day = expiry[0:2]
+        monthName = expiry[2:5]
+        year = expiry[5:9]
+        months = {
+            'JAN': '01',
+            'FEB': '02',
+            'MAR': '03',
+            'APR': '04',
+            'MAY': '05',
+            'JUN': '06',
+            'JUL': '07',
+            'AUG': '08',
+            'SEP': '09',
+            'OCT': '10',
+            'NOV': '11',
+            'DEC': '12',
+        }
+        month = self.safe_string(months, monthName)
+        return self.parse8601(year + '-' + month + '-' + day + 'T00:00:00Z')
+
     def fetch_markets(self, params={}):
         jp_markets = self.publicGetGetmarkets(params)
+        #  #
+        #     [
+        #         # spot
+        #         {
+        #             "product_code": "BTC_JPY",
+        #             "market_type": "Spot"
+        #         },
+        #         {
+        #             "product_code": "BCH_BTC",
+        #             "market_type": "Spot"
+        #         },
+        #         # forex swap
+        #         {
+        #             "product_code": "FX_BTC_JPY",
+        #             "market_type": "FX"
+        #         },
+        #         # future
+        #         {
+        #             "product_code": "BTCJPY11FEB2022",
+        #             "alias": "BTCJPY_MAT1WK",
+        #             "market_type": "Futures"
+        #         },
+        #     ]
+        #
         us_markets = self.publicGetGetmarketsUsa(params)
+        #
+        #    {"product_code": "BTC_USD", "market_type": "Spot"},
+        #    {"product_code": "BTC_JPY", "market_type": "Spot"}
+        #
         eu_markets = self.publicGetGetmarketsEu(params)
+        #
+        #    {"product_code": "BTC_EUR", "market_type": "Spot"},
+        #    {"product_code": "BTC_JPY", "market_type": "Spot"}
+        #
         markets = self.array_concat(jp_markets, us_markets)
         markets = self.array_concat(markets, eu_markets)
         result = []
@@ -112,47 +165,93 @@ class bitflyer(Exchange):
             market = markets[i]
             id = self.safe_string(market, 'product_code')
             currencies = id.split('_')
+            marketType = self.safe_string(market, 'market_type')
+            swap = (marketType == 'FX')
+            future = (marketType == 'Futures')
+            spot = not swap and not future
+            type = 'spot'
+            settle = None
             baseId = None
             quoteId = None
-            base = None
-            quote = None
-            numCurrencies = len(currencies)
-            if numCurrencies == 1:
-                baseId = id[0:3]
-                quoteId = id[3:6]
-            elif numCurrencies == 2:
-                baseId = currencies[0]
-                quoteId = currencies[1]
-            else:
-                baseId = currencies[1]
-                quoteId = currencies[2]
+            expiry = None
+            if spot:
+                baseId = self.safe_string(currencies, 0)
+                quoteId = self.safe_string(currencies, 1)
+            elif swap:
+                type = 'swap'
+                baseId = self.safe_string(currencies, 1)
+                quoteId = self.safe_string(currencies, 2)
+            elif future:
+                alias = self.safe_string(market, 'alias')
+                splitAlias = alias.split('_')
+                currencyIds = self.safe_string(splitAlias, 0)
+                baseId = currencyIds[0:-3]
+                quoteId = currencyIds[-3:]
+                splitId = id.split(currencyIds)
+                expiryDate = self.safe_string(splitId, 1)
+                expiry = self.parse_expiry_date(expiryDate)
+                type = 'future'
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = (base + '/' + quote) if (numCurrencies == 2) else id
-            fees = self.safe_value(self.fees, symbol, self.fees['trading'])
-            maker = self.safe_value(fees, 'maker', self.fees['trading']['maker'])
-            taker = self.safe_value(fees, 'taker', self.fees['trading']['taker'])
-            spot = True
-            future = False
-            type = 'spot'
-            if ('alias' in market) or (currencies[0] == 'FX'):
-                type = 'future'
-                future = True
-                spot = False
+            symbol = base + '/' + quote
+            taker = self.fees['trading']['taker']
+            maker = self.fees['trading']['maker']
+            contract = swap or future
+            if contract:
                 maker = 0.0
                 taker = 0.0
+                settle = 'JPY'
+                symbol = symbol + ':' + settle
+                if future:
+                    symbol = symbol + '-' + self.yymmdd(expiry)
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'maker': maker,
-                'taker': taker,
+                'settleId': None,
                 'type': type,
                 'spot': spot,
+                'margin': False,
+                'swap': swap,
                 'future': future,
+                'option': False,
+                'active': True,
+                'contract': contract,
+                'linear': None if spot else True,
+                'inverse': None if spot else False,
+                'taker': taker,
+                'maker': maker,
+                'contractSize': None,
+                'expiry': expiry,
+                'expiryDatetime': self.iso8601(expiry),
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': None,
+                    'amount': None,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
                 'info': market,
             })
         return result
