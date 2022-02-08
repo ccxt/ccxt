@@ -107,14 +107,14 @@ module.exports = class bitflyer extends Exchange {
         //        "product_code": "BTC_JPY",
         //        "market_type": "Spot"
         //    },
-        //    { 
-        //        "product_code": "BCH_BTC", 
+        //    {
+        //        "product_code": "BCH_BTC",
         //        "market_type": "Spot"
         //    },
         //
         //  SWAP
-        //    { 
-        //        "product_code": "FX_BTC_JPY", 
+        //    {
+        //        "product_code": "FX_BTC_JPY",
         //        "market_type": "FX"
         //    },
         //
@@ -143,9 +143,9 @@ module.exports = class bitflyer extends Exchange {
             const id = this.safeString (market, 'product_code');
             const currencies = id.split ('_');
             const marketType = this.safeString (market, 'market_type');
-            let swap = (marketType === 'FX');
-            let future = (marketType === 'Futures');
-            let spot = !swap && !future;
+            const swap = (marketType === 'FX');
+            const future = (marketType === 'Futures');
+            const spot = !swap && !future;
             let type = 'spot';
             let settle = undefined;
             let baseId = currencies[0];
@@ -153,31 +153,31 @@ module.exports = class bitflyer extends Exchange {
             let expiry = undefined;
             if (swap) {
                 type = 'swap';
-                baseId = currencies[1]
-                quoteId = currencies[2]
+                baseId = currencies[1];
+                quoteId = currencies[2];
             } else if (future) {
-                const alias = this.safeString(market, 'alias');
-                const splitAlias = alias.split('_');
+                const alias = this.safeString (market, 'alias');
+                const splitAlias = alias.split ('_');
                 const currencyId = this.safeString (splitAlias, 0);
-                baseId = currencyId.slice (0,-3);
+                baseId = currencyId.slice (0, -3);
                 quoteId = currencyId.slice (-3);
-                const splitId = id.split(currencyId);
+                const splitId = id.split (currencyId);
                 const date = this.safeString (splitId, 1);
-                const rfc2616 = this.rfc2616(date);
-                expiry = this.parseDate(rfc2616);
+                const rfc2616 = this.rfc2616 (date);
+                expiry = this.parseDate (rfc2616);
                 type = 'future';
             }
-            let base = this.safeCurrencyCode (baseId);
-            let quote = this.safeCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let taker = this.fees['trading']['taker'];
             let maker = this.fees['trading']['maker'];
             const contract = swap || future;
-            if (contract){
+            if (contract) {
                 maker = 0.0;
                 taker = 0.0;
                 settle = 'JPY';
-                symbol = symbol + ':' + settle
+                symbol = symbol + ':' + settle;
                 if (future) {
                     symbol = symbol + '-' + this.yymmdd (expiry);
                 }
