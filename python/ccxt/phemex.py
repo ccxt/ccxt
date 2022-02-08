@@ -17,6 +17,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
 from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -34,13 +35,22 @@ class phemex(Exchange):
             'pro': True,
             'hostname': 'api.phemex.com',
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': None,  # has but not fully implemented
+                'future': False,
+                'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
@@ -136,11 +146,22 @@ class phemex(Exchange):
                         'exchange/order/trade',  # ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>&withCount=<withCount>
                         'phemex-user/users/children',  # ?offset=<offset>&limit=<limit>&withCount=<withCount>
                         'phemex-user/wallets/v2/depositAddress',  # ?_t=1592722635531&currency=USDT
+                        'phemex-user/wallets/tradeAccountDetail',  # ?bizCode=&currency=&end=1642443347321&limit=10&offset=0&side=&start=1&type=4&withCount=true
+                        'phemex-user/order/closedPositionList',  # ?currency=USD&limit=10&offset=0&symbol=&withCount=true
                         'exchange/margins/transfer',  # ?start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount>
                         'exchange/wallets/confirm/withdraw',  # ?code=<withdrawConfirmCode>
                         'exchange/wallets/withdrawList',  # ?currency=<currency>&limit=<limit>&offset=<offset>&withCount=<withCount>
                         'exchange/wallets/depositList',  # ?currency=<currency>&offset=<offset>&limit=<limit>
                         'exchange/wallets/v2/depositAddress',  # ?currency=<currency>
+                        'api-data/spots/funds',  # ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/convert',  # ?startTime=<startTime>&endTime=<endTime>&limit=<limit>&offset=<offset>
+                        'assets/transfer',  # ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        # transfer
+                        'assets/transfer',
+                        'assets/spots/sub-accounts/transfer',
+                        'assets/spots/sub-accounts/transfer',
+                        'assets/quote',
+                        'assets/convert',
                     ],
                     'post': [
                         # spot
@@ -154,6 +175,12 @@ class phemex(Exchange):
                         'exchange/wallets/createWithdraw',  # ?otpCode=<otpCode>
                         'exchange/wallets/cancelWithdraw',
                         'exchange/wallets/createWithdrawAddress',  # ?otpCode={optCode}
+                        # transfer
+                        'assets/transfer',
+                        'assets/spots/sub-accounts/transfer',  # for sub-account only
+                        'assets/futures/sub-accounts/transfer',  # for sub-account only
+                        'assets/universal-transfer',  # for Main account only
+                        'assets/convert',
                     ],
                     'put': [
                         # spot
@@ -316,10 +343,16 @@ class phemex(Exchange):
                     '11114': InvalidOrder,  # TE_ORDER_VALUE_TOO_LARGE Order value is too large
                     '11115': InvalidOrder,  # TE_ORDER_VALUE_TOO_SMALL Order value is too small
                     # not documented
+                    '30000': BadRequest,  # {"code":30000,"msg":"Please double check input arguments","data":null}
                     '30018': BadRequest,  # {"code":30018,"msg":"phemex.data.size.uplimt","data":null}
+                    '34003': PermissionDenied,  # {"code":34003,"msg":"Access forbidden","data":null}
+                    '35104': InsufficientFunds,  # {"code":35104,"msg":"phemex.spot.wallet.balance.notenough","data":null}
+                    '39995': RateLimitExceeded,  # {"code": "39995","msg": "Too many requests."}
                     '39996': PermissionDenied,  # {"code": "39996","msg": "Access denied."}
                 },
                 'broad': {
+                    '401 Insufficient privilege': PermissionDenied,  # {"code": "401","msg": "401 Insufficient privilege."}
+                    '401 Request IP mismatch': PermissionDenied,  # {"code": "401","msg": "401 Request IP mismatch."}
                     'Failed to find api-key': AuthenticationError,  # {"msg":"Failed to find api-key 1c5ec63fd-660d-43ea-847a-0d3ba69e106e","code":10500}
                     'Missing required parameter': BadRequest,  # {"msg":"Missing required parameter","code":10500}
                     'API Signature verification failed': AuthenticationError,  # {"msg":"API Signature verification failed.","code":10500}
@@ -397,25 +430,13 @@ class phemex(Exchange):
         id = self.safe_string(market, 'symbol')
         baseId = self.safe_string_2(market, 'baseCurrency', 'contractUnderlyingAssets')
         quoteId = self.safe_string(market, 'quoteCurrency')
+        settleId = self.safe_string(market, 'settleCurrency')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        type = self.safe_string_lower(market, 'type')
+        settle = self.safe_currency_code(settleId)
         inverse = False
-        spot = False
-        swap = True
-        settlementCurrencyId = self.safe_string(market, 'settleCurrency')
-        if settlementCurrencyId != quoteId:
+        if settleId != quoteId:
             inverse = True
-        linear = not inverse
-        symbol = None
-        if linear:
-            symbol = base + '/' + quote + ':' + quote
-        else:
-            symbol = base + '/' + quote + ':' + base
-        precision = {
-            'amount': self.safe_number(market, 'lotSize'),
-            'price': self.safe_number(market, 'tickSize'),
-        }
         priceScale = self.safe_integer(market, 'priceScale')
         ratioScale = self.safe_integer(market, 'ratioScale')
         valueScale = self.safe_integer(market, 'valueScale')
@@ -423,24 +444,7 @@ class phemex(Exchange):
         maxPriceEp = self.safe_string(market, 'maxPriceEp')
         makerFeeRateEr = self.safe_string(market, 'makerFeeRateEr')
         takerFeeRateEr = self.safe_string(market, 'takerFeeRateEr')
-        maker = self.parse_number(self.from_en(makerFeeRateEr, ratioScale))
-        taker = self.parse_number(self.from_en(takerFeeRateEr, ratioScale))
-        limits = {
-            'amount': {
-                'min': None,
-                'max': None,
-            },
-            'price': {
-                'min': self.parse_number(self.from_en(minPriceEp, priceScale)),
-                'max': self.parse_number(self.from_en(maxPriceEp, priceScale)),
-            },
-            'cost': {
-                'min': None,
-                'max': self.parse_number(self.safe_string(market, 'maxOrderQty')),
-            },
-        }
         status = self.safe_string(market, 'status')
-        active = status == 'Listed'
         contractSizeString = self.safe_string(market, 'contractSize', ' ')
         contractSize = None
         if contractSizeString.find(' '):
@@ -453,26 +457,56 @@ class phemex(Exchange):
             contractSize = self.parse_number(contractSizeString)
         return {
             'id': id,
-            'symbol': symbol,
+            'symbol': base + '/' + quote + ':' + settle,
             'base': base,
             'quote': quote,
+            'settle': settle,
             'baseId': baseId,
             'quoteId': quoteId,
-            'info': market,
-            'type': type,
-            'spot': spot,
-            'swap': swap,
-            'linear': linear,
+            'settleId': settleId,
+            'type': 'swap',
+            'spot': False,
+            'margin': False,
+            'swap': True,
+            'future': False,
+            'option': False,
+            'contract': True,
+            'linear': not inverse,
             'inverse': inverse,
-            'active': active,
-            'taker': taker,
-            'maker': maker,
+            'taker': self.parse_number(self.from_en(takerFeeRateEr, ratioScale)),
+            'maker': self.parse_number(self.from_en(makerFeeRateEr, ratioScale)),
+            'contractSize': contractSize,
+            'active': status == 'Listed',
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
             'priceScale': priceScale,
             'valueScale': valueScale,
             'ratioScale': ratioScale,
-            'precision': precision,
-            'contractSize': contractSize,
-            'limits': limits,
+            'precision': {
+                'amount': self.safe_number(market, 'lotSize'),
+                'price': self.safe_number(market, 'tickSize'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': self.parse_number('1'),
+                    'max': self.safe_number(market, 'maxLeverage'),
+                },
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'price': {
+                    'min': self.parse_number(self.from_en(minPriceEp, priceScale)),
+                    'max': self.parse_number(self.from_en(maxPriceEp, priceScale)),
+                },
+                'cost': {
+                    'min': None,
+                    'max': self.parse_number(self.safe_string(market, 'maxOrderQty')),
+                },
+            },
+            'info': market,
         }
 
     def parse_spot_market(self, market):
@@ -508,57 +542,63 @@ class phemex(Exchange):
         id = self.safe_string(market, 'symbol')
         quoteId = self.safe_string(market, 'quoteCurrency')
         baseId = self.safe_string(market, 'baseCurrency')
-        linear = None
-        inverse = None
-        spot = True
-        swap = False
-        taker = self.safe_number(market, 'defaultTakerFee')
-        maker = self.safe_number(market, 'defaultMakerFee')
-        precision = {
-            'amount': self.parse_safe_number(self.safe_string(market, 'baseTickSize')),
-            'price': self.parse_safe_number(self.safe_string(market, 'quoteTickSize')),
-        }
-        limits = {
-            'amount': {
-                'min': precision['amount'],
-                'max': self.parse_safe_number(self.safe_string(market, 'maxBaseOrderSize')),
-            },
-            'price': {
-                'min': precision['price'],
-                'max': None,
-            },
-            'cost': {
-                'min': self.parse_safe_number(self.safe_string(market, 'minOrderValue')),
-                'max': self.parse_safe_number(self.safe_string(market, 'maxOrderValue')),
-            },
-        }
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        symbol = base + '/' + quote
         status = self.safe_string(market, 'status')
-        active = status == 'Listed'
+        precisionAmount = self.parse_safe_number(self.safe_string(market, 'baseTickSize'))
+        precisionPrice = self.parse_safe_number(self.safe_string(market, 'quoteTickSize'))
         return {
             'id': id,
-            'symbol': symbol,
+            'symbol': base + '/' + quote,
             'base': base,
             'quote': quote,
+            'settle': None,
             'baseId': baseId,
             'quoteId': quoteId,
-            'info': market,
+            'settleId': None,
             'type': type,
-            'spot': spot,
-            'swap': swap,
-            'linear': linear,
-            'inverse': inverse,
-            'active': active,
-            'taker': taker,
-            'maker': maker,
-            'precision': precision,
+            'spot': True,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'taker': self.safe_number(market, 'defaultTakerFee'),
+            'maker': self.safe_number(market, 'defaultMakerFee'),
+            'contractSize': None,
+            'active': status == 'Listed',
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
             'priceScale': 8,
             'valueScale': 8,
             'ratioScale': 8,
-            'contractSize': None,
-            'limits': limits,
+            'precision': {
+                'amount': precisionAmount,
+                'price': precisionPrice,
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
+                },
+                'amount': {
+                    'min': precisionAmount,
+                    'max': self.parse_safe_number(self.safe_string(market, 'maxBaseOrderSize')),
+                },
+                'price': {
+                    'min': precisionPrice,
+                    'max': None,
+                },
+                'cost': {
+                    'min': self.parse_safe_number(self.safe_string(market, 'minOrderValue')),
+                    'max': self.parse_safe_number(self.safe_string(market, 'maxOrderValue')),
+                },
+            },
+            'info': market,
         }
 
     def fetch_markets(self, params={}):
@@ -740,6 +780,8 @@ class phemex(Exchange):
                 'code': code,
                 'name': name,
                 'active': None,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
                 'precision': precision,
                 'limits': {
@@ -981,47 +1023,34 @@ class phemex(Exchange):
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
         timestamp = self.safe_integer_product(ticker, 'timestamp', 0.000001)
-        lastString = self.from_ep(self.safe_string(ticker, 'lastEp'), market)
-        last = self.parse_number(lastString)
-        quoteVolume = self.parse_number(self.from_ev(self.safe_string(ticker, 'turnoverEv'), market))
-        baseVolume = self.safe_number(ticker, 'volume')
+        last = self.from_ep(self.safe_string(ticker, 'lastEp'), market)
+        quoteVolume = self.from_ev(self.safe_string(ticker, 'turnoverEv'), market)
+        baseVolume = self.safe_string(ticker, 'volume')
         if baseVolume is None:
-            baseVolume = self.parse_number(self.from_ev(self.safe_string(ticker, 'volumeEv'), market))
-        vwap = None
-        if (market is not None) and (market['spot']):
-            vwap = self.vwap(baseVolume, quoteVolume)
-        change = None
-        percentage = None
-        average = None
-        openString = self.from_ep(self.safe_string(ticker, 'openEp'), market)
-        open = self.parse_number(openString)
-        if (openString is not None) and (lastString is not None):
-            change = self.parse_number(Precise.string_sub(lastString, openString))
-            average = self.parse_number(Precise.string_div(Precise.string_add(lastString, openString), '2'))
-            percentage = self.parse_number(Precise.string_mul(Precise.string_sub(Precise.string_div(lastString, openString), '1'), '100'))
-        result = {
+            baseVolume = self.from_ev(self.safe_string(ticker, 'volumeEv'), market)
+        open = self.from_ep(self.safe_string(ticker, 'openEp'), market)
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.parse_number(self.from_ep(self.safe_string(ticker, 'highEp'), market)),
-            'low': self.parse_number(self.from_ep(self.safe_string(ticker, 'lowEp'), market)),
-            'bid': self.parse_number(self.from_ep(self.safe_string(ticker, 'bidEp'), market)),
+            'high': self.from_ep(self.safe_string(ticker, 'highEp'), market),
+            'low': self.from_ep(self.safe_string(ticker, 'lowEp'), market),
+            'bid': self.from_ep(self.safe_string(ticker, 'bidEp'), market),
             'bidVolume': None,
-            'ask': self.parse_number(self.from_ep(self.safe_string(ticker, 'askEp'), market)),
+            'ask': self.from_ep(self.safe_string(ticker, 'askEp'), market),
             'askVolume': None,
-            'vwap': vwap,
+            'vwap': None,
             'open': open,
             'close': last,
             'last': last,
             'previousClose': None,  # previous day close
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': None,
+            'percentage': None,
+            'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
-        return result
+        }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

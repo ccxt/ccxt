@@ -16,19 +16,48 @@ module.exports = class lbank extends Exchange {
             'countries': [ 'CN' ],
             'version': 'v1',
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': undefined, // status 0 API doesn't work
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -117,30 +146,48 @@ module.exports = class lbank extends Exchange {
             }
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const precision = {
-                'amount': this.safeInteger (market, 'quantityAccuracy'),
-                'price': this.safeInteger (market, 'priceAccuracy'),
-            };
+            const precisionPrice = this.safeString (market, 'priceAccuracy');
+            const precisionAmount = this.safeString (market, 'quantityAccuracy');
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'active': true,
-                'precision': precision,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': this.parseNumber (precisionPrice),
+                    'amount': this.parseNumber (precisionAmount),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': Math.pow (10, precision['price']),
+                        'min': undefined,
+                        'max': undefined,
                     },
                     'cost': {
                         'min': undefined,
@@ -154,57 +201,34 @@ module.exports = class lbank extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (ticker, 'symbol');
-            if (marketId in this.markets_by_id) {
-                const market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                const parts = marketId.split ('_');
-                let baseId = undefined;
-                let quoteId = undefined;
-                const numParts = parts.length;
-                // lbank will return symbols like "vet_erc20_usdt"
-                if (numParts > 2) {
-                    baseId = parts[0] + '_' + parts[1];
-                    quoteId = parts[2];
-                } else {
-                    baseId = parts[0];
-                    quoteId = parts[1];
-                }
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
+        //
+        //     {
+        //         "symbol":"btc_usdt",
+        //         "ticker":{
+        //             "high":43416.06,
+        //             "vol":7031.7427,
+        //             "low":41804.26,
+        //             "change":1.33,
+        //             "turnover":300302447.81,
+        //             "latest":43220.4
+        //         },
+        //         "timestamp":1642201617747
+        //     }
+        //
+        const marketId = this.safeString (ticker, 'symbol');
+        market = this.safeMarket (marketId, market, '_');
+        const symbol = market['symbol'];
         const timestamp = this.safeInteger (ticker, 'timestamp');
         const info = ticker;
         ticker = info['ticker'];
-        const last = this.safeNumber (ticker, 'latest');
-        const percentage = this.safeNumber (ticker, 'change');
-        let open = undefined;
-        if (percentage !== undefined) {
-            const relativeChange = this.sum (1, percentage / 100);
-            if (relativeChange > 0) {
-                open = last / this.sum (1, relativeChange);
-            }
-        }
-        let change = undefined;
-        let average = undefined;
-        if (last !== undefined && open !== undefined) {
-            change = last - open;
-            average = this.sum (last, open) / 2;
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        return {
+        const last = this.safeString (ticker, 'latest');
+        const percentage = this.safeString (ticker, 'change');
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
@@ -214,13 +238,13 @@ module.exports = class lbank extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
+            'change': undefined,
             'percentage': percentage,
-            'average': average,
-            'baseVolume': this.safeNumber (ticker, 'vol'),
-            'quoteVolume': this.safeNumber (ticker, 'turnover'),
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'vol'),
+            'quoteVolume': this.safeString (ticker, 'turnover'),
             'info': info,
-        };
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -230,6 +254,18 @@ module.exports = class lbank extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.publicGetTicker (this.extend (request, params));
+        // {
+        //     "symbol":"btc_usdt",
+        //     "ticker":{
+        //         "high":43416.06,
+        //         "vol":7031.7427,
+        //         "low":41804.26,
+        //         "change":1.33,
+        //         "turnover":300302447.81,
+        //         "latest":43220.4
+        //         },
+        //     "timestamp":1642201617747
+        // }
         return this.parseTicker (response, market);
     }
 

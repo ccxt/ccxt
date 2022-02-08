@@ -22,20 +22,48 @@ class ripio extends Exchange {
             'pro' => true,
             // new metainfo interface
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
+                'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/94507548-a83d6a80-0218-11eb-9998-28b9cec54165.jpg',
@@ -121,14 +149,19 @@ class ripio extends Exchange {
         //         "next":null,
         //         "previous":null,
         //         "results":array(
-        //             array(
+        //             {
         //                 "base":"BTC",
         //                 "base_name":"Bitcoin",
         //                 "quote":"USDC",
         //                 "quote_name":"USD Coin",
         //                 "symbol":"BTC_USDC",
         //                 "fees":array(
-        //                     array("traded_volume":0.0,"maker_fee":0.0,"taker_fee":0.0,"cancellation_fee":0.0)
+        //                     array(
+        //                         "traded_volume" => 0.0,
+        //                         "maker_fee" => 0.0,
+        //                         "taker_fee" => 0.0,
+        //                         "cancellation_fee" => 0.0
+        //                     }
         //                 ),
         //                 "country":"ZZ",
         //                 "enabled":true,
@@ -150,44 +183,56 @@ class ripio extends Exchange {
             $id = $this->safe_string($market, 'symbol');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $precision = array(
-                'amount' => $this->safe_number($market, 'min_amount'),
-                'price' => $this->safe_number($market, 'price_tick'),
-            );
-            $limits = array(
-                'amount' => array(
-                    'min' => $this->safe_number($market, 'min_amount'),
-                    'max' => null,
-                ),
-                'price' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-                'cost' => array(
-                    'min' => $this->safe_number($market, 'min_value'),
-                    'max' => null,
-                ),
-            );
-            $active = $this->safe_value($market, 'enabled', true);
             $fees = $this->safe_value($market, 'fees', array());
             $firstFee = $this->safe_value($fees, 0, array());
-            $maker = $this->safe_number($firstFee, 'maker_fee', 0.0);
-            $taker = $this->safe_number($firstFee, 'taker_fee', 0.0);
             $result[] = array(
                 'id' => $id,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'active' => $active,
-                'precision' => $precision,
-                'maker' => $maker,
-                'taker' => $taker,
-                'limits' => $limits,
+                'margin' => false,
+                'future' => false,
+                'swap' => false,
+                'option' => false,
+                'active' => $this->safe_value($market, 'enabled', true),
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'taker' => $this->safe_number($firstFee, 'taker_fee', 0.0),
+                'maker' => $this->safe_number($firstFee, 'maker_fee', 0.0),
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->safe_number($market, 'min_amount'),
+                    'price' => $this->safe_number($market, 'price_tick'),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => $this->safe_number($market, 'min_amount'),
+                        'max' => null,
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => $this->safe_number($market, 'min_value'),
+                        'max' => null,
+                    ),
+                ),
                 'info' => $market,
             );
         }
@@ -243,6 +288,8 @@ class ripio extends Exchange {
                 'name' => $name,
                 'info' => $currency, // the original payload
                 'active' => $active,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => null,
                 'precision' => $precision,
                 'limits' => array(
@@ -279,19 +326,20 @@ class ripio extends Exchange {
         //
         $timestamp = $this->parse8601($this->safe_string($ticker, 'created_at'));
         $marketId = $this->safe_string($ticker, 'pair');
-        $symbol = $this->safe_symbol($marketId, $market);
-        $last = $this->safe_number($ticker, 'last_price');
-        $average = $this->safe_number($ticker, 'avg');
-        return array(
+        $market = $this->safe_market($marketId, $market, '_');
+        $symbol = $market['symbol'];
+        $last = $this->safe_string($ticker, 'last_price');
+        $average = $this->safe_string($ticker, 'avg');
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'bid'),
-            'bidVolume' => $this->safe_number($ticker, 'bid_volume'),
-            'ask' => $this->safe_number($ticker, 'ask'),
-            'askVolume' => $this->safe_number($ticker, 'ask_volume'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'bid'),
+            'bidVolume' => $this->safe_string($ticker, 'bid_volume'),
+            'ask' => $this->safe_string($ticker, 'ask'),
+            'askVolume' => $this->safe_string($ticker, 'ask_volume'),
             'vwap' => null,
             'open' => null,
             'close' => $last,
@@ -303,7 +351,7 @@ class ripio extends Exchange {
             'baseVolume' => null,
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

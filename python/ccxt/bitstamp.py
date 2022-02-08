@@ -40,18 +40,34 @@ class bitstamp(Exchange):
             'userAgent': self.userAgents['chrome'],
             'pro': True,
             'has': {
+                'CORS': True,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchFundingFees': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
                 'fetchLedger': True,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -59,6 +75,9 @@ class bitstamp(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
@@ -66,6 +85,10 @@ class bitstamp(Exchange):
                 'fetchTradingFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'urls': {
@@ -341,37 +364,49 @@ class bitstamp(Exchange):
             quoteId = quote.lower()
             base = self.safe_currency_code(base)
             quote = self.safe_currency_code(quote)
-            symbol = base + '/' + quote
-            marketId = baseId + '_' + quoteId
-            id = self.safe_string(market, 'url_symbol')
             amountPrecisionString = self.safe_string(market, 'base_decimals')
             pricePrecisionString = self.safe_string(market, 'counter_decimals')
             amountLimit = self.parse_precision(amountPrecisionString)
             priceLimit = self.parse_precision(pricePrecisionString)
-            precision = {
-                'amount': int(amountPrecisionString),
-                'price': int(pricePrecisionString),
-            }
             minimumOrder = self.safe_string(market, 'minimum_order')
             parts = minimumOrder.split(' ')
             cost = parts[0]
             # cost, currency = market['minimum_order'].split(' ')
             trading = self.safe_string(market, 'trading')
-            active = (trading == 'Enabled')
             result.append({
-                'id': id,
-                'symbol': symbol,
+                'id': self.safe_string(market, 'url_symbol'),
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'marketId': marketId,
-                'info': market,
+                'settleId': None,
+                'marketId': baseId + '_' + quoteId,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
-                'precision': precision,
+                'margin': False,
+                'future': False,
+                'swap': False,
+                'option': False,
+                'active': (trading == 'Enabled'),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': int(pricePrecisionString),
+                    'amount': int(amountPrecisionString),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.parse_number(amountLimit),
                         'max': None,
@@ -385,6 +420,7 @@ class bitstamp(Exchange):
                         'max': None,
                     },
                 },
+                'info': market,
             })
         return result
 
@@ -505,31 +541,39 @@ class bitstamp(Exchange):
         orderbook['nonce'] = microtimestamp
         return orderbook
 
-    def fetch_ticker(self, symbol, params={}):
-        self.load_markets()
-        request = {
-            'pair': self.market_id(symbol),
-        }
-        ticker = self.publicGetTickerPair(self.extend(request, params))
+    def parse_ticker(self, ticker, market=None):
+        #
+        # {
+        #     "high": "37534.15",
+        #     "last": "36487.44",
+        #     "timestamp":
+        #     "1643370585",
+        #     "bid": "36475.15",
+        #     "vwap": "36595.67",
+        #     "volume": "2848.49168527",
+        #     "low": "35511.32",
+        #     "ask": "36487.44",
+        #     "open": "37179.62"
+        # }
+        #
+        symbol = self.safe_symbol(None, market)
         timestamp = self.safe_timestamp(ticker, 'timestamp')
-        vwap = self.safe_number(ticker, 'vwap')
-        baseVolume = self.safe_number(ticker, 'volume')
-        quoteVolume = None
-        if baseVolume is not None and vwap is not None:
-            quoteVolume = baseVolume * vwap
-        last = self.safe_number(ticker, 'last')
-        return {
+        vwap = self.safe_string(ticker, 'vwap')
+        baseVolume = self.safe_string(ticker, 'volume')
+        quoteVolume = Precise.string_mul(baseVolume, vwap)
+        last = self.safe_string(ticker, 'last')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
-            'open': self.safe_number(ticker, 'open'),
+            'open': self.safe_string(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
@@ -539,7 +583,30 @@ class bitstamp(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
+        }, market, False)
+
+    def fetch_ticker(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'pair': market['id'],
         }
+        ticker = self.publicGetTickerPair(self.extend(request, params))
+        #
+        # {
+        #     "high": "37534.15",
+        #     "last": "36487.44",
+        #     "timestamp":
+        #     "1643370585",
+        #     "bid": "36475.15",
+        #     "vwap": "36595.67",
+        #     "volume": "2848.49168527",
+        #     "low": "35511.32",
+        #     "ask": "36487.44",
+        #     "open": "37179.62"
+        # }
+        #
+        return self.parse_ticker(ticker, market)
 
     def get_currency_id_from_transaction(self, transaction):
         #
@@ -596,14 +663,6 @@ class bitstamp(Exchange):
             marketId = currencyIds[1] + currencyIds[0]
             if marketId in self.markets_by_id:
                 return self.markets_by_id[marketId]
-        return None
-
-    def get_market_from_trades(self, trades):
-        tradesBySymbol = self.index_by(trades, 'symbol')
-        symbols = list(tradesBySymbol.keys())
-        numSymbols = len(symbols)
-        if numSymbols == 1:
-            return self.markets[symbols[0]]
         return None
 
     def parse_trade(self, trade, market=None):

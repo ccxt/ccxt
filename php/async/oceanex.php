@@ -27,6 +27,12 @@ class oceanex extends Exchange {
                 'referral' => 'https://oceanex.pro/signup?referral=VE24QX',
             ),
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => null, // has but unimplemented
+                'future' => null,
+                'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
@@ -34,6 +40,11 @@ class oceanex extends Exchange {
                 'createOrder' => true,
                 'fetchAllTradingFees' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchFundingFees' => null,
                 'fetchMarkets' => true,
@@ -152,19 +163,36 @@ class oceanex extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'active' => true,
-                'info' => $market,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => null,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'amount_precision'),
                     'price' => $this->safe_integer($market, 'price_precision'),
+                    'amount' => $this->safe_integer($market, 'amount_precision'),
                     'base' => $this->safe_integer($market, 'ask_precision'),
                     'quote' => $this->safe_integer($market, 'bid_precision'),
                 ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => null,
                         'max' => null,
@@ -178,6 +206,7 @@ class oceanex extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'info' => $market,
             );
         }
         return $result;
@@ -264,28 +293,29 @@ class oceanex extends Exchange {
         //
         $ticker = $this->safe_value($data, 'ticker', array());
         $timestamp = $this->safe_timestamp($data, 'at');
-        return array(
-            'symbol' => $market['symbol'],
+        $symbol = $this->safe_symbol(null, $market);
+        return $this->safe_ticker(array(
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'buy'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'sell'),
+            'ask' => $this->safe_string($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => $this->safe_number($ticker, 'last'),
-            'last' => $this->safe_number($ticker, 'last'),
+            'close' => $this->safe_string($ticker, 'last'),
+            'last' => $this->safe_string($ticker, 'last'),
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'volume'),
+            'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

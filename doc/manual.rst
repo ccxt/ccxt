@@ -51,7 +51,7 @@ Exchanges
 
 
 
-The CCXT library currently supports the following 113 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 114 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -135,11 +135,11 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg
-          :target: https://www.binance.com
+          :target: https://www.binance.com/en/register?ref=D7YA7CLY
           :alt: binance
      
      - binance
-     - `Binance <https://www.binance.com>`__
+     - `Binance <https://www.binance.com/en/register?ref=D7YA7CLY>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://binance-docs.github.io/apidocs/spot/en
           :alt: API Version *
@@ -153,11 +153,11 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
-          :target: https://www.binance.com
+          :target: https://www.binance.com/en/register?ref=D7YA7CLY
           :alt: binancecoinm
      
      - binancecoinm
-     - `Binance COIN-M <https://www.binance.com>`__
+     - `Binance COIN-M <https://www.binance.com/en/register?ref=D7YA7CLY>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://binance-docs.github.io/apidocs/delivery/en/
           :alt: API Version *
@@ -186,11 +186,11 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
-          :target: https://www.binance.com
+          :target: https://www.binance.com/en/register?ref=D7YA7CLY
           :alt: binanceusdm
      
      - binanceusdm
-     - `Binance USDⓈ-M <https://www.binance.com>`__
+     - `Binance USDⓈ-M <https://www.binance.com/en/register?ref=D7YA7CLY>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://binance-docs.github.io/apidocs/futures/en/
           :alt: API Version *
@@ -244,7 +244,7 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
           :alt: bitcoincom
      
      - bitcoincom
-     - `bitcoin.com <https://fmfw.io/referral/da948b21d6c92d69>`__
+     - `FMFW.io <https://fmfw.io/referral/da948b21d6c92d69>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://api.fmfw.io/api/2/explore/
           :alt: API Version 2
@@ -843,17 +843,35 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/51840849/87443317-01c0d080-c5fe-11ea-95c2-9ebe1a8fafd9.jpg
-          :target: https://www.flowbtc.com.br
+          :target: https://one.ndax.io/bfQiSL
           :alt: flowbtc
      
      - flowbtc
-     - `flowBTC <https://www.flowbtc.com.br>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
+     - `flowBTC <https://one.ndax.io/bfQiSL>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://www.flowbtc.com.br/api.html
-          :alt: API Version 1
+          :alt: API Version *
      
      - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/97296144-514fa300-1861-11eb-952b-3d55d492200b.jpg
+          :target: https://fmfw.io/referral/da948b21d6c92d69
+          :alt: fmfwio
+     
+     - fmfwio
+     - `FMFW.io <https://fmfw.io/referral/da948b21d6c92d69>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://api.fmfw.io/api/2/explore/
+          :alt: API Version 2
+     
      - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg
           :target: https://ftx.com/#a=ccxt
           :alt: ftx
@@ -960,11 +978,11 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg
-          :target: https://www.huobi.com
+          :target: https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223
           :alt: huobi
      
      - huobi
-     - `Huobi <https://www.huobi.com>`__
+     - `Huobi <https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://huobiapi.github.io/docs/spot/v1/cn/
           :alt: API Version 1
@@ -1253,35 +1271,20 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-   * - .. image:: https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg
-          :target: https://www.okex.com
-          :alt: okex
+   * - .. image:: https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg
+          :target: https://www.okx.com/join/1888677
+          :alt: okx
      
-     - okex
-     - `OKEX <https://www.okex.com>`__
+     - okx
+     - `OKX <https://www.okx.com/join/1888677>`__
      - .. image:: https://img.shields.io/badge/5-lightgray
-          :target: https://www.okex.com/docs-v5/en/
+          :target: https://www.okx.com/docs-v5/en/
           :alt: API Version 5
      
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
           :alt: CCXT Certified
      
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
-     
-   * - .. image:: https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg
-          :target: https://www.okex.com/join/1888677
-          :alt: okex3
-     
-     - okex3
-     - `OKEX <https://www.okex.com/join/1888677>`__
-     - .. image:: https://img.shields.io/badge/3-lightgray
-          :target: https://www.okex.com/docs/en/
-          :alt: API Version 3
-     
-     - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
@@ -1488,8 +1491,20 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      - whitebit
      - `WhiteBit <https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://documenter.getpostman.com/view/7473075/Szzj8dgv?version=latest
+          :target: https://github.com/whitebit-exchange/api-docs
           :alt: API Version 2
+     
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg
+          :target: https://referral.woo.org/BAJS6oNmZb3vi3RGA
+          :alt: woo
+     
+     - woo
+     - `WOO X <https://referral.woo.org/BAJS6oNmZb3vi3RGA>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://docs.woo.org/
+          :alt: API Version 1
      
      - 
      - 
@@ -1850,7 +1865,7 @@ Below is a detailed description of each of the base exchange properties:
   ``timeframes``\ : An associative array of timeframes, supported by the fetchOHLCV method of the exchange. This is only populated when ``has['fetchOHLCV']`` property is true.
 
  * 
-  ``timeout``\ : A timeout in milliseconds for a request-response roundtrip (default timeout is 10000 ms = 10 seconds). You should always set it to a reasonable value, hanging forever with no timeout is not your option, for sure.
+  ``timeout``\ : A timeout in milliseconds for a request-response roundtrip (default timeout is 10000 ms = 10 seconds). If the response is not received in that time, the library will throw an ``RequestTimeout`` exception. You can leave the default timeout value or set it to a reasonable value. Hanging forever with no timeout is not your option, for sure. You don't have to override this option in general case.
 
  * 
   ``rateLimit``\ : A request rate limit in milliseconds. Specifies the required minimal delay between two consequent HTTP requests to the same exchange. The built-in rate-limiter is enabled by default and can be turned off by setting the ``enableRateLimit`` property to false.
@@ -2181,25 +2196,27 @@ Market Structure
        'baseId':  'btc',         // any string, exchange-specific base currency id
        'quoteId': 'usd',         // any string, exchange-specific quote currency id
        'active':   true,         // boolean, market status
-       'taker':    0.002,        // taker fee rate, 0.002 = 0.2%
-       'maker':    0.0016,       // maker fee rate, 0.0016 = 0.16%
-       'type':    'spot'         // spot for spot, future for expiry futures, swap for perpetual swaps, 'option' for options
-       'linear':   true          // the contract is a linear contract (settled in quote currency)
-       'inverse':  false         // the contract is an inverse contract (settled in base currency)
-       'contractSize': 1         // the size of one contract, only used if `contract` is true
+       'type':    'spot',        // spot for spot, future for expiry futures, swap for perpetual swaps, 'option' for options
        'spot':     true,         // whether the market is a spot market
        'margin':   true,         // whether the market is a margin market
        'future':   false,        // whether the market is a expiring future
        'swap':     false,        // whether the market is a perpetual swap
        'option':   false,        // whether the market is an option contract
        'contract': false,        // whether the market is a future, a perpetual swap, or an option
-       'settleId': 'usdt'        // the currencyId of that the contract will settle in, only set if `contract` is true
-       'settle':   'USDT'        // the unified currency code that the contract will settle in, only set if `contract` is true
-       'expiry':  1641370465121  // the unix expiry timestamp in milliseconds, undefined for everything except market['type'] `future`
-       'expiryDatetime': '2022-03-26T00:00:00.000Z' // The datetime contract will in iso8601 format
+       'settle':   'USDT',       // the unified currency code that the contract will settle in, only set if `contract` is true
+       'settleId': 'usdt',       // the currencyId of that the contract will settle in, only set if `contract` is true
+       'contractSize': 1,        // the size of one contract, only used if `contract` is true
+       'linear':   true,         // the contract is a linear contract (settled in quote currency)
+       'inverse':  false,        // the contract is an inverse contract (settled in base currency)
+       'expiry':  1641370465121, // the unix expiry timestamp in milliseconds, undefined for everything except market['type'] `future`
+       'expiryDatetime': '2022-03-26T00:00:00.000Z', // The datetime contract will in iso8601 format
+       'strike': 4000,           // price at which a put or call option can be exercised
+       'optionType': 'call',     // call or put string, call option represents an option with the right to buy and put an option with the right to sell
+       'taker':    0.002,        // taker fee rate, 0.002 = 0.2%
+       'maker':    0.0016,       // maker fee rate, 0.0016 = 0.16%
        'percentage': true,       // whether the taker and maker fee rate is a multiplier or a fixed flat amount
        'tierBased': false,       // whether the fee depends on your trading tier (your trading volume)
-       'feeSide': 'get'          // string literal can be 'get', 'give', 'base', 'quote', 'other'
+       'feeSide': 'get',         // string literal can be 'get', 'give', 'base', 'quote', 'other'
        'precision': {            // number of decimal digits "after the dot"
            'price': 8,           // integer or float for TICK_SIZE roundingMode, might be missing if not supplied by the exchange
            'amount': 8,          // integer, might be missing if not supplied by the exchange
@@ -2212,6 +2229,7 @@ Market Structure
            },
            'price': { ... },     // same min/max limits for the price of the order
            'cost':  { ... },     // same limits for order cost = price * amount
+           'leverage': { ... },  // same min/max limits for the leverage of the order
        },
        'info':      { ... },     // the original unparsed market info from the exchange
    }
@@ -2233,6 +2251,8 @@ Each market is an associative array (aka dictionary) with the following keys:
  * ``info``. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
  * ``precision``. Precision accepted in order values by exchanges upon order placement for price, amount and cost. (The value inside this property depend on the :ref:`\ ``exchange.precisionMode`` <precision mode>`\ ).
  * ``limits``. The minimums and maximums for prices, amounts (volumes) and costs (where cost = price * amount).
+ * ``optionType``. The type of the option, ``call`` option represents an option with the right to buy and ``put`` an option with the right to sell.
+ * ``strike``. Price at which an option can be bought or sold when it is exercised.
 
 Active status
 -------------
@@ -2464,7 +2484,7 @@ More practical examples that describe the behavior of ``exchange.precisionMode``
    exchange.precisionMode = ccxt.DECIMAL_PLACES
    market = exchange.market (symbol)
    market['precision']['amount'] === 8 // up to 8 decimals after the dot
-   exchange.amountToPrecision (symbol, 0.123456789) === 0.12345678 
+   exchange.amountToPrecision (symbol, 0.123456789) === 0.12345678
    exchange.amountToPrecision (symbol, 0.0000000000123456789) === 0.0000000 === 0.0
 
 .. code-block:: JavaScript
@@ -2482,7 +2502,7 @@ More practical examples that describe the behavior of ``exchange.precisionMode``
    exchange.precisionMode = ccxt.SIGNIFICANT_DIGITS
    market = exchange.market (symbol)
    market['precision']['amount'] === 8 // up to 8 significant non-zero digits
-   exchange.amountToPrecision (symbol, 0.0000000000123456789) === 0.000000000012345678 
+   exchange.amountToPrecision (symbol, 0.0000000000123456789) === 0.000000000012345678
    exchange.amountToPrecision (symbol, 123.4567890123456789) === 123.45678
 
 Loading Markets
@@ -3163,7 +3183,7 @@ This is the type of pagination currently used throughout the CCXT Unified API. T
            const limit = 20 // change for your limit
            const trades = await exchange.fetchTrades (symbol, since, limit)
            if (trades.length) {
-               since = trades[trades.length - 1]['timestamp']
+               since = trades[trades.length - 1]['timestamp'] + 1
                allTrades = allTrades.concat (trades)
            } else {
                break
@@ -3184,7 +3204,7 @@ This is the type of pagination currently used throughout the CCXT Unified API. T
            limit = 20  # change for your limit
            orders = await exchange.fetch_orders(symbol, since, limit)
            if len(orders):
-               since = orders[len(orders) - 1]['timestamp']
+               since = orders[len(orders) - 1]['timestamp'] + 1
                all_orders += orders
            else:
                break
@@ -3202,7 +3222,7 @@ This is the type of pagination currently used throughout the CCXT Unified API. T
            $limit = 20; // change for your limit
            $trades = $exchange->fetchMyTrades ($symbol, $since, $limit);
            if (count($trades)) {
-               $since = $trades[count($trades) - 1]['timestamp'];
+               $since = $trades[count($trades) - 1]['timestamp'] + 1;
                $all_trades = array_merge ($all_trades, $trades);
            } else {
                break;
@@ -3487,7 +3507,7 @@ The levels of detail or levels of order book aggregation are often number-labell
 
 If you want to get an L2 order book, whatever the exchange returns, use the ``fetchL2OrderBook(symbol, limit, params)`` or ``fetch_l2_order_book(symbol, limit, params)`` unified method for that.
 
-The ``limit`` argument does not guarantee that the number of bids or asks will always be equal to ``limit``. It designates the upper boundary or the maximum, so at some moment in time there may be less than ``limit`` bids or asks, but never more than ``limit`` bids or asks. This is the case when the exchange does not have enough orders on the orderbook.
+The ``limit`` argument does not guarantee that the number of bids or asks will always be equal to ``limit``. It designates the upper boundary or the maximum, so at some moment in time there may be less than ``limit`` bids or asks. This is the case when the exchange does not have enough orders on the orderbook. However, if the underlying exchange API does not support a ``limit`` parameter for the orderbook endpoint at all, then the ``limit`` argument will be ignored. CCXT does not trim ``bids`` and ``asks`` if the exchange returns more than you request.
 
 Market Price
 ^^^^^^^^^^^^
@@ -4003,6 +4023,16 @@ Private API
 
 
 In order to be able to access your user account, perform algorithmic trading by placing market and limit orders, query balances, deposit and withdraw funds and so on, you need to obtain your API keys for authentication from each exchange you want to trade with. They usually have it available on a separate tab or page within your user account settings. API keys are exchange-specific and cannnot be interchanged under any circumstances.
+
+The exchanges' private APIs will usually allow the following types of interaction:
+
+
+ * the current state of the user's account balance can be obtained with the ``fetchBalance()`` method as described in the :ref:`Account Balance <account balance>` section
+ * the user can place and cancel orders with ``createOrder()``\ , ``cancelOrder()``\ , as well as fetch current open orders and the past order history with methods like ``fetchOrder``\ , ``fetchOrders()``\ , ``fetchOpenOrders()``\ , ``fetchClosedOrders``\ , as described in the section on :ref:`Orders <orders>`
+ * the user can query the history of past trades executed with his account using ``fetchMyTrades``\ , as described in the :ref:`My Trades <my trades>` section, also see `How Orders Are Related To Trades <https://docs.ccxt.com/en/latest/manual.html#how-orders-are-related-to-trades>`__
+ * the user can query his positions with ``fetchPositions()`` as described in the :ref:`Positions <positions>` section
+ * the user can fetch the history of his transactions (on-chain *transactions* which are either *deposits* to the exchange account or *withdrawals* from the exchange account) with ``fetchTransactions()``\ , or with ``fetchDeposits()`` and ``fetchWithdrawals()`` separately, depending on what is available from the exchange API
+ * if the exchange API provides a ledger endpoint, the user can fetch a history of all money movements that somehow affected the balance, with ``fetchLedger`` that will return all accounting ledger entries such as trades, deposits, withdrawals, internal transfers between accounts, rebates, bonuses, fees, staking profits and so on, as described in the :ref:`Ledger <ledger>` section.
 
 Authentication
 --------------

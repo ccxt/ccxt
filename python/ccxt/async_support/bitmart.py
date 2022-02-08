@@ -30,6 +30,7 @@ from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class bitmart(Exchange):
@@ -44,6 +45,12 @@ class bitmart(Exchange):
             'certified': True,
             'pro': True,
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': None,  # has but unimplemented
+                'swap': None,  # has but unimplemented
+                'future': None,  # has but unimplemented
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
@@ -311,6 +318,7 @@ class bitmart(Exchange):
                 'DMS': 'DimSum',  # conflict with Dragon Mainland Shards
                 'FOX': 'Fox Finance',
                 'GDT': 'Gorilla Diamond',
+                '$GM': 'GOLDMINER',
                 '$HERO': 'Step Hero',
                 '$PAC': 'PAC',
                 'MIM': 'MIM Swarm',
@@ -725,35 +733,30 @@ class bitmart(Exchange):
         #
         timestamp = self.safe_timestamp_2(ticker, 'timestamp', 's_t', self.milliseconds())
         marketId = self.safe_string_2(ticker, 'symbol', 'contract_id')
-        marketId = self.safe_string(ticker, 'contract_symbol', marketId)
-        symbol = self.safe_symbol(marketId, market)
-        last = self.safe_number_2(ticker, 'close_24h', 'last_price')
-        percentage = self.safe_number_2(ticker, 'fluctuation', 'rise_fall_rate')
-        if percentage is not None:
-            percentage *= 100
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        last = self.safe_string_2(ticker, 'close_24h', 'last_price')
+        percentage = self.safe_string_2(ticker, 'fluctuation', 'rise_fall_rate')
+        percentage = Precise.string_mul(percentage, '100')
         if percentage is None:
-            percentage = self.safe_number(ticker, 'price_change_percent_24h')
-        baseVolume = self.safe_number_2(ticker, 'base_coin_volume', 'base_volume_24h')
-        quoteVolume = self.safe_number_2(ticker, 'quote_coin_volume', 'quote_volume_24h')
-        quoteVolume = self.safe_number(ticker, 'volume_24h', quoteVolume)
-        open = self.safe_number_2(ticker, 'open_24h', 'open')
-        average = None
-        if (last is not None) and (open is not None):
-            average = self.sum(last, open) / 2
-        average = self.safe_number(ticker, 'avg_price', average)
-        price = self.safe_value(ticker, 'depth_price', ticker)
-        return {
+            percentage = self.safe_string(ticker, 'price_change_percent_24h')
+        baseVolume = self.safe_string_2(ticker, 'base_coin_volume', 'base_volume_24h')
+        quoteVolume = self.safe_string_2(ticker, 'quote_coin_volume', 'quote_volume_24h')
+        quoteVolume = self.safe_string(ticker, 'volume_24h', quoteVolume)
+        average = self.safe_string(ticker, 'avg_price')
+        price = self.safe_string(ticker, 'depth_price', ticker)
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number_2(ticker, 'high', 'high_24h'),
-            'low': self.safe_number_2(ticker, 'low', 'low_24h'),
-            'bid': self.safe_number_2(price, 'best_bid', 'bid_price'),
-            'bidVolume': self.safe_number(ticker, 'best_bid_size'),
-            'ask': self.safe_number_2(price, 'best_ask', 'ask_price'),
-            'askVolume': self.safe_number(ticker, 'best_ask_size'),
+            'high': self.safe_string_2(ticker, 'high', 'high_24h'),
+            'low': self.safe_string_2(ticker, 'low', 'low_24h'),
+            'bid': self.safe_string_2(price, 'best_bid', 'bid_price'),
+            'bidVolume': self.safe_string(ticker, 'best_bid_size'),
+            'ask': self.safe_string_2(price, 'best_ask', 'ask_price'),
+            'askVolume': self.safe_string(ticker, 'best_ask_size'),
             'vwap': None,
-            'open': self.safe_number(ticker, 'open_24h'),
+            'open': self.safe_string(ticker, 'open_24h'),
             'close': last,
             'last': last,
             'previousClose': None,
@@ -763,7 +766,7 @@ class bitmart(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -835,15 +838,13 @@ class bitmart(Exchange):
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
-        params = self.omit(params, 'type')
-        method = None
-        if (type == 'swap') or (type == 'future'):
-            method = 'publicContractGetTickers'
-        elif type == 'spot':
-            method = 'publicSpotGetTicker'
-        response = await getattr(self, method)(params)
+        marketType, query = self.handle_market_type_and_params('fetchTickers', None, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'publicSpotGetTicker',
+            'swap': 'publicContractGetTickers',
+            'future': 'publicContractGetTickers',
+        })
+        response = await getattr(self, method)(query)
         data = self.safe_value(response, 'data', {})
         tickers = self.safe_value(data, 'tickers', [])
         result = {}
@@ -1269,7 +1270,7 @@ class bitmart(Exchange):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        method = None
+        marketType, query = self.handle_market_type_and_params('fetchMyTrades', market, params)
         request = {}
         if market['spot']:
             request['symbol'] = market['id']
@@ -1277,14 +1278,17 @@ class bitmart(Exchange):
             if limit is None:
                 limit = 100  # max 100
             request['limit'] = limit
-            method = 'privateSpotGetTrades'
         elif market['swap'] or market['future']:
             request['contractID'] = market['id']
             # request['offset'] = 1
             if limit is not None:
                 request['size'] = limit  # max 60
-            method = 'privateContractGetUserTrades'
-        response = await getattr(self, method)(self.extend(request, params))
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateSpotGetTrades',
+            'swap': 'privateContractGetUserTrades',
+            'future': 'privateContractGetUserTrades',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
         #
         # spot
         #
@@ -1345,17 +1349,20 @@ class bitmart(Exchange):
             raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        method = None
+        marketType, query = self.handle_market_type_and_params('fetchOrderTrades', market, params)
         request = {}
         if market['spot']:
             request['symbol'] = market['id']
             request['order_id'] = id
-            method = 'privateSpotGetTrades'
         elif market['swap'] or market['future']:
             request['contractID'] = market['id']
             request['orderID'] = id
-            method = 'privateContractGetOrderTrades'
-        response = await getattr(self, method)(self.extend(request, params))
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateSpotGetTrades',
+            'swap': 'privateContractGetOrderTrades',
+            'future': 'privateContractGetOrderTrades',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
         #
         # spot
         #
@@ -1428,19 +1435,15 @@ class bitmart(Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        method = None
-        options = self.safe_value(self.options, 'fetchBalance', {})
-        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
-        type = self.safe_string(options, 'type', defaultType)
-        type = self.safe_string(params, 'type', type)
-        params = self.omit(params, 'type')
-        if type == 'spot':
-            method = 'privateSpotGetWallet'
-        elif type == 'account':
-            method = 'privateAccountGetWallet'
-        elif (type == 'swap') or (type == 'future') or (type == 'contract'):
-            method = 'privateContractGetAccounts'
-        response = await getattr(self, method)(params)
+        marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateSpotGetWallet',
+            'swap': 'privateContractGetAccounts',
+            'future': 'privateContractGetAccounts',
+            'contract': 'privateContractGetAccounts',
+            'account': 'privateAccountGetWallet',
+        })
+        response = await getattr(self, method)(query)
         #
         # spot
         #
@@ -1776,7 +1779,7 @@ class bitmart(Exchange):
             raise ArgumentsRequired(self.id + ' canelOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        if not market['spot']:
+        if not market['contract']:
             raise NotSupported(self.id + ' cancelOrders() does not support ' + market['type'] + ' orders, only contract orders are accepted')
         orders = []
         for i in range(0, len(ids)):
@@ -1818,10 +1821,9 @@ class bitmart(Exchange):
             raise ArgumentsRequired(self.id + ' fetchOrdersByStatus() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
+        marketType, query = self.handle_market_type_and_params('fetchOrdersByStatus', market, params)
         request = {}
-        method = None
         if market['spot']:
-            method = 'privateSpotGetOrders'
             request['symbol'] = market['id']
             request['offset'] = 1  # max offset * limit < 500
             request['limit'] = 100  # max limit is 100
@@ -1844,7 +1846,6 @@ class bitmart(Exchange):
             else:
                 request['status'] = status
         elif market['swap'] or market['future']:
-            method = 'privateContractGetUserOrders'
             request['contractID'] = market['id']
             # request['offset'] = 1
             if limit is not None:
@@ -1860,7 +1861,12 @@ class bitmart(Exchange):
                 request['status'] = 4
             else:
                 request['status'] = status
-        response = await getattr(self, method)(self.extend(request, params))
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateSpotGetOrders',
+            'swap': 'privateContractGetUserOrders',
+            'future': 'privateContractGetUserOrders',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
         #
         # spot
         #
@@ -1947,18 +1953,21 @@ class bitmart(Exchange):
         await self.load_markets()
         request = {}
         market = self.market(symbol)
-        method = None
         if not isinstance(id, basestring):
             id = str(id)
+        marketType, query = self.handle_market_type_and_params('fetchOrder', market, params)
         if market['spot']:
             request['symbol'] = market['id']
             request['order_id'] = id
-            method = 'privateSpotGetOrderDetail'
         elif market['swap'] or market['future']:
             request['contractID'] = market['id']
             request['orderID'] = id
-            method = 'privateContractGetUserOrderInfo'
-        response = await getattr(self, method)(self.extend(request, params))
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateSpotGetOrderDetail',
+            'swap': 'privateContractGetUserOrderInfo',
+            'future': 'privateContractGetUserOrderInfo',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
         #
         # spot
         #

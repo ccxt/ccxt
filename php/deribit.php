@@ -8,6 +8,7 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\BadRequest;
 
 class deribit extends Exchange {
 
@@ -22,13 +23,23 @@ class deribit extends Exchange {
             // 5 requests per second for matching-engine endpoints, cost = (1000ms / rateLimit) / 5 = 4
             'rateLimit' => 50,
             'has' => array(
+                'CORS' => true,
+                'spot' => false,
+                'margin' => false,
+                'swap' => null,
+                'future' => null,
+                'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => true,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
@@ -43,6 +54,7 @@ class deribit extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => null,
                 'fetchOrderTrades' => true,
+                'fetchPosition' => true,
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
@@ -346,6 +358,9 @@ class deribit extends Exchange {
                 'fetchBalance' => array(
                     'code' => 'BTC',
                 ),
+                'fetchPositions' => array(
+                    'code' => 'BTC',
+                ),
             ),
         ));
     }
@@ -482,7 +497,8 @@ class deribit extends Exchange {
                         $type = 'option';
                         $strike = $this->safe_number($market, 'strike');
                         $optionType = $this->safe_string($market, 'option_type');
-                        $symbol = $symbol . ':' . $this->number_to_string($strike) . ':' . $optionType;
+                        $letter = ($optionType === 'call') ? 'C' : 'P';
+                        $symbol = $symbol . ':' . $this->number_to_string($strike) . ':' . $letter;
                     } else {
                         $type = 'future';
                     }
@@ -516,8 +532,8 @@ class deribit extends Exchange {
                     'strike' => $strike,
                     'optionType' => $optionType,
                     'precision' => array(
-                        'amount' => $minTradeAmount,
                         'price' => $tickSize,
+                        'amount' => $minTradeAmount,
                     ),
                     'limits' => array(
                         'leverage' => array(
@@ -728,18 +744,18 @@ class deribit extends Exchange {
         $timestamp = $this->safe_integer_2($ticker, 'timestamp', 'creation_timestamp');
         $marketId = $this->safe_string($ticker, 'instrument_name');
         $symbol = $this->safe_symbol($marketId, $market);
-        $last = $this->safe_number_2($ticker, 'last_price', 'last');
+        $last = $this->safe_string_2($ticker, 'last_price', 'last');
         $stats = $this->safe_value($ticker, 'stats', $ticker);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number_2($stats, 'high', 'max_price'),
-            'low' => $this->safe_number_2($stats, 'low', 'min_price'),
-            'bid' => $this->safe_number_2($ticker, 'best_bid_price', 'bid_price'),
-            'bidVolume' => $this->safe_number($ticker, 'best_bid_amount'),
-            'ask' => $this->safe_number_2($ticker, 'best_ask_price', 'ask_price'),
-            'askVolume' => $this->safe_number($ticker, 'best_ask_amount'),
+            'high' => $this->safe_string_2($stats, 'high', 'max_price'),
+            'low' => $this->safe_string_2($stats, 'low', 'min_price'),
+            'bid' => $this->safe_string_2($ticker, 'best_bid_price', 'bid_price'),
+            'bidVolume' => $this->safe_string($ticker, 'best_bid_amount'),
+            'ask' => $this->safe_string_2($ticker, 'best_ask_price', 'ask_price'),
+            'askVolume' => $this->safe_string($ticker, 'best_ask_amount'),
             'vwap' => null,
             'open' => null,
             'close' => $last,
@@ -749,9 +765,9 @@ class deribit extends Exchange {
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => $this->safe_number($stats, 'volume'),
+            'quoteVolume' => $this->safe_string($stats, 'volume'),
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -1718,6 +1734,7 @@ class deribit extends Exchange {
         $market = $this->safe_market($contract, $market);
         $size = $this->safe_string($position, 'size');
         $side = $this->safe_string($position, 'direction');
+        $side = ($side === 'buy') ? 'long' : 'short';
         $maintenanceRate = $this->safe_string($position, 'maintenance_margin');
         $markPrice = $this->safe_string($position, 'mark_price');
         $notionalString = Precise::string_mul($markPrice, $size);
@@ -1792,16 +1809,30 @@ class deribit extends Exchange {
         for ($i = 0; $i < count($positions); $i++) {
             $result[] = $this->parse_position($positions[$i]);
         }
-        // todo unify parsePositions
         return $result;
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
         $this->load_markets();
-        $code = $this->code_from_options('fetchPositions', $params);
+        $code = null;
+        if ($symbols === null) {
+            $code = $this->code_from_options('fetchPositions', $params);
+        } else if (gettype($symbols) === 'string') {
+            $code = $symbols;
+        } else {
+            if (gettype($symbols) === 'array' && count(array_filter(array_keys($symbols), 'is_string')) == 0) {
+                $length = is_array($symbols) ? count($symbols) : 0;
+                if ($length !== 1) {
+                    throw new BadRequest($this->id . ' fetchPositions $symbols argument cannot contain more than 1 symbol');
+                }
+                $market = $this->market($symbols[0]);
+                $code = $market['base'];
+            }
+        }
         $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
+            // "kind" : "future", "option"
         );
         $response = $this->privateGetGetPositions (array_merge($request, $params));
         //
@@ -1809,7 +1840,7 @@ class deribit extends Exchange {
         //         "jsonrpc" => "2.0",
         //         "id" => 2236,
         //         "result" => array(
-        //             {
+        //             array(
         //                 "average_price" => 7440.18,
         //                 "delta" => 0.006687487,
         //                 "direction" => "buy",
@@ -1829,15 +1860,12 @@ class deribit extends Exchange {
         //                 "size" => 50,
         //                 "size_currency" => 0.006687487,
         //                 "total_profit_loss" => 0.000032781
-        //             }
+        //             ),
         //         )
         //     }
         //
-        // $response is returning an empty list for $result
-        // todo unify parsePositions
-        $result = $this->safe_value($response, 'result', array());
-        $positions = $this->parse_positions($result);
-        return $this->filter_by_array($positions, 'symbol', $symbols, false);
+        $result = $this->safe_value($response, 'result');
+        return $this->parse_positions($result);
     }
 
     public function fetch_historical_volatility($code, $params = array ()) {

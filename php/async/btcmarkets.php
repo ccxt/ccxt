@@ -19,25 +19,53 @@ class btcmarkets extends Exchange {
             'rateLimit' => 1000, // market data cached for 1 second (trades cached for 2 seconds)
             'version' => 'v3',
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
-                'CORS' => null,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => 'emulated',
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/89731817-b3fb8480-da52-11ea-817f-783b08aaf32b.jpg',
@@ -315,39 +343,55 @@ class btcmarkets extends Exchange {
             if ($quote === 'AUD') {
                 $minPrice = pow(10, -$pricePrecision);
             }
-            $precision = array(
-                'amount' => $amountPrecision,
-                'price' => $pricePrecision,
-            );
-            $limits = array(
-                'amount' => array(
-                    'min' => $minAmount,
-                    'max' => $maxAmount,
-                ),
-                'price' => array(
-                    'min' => $minPrice,
-                    'max' => null,
-                ),
-                'cost' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-            );
             $result[] = array(
-                'info' => $market,
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
                 'active' => null,
-                'maker' => $fees['maker'],
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
                 'taker' => $fees['taker'],
-                'limits' => $limits,
-                'precision' => $precision,
+                'maker' => $fees['maker'],
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $amountPrecision,
+                    'price' => $pricePrecision,
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => $minAmount,
+                        'max' => $maxAmount,
+                    ),
+                    'price' => array(
+                        'min' => $minPrice,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+                'info' => $market,
             );
         }
         return $result;
@@ -480,39 +524,26 @@ class btcmarkets extends Exchange {
         //         "timestamp":"2020-08-09T18:28:23.280000Z"
         //     }
         //
-        $symbol = null;
         $marketId = $this->safe_string($ticker, 'marketId');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market($marketId, $market, '-');
+        $symbol = $market['symbol'];
         $timestamp = $this->parse8601($this->safe_string($ticker, 'timestamp'));
-        $last = $this->safe_number($ticker, 'lastPrice');
-        $baseVolume = $this->safe_number($ticker, 'volume24h');
-        $quoteVolume = $this->safe_number($ticker, 'volumeQte24h');
-        $vwap = $this->vwap($baseVolume, $quoteVolume);
-        $change = $this->safe_number($ticker, 'price24h');
-        $percentage = $this->safe_number($ticker, 'pricePct24h');
-        return array(
+        $last = $this->safe_string($ticker, 'lastPrice');
+        $baseVolume = $this->safe_string($ticker, 'volume24h');
+        $quoteVolume = $this->safe_string($ticker, 'volumeQte24h');
+        $change = $this->safe_string($ticker, 'price24h');
+        $percentage = $this->safe_string($ticker, 'pricePct24h');
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high24h'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'bestBid'),
+            'high' => $this->safe_string($ticker, 'high24h'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'bestBid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'bestAsk'),
+            'ask' => $this->safe_string($ticker, 'bestAsk'),
             'askVolume' => null,
-            'vwap' => $vwap,
+            'vwap' => null,
             'open' => null,
             'close' => $last,
             'last' => $last,
@@ -523,7 +554,7 @@ class btcmarkets extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

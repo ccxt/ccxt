@@ -35,25 +35,53 @@ class yobit(Exchange):
             'rateLimit': 3000,  # responses are cached every 2 seconds
             'version': '3',
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
                 'createDepositAddress': True,
                 'createMarketOrder': None,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchDepositAddress': True,
                 'fetchDeposits': None,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTransactions': None,
                 'fetchWithdrawals': None,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'urls': {
@@ -105,6 +133,8 @@ class yobit(Exchange):
                 'ASN': 'Ascension',
                 'AST': 'Astral',
                 'ATM': 'Autumncoin',
+                'BAB': 'Babel',
+                'BAN': 'BANcoin',
                 'BCC': 'BCH',
                 'BCS': 'BitcoinStake',
                 'BITS': 'Bitstar',
@@ -130,6 +160,7 @@ class yobit(Exchange):
                 'DIRT': 'DIRTY',
                 'DROP': 'FaucetCoin',
                 'DSH': 'DASH',
+                'EGC': 'EverGreenCoin',
                 'EGG': 'EggCoin',
                 'EKO': 'EkoCoin',
                 'ENTER': 'ENTRC',
@@ -175,6 +206,7 @@ class yobit(Exchange):
                 'PLAY': 'PlayCoin',
                 'PIVX': 'Darknet',
                 'PRS': 'PRE',
+                'PURE': 'PurePOS',
                 'PUTIN': 'PutinCoin',
                 'SPACE': 'Spacecoin',
                 'STK': 'StakeCoin',
@@ -188,6 +220,7 @@ class yobit(Exchange):
                 'SBTC': 'Super Bitcoin',
                 'SMC': 'SmartCoin',
                 'SOLO': 'SoloCoin',
+                'STAR': 'StarCoin',
                 'SUPER': 'SuperCoin',
                 'TTC': 'TittieCoin',
                 'UNI': 'Universe',
@@ -318,48 +351,58 @@ class yobit(Exchange):
             quote = quoteId.upper()
             base = self.safe_currency_code(base)
             quote = self.safe_currency_code(quote)
-            symbol = base + '/' + quote
-            precision = {
-                'amount': self.safe_integer(market, 'decimal_places'),
-                'price': self.safe_integer(market, 'decimal_places'),
-            }
-            amountLimits = {
-                'min': self.safe_number(market, 'min_amount'),
-                'max': self.safe_number(market, 'max_amount'),
-            }
-            priceLimits = {
-                'min': self.safe_number(market, 'min_price'),
-                'max': self.safe_number(market, 'max_price'),
-            }
-            costLimits = {
-                'min': self.safe_number(market, 'min_total'),
-            }
-            limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-                'cost': costLimits,
-            }
             hidden = self.safe_integer(market, 'hidden')
-            active = (hidden == 0)
             feeString = self.safe_string(market, 'fee')
             feeString = Precise.string_div(feeString, '100')
             # yobit maker = taker
-            takerFee = self.parse_number(feeString)
-            makerFee = self.parse_number(feeString)
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
-                'taker': takerFee,
-                'maker': makerFee,
-                'precision': precision,
-                'limits': limits,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': (hidden == 0),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'taker': self.parse_number(feeString),
+                'maker': self.parse_number(feeString),
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_integer(market, 'decimal_places'),
+                    'price': self.safe_integer(market, 'decimal_places'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': self.safe_number(market, 'min_amount'),
+                        'max': self.safe_number(market, 'max_amount'),
+                    },
+                    'price': {
+                        'min': self.safe_number(market, 'min_price'),
+                        'max': self.safe_number(market, 'max_price'),
+                    },
+                    'cost': {
+                        'min': self.safe_number(market, 'min_total'),
+                        'max': None,
+                    },
+                },
                 'info': market,
             })
         return result
@@ -408,30 +451,29 @@ class yobit(Exchange):
 
     def parse_ticker(self, ticker, market=None):
         #
-        #   {   high: 0.03497582,
+        #     {
+        #         high: 0.03497582,
         #         low: 0.03248474,
         #         avg: 0.03373028,
         #         vol: 120.11485715062999,
-        #     vol_cur: 3572.24914074,
-        #        last: 0.0337611,
+        #         vol_cur: 3572.24914074,
+        #         last: 0.0337611,
         #         buy: 0.0337442,
-        #        sell: 0.03377798,
-        #     updated: 1537522009          }
+        #         sell: 0.03377798,
+        #         updated: 1537522009
+        #     }
         #
         timestamp = self.safe_timestamp(ticker, 'updated')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        last = self.safe_number(ticker, 'last')
-        return {
-            'symbol': symbol,
+        last = self.safe_string(ticker, 'last')
+        return self.safe_ticker({
+            'symbol': self.safe_symbol(None, market),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'buy'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'sell'),
+            'ask': self.safe_string(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -440,11 +482,11 @@ class yobit(Exchange):
             'previousClose': None,
             'change': None,
             'percentage': None,
-            'average': self.safe_number(ticker, 'avg'),
-            'baseVolume': self.safe_number(ticker, 'vol_cur'),
-            'quoteVolume': self.safe_number(ticker, 'vol'),
+            'average': self.safe_string(ticker, 'avg'),
+            'baseVolume': self.safe_string(ticker, 'vol_cur'),
+            'quoteVolume': self.safe_string(ticker, 'vol'),
             'info': ticker,
-        }
+        }, market, False)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()

@@ -29,20 +29,48 @@ class ripio(Exchange):
             'pro': True,
             # new metainfo interface
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/94507548-a83d6a80-0218-11eb-9998-28b9cec54165.jpg',
@@ -134,7 +162,12 @@ class ripio(Exchange):
         #                 "quote_name":"USD Coin",
         #                 "symbol":"BTC_USDC",
         #                 "fees":[
-        #                     {"traded_volume":0.0,"maker_fee":0.0,"taker_fee":0.0,"cancellation_fee":0.0}
+        #                     {
+        #                         "traded_volume": 0.0,
+        #                         "maker_fee": 0.0,
+        #                         "taker_fee": 0.0,
+        #                         "cancellation_fee": 0.0
+        #                     }
         #                 ],
         #                 "country":"ZZ",
         #                 "enabled":true,
@@ -156,44 +189,56 @@ class ripio(Exchange):
             id = self.safe_string(market, 'symbol')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            precision = {
-                'amount': self.safe_number(market, 'min_amount'),
-                'price': self.safe_number(market, 'price_tick'),
-            }
-            limits = {
-                'amount': {
-                    'min': self.safe_number(market, 'min_amount'),
-                    'max': None,
-                },
-                'price': {
-                    'min': None,
-                    'max': None,
-                },
-                'cost': {
-                    'min': self.safe_number(market, 'min_value'),
-                    'max': None,
-                },
-            }
-            active = self.safe_value(market, 'enabled', True)
             fees = self.safe_value(market, 'fees', [])
             firstFee = self.safe_value(fees, 0, {})
-            maker = self.safe_number(firstFee, 'maker_fee', 0.0)
-            taker = self.safe_number(firstFee, 'taker_fee', 0.0)
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
-                'precision': precision,
-                'maker': maker,
-                'taker': taker,
-                'limits': limits,
+                'margin': False,
+                'future': False,
+                'swap': False,
+                'option': False,
+                'active': self.safe_value(market, 'enabled', True),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'taker': self.safe_number(firstFee, 'taker_fee', 0.0),
+                'maker': self.safe_number(firstFee, 'maker_fee', 0.0),
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_number(market, 'min_amount'),
+                    'price': self.safe_number(market, 'price_tick'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': self.safe_number(market, 'min_amount'),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': self.safe_number(market, 'min_value'),
+                        'max': None,
+                    },
+                },
                 'info': market,
             })
         return result
@@ -247,6 +292,8 @@ class ripio(Exchange):
                 'name': name,
                 'info': currency,  # the original payload
                 'active': active,
+                'deposit': None,
+                'withdraw': None,
                 'fee': None,
                 'precision': precision,
                 'limits': {
@@ -281,19 +328,20 @@ class ripio(Exchange):
         #
         timestamp = self.parse8601(self.safe_string(ticker, 'created_at'))
         marketId = self.safe_string(ticker, 'pair')
-        symbol = self.safe_symbol(marketId, market)
-        last = self.safe_number(ticker, 'last_price')
-        average = self.safe_number(ticker, 'avg')
-        return {
+        market = self.safe_market(marketId, market, '_')
+        symbol = market['symbol']
+        last = self.safe_string(ticker, 'last_price')
+        average = self.safe_string(ticker, 'avg')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bid'),
-            'bidVolume': self.safe_number(ticker, 'bid_volume'),
-            'ask': self.safe_number(ticker, 'ask'),
-            'askVolume': self.safe_number(ticker, 'ask_volume'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
+            'bidVolume': self.safe_string(ticker, 'bid_volume'),
+            'ask': self.safe_string(ticker, 'ask'),
+            'askVolume': self.safe_string(ticker, 'ask_volume'),
             'vwap': None,
             'open': None,
             'close': last,
@@ -305,7 +353,7 @@ class ripio(Exchange):
             'baseVolume': None,
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

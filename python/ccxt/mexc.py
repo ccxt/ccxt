@@ -16,6 +16,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -32,16 +33,18 @@ class mexc(Exchange):
             'version': 'v2',
             'certified': True,
             'has': {
+                'CORS': None,
                 'spot': True,
-                'margin': None,
+                'margin': None,  # has but unimplemented
                 'swap': True,
-                'future': None,
-                'option': None,
+                'future': False,
+                'option': False,
                 'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createMarketOrder': False,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
@@ -49,18 +52,25 @@ class mexc(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': True,
+                'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': True,
+                'fetchIsolatedPositions': None,
+                'fetchLeverage': None,
                 'fetchMarkets': True,
-                'fetchMarketsByType': True,
+                'fetchMarkOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrdersByState': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
                 'fetchPositions': True,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': True,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -69,6 +79,7 @@ class mexc(Exchange):
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
                 'setLeverage': True,
+                'setMarginMode': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -247,8 +258,10 @@ class mexc(Exchange):
             'commonCurrencies': {
                 'BYN': 'BeyondFi',
                 'COFI': 'COFIX',  # conflict with CoinFi
+                'DFI': 'DfiStarter',
                 'DFT': 'dFuture',
                 'DRK': 'DRK',
+                'EGC': 'Egoras Credit',
                 'FLUX1': 'FLUX',  # switched places
                 'FLUX': 'FLUX1',  # switched places
                 'FREE': 'FreeRossDAO',  # conflict with FREE Coin
@@ -261,11 +274,14 @@ class mexc(Exchange):
                 'exact': {
                     '400': BadRequest,  # Invalid parameter
                     '401': AuthenticationError,  # Invalid signature, fail to pass the validation
+                    '403': PermissionDenied,  # {"msg":"no permission to access the endpoint","code":403}
                     '429': RateLimitExceeded,  # too many requests, rate limit rule is violated
                     '1000': PermissionDenied,  # {"success":false,"code":1000,"message":"Please open contract account first!"}
                     '1002': InvalidOrder,  # {"success":false,"code":1002,"message":"Contract not allow place order!"}
                     '10072': AuthenticationError,  # Invalid access key
                     '10073': AuthenticationError,  # Invalid request time
+                    '10075': PermissionDenied,  # {"msg":"IP [xxx.xxx.xxx.xxx] not in the ip white list","code":10075}
+                    '10101': InsufficientFunds,  # {"code":10101,"msg":"Insufficient balance"}
                     '10216': InvalidAddress,  # {"code":10216,"msg":"No available deposit address"}
                     '10232': BadSymbol,  # {"code":10232,"msg":"The currency not exist"}
                     '30000': BadSymbol,  # Trading is suspended for the requested symbol
@@ -282,18 +298,18 @@ class mexc(Exchange):
                     '33333': BadSymbol,  # {"code":33333,"msg":"currency can not be null"}
                 },
                 'broad': {
+                    'price and quantity must be positive': InvalidOrder,  # {"msg":"price and quantity must be positive","code":400}
                 },
             },
         })
 
     def fetch_time(self, params={}):
-        defaultType = self.safe_string_2(self.options, 'fetchMarkets', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
-        query = self.omit(params, 'type')
-        method = 'spotPublicGetCommonTimestamp'
-        if type == 'contract':
-            method = 'contractPublicGetPing'
-        response = getattr(self, method)(query)
+        marketType, query = self.handle_market_type_and_params('fetchTime', None, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'spotPublicGetCommonTimestamp',
+            'swap': 'contractPublicGetPing',
+        })
+        response = getattr(self, method)(self.extend(query))
         #
         # spot
         #
@@ -365,6 +381,8 @@ class mexc(Exchange):
             currencyWithdrawMax = None
             networks = {}
             chains = self.safe_value(currency, 'coins', [])
+            depositEnabled = False
+            withdrawEnabled = False
             for j in range(0, len(chains)):
                 chain = chains[j]
                 networkId = self.safe_string(chain, 'chain')
@@ -383,11 +401,17 @@ class mexc(Exchange):
                     currencyWithdrawMin = withdrawMin
                 if Precise.string_lt(currencyWithdrawMax, withdrawMax):
                     currencyWithdrawMax = withdrawMax
+                if isDepositEnabled:
+                    depositEnabled = True
+                if isWithdrawEnabled:
+                    withdrawEnabled = True
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
                     'network': network,
                     'active': active,
+                    'deposit': isDepositEnabled,
+                    'withdraw': isWithdrawEnabled,
                     'fee': self.safe_number(chain, 'fee'),
                     'precision': precision,
                     'limits': {
@@ -410,6 +434,8 @@ class mexc(Exchange):
                 'info': currency,
                 'name': name,
                 'active': currencyActive,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': currencyFee,
                 'precision': currencyPrecision,
                 'limits': {
@@ -516,13 +542,13 @@ class mexc(Exchange):
                 'swap': True,
                 'future': False,
                 'option': False,
+                'active': (state == '0'),
                 'contract': True,
                 'linear': True,
                 'inverse': False,
                 'taker': self.safe_number(market, 'takerFeeRate'),
                 'maker': self.safe_number(market, 'makerFeeRate'),
                 'contractSize': self.safe_number(market, 'contractSize'),
-                'active': (state == '0'),
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
@@ -586,23 +612,19 @@ class mexc(Exchange):
             baseId, quoteId = id.split('_')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            priceScale = self.safe_integer(market, 'price_scale')
-            quantityScale = self.safe_integer(market, 'quantity_scale')
-            pricePrecision = 1 / math.pow(10, priceScale)
-            quantityPrecision = 1 / math.pow(10, quantityScale)
+            priceScale = self.safe_string(market, 'price_scale')
+            quantityScale = self.safe_string(market, 'quantity_scale')
             state = self.safe_string(market, 'state')
-            type = 'spot'
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
                 'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': None,
-                'type': type,
+                'type': 'spot',
                 'spot': True,
                 'margin': False,
                 'swap': False,
@@ -620,8 +642,8 @@ class mexc(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': pricePrecision,
-                    'amount': quantityPrecision,
+                    'price': self.parse_number(self.parse_precision(priceScale)),
+                    'amount': self.parse_number(self.parse_precision(quantityScale)),
                 },
                 'limits': {
                     'leverage': {
@@ -647,12 +669,11 @@ class mexc(Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        defaultType = self.safe_string_2(self.options, 'fetchTickers', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
-        query = self.omit(params, 'type')
-        method = 'spotPublicGetMarketTicker'
-        if type == 'swap':
-            method = 'contractPublicGetTicker'
+        marketType, query = self.handle_market_type_and_params('fetchTickers', None, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'spotPublicGetMarketTicker',
+            'swap': 'contractPublicGetTicker',
+        })
         response = getattr(self, method)(self.extend(query))
         #
         #     {
@@ -793,24 +814,22 @@ class mexc(Exchange):
         timestamp = self.safe_integer_2(ticker, 'time', 'timestamp')
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
-        baseVolume = self.safe_number_2(ticker, 'volume', 'volume24')
-        quoteVolume = self.safe_number(ticker, 'amount24')
-        open = self.safe_number(ticker, 'open')
-        lastString = self.safe_string_2(ticker, 'last', 'lastPrice')
-        last = self.parse_number(lastString)
-        change = self.safe_number(ticker, 'riseFallValue')
+        baseVolume = self.safe_string_2(ticker, 'volume', 'volume24')
+        quoteVolume = self.safe_string(ticker, 'amount24')
+        open = self.safe_string(ticker, 'open')
+        last = self.safe_string_2(ticker, 'last', 'lastPrice')
+        change = self.safe_string(ticker, 'riseFallValue')
         riseFallRate = self.safe_string(ticker, 'riseFallRate')
-        percentageString = Precise.string_add(riseFallRate, '1')
-        percentage = self.parse_number(percentageString)
+        percentage = Precise.string_add(riseFallRate, '1')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number_2(ticker, 'high', 'high24Price'),
-            'low': self.safe_number_2(ticker, 'low', 'lower24Price'),
-            'bid': self.safe_number_2(ticker, 'bid', 'bid1'),
+            'high': self.safe_string_2(ticker, 'high', 'high24Price'),
+            'low': self.safe_string_2(ticker, 'low', 'lower24Price'),
+            'bid': self.safe_string_2(ticker, 'bid', 'bid1'),
             'bidVolume': None,
-            'ask': self.safe_number_2(ticker, 'ask', 'ask1'),
+            'ask': self.safe_string_2(ticker, 'ask', 'ask1'),
             'askVolume': None,
             'vwap': None,
             'open': open,
@@ -823,7 +842,7 @@ class mexc(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -982,11 +1001,6 @@ class mexc(Exchange):
         amountString = self.safe_string_2(trade, 'quantity', 'trade_quantity')
         amountString = self.safe_string(trade, 'v', amountString)
         costString = self.safe_string(trade, 'amount')
-        if costString is None:
-            costString = Precise.string_mul(priceString, amountString)
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(costString)
         side = self.safe_string_2(trade, 'trade_type', 'T')
         if (side == 'BID') or (side == '1'):
             side = 'buy'
@@ -997,19 +1011,19 @@ class mexc(Exchange):
             id = self.safe_string(trade, 't', id)
             if id is not None:
                 id += '-' + market['id'] + '-' + amountString
-        feeCost = self.safe_number(trade, 'fee')
+        feeCostString = self.safe_string(trade, 'fee')
         fee = None
-        if feeCost is not None:
+        if feeCostString is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_currency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
         orderId = self.safe_string(trade, 'order_id')
         isTaker = self.safe_value(trade, 'is_taker', True)
         takerOrMaker = 'taker' if isTaker else 'maker'
-        return {
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'order': orderId,
@@ -1019,18 +1033,20 @@ class mexc(Exchange):
             'type': None,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         options = self.safe_value(self.options, 'timeframes', {})
         timeframes = self.safe_value(options, market['type'], {})
-        timeframeValue = self.safe_string(timeframes, timeframe, timeframe)
+        timeframeValue = self.safe_string(timeframes, timeframe)
+        if timeframeValue is None:
+            raise NotSupported(self.id + ' fetchOHLCV() does not support ' + timeframe + ' timeframe for ' + market['type'] + ' markets')
         request = {
             'symbol': market['id'],
             'interval': timeframeValue,
@@ -1109,18 +1125,33 @@ class mexc(Exchange):
             self.safe_number(ohlcv, 5),
         ]
 
+    def fetch_premium_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'premiumIndex',
+        }
+        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+
+    def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'index',
+        }
+        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+
+    def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'mark',
+        }
+        return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+
     def fetch_balance(self, params={}):
         self.load_markets()
-        defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
-        spot = (type == 'spot')
-        swap = (type == 'swap')
-        method = None
-        if spot:
-            method = 'spotPrivateGetAccountInfo'
-        elif swap:
-            method = 'contractPrivateGetAccountAssets'
-        query = self.omit(params, 'type')
+        marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'spotPrivateGetAccountInfo',
+            'margin': 'spotPrivateGetAccountInfo',
+            'swap': 'contractPrivateGetAccountAssets',
+        })
+        spot = (marketType == 'spot')
         response = getattr(self, method)(query)
         #
         # spot
@@ -1145,10 +1176,11 @@ class mexc(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', {})
+        currentTime = self.milliseconds()
         result = {
             'info': response,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': currentTime,
+            'datetime': self.iso8601(currentTime),
         }
         if spot:
             currencyIds = list(data.keys())
@@ -1402,16 +1434,19 @@ class mexc(Exchange):
             network = self.safe_network(networkId)
         code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
-        amount = self.safe_number(transaction, 'amount')
+        amountString = self.safe_string(transaction, 'amount')
         address = self.safe_string(transaction, 'address')
         txid = self.safe_string(transaction, 'tx_id')
         fee = None
-        feeCost = self.safe_number(transaction, 'fee')
-        if feeCost is not None:
+        feeCostString = self.safe_string(transaction, 'fee')
+        if feeCostString is not None:
             fee = {
-                'cost': feeCost,
+                'cost': self.parse_number(feeCostString),
                 'currency': code,
             }
+        if type == 'withdrawal':
+            # mexc withdrawal amount includes the fee
+            amountString = Precise.string_sub(amountString, feeCostString)
         return {
             'info': transaction,
             'id': id,
@@ -1426,7 +1461,7 @@ class mexc(Exchange):
             'tagTo': None,
             'tagFrom': None,
             'type': type,
-            'amount': amount,
+            'amount': self.parse_number(amountString),
             'currency': code,
             'status': status,
             'updated': updated,
@@ -1436,6 +1471,7 @@ class mexc(Exchange):
     def parse_transaction_status(self, status):
         statuses = {
             'WAIT': 'pending',
+            'WAIT_PACKAGING': 'pending',
             'SUCCESS': 'ok',
         }
         return self.safe_string(statuses, status, status)
@@ -1511,8 +1547,6 @@ class mexc(Exchange):
             orderType = 'LIMIT_ORDER'
         elif (orderType != 'POST_ONLY') and (orderType != 'IMMEDIATE_OR_CANCEL'):
             raise InvalidOrder(self.id + ' createOrder() does not support ' + type + ' order type, specify one of LIMIT, LIMIT_ORDER, POST_ONLY or IMMEDIATE_OR_CANCEL')
-        else:
-            raise InvalidOrder(self.id + ' createOrder() allows limit orders only')
         request = {
             'symbol': market['id'],
             'price': self.price_to_precision(symbol, price),
@@ -1967,8 +2001,19 @@ class mexc(Exchange):
             request['chain'] = network
             params = self.omit(params, ['network', 'chain'])
         response = self.spotPrivatePostAssetWithdraw(self.extend(request, params))
+        #
+        #     {
+        #         "code":200,
+        #         "data": {
+        #             "withdrawId":"25fb2831fb6d4fc7aa4094612a26c81d"
+        #         }
+        #     }
+        #
         data = self.safe_value(response, 'data', {})
-        return self.parse_transaction(data, currency)
+        return {
+            'info': data,
+            'id': self.safe_string(data, 'withdrawId'),
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         section, access = api
@@ -2017,8 +2062,136 @@ class mexc(Exchange):
         responseCode = self.safe_string(response, 'code')
         if (responseCode != '200') and (responseCode != '0'):
             feedback = self.id + ' ' + body
+            self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], responseCode, feedback)
             raise ExchangeError(feedback)
+
+    def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        market = None
+        request = {
+            # 'symbol': market['id'],
+            # 'position_id': positionId,
+            # 'page_num': 1,
+            # 'page_size': limit,  # default 20, max 100
+        }
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if limit is not None:
+            request['page_size'] = limit
+        response = self.contractPrivateGetPositionFundingRecords(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "code": 0,
+        #         "data": {
+        #             "pageSize": 20,
+        #             "totalCount": 2,
+        #             "totalPage": 1,
+        #             "currentPage": 1,
+        #             "resultList": [
+        #                 {
+        #                     "id": 7423910,
+        #                     "symbol": "BTC_USDT",
+        #                     "positionType": 1,
+        #                     "positionValue": 29.30024,
+        #                     "funding": 0.00076180624,
+        #                     "rate": -0.000026,
+        #                     "settleTime": 1643299200000
+        #                 },
+        #                 {
+        #                     "id": 7416473,
+        #                     "symbol": "BTC_USDT",
+        #                     "positionType": 1,
+        #                     "positionValue": 28.9188,
+        #                     "funding": 0.0014748588,
+        #                     "rate": -0.000051,
+        #                     "settleTime": 1643270400000
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        resultList = self.safe_value(data, 'resultList', [])
+        result = []
+        for i in range(0, len(resultList)):
+            entry = resultList[i]
+            timestamp = self.safe_string(entry, 'settleTime')
+            result.append({
+                'info': entry,
+                'symbol': symbol,
+                'code': None,
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'id': self.safe_number(entry, 'id'),
+                'amount': self.safe_number(entry, 'funding'),
+            })
+        return result
+
+    def parse_funding_rate(self, fundingRate, market=None):
+        #
+        #     {
+        #         "symbol": "BTC_USDT",
+        #         "fundingRate": 0.000014,
+        #         "maxFundingRate": 0.003,
+        #         "minFundingRate": -0.003,
+        #         "collectCycle": 8,
+        #         "nextSettleTime": 1643241600000,
+        #         "timestamp": 1643240373359
+        #     }
+        #
+        nextFundingRate = self.safe_number(fundingRate, 'fundingRate')
+        nextFundingTimestamp = self.safe_integer(fundingRate, 'nextSettleTime')
+        marketId = self.safe_string(fundingRate, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
+        timestamp = self.safe_integer(fundingRate, 'timestamp')
+        datetime = self.iso8601(timestamp)
+        return {
+            'info': fundingRate,
+            'symbol': symbol,
+            'markPrice': None,
+            'indexPrice': None,
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'fundingRate': None,
+            'fundingTimestamp': None,
+            'fundingDatetime': None,
+            'nextFundingRate': nextFundingRate,
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+        }
+
+    def fetch_funding_rate(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.contractPublicGetFundingRateSymbol(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "code": 0,
+        #         "data": {
+        #             "symbol": "BTC_USDT",
+        #             "fundingRate": 0.000014,
+        #             "maxFundingRate": 0.003,
+        #             "minFundingRate": -0.003,
+        #             "collectCycle": 8,
+        #             "nextSettleTime": 1643241600000,
+        #             "timestamp": 1643240373359
+        #         }
+        #     }
+        #
+        result = self.safe_value(response, 'data', {})
+        return self.parse_funding_rate(result, market)
 
     def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
         #

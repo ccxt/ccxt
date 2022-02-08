@@ -15,36 +15,48 @@ module.exports = class blockchaincom extends Exchange {
             'secret': undefined,
             'name': 'Blockchain.com',
             'countries': [ 'LX' ],
-            'rateLimit': 10000,
+            'rateLimit': 1000,
             'version': 'v3',
             'has': {
                 'CORS': false,
-                'fetchTrades': false,
-                'fetchOHLCV': false,
-                'fetchLedger': false,
-                'fetchMarkets': true,
-                'fetchTickers': true,
-                'fetchTicker': true,
-                'fetchOrderBook': true,
-                'fetchL2OrderBook': true,
-                'fetchL3OrderBook': true,
-                'fetchOrder': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
-                'fetchPartiallyFilledOrders': true,
-                'fetchCanceledOrders': true,
-                'fetchBalance': true,
-                'createOrder': true,
+                'spot': true,
+                'margin': undefined, // on exchange but not implemented in CCXT
+                'swap': false,
+                'future': false,
+                'option': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
-                'fetchWithdrawals': true,
-                'fetchWithdrawal': true,
-                'fetchDeposits': true,
+                'createOrder': true,
+                'fetchBalance': true,
+                'fetchCanceledOrders': true,
+                'fetchClosedOrders': true,
                 'fetchDeposit': true,
-                'withdraw': true,
-                'fetchTradingFees': true,
-                'fetchWithdrawalWhitelist': true, // fetches exchange specific benficiary-ids needed for withdrawals
+                'fetchDepositAddress': true,
+                'fetchDeposits': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchL2OrderBook': true,
+                'fetchL3OrderBook': true,
+                'fetchLedger': false,
+                'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
+                'fetchOHLCV': false,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchPremiumIndexOHLCV': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': false,
+                'fetchTradingFees': true,
+                'fetchWithdrawal': true,
+                'fetchWithdrawals': true,
+                'fetchWithdrawalWhitelist': true, // fetches exchange specific benficiary-ids needed for withdrawals
+                'withdraw': true,
             },
             'timeframes': undefined,
             'urls': {
@@ -155,27 +167,26 @@ module.exports = class blockchaincom extends Exchange {
 
     async fetchMarkets (params = {}) {
         //
-        // },
-        // "USDC-GBP": {
-        // "base_currency": "USDC",
-        // "base_currency_scale": 6,
-        // "counter_currency": "GBP",
-        // "counter_currency_scale": 2,
-        // "min_price_increment": 10000,
-        // "min_price_increment_scale": 8,
-        // "min_order_size": 500000000,
-        // "min_order_size_scale": 8,
-        // "max_order_size": 0,
-        // "max_order_size_scale": 8,
-        // "lot_size": 10000,
-        // "lot_size_scale": 8,
-        // "status": "open",
-        // "id": 68,
-        // "auction_price": 0,
-        // "auction_size": 0,
-        // "auction_time": "",
-        // "imbalance": 0
-        // }, ...
+        //     "USDC-GBP": {
+        //         "base_currency": "USDC",
+        //         "base_currency_scale": 6,
+        //         "counter_currency": "GBP",
+        //         "counter_currency_scale": 2,
+        //         "min_price_increment": 10000,
+        //         "min_price_increment_scale": 8,
+        //         "min_order_size": 500000000,
+        //         "min_order_size_scale": 8,
+        //         "max_order_size": 0,
+        //         "max_order_size_scale": 8,
+        //         "lot_size": 10000,
+        //         "lot_size_scale": 8,
+        //         "status": "open",
+        //         "id": 68,
+        //         "auction_price": 0,
+        //         "auction_size": 0,
+        //         "auction_time": "",
+        //         "imbalance": 0
+        //     }
         //
         const markets = await this.publicGetSymbols (params);
         const marketIds = Object.keys (markets);
@@ -207,11 +218,6 @@ module.exports = class blockchaincom extends Exchange {
             const lotSizeScalePrecisionString = this.parsePrecision (lotSizeScaleString);
             const amountPrecisionString = Precise.stringMul (lotSizeString, lotSizeScalePrecisionString);
             const amountPrecision = this.parseNumber (amountPrecisionString);
-            // precision
-            const precision = {
-                'price': pricePrecision,
-                'amount': amountPrecision,
-            };
             // minimum order size
             const minOrderSizeString = this.safeString (market, 'min_order_size');
             const minOrderSizeScaleString = this.safeString (market, 'min_order_size_scale');
@@ -229,33 +235,54 @@ module.exports = class blockchaincom extends Exchange {
             } else {
                 maxOrderSize = undefined;
             }
-            const limits = {
-                'amount': {
-                    'min': minOrderSize,
-                    'max': maxOrderSize,
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            };
-            const symbol = base + '/' + quote;
             result.push ({
+                'info': market,
                 'id': marketId,
                 'numericId': numericId,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'precision': precision,
-                'limits': limits,
+                'settleId': undefined,
+                'type': 'spot',
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'active': active,
-                'info': market,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': pricePrecision,
+                    'amount': amountPrecision,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': minOrderSize,
+                        'max': maxOrderSize,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
             });
         }
         return result;
@@ -300,9 +327,9 @@ module.exports = class blockchaincom extends Exchange {
         //
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '-');
-        const last = this.safeNumber (ticker, 'last_trade_price');
-        const baseVolume = this.safeNumber (ticker, 'volume_24h');
-        const open = this.safeNumber (ticker, 'price_24h');
+        const last = this.safeString (ticker, 'last_trade_price');
+        const baseVolume = this.safeString (ticker, 'volume_24h');
+        const open = this.safeString (ticker, 'price_24h');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
@@ -324,7 +351,7 @@ module.exports = class blockchaincom extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -388,7 +415,7 @@ module.exports = class blockchaincom extends Exchange {
         const datetime = this.iso8601 (timestamp);
         const filled = this.safeString (order, 'cumQty');
         const remaining = this.safeString (order, 'leavesQty');
-        const result = this.safeOrder2 ({
+        const result = this.safeOrder ({
             'id': exchangeOrderId,
             'clientOrderId': clientOrderId,
             'datetime': datetime,
@@ -843,7 +870,7 @@ module.exports = class blockchaincom extends Exchange {
             account['total'] = this.safeString (entry, 'balance');
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.safeBalance (result);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

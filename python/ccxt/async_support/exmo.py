@@ -36,14 +36,25 @@ class exmo(Exchange):
             'rateLimit': 350,  # once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version': 'v1.1',
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': None,  # has but unimplemented
+                'swap': False,
+                'future': False,
+                'option': False,
+                'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchFundingFees': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -51,6 +62,7 @@ class exmo(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrderBooks': True,
                 'fetchOrderTrades': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -351,6 +363,8 @@ class exmo(Exchange):
                 },
             }
             fee = None
+            depositEnabled = None
+            withdrawEnabled = None
             if providers is None:
                 active = True
                 type = 'fiat'
@@ -363,6 +377,16 @@ class exmo(Exchange):
                     if maxValue == 0.0:
                         maxValue = None
                     activeProvider = self.safe_value(provider, 'enabled')
+                    if type == 'deposit':
+                        if activeProvider and not depositEnabled:
+                            depositEnabled = True
+                        elif not activeProvider:
+                            depositEnabled = False
+                    elif type == 'withdraw':
+                        if activeProvider and not withdrawEnabled:
+                            withdrawEnabled = True
+                        elif not activeProvider:
+                            withdrawEnabled = False
                     if activeProvider:
                         active = True
                         if (limits[type]['min'] is None) or (minValue < limits[type]['min']):
@@ -378,6 +402,8 @@ class exmo(Exchange):
                 'name': name,
                 'type': type,
                 'active': active,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': fee,
                 'precision': 8,
                 'limits': limits,
@@ -413,21 +439,41 @@ class exmo(Exchange):
             quote = self.safe_currency_code(quoteId)
             takerString = self.safe_string(market, 'commission_taker_percent')
             makerString = self.safe_string(market, 'commission_maker_percent')
-            taker = self.parse_number(Precise.string_div(takerString, '100'))
-            maker = self.parse_number(Precise.string_div(makerString, '100'))
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
+                'margin': False,
+                'future': False,
+                'swap': False,
+                'option': False,
                 'active': True,
-                'taker': taker,
-                'maker': maker,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'taker': self.parse_number(Precise.string_div(takerString, '100')),
+                'maker': self.parse_number(Precise.string_div(makerString, '100')),
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': 8,
+                    'price': self.safe_integer(market, 'price_precision'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(market, 'min_quantity'),
                         'max': self.safe_number(market, 'max_quantity'),
@@ -440,10 +486,6 @@ class exmo(Exchange):
                         'min': self.safe_number(market, 'min_amount'),
                         'max': self.safe_number(market, 'max_amount'),
                     },
-                },
-                'precision': {
-                    'amount': 8,
-                    'price': self.safe_integer(market, 'price_precision'),
                 },
                 'info': market,
             })
@@ -585,20 +627,31 @@ class exmo(Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
+        #
+        #     {
+        #         "buy_price":"0.00002996",
+        #         "sell_price":"0.00003002",
+        #         "last_trade":"0.00002992",
+        #         "high":"0.00003028",
+        #         "low":"0.00002935",
+        #         "avg":"0.00002963",
+        #         "vol":"1196546.3163222",
+        #         "vol_curr":"35.80066578",
+        #         "updated":1642291733
+        #     }
+        #
         timestamp = self.safe_timestamp(ticker, 'updated')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        last = self.safe_number(ticker, 'last_trade')
-        return {
-            'symbol': symbol,
+        market = self.safe_market(None, market)
+        last = self.safe_string(ticker, 'last_trade')
+        return self.safe_ticker({
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'buy_price'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'buy_price'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'sell_price'),
+            'ask': self.safe_string(ticker, 'sell_price'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -607,22 +660,37 @@ class exmo(Exchange):
             'previousClose': None,
             'change': None,
             'percentage': None,
-            'average': self.safe_number(ticker, 'avg'),
-            'baseVolume': self.safe_number(ticker, 'vol'),
-            'quoteVolume': self.safe_number(ticker, 'vol_curr'),
+            'average': self.safe_string(ticker, 'avg'),
+            'baseVolume': self.safe_string(ticker, 'vol'),
+            'quoteVolume': self.safe_string(ticker, 'vol_curr'),
             'info': ticker,
-        }
+        }, market, False)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
         response = await self.publicGetTicker(params)
+        #
+        #     {
+        #         "ADA_BTC":{
+        #             "buy_price":"0.00002996",
+        #             "sell_price":"0.00003002",
+        #             "last_trade":"0.00002992",
+        #             "high":"0.00003028",
+        #             "low":"0.00002935",
+        #             "avg":"0.00002963",
+        #             "vol":"1196546.3163222",
+        #             "vol_curr":"35.80066578",
+        #             "updated":1642291733
+        #         }
+        #     }
+        #
         result = {}
-        ids = list(response.keys())
-        for i in range(0, len(ids)):
-            id = ids[i]
-            market = self.markets_by_id[id]
+        marketIds = list(response.keys())
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            market = self.safe_market(marketId, None, '_')
             symbol = market['symbol']
-            ticker = response[id]
+            ticker = self.safe_value(response, marketId)
             result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array(result, 'symbol', symbols)
 

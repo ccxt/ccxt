@@ -9,19 +9,28 @@ module.exports = class hitbtc3 extends Exchange {
             'id': 'hitbtc3',
             'name': 'HitBTC',
             'countries': [ 'HK' ],
-            'rateLimit': 100, // TODO: optimize https://api.hitbtc.com/#rate-limiting
+            // 300 requests per second => 1000ms / 300 = 3.333 (Trading: placing, replacing, deleting)
+            // 30 requests per second => ( 1000ms / rateLimit ) / 30 = cost = 10 (Market Data and other Public Requests)
+            // 20 requests per second => ( 1000ms / rateLimit ) / 20 = cost = 15 (All Other)
+            'rateLimit': 3.333, // TODO: optimize https://api.hitbtc.com/#rate-limiting
             'version': '3',
             'pro': true,
             'has': {
-                'cancelOrder': true,
                 'CORS': false,
+                'spot': true,
+                'margin': undefined, // has but not fully unimplemented
+                'swap': undefined, // has but not fully unimplemented
+                'future': undefined, // has but not fully unimplemented
+                'option': undefined,
+                'cancelAllOrders': true,
+                'cancelOrder': true,
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchDeposits': false,
+                'fetchDeposits': true,
                 'fetchFundingRateHistory': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -30,16 +39,18 @@ module.exports = class hitbtc3 extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchOrderBooks': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
+                'fetchTradingFees': true,
                 'fetchTransactions': true,
-                'fetchWithdrawals': false,
-                'withdraw': true,
+                'fetchWithdrawals': true,
                 'transfer': true,
+                'withdraw': true,
             },
             'precisionMode': TICK_SIZE,
             'urls': {
@@ -65,94 +76,94 @@ module.exports = class hitbtc3 extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'public/currency',
-                        'public/symbol',
-                        'public/ticker',
-                        'public/price/rate',
-                        'public/trades',
-                        'public/orderbook',
-                        'public/candles',
-                        'public/futures/info',
-                        'public/futures/history/funding',
-                        'public/futures/candles/index_price',
-                        'public/futures/candles/mark_price',
-                        'public/futures/candles/premium_index',
-                        'public/futures/candles/open_interest',
-                    ],
+                    'get': {
+                        'public/currency': 10,
+                        'public/symbol': 10,
+                        'public/ticker': 10,
+                        'public/price/rate': 10,
+                        'public/trades': 10,
+                        'public/orderbook': 10,
+                        'public/candles': 10,
+                        'public/futures/info': 10,
+                        'public/futures/history/funding': 10,
+                        'public/futures/candles/index_price': 10,
+                        'public/futures/candles/mark_price': 10,
+                        'public/futures/candles/premium_index': 10,
+                        'public/futures/candles/open_interest': 10,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'spot/balance',
-                        'spot/order',
-                        'spot/order/{client_order_id}',
-                        'spot/fee',
-                        'spot/fee/{symbol}',
-                        'spot/history/order',
-                        'spot/history/trade',
-                        'margin/account',
-                        'margin/account/isolated/{symbol}',
-                        'margin/order',
-                        'margin/order/{client_order_id}',
-                        'margin/history/order',
-                        'margin/history/trade',
-                        'futures/balance',
-                        'futures/account',
-                        'futures/account/isolated/{symbol}',
-                        'futures/order',
-                        'futures/order/{client_order_id}',
-                        'futures/fee',
-                        'futures/fee/{symbol}',
-                        'futures/history/order',
-                        'futures/history/trade',
-                        'wallet/balance',
-                        'wallet/crypto/address',
-                        'wallet/crypto/address/recent-deposit',
-                        'wallet/crypto/address/recent-withdraw',
-                        'wallet/crypto/address/check-mine',
-                        'wallet/transactions',
-                        'wallet/crypto/check-offchain-available',
-                        'wallet/crypto/fee/estimate',
-                        'sub-account',
-                        'sub-account/acl',
-                        'sub-account/balance/{subAccID}',
-                        'sub-account/crypto/address/{subAccID}/{currency}',
-                    ],
-                    'post': [
-                        'spot/order',
-                        'margin/order',
-                        'futures/order',
-                        'wallet/convert',
-                        'wallet/crypto/withdraw',
-                        'wallet/transfer',
-                        'sub-account/freeze',
-                        'sub-account/activate',
-                        'sub-account/transfer',
-                        'sub-account/acl',
-                    ],
-                    'patch': [
-                        'spot/order/{client_order_id}',
-                        'margin/order/{client_order_id}',
-                        'futures/order/{client_order_id}',
-                    ],
-                    'delete': [
-                        'spot/order',
-                        'spot/order/{client_order_id}',
-                        'margin/position',
-                        'margin/position/isolated/{symbol}',
-                        'margin/order',
-                        'margin/order/{client_order_id}',
-                        'futures/position',
-                        'futures/position/isolated/{symbol}',
-                        'futures/order',
-                        'futures/order/{client_order_id}',
-                        'wallet/crypto/withdraw/{id}',
-                    ],
-                    'put': [
-                        'margin/account/isolated/{symbol}',
-                        'futures/account/isolated/{symbol}',
-                        'wallet/crypto/withdraw/{id}',
-                    ],
+                    'get': {
+                        'spot/balance': 15,
+                        'spot/order': 15,
+                        'spot/order/{client_order_id}': 15,
+                        'spot/fee': 15,
+                        'spot/fee/{symbol}': 15,
+                        'spot/history/order': 15,
+                        'spot/history/trade': 15,
+                        'margin/account': 15,
+                        'margin/account/isolated/{symbol}': 15,
+                        'margin/order': 15,
+                        'margin/order/{client_order_id}': 15,
+                        'margin/history/order': 15,
+                        'margin/history/trade': 15,
+                        'futures/balance': 15,
+                        'futures/account': 15,
+                        'futures/account/isolated/{symbol}': 15,
+                        'futures/order': 15,
+                        'futures/order/{client_order_id}': 15,
+                        'futures/fee': 15,
+                        'futures/fee/{symbol}': 15,
+                        'futures/history/order': 15,
+                        'futures/history/trade': 15,
+                        'wallet/balance': 15,
+                        'wallet/crypto/address': 15,
+                        'wallet/crypto/address/recent-deposit': 15,
+                        'wallet/crypto/address/recent-withdraw': 15,
+                        'wallet/crypto/address/check-mine': 15,
+                        'wallet/transactions': 15,
+                        'wallet/crypto/check-offchain-available': 15,
+                        'wallet/crypto/fee/estimate': 15,
+                        'sub-account': 15,
+                        'sub-account/acl': 15,
+                        'sub-account/balance/{subAccID}': 15,
+                        'sub-account/crypto/address/{subAccID}/{currency}': 15,
+                    },
+                    'post': {
+                        'spot/order': 1,
+                        'margin/order': 1,
+                        'futures/order': 1,
+                        'wallet/convert': 15,
+                        'wallet/crypto/withdraw': 15,
+                        'wallet/transfer': 15,
+                        'sub-account/freeze': 15,
+                        'sub-account/activate': 15,
+                        'sub-account/transfer': 15,
+                        'sub-account/acl': 15,
+                    },
+                    'patch': {
+                        'spot/order/{client_order_id}': 1,
+                        'margin/order/{client_order_id}': 1,
+                        'futures/order/{client_order_id}': 1,
+                    },
+                    'delete': {
+                        'spot/order': 1,
+                        'spot/order/{client_order_id}': 1,
+                        'margin/position': 1,
+                        'margin/position/isolated/{symbol}': 1,
+                        'margin/order': 1,
+                        'margin/order/{client_order_id}': 1,
+                        'futures/position': 1,
+                        'futures/position/isolated/{symbol}': 1,
+                        'futures/order': 1,
+                        'futures/order/{client_order_id}': 1,
+                        'wallet/crypto/withdraw/{id}': 1,
+                    },
+                    'put': {
+                        'margin/account/isolated/{symbol}': 1,
+                        'futures/account/isolated/{symbol}': 1,
+                        'wallet/crypto/withdraw/{id}': 1,
+                    },
                 },
             },
             'fees': {
@@ -353,8 +364,6 @@ module.exports = class hitbtc3 extends Exchange {
             const stepString = this.safeString (market, 'tick_size');
             const lot = this.parseNumber (lotString);
             const step = this.parseNumber (stepString);
-            const taker = this.safeNumber (market, 'take_rate');
-            const maker = this.safeNumber (market, 'make_rate');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -370,13 +379,13 @@ module.exports = class hitbtc3 extends Exchange {
                 'swap': swap,
                 'future': future,
                 'option': option,
+                'active': true,
                 'contract': contract,
                 'linear': linear,
                 'inverse': inverse,
-                'taker': taker,
-                'maker': maker,
+                'taker': this.safeNumber (market, 'take_rate'),
+                'maker': this.safeNumber (market, 'make_rate'),
                 'contractSize': contractSize,
-                'active': true,
                 'expiry': expiry,
                 'expiryDatetime': undefined,
                 'strike': undefined,
@@ -388,7 +397,7 @@ module.exports = class hitbtc3 extends Exchange {
                 },
                 'limits': {
                     'leverage': {
-                        'min': 1,
+                        'min': this.parseNumber ('1'),
                         'max': this.safeNumber (market, 'max_initial_leverage', 1),
                     },
                     'amount': {
@@ -452,6 +461,8 @@ module.exports = class hitbtc3 extends Exchange {
             const rawNetworks = this.safeValue (entry, 'networks', []);
             const networks = {};
             let fee = undefined;
+            let depositEnabled = undefined;
+            let withdrawEnabled = undefined;
             for (let j = 0; j < rawNetworks.length; j++) {
                 const rawNetwork = rawNetworks[j];
                 let networkId = this.safeString (rawNetwork, 'protocol');
@@ -463,14 +474,25 @@ module.exports = class hitbtc3 extends Exchange {
                 const precision = this.safeNumber (rawNetwork, 'precision_payout');
                 const payinEnabledNetwork = this.safeValue (entry, 'payin_enabled', false);
                 const payoutEnabledNetwork = this.safeValue (entry, 'payout_enabled', false);
-                const transferEnabledNetwork = this.safeValue (entry, 'transfer_enabled', false);
-                const active = payinEnabledNetwork && payoutEnabledNetwork && transferEnabledNetwork;
+                const activeNetwork = payinEnabledNetwork && payoutEnabledNetwork;
+                if (payinEnabledNetwork && !depositEnabled) {
+                    depositEnabled = true;
+                } else if (!payinEnabledNetwork) {
+                    depositEnabled = false;
+                }
+                if (payoutEnabledNetwork && !withdrawEnabled) {
+                    withdrawEnabled = true;
+                } else if (!payoutEnabledNetwork) {
+                    withdrawEnabled = false;
+                }
                 networks[network] = {
                     'info': rawNetwork,
                     'id': networkId,
                     'network': network,
                     'fee': fee,
-                    'active': active,
+                    'active': activeNetwork,
+                    'deposit': payinEnabledNetwork,
+                    'withdraw': payoutEnabledNetwork,
                     'precision': precision,
                     'limits': {
                         'withdraw': {
@@ -489,6 +511,8 @@ module.exports = class hitbtc3 extends Exchange {
                 'precision': precision,
                 'name': name,
                 'active': active,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'networks': networks,
                 'fee': (networksLength <= 1) ? fee : undefined,
                 'limits': {
@@ -644,22 +668,21 @@ module.exports = class hitbtc3 extends Exchange {
         //
         const timestamp = this.parse8601 (ticker['timestamp']);
         const symbol = this.safeSymbol (undefined, market);
-        const baseVolume = this.safeNumber (ticker, 'volume');
-        const quoteVolume = this.safeNumber (ticker, 'volume_quote');
-        const open = this.safeNumber (ticker, 'open');
-        const last = this.safeNumber (ticker, 'last');
-        const vwap = this.vwap (baseVolume, quoteVolume);
+        const baseVolume = this.safeString (ticker, 'volume');
+        const quoteVolume = this.safeString (ticker, 'volume_quote');
+        const open = this.safeString (ticker, 'open');
+        const last = this.safeString (ticker, 'last');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': open,
             'close': last,
             'last': last,
@@ -670,7 +693,7 @@ module.exports = class hitbtc3 extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -720,52 +743,61 @@ module.exports = class hitbtc3 extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        // createMarketOrder
         //
-        //  {       fee: "0.0004644",
-        //           id:  386394956,
-        //        price: "0.4644",
-        //     quantity: "1",
-        //    timestamp: "2018-10-25T16:41:44.780Z" }
+        // createOrder (market)
+        //
+        //  {
+        //      id: '1569252895',
+        //      position_id: '0',
+        //      quantity: '10',
+        //      price: '0.03919424',
+        //      fee: '0.000979856000',
+        //      timestamp: '2022-01-25T19:38:36.153Z',
+        //      taker: true
+        //  }
         //
         // fetchTrades
         //
-        // { id: 974786185,
-        //   price: '0.032462',
-        //   qty: '0.3673',
-        //   side: 'buy',
-        //   timestamp: '2020-10-16T12:57:39.846Z' }
+        //  {
+        //      id: 974786185,
+        //      price: '0.032462',
+        //      qty: '0.3673',
+        //      side: 'buy',
+        //      timestamp: '2020-10-16T12:57:39.846Z'
+        //  }
         //
         // fetchMyTrades
         //
-        // { id: 277210397,
-        //   clientOrderId: '6e102f3e7f3f4e04aeeb1cdc95592f1a',
-        //   orderId: 28102855393,
-        //   symbol: 'ETHBTC',
-        //   side: 'sell',
-        //   quantity: '0.002',
-        //   price: '0.073365',
-        //   fee: '0.000000147',
-        //   timestamp: '2018-04-28T18:39:55.345Z',
-        //   taker: true }
+        //  {
+        //      id: 277210397,
+        //      clientOrderId: '6e102f3e7f3f4e04aeeb1cdc95592f1a',
+        //      orderId: 28102855393,
+        //      symbol: 'ETHBTC',
+        //      side: 'sell',
+        //      quantity: '0.002',
+        //      price: '0.073365',
+        //      fee: '0.000000147',
+        //      timestamp: '2018-04-28T18:39:55.345Z',
+        //      taker: true
+        //  }
         //
         const timestamp = this.parse8601 (trade['timestamp']);
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'fee');
+        const feeCostString = this.safeString (trade, 'fee');
         const taker = this.safeValue (trade, 'taker');
         let takerOrMaker = undefined;
         if (taker !== undefined) {
             takerOrMaker = taker ? 'taker' : 'maker';
         }
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             const info = this.safeValue (market, 'info', {});
             const feeCurrency = this.safeString (info, 'fee_currency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrency);
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             };
         }
@@ -775,12 +807,9 @@ module.exports = class hitbtc3 extends Exchange {
         const orderId = this.safeString (trade, 'clientOrderId');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString2 (trade, 'quantity', 'qty');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const side = this.safeString (trade, 'side');
         const id = this.safeString (trade, 'id');
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'order': orderId,
@@ -790,11 +819,11 @@ module.exports = class hitbtc3 extends Exchange {
             'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTransactionsHelper (types, code, since, limit, params) {

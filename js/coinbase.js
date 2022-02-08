@@ -21,23 +21,39 @@ module.exports = class coinbase extends Exchange {
                 'CB-VERSION': '2018-05-30',
             },
             'has': {
-                'cancelOrder': undefined,
                 'CORS': true,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
+                'cancelOrder': undefined,
                 'createDepositAddress': true,
                 'createOrder': undefined,
+                'createReduceOnlyOrder': false,
                 'deposit': undefined,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
                 'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': undefined,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': undefined,
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
                 'fetchL2OrderBook': false,
                 'fetchLedger': true,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyBuys': true,
@@ -48,6 +64,9 @@ module.exports = class coinbase extends Exchange {
                 'fetchOrder': undefined,
                 'fetchOrderBook': false,
                 'fetchOrders': undefined,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -55,6 +74,10 @@ module.exports = class coinbase extends Exchange {
                 'fetchTrades': undefined,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'withdraw': undefined,
             },
             'urls': {
@@ -551,24 +574,39 @@ module.exports = class coinbase extends Exchange {
                     const quoteCurrency = data[j];
                     const quoteId = this.safeString (quoteCurrency, 'id');
                     const quote = this.safeCurrencyCode (quoteId);
-                    const symbol = base + '/' + quote;
-                    const id = baseId + '-' + quoteId;
                     result.push ({
-                        'id': id,
-                        'symbol': symbol,
+                        'id': baseId + '-' + quoteId,
+                        'symbol': base + '/' + quote,
                         'base': base,
                         'quote': quote,
+                        'settle': undefined,
                         'baseId': baseId,
                         'quoteId': quoteId,
+                        'settleId': undefined,
                         'type': 'spot',
                         'spot': true,
+                        'margin': false,
+                        'swap': false,
+                        'future': false,
+                        'option': false,
                         'active': undefined,
-                        'info': quoteCurrency,
+                        'contract': false,
+                        'linear': undefined,
+                        'inverse': undefined,
+                        'contractSize': undefined,
+                        'expiry': undefined,
+                        'expiryDatetime': undefined,
+                        'strike': undefined,
+                        'optionType': undefined,
                         'precision': {
-                            'amount': undefined,
                             'price': undefined,
+                            'amount': undefined,
                         },
                         'limits': {
+                            'leverage': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
                             'amount': {
                                 'min': undefined,
                                 'max': undefined,
@@ -581,10 +619,8 @@ module.exports = class coinbase extends Exchange {
                                 'min': this.safeNumber (quoteCurrency, 'min_size'),
                                 'max': undefined,
                             },
-                            'leverage': {
-                                'max': 1,
-                            },
                         },
+                        'info': quoteCurrency,
                     });
                 }
             }
@@ -752,17 +788,14 @@ module.exports = class coinbase extends Exchange {
         let bid = undefined;
         let last = undefined;
         const timestamp = this.milliseconds ();
-        if (typeof ticker === 'string') {
-            const inverted = Precise.stringDiv ('1', ticker); // the currency requested, USD or other, is the base currency
-            last = this.parseNumber (inverted);
-        } else {
+        if (typeof ticker !== 'string') {
             const [ spot, buy, sell ] = ticker;
             const spotData = this.safeValue (spot, 'data', {});
             const buyData = this.safeValue (buy, 'data', {});
             const sellData = this.safeValue (sell, 'data', {});
-            last = this.safeNumber (spotData, 'amount');
-            bid = this.safeNumber (buyData, 'amount');
-            ask = this.safeNumber (sellData, 'amount');
+            last = this.safeString (spotData, 'amount');
+            bid = this.safeString (buyData, 'amount');
+            ask = this.safeString (sellData, 'amount');
         }
         return this.safeTicker ({
             'symbol': symbol,
@@ -785,7 +818,7 @@ module.exports = class coinbase extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': undefined,
             'info': ticker,
-        });
+        }, market, false);
     }
 
     async fetchBalance (params = {}) {

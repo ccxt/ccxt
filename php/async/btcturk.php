@@ -18,19 +18,47 @@ class btcturk extends Exchange {
             'countries' => array( 'TR' ), // Turkey
             'rateLimit' => 100,
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => true,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
+                'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
             ),
             'timeframes' => array(
                 '1d' => '1d',
@@ -145,7 +173,6 @@ class btcturk extends Exchange {
             $quoteId = $this->safe_string($entry, 'denominator');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
             $filters = $this->safe_value($entry, 'filters');
             $minPrice = null;
             $maxPrice = null;
@@ -164,38 +191,53 @@ class btcturk extends Exchange {
                 }
             }
             $status = $this->safe_string($entry, 'status');
-            $active = $status === 'TRADING';
-            $limits = array(
-                'price' => array(
-                    'min' => $minPrice,
-                    'max' => $maxPrice,
-                ),
-                'amount' => array(
-                    'min' => $minAmount,
-                    'max' => $maxAmount,
-                ),
-                'cost' => array(
-                    'min' => $minCost,
-                    'max' => null,
-                ),
-            );
-            $precision = array(
-                'price' => $this->safe_integer($entry, 'denominatorScale'),
-                'amount' => $this->safe_integer($entry, 'numeratorScale'),
-            );
             $result[] = array(
-                'info' => $entry,
-                'symbol' => $symbol,
                 'id' => $id,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'limits' => $limits,
-                'precision' => $precision,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'active' => $active,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => ($status === 'TRADING'),
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'price' => $this->safe_integer($entry, 'denominatorScale'),
+                    'amount' => $this->safe_integer($entry, 'numeratorScale'),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => $minAmount,
+                        'max' => $maxAmount,
+                    ),
+                    'price' => array(
+                        'min' => $minPrice,
+                        'max' => $maxPrice,
+                    ),
+                    'cost' => array(
+                        'min' => $minCost,
+                        'max' => null,
+                    ),
+                ),
+                'info' => $entry,
             );
         }
         return $result;
@@ -288,31 +330,32 @@ class btcturk extends Exchange {
         //   }
         //
         $marketId = $this->safe_string($ticker, 'pair');
-        $symbol = $this->safe_symbol($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($ticker, 'timestamp');
-        $last = $this->safe_number($ticker, 'last');
-        return array(
+        $last = $this->safe_string($ticker, 'last');
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_number($ticker, 'open'),
+            'open' => $this->safe_string($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_number($ticker, 'daily'),
-            'percentage' => $this->safe_number($ticker, 'dailyPercent'),
-            'average' => $this->safe_number($ticker, 'average'),
-            'baseVolume' => $this->safe_number($ticker, 'volume'),
+            'change' => $this->safe_string($ticker, 'daily'),
+            'percentage' => $this->safe_string($ticker, 'dailyPercent'),
+            'average' => $this->safe_string($ticker, 'average'),
+            'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

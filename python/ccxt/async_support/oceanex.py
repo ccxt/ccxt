@@ -31,6 +31,12 @@ class oceanex(Exchange):
                 'referral': 'https://oceanex.pro/signup?referral=VE24QX',
             },
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': None,  # has but unimplemented
+                'future': None,
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
@@ -38,6 +44,11 @@ class oceanex(Exchange):
                 'createOrder': True,
                 'fetchAllTradingFees': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchFundingFees': None,
                 'fetchMarkets': True,
@@ -155,19 +166,36 @@ class oceanex(Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': True,
-                'info': market,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': None,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'amount_precision'),
                     'price': self.safe_integer(market, 'price_precision'),
+                    'amount': self.safe_integer(market, 'amount_precision'),
                     'base': self.safe_integer(market, 'ask_precision'),
                     'quote': self.safe_integer(market, 'bid_precision'),
                 },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': None,
                         'max': None,
@@ -181,6 +209,7 @@ class oceanex(Exchange):
                         'max': None,
                     },
                 },
+                'info': market,
             })
         return result
 
@@ -261,28 +290,29 @@ class oceanex(Exchange):
         #
         ticker = self.safe_value(data, 'ticker', {})
         timestamp = self.safe_timestamp(data, 'at')
-        return {
-            'symbol': market['symbol'],
+        symbol = self.safe_symbol(None, market)
+        return self.safe_ticker({
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'buy'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'sell'),
+            'ask': self.safe_string(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': self.safe_number(ticker, 'last'),
-            'last': self.safe_number(ticker, 'last'),
+            'close': self.safe_string(ticker, 'last'),
+            'last': self.safe_string(ticker, 'last'),
             'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'volume'),
+            'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market, False)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

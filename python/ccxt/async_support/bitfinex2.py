@@ -35,9 +35,14 @@ class bitfinex2(bitfinex):
             'pro': False,
             # new metainfo interface
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': None,  # has but unimplemented
+                'swap': None,  # has but unimplemented
+                'future': None,
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': None,
                 'createDepositAddress': True,
                 'createLimitOrder': True,
                 'createMarketOrder': True,
@@ -46,17 +51,18 @@ class bitfinex2(bitfinex):
                 'editOrder': None,
                 'fetchBalance': True,
                 'fetchClosedOrder': True,
-                'fetchClosedOrders': None,
+                'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchFundingFees': None,
                 'fetchIndexOHLCV': False,
+                'fetchLedger': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrder': True,
                 'fetchOpenOrders': True,
-                'fetchOrder': None,
+                'fetchOrder': True,
                 'fetchOrderTrades': True,
                 'fetchStatus': True,
                 'fetchTickers': True,
@@ -81,7 +87,8 @@ class bitfinex2(bitfinex):
                 '2w': '14D',
                 '1M': '1M',
             },
-            'rateLimit': 1500,
+            # cheapest endpoint is 240 requests per minute => ~ 4 requests per second =>( 1000ms / 4 ) = 250ms between requests on average
+            'rateLimit': 250,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
                 'api': {
@@ -104,139 +111,149 @@ class bitfinex2(bitfinex):
                     ],
                 },
                 'public': {
-                    'get': [
-                        'conf/{config}',
-                        'conf/pub:{action}:{object}',
-                        'conf/pub:{action}:{object}:{detail}',
-                        'conf/pub:map:{object}',
-                        'conf/pub:map:{object}:{detail}',
-                        'conf/pub:map:currency:{detail}',
-                        'conf/pub:map:currency:sym',  # maps symbols to their API symbols, BAB > BCH
-                        'conf/pub:map:currency:label',  # verbose friendly names, BNT > Bancor
-                        'conf/pub:map:currency:unit',  # maps symbols to unit of measure where applicable
-                        'conf/pub:map:currency:undl',  # maps derivatives symbols to their underlying currency
-                        'conf/pub:map:currency:pool',  # maps symbols to underlying network/protocol they operate on
-                        'conf/pub:map:currency:explorer',  # maps symbols to their recognised block explorer URLs
-                        'conf/pub:map:currency:tx:fee',  # maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745
-                        'conf/pub:map:tx:method',
-                        'conf/pub:list:{object}',
-                        'conf/pub:list:{object}:{detail}',
-                        'conf/pub:list:currency',
-                        'conf/pub:list:pair:exchange',
-                        'conf/pub:list:pair:margin',
-                        'conf/pub:list:pair:futures',
-                        'conf/pub:list:competitions',
-                        'conf/pub:info:{object}',
-                        'conf/pub:info:{object}:{detail}',
-                        'conf/pub:info:pair',
-                        'conf/pub:info:tx:status',  # [deposit, withdrawal] statuses 1 = active, 0 = maintenance
-                        'conf/pub:fees',
-                        'platform/status',
-                        'tickers',
-                        'ticker/{symbol}',
-                        'trades/{symbol}/hist',
-                        'book/{symbol}/{precision}',
-                        'book/{symbol}/P0',
-                        'book/{symbol}/P1',
-                        'book/{symbol}/P2',
-                        'book/{symbol}/P3',
-                        'book/{symbol}/R0',
-                        'stats1/{key}:{size}:{symbol}:{side}/{section}',
-                        'stats1/{key}:{size}:{symbol}:{side}/last',
-                        'stats1/{key}:{size}:{symbol}:{side}/hist',
-                        'stats1/{key}:{size}:{symbol}/{section}',
-                        'stats1/{key}:{size}:{symbol}/last',
-                        'stats1/{key}:{size}:{symbol}/hist',
-                        'stats1/{key}:{size}:{symbol}:long/last',
-                        'stats1/{key}:{size}:{symbol}:long/hist',
-                        'stats1/{key}:{size}:{symbol}:short/last',
-                        'stats1/{key}:{size}:{symbol}:short/hist',
-                        'candles/trade:{timeframe}:{symbol}:{period}/{section}',
-                        'candles/trade:{timeframe}:{symbol}/{section}',
-                        'candles/trade:{timeframe}:{symbol}/last',
-                        'candles/trade:{timeframe}:{symbol}/hist',
-                        'status/{type}',
-                        'status/deriv',
-                        'liquidations/hist',
-                        'rankings/{key}:{timeframe}:{symbol}/{section}',
-                        'rankings/{key}:{timeframe}:{symbol}/hist',
-                        'pulse/hist',
-                        'pulse/profile/{nickname}',
-                        'funding/stats/{symbol}/hist',
-                    ],
-                    'post': [
-                        'calc/trade/avg',
-                        'calc/fx',
-                    ],
+                    'get': {
+                        'conf/{config}': 2.66,  # 90 requests a minute
+                        'conf/pub:{action}:{object}': 2.66,
+                        'conf/pub:{action}:{object}:{detail}': 2.66,
+                        'conf/pub:map:{object}': 2.66,
+                        'conf/pub:map:{object}:{detail}': 2.66,
+                        'conf/pub:map:currency:{detail}': 2.66,
+                        'conf/pub:map:currency:sym': 2.66,  # maps symbols to their API symbols, BAB > BCH
+                        'conf/pub:map:currency:label': 2.66,  # verbose friendly names, BNT > Bancor
+                        'conf/pub:map:currency:unit': 2.66,  # maps symbols to unit of measure where applicable
+                        'conf/pub:map:currency:undl': 2.66,  # maps derivatives symbols to their underlying currency
+                        'conf/pub:map:currency:pool': 2.66,  # maps symbols to underlying network/protocol they operate on
+                        'conf/pub:map:currency:explorer': 2.66,  # maps symbols to their recognised block explorer URLs
+                        'conf/pub:map:currency:tx:fee': 2.66,  # maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745
+                        'conf/pub:map:tx:method': 2.66,
+                        'conf/pub:list:{object}': 2.66,
+                        'conf/pub:list:{object}:{detail}': 2.66,
+                        'conf/pub:list:currency': 2.66,
+                        'conf/pub:list:pair:exchange': 2.66,
+                        'conf/pub:list:pair:margin': 2.66,
+                        'conf/pub:list:pair:futures': 2.66,
+                        'conf/pub:list:competitions': 2.66,
+                        'conf/pub:info:{object}': 2.66,
+                        'conf/pub:info:{object}:{detail}': 2.66,
+                        'conf/pub:info:pair': 2.66,
+                        'conf/pub:info:tx:status': 2.66,  # [deposit, withdrawal] statuses 1 = active, 0 = maintenance
+                        'conf/pub:fees': 2.66,
+                        'platform/status': 8,  # 30 requests per minute = 0.5 requests per second =>( 1000ms / rateLimit ) / 0.5 = 8
+                        'tickers': 2.66,  # 90 requests a minute = 1.5 requests per second =>( 1000 / rateLimit ) / 1.5 = 2.666666666
+                        'ticker/{symbol}': 2.66,
+                        'tickers/hist': 2.66,
+                        'trades/{symbol}/hist': 2.66,
+                        'book/{symbol}/{precision}': 1,  # 240 requests a minute
+                        'book/{symbol}/P0': 1,
+                        'book/{symbol}/P1': 1,
+                        'book/{symbol}/P2': 1,
+                        'book/{symbol}/P3': 1,
+                        'book/{symbol}/R0': 1,
+                        'stats1/{key}:{size}:{symbol}:{side}/{section}': 2.66,
+                        'stats1/{key}:{size}:{symbol}:{side}/last': 2.66,
+                        'stats1/{key}:{size}:{symbol}:{side}/hist': 2.66,
+                        'stats1/{key}:{size}:{symbol}/{section}': 2.66,
+                        'stats1/{key}:{size}:{symbol}/last': 2.66,
+                        'stats1/{key}:{size}:{symbol}/hist': 2.66,
+                        'stats1/{key}:{size}:{symbol}:long/last': 2.66,
+                        'stats1/{key}:{size}:{symbol}:long/hist': 2.66,
+                        'stats1/{key}:{size}:{symbol}:short/last': 2.66,
+                        'stats1/{key}:{size}:{symbol}:short/hist': 2.66,
+                        'candles/trade:{timeframe}:{symbol}:{period}/{section}': 2.66,
+                        'candles/trade:{timeframe}:{symbol}/{section}': 2.66,
+                        'candles/trade:{timeframe}:{symbol}/last': 2.66,
+                        'candles/trade:{timeframe}:{symbol}/hist': 2.66,
+                        'status/{type}': 2.66,
+                        'status/deriv': 2.66,
+                        'liquidations/hist': 80,  # 3 requests a minute = 0.05 requests a second =>( 1000ms / rateLimit ) / 0.05 = 80
+                        'rankings/{key}:{timeframe}:{symbol}/{section}': 2.66,
+                        'rankings/{key}:{timeframe}:{symbol}/hist': 2.66,
+                        'pulse/hist': 2.66,
+                        'pulse/profile/{nickname}': 2.66,
+                        'funding/stats/{symbol}/hist': 10,  # ratelimit not in docs
+                    },
+                    'post': {
+                        'calc/trade/avg': 2.66,
+                        'calc/fx': 2.66,
+                    },
                 },
                 'private': {
-                    'post': [
+                    'post': {
                         # 'auth/r/orders/{symbol}/new',  # outdated
                         # 'auth/r/stats/perf:{timeframe}/hist',  # outdated
-                        'auth/r/wallets',
-                        'auth/r/wallets/hist',
-                        'auth/r/orders',
-                        'auth/r/orders/{symbol}',
-                        'auth/w/order/submit',
-                        'auth/w/order/update',
-                        'auth/w/order/cancel',
-                        'auth/w/order/multi',
-                        'auth/w/order/cancel/multi',
-                        'auth/r/orders/{symbol}/hist',
-                        'auth/r/orders/hist',
-                        'auth/r/order/{symbol}:{id}/trades',
-                        'auth/r/trades/{symbol}/hist',
-                        'auth/r/trades/hist',
-                        'auth/r/ledgers/{currency}/hist',
-                        'auth/r/ledgers/hist',
-                        'auth/r/info/margin/{key}',
-                        'auth/r/info/margin/base',
-                        'auth/r/info/margin/sym_all',
-                        'auth/r/positions',
-                        'auth/w/position/claim',
-                        'auth/r/positions/hist',
-                        'auth/r/positions/audit',
-                        'auth/r/positions/snap',
-                        'auth/w/deriv/collateral/set',
-                        'auth/w/deriv/collateral/limits',
-                        'auth/r/funding/offers',
-                        'auth/r/funding/offers/{symbol}',
-                        'auth/w/funding/offer/submit',
-                        'auth/w/funding/offer/cancel',
-                        'auth/w/funding/offer/cancel/all',
-                        'auth/w/funding/close',
-                        'auth/w/funding/auto',
-                        'auth/w/funding/keep',
-                        'auth/r/funding/offers/{symbol}/hist',
-                        'auth/r/funding/offers/hist',
-                        'auth/r/funding/loans',
-                        'auth/r/funding/loans/hist',
-                        'auth/r/funding/loans/{symbol}',
-                        'auth/r/funding/loans/{symbol}/hist',
-                        'auth/r/funding/credits',
-                        'auth/r/funding/credits/hist',
-                        'auth/r/funding/credits/{symbol}',
-                        'auth/r/funding/credits/{symbol}/hist',
-                        'auth/r/funding/trades/{symbol}/hist',
-                        'auth/r/funding/trades/hist',
-                        'auth/r/info/funding/{key}',
-                        'auth/r/info/user',
-                        'auth/r/logins/hist',
-                        'auth/w/transfer',
-                        'auth/w/deposit/address',
-                        'auth/w/deposit/invoice',
-                        'auth/w/withdraw',
-                        'auth/r/movements/{currency}/hist',
-                        'auth/r/movements/hist',
-                        'auth/r/alerts',
-                        'auth/w/alert/set',
-                        'auth/w/alert/price:{symbol}:{price}/del',
-                        'auth/w/alert/{type}:{symbol}:{price}/del',
-                        'auth/calc/order/avail',
-                        'auth/w/settings/set',
-                        'auth/r/settings',
-                        'auth/w/settings/del',
-                    ],
+                        'auth/r/wallets': 2.66,
+                        'auth/r/wallets/hist': 2.66,
+                        'auth/r/orders': 2.66,
+                        'auth/r/orders/{symbol}': 2.66,
+                        'auth/w/order/submit': 2.66,
+                        'auth/w/order/update': 2.66,
+                        'auth/w/order/cancel': 2.66,
+                        'auth/w/order/multi': 2.66,
+                        'auth/w/order/cancel/multi': 2.66,
+                        'auth/r/orders/{symbol}/hist': 2.66,
+                        'auth/r/orders/hist': 2.66,
+                        'auth/r/order/{symbol}:{id}/trades': 2.66,
+                        'auth/r/trades/{symbol}/hist': 2.66,
+                        'auth/r/trades/hist': 2.66,
+                        'auth/r/ledgers/{currency}/hist': 2.66,
+                        'auth/r/ledgers/hist': 2.66,
+                        'auth/r/info/margin/{key}': 2.66,
+                        'auth/r/info/margin/base': 2.66,
+                        'auth/r/info/margin/sym_all': 2.66,
+                        'auth/r/positions': 2.66,
+                        'auth/w/position/claim': 2.66,
+                        'auth/w/position/increase:': 2.66,
+                        'auth/r/position/increase/info': 2.66,
+                        'auth/r/positions/hist': 2.66,
+                        'auth/r/positions/audit': 2.66,
+                        'auth/r/positions/snap': 2.66,
+                        'auth/w/deriv/collateral/set': 2.66,
+                        'auth/w/deriv/collateral/limits': 2.66,
+                        'auth/r/funding/offers': 2.66,
+                        'auth/r/funding/offers/{symbol}': 2.66,
+                        'auth/w/funding/offer/submit': 2.66,
+                        'auth/w/funding/offer/cancel': 2.66,
+                        'auth/w/funding/offer/cancel/all': 2.66,
+                        'auth/w/funding/close': 2.66,
+                        'auth/w/funding/auto': 2.66,
+                        'auth/w/funding/keep': 2.66,
+                        'auth/r/funding/offers/{symbol}/hist': 2.66,
+                        'auth/r/funding/offers/hist': 2.66,
+                        'auth/r/funding/loans': 2.66,
+                        'auth/r/funding/loans/hist': 2.66,
+                        'auth/r/funding/loans/{symbol}': 2.66,
+                        'auth/r/funding/loans/{symbol}/hist': 2.66,
+                        'auth/r/funding/credits': 2.66,
+                        'auth/r/funding/credits/hist': 2.66,
+                        'auth/r/funding/credits/{symbol}': 2.66,
+                        'auth/r/funding/credits/{symbol}/hist': 2.66,
+                        'auth/r/funding/trades/{symbol}/hist': 2.66,
+                        'auth/r/funding/trades/hist': 2.66,
+                        'auth/r/info/funding/{key}': 2.66,
+                        'auth/r/info/user': 2.66,
+                        'auth/r/summary': 2.66,
+                        'auth/r/logins/hist': 2.66,
+                        'auth/r/permissions': 2.66,
+                        'auth/w/token': 2.66,
+                        'auth/r/audit/hist': 2.66,
+                        'auth/w/transfer': 2.66,  # ratelimit not in docs...
+                        'auth/w/deposit/address': 24,  # 10 requests a minute = 0.166 requests per second =>( 1000ms / rateLimit ) / 0.166 = 24
+                        'auth/w/deposit/invoice': 24,  # ratelimit not in docs
+                        'auth/w/withdraw': 24,  # ratelimit not in docs
+                        'auth/r/movements/{currency}/hist': 2.66,
+                        'auth/r/movements/hist': 2.66,
+                        'auth/r/alerts': 5.33,  # 45 requests a minute = 0.75 requests per second =>( 1000ms / rateLimit ) / 0.75 => 5.33
+                        'auth/w/alert/set': 2.66,
+                        'auth/w/alert/price:{symbol}:{price}/del': 2.66,
+                        'auth/w/alert/{type}:{symbol}:{price}/del': 2.66,
+                        'auth/calc/order/avail': 2.66,
+                        'auth/w/settings/set': 2.66,
+                        'auth/r/settings': 2.66,
+                        'auth/w/settings/del': 2.66,
+                        'auth/r/pulse/hist': 2.66,
+                        'auth/w/pulse/add': 16,  # 15 requests a minute = 0.25 requests per second =>( 1000ms / rateLimit ) / 0.25 => 16
+                        'auth/w/pulse/del': 2.66,
+                    },
                 },
             },
             'fees': {
@@ -375,16 +392,16 @@ class bitfinex2(bitfinex):
         # pub:list:pair:exchange,pub:list:pair:margin,pub:list:pair:futures,pub:info:pair
         v2response = await self.publicGetConfPubListPairFutures(params)
         v1response = await self.v1GetSymbolsDetails(params)
-        futuresMarketIds = self.safe_value(v2response, 0, [])
+        swapMarketIds = self.safe_value(v2response, 0, [])
         result = []
         for i in range(0, len(v1response)):
             market = v1response[i]
             id = self.safe_string_upper(market, 'pair')
             spot = True
-            if self.in_array(id, futuresMarketIds):
+            if self.in_array(id, swapMarketIds):
                 spot = False
-            future = not spot
-            type = 'spot' if spot else 'future'
+            swap = not spot
+            type = 'spot' if spot else 'swap'
             baseId = None
             quoteId = None
             if id.find(':') >= 0:
@@ -433,10 +450,10 @@ class bitfinex2(bitfinex):
                 'limits': limits,
                 'info': market,
                 'type': type,
-                'swap': False,
+                'swap': swap,
                 'spot': spot,
                 'margin': margin,
-                'future': future,
+                'future': False,
             })
         return result
 
@@ -723,32 +740,72 @@ class bitfinex2(bitfinex):
         return result
 
     def parse_ticker(self, ticker, market=None):
+        #
+        # on trading pairs(ex. tBTCUSD)
+        #
+        #     [
+        #         SYMBOL,
+        #         BID,
+        #         BID_SIZE,
+        #         ASK,
+        #         ASK_SIZE,
+        #         DAILY_CHANGE,
+        #         DAILY_CHANGE_RELATIVE,
+        #         LAST_PRICE,
+        #         VOLUME,
+        #         HIGH,
+        #         LOW
+        #     ]
+        #
+        # on funding currencies(ex. fUSD)
+        #
+        #     [
+        #         SYMBOL,
+        #         FRR,
+        #         BID,
+        #         BID_PERIOD,
+        #         BID_SIZE,
+        #         ASK,
+        #         ASK_PERIOD,
+        #         ASK_SIZE,
+        #         DAILY_CHANGE,
+        #         DAILY_CHANGE_RELATIVE,
+        #         LAST_PRICE,
+        #         VOLUME,
+        #         HIGH,
+        #         LOW,
+        #         _PLACEHOLDER,
+        #         _PLACEHOLDER,
+        #         FRR_AMOUNT_AVAILABLE
+        #     ]
+        #
         timestamp = self.milliseconds()
         symbol = self.safe_symbol(None, market)
         length = len(ticker)
-        last = self.safe_number(ticker, length - 4)
+        last = self.safe_string(ticker, length - 4)
+        percentage = self.safe_string(ticker, length - 5)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, length - 2),
-            'low': self.safe_number(ticker, length - 1),
-            'bid': self.safe_number(ticker, length - 10),
+            'high': self.safe_string(ticker, length - 2),
+            'low': self.safe_string(ticker, length - 1),
+            'bid': self.safe_string(ticker, length - 10),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, length - 8),
+            'ask': self.safe_string(ticker, length - 8),
             'askVolume': None,
             'vwap': None,
             'open': None,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_number(ticker, length - 6),
-            'percentage': self.safe_number(ticker, length - 5) * 100,
+            'change': self.safe_string(ticker, length - 6),
+            'percentage': Precise.string_mul(percentage, '100'),
             'average': None,
-            'baseVolume': self.safe_number(ticker, length - 3),
+            'baseVolume': self.safe_string(ticker, length - 3),
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
@@ -759,6 +816,45 @@ class bitfinex2(bitfinex):
         else:
             request['symbols'] = 'ALL'
         tickers = await self.publicGetTickers(self.extend(request, params))
+        #
+        #     [
+        #         # on trading pairs(ex. tBTCUSD)
+        #         [
+        #             SYMBOL,
+        #             BID,
+        #             BID_SIZE,
+        #             ASK,
+        #             ASK_SIZE,
+        #             DAILY_CHANGE,
+        #             DAILY_CHANGE_RELATIVE,
+        #             LAST_PRICE,
+        #             VOLUME,
+        #             HIGH,
+        #             LOW
+        #         ],
+        #         # on funding currencies(ex. fUSD)
+        #         [
+        #             SYMBOL,
+        #             FRR,
+        #             BID,
+        #             BID_PERIOD,
+        #             BID_SIZE,
+        #             ASK,
+        #             ASK_PERIOD,
+        #             ASK_SIZE,
+        #             DAILY_CHANGE,
+        #             DAILY_CHANGE_RELATIVE,
+        #             LAST_PRICE,
+        #             VOLUME,
+        #             HIGH,
+        #             LOW,
+        #             _PLACEHOLDER,
+        #             _PLACEHOLDER,
+        #             FRR_AMOUNT_AVAILABLE
+        #         ],
+        #         ...
+        #     ]
+        #
         result = {}
         for i in range(0, len(tickers)):
             ticker = tickers[i]
@@ -833,12 +929,9 @@ class bitfinex2(bitfinex):
         priceString = self.safe_string(trade, priceIndex)
         if amountString[0] == '-':
             side = 'sell'
-            amountString = amountString[1:]
+            amountString = Precise.string_abs(amountString)
         else:
             side = 'buy'
-        amount = self.parse_number(amountString)
-        price = self.parse_number(priceString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         orderId = None
         takerOrMaker = None
         type = None
@@ -858,11 +951,10 @@ class bitfinex2(bitfinex):
             takerOrMaker = 'maker' if (maker == 1) else 'taker'
             feeCostString = self.safe_string(trade, 9)
             feeCostString = Precise.string_neg(feeCostString)
-            feeCost = self.parse_number(feeCostString)
             feeCurrencyId = self.safe_string(trade, 10)
             feeCurrency = self.safe_currency_code(feeCurrencyId)
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrency,
             }
             orderType = trade[6]
@@ -870,7 +962,7 @@ class bitfinex2(bitfinex):
         if symbol is None:
             if market is not None:
                 symbol = market['symbol']
-        return {
+        return self.safe_trade({
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -879,12 +971,12 @@ class bitfinex2(bitfinex):
             'side': side,
             'type': type,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
             'info': trade,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -1374,8 +1466,7 @@ class bitfinex2(bitfinex):
         elif transactionLength == 22:
             id = self.safe_string(transaction, 0)
             currencyId = self.safe_string(transaction, 1)
-            currency = self.safe_currency(currencyId, currency)
-            code = currency['code']
+            code = self.safe_currency_code(currencyId, currency)
             timestamp = self.safe_integer(transaction, 5)
             updated = self.safe_integer(transaction, 6)
             status = self.parse_transaction_status(self.safe_string(transaction, 9))
@@ -1592,3 +1683,99 @@ class bitfinex2(bitfinex):
             self.throw_broadly_matched_exception(self.exceptions['broad'], errorText, feedback)
             raise ExchangeError(self.id + ' ' + errorText + '(#' + errorCode + ')')
         return response
+
+    def parse_ledger_entry_type(self, type):
+        if type is None:
+            return None
+        elif type.find('fee') >= 0 or type.find('charged') >= 0:
+            return 'fee'
+        elif type.find('exchange') >= 0 or type.find('position') >= 0:
+            return 'trade'
+        elif type.find('rebate') >= 0:
+            return 'rebate'
+        elif type.find('deposit') >= 0 or type.find('withdrawal') >= 0:
+            return 'transaction'
+        elif type.find('transfer') >= 0:
+            return 'transfer'
+        elif type.find('payment') >= 0:
+            return 'payout'
+        else:
+            return type
+
+    def parse_ledger_entry(self, item, currency=None):
+        #
+        #     [
+        #         [
+        #             2531822314,  # ID: Ledger identifier
+        #             "USD",  # CURRENCY: The symbol of the currency(ex. "BTC")
+        #             null,  # PLACEHOLDER
+        #             1573521810000,  # MTS: Timestamp in milliseconds
+        #             null,  # PLACEHOLDER
+        #             0.01644445,  # AMOUNT: Amount of funds moved
+        #             0,  # BALANCE: New balance
+        #             null,  # PLACEHOLDER
+        #             "Settlement @ 185.79 on wallet margin"  # DESCRIPTION: Description of ledger transaction
+        #         ]
+        #     ]
+        #
+        type = None
+        id = self.safe_string(item, 0)
+        currencyId = self.safe_string(item, 1)
+        code = self.safe_currency_code(currencyId, currency)
+        timestamp = self.safe_integer(item, 3)
+        amount = self.safe_number(item, 5)
+        after = self.safe_number(item, 6)
+        description = self.safe_string(item, 8)
+        if description is not None:
+            parts = description.split(' @ ')
+            first = self.safe_string_lower(parts, 0)
+            type = self.parse_ledger_entry_type(first)
+        return {
+            'id': id,
+            'direction': None,
+            'account': None,
+            'referenceId': id,
+            'referenceAccount': None,
+            'type': type,
+            'currency': code,
+            'amount': amount,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'before': None,
+            'after': after,
+            'status': None,
+            'fee': None,
+            'info': item,
+        }
+
+    async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        await self.load_markets()
+        currency = None
+        request = {}
+        method = 'privatePostAuthRLedgersHist'
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['uppercaseId']
+            method = 'privatePostAuthRLedgersCurrencyHist'
+        if since is not None:
+            request['start'] = since
+        if limit is not None:
+            request['limit'] = limit  # max 2500
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        #     [
+        #         [
+        #             2531822314,  # ID: Ledger identifier
+        #             "USD",  # CURRENCY: The symbol of the currency(ex. "BTC")
+        #             null,  # PLACEHOLDER
+        #             1573521810000,  # MTS: Timestamp in milliseconds
+        #             null,  # PLACEHOLDER
+        #             0.01644445,  # AMOUNT: Amount of funds moved
+        #             0,  # BALANCE: New balance
+        #             null,  # PLACEHOLDER
+        #             "Settlement @ 185.79 on wallet margin"  # DESCRIPTION: Description of ledger transaction
+        #         ]
+        #     ]
+        #
+        return self.parse_ledger(response, currency, since, limit)

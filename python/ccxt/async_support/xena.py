@@ -23,13 +23,24 @@ class xena(Exchange):
             'countries': ['VC', 'UK'],
             'rateLimit': 100,
             'has': {
+                'CORS': None,
+                'spot': False,
+                'margin': False,
+                'swap': None,  # has but not fully implemented
+                'future': None,  # has but not fully implemented
+                'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': None,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'editOrder': True,
+                'fetchAccounts': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
@@ -179,6 +190,12 @@ class xena(Exchange):
         #
         #     [
         #         {
+        #             "type": "Index",
+        #             "symbol": ".ADAUSD",
+        #             "tickSize": 4,
+        #             "enabled": True
+        #         },
+        #         {
         #             "id":"ETHUSD_3M_250920",
         #             "type":"Margin",
         #             "marginType":"XenaFuture",
@@ -268,56 +285,73 @@ class xena(Exchange):
             marginType = self.safe_string(market, 'marginType')
             baseId = self.safe_string(market, 'baseCurrency')
             quoteId = self.safe_string(market, 'quoteCurrency')
+            settleId = self.safe_string(market, 'settlCurrency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            settle = self.safe_currency_code(settleId)
+            expiryDate = self.safe_string(market, 'expiryDate')
+            expiryTimestamp = self.parse8601(expiryDate)
             symbol = id
+            future = False
+            swap = False
             if type == 'margin':
+                symbol = base + '/' + quote + ':' + settle
                 if marginType == 'XenaFuture':
+                    symbol = symbol + '-' + self.yymmdd(expiryTimestamp)
                     type = 'future'
+                    future = True
                 elif marginType == 'XenaListedPerpetual':
                     type = 'swap'
-                    symbol = base + '/' + quote
-            future = (type == 'future')
-            swap = (type == 'swap')
-            pricePrecision = self.safe_integer_2(market, 'tickSize', 'pricePrecision')
-            precision = {
-                'price': pricePrecision,
-                'amount': 0,
-            }
-            maxCost = self.safe_number(market, 'maxOrderQty')
-            minCost = self.safe_number(market, 'minOrderQuantity')
-            limits = {
-                'amount': {
-                    'min': None,
-                    'max': None,
-                },
-                'price': {
-                    'min': None,
-                    'max': None,
-                },
-                'cost': {
-                    'min': minCost,
-                    'max': maxCost,
-                },
-            }
-            active = self.safe_value(market, 'enabled', False)
+                    swap = True
             inverse = self.safe_value(market, 'inverse', False)
+            contract = swap or future
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': settleId,
                 'numericId': numericId,
-                'active': active,
                 'type': type,
                 'spot': False,
-                'future': future,
+                'margin': False,
                 'swap': swap,
-                'inverse': inverse,
-                'precision': precision,
-                'limits': limits,
+                'future': future,
+                'option': False,
+                'active': self.safe_value(market, 'enabled', False),
+                'contract': contract,
+                'linear': not inverse if contract else None,
+                'inverse': inverse if contract else None,
+                'contractSize': self.safe_number(market, 'contractValue'),
+                'expiry': expiryTimestamp,
+                'expiryDatetime': self.iso8601(expiryTimestamp),
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': self.safe_integer_2(market, 'tickSize', 'pricePrecision'),
+                    'amount': 0,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': self.safe_number(market, 'minOrderQuantity'),
+                        'max': self.safe_number(market, 'maxOrderQty'),
+                    },
+                },
                 'info': market,
             })
         return result
@@ -368,6 +402,8 @@ class xena(Exchange):
                 'info': currency,
                 'name': name,
                 'active': active,
+                'deposit': None,
+                'withdraw': None,
                 'fee': self.safe_number(withdraw, 'commission'),
                 'precision': precision,
                 'limits': {
@@ -402,20 +438,20 @@ class xena(Exchange):
         timestamp = self.milliseconds()
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_number(ticker, 'lastPx')
-        open = self.safe_number(ticker, 'firstPx')
-        buyVolume = self.safe_number(ticker, 'buyVolume')
-        sellVolume = self.safe_number(ticker, 'sellVolume')
+        last = self.safe_string(ticker, 'lastPx')
+        open = self.safe_string(ticker, 'firstPx')
+        buyVolume = self.safe_string(ticker, 'buyVolume')
+        sellVolume = self.safe_string(ticker, 'sellVolume')
         baseVolume = self.sum(buyVolume, sellVolume)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'highPx'),
-            'low': self.safe_number(ticker, 'lowPx'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'highPx'),
+            'low': self.safe_string(ticker, 'lowPx'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': open,
@@ -428,7 +464,7 @@ class xena(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -497,7 +533,9 @@ class xena(Exchange):
         mdEntry = self.safe_value(response, 'mdEntry', [])
         mdEntriesByType = self.group_by(mdEntry, 'mdEntryType')
         lastUpdateTime = self.safe_integer(response, 'lastUpdateTime')
-        timestamp = int(lastUpdateTime / 1000000)
+        timestamp = None
+        if lastUpdateTime is not None:
+            timestamp = int(lastUpdateTime / 1000000)
         return self.parse_order_book(mdEntriesByType, symbol, timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize')
 
     async def fetch_accounts(self, params={}):

@@ -27,26 +27,51 @@ class latoken1(Exchange):
             'certified': False,
             'userAgent': self.userAgents['chrome'],
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': None,
                 'createMarketOrder': None,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
-                'fetchOrder': None,
+                'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrdersByStatus': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'privateAPI': True,
-                'publicAPI': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/61511972-24c39f00-aa01-11e9-9f7c-471f1d6e5214.jpg',
@@ -171,41 +196,60 @@ class latoken1(Exchange):
             numericId = self.safe_integer(market, 'pairId')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
             pricePrecisionString = self.safe_string(market, 'pricePrecision')
-            priceLimit = self.parse_precision(pricePrecisionString)
-            precision = {
-                'price': int(pricePrecisionString),
-                'amount': self.safe_integer(market, 'amountPrecision'),
-            }
-            limits = {
-                'amount': {
-                    'min': self.safe_number(market, 'minQty'),
-                    'max': None,
-                },
-                'price': {
-                    'min': self.parse_number(priceLimit),
-                    'max': None,
-                },
-                'cost': {
-                    'min': None,
-                    'max': None,
-                },
-            }
+            fees = self.safe_value(self.fees, 'trading')
+            defaultTaker = self.safe_number(fees, 'taker')
+            defaultMaker = self.safe_number(fees, 'maker')
             result.append({
                 'id': id,
                 'numericId': numericId,
-                'info': market,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': None,  # assuming True
-                'precision': precision,
-                'limits': limits,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': None,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'taker': self.safe_number(market, 'takerFee', defaultTaker),
+                'maker': self.safe_number(market, 'makerFee', defaultMaker),
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': int(pricePrecisionString),
+                    'amount': self.safe_integer(market, 'amountPrecision'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': self.safe_number(market, 'minQty'),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'info': market,
             })
         return result
 
@@ -239,6 +283,8 @@ class latoken1(Exchange):
                 'info': currency,
                 'name': code,
                 'active': active,
+                'deposit': None,
+                'withdraw': None,
                 'fee': fee,
                 'precision': precision,
                 'limits': {
@@ -330,36 +376,31 @@ class latoken1(Exchange):
         #     }
         #
         marketId = self.safe_string(ticker, 'symbol')
-        symbol = self.safe_symbol(marketId, market)
-        open = self.safe_number(ticker, 'open')
-        close = self.safe_number(ticker, 'close')
-        change = None
-        if open is not None and close is not None:
-            change = close - open
-        percentage = self.safe_number(ticker, 'priceChange')
-        timestamp = self.nonce()
-        return {
-            'symbol': symbol,
+        market = self.safe_market(marketId, market)
+        close = self.safe_string(ticker, 'close')
+        timestamp = self.milliseconds()
+        return self.safe_ticker({
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'low': self.safe_number(ticker, 'low'),
-            'high': self.safe_number(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'high': self.safe_string(ticker, 'high'),
             'bid': None,
             'bidVolume': None,
             'ask': None,
             'askVolume': None,
             'vwap': None,
-            'open': open,
+            'open': self.safe_string(ticker, 'open'),
             'close': close,
             'last': close,
             'previousClose': None,
-            'change': change,
-            'percentage': percentage,
+            'change': None,
+            'percentage': self.safe_string(ticker, 'priceChange'),
             'average': None,
             'baseVolume': None,
-            'quoteVolume': self.safe_number(ticker, 'volume'),
+            'quoteVolume': self.safe_string(ticker, 'volume'),
             'info': ticker,
-        }
+        }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

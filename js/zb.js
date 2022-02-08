@@ -19,8 +19,13 @@ module.exports = class zb extends Exchange {
             'certified': true,
             'pro': true,
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': undefined, // has but unimplemented
+                'swap': undefined, // has but unimplemented
+                'future': undefined,
+                'option': undefined,
+                'cancelOrder': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
@@ -132,6 +137,7 @@ module.exports = class zb extends Exchange {
                 },
                 'broad': {
                     '提币地址有误，请先添加提币地址。': InvalidAddress, // {"code":1001,"message":"提币地址有误，请先添加提币地址。"}
+                    '资金不足,无法划账': InsufficientFunds, // {"code":1001,"message":"资金不足,无法划账"}
                 },
             },
             'urls': {
@@ -377,6 +383,8 @@ module.exports = class zb extends Exchange {
                 'precision': precision,
                 'info': currency,
                 'active': active,
+                'deposit': isDepositEnabled,
+                'withdraw': isWithdrawEnabled,
                 'fee': undefined,
                 'fees': fees,
                 'limits': this.limits,
@@ -616,33 +624,29 @@ module.exports = class zb extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (ticker, 'date', this.milliseconds ());
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        const last = this.safeNumber (ticker, 'last');
-        return {
-            'symbol': symbol,
+        const last = this.safeString (ticker, 'last');
+        return this.safeTicker ({
+            'symbol': this.safeSymbol (undefined, market),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'buy'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'sell'),
+            'ask': this.safeString (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': undefined,
+            'open': this.safeString (ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'vol'),
+            'baseVolume': this.safeString (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market, false);
     }
 
     parseOHLCV (ohlcv, market = undefined) {

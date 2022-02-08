@@ -10,6 +10,7 @@ use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\AddressPending;
 use \ccxt\NotSupported;
+use \ccxt\Precise;
 
 class buda extends Exchange {
 
@@ -21,26 +22,54 @@ class buda extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v2',
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
+                'cancelOrder' => true,
                 'createDepositAddress' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchFundingFees' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => null,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -359,43 +388,69 @@ class buda extends Exchange {
             'market' => $market['id'],
         );
         $response = yield $this->publicGetMarketsMarketTicker (array_merge($request, $params));
+        //
+        //     {
+        //         "ticker":{
+        //             "market_id":"ETH-BTC",
+        //             "last_price":["0.07300001","BTC"],
+        //             "min_ask":["0.07716895","BTC"],
+        //             "max_bid":["0.0754966","BTC"],
+        //             "volume":["0.168965697","ETH"],
+        //             "price_variation_24h":"-0.046",
+        //             "price_variation_7d":"-0.085"
+        //         }
+        //     }
+        //
         $ticker = $this->safe_value($response, 'ticker');
         return $this->parse_ticker($ticker, $market);
     }
 
     public function parse_ticker($ticker, $market = null) {
+        //
+        // fetchTicker
+        //
+        //     {
+        //         "market_id":"ETH-BTC",
+        //         "last_price":["0.07300001","BTC"],
+        //         "min_ask":["0.07716895","BTC"],
+        //         "max_bid":["0.0754966","BTC"],
+        //         "volume":["0.168965697","ETH"],
+        //         "price_variation_24h":"-0.046",
+        //         "price_variation_7d":"-0.085"
+        //     }
+        //
         $timestamp = $this->milliseconds();
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        $last = floatval($ticker['last_price'][0]);
-        $percentage = floatval($ticker['price_variation_24h']);
-        $open = floatval($this->price_to_precision($symbol, $last / ($percentage + 1)));
-        $change = $last - $open;
-        $average = $this->sum($last, $open) / 2;
-        return array(
+        $marketId = $this->safe_string($ticker, 'market_id');
+        $symbol = $this->safe_symbol($marketId, $market, '-');
+        $lastPrice = $this->safe_value($ticker, 'last_price', array());
+        $last = $this->safe_string($lastPrice, 0);
+        $percentage = $this->safe_string($ticker, 'price_variation_24h');
+        $percentage = Precise::string_mul($percentage, '100');
+        $maxBid = $this->safe_value($ticker, 'max_bid', array());
+        $minAsk = $this->safe_value($ticker, 'min_ask', array());
+        $baseVolume = $this->safe_value($ticker, 'volume', array());
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => floatval($ticker['max_bid'][0]),
+            'bid' => $this->safe_string($maxBid, 0),
             'bidVolume' => null,
-            'ask' => floatval($ticker['min_ask'][0]),
+            'ask' => $this->safe_string($minAsk, 0),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $open,
+            'open' => null,
             'close' => $last,
             'last' => $last,
-            'previousClose' => $open,
-            'change' => $change,
-            'percentage' => $percentage * 100,
-            'average' => $average,
-            'baseVolume' => floatval($ticker['volume'][0]),
+            'previousClose' => null,
+            'change' => null,
+            'percentage' => $percentage,
+            'average' => null,
+            'baseVolume' => $this->safe_string($baseVolume, 0),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market, false);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {

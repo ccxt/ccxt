@@ -35,21 +35,49 @@ class tidex(Exchange):
             'version': '3',
             'userAgent': self.userAgents['chrome'],
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
                 'createMarketOrder': None,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchCurrencies': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'urls': {
@@ -182,11 +210,9 @@ class tidex(Exchange):
             code = self.safe_currency_code(id)
             visible = self.safe_value(currency, 'visible')
             active = visible is True
-            withdrawEnable = self.safe_value(currency, 'withdrawEnable')
-            depositEnable = self.safe_value(currency, 'depositEnable')
-            canWithdraw = withdrawEnable is True
-            canDeposit = depositEnable is True
-            if not canWithdraw or not canDeposit:
+            withdrawEnable = self.safe_value(currency, 'withdrawEnable', True)
+            depositEnable = self.safe_value(currency, 'depositEnable', True)
+            if not withdrawEnable or not depositEnable:
                 active = False
             name = self.safe_string(currency, 'name')
             fee = self.safe_number(currency, 'withdrawFee')
@@ -195,14 +221,16 @@ class tidex(Exchange):
                 'code': code,
                 'name': name,
                 'active': active,
+                'deposit': depositEnable,
+                'withdraw': withdrawEnable,
                 'precision': precision,
                 'funding': {
                     'withdraw': {
-                        'active': canWithdraw,
+                        'active': withdrawEnable,
                         'fee': fee,
                     },
                     'deposit': {
-                        'active': canDeposit,
+                        'active': depositEnable,
                         'fee': self.parse_number('0'),
                     },
                 },
@@ -252,42 +280,56 @@ class tidex(Exchange):
             baseId, quoteId = id.split('_')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            precision = {
-                'amount': self.safe_integer(market, 'decimal_places'),
-                'price': self.safe_integer(market, 'decimal_places'),
-            }
-            limits = {
-                'amount': {
-                    'min': self.safe_number(market, 'min_amount'),
-                    'max': self.safe_number(market, 'max_amount'),
-                },
-                'price': {
-                    'min': self.safe_number(market, 'min_price'),
-                    'max': self.safe_number(market, 'max_price'),
-                },
-                'cost': {
-                    'min': self.safe_number(market, 'min_total'),
-                },
-            }
             hidden = self.safe_integer(market, 'hidden')
-            active = (hidden == 0)
             takerFeeString = self.safe_string(market, 'fee')
             takerFeeString = Precise.string_div(takerFeeString, '100')
-            takerFee = self.parse_number(takerFeeString)
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
-                'taker': takerFee,
-                'precision': precision,
-                'limits': limits,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'contract': False,
+                'active': (hidden == 0),
+                'linear': None,
+                'inverse': None,
+                'taker': self.parse_number(takerFeeString),
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_integer(market, 'decimal_places'),
+                    'price': self.safe_integer(market, 'decimal_places'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': self.safe_number(market, 'min_amount'),
+                        'max': self.safe_number(market, 'max_amount'),
+                    },
+                    'price': {
+                        'min': self.safe_number(market, 'min_price'),
+                        'max': self.safe_number(market, 'max_price'),
+                    },
+                    'cost': {
+                        'min': self.safe_number(market, 'min_total'),
+                        'max': None,
+                    },
+                },
                 'info': market,
             })
         return result
@@ -386,32 +428,30 @@ class tidex(Exchange):
 
     def parse_ticker(self, ticker, market=None):
         #
-        #   {   high: 0.03497582,
+        #     {
+        #         high: 0.03497582,
         #         low: 0.03248474,
         #         avg: 0.03373028,
         #         vol: 120.11485715062999,
-        #     vol_cur: 3572.24914074,
-        #        last: 0.0337611,
+        #         vol_cur: 3572.24914074,
+        #         last: 0.0337611,
         #         buy: 0.0337442,
-        #        sell: 0.03377798,
-        #     updated: 1537522009          }
+        #         sell: 0.03377798,
+        #         updated: 1537522009
+        #     }
         #
         timestamp = self.safe_timestamp(ticker, 'updated')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-            if not market['active']:
-                timestamp = None
-        last = self.safe_number(ticker, 'last')
-        return {
-            'symbol': symbol,
+        market = self.safe_market(None, market)
+        last = self.safe_string(ticker, 'last')
+        return self.safe_ticker({
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'buy'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'sell'),
+            'ask': self.safe_string(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -420,11 +460,11 @@ class tidex(Exchange):
             'previousClose': None,
             'change': None,
             'percentage': None,
-            'average': self.safe_number(ticker, 'avg'),
-            'baseVolume': self.safe_number(ticker, 'vol_cur'),
-            'quoteVolume': self.safe_number(ticker, 'vol'),
+            'average': self.safe_string(ticker, 'avg'),
+            'baseVolume': self.safe_string(ticker, 'vol_cur'),
+            'quoteVolume': self.safe_string(ticker, 'vol'),
             'info': ticker,
-        }
+        }, market, False)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()

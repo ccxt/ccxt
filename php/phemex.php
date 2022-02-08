@@ -24,13 +24,22 @@ class phemex extends Exchange {
             'pro' => true,
             'hostname' => 'api.phemex.com',
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => null, // has but not fully implemented
+                'future' => false,
+                'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
@@ -126,11 +135,22 @@ class phemex extends Exchange {
                         'exchange/order/trade', // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>&withCount=<withCount>
                         'phemex-user/users/children', // ?offset=<offset>&limit=<limit>&withCount=<withCount>
                         'phemex-user/wallets/v2/depositAddress', // ?_t=1592722635531&currency=USDT
+                        'phemex-user/wallets/tradeAccountDetail', // ?bizCode=&currency=&end=1642443347321&limit=10&offset=0&side=&start=1&type=4&withCount=true
+                        'phemex-user/order/closedPositionList', // ?currency=USD&limit=10&offset=0&symbol=&withCount=true
                         'exchange/margins/transfer', // ?start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount>
                         'exchange/wallets/confirm/withdraw', // ?code=<withdrawConfirmCode>
                         'exchange/wallets/withdrawList', // ?currency=<currency>&limit=<limit>&offset=<offset>&withCount=<withCount>
                         'exchange/wallets/depositList', // ?currency=<currency>&offset=<offset>&limit=<limit>
                         'exchange/wallets/v2/depositAddress', // ?currency=<currency>
+                        'api-data/spots/funds', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'assets/convert', // ?startTime=<startTime>&endTime=<endTime>&limit=<limit>&offset=<offset>
+                        'assets/transfer', // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        // transfer
+                        'assets/transfer',
+                        'assets/spots/sub-accounts/transfer',
+                        'assets/spots/sub-accounts/transfer',
+                        'assets/quote',
+                        'assets/convert',
                     ),
                     'post' => array(
                         // spot
@@ -144,6 +164,12 @@ class phemex extends Exchange {
                         'exchange/wallets/createWithdraw', // ?otpCode=<otpCode>
                         'exchange/wallets/cancelWithdraw',
                         'exchange/wallets/createWithdrawAddress', // ?otpCode={optCode}
+                        // transfer
+                        'assets/transfer',
+                        'assets/spots/sub-accounts/transfer', // for sub-account only
+                        'assets/futures/sub-accounts/transfer', // for sub-account only
+                        'assets/universal-transfer', // for Main account only
+                        'assets/convert',
                     ),
                     'put' => array(
                         // spot
@@ -306,10 +332,16 @@ class phemex extends Exchange {
                     '11114' => '\\ccxt\\InvalidOrder', // TE_ORDER_VALUE_TOO_LARGE Order value is too large
                     '11115' => '\\ccxt\\InvalidOrder', // TE_ORDER_VALUE_TOO_SMALL Order value is too small
                     // not documented
+                    '30000' => '\\ccxt\\BadRequest', // array("code":30000,"msg":"Please double check input arguments","data":null)
                     '30018' => '\\ccxt\\BadRequest', // array("code":30018,"msg":"phemex.data.size.uplimt","data":null)
+                    '34003' => '\\ccxt\\PermissionDenied', // array("code":34003,"msg":"Access forbidden","data":null)
+                    '35104' => '\\ccxt\\InsufficientFunds', // array("code":35104,"msg":"phemex.spot.wallet.balance.notenough","data":null)
+                    '39995' => '\\ccxt\\RateLimitExceeded', // array("code" => "39995","msg" => "Too many requests.")
                     '39996' => '\\ccxt\\PermissionDenied', // array("code" => "39996","msg" => "Access denied.")
                 ),
                 'broad' => array(
+                    '401 Insufficient privilege' => '\\ccxt\\PermissionDenied', // array("code" => "401","msg" => "401 Insufficient privilege.")
+                    '401 Request IP mismatch' => '\\ccxt\\PermissionDenied', // array("code" => "401","msg" => "401 Request IP mismatch.")
                     'Failed to find api-key' => '\\ccxt\\AuthenticationError', // array("msg":"Failed to find api-key 1c5ec63fd-660d-43ea-847a-0d3ba69e106e","code":10500)
                     'Missing required parameter' => '\\ccxt\\BadRequest', // array("msg":"Missing required parameter","code":10500)
                     'API Signature verification failed' => '\\ccxt\\AuthenticationError', // array("msg":"API Signature verification failed.","code":10500)
@@ -390,27 +422,14 @@ class phemex extends Exchange {
         $id = $this->safe_string($market, 'symbol');
         $baseId = $this->safe_string_2($market, 'baseCurrency', 'contractUnderlyingAssets');
         $quoteId = $this->safe_string($market, 'quoteCurrency');
+        $settleId = $this->safe_string($market, 'settleCurrency');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $type = $this->safe_string_lower($market, 'type');
+        $settle = $this->safe_currency_code($settleId);
         $inverse = false;
-        $spot = false;
-        $swap = true;
-        $settlementCurrencyId = $this->safe_string($market, 'settleCurrency');
-        if ($settlementCurrencyId !== $quoteId) {
+        if ($settleId !== $quoteId) {
             $inverse = true;
         }
-        $linear = !$inverse;
-        $symbol = null;
-        if ($linear) {
-            $symbol = $base . '/' . $quote . ':' . $quote;
-        } else {
-            $symbol = $base . '/' . $quote . ':' . $base;
-        }
-        $precision = array(
-            'amount' => $this->safe_number($market, 'lotSize'),
-            'price' => $this->safe_number($market, 'tickSize'),
-        );
         $priceScale = $this->safe_integer($market, 'priceScale');
         $ratioScale = $this->safe_integer($market, 'ratioScale');
         $valueScale = $this->safe_integer($market, 'valueScale');
@@ -418,24 +437,7 @@ class phemex extends Exchange {
         $maxPriceEp = $this->safe_string($market, 'maxPriceEp');
         $makerFeeRateEr = $this->safe_string($market, 'makerFeeRateEr');
         $takerFeeRateEr = $this->safe_string($market, 'takerFeeRateEr');
-        $maker = $this->parse_number($this->from_en($makerFeeRateEr, $ratioScale));
-        $taker = $this->parse_number($this->from_en($takerFeeRateEr, $ratioScale));
-        $limits = array(
-            'amount' => array(
-                'min' => null,
-                'max' => null,
-            ),
-            'price' => array(
-                'min' => $this->parse_number($this->from_en($minPriceEp, $priceScale)),
-                'max' => $this->parse_number($this->from_en($maxPriceEp, $priceScale)),
-            ),
-            'cost' => array(
-                'min' => null,
-                'max' => $this->parse_number($this->safe_string($market, 'maxOrderQty')),
-            ),
-        );
         $status = $this->safe_string($market, 'status');
-        $active = $status === 'Listed';
         $contractSizeString = $this->safe_string($market, 'contractSize', ' ');
         $contractSize = null;
         if (mb_strpos($contractSizeString, ' ')) {
@@ -449,26 +451,56 @@ class phemex extends Exchange {
         }
         return array(
             'id' => $id,
-            'symbol' => $symbol,
+            'symbol' => $base . '/' . $quote . ':' . $settle,
             'base' => $base,
             'quote' => $quote,
+            'settle' => $settle,
             'baseId' => $baseId,
             'quoteId' => $quoteId,
-            'info' => $market,
-            'type' => $type,
-            'spot' => $spot,
-            'swap' => $swap,
-            'linear' => $linear,
+            'settleId' => $settleId,
+            'type' => 'swap',
+            'spot' => false,
+            'margin' => false,
+            'swap' => true,
+            'future' => false,
+            'option' => false,
+            'contract' => true,
+            'linear' => !$inverse,
             'inverse' => $inverse,
-            'active' => $active,
-            'taker' => $taker,
-            'maker' => $maker,
+            'taker' => $this->parse_number($this->from_en($takerFeeRateEr, $ratioScale)),
+            'maker' => $this->parse_number($this->from_en($makerFeeRateEr, $ratioScale)),
+            'contractSize' => $contractSize,
+            'active' => $status === 'Listed',
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
             'priceScale' => $priceScale,
             'valueScale' => $valueScale,
             'ratioScale' => $ratioScale,
-            'precision' => $precision,
-            'contractSize' => $contractSize,
-            'limits' => $limits,
+            'precision' => array(
+                'amount' => $this->safe_number($market, 'lotSize'),
+                'price' => $this->safe_number($market, 'tickSize'),
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => $this->parse_number('1'),
+                    'max' => $this->safe_number($market, 'maxLeverage'),
+                ),
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'price' => array(
+                    'min' => $this->parse_number($this->from_en($minPriceEp, $priceScale)),
+                    'max' => $this->parse_number($this->from_en($maxPriceEp, $priceScale)),
+                ),
+                'cost' => array(
+                    'min' => null,
+                    'max' => $this->parse_number($this->safe_string($market, 'maxOrderQty')),
+                ),
+            ),
+            'info' => $market,
         );
     }
 
@@ -505,57 +537,63 @@ class phemex extends Exchange {
         $id = $this->safe_string($market, 'symbol');
         $quoteId = $this->safe_string($market, 'quoteCurrency');
         $baseId = $this->safe_string($market, 'baseCurrency');
-        $linear = null;
-        $inverse = null;
-        $spot = true;
-        $swap = false;
-        $taker = $this->safe_number($market, 'defaultTakerFee');
-        $maker = $this->safe_number($market, 'defaultMakerFee');
-        $precision = array(
-            'amount' => $this->parse_safe_number($this->safe_string($market, 'baseTickSize')),
-            'price' => $this->parse_safe_number($this->safe_string($market, 'quoteTickSize')),
-        );
-        $limits = array(
-            'amount' => array(
-                'min' => $precision['amount'],
-                'max' => $this->parse_safe_number($this->safe_string($market, 'maxBaseOrderSize')),
-            ),
-            'price' => array(
-                'min' => $precision['price'],
-                'max' => null,
-            ),
-            'cost' => array(
-                'min' => $this->parse_safe_number($this->safe_string($market, 'minOrderValue')),
-                'max' => $this->parse_safe_number($this->safe_string($market, 'maxOrderValue')),
-            ),
-        );
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $symbol = $base . '/' . $quote;
         $status = $this->safe_string($market, 'status');
-        $active = $status === 'Listed';
+        $precisionAmount = $this->parse_safe_number($this->safe_string($market, 'baseTickSize'));
+        $precisionPrice = $this->parse_safe_number($this->safe_string($market, 'quoteTickSize'));
         return array(
             'id' => $id,
-            'symbol' => $symbol,
+            'symbol' => $base . '/' . $quote,
             'base' => $base,
             'quote' => $quote,
+            'settle' => null,
             'baseId' => $baseId,
             'quoteId' => $quoteId,
-            'info' => $market,
+            'settleId' => null,
             'type' => $type,
-            'spot' => $spot,
-            'swap' => $swap,
-            'linear' => $linear,
-            'inverse' => $inverse,
-            'active' => $active,
-            'taker' => $taker,
-            'maker' => $maker,
-            'precision' => $precision,
+            'spot' => true,
+            'margin' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
+            'taker' => $this->safe_number($market, 'defaultTakerFee'),
+            'maker' => $this->safe_number($market, 'defaultMakerFee'),
+            'contractSize' => null,
+            'active' => $status === 'Listed',
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
             'priceScale' => 8,
             'valueScale' => 8,
             'ratioScale' => 8,
-            'contractSize' => null,
-            'limits' => $limits,
+            'precision' => array(
+                'amount' => $precisionAmount,
+                'price' => $precisionPrice,
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'amount' => array(
+                    'min' => $precisionAmount,
+                    'max' => $this->parse_safe_number($this->safe_string($market, 'maxBaseOrderSize')),
+                ),
+                'price' => array(
+                    'min' => $precisionPrice,
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => $this->parse_safe_number($this->safe_string($market, 'minOrderValue')),
+                    'max' => $this->parse_safe_number($this->safe_string($market, 'maxOrderValue')),
+                ),
+            ),
+            'info' => $market,
         );
     }
 
@@ -742,6 +780,8 @@ class phemex extends Exchange {
                 'code' => $code,
                 'name' => $name,
                 'active' => null,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => null,
                 'precision' => $precision,
                 'limits' => array(
@@ -1010,50 +1050,35 @@ class phemex extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer_product($ticker, 'timestamp', 0.000001);
-        $lastString = $this->from_ep($this->safe_string($ticker, 'lastEp'), $market);
-        $last = $this->parse_number($lastString);
-        $quoteVolume = $this->parse_number($this->from_ev($this->safe_string($ticker, 'turnoverEv'), $market));
-        $baseVolume = $this->safe_number($ticker, 'volume');
+        $last = $this->from_ep($this->safe_string($ticker, 'lastEp'), $market);
+        $quoteVolume = $this->from_ev($this->safe_string($ticker, 'turnoverEv'), $market);
+        $baseVolume = $this->safe_string($ticker, 'volume');
         if ($baseVolume === null) {
-            $baseVolume = $this->parse_number($this->from_ev($this->safe_string($ticker, 'volumeEv'), $market));
+            $baseVolume = $this->from_ev($this->safe_string($ticker, 'volumeEv'), $market);
         }
-        $vwap = null;
-        if (($market !== null) && ($market['spot'])) {
-            $vwap = $this->vwap($baseVolume, $quoteVolume);
-        }
-        $change = null;
-        $percentage = null;
-        $average = null;
-        $openString = $this->from_ep($this->safe_string($ticker, 'openEp'), $market);
-        $open = $this->parse_number($openString);
-        if (($openString !== null) && ($lastString !== null)) {
-            $change = $this->parse_number(Precise::string_sub($lastString, $openString));
-            $average = $this->parse_number(Precise::string_div(Precise::string_add($lastString, $openString), '2'));
-            $percentage = $this->parse_number(Precise::string_mul(Precise::string_sub(Precise::string_div($lastString, $openString), '1'), '100'));
-        }
-        $result = array(
+        $open = $this->from_ep($this->safe_string($ticker, 'openEp'), $market);
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->parse_number($this->from_ep($this->safe_string($ticker, 'highEp'), $market)),
-            'low' => $this->parse_number($this->from_ep($this->safe_string($ticker, 'lowEp'), $market)),
-            'bid' => $this->parse_number($this->from_ep($this->safe_string($ticker, 'bidEp'), $market)),
+            'high' => $this->from_ep($this->safe_string($ticker, 'highEp'), $market),
+            'low' => $this->from_ep($this->safe_string($ticker, 'lowEp'), $market),
+            'bid' => $this->from_ep($this->safe_string($ticker, 'bidEp'), $market),
             'bidVolume' => null,
-            'ask' => $this->parse_number($this->from_ep($this->safe_string($ticker, 'askEp'), $market)),
+            'ask' => $this->from_ep($this->safe_string($ticker, 'askEp'), $market),
             'askVolume' => null,
-            'vwap' => $vwap,
+            'vwap' => null,
             'open' => $open,
             'close' => $last,
             'last' => $last,
             'previousClose' => null, // previous day close
-            'change' => $change,
-            'percentage' => $percentage,
-            'average' => $average,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
-        return $result;
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

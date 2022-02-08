@@ -19,9 +19,14 @@ module.exports = class coinbasepro extends Exchange {
             'userAgent': this.userAgents['chrome'],
             'pro': true,
             'has': {
+                'CORS': true,
+                'spot': true,
+                'margin': undefined, // has but not fully inplemented
+                'swap': undefined, // has but not fully inplemented
+                'future': undefined, // has but not fully inplemented
+                'option': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': true,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'deposit': true,
@@ -307,34 +312,48 @@ module.exports = class coinbasepro extends Exchange {
             const quoteId = this.safeString (market, 'quote_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const priceLimits = {
-                'min': this.safeNumber (market, 'quote_increment'),
-                'max': undefined,
-            };
-            const precision = {
-                'amount': this.safeNumber (market, 'base_increment'),
-                'price': this.safeNumber (market, 'quote_increment'),
-            };
             const status = this.safeString (market, 'status');
-            const active = (status === 'online');
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
-                'symbol': symbol,
-                'baseId': baseId,
-                'quoteId': quoteId,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
-                'precision': precision,
+                'margin': this.safeValue (market, 'margin_enabled'),
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': (status === 'online'),
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': this.safeNumber (market, 'quote_increment'),
+                    'amount': this.safeNumber (market, 'base_increment'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'base_min_size'),
                         'max': this.safeNumber (market, 'base_max_size'),
                     },
-                    'price': priceLimits,
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'cost': {
                         'min': this.safeNumber (market, 'min_market_funds'),
                         'max': this.safeNumber (market, 'max_market_funds'),
@@ -481,17 +500,17 @@ module.exports = class coinbasepro extends Exchange {
         let volume = undefined;
         const symbol = (market === undefined) ? undefined : market['symbol'];
         if (Array.isArray (ticker)) {
-            last = this.safeNumber (ticker, 4);
+            last = this.safeString (ticker, 4);
             timestamp = this.milliseconds ();
         } else {
             timestamp = this.parse8601 (this.safeValue (ticker, 'time'));
-            bid = this.safeNumber (ticker, 'bid');
-            ask = this.safeNumber (ticker, 'ask');
-            high = this.safeNumber (ticker, 'high');
-            low = this.safeNumber (ticker, 'low');
-            open = this.safeNumber (ticker, 'open');
-            last = this.safeNumber2 (ticker, 'price', 'last');
-            volume = this.safeNumber (ticker, 'volume');
+            bid = this.safeString (ticker, 'bid');
+            ask = this.safeString (ticker, 'ask');
+            high = this.safeString (ticker, 'high');
+            low = this.safeString (ticker, 'low');
+            open = this.safeString (ticker, 'open');
+            last = this.safeString2 (ticker, 'price', 'last');
+            volume = this.safeString (ticker, 'volume');
         }
         return this.safeTicker ({
             'symbol': symbol,
@@ -514,7 +533,7 @@ module.exports = class coinbasepro extends Exchange {
             'baseVolume': volume,
             'quoteVolume': undefined,
             'info': ticker,
-        });
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

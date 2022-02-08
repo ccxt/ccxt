@@ -64,14 +64,16 @@ module.exports = class Exchange {
             'has': {
                 'publicAPI': true,
                 'privateAPI': true,
+                'CORS': undefined,
+                'spot': undefined,
                 'margin': undefined,
                 'swap': undefined,
                 'future': undefined,
+                'option': undefined,
                 'addMargin': undefined,
                 'cancelAllOrders': undefined,
                 'cancelOrder': true,
                 'cancelOrders': undefined,
-                'CORS': undefined,
                 'createDepositAddress': undefined,
                 'createLimitOrder': true,
                 'createMarketOrder': true,
@@ -129,8 +131,6 @@ module.exports = class Exchange {
                 'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
                 'fetchTransfers': undefined,
-                'fetchWithdrawAddress': undefined,
-                'fetchWithdrawAddressesByNetwork': undefined,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': undefined,
                 'loadLeverageBrackets': undefined,
@@ -706,8 +706,10 @@ module.exports = class Exchange {
             if (this.verbose) {
                 this.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponseHeaders:\n", responseHeaders, "\nResponseBody:\n", responseBody, "\n")
             }
-            this.handleErrors (response.status, response.statusText, url, method, responseHeaders, responseBody, json, requestHeaders, requestBody)
-            this.handleHttpStatusCode (response.status, response.statusText, url, method, responseBody)
+            const skipFurtherErrorHandling = this.handleErrors (response.status, response.statusText, url, method, responseHeaders, responseBody, json, requestHeaders, requestBody)
+            if (!skipFurtherErrorHandling) {
+                this.handleHttpStatusCode (response.status, response.statusText, url, method, responseBody)
+            }
             return json || responseBody
         })
     }
@@ -1212,57 +1214,113 @@ module.exports = class Exchange {
         return indexed ? indexBy (result, key) : result
     }
 
-    safeTicker (ticker, market = undefined) {
-        let symbol = this.safeValue (ticker, 'symbol');
-        if (symbol === undefined) {
-            symbol = this.safeSymbol (undefined, market);
-        }
-        const timestamp = this.safeInteger (ticker, 'timestamp');
-        const baseVolume = this.safeValue (ticker, 'baseVolume');
-        const quoteVolume = this.safeValue (ticker, 'quoteVolume');
-        let vwap = this.safeValue (ticker, 'vwap');
-        if (vwap === undefined) {
-            vwap = this.vwap (baseVolume, quoteVolume);
-        }
-        let open = this.safeValue (ticker, 'open');
-        let close = this.safeValue (ticker, 'close');
-        let last = this.safeValue (ticker, 'last');
-        let change = this.safeValue (ticker, 'change');
-        let percentage = this.safeValue (ticker, 'percentage');
-        let average = this.safeValue (ticker, 'average');
-        if ((last !== undefined) && (close === undefined)) {
-            close = last;
-        } else if ((last === undefined) && (close !== undefined)) {
-            last = close;
-        }
-        if ((last !== undefined) && (open !== undefined)) {
-            if (change === undefined) {
-                change = last - open;
+    safeTicker (ticker, market = undefined, legacy = true) {
+        if (legacy) {
+            let symbol = this.safeValue (ticker, 'symbol');
+            if (symbol === undefined) {
+                symbol = this.safeSymbol (undefined, market);
             }
-            if (average === undefined) {
-                average = this.sum (last, open) / 2;
+            const timestamp = this.safeInteger (ticker, 'timestamp');
+            const baseVolume = this.safeValue (ticker, 'baseVolume');
+            const quoteVolume = this.safeValue (ticker, 'quoteVolume');
+            let vwap = this.safeValue (ticker, 'vwap');
+            if (vwap === undefined) {
+                vwap = this.vwap (baseVolume, quoteVolume);
             }
+            let open = this.safeValue (ticker, 'open');
+            let close = this.safeValue (ticker, 'close');
+            let last = this.safeValue (ticker, 'last');
+            let change = this.safeValue (ticker, 'change');
+            let percentage = this.safeValue (ticker, 'percentage');
+            let average = this.safeValue (ticker, 'average');
+            if ((last !== undefined) && (close === undefined)) {
+                close = last;
+            } else if ((last === undefined) && (close !== undefined)) {
+                last = close;
+            }
+            if ((last !== undefined) && (open !== undefined)) {
+                if (change === undefined) {
+                    change = last - open;
+                }
+                if (average === undefined) {
+                    average = this.sum (last, open) / 2;
+                }
+            }
+            if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && (open > 0)) {
+                percentage = change / open * 100;
+            }
+            if ((change === undefined) && (percentage !== undefined) && (last !== undefined)) {
+                change = percentage / 100 * last;
+            }
+            if ((open === undefined) && (last !== undefined) && (change !== undefined)) {
+                open = last - change;
+            }
+            ticker['symbol'] = symbol;
+            ticker['timestamp'] = timestamp;
+            ticker['datetime'] = this.iso8601 (timestamp);
+            ticker['open'] = open;
+            ticker['close'] = close;
+            ticker['last'] = last;
+            ticker['vwap'] = vwap;
+            ticker['change'] = change;
+            ticker['percentage'] = percentage;
+            ticker['average'] = average;
+            return ticker;
+        } else {
+            let open = this.safeValue (ticker, 'open');
+            let close = this.safeValue (ticker, 'close');
+            let last = this.safeValue (ticker, 'last');
+            let change = this.safeValue (ticker, 'change');
+            let percentage = this.safeValue (ticker, 'percentage');
+            let average = this.safeValue (ticker, 'average');
+            let vwap = this.safeValue (ticker, 'vwap');
+            const baseVolume = this.safeValue (ticker, 'baseVolume');
+            const quoteVolume = this.safeValue (ticker, 'quoteVolume');
+            if (vwap === undefined) {
+                vwap = Precise.stringDiv (quoteVolume, baseVolume);
+            }
+            if ((last !== undefined) && (close === undefined)) {
+                close = last;
+            } else if ((last === undefined) && (close !== undefined)) {
+                last = close;
+            }
+            if ((last !== undefined) && (open !== undefined)) {
+                if (change === undefined) {
+                    change = Precise.stringSub (last, open);
+                }
+                if (average === undefined) {
+                    average = Precise.stringDiv (Precise.stringAdd (last, open), '2');
+                }
+            }
+            if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && (Precise.stringGt (open, '0'))) {
+                percentage = Precise.stringMul (Precise.stringDiv (change, open), '100');
+            }
+            if ((change === undefined) && (percentage !== undefined) && (last !== undefined)) {
+                change = Precise.stringDiv (Precise.stringMul (percentage, last), '100');
+            }
+            if ((open === undefined) && (last !== undefined) && (change !== undefined)) {
+                open = Precise.stringSub (last, change);
+            }
+            // timestamp and symbol operations don't belong in safeTicker
+            // they should be done in the derived classes
+            return this.extend (ticker, {
+                'bid': this.safeNumber (ticker, 'bid'),
+                'bidVolume': this.safeNumber (ticker, 'bidVolume'),
+                'ask': this.safeNumber (ticker, 'ask'),
+                'askVolume': this.safeNumber (ticker, 'askVolume'),
+                'high': this.safeNumber (ticker, 'high'),
+                'low': this.safeNumber (ticker, 'low'),
+                'open': this.parseNumber (open),
+                'close': this.parseNumber (close),
+                'last': this.parseNumber (last),
+                'change': this.parseNumber (change),
+                'percentage': this.parseNumber (percentage),
+                'average': this.parseNumber (average),
+                'vwap': this.parseNumber (vwap),
+                'baseVolume': this.parseNumber (baseVolume),
+                'quoteVolume': this.parseNumber (quoteVolume),
+            });
         }
-        if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && (open > 0)) {
-            percentage = change / open * 100;
-        }
-        if ((change === undefined) && (percentage !== undefined) && (last !== undefined)) {
-            change = percentage / 100 * last;
-        }
-        if ((open === undefined) && (last !== undefined) && (change !== undefined)) {
-            open = last - change;
-        }
-        ticker['symbol'] = symbol;
-        ticker['timestamp'] = timestamp;
-        ticker['datetime'] = this.iso8601 (timestamp);
-        ticker['open'] = open;
-        ticker['close'] = close;
-        ticker['last'] = last;
-        ticker['vwap'] = vwap;
-        ticker['change'] = change;
-        ticker['percentage'] = percentage;
-        ticker['average'] = average;
-        return ticker;
     }
 
     parseTickers (tickers, symbols = undefined, params = {}) {
@@ -1383,18 +1441,30 @@ module.exports = class Exchange {
             if (this.markets_by_id !== undefined && marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId]
             } else if (delimiter !== undefined) {
-                // * Will not work for swap and futures markets
-                const [ baseId, quoteId ] = marketId.split (delimiter)
-                const base = this.safeCurrencyCode (baseId)
-                const quote = this.safeCurrencyCode (quoteId)
-                const symbol = base + '/' + quote
-                return {
-                    'id': marketId,
-                    'symbol': symbol,
-                    'base': base,
-                    'quote': quote,
-                    'baseId': baseId,
-                    'quoteId': quoteId,
+                const parts = marketId.split (delimiter)
+                if (parts.length === 2) {
+                    const baseId = this.safeString (parts, 0);
+                    const quoteId = this.safeString (parts, 1);
+                    const base = this.safeCurrencyCode (baseId)
+                    const quote = this.safeCurrencyCode (quoteId)
+                    const symbol = base + '/' + quote
+                    return {
+                        'id': marketId,
+                        'symbol': symbol,
+                        'base': base,
+                        'quote': quote,
+                        'baseId': baseId,
+                        'quoteId': quoteId,
+                    }
+                } else {
+                    return {
+                        'id': marketId,
+                        'symbol': marketId,
+                        'base': undefined,
+                        'quote': undefined,
+                        'baseId': undefined,
+                        'quoteId': undefined,
+                    }
                 }
             }
         }

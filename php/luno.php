@@ -19,23 +19,50 @@ class luno extends Exchange {
             'rateLimit' => 1000,
             'version' => '1',
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
+                'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchLedger' => true,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTradingFees' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
             ),
             'urls' => array(
                 'referral' => 'https://www.luno.com/invite/44893A',
@@ -141,25 +168,40 @@ class luno extends Exchange {
             $quoteId = $this->safe_string($market, 'counter_currency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
             $status = $this->safe_string($market, 'trading_status');
-            $active = ($status === 'ACTIVE');
-            $precision = array(
-                'amount' => $this->safe_integer($market, 'volume_scale'),
-                'price' => $this->safe_integer($market, 'price_scale'),
-            );
             $result[] = array(
                 'id' => $id,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'active' => $active,
-                'precision' => $precision,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => ($status === 'ACTIVE'),
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->safe_integer($market, 'volume_scale'),
+                    'price' => $this->safe_integer($market, 'price_scale'),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->safe_number($market, 'min_volume'),
                         'max' => $this->safe_number($market, 'max_volume'),
@@ -379,21 +421,28 @@ class luno extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
+        // {
+        //     "pair":"XBTAUD",
+        //     "timestamp":1642201439301,
+        //     "bid":"59972.30000000",
+        //     "ask":"59997.99000000",
+        //     "last_trade":"59997.99000000",
+        //     "rolling_24_hour_volume":"1.89510000",
+        //     "status":"ACTIVE"
+        // }
         $timestamp = $this->safe_integer($ticker, 'timestamp');
-        $symbol = null;
-        if ($market) {
-            $symbol = $market['symbol'];
-        }
-        $last = $this->safe_number($ticker, 'last_trade');
-        return array(
+        $marketId = $this->safe_string($ticker, 'pair');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $last = $this->safe_string($ticker, 'last_trade');
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -403,10 +452,10 @@ class luno extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'rolling_24_hour_volume'),
+            'baseVolume' => $this->safe_string($ticker, 'rolling_24_hour_volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -432,6 +481,15 @@ class luno extends Exchange {
             'pair' => $market['id'],
         );
         $response = $this->publicGetTicker (array_merge($request, $params));
+        // {
+        //     "pair":"XBTAUD",
+        //     "timestamp":1642201439301,
+        //     "bid":"59972.30000000",
+        //     "ask":"59997.99000000",
+        //     "last_trade":"59997.99000000",
+        //     "rolling_24_hour_volume":"1.89510000",
+        //     "status":"ACTIVE"
+        // }
         return $this->parse_ticker($response, $market);
     }
 

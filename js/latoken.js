@@ -17,16 +17,27 @@ module.exports = class latoken extends Exchange {
             'version': 'v2',
             'rateLimit': 1000,
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': undefined, // has but unimplemented
+                'future': undefined,
+                'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
-                'fetchOrderBook': true,
                 'fetchOrder': true,
+                'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -119,10 +130,20 @@ module.exports = class latoken extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'BUX': 'Buxcoin',
+                'CBT': 'Community Business Token',
+                'CTC': 'CyberTronchain',
+                'DMD': 'Diamond Coin',
+                'FREN': 'Frenchie',
+                'GDX': 'GoldenX',
+                'GEM': 'NFTmall',
+                'IMC': 'IMCoin',
                 'MT': 'Monarch',
                 'TPAY': 'Tetra Pay',
                 'TRADE': 'Smart Trade Coin',
                 'TSL': 'Treasure SL',
+                'UNO': 'Unobtanium',
+                'WAR': 'Warrior Token',
             },
             'exceptions': {
                 'exact': {
@@ -252,42 +273,56 @@ module.exports = class latoken extends Exchange {
             if (baseCurrency !== undefined && quoteCurrency !== undefined) {
                 const base = this.safeCurrencyCode (this.safeString (baseCurrency, 'tag'));
                 const quote = this.safeCurrencyCode (this.safeString (quoteCurrency, 'tag'));
-                const symbol = base + '/' + quote;
-                const precision = {
-                    'price': this.safeNumber (market, 'priceTick'),
-                    'amount': this.safeNumber (market, 'quantityTick'),
-                };
                 const lowercaseQuote = quote.toLowerCase ();
                 const capitalizedQuote = this.capitalize (lowercaseQuote);
-                const limits = {
-                    'amount': {
-                        'min': this.safeNumber (market, 'minOrderQuantity'),
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': this.safeNumber (market, 'minOrderCost' + capitalizedQuote),
-                        'max': this.safeNumber (market, 'maxOrderCost' + capitalizedQuote),
-                    },
-                };
                 const status = this.safeString (market, 'status');
-                const active = (status === 'PAIR_STATUS_ACTIVE');
                 result.push ({
                     'id': id,
-                    'info': market,
-                    'symbol': symbol,
+                    'symbol': base + '/' + quote,
                     'base': base,
                     'quote': quote,
+                    'settle': undefined,
                     'baseId': baseId,
                     'quoteId': quoteId,
+                    'settleId': undefined,
                     'type': 'spot',
                     'spot': true,
-                    'active': active, // assuming true
-                    'precision': precision,
-                    'limits': limits,
+                    'margin': false,
+                    'swap': false,
+                    'future': false,
+                    'option': false,
+                    'active': (status === 'PAIR_STATUS_ACTIVE'), // assuming true
+                    'contract': false,
+                    'linear': undefined,
+                    'inverse': undefined,
+                    'contractSize': undefined,
+                    'expiry': undefined,
+                    'expiryDatetime': undefined,
+                    'strike': undefined,
+                    'optionType': undefined,
+                    'precision': {
+                        'price': this.safeNumber (market, 'priceTick'),
+                        'amount': this.safeNumber (market, 'quantityTick'),
+                    },
+                    'limits': {
+                        'leverage': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'amount': {
+                            'min': this.safeNumber (market, 'minOrderQuantity'),
+                            'max': undefined,
+                        },
+                        'price': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'cost': {
+                            'min': this.safeNumber (market, 'minOrderCost' + capitalizedQuote),
+                            'max': this.safeNumber (market, 'maxOrderCost' + capitalizedQuote),
+                        },
+                    },
+                    'info': market,
                 });
             }
         }
@@ -369,6 +404,8 @@ module.exports = class latoken extends Exchange {
                 'name': name,
                 'type': type,
                 'active': active,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': fee,
                 'precision': precision,
                 'limits': {
@@ -490,15 +527,15 @@ module.exports = class latoken extends Exchange {
         //
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeNumber (ticker, 'lastPrice');
-        const change = this.safeNumber (ticker, 'change24h');
+        const last = this.safeString (ticker, 'lastPrice');
+        const change = this.safeString (ticker, 'change24h');
         const timestamp = this.nonce ();
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'low': this.safeNumber (ticker, 'low'),
-            'high': this.safeNumber (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'high': this.safeString (ticker, 'high'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
@@ -512,9 +549,9 @@ module.exports = class latoken extends Exchange {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': this.safeNumber (ticker, 'volume24h'),
+            'quoteVolume': this.safeString (ticker, 'volume24h'),
             'info': ticker,
-        });
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {

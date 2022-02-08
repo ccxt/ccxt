@@ -37,32 +37,34 @@ class bitrue(Exchange):
             'version': 'v1',
             # new metainfo interface
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': None,  # has but unimplemented
+                'future': None,
+                'option': False,
                 'cancelAllOrders': False,
                 'cancelOrder': True,
-                'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': False,
                 'fetchDeposits': True,
                 'fetchFundingFees': False,
-                'fetchFundingHistory': False,
-                'fetchFundingRate': False,
-                'fetchFundingRateHistory': False,
-                'fetchFundingRates': False,
-                'fetchIndexOHLCV': False,
                 'fetchMarkets': True,
-                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': 'emulated',
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': False,
-                'fetchPositions': False,
-                'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -73,8 +75,6 @@ class bitrue(Exchange):
                 'fetchTransactions': False,
                 'fetchTransfers': False,
                 'fetchWithdrawals': True,
-                'setLeverage': False,
-                'setMarginMode': False,
                 'transfer': False,
                 'withdraw': True,
             },
@@ -159,8 +159,8 @@ class bitrue(Exchange):
                     'feeSide': 'get',
                     'tierBased': False,
                     'percentage': True,
-                    'taker': self.parse_number('0.0098'),
-                    'maker': self.parse_number('0.0098'),
+                    'taker': self.parse_number('0.00098'),
+                    'maker': self.parse_number('0.00098'),
                 },
                 'future': {
                     'trading': {
@@ -236,6 +236,7 @@ class bitrue(Exchange):
             # exchange-specific options
             'options': {
                 # 'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades
+                'fetchMyTradesMethod': 'v2PrivateGetMyTrades',  # v1PrivateGetMyTrades
                 'hasAlreadyAuthenticatedSuccessfully': False,
                 'recvWindow': 5 * 1000,  # 5 sec, binance default
                 'timeDifference': 0,  # the difference between system clock and Binance clock
@@ -602,15 +603,21 @@ class bitrue(Exchange):
                 'spot': True,
                 'type': 'spot',
                 'margin': False,
+                'linear': None,
+                'inverse': None,
                 'future': False,
-                'delivery': False,
-                'linear': False,
-                'inverse': False,
+                'swap': False,
+                'option': False,
+                'contract': False,
+                'contractSize': None,
+                'optionType': None,
+                'strike': None,
+                'settle': None,
+                'settleId': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'active': active,
                 'precision': precision,
-                'contractSize': None,
                 'limits': {
                     'amount': {
                         'min': None,
@@ -730,16 +737,16 @@ class bitrue(Exchange):
         #     }
         #
         symbol = self.safe_symbol(None, market)
-        last = self.safe_number(ticker, 'last')
+        last = self.safe_string(ticker, 'last')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
             'datetime': None,
-            'high': self.safe_number(ticker, 'high24hr'),
-            'low': self.safe_number(ticker, 'low24hr'),
-            'bid': self.safe_number(ticker, 'highestBid'),
+            'high': self.safe_string(ticker, 'high24hr'),
+            'low': self.safe_string(ticker, 'low24hr'),
+            'bid': self.safe_string(ticker, 'highestBid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'lowestAsk'),
+            'ask': self.safe_string(ticker, 'lowestAsk'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -747,12 +754,12 @@ class bitrue(Exchange):
             'last': last,
             'previousClose': None,
             'change': None,
-            'percentage': self.safe_number(ticker, 'percentChange'),
+            'percentage': self.safe_string(ticker, 'percentChange'),
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'baseVolume'),
-            'quoteVolume': self.safe_number(ticker, 'quoteVolume'),
+            'baseVolume': self.safe_string(ticker, 'baseVolume'),
+            'quoteVolume': self.safe_string(ticker, 'quoteVolume'),
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -911,7 +918,7 @@ class bitrue(Exchange):
         if 'commission' in trade:
             fee = {
                 'cost': self.safe_string(trade, 'commission'),
-                'currency': self.safe_currency_code(self.safe_string(trade, 'commissionAsset')),
+                'currency': self.safe_currency_code(self.safe_string(trade, 'commissionAssert')),
             }
         takerOrMaker = None
         if 'isMaker' in trade:
@@ -1250,6 +1257,9 @@ class bitrue(Exchange):
         return self.parse_order(response, market)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        method = self.safe_string(self.options, 'fetchMyTradesMethod', 'v2PrivateGetMyTrades')
+        if (symbol is None) and (method == 'v2PrivateGetMyTrades'):
+            raise ArgumentsRequired(self.id + ' v2PrivateGetMyTrades() requires a symbol argument')
         self.load_markets()
         request = {
             # 'symbol': market['id'],
@@ -1266,7 +1276,7 @@ class bitrue(Exchange):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        response = self.v1PrivateGetMyTrades(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, params))
         #
         #     [
         #         {

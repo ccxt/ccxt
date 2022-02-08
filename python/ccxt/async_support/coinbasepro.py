@@ -38,9 +38,14 @@ class coinbasepro(Exchange):
             'userAgent': self.userAgents['chrome'],
             'pro': True,
             'has': {
+                'CORS': True,
+                'spot': True,
+                'margin': None,  # has but not fully inplemented
+                'swap': None,  # has but not fully inplemented
+                'future': None,  # has but not fully inplemented
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': True,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'deposit': True,
@@ -323,34 +328,48 @@ class coinbasepro(Exchange):
             quoteId = self.safe_string(market, 'quote_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            priceLimits = {
-                'min': self.safe_number(market, 'quote_increment'),
-                'max': None,
-            }
-            precision = {
-                'amount': self.safe_number(market, 'base_increment'),
-                'price': self.safe_number(market, 'quote_increment'),
-            }
             status = self.safe_string(market, 'status')
-            active = (status == 'online')
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
-                'symbol': symbol,
-                'baseId': baseId,
-                'quoteId': quoteId,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
-                'precision': precision,
+                'margin': self.safe_value(market, 'margin_enabled'),
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': (status == 'online'),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': self.safe_number(market, 'quote_increment'),
+                    'amount': self.safe_number(market, 'base_increment'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(market, 'base_min_size'),
                         'max': self.safe_number(market, 'base_max_size'),
                     },
-                    'price': priceLimits,
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
                     'cost': {
                         'min': self.safe_number(market, 'min_market_funds'),
                         'max': self.safe_number(market, 'max_market_funds'),
@@ -489,17 +508,17 @@ class coinbasepro(Exchange):
         volume = None
         symbol = None if (market is None) else market['symbol']
         if isinstance(ticker, list):
-            last = self.safe_number(ticker, 4)
+            last = self.safe_string(ticker, 4)
             timestamp = self.milliseconds()
         else:
             timestamp = self.parse8601(self.safe_value(ticker, 'time'))
-            bid = self.safe_number(ticker, 'bid')
-            ask = self.safe_number(ticker, 'ask')
-            high = self.safe_number(ticker, 'high')
-            low = self.safe_number(ticker, 'low')
-            open = self.safe_number(ticker, 'open')
-            last = self.safe_number_2(ticker, 'price', 'last')
-            volume = self.safe_number(ticker, 'volume')
+            bid = self.safe_string(ticker, 'bid')
+            ask = self.safe_string(ticker, 'ask')
+            high = self.safe_string(ticker, 'high')
+            low = self.safe_string(ticker, 'low')
+            open = self.safe_string(ticker, 'open')
+            last = self.safe_string_2(ticker, 'price', 'last')
+            volume = self.safe_string(ticker, 'volume')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -521,7 +540,7 @@ class coinbasepro(Exchange):
             'baseVolume': volume,
             'quoteVolume': None,
             'info': ticker,
-        })
+        }, market, False)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()

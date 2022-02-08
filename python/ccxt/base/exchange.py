@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.67.1'
+__version__ = '1.72.43'
 
 # -----------------------------------------------------------------------------
 
@@ -256,14 +256,16 @@ class Exchange(object):
     has = {
         'publicAPI': True,
         'privateAPI': True,
+        'CORS': None,
+        'spot': None,
         'margin': None,
         'swap': None,
         'future': None,
+        'option': None,
         'addMargin': None,
         'cancelAllOrders': None,
         'cancelOrder': True,
         'cancelOrders': None,
-        'CORS': None,
         'createDepositAddress': None,
         'createLimitOrder': True,
         'createMarketOrder': True,
@@ -321,8 +323,6 @@ class Exchange(object):
         'fetchTradingLimits': None,
         'fetchTransactions': None,
         'fetchTransfers': None,
-        'fetchWithdrawAddress': None,
-        'fetchWithdrawAddressesByNetwork': None,
         'fetchWithdrawal': None,
         'fetchWithdrawals': None,
         'loadLeverageBrackets': None,
@@ -671,8 +671,9 @@ class Exchange(object):
 
         except HTTPError as e:
             details = ' '.join([self.id, method, url])
-            self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
-            self.handle_http_status_code(http_status_code, http_status_text, url, method, http_response)
+            skip_further_error_handling = self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
+            if not skip_further_error_handling:
+                self.handle_http_status_code(http_status_code, http_status_text, url, method, http_response)
             raise ExchangeError(details) from e
 
         except requestsConnectionError as e:
@@ -1850,48 +1851,95 @@ class Exchange(object):
         offset = timestamp % ms
         return timestamp - offset + (ms if direction == ROUND_UP else 0)
 
-    def safe_ticker(self, ticker, market=None):
-        symbol = self.safe_value(ticker, 'symbol')
-        if symbol is None:
-            symbol = self.safe_symbol(None, market)
-        timestamp = self.safe_integer(ticker, 'timestamp')
-        baseVolume = self.safe_value(ticker, 'baseVolume')
-        quoteVolume = self.safe_value(ticker, 'quoteVolume')
-        vwap = self.safe_value(ticker, 'vwap')
-        if vwap is None:
-            vwap = self.vwap(baseVolume, quoteVolume)
-        open = self.safe_value(ticker, 'open')
-        close = self.safe_value(ticker, 'close')
-        last = self.safe_value(ticker, 'last')
-        change = self.safe_value(ticker, 'change')
-        percentage = self.safe_value(ticker, 'percentage')
-        average = self.safe_value(ticker, 'average')
-        if (last is not None) and (close is None):
-            close = last
-        elif (last is None) and (close is not None):
-            last = close
-        if (last is not None) and (open is not None):
-            if change is None:
-                change = last - open
-            if average is None:
-                average = self.sum(last, open) / 2
-        if (percentage is None) and (change is not None) and (open is not None) and (open > 0):
-            percentage = change / open * 100
-        if (change is None) and (percentage is not None) and (last is not None):
-            change = percentage / 100 * last
-        if (open is None) and (last is not None) and (change is not None):
-            open = last - change
-        ticker['symbol'] = symbol
-        ticker['timestamp'] = timestamp
-        ticker['datetime'] = self.iso8601(timestamp)
-        ticker['open'] = open
-        ticker['close'] = close
-        ticker['last'] = last
-        ticker['vwap'] = vwap
-        ticker['change'] = change
-        ticker['percentage'] = percentage
-        ticker['average'] = average
-        return ticker
+    def safe_ticker(self, ticker, market=None, legacy=True):
+        if legacy:
+            symbol = self.safe_value(ticker, 'symbol')
+            if symbol is None:
+                symbol = self.safe_symbol(None, market)
+            timestamp = self.safe_integer(ticker, 'timestamp')
+            baseVolume = self.safe_value(ticker, 'baseVolume')
+            quoteVolume = self.safe_value(ticker, 'quoteVolume')
+            vwap = self.safe_value(ticker, 'vwap')
+            if vwap is None:
+                vwap = self.vwap(baseVolume, quoteVolume)
+            open = self.safe_value(ticker, 'open')
+            close = self.safe_value(ticker, 'close')
+            last = self.safe_value(ticker, 'last')
+            change = self.safe_value(ticker, 'change')
+            percentage = self.safe_value(ticker, 'percentage')
+            average = self.safe_value(ticker, 'average')
+            if (last is not None) and (close is None):
+                close = last
+            elif (last is None) and (close is not None):
+                last = close
+            if (last is not None) and (open is not None):
+                if change is None:
+                    change = last - open
+                if average is None:
+                    average = self.sum(last, open) / 2
+            if (percentage is None) and (change is not None) and (open is not None) and (open > 0):
+                percentage = change / open * 100
+            if (change is None) and (percentage is not None) and (last is not None):
+                change = percentage / 100 * last
+            if (open is None) and (last is not None) and (change is not None):
+                open = last - change
+            ticker['symbol'] = symbol
+            ticker['timestamp'] = timestamp
+            ticker['datetime'] = self.iso8601(timestamp)
+            ticker['open'] = open
+            ticker['close'] = close
+            ticker['last'] = last
+            ticker['vwap'] = vwap
+            ticker['change'] = change
+            ticker['percentage'] = percentage
+            ticker['average'] = average
+            return ticker
+        else:
+            open = self.safe_value(ticker, 'open')
+            close = self.safe_value(ticker, 'close')
+            last = self.safe_value(ticker, 'last')
+            change = self.safe_value(ticker, 'change')
+            percentage = self.safe_value(ticker, 'percentage')
+            average = self.safe_value(ticker, 'average')
+            vwap = self.safe_value(ticker, 'vwap')
+            baseVolume = self.safe_value(ticker, 'baseVolume')
+            quoteVolume = self.safe_value(ticker, 'quoteVolume')
+            if vwap is None:
+                vwap = Precise.string_div(quoteVolume, baseVolume)
+            if (last is not None) and (close is None):
+                close = last
+            elif (last is None) and (close is not None):
+                last = close
+            if (last is not None) and (open is not None):
+                if change is None:
+                    change = Precise.string_sub(last, open)
+                if average is None:
+                    average = Precise.string_div(Precise.string_add(last, open), '2')
+            if (percentage is None) and (change is not None) and (open is not None) and (Precise.string_gt(open, '0')):
+                percentage = Precise.string_mul(Precise.string_div(change, open), '100')
+            if (change is None) and (percentage is not None) and (last is not None):
+                change = Precise.string_div(Precise.string_mul(percentage, last), '100')
+            if (open is None) and (last is not None) and (change is not None):
+                open = Precise.string_sub(last, change)
+            # timestamp and symbol operations don't belong in safeTicker
+            # they should be done in the derived classes
+            return self.extend(ticker, {
+                'bid': self.safe_number(ticker, 'bid'),
+                'bidVolume': self.safe_number(ticker, 'bidVolume'),
+                'ask': self.safe_number(ticker, 'ask'),
+                'askVolume': self.safe_number(ticker, 'askVolume'),
+                'high': self.safe_number(ticker, 'high'),
+                'low': self.safe_number(ticker, 'low'),
+                'open': self.parse_number(open),
+                'close': self.parse_number(close),
+                'last': self.parse_number(last),
+                'change': self.parse_number(change),
+                'percentage': self.parse_number(percentage),
+                'average': self.parse_number(average),
+                'vwap': self.parse_number(vwap),
+                'baseVolume': self.parse_number(baseVolume),
+                'quoteVolume': self.parse_number(quoteVolume),
+            })
 
     def parse_tickers(self, tickers, symbols=None, params={}):
         result = []
@@ -1962,20 +2010,34 @@ class Exchange(object):
             if self.markets_by_id is not None and marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
             elif delimiter is not None:
-                baseId, quoteId = marketId.split(delimiter)
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-                return {
-                    'symbol': symbol,
-                    'base': base,
-                    'quote': quote,
-                    'baseId': baseId,
-                    'quoteId': quoteId,
-                }
+                parts = marketId.split(delimiter)
+                if len(parts) == 2:
+                    baseId = self.safe_string(parts, 0)
+                    quoteId = self.safe_string(parts, 1)
+                    base = self.safe_currency_code(baseId)
+                    quote = self.safe_currency_code(quoteId)
+                    symbol = base + '/' + quote
+                    return {
+                        'id': marketId,
+                        'symbol': symbol,
+                        'base': base,
+                        'quote': quote,
+                        'baseId': baseId,
+                        'quoteId': quoteId,
+                    }
+                else:
+                    return {
+                        'id': marketId,
+                        'symbol': marketId,
+                        'base': None,
+                        'quote': None,
+                        'baseId': None,
+                        'quoteId': None,
+                    }
         if market is not None:
             return market
         return {
+            'id': marketId,
             'symbol': marketId,
             'base': None,
             'quote': None,

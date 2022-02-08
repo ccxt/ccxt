@@ -5,7 +5,9 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountNotEnabled
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
@@ -26,14 +28,19 @@ class cryptocom(Exchange):
             'version': 'v2',
             'rateLimit': 10,  # 100 requests per second
             'has': {
+                'CORS': False,
+                'spot': True,
+                'margin': None,  # has but not fully implemented
+                'swap': None,  # has but not fully implemented
+                'future': None,  # has but not fully implemented
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': False,
                 'createOrder': True,
-                'fetchCurrencies': False,
                 'fetchBalance': True,
                 'fetchBidsAsks': False,
                 'fetchClosedOrders': 'emulated',
+                'fetchCurrencies': False,
                 'fetchDepositAddress': True,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
@@ -47,8 +54,8 @@ class cryptocom(Exchange):
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
-                'fetchOrders': True,
                 'fetchOrderBook': True,
+                'fetchOrders': True,
                 'fetchPositions': False,
                 'fetchStatus': False,
                 'fetchTicker': True,
@@ -240,6 +247,7 @@ class cryptocom(Exchange):
                     '10009': BadRequest,
                     '20001': BadRequest,
                     '20002': InsufficientFunds,
+                    '20005': AccountNotEnabled,  # {"id":"123xxx","method":"private/margin/xxx","code":"20005","message":"ACCOUNT_NOT_FOUND"}
                     '30003': BadSymbol,
                     '30004': BadRequest,
                     '30005': BadRequest,
@@ -262,6 +270,7 @@ class cryptocom(Exchange):
                     '40005': BadRequest,
                     '40006': BadRequest,
                     '40007': BadRequest,
+                    '40101': AuthenticationError,
                     '50001': BadRequest,
                 },
             },
@@ -304,57 +313,56 @@ class cryptocom(Exchange):
             quoteId = self.safe_string(market, 'quote_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
             priceDecimals = self.safe_string(market, 'price_decimals')
             minPrice = self.parse_precision(priceDecimals)
-            precision = {
-                'amount': self.safe_integer(market, 'quantity_decimals'),
-                'price': int(priceDecimals),
-            }
             minQuantity = self.safe_string(market, 'min_quantity')
-            minCost = self.parse_number(Precise.string_mul(minQuantity, minPrice))
-            maxQuantity = self.safe_number(market, 'max_quantity')
-            margin = self.safe_value(market, 'margin_trading_enabled')
             result.append({
-                'info': market,
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'linear': None,
-                'inverse': None,
-                'settle': None,
                 'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'margin': margin,
-                'future': False,
+                'margin': self.safe_value(market, 'margin_trading_enabled'),
                 'swap': False,
+                'future': False,
+                'option': False,
+                'active': None,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
                 'expiry': None,
                 'expiryDatetime': None,
-                'contractSize': None,
-                'active': None,
-                'precision': precision,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': int(priceDecimals),
+                    'amount': self.safe_integer(market, 'quantity_decimals'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.parse_number(minQuantity),
-                        'max': maxQuantity,
+                        'max': self.safe_number(market, 'max_quantity'),
                     },
                     'price': {
                         'min': self.parse_number(minPrice),
                         'max': None,
                     },
                     'cost': {
-                        'min': minCost,
-                        'max': None,
-                    },
-                    'leverage': {
-                        'min': None,
+                        'min': self.parse_number(Precise.string_mul(minQuantity, minPrice)),
                         'max': None,
                     },
                 },
+                'info': market,
             })
         futuresResponse = self.derivativesPublicGetPublicGetInstruments()
         #
@@ -407,37 +415,39 @@ class cryptocom(Exchange):
                 type = 'future'
                 symbol = symbol + '-' + self.yymmdd(expiry)
             contractSize = self.safe_number(market, 'contract_size')
-            marketId = self.safe_string(market, 'symbol')
-            maxLeverage = self.safe_number(market, 'max_leverage')
-            active = self.safe_value(market, 'tradable')
-            pricePrecision = self.safe_integer(market, 'quote_decimals')
-            amountPrecision = self.safe_integer(market, 'quantity_decimals')
             result.append({
-                'info': market,
-                'id': marketId,
+                'id': self.safe_string(market, 'symbol'),
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'linear': True,
-                'inverse': False,
-                'settle': quote,
                 'settleId': quoteId,
                 'type': type,
                 'spot': False,
                 'margin': False,
-                'future': future,
                 'swap': swap,
+                'future': future,
+                'option': False,
+                'active': self.safe_value(market, 'tradable'),
+                'contract': True,
+                'linear': True,
+                'inverse': False,
+                'contractSize': contractSize,
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
-                'contractSize': contractSize,
-                'active': active,
+                'strike': None,
+                'optionType': None,
                 'precision': {
-                    'price': pricePrecision,
-                    'amount': amountPrecision,
+                    'price': self.safe_integer(market, 'quote_decimals'),
+                    'amount': self.safe_integer(market, 'quantity_decimals'),
                 },
                 'limits': {
+                    'leverage': {
+                        'min': self.parse_number('1'),
+                        'max': self.safe_number(market, 'max_leverage'),
+                    },
                     'amount': {
                         'min': self.parse_number(contractSize),
                         'max': None,
@@ -450,11 +460,8 @@ class cryptocom(Exchange):
                         'min': None,
                         'max': None,
                     },
-                    'leverage': {
-                        'min': None,
-                        'max': maxLeverage,
-                    },
                 },
+                'info': market,
             })
         return result
 
@@ -876,7 +883,7 @@ class cryptocom(Exchange):
         if postOnly:
             request['exec_inst'] = 'POST_ONLY'
             params = self.omit(params, ['postOnly'])
-        marketType, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
+        marketType, query = self.handle_market_type_and_params('createOrder', market, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotPrivatePostPrivateCreateOrder',
             'future': 'derivativesPrivatePostPrivateCreateOrder',
@@ -1009,6 +1016,8 @@ class cryptocom(Exchange):
         if since is not None:
             # maximum date range is one day
             request['start_ts'] = since
+            endTimestamp = self.sum(since, 24 * 60 * 60 * 1000)
+            request['end_ts'] = endTimestamp
         if limit is not None:
             request['page_size'] = limit
         marketType, query = self.handle_market_type_and_params('fetchMyTrades', market, params)
@@ -1355,17 +1364,17 @@ class cryptocom(Exchange):
         marketId = self.safe_string(ticker, 'i')
         market = self.safe_market(marketId, market, '_')
         symbol = market['symbol']
-        last = self.safe_number(ticker, 'a')
-        relativeChange = self.safe_number(ticker, 'c')
+        last = self.safe_string(ticker, 'a')
+        relativeChange = self.safe_string(ticker, 'c')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'h'),
-            'low': self.safe_number(ticker, 'l'),
-            'bid': self.safe_number(ticker, 'b'),
+            'high': self.safe_string(ticker, 'h'),
+            'low': self.safe_string(ticker, 'l'),
+            'bid': self.safe_string(ticker, 'b'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'k'),
+            'ask': self.safe_string(ticker, 'k'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -1373,12 +1382,12 @@ class cryptocom(Exchange):
             'last': last,
             'previousClose': None,
             'change': None,
-            'percentage': relativeChange * 100,
+            'percentage': relativeChange,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'v'),
+            'baseVolume': self.safe_string(ticker, 'v'),
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def parse_trade(self, trade, market=None):
         #
@@ -1412,8 +1421,11 @@ class cryptocom(Exchange):
         takerOrMaker = self.safe_string_lower_2(trade, 'liquidity_indicator', 'taker_side')
         order = self.safe_string(trade, 'order_id')
         fee = None
-        feeCost = Precise.string_neg(self.safe_string_2(trade, 'fee', 'fees'))
+        feeCost = self.safe_string_2(trade, 'fee', 'fees')
         if feeCost is not None:
+            contract = self.safe_value(market, 'contract', False)
+            if contract:
+                feeCost = Precise.string_neg(feeCost)
             feeCurrency = None
             if market['spot']:
                 feeCurrency = self.safe_string(trade, 'fee_currency')
@@ -1716,9 +1728,7 @@ class cryptocom(Exchange):
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         errorCode = self.safe_string(response, 'code')
-        message = self.safe_string(response, 'message')
-        if errorCode in self.exceptions['exact']:
-            Exception = self.exceptions['exact'][errorCode]
-            raise Exception(self.id + ' ' + message)
         if errorCode != '0':
-            raise ExchangeError(self.id + ' ' + message)
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+            raise ExchangeError(self.id + ' ' + body)

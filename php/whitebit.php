@@ -21,8 +21,13 @@ class whitebit extends Exchange {
             'countries' => array( 'EE' ),
             'rateLimit' => 500,
             'has' => array(
-                'cancelOrder' => null,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => null, // has but unimplemented
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'cancelOrder' => true,
                 'createDepositAddress' => null,
                 'createLimitOrder' => null,
                 'createMarketOrder' => null,
@@ -33,19 +38,25 @@ class whitebit extends Exchange {
                 'fetchBidsAsks' => null,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchDepositAddress' => true,
                 'fetchFundingFees' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderTrades' => true,
-                'fetchOpenOrders' => true,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFees' => true,
-                'privateAPI' => true,
-                'publicAPI' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -81,7 +92,7 @@ class whitebit extends Exchange {
                     ),
                 ),
                 'www' => 'https://www.whitebit.com',
-                'doc' => 'https://documenter.getpostman.com/view/7473075/Szzj8dgv?version=latest',
+                'doc' => 'https://github.com/whitebit-exchange/api-docs',
                 'fees' => 'https://whitebit.com/fee-schedule',
                 'referral' => 'https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963',
             ),
@@ -208,23 +219,27 @@ class whitebit extends Exchange {
     public function fetch_markets($params = array ()) {
         $response = $this->v2PublicGetMarkets ($params);
         //
-        //     {
-        //         "success":true,
-        //         "message":"",
-        //         "result":array(
-        //             {
-        //                 "name":"BTC_USD",
-        //                 "moneyPrec":"2",
-        //                 "stock":"BTC",
-        //                 "money":"USD",
-        //                 "stockPrec":"6",
-        //                 "feePrec":"4",
-        //                 "minAmount":"0.001",
-        //                 "tradesEnabled":true,
-        //                 "minTotal":"0.001"
-        //             }
-        //         )
-        //     }
+        //    {
+        //        "success" => true,
+        //        "message" => "",
+        //        "result" => array(
+        //            array(
+        //                "name":
+        //                "C98_USDT",
+        //                "stock":"C98",
+        //                "money":"USDT",
+        //                "stockPrec":"3",
+        //                "moneyPrec":"5",
+        //                "feePrec":"6",
+        //                "makerFee":"0.001",
+        //                "takerFee":"0.001",
+        //                "minAmount":"2.5",
+        //                "minTotal":"5.05",
+        //                "tradesEnabled":true
+        //            ),
+        //            ...
+        //        )
+        //    }
         //
         $markets = $this->safe_value($response, 'result');
         $result = array();
@@ -242,17 +257,36 @@ class whitebit extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'info' => $market,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
+                'margin' => null,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
                 'active' => $active,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'taker' => $this->safe_number($market, 'makerFee'),
+                'maker' => $this->safe_number($market, 'takerFee'),
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
                 'precision' => array(
                     'amount' => $this->safe_integer($market, 'stockPrec'),
                     'price' => $this->safe_integer($market, 'moneyPrec'),
                 ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->safe_number($market, 'minAmount'),
                         'max' => null,
@@ -266,6 +300,7 @@ class whitebit extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'info' => $market,
             );
             $result[] = $entry;
         }
@@ -305,6 +340,8 @@ class whitebit extends Exchange {
                 'info' => $currency, // the original payload
                 'name' => null, // see the comment above
                 'active' => $active,
+                'deposit' => $canDeposit,
+                'withdraw' => $canWithdraw,
                 'fee' => null,
                 'precision' => null,
                 'limits' => array(
@@ -437,30 +474,31 @@ class whitebit extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $last = $this->safe_number($ticker, 'last_price');
-        $percentage = $this->safe_number($ticker, 'change') * 0.01;
+        $last = $this->safe_string($ticker, 'last_price');
+        $change = $this->safe_string($ticker, 'change');
+        $percentage = Precise::string_mul($change, '0.01');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,
             'datetime' => null,
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_number($ticker, 'open'),
+            'open' => $this->safe_string($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
             'change' => null,
             'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => $this->safe_number_2($ticker, 'base_volume', 'volume'),
-            'quoteVolume' => $this->safe_number_2($ticker, 'quote_volume', 'deal'),
+            'baseVolume' => $this->safe_string_2($ticker, 'base_volume', 'volume'),
+            'quoteVolume' => $this->safe_string_2($ticker, 'quote_volume', 'deal'),
             'info' => $ticker,
-        ));
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

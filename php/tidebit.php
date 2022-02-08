@@ -20,17 +20,45 @@ class tidebit extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v2',
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
+                'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchDepositAddress' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchOHLCV' => true,
                 'fetchOrderBook' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -158,21 +186,38 @@ class tidebit extends Exchange {
             $id = $this->safe_string($market, 'id');
             $symbol = $this->safe_string($market, 'name');
             list($baseId, $quoteId) = explode('/', $symbol);
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
-                'base' => $base,
-                'quote' => $quote,
+                'base' => $this->safe_currency_code($baseId),
+                'quote' => $this->safe_currency_code($quoteId),
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'info' => $market,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
                 'active' => null,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
                 'precision' => $this->precision,
-                'limits' => $this->limits,
+                'limits' => array_merge(array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ), $this->limits),
+                'info' => $market,
             );
         }
         return $result;
@@ -215,21 +260,31 @@ class tidebit extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
+        //
+        //     {
+        //         "at":1398410899,
+        //         "ticker" => {
+        //             "buy" => "3000.0",
+        //             "sell":"3100.0",
+        //             "low":"3000.0",
+        //             "high":"3000.0",
+        //             "last":"3000.0",
+        //             "vol":"0.11"
+        //         }
+        //     }
+        //
         $timestamp = $this->safe_timestamp($ticker, 'at');
         $ticker = $this->safe_value($ticker, 'ticker', array());
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        $last = $this->safe_number($ticker, 'last');
-        return array(
-            'symbol' => $symbol,
+        $market = $this->safe_market(null, $market);
+        $last = $this->safe_string($ticker, 'last');
+        return $this->safe_ticker(array(
+            'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'buy'),
-            'ask' => $this->safe_number($ticker, 'sell'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'buy'),
+            'ask' => $this->safe_string($ticker, 'sell'),
             'bidVolume' => null,
             'askVolume' => null,
             'vwap' => null,
@@ -240,10 +295,10 @@ class tidebit extends Exchange {
             'percentage' => null,
             'previousClose' => null,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'vol'),
+            'baseVolume' => $this->safe_string($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -268,6 +323,19 @@ class tidebit extends Exchange {
             'market' => $market['id'],
         );
         $response = $this->publicGetTickersMarket (array_merge($request, $params));
+        //
+        //     {
+        //         "at":1398410899,
+        //         "ticker" => {
+        //             "buy" => "3000.0",
+        //             "sell":"3100.0",
+        //             "low":"3000.0",
+        //             "high":"3000.0",
+        //             "last":"3000.0",
+        //             "vol":"0.11"
+        //         }
+        //     }
+        //
         return $this->parse_ticker($response, $market);
     }
 

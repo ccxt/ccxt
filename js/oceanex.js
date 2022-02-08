@@ -23,6 +23,12 @@ module.exports = class oceanex extends Exchange {
                 'referral': 'https://oceanex.pro/signup?referral=VE24QX',
             },
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': undefined, // has but unimplemented
+                'future': undefined,
+                'option': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
@@ -30,6 +36,11 @@ module.exports = class oceanex extends Exchange {
                 'createOrder': true,
                 'fetchAllTradingFees': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchFundingFees': undefined,
                 'fetchMarkets': true,
@@ -148,19 +159,36 @@ module.exports = class oceanex extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': true,
-                'info': market,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': undefined,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'amount_precision'),
                     'price': this.safeInteger (market, 'price_precision'),
+                    'amount': this.safeInteger (market, 'amount_precision'),
                     'base': this.safeInteger (market, 'ask_precision'),
                     'quote': this.safeInteger (market, 'bid_precision'),
                 },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': undefined,
                         'max': undefined,
@@ -174,6 +202,7 @@ module.exports = class oceanex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': market,
             });
         }
         return result;
@@ -260,28 +289,29 @@ module.exports = class oceanex extends Exchange {
         //
         const ticker = this.safeValue (data, 'ticker', {});
         const timestamp = this.safeTimestamp (data, 'at');
-        return {
-            'symbol': market['symbol'],
+        const symbol = this.safeSymbol (undefined, market);
+        return this.safeTicker ({
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'buy'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'sell'),
+            'ask': this.safeString (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': this.safeNumber (ticker, 'last'),
-            'last': this.safeNumber (ticker, 'last'),
+            'close': this.safeString (ticker, 'last'),
+            'last': this.safeString (ticker, 'last'),
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'volume'),
+            'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market, false);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

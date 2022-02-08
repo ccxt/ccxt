@@ -17,8 +17,13 @@ module.exports = class bitflyer extends Exchange {
             'rateLimit': 1000, // their nonce-timestamp is in seconds...
             'hostname': 'bitflyer.com', // or bitflyer.com
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': undefined, // has but unimplemented
+                'swap': undefined, // has but unimplemented
+                'future': undefined, // has but unimplemented
+                'option': false,
+                'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': 'emulated',
@@ -28,6 +33,7 @@ module.exports = class bitflyer extends Exchange {
                 'fetchOrder': 'emulated',
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPositions': true,
                 'fetchTicker': true,
                 'fetchTrades': true,
                 'withdraw': true,
@@ -204,16 +210,16 @@ module.exports = class bitflyer extends Exchange {
     parseTicker (ticker, market = undefined) {
         const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
-        const last = this.safeNumber (ticker, 'ltp');
-        return {
+        const last = this.safeString (ticker, 'ltp');
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': this.safeNumber (ticker, 'best_bid'),
+            'bid': this.safeString (ticker, 'best_bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'best_ask'),
+            'ask': this.safeString (ticker, 'best_ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -223,10 +229,10 @@ module.exports = class bitflyer extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'volume_by_product'),
+            'baseVolume': this.safeString (ticker, 'volume_by_product'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {

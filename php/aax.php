@@ -8,6 +8,7 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
+use \ccxt\BadSymbol;
 use \ccxt\OrderNotFound;
 
 class aax extends Exchange {
@@ -24,17 +25,19 @@ class aax extends Exchange {
             'certified' => true,
             'pro' => true,
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
                 'margin' => false,
                 'swap' => true,
                 'future' => false,
+                'option' => false,
                 'addMargin' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => null,
-                'CORS' => null,
                 'createDepositAddress' => null,
                 'createOrder' => true,
-                'createReduceOnlyOrder' => null,
+                'createReduceOnlyOrder' => false,
                 'deposit' => null,
                 'editOrder' => true,
                 'fetchAccounts' => null,
@@ -42,6 +45,7 @@ class aax extends Exchange {
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
                 'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
@@ -59,20 +63,18 @@ class aax extends Exchange {
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
-                'fetchFundingRates' => null,
-                'fetchIndexOHLCV' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => true,
                 'fetchIsolatedPositions' => null,
                 'fetchL3OrderBook' => null,
                 'fetchLedger' => null,
                 'fetchLedgerEntry' => null,
                 'fetchLeverage' => null,
                 'fetchMarkets' => true,
-                'fetchMarketsByType' => null,
-                'fetchMarkOHLCV' => false,
+                'fetchMarkOHLCV' => true,
                 'fetchMyBuys' => null,
                 'fetchMySells' => null,
                 'fetchMyTrades' => true,
-                'fetchNetworkDepositAddress' => null,
                 'fetchOHLCV' => true,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
@@ -80,18 +82,14 @@ class aax extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => null,
                 'fetchOrders' => true,
-                'fetchOrdersByState' => null,
-                'fetchOrdersByStatus' => null,
                 'fetchOrderTrades' => null,
-                'fetchPartiallyFilledOrders' => null,
                 'fetchPosition' => null,
                 'fetchPositions' => null,
-                'fetchPositionsRisk' => null,
-                'fetchPremiumIndexOHLCV' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => 'emulated',
                 'fetchTickers' => true,
-                'fetchTickersByType' => null,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => null,
@@ -99,19 +97,16 @@ class aax extends Exchange {
                 'fetchTradingLimits' => null,
                 'fetchTransactions' => null,
                 'fetchTransfers' => null,
-                'fetchWithdrawAddress' => null,
-                'fetchWithdrawAddressesByNetwork' => null,
                 'fetchWithdrawal' => null,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => null,
                 'loadLeverageBrackets' => null,
                 'reduceMargin' => null,
-                'setLeverage' => null,
-                'setMarginMode' => null,
+                'setLeverage' => true,
+                'setMarginMode' => false,
                 'setPositionMode' => null,
                 'signIn' => null,
                 'transfer' => null,
-                'transferOut' => false,
                 'withdraw' => null,
             ),
             'timeframes' => array(
@@ -497,21 +492,21 @@ class aax extends Exchange {
                 'swap' => $swap,
                 'future' => false,
                 'option' => false,
+                'active' => ($status === 'enable'),
                 'contract' => $swap,
                 'linear' => $linear,
                 'inverse' => $inverse,
                 'taker' => $this->safe_number($market, 'takerFee'),
                 'maker' => $this->safe_number($market, 'makerFee'),
                 'contractSize' => $contractSize,
-                'active' => ($status === 'enable'),
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
                 'quanto' => $quanto,
                 'precision' => array(
-                    'amount' => $this->safe_number($market, 'lotSize'),
                     'price' => $this->safe_number($market, 'tickSize'),
+                    'amount' => $this->safe_number($market, 'lotSize'),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -626,15 +621,15 @@ class aax extends Exchange {
         $timestamp = $this->safe_integer($ticker, 't');
         $marketId = $this->safe_string($ticker, 's');
         $symbol = $this->safe_symbol($marketId, $market);
-        $last = $this->safe_number($ticker, 'c');
-        $open = $this->safe_number($ticker, 'o');
-        $quoteVolume = $this->safe_number($ticker, 'v');
+        $last = $this->safe_string($ticker, 'c');
+        $open = $this->safe_string($ticker, 'o');
+        $quoteVolume = $this->safe_string($ticker, 'v');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => null,
-            'high' => $this->safe_number($ticker, 'h'),
-            'low' => $this->safe_number($ticker, 'l'),
+            'high' => $this->safe_string($ticker, 'h'),
+            'low' => $this->safe_string($ticker, 'l'),
             'bid' => null,
             'bidVolume' => null,
             'ask' => null,
@@ -650,7 +645,7 @@ class aax extends Exchange {
             'baseVolume' => null,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -870,7 +865,7 @@ class aax extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1h', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -903,6 +898,27 @@ class aax extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+    }
+
+    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'mark',
+        );
+        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_premium_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'premiumIndex',
+        );
+        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'index',
+        );
+        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_balance($params = array ()) {
@@ -1004,7 +1020,7 @@ class aax extends Exchange {
         $method = null;
         if ($market['spot']) {
             $method = 'privatePostSpotOrders';
-        } else if ($market['futures']) {
+        } else if ($market['contract']) {
             $method = 'privatePostFuturesOrders';
         }
         $response = $this->$method (array_merge($request, $params));
@@ -1115,7 +1131,7 @@ class aax extends Exchange {
         $method = null;
         if ($market['spot']) {
             $method = 'privatePutSpotOrders';
-        } else if ($market['futures']) {
+        } else if ($market['contract']) {
             $method = 'privatePutFuturesOrders';
         }
         $response = $this->$method (array_merge($request, $params));
@@ -1208,21 +1224,17 @@ class aax extends Exchange {
         $request = array(
             'orderID' => $id,
         );
-        $method = null;
-        $defaultType = $this->safe_string_2($this->options, 'cancelOrder', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit($params, 'type');
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $type = $market['type'];
         }
-        if ($type === 'spot') {
-            $method = 'privateDeleteSpotOrdersCancelOrderID';
-        } else if ($type === 'futures') {
-            $method = 'privateDeleteFuturesOrdersCancelOrderID';
-        }
-        $response = $this->$method (array_merge($request, $params));
+        list($marketType, $query) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateDeleteSpotOrdersCancelOrderID',
+            'swap' => 'privateDeleteFuturesOrdersCancelOrderID',
+            'future' => 'privateDeleteFuturesOrdersCancelOrderID',
+        ));
+        $response = $this->$method (array_merge($request, $query));
         //
         // spot
         //
@@ -1318,7 +1330,7 @@ class aax extends Exchange {
         $method = null;
         if ($market['spot']) {
             $method = 'privateDeleteSpotOrdersCancelAll';
-        } else if ($market['futures']) {
+        } else if ($market['contract']) {
             $method = 'privateDeleteFuturesOrdersCancelAll';
         }
         $response = $this->$method (array_merge($request, $params));
@@ -1370,30 +1382,26 @@ class aax extends Exchange {
             // 'side' => 'null', // BUY, SELL
             // 'clOrdID' => $clientOrderId,
         );
-        $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit($params, 'type');
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
-            $type = $market['type'];
         }
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateGetSpotOpenOrders',
+            'swap' => 'privateGetFuturesOpenOrders',
+            'future' => 'privateGetFuturesOpenOrders',
+        ));
         $clientOrderId = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['clOrdID'] = $clientOrderId;
             $params = $this->omit($params, array( 'clOrdID', 'clientOrderId' ));
         }
-        $method = null;
-        if ($type === 'spot') {
-            $method = 'privateGetSpotOpenOrders';
-        } else if ($type === 'futures') {
-            $method = 'privateGetFuturesOpenOrders';
-        }
         if ($limit !== null) {
             $request['pageSize'] = $limit; // default 10
         }
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method (array_merge($request, $query));
         //
         // spot
         //
@@ -1522,21 +1530,17 @@ class aax extends Exchange {
             // 'side' => 'null', // BUY, SELL
             // 'clOrdID' => $clientOrderId,
         );
-        $method = null;
-        $defaultType = $this->safe_string_2($this->options, 'fetchOrders', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit($params, 'type');
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
-            $type = $market['type'];
         }
-        if ($type === 'spot') {
-            $method = 'privateGetSpotOrders';
-        } else if ($type === 'futures') {
-            $method = 'privateGetFuturesOrders';
-        }
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateGetSpotOrders',
+            'swap' => 'privateGetFuturesOrders',
+            'future' => 'privateGetFuturesOrders',
+        ));
         $clientOrderId = $this->safe_string_2($params, 'clOrdID', 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['clOrdID'] = $clientOrderId;
@@ -1548,7 +1552,7 @@ class aax extends Exchange {
         if ($since !== null) {
             $request['startDate'] = $this->yyyymmdd($since);
         }
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method (array_merge($request, $query));
         //
         // spot
         //
@@ -1809,28 +1813,24 @@ class aax extends Exchange {
             // 'orderType' => null, // MARKET, LIMIT, STOP, STOP-LIMIT
             // 'side' => 'null', // BUY, SELL
         );
-        $method = null;
-        $defaultType = $this->safe_string_2($this->options, 'fetchMyTrades', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit($params, 'type');
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
-            $type = $market['type'];
         }
-        if ($type === 'spot') {
-            $method = 'privateGetSpotTrades';
-        } else if ($type === 'futures') {
-            $method = 'privateGetFuturesTrades';
-        }
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateGetSpotTrades',
+            'swap' => 'privateGetFuturesTrades',
+            'future' => 'privateGetFuturesTrades',
+        ));
         if ($limit !== null) {
             $request['pageSize'] = $limit; // default 10
         }
         if ($since !== null) {
             $request['startDate'] = $this->yyyymmdd($since);
         }
-        $response = $this->$method (array_merge($request, $params));
+        $response = $this->$method (array_merge($request, $query));
         //
         //     {
         //         "code":1,
@@ -2135,7 +2135,7 @@ class aax extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $markPrice = $this->safe_number($contract, 'markPrice');
         $fundingRate = $this->safe_number($contract, 'fundingRate');
-        $prevFundingDatetime = $this->safe_string($contract, 'fundingTime');
+        $fundingDatetime = $this->safe_string($contract, 'fundingTime');
         $nextFundingDatetime = $this->safe_string($contract, 'nextFundingTime');
         return array(
             'info' => $contract,
@@ -2146,12 +2146,15 @@ class aax extends Exchange {
             'estimatedSettlePrice' => null,
             'timestamp' => null,
             'datetime' => null,
-            'previousFundingRate' => $fundingRate,
+            'fundingRate' => $fundingRate,
+            'fundingTimestamp' => $this->parse8601($fundingDatetime),
+            'fundingDatetime' => $fundingDatetime,
             'nextFundingRate' => null,
-            'previousFundingTimestamp' => $this->parse8601($prevFundingDatetime),
             'nextFundingTimestamp' => $this->parse8601($nextFundingDatetime),
-            'previousFundingDatetime' => $prevFundingDatetime,
             'nextFundingDatetime' => $nextFundingDatetime,
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
         );
     }
 
@@ -2288,6 +2291,25 @@ class aax extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+        }
+        if (($leverage < 1) || ($leverage > 100)) {
+            throw new BadRequest($this->id . ' $leverage should be between 1 and 100');
+        }
+        $market = $this->market($symbol);
+        if ($market['type'] !== 'swap') {
+            throw new BadSymbol($this->id . ' setLeverage() supports swap contracts only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'leverage' => $leverage,
+        );
+        return $this->privatePostFuturesPositionLeverage (array_merge($request, $params));
     }
 
     public function nonce() {

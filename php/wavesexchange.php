@@ -11,6 +11,7 @@ use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
 use \ccxt\InsufficientFunds;
+use \ccxt\InvalidOrder;
 
 class wavesexchange extends Exchange {
 
@@ -23,21 +24,50 @@ class wavesexchange extends Exchange {
             'certified' => true,
             'pro' => false,
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
                 'cancelOrder' => true,
-                'createMarketOrder' => null,
+                'createMarketOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
-                'fetchOrderBook' => true,
                 'fetchOrder' => true,
+                'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'signIn' => true,
                 'withdraw' => true,
             ),
@@ -59,7 +89,7 @@ class wavesexchange extends Exchange {
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg',
                 'test' => array(
-                    'matcher' => 'http://matcher-testnet.waves.exchange',
+                    'matcher' => 'https://matcher-testnet.waves.exchange',
                     'node' => 'https://nodes-testnet.wavesnodes.com',
                     'public' => 'https://api-testnet.wavesplatform.com/v0',
                     'private' => 'https://api-testnet.waves.exchange/v1',
@@ -67,7 +97,7 @@ class wavesexchange extends Exchange {
                     'market' => 'https://testnet.waves.exchange/api/v1/forward/marketdata/api/v1',
                 ),
                 'api' => array(
-                    'matcher' => 'http://matcher.waves.exchange',
+                    'matcher' => 'https://matcher.waves.exchange',
                     'node' => 'https://nodes.waves.exchange',
                     'public' => 'https://api.wavesplatform.com/v0',
                     'private' => 'https://api.waves.exchange/v1',
@@ -261,6 +291,7 @@ class wavesexchange extends Exchange {
             'options' => array(
                 'allowedCandles' => 1440,
                 'accessToken' => null,
+                'createMarketBuyOrderRequiresPrice' => true,
                 'matcherPublicKey' => null,
                 'quotes' => null,
                 'createOrderDefaultExpiry' => 2419200000, // 60 * 60 * 24 * 28 * 1000
@@ -314,6 +345,24 @@ class wavesexchange extends Exchange {
     public function set_sandbox_mode($enabled) {
         $this->options['messagePrefix'] = $enabled ? 'T' : 'W';
         return parent::set_sandbox_mode($enabled);
+    }
+
+    public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+        $settings = $this->matcherGetMatcherSettings ();
+        $dynamic = $this->safe_get_dynamic($settings);
+        $baseMatcherFee = $this->safe_string($dynamic, 'baseFee');
+        $amountAsString = $this->number_to_string($amount);
+        $priceAsString = $this->number_to_string($price);
+        $wavesMatcherFee = $this->currency_from_precision('WAVES', $baseMatcherFee);
+        $feeCost = $this->fee_to_precision($symbol, $this->parse_number($wavesMatcherFee));
+        $feeRate = Precise::string_div($wavesMatcherFee, Precise::string_mul($amountAsString, $priceAsString));
+        return array(
+            'type' => $takerOrMaker,
+            'currency' => 'WAVES',
+            // To calculate the rate since Waves has a fixed fee.
+            'rate' => $this->parse_number($feeRate),
+            'cost' => $this->parse_number($feeCost),
+        );
     }
 
     public function get_quotes() {
@@ -438,11 +487,11 @@ class wavesexchange extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
+                'active' => null,
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
                 'contractSize' => null,
-                'active' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
@@ -666,13 +715,13 @@ class wavesexchange extends Exchange {
             $symbol = $market['symbol'];
         }
         $data = $this->safe_value($ticker, 'data', array());
-        $last = $this->safe_number($data, 'lastPrice');
-        $low = $this->safe_number($data, 'low');
-        $high = $this->safe_number($data, 'high');
-        $vwap = $this->safe_number($data, 'weightedAveragePrice');
-        $baseVolume = $this->safe_number($data, 'volume');
-        $quoteVolume = $this->safe_number($data, 'quoteVolume');
-        $open = $this->safe_number($data, 'firstPrice');
+        $last = $this->safe_string($data, 'lastPrice');
+        $low = $this->safe_string($data, 'low');
+        $high = $this->safe_string($data, 'high');
+        $vwap = $this->safe_string($data, 'weightedAveragePrice');
+        $baseVolume = $this->safe_string($data, 'volume');
+        $quoteVolume = $this->safe_string($data, 'quoteVolume');
+        $open = $this->safe_string($data, 'firstPrice');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -694,7 +743,7 @@ class wavesexchange extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -740,15 +789,21 @@ class wavesexchange extends Exchange {
             'quoteId' => $market['quoteId'],
             'interval' => $this->timeframes[$timeframe],
         );
-        if ($since !== null) {
-            $request['timeStart'] = (string) $since;
-        } else {
-            $allowedCandles = $this->safe_integer($this->options, 'allowedCandles', 1440);
-            $timeframeUnix = $this->parse_timeframe($timeframe) * 1000;
-            $currentTime = (int) floor($this->milliseconds() / $timeframeUnix) * $timeframeUnix;
-            $delta = ($allowedCandles - 1) * $timeframeUnix;
+        $allowedCandles = $this->safe_integer($this->options, 'allowedCandles', 1440);
+        if ($limit === null) {
+            $limit = $allowedCandles;
+        }
+        $limit = min ($allowedCandles, $limit);
+        $duration = $this->parse_timeframe($timeframe) * 1000;
+        if ($since === null) {
+            $currentTime = intval($this->milliseconds() / $duration) * $duration;
+            $delta = ($limit - 1) * $duration;
             $timeStart = $currentTime - $delta;
             $request['timeStart'] = (string) $timeStart;
+        } else {
+            $request['timeStart'] = (string) $since;
+            $timeEnd = $this->sum($since, $duration * $limit);
+            $request['timeEnd'] = (string) $timeEnd;
         }
         $response = $this->publicGetCandlesBaseIdQuoteId (array_merge($request, $params));
         //
@@ -1027,6 +1082,23 @@ class wavesexchange extends Exchange {
         return $this->from_precision($price, $scale);
     }
 
+    public function safe_get_dynamic($settings) {
+        $orderFee = $this->safe_value($settings, 'orderFee');
+        if (is_array($orderFee) && array_key_exists('dynamic', $orderFee)) {
+            return $this->safe_value($orderFee, 'dynamic');
+        } else {
+            return $this->safe_value($orderFee['composite']['default'], 'dynamic');
+        }
+    }
+
+    public function safe_get_rates($dynamic) {
+        $rates = $this->safe_value($dynamic, 'rates');
+        if ($rates === null) {
+            return array( 'WAVES' => 1 );
+        }
+        return $rates;
+    }
+
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->check_required_dependencies();
         $this->check_required_keys();
@@ -1036,6 +1108,10 @@ class wavesexchange extends Exchange {
         $amountAsset = $this->get_asset_id($market['baseId']);
         $priceAsset = $this->get_asset_id($market['quoteId']);
         $amount = $this->amount_to_precision($symbol, $amount);
+        $isMarketOrder = ($type === 'market');
+        if (($isMarketOrder) && ($price === null)) {
+            throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for ' . $type . ' orders to determine the max $price for buy and the min $price for sell');
+        }
         $price = $this->price_to_precision($symbol, $price);
         $orderType = ($side === 'buy') ? 0 : 1;
         $timestamp = $this->milliseconds();
@@ -1090,11 +1166,10 @@ class wavesexchange extends Exchange {
         //     "4LHHvYGNKJUg5hj65aGD5vgScvCBmLpdRFtjokvCjSL8"
         //   )
         // }
-        $orderFee = $this->safe_value($settings, 'orderFee');
-        $dynamic = $this->safe_value($orderFee, 'dynamic');
+        $dynamic = $this->safe_get_dynamic($settings);
         $baseMatcherFee = $this->safe_string($dynamic, 'baseFee');
         $wavesMatcherFee = $this->currency_from_precision('WAVES', $baseMatcherFee);
-        $rates = $this->safe_value($dynamic, 'rates');
+        $rates = $this->safe_get_rates($dynamic);
         // choose sponsored assets from the list of $priceAssets above
         $priceAssets = is_array($rates) ? array_keys($rates) : array();
         $matcherFeeAssetId = null;
@@ -1171,7 +1246,15 @@ class wavesexchange extends Exchange {
         if ($matcherFeeAssetId !== 'WAVES') {
             $body['matcherFeeAssetId'] = $matcherFeeAssetId;
         }
-        $response = $this->matcherPostMatcherOrderbook ($body);
+        if ($isMarketOrder) {
+            $response = $this->matcherPostMatcherOrderbookMarket ($body);
+            $value = $this->safe_value($response, 'message');
+            return $this->parse_order($value, $market);
+        } else {
+            $response = $this->matcherPostMatcherOrderbook ($body);
+            $value = $this->safe_value($response, 'message');
+            return $this->parse_order($value, $market);
+        }
         // { success => true,
         //   message:
         //    array( version => 3,
@@ -1193,8 +1276,6 @@ class wavesexchange extends Exchange {
         //      proofs:
         //       array( '2EG8zgE6Ze1X5EYA8DbfFiPXAtC7NniYBAMFbJUbzwVbHmmCKHornQfS5F32NwkHF4623KWq1U6K126h4TTqyVq' ) ),
         //   status => 'OrderAccepted' }
-        $value = $this->safe_value($response, 'message');
-        return $this->parse_order($value, $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {

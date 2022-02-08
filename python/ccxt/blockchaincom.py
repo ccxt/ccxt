@@ -20,36 +20,48 @@ class blockchaincom(Exchange):
             'secret': None,
             'name': 'Blockchain.com',
             'countries': ['LX'],
-            'rateLimit': 10000,
+            'rateLimit': 1000,
             'version': 'v3',
             'has': {
                 'CORS': False,
-                'fetchTrades': False,
-                'fetchOHLCV': False,
-                'fetchLedger': False,
-                'fetchMarkets': True,
-                'fetchTickers': True,
-                'fetchTicker': True,
-                'fetchOrderBook': True,
-                'fetchL2OrderBook': True,
-                'fetchL3OrderBook': True,
-                'fetchOrder': True,
-                'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
-                'fetchPartiallyFilledOrders': True,
-                'fetchCanceledOrders': True,
-                'fetchBalance': True,
-                'createOrder': True,
+                'spot': True,
+                'margin': None,  # on exchange but not implemented in CCXT
+                'swap': False,
+                'future': False,
+                'option': False,
                 'cancelOrder': True,
                 'cancelOrders': True,
-                'fetchWithdrawals': True,
-                'fetchWithdrawal': True,
-                'fetchDeposits': True,
+                'createOrder': True,
+                'fetchBalance': True,
+                'fetchCanceledOrders': True,
+                'fetchClosedOrders': True,
                 'fetchDeposit': True,
-                'withdraw': True,
-                'fetchTradingFees': True,
-                'fetchWithdrawalWhitelist': True,  # fetches exchange specific benficiary-ids needed for withdrawals
+                'fetchDepositAddress': True,
+                'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchL2OrderBook': True,
+                'fetchL3OrderBook': True,
+                'fetchLedger': False,
+                'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
+                'fetchOHLCV': False,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchPremiumIndexOHLCV': False,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': False,
+                'fetchTradingFees': True,
+                'fetchWithdrawal': True,
+                'fetchWithdrawals': True,
+                'fetchWithdrawalWhitelist': True,  # fetches exchange specific benficiary-ids needed for withdrawals
+                'withdraw': True,
             },
             'timeframes': None,
             'urls': {
@@ -159,27 +171,26 @@ class blockchaincom(Exchange):
 
     def fetch_markets(self, params={}):
         #
-        # },
-        # "USDC-GBP": {
-        # "base_currency": "USDC",
-        # "base_currency_scale": 6,
-        # "counter_currency": "GBP",
-        # "counter_currency_scale": 2,
-        # "min_price_increment": 10000,
-        # "min_price_increment_scale": 8,
-        # "min_order_size": 500000000,
-        # "min_order_size_scale": 8,
-        # "max_order_size": 0,
-        # "max_order_size_scale": 8,
-        # "lot_size": 10000,
-        # "lot_size_scale": 8,
-        # "status": "open",
-        # "id": 68,
-        # "auction_price": 0,
-        # "auction_size": 0,
-        # "auction_time": "",
-        # "imbalance": 0
-        # }, ...
+        #     "USDC-GBP": {
+        #         "base_currency": "USDC",
+        #         "base_currency_scale": 6,
+        #         "counter_currency": "GBP",
+        #         "counter_currency_scale": 2,
+        #         "min_price_increment": 10000,
+        #         "min_price_increment_scale": 8,
+        #         "min_order_size": 500000000,
+        #         "min_order_size_scale": 8,
+        #         "max_order_size": 0,
+        #         "max_order_size_scale": 8,
+        #         "lot_size": 10000,
+        #         "lot_size_scale": 8,
+        #         "status": "open",
+        #         "id": 68,
+        #         "auction_price": 0,
+        #         "auction_size": 0,
+        #         "auction_time": "",
+        #         "imbalance": 0
+        #     }
         #
         markets = self.publicGetSymbols(params)
         marketIds = list(markets.keys())
@@ -210,11 +221,6 @@ class blockchaincom(Exchange):
             lotSizeScalePrecisionString = self.parse_precision(lotSizeScaleString)
             amountPrecisionString = Precise.string_mul(lotSizeString, lotSizeScalePrecisionString)
             amountPrecision = self.parse_number(amountPrecisionString)
-            # precision
-            precision = {
-                'price': pricePrecision,
-                'amount': amountPrecision,
-            }
             # minimum order size
             minOrderSizeString = self.safe_string(market, 'min_order_size')
             minOrderSizeScaleString = self.safe_string(market, 'min_order_size_scale')
@@ -231,33 +237,54 @@ class blockchaincom(Exchange):
                 maxOrderSize = self.parse_number(maxOrderSizeString)
             else:
                 maxOrderSize = None
-            limits = {
-                'amount': {
-                    'min': minOrderSize,
-                    'max': maxOrderSize,
-                },
-                'price': {
-                    'min': None,
-                    'max': None,
-                },
-                'cost': {
-                    'min': None,
-                    'max': None,
-                },
-            }
-            symbol = base + '/' + quote
             result.append({
+                'info': market,
                 'id': marketId,
                 'numericId': numericId,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'precision': precision,
-                'limits': limits,
+                'settleId': None,
+                'type': 'spot',
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'active': active,
-                'info': market,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': pricePrecision,
+                    'amount': amountPrecision,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': minOrderSize,
+                        'max': maxOrderSize,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
             })
         return result
 
@@ -295,9 +322,9 @@ class blockchaincom(Exchange):
         #
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market, '-')
-        last = self.safe_number(ticker, 'last_trade_price')
-        baseVolume = self.safe_number(ticker, 'volume_24h')
-        open = self.safe_number(ticker, 'price_24h')
+        last = self.safe_string(ticker, 'last_trade_price')
+        baseVolume = self.safe_string(ticker, 'volume_24h')
+        open = self.safe_string(ticker, 'price_24h')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
@@ -319,7 +346,7 @@ class blockchaincom(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -379,7 +406,7 @@ class blockchaincom(Exchange):
         datetime = self.iso8601(timestamp)
         filled = self.safe_string(order, 'cumQty')
         remaining = self.safe_string(order, 'leavesQty')
-        result = self.safeOrder2({
+        result = self.safe_order({
             'id': exchangeOrderId,
             'clientOrderId': clientOrderId,
             'datetime': datetime,
@@ -794,7 +821,7 @@ class blockchaincom(Exchange):
             account['free'] = self.safe_string(entry, 'available')
             account['total'] = self.safe_string(entry, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
 
     def fetch_order(self, id, symbol=None, params={}):
         # note: only works with exchange-order-id

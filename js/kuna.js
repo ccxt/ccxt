@@ -17,20 +17,40 @@ module.exports = class kuna extends Exchange {
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': undefined,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchL3OrderBook': true,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': 'emulated',
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setPositionMode': false,
                 'withdraw': undefined,
             },
             'timeframes': undefined,
@@ -296,22 +316,39 @@ module.exports = class kuna extends Exchange {
                     const baseId = id[0] + slicedId.replace (quoteId, '');
                     const base = this.safeCurrencyCode (baseId);
                     const quote = this.safeCurrencyCode (quoteId);
-                    const symbol = base + '/' + quote;
                     markets.push ({
                         'id': id,
-                        'symbol': symbol,
+                        'symbol': base + '/' + quote,
                         'base': base,
                         'quote': quote,
+                        'settle': undefined,
                         'baseId': baseId,
                         'quoteId': quoteId,
+                        'settleId': undefined,
                         'type': 'spot',
                         'spot': true,
+                        'margin': false,
+                        'swap': false,
+                        'future': false,
+                        'option': false,
                         'active': undefined,
+                        'contract': false,
+                        'linear': undefined,
+                        'inverse': undefined,
+                        'contractSize': undefined,
+                        'expiry': undefined,
+                        'expiryDatetime': undefined,
+                        'strike': undefined,
+                        'optionType': undefined,
                         'precision': {
                             'amount': undefined,
                             'price': undefined,
                         },
                         'limits': {
+                            'leverage': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
                             'amount': {
                                 'min': undefined,
                                 'max': undefined,
@@ -350,33 +387,30 @@ module.exports = class kuna extends Exchange {
     parseTicker (ticker, market = undefined) {
         const timestamp = this.safeTimestamp (ticker, 'at');
         ticker = ticker['ticker'];
-        let symbol = undefined;
-        if (market) {
-            symbol = market['symbol'];
-        }
-        const last = this.safeNumber (ticker, 'last');
-        return {
+        const symbol = this.safeSymbol (undefined, market);
+        const last = this.safeString (ticker, 'last');
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'buy'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'sell'),
+            'ask': this.safeString (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeNumber (ticker, 'open'),
+            'open': this.safeString (ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'vol'),
+            'baseVolume': this.safeString (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

@@ -23,18 +23,34 @@ class bitstamp extends Exchange {
             'userAgent' => $this->userAgents['chrome'],
             'pro' => true,
             'has' => array(
+                'CORS' => true,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchFundingFees' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchLedger' => true,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -42,6 +58,9 @@ class bitstamp extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
@@ -49,6 +68,10 @@ class bitstamp extends Exchange {
                 'fetchTradingFees' => true,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -325,37 +348,49 @@ class bitstamp extends Exchange {
             $quoteId = strtolower($quote);
             $base = $this->safe_currency_code($base);
             $quote = $this->safe_currency_code($quote);
-            $symbol = $base . '/' . $quote;
-            $marketId = $baseId . '_' . $quoteId;
-            $id = $this->safe_string($market, 'url_symbol');
             $amountPrecisionString = $this->safe_string($market, 'base_decimals');
             $pricePrecisionString = $this->safe_string($market, 'counter_decimals');
             $amountLimit = $this->parse_precision($amountPrecisionString);
             $priceLimit = $this->parse_precision($pricePrecisionString);
-            $precision = array(
-                'amount' => intval($amountPrecisionString),
-                'price' => intval($pricePrecisionString),
-            );
             $minimumOrder = $this->safe_string($market, 'minimum_order');
             $parts = explode(' ', $minimumOrder);
             $cost = $parts[0];
             // list($cost, $currency) = explode(' ', $market['minimum_order']);
             $trading = $this->safe_string($market, 'trading');
-            $active = ($trading === 'Enabled');
             $result[] = array(
-                'id' => $id,
-                'symbol' => $symbol,
+                'id' => $this->safe_string($market, 'url_symbol'),
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'marketId' => $marketId,
-                'info' => $market,
+                'settleId' => null,
+                'marketId' => $baseId . '_' . $quoteId,
                 'type' => 'spot',
                 'spot' => true,
-                'active' => $active,
-                'precision' => $precision,
+                'margin' => false,
+                'future' => false,
+                'swap' => false,
+                'option' => false,
+                'active' => ($trading === 'Enabled'),
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'price' => intval($pricePrecisionString),
+                    'amount' => intval($amountPrecisionString),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->parse_number($amountLimit),
                         'max' => null,
@@ -369,6 +404,7 @@ class bitstamp extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'info' => $market,
             );
         }
         return $result;
@@ -500,32 +536,39 @@ class bitstamp extends Exchange {
         return $orderbook;
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
-        $this->load_markets();
-        $request = array(
-            'pair' => $this->market_id($symbol),
-        );
-        $ticker = $this->publicGetTickerPair (array_merge($request, $params));
+    public function parse_ticker($ticker, $market = null) {
+        //
+        // {
+        //     "high" => "37534.15",
+        //     "last" => "36487.44",
+        //     "timestamp":
+        //     "1643370585",
+        //     "bid" => "36475.15",
+        //     "vwap" => "36595.67",
+        //     "volume" => "2848.49168527",
+        //     "low" => "35511.32",
+        //     "ask" => "36487.44",
+        //     "open" => "37179.62"
+        // }
+        //
+        $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->safe_timestamp($ticker, 'timestamp');
-        $vwap = $this->safe_number($ticker, 'vwap');
-        $baseVolume = $this->safe_number($ticker, 'volume');
-        $quoteVolume = null;
-        if ($baseVolume !== null && $vwap !== null) {
-            $quoteVolume = $baseVolume * $vwap;
-        }
-        $last = $this->safe_number($ticker, 'last');
-        return array(
+        $vwap = $this->safe_string($ticker, 'vwap');
+        $baseVolume = $this->safe_string($ticker, 'volume');
+        $quoteVolume = Precise::string_mul($baseVolume, $vwap);
+        $last = $this->safe_string($ticker, 'last');
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => $vwap,
-            'open' => $this->safe_number($ticker, 'open'),
+            'open' => $this->safe_string($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
@@ -535,7 +578,31 @@ class bitstamp extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
+        ), $market, false);
+    }
+
+    public function fetch_ticker($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'pair' => $market['id'],
         );
+        $ticker = $this->publicGetTickerPair (array_merge($request, $params));
+        //
+        // {
+        //     "high" => "37534.15",
+        //     "last" => "36487.44",
+        //     "timestamp":
+        //     "1643370585",
+        //     "bid" => "36475.15",
+        //     "vwap" => "36595.67",
+        //     "volume" => "2848.49168527",
+        //     "low" => "35511.32",
+        //     "ask" => "36487.44",
+        //     "open" => "37179.62"
+        // }
+        //
+        return $this->parse_ticker($ticker, $market);
     }
 
     public function get_currency_id_from_transaction($transaction) {
@@ -601,16 +668,6 @@ class bitstamp extends Exchange {
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 return $this->markets_by_id[$marketId];
             }
-        }
-        return null;
-    }
-
-    public function get_market_from_trades($trades) {
-        $tradesBySymbol = $this->index_by($trades, 'symbol');
-        $symbols = is_array($tradesBySymbol) ? array_keys($tradesBySymbol) : array();
-        $numSymbols = is_array($symbols) ? count($symbols) : 0;
-        if ($numSymbols === 1) {
-            return $this->markets[$symbols[0]];
         }
         return null;
     }

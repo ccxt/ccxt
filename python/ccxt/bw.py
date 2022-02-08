@@ -23,10 +23,15 @@ class bw(Exchange):
             'rateLimit': 1500,
             'version': 'v1',
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': None,  # has but unimplemented
+                'swap': None,  # has but unimplemented
+                'future': None,
+                'option': None,
                 'cancelAllOrders': None,
                 'cancelOrder': True,
                 'cancelOrders': None,
-                'CORS': None,
                 'createDepositAddress': None,
                 'createLimitOrder': True,
                 'createMarketOrder': None,
@@ -202,6 +207,20 @@ class bw(Exchange):
                 'quoteNumericId': quoteNumericId,
                 'type': 'spot',
                 'spot': True,
+                'margin': False,
+                'future': False,
+                'swap': False,
+                'option': False,
+                'optionType': None,
+                'strike': None,
+                'linear': None,
+                'inverse': None,
+                'contract': False,
+                'contractSize': None,
+                'settle': None,
+                'settleId': None,
+                'expiry': None,
+                'expiryDatetime': None,
                 'active': active,
                 'maker': fee,
                 'taker': fee,
@@ -289,6 +308,10 @@ class bw(Exchange):
             id = self.safe_string(currency, 'currencyId')
             code = self.safe_currency_code(self.safe_string_upper(currency, 'name'))
             state = self.safe_integer(currency, 'state')
+            rechargeFlag = self.safe_integer(currency, 'rechargeFlag')
+            drawFlag = self.safe_integer(currency, 'drawFlag')
+            deposit = rechargeFlag == 1
+            withdraw = drawFlag == 1
             active = state == 1
             result[code] = {
                 'id': id,
@@ -296,6 +319,8 @@ class bw(Exchange):
                 'info': currency,
                 'name': code,
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': self.safe_number(currency, 'drawFee'),
                 'precision': None,
                 'limits': {
@@ -328,33 +353,34 @@ class bw(Exchange):
         #     ]
         #
         marketId = self.safe_string(ticker, 0)
-        symbol = self.safe_symbol(marketId, market)
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         timestamp = self.milliseconds()
-        close = self.safe_number(ticker, 1)
+        close = self.safe_string(ticker, 1)
         bid = self.safe_value(ticker, 'bid', {})
         ask = self.safe_value(ticker, 'ask', {})
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 2),
-            'low': self.safe_number(ticker, 3),
-            'bid': self.safe_number(ticker, 7),
-            'bidVolume': self.safe_number(bid, 'quantity'),
-            'ask': self.safe_number(ticker, 8),
-            'askVolume': self.safe_number(ask, 'quantity'),
+            'high': self.safe_string(ticker, 2),
+            'low': self.safe_string(ticker, 3),
+            'bid': self.safe_string(ticker, 7),
+            'bidVolume': self.safe_string(bid, 'quantity'),
+            'ask': self.safe_string(ticker, 8),
+            'askVolume': self.safe_string(ask, 'quantity'),
             'vwap': None,
             'open': None,
             'close': close,
             'last': close,
             'previousClose': None,
-            'change': self.safe_number(ticker, 5),
+            'change': self.safe_string(ticker, 5),
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 4),
-            'quoteVolume': self.safe_number(ticker, 9),
+            'baseVolume': self.safe_string(ticker, 4),
+            'quoteVolume': self.safe_string(ticker, 9),
             'info': ticker,
-        }
+        }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

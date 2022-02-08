@@ -17,8 +17,13 @@ module.exports = class bibox extends Exchange {
             'version': 'v1',
             'hostname': 'bibox.com',
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': undefined, // has but unimplemented
+                'swap': undefined, // has but unimplemented
+                'future': undefined,
+                'option': undefined,
+                'cancelOrder': true,
                 'createMarketOrder': undefined, // or they will return https://github.com/ccxt/ccxt/issues/2338
                 'createOrder': true,
                 'fetchBalance': true,
@@ -140,6 +145,7 @@ module.exports = class bibox extends Exchange {
                 'NFT': 'NFT Protocol',
                 'PAI': 'PCHAIN',
                 'REVO': 'Revo Network',
+                'STAR': 'Starbase',
                 'TERN': 'Ternio-ERC20',
             },
         });
@@ -207,37 +213,53 @@ module.exports = class bibox extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            let type = 'spot';
-            let spot = true;
+            const type = 'spot';
+            const spot = true;
             const areaId = this.safeInteger (market, 'area_id');
             if (areaId === 16) {
-                type = undefined;
-                spot = false;
+                // TODO: update to v3 api
+                continue;
             }
-            const precision = {
-                'amount': this.safeNumber (market, 'amount_scale'),
-                'price': this.safeNumber (market, 'decimal'),
-            };
             result.push ({
                 'id': id,
                 'numericId': numericId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': type,
                 'spot': spot,
-                'active': true,
-                'info': market,
-                'precision': precision,
+                'margin': false,
+                'future': false,
+                'swap': false,
+                'option': false,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'active': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': this.safeNumber (market, 'decimal'),
+                    'amount': this.safeNumber (market, 'amount_scale'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
@@ -245,6 +267,7 @@ module.exports = class bibox extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': market,
             });
         }
         return result;
@@ -263,24 +286,23 @@ module.exports = class bibox extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             symbol = base + '/' + quote;
         }
-        const last = this.safeNumber (ticker, 'last');
-        const change = this.safeNumber (ticker, 'change');
-        const baseVolume = this.safeNumber2 (ticker, 'vol', 'vol24H');
+        const last = this.safeString (ticker, 'last');
+        const change = this.safeString (ticker, 'change');
+        const baseVolume = this.safeString2 (ticker, 'vol', 'vol24H');
         let percentage = this.safeString (ticker, 'percent');
         if (percentage !== undefined) {
             percentage = percentage.replace ('%', '');
-            percentage = this.parseNumber (percentage);
         }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'buy'),
-            'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'sell'),
-            'askVolume': undefined,
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'buy'),
+            'bidVolume': this.safeString (ticker, 'buy_amount'),
+            'ask': this.safeString (ticker, 'sell'),
+            'askVolume': this.safeString (ticker, 'sell_amount'),
             'vwap': undefined,
             'open': undefined,
             'close': last,
@@ -290,9 +312,9 @@ module.exports = class bibox extends Exchange {
             'percentage': percentage,
             'average': undefined,
             'baseVolume': baseVolume,
-            'quoteVolume': this.safeNumber (ticker, 'amount'),
+            'quoteVolume': this.safeString (ticker, 'amount'),
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {

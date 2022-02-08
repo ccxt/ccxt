@@ -19,29 +19,55 @@ module.exports = class bitvavo extends Exchange {
             'certified': true,
             'pro': true,
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': undefined,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'editOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
-                'privateAPI': true,
-                'publicAPI': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -461,22 +487,21 @@ module.exports = class bitvavo extends Exchange {
         const marketId = this.safeString (ticker, 'market');
         const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.safeInteger (ticker, 'timestamp');
-        const last = this.safeNumber (ticker, 'last');
-        const baseVolume = this.safeNumber (ticker, 'volume');
-        const quoteVolume = this.safeNumber (ticker, 'volumeQuote');
-        const vwap = this.vwap (baseVolume, quoteVolume);
-        const open = this.safeNumber (ticker, 'open');
+        const last = this.safeString (ticker, 'last');
+        const baseVolume = this.safeString (ticker, 'volume');
+        const quoteVolume = this.safeString (ticker, 'volumeQuote');
+        const open = this.safeString (ticker, 'open');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
-            'bidVolume': this.safeNumber (ticker, 'bidSize'),
-            'ask': this.safeNumber (ticker, 'ask'),
-            'askVolume': this.safeNumber (ticker, 'askSize'),
-            'vwap': vwap,
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
+            'bidVolume': this.safeString (ticker, 'bidSize'),
+            'ask': this.safeString (ticker, 'ask'),
+            'askVolume': this.safeString (ticker, 'askSize'),
+            'vwap': undefined,
             'open': open,
             'close': last,
             'last': last,
@@ -487,7 +512,7 @@ module.exports = class bitvavo extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

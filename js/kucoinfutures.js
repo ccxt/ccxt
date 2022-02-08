@@ -22,32 +22,35 @@ module.exports = class kucoinfutures extends kucoin {
             'comment': 'Platform 2.0',
             'quoteJsonNumbers': false,
             'has': {
+                'CORS': undefined,
                 'spot': false,
                 'margin': false,
                 'swap': true,
                 'future': true,
                 'option': false,
+                'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': undefined,
-                'createDepositAddress': false,
+                'createDepositAddress': true,
                 'createOrder': true,
-                'fetchAccounts': false,
+                'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': false,
                 'fetchDepositAddress': true,
-                'fetchDeposits': undefined,
-                'fetchFundingFee': false,
+                'fetchDeposits': true,
+                'fetchFundingFee': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
                 'fetchIndexOHLCV': false,
-                'fetchL3OrderBook': false,
-                'fetchLedger': false,
+                'fetchL3OrderBook': true,
+                'fetchLedger': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -55,7 +58,6 @@ module.exports = class kucoinfutures extends kucoin {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrdersByStatus': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
@@ -63,12 +65,10 @@ module.exports = class kucoinfutures extends kucoin {
                 'fetchTickers': false,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchWithdrawals': undefined,
+                'fetchWithdrawals': true,
                 'setMarginMode': false,
                 'transfer': true,
-                'transferOut': true,
                 'withdraw': undefined,
-                'addMargin': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/147508995-9e35030a-d046-43a1-a006-6fabd981b554.jpg',
@@ -414,38 +414,40 @@ module.exports = class kucoinfutures extends kucoin {
             const quoteMinSize = this.safeNumber (market, 'quoteMinSize');
             const inverse = this.safeValue (market, 'isInverse');
             const status = this.safeString (market, 'status');
-            const active = status === 'Open';
+            const multiplier = this.safeString (market, 'multiplier');
             result.push ({
                 'id': id,
                 'symbol': symbol,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
                 'base': base,
                 'quote': quote,
                 'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
                 'type': type,
                 'spot': false,
                 'margin': false,
                 'swap': swap,
                 'future': future,
                 'option': false,
-                'active': active,
+                'active': (status === 'Open'),
                 'contract': true,
                 'linear': !inverse,
                 'inverse': inverse,
                 'taker': this.safeNumber (market, 'takerFeeRate'),
                 'maker': this.safeNumber (market, 'makerFeeRate'),
-                'contractSize': this.parseNumber (Precise.stringAbs (this.safeString (market, 'multiplier'))),
+                'contractSize': this.parseNumber (Precise.stringAbs (multiplier)),
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
+                'strike': undefined,
+                'optionType': undefined,
                 'precision': {
-                    'amount': this.safeNumber (market, 'lotSize'),
                     'price': this.safeNumber (market, 'tickSize'),
+                    'amount': this.safeNumber (market, 'lotSize'),
                 },
                 'limits': {
                     'leverage': {
-                        'min': undefined,
+                        'min': this.parseNumber ('1'),
                         'max': this.safeNumber (market, 'maxLeverage'),
                     },
                     'amount': {
@@ -668,7 +670,7 @@ module.exports = class kucoinfutures extends kucoin {
         //          }
         //     }
         //
-        const last = this.safeNumber (ticker, 'price');
+        const last = this.safeString (ticker, 'price');
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market, '-');
         const timestamp = Precise.stringDiv (this.safeString (ticker, 'ts'), '1000000');
@@ -678,10 +680,10 @@ module.exports = class kucoinfutures extends kucoin {
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': this.safeNumber (ticker, 'bestBidPrice'),
-            'bidVolume': this.safeNumber (ticker, 'bestBidSize'),
-            'ask': this.safeNumber (ticker, 'bestAskPrice'),
-            'askVolume': this.safeNumber (ticker, 'bestAskSize'),
+            'bid': this.safeString (ticker, 'bestBidPrice'),
+            'bidVolume': this.safeString (ticker, 'bestBidSize'),
+            'ask': this.safeString (ticker, 'bestAskPrice'),
+            'askVolume': this.safeString (ticker, 'bestAskSize'),
             'vwap': undefined,
             'open': undefined,
             'close': last,
@@ -693,7 +695,7 @@ module.exports = class kucoinfutures extends kucoin {
             'baseVolume': undefined,
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -879,9 +881,9 @@ module.exports = class kucoinfutures extends kucoin {
         const size = this.safeString (position, 'currentQty');
         let side = undefined;
         if (Precise.stringGt (size, '0')) {
-            side = 'buy';
+            side = 'long';
         } else if (Precise.stringLt (size, '0')) {
-            side = 'sell';
+            side = 'short';
         }
         const notional = Precise.stringAbs (this.safeString (position, 'posCost'));
         const initialMargin = this.safeString (position, 'posInit');
@@ -1139,10 +1141,11 @@ module.exports = class kucoinfutures extends kucoin {
         const cost = Precise.stringDiv (rawCost, leverage);
         let average = undefined;
         if (Precise.stringGt (filled, '0')) {
+            const contractSize = this.safeString (market, 'contractSize');
             if (market['linear']) {
-                average = Precise.stringDiv (rawCost, Precise.stringMul (market['contractSize'], filled));
+                average = Precise.stringDiv (rawCost, Precise.stringMul (contractSize, filled));
             } else {
-                average = Precise.stringDiv (Precise.stringMul (market['contractSize'], filled), rawCost);
+                average = Precise.stringDiv (Precise.stringMul (contractSize, filled), rawCost);
             }
         }
         // precision reported by their api is 8 d.p.
@@ -1204,7 +1207,7 @@ module.exports = class kucoinfutures extends kucoin {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const timestamp = this.safeNumber (data, 'timePoint');
+        const fundingTimestamp = this.safeNumber (data, 'timePoint');
         return {
             'info': data,
             'symbol': symbol,
@@ -1214,12 +1217,15 @@ module.exports = class kucoinfutures extends kucoin {
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'previousFundingRate': this.safeNumber (data, 'value'),
+            'fundingRate': this.safeNumber (data, 'value'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601 (fundingTimestamp),
             'nextFundingRate': this.safeNumber (data, 'predictedValue'),
-            'previousFundingTimestamp': timestamp,
             'nextFundingTimestamp': undefined,
-            'previousFundingDatetime': this.iso8601 (timestamp),
             'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
         };
     }
 
@@ -1244,7 +1250,7 @@ module.exports = class kucoinfutures extends kucoin {
         // only fetches one balance at a time
         // by default it will only fetch the BTC balance of the futures account
         // you can send 'currency' in params to fetch other currencies
-        // fetchBalance ({ 'type': 'futures', 'currency': 'USDT' })
+        // fetchBalance ({ 'type': 'future', 'currency': 'USDT' })
         const response = await this.futuresPrivateGetAccountOverview (params);
         //
         //     {
@@ -1265,8 +1271,8 @@ module.exports = class kucoinfutures extends kucoin {
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
-        if ((toAccount !== 'spot' && toAccount !== 'trade' && toAccount !== 'trading') || (fromAccount !== 'futures' && fromAccount !== 'contract')) {
-            throw new BadRequest (this.id + ' only supports transfers from contract(futures) account to trade(spot) account');
+        if ((toAccount !== 'main' && toAccount !== 'funding') || (fromAccount !== 'futures' && fromAccount !== 'future' && fromAccount !== 'contract')) {
+            throw new BadRequest (this.id + ' only supports transfers from contract(future) account to main(funding) account');
         }
         return this.transferOut (code, amount, params);
     }
@@ -1297,7 +1303,7 @@ module.exports = class kucoinfutures extends kucoin {
             'datetime': this.iso8601 (timestamp),
             'currency': code,
             'amount': amount,
-            'fromAccount': 'futures',
+            'fromAccount': 'future',
             'toAccount': 'spot',
             'status': this.safeString (data, 'status'),
         };

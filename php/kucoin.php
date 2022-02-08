@@ -23,11 +23,14 @@ class kucoin extends Exchange {
             'comment' => 'Platform 2.0',
             'quoteJsonNumbers' => false,
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => null,
                 'swap' => false,
                 'future' => false,
+                'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => null,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'fetchAccounts' => true,
@@ -40,7 +43,9 @@ class kucoin extends Exchange {
                 'fetchDeposits' => true,
                 'fetchFundingFee' => true,
                 'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchL3OrderBook' => true,
                 'fetchLedger' => true,
@@ -293,6 +298,7 @@ class kucoin extends Exchange {
                     '400100' => '\\ccxt\\BadRequest',
                     '400350' => '\\ccxt\\InvalidOrder', // array("code":"400350","msg":"Upper limit for holding => 10,000USDT, you can still buy 10,000USDT worth of coin.")
                     '400500' => '\\ccxt\\InvalidOrder', // array("code":"400500","msg":"Your located country/region is currently not supported for the trading of this token")
+                    '401000' => '\\ccxt\\BadRequest', // array("code":"401000","msg":"The interface has been deprecated")
                     '411100' => '\\ccxt\\AccountSuspended',
                     '415000' => '\\ccxt\\BadRequest', // array("code":"415000","msg":"Unsupported Media Type")
                     '500000' => '\\ccxt\\ExchangeNotAvailable', // array("code":"500000","msg":"Internal Server Error")
@@ -406,6 +412,7 @@ class kucoin extends Exchange {
                     'margin' => 'margin',
                     'main' => 'main',
                     'funding' => 'main',
+                    'future' => 'contract',
                     'futures' => 'contract',
                     'contract' => 'contract',
                     'pool' => 'pool',
@@ -503,7 +510,7 @@ class kucoin extends Exchange {
         //             "time":1602832092060,
         //             "ticker":array(
         //                 {
-        //                     "symbol" => "BTC-USDT",   // $symbol
+        //                     "symbol" => "BTC-USDT",   // symbol
         //                     "symbolName":"BTC-USDT", // Name of trading pairs, it would change after renaming
         //                     "buy" => "11328.9",   // bestAsk
         //                     "sell" => "11329",    // bestBid
@@ -534,9 +541,6 @@ class kucoin extends Exchange {
             list($baseId, $quoteId) = explode('-', $id);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $active = $this->safe_value($market, 'enableTrading');
-            $margin = $this->safe_value($market, 'isMarginEnabled');
             $baseMaxSize = $this->safe_number($market, 'baseMaxSize');
             $baseMinSizeString = $this->safe_string($market, 'baseMinSize');
             $quoteMaxSizeString = $this->safe_string($market, 'quoteMaxSize');
@@ -544,49 +548,59 @@ class kucoin extends Exchange {
             $quoteMaxSize = $this->parse_number($quoteMaxSizeString);
             $quoteMinSize = $this->safe_number($market, 'quoteMinSize');
             // $quoteIncrement = $this->safe_number($market, 'quoteIncrement');
-            $precision = array(
-                'amount' => $this->precision_from_string($this->safe_string($market, 'baseIncrement')),
-                'price' => $this->precision_from_string($this->safe_string($market, 'priceIncrement')),
-            );
-            $limits = array(
-                'amount' => array(
-                    'min' => $baseMinSize,
-                    'max' => $baseMaxSize,
-                ),
-                'price' => array(
-                    'min' => $this->safe_number($market, 'priceIncrement'),
-                    'max' => $this->parse_number(Precise::string_div($quoteMaxSizeString, $baseMinSizeString)),
-                ),
-                'cost' => array(
-                    'min' => $quoteMinSize,
-                    'max' => $quoteMaxSize,
-                ),
-                'leverage' => array(
-                    'max' => $this->safe_number($market, 'maxLeverage', 1), // * Don't default to 1 for $margin markets, leverage is located elsewhere
-                ),
-            );
             $ticker = $this->safe_value($tickersByMarketId, $id, array());
             $makerFeeRate = $this->safe_string($ticker, 'makerFeeRate');
             $takerFeeRate = $this->safe_string($ticker, 'makerFeeRate');
             $makerCoefficient = $this->safe_string($ticker, 'makerCoefficient');
             $takerCoefficient = $this->safe_string($ticker, 'takerCoefficient');
-            $maker = $this->parse_number(Precise::string_mul($makerFeeRate, $makerCoefficient));
-            $taker = $this->parse_number(Precise::string_mul($takerFeeRate, $takerCoefficient));
             $result[] = array(
                 'id' => $id,
-                'symbol' => $symbol,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'margin' => $margin,
-                'active' => $active,
-                'maker' => $maker,
-                'taker' => $taker,
-                'precision' => $precision,
-                'limits' => $limits,
+                'margin' => $this->safe_value($market, 'isMarginEnabled'),
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => $this->safe_value($market, 'enableTrading'),
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'taker' => $this->parse_number(Precise::string_mul($takerFeeRate, $takerCoefficient)),
+                'maker' => $this->parse_number(Precise::string_mul($makerFeeRate, $makerCoefficient)),
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'price' => $this->precision_from_string($this->safe_string($market, 'priceIncrement')),
+                    'amount' => $this->precision_from_string($this->safe_string($market, 'baseIncrement')),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => $baseMinSize,
+                        'max' => $baseMaxSize,
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => $quoteMinSize,
+                        'max' => $quoteMaxSize,
+                    ),
+                ),
                 'info' => $market,
             );
         }
@@ -629,6 +643,8 @@ class kucoin extends Exchange {
                 'precision' => $precision,
                 'info' => $entry,
                 'active' => $active,
+                'deposit' => $isDepositEnabled,
+                'withdraw' => $isWithdrawEnabled,
                 'fee' => $fee,
                 'limits' => $this->limits,
             );
@@ -712,7 +728,7 @@ class kucoin extends Exchange {
             throw new ExchangeError($this->id . ' $type must be one of ' . implode(', ', $keys));
         }
         $params = $this->omit($params, 'type');
-        return ($type === 'contract') || ($type === 'futures');
+        return ($type === 'contract') || ($type === 'future') || ($type === 'futures'); // * ($type === 'futures') deprecated, use ($type === 'future')
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -771,41 +787,40 @@ class kucoin extends Exchange {
         //         time => 1634641777363
         //     }
         //
-        $percentage = $this->safe_number($ticker, 'changeRate');
+        $percentage = $this->safe_string($ticker, 'changeRate');
         if ($percentage !== null) {
-            $percentage = $percentage * 100;
+            $percentage = Precise::string_mul($percentage, '100');
         }
-        $last = $this->safe_number_2($ticker, 'last', 'lastTradedPrice');
-        $last = $this->safe_number($ticker, 'price', $last);
+        $last = $this->safe_string_2($ticker, 'last', 'lastTradedPrice');
+        $last = $this->safe_string($ticker, 'price', $last);
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market, '-');
         $symbol = $market['symbol'];
-        $baseVolume = $this->safe_number($ticker, 'vol');
-        $quoteVolume = $this->safe_number($ticker, 'volValue');
-        $vwap = $this->vwap($baseVolume, $quoteVolume);
+        $baseVolume = $this->safe_string($ticker, 'vol');
+        $quoteVolume = $this->safe_string($ticker, 'volValue');
         $timestamp = $this->safe_integer_2($ticker, 'time', 'datetime');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number_2($ticker, 'buy', 'bestBid'),
-            'bidVolume' => $this->safe_number($ticker, 'bestBidSize'),
-            'ask' => $this->safe_number_2($ticker, 'sell', 'bestAsk'),
-            'askVolume' => $this->safe_number($ticker, 'bestAskSize'),
-            'vwap' => $vwap,
-            'open' => $this->safe_number($ticker, 'open'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string_2($ticker, 'buy', 'bestBid'),
+            'bidVolume' => $this->safe_string($ticker, 'bestBidSize'),
+            'ask' => $this->safe_string_2($ticker, 'sell', 'bestAsk'),
+            'askVolume' => $this->safe_string($ticker, 'bestAskSize'),
+            'vwap' => null,
+            'open' => $this->safe_string($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_number($ticker, 'changePrice'),
+            'change' => $this->safe_string($ticker, 'changePrice'),
             'percentage' => $percentage,
-            'average' => $this->safe_number($ticker, 'averagePrice'),
+            'average' => $this->safe_string($ticker, 'averagePrice'),
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -1317,9 +1332,9 @@ class kucoin extends Exchange {
         //         "fee" => "0",            // $fee
         //         "feeCurrency" => "USDT", // charge $fee currency
         //         "stp" => "",             // self trade prevention,include CN,CO,DC,CB
-        //         "stop" => "",            // stop $type
-        //         "stopTriggered" => false,  // stop $order is triggered
-        //         "stopPrice" => "0",      // stop $price
+        //         "stop" => "",            // $stop $type
+        //         "stopTriggered" => false,  // $stop $order is triggered
+        //         "stopPrice" => "0",      // $stop $price
         //         "timeInForce" => "GTC",  // time InForce,include GTC,GTT,IOC,FOK
         //         "postOnly" => false,     // $postOnly
         //         "hidden" => false,       // hidden $order
@@ -1354,8 +1369,11 @@ class kucoin extends Exchange {
         // bool
         $isActive = $this->safe_value($order, 'isActive', false);
         $cancelExist = $this->safe_value($order, 'cancelExist', false);
+        $stop = $this->safe_string($order, 'stop');
+        $stopTriggered = $this->safe_value($order, 'stopTriggered', false);
         $status = $isActive ? 'open' : 'closed';
-        $status = $cancelExist ? 'canceled' : $status;
+        $cancelExistWithStop = $cancelExist || (!$isActive && $stop && !$stopTriggered);
+        $status = $cancelExistWithStop ? 'canceled' : $status;
         $fee = array(
             'currency' => $feeCurrency,
             'cost' => $feeCost,
@@ -2335,7 +2353,9 @@ class kucoin extends Exchange {
         //
         $errorCode = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'msg', '');
-        $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $this->id . ' ' . $message);
-        $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $this->id . ' ' . $message);
+        $feedback = $this->id . ' ' . $message;
+        $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+        $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+        $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
     }
 }

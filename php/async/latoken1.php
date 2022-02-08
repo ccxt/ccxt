@@ -22,26 +22,51 @@ class latoken1 extends Exchange {
             'certified' => false,
             'userAgent' => $this->userAgents['chrome'],
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => null,
                 'createMarketOrder' => null,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
-                'fetchOrder' => null,
+                'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrdersByStatus' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
-                'privateAPI' => true,
-                'publicAPI' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/61511972-24c39f00-aa01-11e9-9f7c-471f1d6e5214.jpg',
@@ -169,41 +194,60 @@ class latoken1 extends Exchange {
             $numericId = $this->safe_integer($market, 'pairId');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
             $pricePrecisionString = $this->safe_string($market, 'pricePrecision');
-            $priceLimit = $this->parse_precision($pricePrecisionString);
-            $precision = array(
-                'price' => intval($pricePrecisionString),
-                'amount' => $this->safe_integer($market, 'amountPrecision'),
-            );
-            $limits = array(
-                'amount' => array(
-                    'min' => $this->safe_number($market, 'minQty'),
-                    'max' => null,
-                ),
-                'price' => array(
-                    'min' => $this->parse_number($priceLimit),
-                    'max' => null,
-                ),
-                'cost' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-            );
+            $fees = $this->safe_value($this->fees, 'trading');
+            $defaultTaker = $this->safe_number($fees, 'taker');
+            $defaultMaker = $this->safe_number($fees, 'maker');
             $result[] = array(
                 'id' => $id,
                 'numericId' => $numericId,
-                'info' => $market,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'active' => null, // assuming true
-                'precision' => $precision,
-                'limits' => $limits,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => null,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'taker' => $this->safe_number($market, 'takerFee', $defaultTaker),
+                'maker' => $this->safe_number($market, 'makerFee', $defaultMaker),
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'price' => intval($pricePrecisionString),
+                    'amount' => $this->safe_integer($market, 'amountPrecision'),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => $this->safe_number($market, 'minQty'),
+                        'max' => null,
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+                'info' => $market,
             );
         }
         return $result;
@@ -239,6 +283,8 @@ class latoken1 extends Exchange {
                 'info' => $currency,
                 'name' => $code,
                 'active' => $active,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => $fee,
                 'precision' => $precision,
                 'limits' => array(
@@ -337,37 +383,31 @@ class latoken1 extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market);
-        $open = $this->safe_number($ticker, 'open');
-        $close = $this->safe_number($ticker, 'close');
-        $change = null;
-        if ($open !== null && $close !== null) {
-            $change = $close - $open;
-        }
-        $percentage = $this->safe_number($ticker, 'priceChange');
-        $timestamp = $this->nonce();
-        return array(
-            'symbol' => $symbol,
+        $market = $this->safe_market($marketId, $market);
+        $close = $this->safe_string($ticker, 'close');
+        $timestamp = $this->milliseconds();
+        return $this->safe_ticker(array(
+            'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'low' => $this->safe_number($ticker, 'low'),
-            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'high' => $this->safe_string($ticker, 'high'),
             'bid' => null,
             'bidVolume' => null,
             'ask' => null,
             'askVolume' => null,
             'vwap' => null,
-            'open' => $open,
+            'open' => $this->safe_string($ticker, 'open'),
             'close' => $close,
             'last' => $close,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => $percentage,
+            'change' => null,
+            'percentage' => $this->safe_string($ticker, 'priceChange'),
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => $this->safe_number($ticker, 'volume'),
+            'quoteVolume' => $this->safe_string($ticker, 'volume'),
             'info' => $ticker,
-        );
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

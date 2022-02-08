@@ -21,20 +21,40 @@ class kuna extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v2',
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => null,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'cancelOrder' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchL3OrderBook' => true,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => 'emulated',
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setPositionMode' => false,
                 'withdraw' => null,
             ),
             'timeframes' => null,
@@ -300,22 +320,39 @@ class kuna extends Exchange {
                     $baseId = $id[0] . str_replace($quoteId, '', $slicedId);
                     $base = $this->safe_currency_code($baseId);
                     $quote = $this->safe_currency_code($quoteId);
-                    $symbol = $base . '/' . $quote;
                     $markets[] = array(
                         'id' => $id,
-                        'symbol' => $symbol,
+                        'symbol' => $base . '/' . $quote,
                         'base' => $base,
                         'quote' => $quote,
+                        'settle' => null,
                         'baseId' => $baseId,
                         'quoteId' => $quoteId,
+                        'settleId' => null,
                         'type' => 'spot',
                         'spot' => true,
+                        'margin' => false,
+                        'swap' => false,
+                        'future' => false,
+                        'option' => false,
                         'active' => null,
+                        'contract' => false,
+                        'linear' => null,
+                        'inverse' => null,
+                        'contractSize' => null,
+                        'expiry' => null,
+                        'expiryDatetime' => null,
+                        'strike' => null,
+                        'optionType' => null,
                         'precision' => array(
                             'amount' => null,
                             'price' => null,
                         ),
                         'limits' => array(
+                            'leverage' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
                             'amount' => array(
                                 'min' => null,
                                 'max' => null,
@@ -354,33 +391,30 @@ class kuna extends Exchange {
     public function parse_ticker($ticker, $market = null) {
         $timestamp = $this->safe_timestamp($ticker, 'at');
         $ticker = $ticker['ticker'];
-        $symbol = null;
-        if ($market) {
-            $symbol = $market['symbol'];
-        }
-        $last = $this->safe_number($ticker, 'last');
-        return array(
+        $symbol = $this->safe_symbol(null, $market);
+        $last = $this->safe_string($ticker, 'last');
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'buy'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'sell'),
+            'ask' => $this->safe_string($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_number($ticker, 'open'),
+            'open' => $this->safe_string($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'vol'),
+            'baseVolume' => $this->safe_string($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

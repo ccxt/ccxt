@@ -21,14 +21,19 @@ class cryptocom extends Exchange {
             'version' => 'v2',
             'rateLimit' => 10, // 100 requests per second
             'has' => array(
+                'CORS' => false,
+                'spot' => true,
+                'margin' => null, // has but not fully implemented
+                'swap' => null, // has but not fully implemented
+                'future' => null, // has but not fully implemented
+                'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => false,
                 'createOrder' => true,
-                'fetchCurrencies' => false,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => false,
                 'fetchClosedOrders' => 'emulated',
+                'fetchCurrencies' => false,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
@@ -42,8 +47,8 @@ class cryptocom extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
-                'fetchOrders' => true,
                 'fetchOrderBook' => true,
+                'fetchOrders' => true,
                 'fetchPositions' => false,
                 'fetchStatus' => false,
                 'fetchTicker' => true,
@@ -235,6 +240,7 @@ class cryptocom extends Exchange {
                     '10009' => '\\ccxt\\BadRequest',
                     '20001' => '\\ccxt\\BadRequest',
                     '20002' => '\\ccxt\\InsufficientFunds',
+                    '20005' => '\\ccxt\\AccountNotEnabled', // array("id":"123xxx","method":"private/margin/xxx","code":"20005","message":"ACCOUNT_NOT_FOUND")
                     '30003' => '\\ccxt\\BadSymbol',
                     '30004' => '\\ccxt\\BadRequest',
                     '30005' => '\\ccxt\\BadRequest',
@@ -257,6 +263,7 @@ class cryptocom extends Exchange {
                     '40005' => '\\ccxt\\BadRequest',
                     '40006' => '\\ccxt\\BadRequest',
                     '40007' => '\\ccxt\\BadRequest',
+                    '40101' => '\\ccxt\\AuthenticationError',
                     '50001' => '\\ccxt\\BadRequest',
                 ),
             ),
@@ -300,57 +307,56 @@ class cryptocom extends Exchange {
             $quoteId = $this->safe_string($market, 'quote_currency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
             $priceDecimals = $this->safe_string($market, 'price_decimals');
             $minPrice = $this->parse_precision($priceDecimals);
-            $precision = array(
-                'amount' => $this->safe_integer($market, 'quantity_decimals'),
-                'price' => intval($priceDecimals),
-            );
             $minQuantity = $this->safe_string($market, 'min_quantity');
-            $minCost = $this->parse_number(Precise::string_mul($minQuantity, $minPrice));
-            $maxQuantity = $this->safe_number($market, 'max_quantity');
-            $margin = $this->safe_value($market, 'margin_trading_enabled');
             $result[] = array(
-                'info' => $market,
                 'id' => $id,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'linear' => null,
-                'inverse' => null,
-                'settle' => null,
                 'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'margin' => $margin,
-                'future' => false,
+                'margin' => $this->safe_value($market, 'margin_trading_enabled'),
                 'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => null,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
-                'contractSize' => null,
-                'active' => null,
-                'precision' => $precision,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'price' => intval($priceDecimals),
+                    'amount' => $this->safe_integer($market, 'quantity_decimals'),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->parse_number($minQuantity),
-                        'max' => $maxQuantity,
+                        'max' => $this->safe_number($market, 'max_quantity'),
                     ),
                     'price' => array(
                         'min' => $this->parse_number($minPrice),
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => $minCost,
-                        'max' => null,
-                    ),
-                    'leverage' => array(
-                        'min' => null,
+                        'min' => $this->parse_number(Precise::string_mul($minQuantity, $minPrice)),
                         'max' => null,
                     ),
                 ),
+                'info' => $market,
             );
         }
         $futuresResponse = yield $this->derivativesPublicGetPublicGetInstruments ();
@@ -406,37 +412,39 @@ class cryptocom extends Exchange {
                 $symbol = $symbol . '-' . $this->yymmdd($expiry);
             }
             $contractSize = $this->safe_number($market, 'contract_size');
-            $marketId = $this->safe_string($market, 'symbol');
-            $maxLeverage = $this->safe_number($market, 'max_leverage');
-            $active = $this->safe_value($market, 'tradable');
-            $pricePrecision = $this->safe_integer($market, 'quote_decimals');
-            $amountPrecision = $this->safe_integer($market, 'quantity_decimals');
             $result[] = array(
-                'info' => $market,
-                'id' => $marketId,
+                'id' => $this->safe_string($market, 'symbol'),
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'linear' => true,
-                'inverse' => false,
-                'settle' => $quote,
                 'settleId' => $quoteId,
                 'type' => $type,
                 'spot' => false,
                 'margin' => false,
-                'future' => $future,
                 'swap' => $swap,
+                'future' => $future,
+                'option' => false,
+                'active' => $this->safe_value($market, 'tradable'),
+                'contract' => true,
+                'linear' => true,
+                'inverse' => false,
+                'contractSize' => $contractSize,
                 'expiry' => $expiry,
                 'expiryDatetime' => $this->iso8601($expiry),
-                'contractSize' => $contractSize,
-                'active' => $active,
+                'strike' => null,
+                'optionType' => null,
                 'precision' => array(
-                    'price' => $pricePrecision,
-                    'amount' => $amountPrecision,
+                    'price' => $this->safe_integer($market, 'quote_decimals'),
+                    'amount' => $this->safe_integer($market, 'quantity_decimals'),
                 ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => $this->parse_number('1'),
+                        'max' => $this->safe_number($market, 'max_leverage'),
+                    ),
                     'amount' => array(
                         'min' => $this->parse_number($contractSize),
                         'max' => null,
@@ -449,11 +457,8 @@ class cryptocom extends Exchange {
                         'min' => null,
                         'max' => null,
                     ),
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => $maxLeverage,
-                    ),
                 ),
+                'info' => $market,
             );
         }
         return $result;
@@ -901,7 +906,7 @@ class cryptocom extends Exchange {
             $request['exec_inst'] = 'POST_ONLY';
             $params = $this->omit($params, array( 'postOnly' ));
         }
-        list($marketType, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
+        list($marketType, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'spotPrivatePostPrivateCreateOrder',
             'future' => 'derivativesPrivatePostPrivateCreateOrder',
@@ -1047,6 +1052,8 @@ class cryptocom extends Exchange {
         if ($since !== null) {
             // maximum date range is one day
             $request['start_ts'] = $since;
+            $endTimestamp = $this->sum($since, 24 * 60 * 60 * 1000);
+            $request['end_ts'] = $endTimestamp;
         }
         if ($limit !== null) {
             $request['page_size'] = $limit;
@@ -1424,17 +1431,17 @@ class cryptocom extends Exchange {
         $marketId = $this->safe_string($ticker, 'i');
         $market = $this->safe_market($marketId, $market, '_');
         $symbol = $market['symbol'];
-        $last = $this->safe_number($ticker, 'a');
-        $relativeChange = $this->safe_number($ticker, 'c');
+        $last = $this->safe_string($ticker, 'a');
+        $relativeChange = $this->safe_string($ticker, 'c');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'h'),
-            'low' => $this->safe_number($ticker, 'l'),
-            'bid' => $this->safe_number($ticker, 'b'),
+            'high' => $this->safe_string($ticker, 'h'),
+            'low' => $this->safe_string($ticker, 'l'),
+            'bid' => $this->safe_string($ticker, 'b'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'k'),
+            'ask' => $this->safe_string($ticker, 'k'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -1442,12 +1449,12 @@ class cryptocom extends Exchange {
             'last' => $last,
             'previousClose' => null,
             'change' => null,
-            'percentage' => $relativeChange * 100,
+            'percentage' => $relativeChange,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'v'),
+            'baseVolume' => $this->safe_string($ticker, 'v'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function parse_trade($trade, $market = null) {
@@ -1483,8 +1490,12 @@ class cryptocom extends Exchange {
         $takerOrMaker = $this->safe_string_lower_2($trade, 'liquidity_indicator', 'taker_side');
         $order = $this->safe_string($trade, 'order_id');
         $fee = null;
-        $feeCost = Precise::string_neg($this->safe_string_2($trade, 'fee', 'fees'));
+        $feeCost = $this->safe_string_2($trade, 'fee', 'fees');
         if ($feeCost !== null) {
+            $contract = $this->safe_value($market, 'contract', false);
+            if ($contract) {
+                $feeCost = Precise::string_neg($feeCost);
+            }
             $feeCurrency = null;
             if ($market['spot']) {
                 $feeCurrency = $this->safe_string($trade, 'fee_currency');
@@ -1808,13 +1819,10 @@ class cryptocom extends Exchange {
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         $errorCode = $this->safe_string($response, 'code');
-        $message = $this->safe_string($response, 'message');
-        if (is_array($this->exceptions['exact']) && array_key_exists($errorCode, $this->exceptions['exact'])) {
-            $Exception = $this->exceptions['exact'][$errorCode];
-            throw new $Exception($this->id . ' ' . $message);
-        }
         if ($errorCode !== '0') {
-            throw new ExchangeError($this->id . ' ' . $message);
+            $feedback = $this->id . ' ' . $body;
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+            throw new ExchangeError($this->id . ' ' . $body);
         }
     }
 }

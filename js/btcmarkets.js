@@ -16,25 +16,53 @@ module.exports = class btcmarkets extends Exchange {
             'rateLimit': 1000, // market data cached for 1 second (trades cached for 2 seconds)
             'version': 'v3',
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
-                'CORS': undefined,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': 'emulated',
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/89731817-b3fb8480-da52-11ea-817f-783b08aaf32b.jpg',
@@ -312,39 +340,55 @@ module.exports = class btcmarkets extends Exchange {
             if (quote === 'AUD') {
                 minPrice = Math.pow (10, -pricePrecision);
             }
-            const precision = {
-                'amount': amountPrecision,
-                'price': pricePrecision,
-            };
-            const limits = {
-                'amount': {
-                    'min': minAmount,
-                    'max': maxAmount,
-                },
-                'price': {
-                    'min': minPrice,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            };
             result.push ({
-                'info': market,
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'active': undefined,
-                'maker': fees['maker'],
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
                 'taker': fees['taker'],
-                'limits': limits,
-                'precision': precision,
+                'maker': fees['maker'],
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': amountPrecision,
+                    'price': pricePrecision,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': minAmount,
+                        'max': maxAmount,
+                    },
+                    'price': {
+                        'min': minPrice,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'info': market,
             });
         }
         return result;
@@ -477,39 +521,26 @@ module.exports = class btcmarkets extends Exchange {
         //         "timestamp":"2020-08-09T18:28:23.280000Z"
         //     }
         //
-        let symbol = undefined;
         const marketId = this.safeString (ticker, 'marketId');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
         const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
-        const last = this.safeNumber (ticker, 'lastPrice');
-        const baseVolume = this.safeNumber (ticker, 'volume24h');
-        const quoteVolume = this.safeNumber (ticker, 'volumeQte24h');
-        const vwap = this.vwap (baseVolume, quoteVolume);
-        const change = this.safeNumber (ticker, 'price24h');
-        const percentage = this.safeNumber (ticker, 'pricePct24h');
-        return {
+        const last = this.safeString (ticker, 'lastPrice');
+        const baseVolume = this.safeString (ticker, 'volume24h');
+        const quoteVolume = this.safeString (ticker, 'volumeQte24h');
+        const change = this.safeString (ticker, 'price24h');
+        const percentage = this.safeString (ticker, 'pricePct24h');
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high24h'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bestBid'),
+            'high': this.safeString (ticker, 'high24h'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bestBid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'bestAsk'),
+            'ask': this.safeString (ticker, 'bestAsk'),
             'askVolume': undefined,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
@@ -520,7 +551,7 @@ module.exports = class btcmarkets extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {

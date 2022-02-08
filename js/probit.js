@@ -17,24 +17,53 @@ module.exports = class probit extends Exchange {
             'countries': [ 'SC', 'KR' ], // Seychelles, South Korea
             'rateLimit': 50, // ms
             'has': {
-                'cancelOrder': true,
                 'CORS': true,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
+                'cancelOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'signIn': true,
                 'withdraw': true,
             },
@@ -150,6 +179,7 @@ module.exports = class probit extends Exchange {
             },
             'commonCurrencies': {
                 'AUTO': 'Cube',
+                'AZU': 'Azultec',
                 'BCC': 'BCC',
                 'BDP': 'BidiPass',
                 'BIRD': 'Birdchain',
@@ -157,16 +187,22 @@ module.exports = class probit extends Exchange {
                 'BTCBULL': 'BULL',
                 'CBC': 'CryptoBharatCoin',
                 'CHE': 'Chellit',
+                'CLR': 'Color Platform',
+                'CTK': 'Cryptyk',
                 'DIP': 'Dipper',
+                'EGC': 'EcoG9coin',
                 'EPS': 'Epanus',  // conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
                 'FX': 'Fanzy',
                 'GDT': 'Gorilla Diamond',
+                'GM': 'GM Holding',
                 'GOGOL': 'GOL',
                 'GOL': 'Goldofir',
                 'GRB': 'Global Reward Bank',
                 'HBC': 'Hybrid Bank Cash',
+                'HUSL': 'The Hustle App',
                 'LBK': 'Legal Block',
                 'ORC': 'Oracle System',
+                'PYE': 'CreamPYE',
                 'ROOK': 'Reckoon',
                 'SOC': 'Soda Coin',
                 'SST': 'SocialSwap',
@@ -213,37 +249,51 @@ module.exports = class probit extends Exchange {
             const quoteId = this.safeString (market, 'quote_currency_id');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
             const closed = this.safeValue (market, 'closed', false);
-            const active = !closed;
             const amountPrecision = this.safeString (market, 'quantity_precision');
             const costPrecision = this.safeString (market, 'cost_precision');
             const amountTickSize = this.parsePrecision (amountPrecision);
             const costTickSize = this.parsePrecision (costPrecision);
-            const precision = {
-                'amount': this.parseNumber (amountTickSize),
-                'price': this.safeNumber (market, 'price_increment'),
-                'cost': this.parseNumber (costTickSize),
-            };
             const takerFeeRate = this.safeString (market, 'taker_fee_rate');
             const taker = Precise.stringDiv (takerFeeRate, '100');
             const makerFeeRate = this.safeString (market, 'maker_fee_rate');
             const maker = Precise.stringDiv (makerFeeRate, '100');
             result.push ({
                 'id': id,
-                'info': market,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
-                'precision': precision,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': !closed,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
                 'taker': this.parseNumber (taker),
                 'maker': this.parseNumber (maker),
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': this.safeNumber (market, 'price_increment'),
+                    'amount': this.parseNumber (amountTickSize),
+                    'cost': this.parseNumber (costTickSize),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'min_quantity'),
                         'max': this.safeNumber (market, 'max_quantity'),
@@ -257,6 +307,7 @@ module.exports = class probit extends Exchange {
                         'max': this.safeNumber (market, 'max_cost'),
                     },
                 },
+                'info': market,
             });
         }
         return result;
@@ -334,7 +385,9 @@ module.exports = class probit extends Exchange {
             const precision = this.safeInteger (platform, 'precision');
             const depositSuspended = this.safeValue (platform, 'deposit_suspended');
             const withdrawalSuspended = this.safeValue (platform, 'withdrawal_suspended');
-            const active = !(depositSuspended && withdrawalSuspended);
+            const deposit = !depositSuspended;
+            const withdraw = !withdrawalSuspended;
+            const active = deposit && withdraw;
             const withdrawalFees = this.safeValue (platform, 'withdrawal_fee', {});
             const fees = [];
             // sometimes the withdrawal fee is an empty object
@@ -356,12 +409,14 @@ module.exports = class probit extends Exchange {
                 'info': currency,
                 'name': name,
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': fee,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                        'min': undefined,
+                        'max': undefined,
                     },
                     'deposit': {
                         'min': this.safeNumber (platform, 'min_deposit_amount'),
@@ -509,22 +564,21 @@ module.exports = class probit extends Exchange {
         const timestamp = this.parse8601 (this.safeString (ticker, 'time'));
         const marketId = this.safeString (ticker, 'market_id');
         const symbol = this.safeSymbol (marketId, market, '-');
-        const close = this.safeNumber (ticker, 'last');
-        const change = this.safeNumber (ticker, 'change');
-        const baseVolume = this.safeNumber (ticker, 'base_volume');
-        const quoteVolume = this.safeNumber (ticker, 'quote_volume');
-        const vwap = this.vwap (baseVolume, quoteVolume);
+        const close = this.safeString (ticker, 'last');
+        const change = this.safeString (ticker, 'change');
+        const baseVolume = this.safeString (ticker, 'base_volume');
+        const quoteVolume = this.safeString (ticker, 'quote_volume');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
             'askVolume': undefined,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': undefined,
             'close': close,
             'last': close,
@@ -535,7 +589,7 @@ module.exports = class probit extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

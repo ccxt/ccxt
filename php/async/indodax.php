@@ -18,22 +18,50 @@ class indodax extends Exchange {
             'name' => 'INDODAX',
             'countries' => array( 'ID' ), // Indonesia
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
+                'cancelOrder' => true,
                 'createMarketOrder' => null,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => null,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => null,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => null,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'withdraw' => true,
             ),
             'version' => '2.0', // as of 9 April 2018
@@ -159,43 +187,55 @@ class indodax extends Exchange {
             $quoteId = $this->safe_string($market, 'base_currency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $taker = $this->safe_number($market, 'trade_fee_percent');
             $isMaintenance = $this->safe_integer($market, 'is_maintenance');
-            $active = ($isMaintenance) ? false : true;
-            $pricePrecision = $this->safe_integer($market, 'price_round');
-            $precision = array(
-                'amount' => 8,
-                'price' => $pricePrecision,
-            );
-            $limits = array(
-                'amount' => array(
-                    'min' => $this->safe_number($market, 'trade_min_traded_currency'),
-                    'max' => null,
-                ),
-                'price' => array(
-                    'min' => $this->safe_number($market, 'trade_min_base_currency'),
-                    'max' => null,
-                ),
-                'cost' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-            );
             $result[] = array(
                 'id' => $id,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'active' => $active,
-                'taker' => $taker,
+                'margin' => false,
+                'future' => false,
+                'swap' => false,
+                'option' => false,
+                'active' => $isMaintenance ? false : true,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'taker' => $this->safe_number($market, 'trade_fee_percent'),
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
                 'percentage' => true,
-                'precision' => $precision,
-                'limits' => $limits,
+                'precision' => array(
+                    'amount' => 8,
+                    'price' => $this->safe_integer($market, 'price_round'),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => $this->safe_number($market, 'trade_min_traded_currency'),
+                        'max' => null,
+                    ),
+                    'price' => array(
+                        'min' => $this->safe_number($market, 'trade_min_base_currency'),
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
                 'info' => $market,
             );
         }
@@ -269,6 +309,48 @@ class indodax extends Exchange {
         return $this->parse_order_book($orderbook, $symbol, null, 'buy', 'sell');
     }
 
+    public function parse_ticker($ticker, $market = null) {
+        //
+        //     {
+        //         "high":"0.01951",
+        //         "low":"0.01877",
+        //         "vol_eth":"39.38839319",
+        //         "vol_btc":"0.75320886",
+        //         "last":"0.01896",
+        //         "buy":"0.01896",
+        //         "sell":"0.019",
+        //         "server_time":1565248908
+        //     }
+        //
+        $symbol = $this->safe_symbol(null, $market);
+        $timestamp = $this->safe_timestamp($ticker, 'server_time');
+        $baseVolume = 'vol_' . strtolower($market['baseId']);
+        $quoteVolume = 'vol_' . strtolower($market['quoteId']);
+        $last = $this->safe_string($ticker, 'last');
+        return $this->safe_ticker(array(
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'buy'),
+            'bidVolume' => null,
+            'ask' => $this->safe_string($ticker, 'sell'),
+            'askVolume' => null,
+            'vwap' => null,
+            'open' => null,
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => $this->safe_string($ticker, $baseVolume),
+            'quoteVolume' => $this->safe_string($ticker, $quoteVolume),
+            'info' => $ticker,
+        ), $market, false);
+    }
+
     public function fetch_ticker($symbol, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
@@ -290,33 +372,8 @@ class indodax extends Exchange {
         //         }
         //     }
         //
-        $ticker = $response['ticker'];
-        $timestamp = $this->safe_timestamp($ticker, 'server_time');
-        $baseVolume = 'vol_' . strtolower($market['baseId']);
-        $quoteVolume = 'vol_' . strtolower($market['quoteId']);
-        $last = $this->safe_number($ticker, 'last');
-        return array(
-            'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'buy'),
-            'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'sell'),
-            'askVolume' => null,
-            'vwap' => null,
-            'open' => null,
-            'close' => $last,
-            'last' => $last,
-            'previousClose' => null,
-            'change' => null,
-            'percentage' => null,
-            'average' => null,
-            'baseVolume' => $this->safe_number($ticker, $baseVolume),
-            'quoteVolume' => $this->safe_number($ticker, $quoteVolume),
-            'info' => $ticker,
-        );
+        $ticker = $this->safe_value($response, 'ticker', array());
+        return $this->parse_ticker($ticker, $market);
     }
 
     public function parse_trade($trade, $market = null) {

@@ -17,25 +17,53 @@ module.exports = class yobit extends Exchange {
             'rateLimit': 3000, // responses are cached every 2 seconds
             'version': '3',
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
+                'cancelOrder': true,
                 'createDepositAddress': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchDepositAddress': true,
                 'fetchDeposits': undefined,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': undefined,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'withdraw': true,
             },
             'urls': {
@@ -87,6 +115,8 @@ module.exports = class yobit extends Exchange {
                 'ASN': 'Ascension',
                 'AST': 'Astral',
                 'ATM': 'Autumncoin',
+                'BAB': 'Babel',
+                'BAN': 'BANcoin',
                 'BCC': 'BCH',
                 'BCS': 'BitcoinStake',
                 'BITS': 'Bitstar',
@@ -112,6 +142,7 @@ module.exports = class yobit extends Exchange {
                 'DIRT': 'DIRTY',
                 'DROP': 'FaucetCoin',
                 'DSH': 'DASH',
+                'EGC': 'EverGreenCoin',
                 'EGG': 'EggCoin',
                 'EKO': 'EkoCoin',
                 'ENTER': 'ENTRC',
@@ -157,6 +188,7 @@ module.exports = class yobit extends Exchange {
                 'PLAY': 'PlayCoin',
                 'PIVX': 'Darknet',
                 'PRS': 'PRE',
+                'PURE': 'PurePOS',
                 'PUTIN': 'PutinCoin',
                 'SPACE': 'Spacecoin',
                 'STK': 'StakeCoin',
@@ -170,6 +202,7 @@ module.exports = class yobit extends Exchange {
                 'SBTC': 'Super Bitcoin',
                 'SMC': 'SmartCoin',
                 'SOLO': 'SoloCoin',
+                'STAR': 'StarCoin',
                 'SUPER': 'SuperCoin',
                 'TTC': 'TittieCoin',
                 'UNI': 'Universe',
@@ -304,48 +337,58 @@ module.exports = class yobit extends Exchange {
             let quote = quoteId.toUpperCase ();
             base = this.safeCurrencyCode (base);
             quote = this.safeCurrencyCode (quote);
-            const symbol = base + '/' + quote;
-            const precision = {
-                'amount': this.safeInteger (market, 'decimal_places'),
-                'price': this.safeInteger (market, 'decimal_places'),
-            };
-            const amountLimits = {
-                'min': this.safeNumber (market, 'min_amount'),
-                'max': this.safeNumber (market, 'max_amount'),
-            };
-            const priceLimits = {
-                'min': this.safeNumber (market, 'min_price'),
-                'max': this.safeNumber (market, 'max_price'),
-            };
-            const costLimits = {
-                'min': this.safeNumber (market, 'min_total'),
-            };
-            const limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-                'cost': costLimits,
-            };
             const hidden = this.safeInteger (market, 'hidden');
-            const active = (hidden === 0);
             let feeString = this.safeString (market, 'fee');
             feeString = Precise.stringDiv (feeString, '100');
             // yobit maker = taker
-            const takerFee = this.parseNumber (feeString);
-            const makerFee = this.parseNumber (feeString);
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
-                'taker': takerFee,
-                'maker': makerFee,
-                'precision': precision,
-                'limits': limits,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': (hidden === 0),
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': this.parseNumber (feeString),
+                'maker': this.parseNumber (feeString),
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeInteger (market, 'decimal_places'),
+                    'price': this.safeInteger (market, 'decimal_places'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (market, 'min_amount'),
+                        'max': this.safeNumber (market, 'max_amount'),
+                    },
+                    'price': {
+                        'min': this.safeNumber (market, 'min_price'),
+                        'max': this.safeNumber (market, 'max_price'),
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'min_total'),
+                        'max': undefined,
+                    },
+                },
                 'info': market,
             });
         }
@@ -404,31 +447,29 @@ module.exports = class yobit extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        //   {    high: 0.03497582,
+        //     {
+        //         high: 0.03497582,
         //         low: 0.03248474,
         //         avg: 0.03373028,
         //         vol: 120.11485715062999,
-        //     vol_cur: 3572.24914074,
-        //        last: 0.0337611,
+        //         vol_cur: 3572.24914074,
+        //         last: 0.0337611,
         //         buy: 0.0337442,
-        //        sell: 0.03377798,
-        //     updated: 1537522009          }
+        //         sell: 0.03377798,
+        //         updated: 1537522009
+        //     }
         //
         const timestamp = this.safeTimestamp (ticker, 'updated');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        const last = this.safeNumber (ticker, 'last');
-        return {
-            'symbol': symbol,
+        const last = this.safeString (ticker, 'last');
+        return this.safeTicker ({
+            'symbol': this.safeSymbol (undefined, market),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'buy'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'sell'),
+            'ask': this.safeString (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -437,11 +478,11 @@ module.exports = class yobit extends Exchange {
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': this.safeNumber (ticker, 'avg'),
-            'baseVolume': this.safeNumber (ticker, 'vol_cur'),
-            'quoteVolume': this.safeNumber (ticker, 'vol'),
+            'average': this.safeString (ticker, 'avg'),
+            'baseVolume': this.safeString (ticker, 'vol_cur'),
+            'quoteVolume': this.safeString (ticker, 'vol'),
             'info': ticker,
-        };
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

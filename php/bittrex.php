@@ -28,36 +28,58 @@ class bittrex extends Exchange {
             'pro' => true,
             // new metainfo interface
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
                 'margin' => false,
                 'swap' => false,
                 'future' => false,
+                'option' => false,
+                'addMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => null,
                 'createDepositAddress' => true,
                 'createMarketOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => 'emulated',
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderTrades' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTransactions' => null,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -231,6 +253,7 @@ class bittrex extends Exchange {
             ),
             'commonCurrencies' => array(
                 'BIFI' => 'Bifrost Finance',
+                'BTR' => 'BTRIPS',
                 'MEME' => 'Memetic', // conflict with Meme Inu
                 'MER' => 'Mercury', // conflict with Mercurial Finance
                 'PROS' => 'Pros.Finance',
@@ -278,46 +301,56 @@ class bittrex extends Exchange {
             $market = $response[$i];
             $baseId = $this->safe_string($market, 'baseCurrencySymbol');
             $quoteId = $this->safe_string($market, 'quoteCurrencySymbol');
-            $id = $this->safe_string($market, 'symbol');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $pricePrecision = $this->safe_integer($market, 'precision', 8);
-            $precision = array(
-                'amount' => 8,
-                'price' => $pricePrecision,
-            );
             $status = $this->safe_string($market, 'status');
-            $active = ($status === 'ONLINE');
             $result[] = array(
-                'id' => $id,
-                'symbol' => $symbol,
+                'id' => $this->safe_string($market, 'symbol'),
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'active' => $active,
-                'info' => $market,
-                'precision' => $precision,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => ($status === 'ONLINE'),
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'price' => $this->safe_integer($market, 'precision', 8),
+                    'amount' => intval('8'),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->safe_number($market, 'minTradeSize'),
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => 1 / pow(10, $precision['price']),
+                        'min' => null,
                         'max' => null,
                     ),
                     'cost' => array(
                         'min' => null,
                         'max' => null,
                     ),
-                    'leverage' => array(
-                        'max' => 1,
-                    ),
                 ),
+                'info' => $market,
             );
         }
         return $result;
@@ -456,18 +489,19 @@ class bittrex extends Exchange {
         //
         $timestamp = $this->parse8601($this->safe_string($ticker, 'updatedAt'));
         $marketId = $this->safe_string($ticker, 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market, '-');
-        $percentage = $this->safe_number($ticker, 'percentChange');
-        $last = $this->safe_number($ticker, 'lastTradeRate');
-        return array(
+        $market = $this->safe_market($marketId, $market, '-');
+        $symbol = $market['symbol'];
+        $percentage = $this->safe_string($ticker, 'percentChange');
+        $last = $this->safe_string($ticker, 'lastTradeRate');
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'bidRate'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'bidRate'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'askRate'),
+            'ask' => $this->safe_string($ticker, 'askRate'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -477,10 +511,10 @@ class bittrex extends Exchange {
             'change' => null,
             'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'volume'),
-            'quoteVolume' => $this->safe_number($ticker, 'quoteVolume'),
+            'baseVolume' => $this->safe_string($ticker, 'volume'),
+            'quoteVolume' => $this->safe_string($ticker, 'quoteVolume'),
             'info' => $ticker,
-        );
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

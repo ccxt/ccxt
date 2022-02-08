@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -28,16 +27,30 @@ class upbit(Exchange):
             'pro': True,
             # new metainfo interface
             'has': {
-                'cancelOrder': True,
                 'CORS': True,
+                'spot': True,
+                'margin': None,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'cancelOrder': True,
                 'createDepositAddress': True,
                 'createMarketOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistories': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': None,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -45,6 +58,7 @@ class upbit(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrderBooks': True,
                 'fetchOrders': None,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -311,37 +325,52 @@ class upbit(Exchange):
         quoteId = self.safe_string(bid, 'currency')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        symbol = base + '/' + quote
-        precision = {
-            'amount': 8,
-            'price': 8,
-        }
         state = self.safe_string(marketInfo, 'state')
-        active = (state == 'active')
         bidFee = self.safe_number(response, 'bid_fee')
         askFee = self.safe_number(response, 'ask_fee')
         fee = max(bidFee, askFee)
         return {
             'info': response,
             'id': marketId,
-            'symbol': symbol,
+            'symbol': base + '/' + quote,
             'base': base,
             'quote': quote,
+            'settle': None,
             'baseId': baseId,
             'quoteId': quoteId,
+            'settleId': None,
             'type': 'spot',
             'spot': True,
-            'active': active,
-            'precision': precision,
-            'maker': fee,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': (state == 'active'),
+            'contract': False,
+            'linear': None,
+            'inverse': None,
             'taker': fee,
+            'maker': fee,
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'price': 8,
+                'amount': 8,
+            },
             'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
+                },
                 'amount': {
                     'min': self.safe_number(ask, 'min_total'),
                     'max': None,
                 },
                 'price': {
-                    'min': math.pow(10, -precision['price']),
+                    'min': None,
                     'max': None,
                 },
                 'cost': {
@@ -378,33 +407,47 @@ class upbit(Exchange):
             quoteId, baseId = id.split('-')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            precision = {
-                'amount': 8,
-                'price': 8,
-            }
-            active = True
-            makerFee = self.safe_number(self.options['tradingFeesByQuoteCurrency'], quote, self.fees['trading']['maker'])
-            takerFee = self.safe_number(self.options['tradingFeesByQuoteCurrency'], quote, self.fees['trading']['taker'])
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': active,
-                'info': market,
-                'precision': precision,
-                'maker': makerFee,
-                'taker': takerFee,
+                'settleId': None,
+                'type': 'spot',
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': True,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'taker': self.safe_number(self.options['tradingFeesByQuoteCurrency'], quote, self.fees['trading']['taker']),
+                'maker': self.safe_number(self.options['tradingFeesByQuoteCurrency'], quote, self.fees['trading']['maker']),
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': 8,
+                    'amount': 8,
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
+                        'min': None,
                         'max': None,
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
+                        'min': None,
                         'max': None,
                     },
                     'cost': {
@@ -412,6 +455,7 @@ class upbit(Exchange):
                         'max': None,
                     },
                 },
+                'info': market,
             })
         return result
 
@@ -543,33 +587,30 @@ class upbit(Exchange):
         #
         timestamp = self.safe_integer(ticker, 'trade_timestamp')
         marketId = self.safe_string_2(ticker, 'market', 'code')
-        symbol = self.safe_symbol(marketId, market, '-')
-        previous = self.safe_number(ticker, 'prev_closing_price')
-        last = self.safe_number(ticker, 'trade_price')
-        change = self.safe_number(ticker, 'signed_change_price')
-        percentage = self.safe_number(ticker, 'signed_change_rate')
-        return {
-            'symbol': symbol,
+        market = self.safe_market(marketId, market, '-')
+        last = self.safe_string(ticker, 'trade_price')
+        return self.safe_ticker({
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high_price'),
-            'low': self.safe_number(ticker, 'low_price'),
+            'high': self.safe_string(ticker, 'high_price'),
+            'low': self.safe_string(ticker, 'low_price'),
             'bid': None,
             'bidVolume': None,
             'ask': None,
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_number(ticker, 'opening_price'),
+            'open': self.safe_string(ticker, 'opening_price'),
             'close': last,
             'last': last,
-            'previousClose': previous,
-            'change': change,
-            'percentage': percentage,
+            'previousClose': self.safe_string(ticker, 'prev_closing_price'),
+            'change': self.safe_string(ticker, 'signed_change_price'),
+            'percentage': self.safe_string(ticker, 'signed_change_rate'),
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'acc_trade_volume_24h'),
-            'quoteVolume': self.safe_number(ticker, 'acc_trade_price_24h'),
+            'baseVolume': self.safe_string(ticker, 'acc_trade_volume_24h'),
+            'quoteVolume': self.safe_string(ticker, 'acc_trade_price_24h'),
             'info': ticker,
-        }
+        }, market, False)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()

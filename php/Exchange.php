@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.67.1';
+$version = '1.72.43';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.67.1';
+    const VERSION = '1.72.43';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -124,6 +124,7 @@ class Exchange {
         'equos',
         'exmo',
         'flowbtc',
+        'fmfwio',
         'ftx',
         'ftxus',
         'gateio',
@@ -155,8 +156,8 @@ class Exchange {
         'oceanex',
         'okcoin',
         'okex',
-        'okex3',
         'okex5',
+        'okx',
         'paymium',
         'phemex',
         'poloniex',
@@ -173,6 +174,7 @@ class Exchange {
         'wavesexchange',
         'wazirx',
         'whitebit',
+        'woo',
         'xena',
         'yobit',
         'zaif',
@@ -1180,14 +1182,16 @@ class Exchange {
         $this->has = array(
             'publicAPI' => true,
             'privateAPI' => true,
+            'CORS' => null,
+            'spot' => null,
             'margin' => null,
             'swap' => null,
             'future' => null,
+            'option' => null,
             'addMargin' => null,
             'cancelAllOrders' => null,
             'cancelOrder' => true,
             'cancelOrders' => null,
-            'CORS' => null,
             'createDepositAddress' => null,
             'createLimitOrder' => true,
             'createMarketOrder' => true,
@@ -1245,8 +1249,6 @@ class Exchange {
             'fetchTradingLimits' => null,
             'fetchTransactions' => null,
             'fetchTransfers' => null,
-            'fetchWithdrawAddress' => null,
-            'fetchWithdrawAddressesByNetwork' => null,
             'fetchWithdrawal' => null,
             'fetchWithdrawals' => null,
             'loadLeverageBrackets' => null,
@@ -1767,9 +1769,10 @@ class Exchange {
             throw new ExchangeNotAvailable(implode(' ', array($url, $method, $curl_errno, $curl_error)));
         }
 
-        $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response, $headers, $body);
-        $this->handle_http_status_code($http_status_code, $http_status_text, $url, $method, $result);
-
+        $skip_further_error_handling = $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response, $headers, $body);
+        if (!$skip_further_error_handling) {
+            $this->handle_http_status_code($http_status_code, $http_status_text, $url, $method, $result);
+        }
         // check if $curl_errno is not zero
         if ($curl_errno) {
             throw new NetworkError($this->id . ' unknown error: ' . strval($curl_errno) . ' ' . $curl_error);
@@ -2058,57 +2061,113 @@ class Exchange {
         return $result;
     }
 
-    public function safe_ticker($ticker, $market = null) {
-        $symbol = $this->safe_value($ticker, 'symbol');
-        if ($symbol === null) {
-            $symbol = $this->safe_symbol(null, $market);
-        }
-        $timestamp = $this->safe_integer($ticker, 'timestamp');
-        $baseVolume = $this->safe_value($ticker, 'baseVolume');
-        $quoteVolume = $this->safe_value($ticker, 'quoteVolume');
-        $vwap = $this->safe_value($ticker, 'vwap');
-        if ($vwap === null) {
-            $vwap = $this->vwap($baseVolume, $quoteVolume);
-        }
-        $open = $this->safe_value($ticker, 'open');
-        $close = $this->safe_value($ticker, 'close');
-        $last = $this->safe_value($ticker, 'last');
-        $change = $this->safe_value($ticker, 'change');
-        $percentage = $this->safe_value($ticker, 'percentage');
-        $average = $this->safe_value($ticker, 'average');
-        if (($last !== null) && ($close === null)) {
-            $close = $last;
-        } else if (($last === null) && ($close !== null)) {
-            $last = $close;
-        }
-        if (($last !== null) && ($open !== null)) {
-            if ($change === null) {
-                $change = $last - $open;
+    public function safe_ticker($ticker, $market = null, $legacy = true) {
+        if ($legacy) {
+            $symbol = $this->safe_value($ticker, 'symbol');
+            if ($symbol === null) {
+                $symbol = $this->safe_symbol(null, $market);
             }
-            if ($average === null) {
-                $average = $this->sum($last, $open) / 2;
+            $timestamp = $this->safe_integer($ticker, 'timestamp');
+            $baseVolume = $this->safe_value($ticker, 'baseVolume');
+            $quoteVolume = $this->safe_value($ticker, 'quoteVolume');
+            $vwap = $this->safe_value($ticker, 'vwap');
+            if ($vwap === null) {
+                $vwap = $this->vwap($baseVolume, $quoteVolume);
             }
+            $open = $this->safe_value($ticker, 'open');
+            $close = $this->safe_value($ticker, 'close');
+            $last = $this->safe_value($ticker, 'last');
+            $change = $this->safe_value($ticker, 'change');
+            $percentage = $this->safe_value($ticker, 'percentage');
+            $average = $this->safe_value($ticker, 'average');
+            if (($last !== null) && ($close === null)) {
+                $close = $last;
+            } else if (($last === null) && ($close !== null)) {
+                $last = $close;
+            }
+            if (($last !== null) && ($open !== null)) {
+                if ($change === null) {
+                    $change = $last - $open;
+                }
+                if ($average === null) {
+                    $average = $this->sum($last, $open) / 2;
+                }
+            }
+            if (($percentage === null) && ($change !== null) && ($open !== null) && ($open > 0)) {
+                $percentage = $change / $open * 100;
+            }
+            if (($change === null) && ($percentage !== null) && ($last !== null)) {
+                $change = $percentage / 100 * $last;
+            }
+            if (($open === null) && ($last !== null) && ($change !== null)) {
+                $open = $last - $change;
+            }
+            $ticker['symbol'] = $symbol;
+            $ticker['timestamp'] = $timestamp;
+            $ticker['datetime'] = $this->iso8601($timestamp);
+            $ticker['open'] = $open;
+            $ticker['close'] = $close;
+            $ticker['last'] = $last;
+            $ticker['vwap'] = $vwap;
+            $ticker['change'] = $change;
+            $ticker['percentage'] = $percentage;
+            $ticker['average'] = $average;
+            return $ticker;
+        } else {
+            $open = $this->safe_value($ticker, 'open');
+            $close = $this->safe_value($ticker, 'close');
+            $last = $this->safe_value($ticker, 'last');
+            $change = $this->safe_value($ticker, 'change');
+            $percentage = $this->safe_value($ticker, 'percentage');
+            $average = $this->safe_value($ticker, 'average');
+            $vwap = $this->safe_value($ticker, 'vwap');
+            $baseVolume = $this->safe_value($ticker, 'baseVolume');
+            $quoteVolume = $this->safe_value($ticker, 'quoteVolume');
+            if ($vwap === null) {
+                $vwap = Precise::string_div($quoteVolume, $baseVolume);
+            }
+            if (($last !== null) && ($close === null)) {
+                $close = $last;
+            } else if (($last === null) && ($close !== null)) {
+                $last = $close;
+            }
+            if (($last !== null) && ($open !== null)) {
+                if ($change === null) {
+                    $change = Precise::string_sub($last, $open);
+                }
+                if ($average === null) {
+                    $average = Precise::string_div(Precise::string_add($last, $open), '2');
+                }
+            }
+            if (($percentage === null) && ($change !== null) && ($open !== null) && (Precise::string_gt($open, '0'))) {
+                $percentage = Precise::string_mul(Precise::string_div($change, $open), '100');
+            }
+            if (($change === null) && ($percentage !== null) && ($last !== null)) {
+                $change = Precise::string_div(Precise::string_mul($percentage, $last), '100');
+            }
+            if (($open === null) && ($last !== null) && ($change !== null)) {
+                $open = Precise::string_sub($last, $change);
+            }
+            // $timestamp and $symbol operations don't belong in safeTicker
+            // they should be done in the derived classes
+            return array_merge($ticker, array(
+                'bid' => $this->safe_number($ticker, 'bid'),
+                'bidVolume'=> $this->safe_number($ticker, 'bidVolume'),
+                'ask' => $this->safe_number($ticker, 'ask'),
+                'askVolume' => $this->safe_number($ticker, 'askVolume'),
+                'high' => $this->safe_number($ticker, 'high'),
+                'low' => $this->safe_number($ticker, 'low'),
+                'open' => $this->parse_number($open),
+                'close' =>$this->parse_number($close),
+                'last' => $this->parse_number($last),
+                'change' => $this->parse_number($change),
+                'percentage' => $this->parse_number($percentage),
+                'average' => $this->parse_number($average),
+                'vwap' => $this->parse_number($vwap),
+                'baseVolume' => $this->parse_number($baseVolume),
+                'quoteVolume' => $this->parse_number($quoteVolume),
+            ));
         }
-        if (($percentage === null) && ($change !== null) && ($open !== null) && ($open > 0)) {
-            $percentage = $change / $open * 100;
-        }
-        if (($change === null) && ($percentage !== null) && ($last !== null)) {
-            $change = $percentage / 100 * $last;
-        }
-        if (($open === null) && ($last !== null) && ($change !== null)) {
-            $open = $last - $change;
-        }
-        $ticker['symbol'] = $symbol;
-        $ticker['timestamp'] = $timestamp;
-        $ticker['datetime'] = $this->iso8601($timestamp);
-        $ticker['open'] = $open;
-        $ticker['close'] = $close;
-        $ticker['last'] = $last;
-        $ticker['vwap'] = $vwap;
-        $ticker['change'] = $change;
-        $ticker['percentage'] = $percentage;
-        $ticker['average'] = $average;
-        return $ticker;
     }
 
     public function parse_tickers($tickers, $symbols = null, $params = array()) {
@@ -2209,23 +2268,38 @@ class Exchange {
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
             } else if ($delimiter !== null) {
-                list($baseId, $quoteId) = explode($delimiter, $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-                return array(
-                    'symbol' => $symbol,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'baseId' => $baseId,
-                    'quoteId' => $quoteId,
-                );
+                $parts = explode($delimiter, $marketId);
+                if (count($parts) === 2) {
+                    $baseId = $this->safe_string($parts, 0);
+                    $quoteId = $this->safe_string($parts, 1);
+                    $base = $this->safe_currency_code($baseId);
+                    $quote = $this->safe_currency_code($quoteId);
+                    $symbol = $base . '/' . $quote;
+                    return array(
+                        'id' => $marketId,
+                        'symbol' => $symbol,
+                        'base' => $base,
+                        'quote' => $quote,
+                        'baseId' => $baseId,
+                        'quoteId' => $quoteId,
+                    );
+                } else {
+                    return array(
+                        'id' => $marketId,
+                        'symbol' => $marketId,
+                        'base' => null,
+                        'quote' => null,
+                        'baseId' => null,
+                        'quoteId' => null,
+                    );
+                }
             }
         }
         if ($market !== null) {
             return $market;
         }
         return array(
+            'id' => $marketId,
             'symbol' => $marketId,
             'base' => null,
             'quote' => null,
@@ -2883,6 +2957,9 @@ class Exchange {
 
     public static function number_to_string($x) {
         // avoids scientific notation for too large and too small numbers
+        if ($x === null) {
+            return null;
+        }
         $type = gettype($x);
         $s = (string) $x;
         if (($type !== 'integer') && ($type !== 'double')) {

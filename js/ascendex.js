@@ -18,36 +18,50 @@ module.exports = class ascendex extends Exchange {
             'certified': true,
             // new metainfo interface
             'has': {
+                'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
+                'margin': undefined, // has but not fully inplemented
                 'swap': true,
                 'future': false,
                 'option': false,
+                'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': undefined,
                 'createOrder': true,
+                'createReduceOnlyOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
                 'fetchFundingRates': true,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
+                'fetchPosition': false,
                 'fetchPositions': true,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': true,
                 'setLeverage': true,
                 'setMarginMode': true,
+                'setPositionMode': false,
             },
             'timeframes': {
                 '1m': '1',
@@ -283,6 +297,7 @@ module.exports = class ascendex extends Exchange {
                 'BTCBEAR': 'BEAR',
                 'BTCBULL': 'BULL',
                 'BYN': 'BeyondFi',
+                'PLN': 'Pollen',
             },
         });
     }
@@ -493,18 +508,10 @@ module.exports = class ascendex extends Exchange {
             let base = this.safeCurrencyCode (baseId);
             let quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
-            const precision = {
-                'amount': this.safeNumber (market, 'lotSize'),
-                'price': this.safeNumber (market, 'tickSize'),
-            };
             const status = this.safeString (market, 'status');
-            const active = (status === 'Normal');
             const spot = settle === undefined;
             const swap = !spot;
-            const type = swap ? 'swap' : 'spot';
-            const margin = this.safeValue (market, 'marginTradable', false);
             const linear = swap ? true : undefined;
-            const contractSize = swap ? this.parseNumber ('1') : undefined;
             let minQty = this.safeNumber (market, 'minQty');
             let maxQty = this.safeNumber (market, 'maxQty');
             let minPrice = this.safeNumber (market, 'tickSize');
@@ -526,6 +533,7 @@ module.exports = class ascendex extends Exchange {
                 symbol = base + '/' + quote + ':' + settle;
             }
             const fee = this.safeNumber (market, 'commissionReserveRate');
+            const marginTradable = this.safeValue (market, 'marginTradable', false);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -535,24 +543,27 @@ module.exports = class ascendex extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': type,
+                'type': swap ? 'swap' : 'spot',
                 'spot': spot,
-                'margin': margin,
+                'margin': spot ? marginTradable : undefined,
                 'swap': swap,
                 'future': false,
                 'option': false,
-                'active': active,
+                'active': (status === 'Normal'),
                 'contract': swap,
                 'linear': linear,
                 'inverse': swap ? !linear : undefined,
                 'taker': fee,
                 'maker': fee,
-                'contractSize': contractSize,
+                'contractSize': swap ? this.parseNumber ('1') : undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'precision': precision,
+                'precision': {
+                    'price': this.safeNumber (market, 'tickSize'),
+                    'amount': this.safeNumber (market, 'lotSize'),
+                },
                 'limits': {
                     'leverage': {
                         'min': undefined,
@@ -630,26 +641,47 @@ module.exports = class ascendex extends Exchange {
         return this.safeBalance (result);
     }
 
+    parseSwapBalance (response) {
+        const timestamp = this.milliseconds ();
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        const data = this.safeValue (response, 'data', {});
+        const collaterals = this.safeValue (data, 'collaterals', []);
+        for (let i = 0; i < collaterals.length; i++) {
+            const balance = collaterals[i];
+            const code = this.safeCurrencyCode (this.safeString (balance, 'asset'));
+            const account = this.account ();
+            account['total'] = this.safeString (balance, 'balance');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const defaultAccountCategory = this.safeString (this.options, 'account-category', 'cash');
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const options = this.safeValue (this.options, 'fetchBalance', {});
-        let accountCategory = this.safeString (options, 'account-category', defaultAccountCategory);
-        accountCategory = this.safeString (params, 'account-category', accountCategory);
-        params = this.omit (params, 'account-category');
+        const accountCategories = this.safeValue (this.options, 'accountCategories', {});
+        const accountCategory = this.safeString (accountCategories, marketType, 'cash');
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeString (account, 'id');
         const request = {
             'account-group': accountGroup,
         };
-        let method = 'v1PrivateAccountCategoryGetBalance';
-        if (accountCategory === 'futures') {
-            method = 'v1PrivateAccountGroupGetFuturesCollateralBalance';
-        } else {
+        const defaultMethod = this.safeString (options, 'method', 'v1PrivateAccountCategoryGetBalance');
+        const method = this.getSupportedMapping (marketType, {
+            'spot': defaultMethod,
+            'margin': defaultMethod,
+            'swap': 'v2PrivateAccountGroupGetFuturesPosition',
+        });
+        if (accountCategory === 'cash') {
             request['account-category'] = accountCategory;
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         // cash
         //
@@ -679,21 +711,25 @@ module.exports = class ascendex extends Exchange {
         //         ]
         //     }
         //
-        // futures
+        // swap
         //
         //     {
-        //         "code":0,
-        //         "data":[
-        //             {"asset":"BTC","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"9456.59"},
-        //             {"asset":"ETH","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"235.95"},
-        //             {"asset":"USDT","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"1"},
-        //             {"asset":"USDC","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"1.00035"},
-        //             {"asset":"PAX","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"1.00045"},
-        //             {"asset":"USDTR","totalBalance":"0","availableBalance":"0","maxTransferrable":"0","priceInUSDT":"1"}
-        //         ]
+        //         "code": 0,
+        //         "data": {
+        //             "accountId": "fut2ODPhGiY71Pl4vtXnOZ00ssgD7QGn",
+        //             "ac": "FUTURES",
+        //             "collaterals": [
+        //                 {"asset":"ADA","balance":"0.355803","referencePrice":"1.05095","discountFactor":"0.9"},
+        //                 {"asset":"USDT","balance":"0.000014519","referencePrice":"1","discountFactor":"1"}
+        //             ],
+        //         }j
         //     }
         //
-        return this.parseBalance (response);
+        if (marketType === 'swap') {
+            return this.parseSwapBalance (response);
+        } else {
+            return this.parseBalance (response);
+        }
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -753,20 +789,20 @@ module.exports = class ascendex extends Exchange {
         const type = this.safeString (ticker, 'type');
         const delimiter = (type === 'spot') ? '/' : undefined;
         const symbol = this.safeSymbol (marketId, market, delimiter);
-        const close = this.safeNumber (ticker, 'close');
+        const close = this.safeString (ticker, 'close');
         const bid = this.safeValue (ticker, 'bid', []);
         const ask = this.safeValue (ticker, 'ask', []);
-        const open = this.safeNumber (ticker, 'open');
+        const open = this.safeString (ticker, 'open');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': undefined,
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (bid, 0),
-            'bidVolume': this.safeNumber (bid, 1),
-            'ask': this.safeNumber (ask, 0),
-            'askVolume': this.safeNumber (ask, 1),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (bid, 0),
+            'bidVolume': this.safeString (bid, 1),
+            'ask': this.safeString (ask, 0),
+            'askVolume': this.safeString (ask, 1),
             'vwap': undefined,
             'open': open,
             'close': close,
@@ -775,10 +811,10 @@ module.exports = class ascendex extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'volume'),
+            'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -1144,6 +1180,12 @@ module.exports = class ascendex extends Exchange {
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeValue (account, 'id');
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'id');
+        const reduceOnly = this.safeValue (params, 'execInst');
+        if (reduceOnly !== undefined) {
+            if ((style !== 'swap')) {
+                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + style + ' orders, reduceOnly orders are supported for perpetuals only');
+            }
+        }
         const request = {
             'account-group': accountGroup,
             'account-category': accountCategory,
@@ -1254,6 +1296,13 @@ module.exports = class ascendex extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const order = this.safeValue2 (data, 'order', 'info', {});
         return this.parseOrder (order, market);
+    }
+
+    async createReduceOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        const request = {
+            'execInst': 'reduceOnly',
+        };
+        return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -2131,6 +2180,46 @@ module.exports = class ascendex extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
+    async modifyMarginHelper (symbol, amount, type, params = {}) {
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const market = this.market (symbol);
+        const account = this.safeValue (this.accounts, 0, {});
+        const accountGroup = this.safeString (account, 'id');
+        amount = this.numberToString (amount);
+        const request = {
+            'account-group': accountGroup,
+            'symbol': market['id'],
+            'amount': amount,
+        };
+        const response = await this.v2PrivateAccountGroupPostFuturesIsolatedPositionMargin (this.extend (request, params));
+        //
+        // Can only change margin for perpetual futures isolated margin positions
+        //
+        //     {
+        //          "code": 0
+        //     }
+        //
+        const errorCode = this.safeString (response, 'code');
+        const status = (errorCode === '0') ? 'ok' : 'failed';
+        return {
+            'info': response,
+            'type': type,
+            'amount': amount,
+            'code': market['quote'],
+            'symbol': market['symbol'],
+            'status': status,
+        };
+    }
+
+    async reduceMargin (symbol, amount, params = {}) {
+        return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
+    }
+
+    async addMargin (symbol, amount, params = {}) {
+        return await this.modifyMarginHelper (symbol, amount, 'add', params);
+    }
+
     async setLeverage (leverage, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
@@ -2155,8 +2244,12 @@ module.exports = class ascendex extends Exchange {
     }
 
     async setMarginMode (marginType, symbol = undefined, params = {}) {
+        marginType = marginType.toLowerCase ();
+        if (marginType === 'cross') {
+            marginType = 'crossed';
+        }
         if (marginType !== 'isolated' && marginType !== 'crossed') {
-            throw new BadRequest (this.id + ' setMarginMode() marginType argument should be isolated or crossed');
+            throw new BadRequest (this.id + ' setMarginMode() marginType argument should be isolated or cross');
         }
         await this.loadMarkets ();
         await this.loadAccounts ();

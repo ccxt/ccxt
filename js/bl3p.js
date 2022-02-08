@@ -17,13 +17,41 @@ module.exports = class bl3p extends Exchange {
             'version': '1',
             'comment': 'An exchange market by BitonicNL',
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
+                'cancelOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
+                'fetchMarkOHLCV': false,
                 'fetchOrderBook': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
@@ -112,22 +140,35 @@ module.exports = class bl3p extends Exchange {
         return this.parseOrderBook (orderbook, symbol, undefined, 'bids', 'asks', 'price_int', 'amount_int');
     }
 
-    async fetchTicker (symbol, params = {}) {
-        const request = {
-            'market': this.marketId (symbol),
-        };
-        const ticker = await this.publicGetMarketTicker (this.extend (request, params));
+    parseTicker (ticker, market = undefined) {
+        //
+        // {
+        //     "currency":"BTC",
+        //     "last":32654.55595,
+        //     "bid":32552.3642,
+        //     "ask":32703.58231,
+        //     "high":33500,
+        //     "low":31943,
+        //     "timestamp":1643372789,
+        //     "volume":{
+        //         "24h":2.27372413,
+        //         "30d":320.79375456
+        //     }
+        // }
+        //
+        const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
-        const last = this.safeNumber (ticker, 'last');
-        return {
+        const last = this.safeString (ticker, 'last');
+        const volume = this.safeValue (ticker, 'volume', {});
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -137,10 +178,34 @@ module.exports = class bl3p extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker['volume'], '24h'),
+            'baseVolume': this.safeString (volume, '24h'),
             'quoteVolume': undefined,
             'info': ticker,
+        }, market, false);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
         };
+        const ticker = await this.publicGetMarketTicker (this.extend (request, params));
+        //
+        // {
+        //     "currency":"BTC",
+        //     "last":32654.55595,
+        //     "bid":32552.3642,
+        //     "ask":32703.58231,
+        //     "high":33500,
+        //     "low":31943,
+        //     "timestamp":1643372789,
+        //     "volume":{
+        //         "24h":2.27372413,
+        //         "30d":320.79375456
+        //     }
+        // }
+        //
+        return this.parseTicker (ticker, market);
     }
 
     parseTrade (trade, market = undefined) {

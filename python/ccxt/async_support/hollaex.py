@@ -11,7 +11,6 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NetworkError
 from ccxt.base.decimal_to_precision import TICK_SIZE
-from ccxt.base.precise import Precise
 
 
 class hollaex(Exchange):
@@ -21,24 +20,45 @@ class hollaex(Exchange):
             'id': 'hollaex',
             'name': 'HollaEx',
             'countries': ['KR'],
-            'rateLimit': 333,
+            # 4 requests per second => 1000ms / 4 = 250 ms between requests
+            'rateLimit': 250,
             'version': 'v2',
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': None,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': None,
                 'createLimitBuyOrder': True,
                 'createLimitSellOrder': True,
                 'createMarketBuyOrder': True,
                 'createMarketSellOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': 'emulated',
                 'fetchDepositAddresses': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrder': True,
@@ -47,19 +67,33 @@ class hollaex(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrderBooks': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTransactions': None,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'timeframes': {
+                '1m': '1m',
+                '5m': '5m',
+                '15m': '15m',
                 '1h': '1h',
+                '4h': '4h',
                 '1d': '1d',
+                '1w': '1w',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/75841031-ca375180-5ddd-11ea-8417-b975674c23cb.jpg',
+                'test': 'https://api.sandbox.hollaex.com',
                 'api': 'https://api.hollaex.com',
                 'www': 'https://hollaex.com',
                 'doc': 'https://apidocs.hollaex.com',
@@ -72,43 +106,43 @@ class hollaex(Exchange):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'health',
-                        'constants',
-                        'kit',
-                        'tiers',
-                        'ticker',
-                        'tickers',
-                        'orderbook',
-                        'orderbooks',
-                        'trades',
-                        'chart',
-                        'charts',
+                    'get': {
+                        'health': 1,
+                        'constants': 1,
+                        'kit': 1,
+                        'tiers': 1,
+                        'ticker': 1,
+                        'tickers': 1,
+                        'orderbook': 1,
+                        'orderbooks': 1,
+                        'trades': 1,
+                        'chart': 1,
+                        'charts': 1,
                         # TradingView
-                        'udf/config',
-                        'udf/history',
-                        'udf/symbols',
-                    ],
+                        'udf/config': 1,
+                        'udf/history': 1,
+                        'udf/symbols': 1,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'user',
-                        'user/balance',
-                        'user/deposits',
-                        'user/withdrawals',
-                        'user/withdrawal/fee',
-                        'user/trades',
-                        'orders',
-                        'orders/{order_id}',
-                    ],
-                    'post': [
-                        'user/request-withdrawal',
-                        'order',
-                    ],
-                    'delete': [
-                        'order/all',
-                        'order',
-                    ],
+                    'get': {
+                        'user': 1,
+                        'user/balance': 1,
+                        'user/deposits': 1,
+                        'user/withdrawals': 1,
+                        'user/withdrawal/fee': 1,
+                        'user/trades': 1,
+                        'orders': 1,
+                        'orders/{order_id}': 1,
+                    },
+                    'post': {
+                        'user/request-withdrawal': 1,
+                        'order': 1,
+                    },
+                    'delete': {
+                        'order/all': 1,
+                        'order': 1,
+                    },
                 },
             },
             'fees': {
@@ -194,30 +228,43 @@ class hollaex(Exchange):
         for i in range(0, len(keys)):
             key = keys[i]
             market = pairs[key]
-            id = self.safe_string(market, 'name')
             baseId = self.safe_string(market, 'pair_base')
             quoteId = self.safe_string(market, 'pair_2')
             base = self.common_currency_code(baseId.upper())
             quote = self.common_currency_code(quoteId.upper())
-            symbol = base + '/' + quote
-            active = self.safe_value(market, 'active')
-            maker = self.fees['trading']['maker']
-            taker = self.fees['trading']['taker']
             result.append({
-                'id': id,
-                'symbol': symbol,
+                'id': self.safe_string(market, 'name'),
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': self.safe_value(market, 'active'),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
                 'precision': {
                     'price': self.safe_number(market, 'increment_price'),
                     'amount': self.safe_number(market, 'increment_size'),
                 },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(market, 'min_size'),
                         'max': self.safe_number(market, 'max_size'),
@@ -226,16 +273,52 @@ class hollaex(Exchange):
                         'min': self.safe_number(market, 'min_price'),
                         'max': self.safe_number(market, 'max_price'),
                     },
-                    'cost': {'min': None, 'max': None},
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
                 },
-                'taker': taker,
-                'maker': maker,
                 'info': market,
             })
         return result
 
     async def fetch_currencies(self, params={}):
         response = await self.publicGetConstants(params)
+        #
+        #     {
+        #         "coins":{
+        #             "bch":{
+        #                 "id":4,
+        #                 "fullname":"Bitcoin Cash",
+        #                 "symbol":"bch",
+        #                 "active":true,
+        #                 "verified":true,
+        #                 "allow_deposit":true,
+        #                 "allow_withdrawal":true,
+        #                 "withdrawal_fee":0.0001,
+        #                 "min":0.001,
+        #                 "max":100000,
+        #                 "increment_unit":0.001,
+        #                 "logo":"https://bitholla.s3.ap-northeast-2.amazonaws.com/icon/BCH-hollaex-asset-01.svg",
+        #                 "code":"bch",
+        #                 "is_public":true,
+        #                 "meta":{},
+        #                 "estimated_price":null,
+        #                 "description":null,
+        #                 "type":"blockchain",
+        #                 "network":null,
+        #                 "standard":null,
+        #                 "issuer":"HollaEx",
+        #                 "withdrawal_fees":null,
+        #                 "created_at":"2019-08-09T10:45:43.367Z",
+        #                 "updated_at":"2021-12-13T03:08:32.372Z",
+        #                 "created_by":1,
+        #                 "owner_id":1
+        #             },
+        #         },
+        #         "network":"https://api.hollaex.network"
+        #     }
+        #
         coins = self.safe_value(response, 'coins', {})
         keys = list(coins.keys())
         result = {}
@@ -246,7 +329,10 @@ class hollaex(Exchange):
             numericId = self.safe_integer(currency, 'id')
             code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'fullname')
-            active = self.safe_value(currency, 'active')
+            depositEnabled = self.safe_value(currency, 'allow_deposit')
+            withdrawEnabled = self.safe_value(currency, 'allow_withdrawal')
+            isActive = self.safe_value(currency, 'active')
+            active = isActive and depositEnabled and withdrawEnabled
             fee = self.safe_number(currency, 'withdrawal_fee')
             precision = self.safe_number(currency, 'increment_unit')
             withdrawalLimits = self.safe_value(currency, 'withdrawal_limits', [])
@@ -257,6 +343,8 @@ class hollaex(Exchange):
                 'info': currency,
                 'name': name,
                 'active': active,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': fee,
                 'precision': precision,
                 'limits': {
@@ -395,32 +483,32 @@ class hollaex(Exchange):
         #     }
         #
         marketId = self.safe_string(ticker, 'symbol')
-        symbol = self.safe_symbol(marketId, market, '-')
+        market = self.safe_market(marketId, market, '-')
+        symbol = market['symbol']
         timestamp = self.parse8601(self.safe_string_2(ticker, 'time', 'timestamp'))
-        close = self.safe_number(ticker, 'close')
-        result = {
+        close = self.safe_string(ticker, 'close')
+        return self.safe_ticker({
             'symbol': symbol,
             'info': ticker,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
             'bid': None,
             'bidVolume': None,
             'ask': None,
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_number(ticker, 'open'),
+            'open': self.safe_string(ticker, 'open'),
             'close': close,
-            'last': self.safe_number(ticker, 'last', close),
+            'last': self.safe_string(ticker, 'last', close),
             'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'volume'),
+            'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': None,
-        }
-        return result
+        }, market, False)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -457,15 +545,15 @@ class hollaex(Exchange):
         #     }
         #
         # fetchMyTrades(private)
-        #
-        #     {
-        #         "side": "buy",
-        #         "symbol": "eth-usdt",
-        #         "size": 0.086,
-        #         "price": 226.19,
-        #         "timestamp": "2020-03-03T08:03:55.459Z",
-        #         "fee": 0.1
-        #     }
+        #  {
+        #      "side":"sell",
+        #      "symbol":"doge-usdt",
+        #      "size":70,
+        #      "price":0.147411,
+        #      "timestamp":"2022-01-26T17:53:34.650Z",
+        #      "order_id":"cba78ecb-4187-4da2-9d2f-c259aa693b5a",
+        #      "fee":0.01031877,"fee_coin":"usdt"
+        #  }
         #
         marketId = self.safe_string(trade, 'symbol')
         market = self.safe_market(marketId, market, '-')
@@ -473,35 +561,33 @@ class hollaex(Exchange):
         datetime = self.safe_string(trade, 'timestamp')
         timestamp = self.parse8601(datetime)
         side = self.safe_string(trade, 'side')
+        orderId = self.safe_string(trade, 'order_id')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'size')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
-        feeCost = self.safe_number(trade, 'fee')
+        feeCostString = self.safe_string(trade, 'fee')
         fee = None
-        if feeCost is not None:
+        if feeCostString is not None:
             quote = market['quote']
             feeCurrencyCode = market['quote'] if (market is not None) else quote
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
-        return {
+        return self.safe_trade({
             'info': trade,
             'id': None,
             'timestamp': timestamp,
             'datetime': datetime,
             'symbol': symbol,
-            'order': None,
+            'order': orderId,
             'type': None,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     async def fetch_ohlcv(self, symbol, timeframe='1h', since=None, limit=None, params={}):
         await self.load_markets()
@@ -818,16 +904,17 @@ class hollaex(Exchange):
         request = {
             'symbol': market['id'],
             'side': side,
-            'size': amount,
+            'size': self.normalize_number_if_needed(amount),
             'type': type,
             # 'stop': float(self.price_to_precision(symbol, stopPrice)),
             # 'meta': {},  # other options such as post_only
         }
         if type != 'market':
-            request['price'] = price
+            convertedPrice = float(self.price_to_precision(symbol, price))
+            request['price'] = self.normalize_number_if_needed(convertedPrice)
         stopPrice = self.safe_float_2(params, 'stopPrice', 'stop')
         if stopPrice is not None:
-            request['stop'] = float(self.price_to_precision(symbol, stopPrice))
+            request['stop'] = self.normalize_number_if_needed(float(self.price_to_precision(symbol, stopPrice)))
             params = self.omit(params, ['stopPrice', 'stop'])
         response = await self.privatePostOrder(self.extend(request, params))
         #
@@ -877,12 +964,13 @@ class hollaex(Exchange):
         return self.parse_order(response)
 
     async def cancel_all_orders(self, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + " cancelAllOrders() requires a 'symbol' argument")
         await self.load_markets()
         request = {}
         market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            request['symbol'] = market['id']
+        market = self.market(symbol)
+        request['symbol'] = market['id']
         response = await self.privateDeleteOrderAll(self.extend(request, params))
         #
         #     [
@@ -1213,6 +1301,11 @@ class hollaex(Exchange):
             'id': None,
         }
 
+    def normalize_number_if_needed(self, number):
+        if number % 1 == 0:
+            number = int(number)
+        return number
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))
         path = '/' + self.version + '/' + self.implode_params(path, params)
@@ -1227,7 +1320,7 @@ class hollaex(Exchange):
             expiresString = str(expires)
             auth = method + path + expiresString
             headers = {
-                'api-key': self.encode(self.apiKey),
+                'api-key': self.apiKey,
                 'api-expires': expiresString,
             }
             if method == 'POST':

@@ -28,15 +28,43 @@ class bit2c(Exchange):
             'countries': ['IL'],  # Israel
             'rateLimit': 3000,
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
@@ -190,21 +218,18 @@ class bit2c(Exchange):
     def parse_ticker(self, ticker, market=None):
         symbol = self.safe_symbol(None, market)
         timestamp = self.milliseconds()
-        averagePrice = self.safe_number(ticker, 'av')
-        baseVolume = self.safe_number(ticker, 'a')
-        quoteVolume = None
-        if baseVolume is not None and averagePrice is not None:
-            quoteVolume = baseVolume * averagePrice
-        last = self.safe_number(ticker, 'll')
+        averagePrice = self.safe_string(ticker, 'av')
+        baseVolume = self.safe_string(ticker, 'a')
+        last = self.safe_string(ticker, 'll')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': self.safe_number(ticker, 'h'),
+            'bid': self.safe_string(ticker, 'h'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'l'),
+            'ask': self.safe_string(ticker, 'l'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -215,9 +240,9 @@ class bit2c(Exchange):
             'percentage': None,
             'average': averagePrice,
             'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

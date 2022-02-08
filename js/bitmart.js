@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ExchangeNotAvailable, AccountSuspended, PermissionDenied, RateLimitExceeded, InvalidNonce, InvalidAddress, ArgumentsRequired, ExchangeError, InvalidOrder, InsufficientFunds, BadRequest, OrderNotFound, BadSymbol, NotSupported } = require ('./base/errors');
 const { ROUND, TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -19,6 +20,12 @@ module.exports = class bitmart extends Exchange {
             'certified': true,
             'pro': true,
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': undefined, // has but unimplemented
+                'swap': undefined, // has but unimplemented
+                'future': undefined, // has but unimplemented
+                'option': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
@@ -286,6 +293,7 @@ module.exports = class bitmart extends Exchange {
                 'DMS': 'DimSum', // conflict with Dragon Mainland Shards
                 'FOX': 'Fox Finance',
                 'GDT': 'Gorilla Diamond',
+                '$GM': 'GOLDMINER',
                 '$HERO': 'Step Hero',
                 '$PAC': 'PAC',
                 'MIM': 'MIM Swarm',
@@ -712,39 +720,32 @@ module.exports = class bitmart extends Exchange {
         //     }
         //
         const timestamp = this.safeTimestamp2 (ticker, 'timestamp', 's_t', this.milliseconds ());
-        let marketId = this.safeString2 (ticker, 'symbol', 'contract_id');
-        marketId = this.safeString (ticker, 'contract_symbol', marketId);
-        const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeNumber2 (ticker, 'close_24h', 'last_price');
-        let percentage = this.safeNumber2 (ticker, 'fluctuation', 'rise_fall_rate');
-        if (percentage !== undefined) {
-            percentage *= 100;
-        }
+        const marketId = this.safeString2 (ticker, 'symbol', 'contract_id');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const last = this.safeString2 (ticker, 'close_24h', 'last_price');
+        let percentage = this.safeString2 (ticker, 'fluctuation', 'rise_fall_rate');
+        percentage = Precise.stringMul (percentage, '100');
         if (percentage === undefined) {
-            percentage = this.safeNumber (ticker, 'price_change_percent_24h');
+            percentage = this.safeString (ticker, 'price_change_percent_24h');
         }
-        const baseVolume = this.safeNumber2 (ticker, 'base_coin_volume', 'base_volume_24h');
-        let quoteVolume = this.safeNumber2 (ticker, 'quote_coin_volume', 'quote_volume_24h');
-        quoteVolume = this.safeNumber (ticker, 'volume_24h', quoteVolume);
-        const open = this.safeNumber2 (ticker, 'open_24h', 'open');
-        let average = undefined;
-        if ((last !== undefined) && (open !== undefined)) {
-            average = this.sum (last, open) / 2;
-        }
-        average = this.safeNumber (ticker, 'avg_price', average);
-        const price = this.safeValue (ticker, 'depth_price', ticker);
-        return {
+        const baseVolume = this.safeString2 (ticker, 'base_coin_volume', 'base_volume_24h');
+        let quoteVolume = this.safeString2 (ticker, 'quote_coin_volume', 'quote_volume_24h');
+        quoteVolume = this.safeString (ticker, 'volume_24h', quoteVolume);
+        const average = this.safeString (ticker, 'avg_price');
+        const price = this.safeString (ticker, 'depth_price', ticker);
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber2 (ticker, 'high', 'high_24h'),
-            'low': this.safeNumber2 (ticker, 'low', 'low_24h'),
-            'bid': this.safeNumber2 (price, 'best_bid', 'bid_price'),
-            'bidVolume': this.safeNumber (ticker, 'best_bid_size'),
-            'ask': this.safeNumber2 (price, 'best_ask', 'ask_price'),
-            'askVolume': this.safeNumber (ticker, 'best_ask_size'),
+            'high': this.safeString2 (ticker, 'high', 'high_24h'),
+            'low': this.safeString2 (ticker, 'low', 'low_24h'),
+            'bid': this.safeString2 (price, 'best_bid', 'bid_price'),
+            'bidVolume': this.safeString (ticker, 'best_bid_size'),
+            'ask': this.safeString2 (price, 'best_ask', 'ask_price'),
+            'askVolume': this.safeString (ticker, 'best_ask_size'),
             'vwap': undefined,
-            'open': this.safeNumber (ticker, 'open_24h'),
+            'open': this.safeString (ticker, 'open_24h'),
             'close': last,
             'last': last,
             'previousClose': undefined,
@@ -754,7 +755,7 @@ module.exports = class bitmart extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -829,16 +830,13 @@ module.exports = class bitmart extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
-        let method = undefined;
-        if ((type === 'swap') || (type === 'future')) {
-            method = 'publicContractGetTickers';
-        } else if (type === 'spot') {
-            method = 'publicSpotGetTicker';
-        }
-        const response = await this[method] (params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'publicSpotGetTicker',
+            'swap': 'publicContractGetTickers',
+            'future': 'publicContractGetTickers',
+        });
+        const response = await this[method] (query);
         const data = this.safeValue (response, 'data', {});
         const tickers = this.safeValue (data, 'tickers', []);
         const result = {};
@@ -1293,7 +1291,7 @@ module.exports = class bitmart extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = undefined;
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const request = {};
         if (market['spot']) {
             request['symbol'] = market['id'];
@@ -1302,16 +1300,19 @@ module.exports = class bitmart extends Exchange {
                 limit = 100; // max 100
             }
             request['limit'] = limit;
-            method = 'privateSpotGetTrades';
         } else if (market['swap'] || market['future']) {
             request['contractID'] = market['id'];
             // request['offset'] = 1;
             if (limit !== undefined) {
                 request['size'] = limit; // max 60
             }
-            method = 'privateContractGetUserTrades';
         }
-        const response = await this[method] (this.extend (request, params));
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateSpotGetTrades',
+            'swap': 'privateContractGetUserTrades',
+            'future': 'privateContractGetUserTrades',
+        });
+        const response = await this[method] (this.extend (request, query));
         //
         // spot
         //
@@ -1374,18 +1375,21 @@ module.exports = class bitmart extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = undefined;
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderTrades', market, params);
         const request = {};
         if (market['spot']) {
             request['symbol'] = market['id'];
             request['order_id'] = id;
-            method = 'privateSpotGetTrades';
         } else if (market['swap'] || market['future']) {
             request['contractID'] = market['id'];
             request['orderID'] = id;
-            method = 'privateContractGetOrderTrades';
         }
-        const response = await this[method] (this.extend (request, params));
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateSpotGetTrades',
+            'swap': 'privateContractGetOrderTrades',
+            'future': 'privateContractGetOrderTrades',
+        });
+        const response = await this[method] (this.extend (request, query));
         //
         // spot
         //
@@ -1461,20 +1465,15 @@ module.exports = class bitmart extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let method = undefined;
-        const options = this.safeValue (this.options, 'fetchBalance', {});
-        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        let type = this.safeString (options, 'type', defaultType);
-        type = this.safeString (params, 'type', type);
-        params = this.omit (params, 'type');
-        if (type === 'spot') {
-            method = 'privateSpotGetWallet';
-        } else if (type === 'account') {
-            method = 'privateAccountGetWallet';
-        } else if ((type === 'swap') || (type === 'future') || (type === 'contract')) {
-            method = 'privateContractGetAccounts';
-        }
-        const response = await this[method] (params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateSpotGetWallet',
+            'swap': 'privateContractGetAccounts',
+            'future': 'privateContractGetAccounts',
+            'contract': 'privateContractGetAccounts',
+            'account': 'privateAccountGetWallet',
+        });
+        const response = await this[method] (query);
         //
         // spot
         //
@@ -1836,7 +1835,7 @@ module.exports = class bitmart extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['spot']) {
+        if (!market['contract']) {
             throw new NotSupported (this.id + ' cancelOrders() does not support ' + market['type'] + ' orders, only contract orders are accepted');
         }
         const orders = [];
@@ -1882,10 +1881,9 @@ module.exports = class bitmart extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
         const request = {};
-        let method = undefined;
         if (market['spot']) {
-            method = 'privateSpotGetOrders';
             request['symbol'] = market['id'];
             request['offset'] = 1; // max offset * limit < 500
             request['limit'] = 100; // max limit is 100
@@ -1909,7 +1907,6 @@ module.exports = class bitmart extends Exchange {
                 request['status'] = status;
             }
         } else if (market['swap'] || market['future']) {
-            method = 'privateContractGetUserOrders';
             request['contractID'] = market['id'];
             // request['offset'] = 1;
             if (limit !== undefined) {
@@ -1928,7 +1925,12 @@ module.exports = class bitmart extends Exchange {
                 request['status'] = status;
             }
         }
-        const response = await this[method] (this.extend (request, params));
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateSpotGetOrders',
+            'swap': 'privateContractGetUserOrders',
+            'future': 'privateContractGetUserOrders',
+        });
+        const response = await this[method] (this.extend (request, query));
         //
         // spot
         //
@@ -2023,20 +2025,23 @@ module.exports = class bitmart extends Exchange {
         await this.loadMarkets ();
         const request = {};
         const market = this.market (symbol);
-        let method = undefined;
         if (typeof id !== 'string') {
             id = id.toString ();
         }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         if (market['spot']) {
             request['symbol'] = market['id'];
             request['order_id'] = id;
-            method = 'privateSpotGetOrderDetail';
         } else if (market['swap'] || market['future']) {
             request['contractID'] = market['id'];
             request['orderID'] = id;
-            method = 'privateContractGetUserOrderInfo';
         }
-        const response = await this[method] (this.extend (request, params));
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateSpotGetOrderDetail',
+            'swap': 'privateContractGetUserOrderInfo',
+            'future': 'privateContractGetUserOrderInfo',
+        });
+        const response = await this[method] (this.extend (request, query));
         //
         // spot
         //

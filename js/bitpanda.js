@@ -17,24 +17,48 @@ module.exports = class bitpanda extends Exchange {
             'version': 'v1',
             // new metainfo interface
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
-                'CORS': undefined,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderTrades': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -43,6 +67,10 @@ module.exports = class bitpanda extends Exchange {
                 'fetchWithdrawals': true,
                 'privateAPI': true,
                 'publicAPI': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -311,42 +339,56 @@ module.exports = class bitpanda extends Exchange {
             const id = baseId + '_' + quoteId;
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const precision = {
-                'amount': this.safeInteger (market, 'amount_precision'),
-                'price': this.safeInteger (market, 'market_precision'),
-            };
-            const limits = {
-                'amount': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': this.safeNumber (market, 'min_size'),
-                    'max': undefined,
-                },
-            };
             const state = this.safeString (market, 'state');
-            const active = (state === 'ACTIVE');
             result.push ({
                 'info': market,
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'precision': precision,
-                'limits': limits,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': (state === 'ACTIVE'),
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
                 'deposit': undefined,
                 'withdraw': undefined,
+                'precision': {
+                    'amount': this.safeInteger (market, 'amount_precision'),
+                    'price': this.safeInteger (market, 'market_precision'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'min_size'),
+                        'max': undefined,
+                    },
+                },
             });
         }
         return result;
@@ -502,23 +544,22 @@ module.exports = class bitpanda extends Exchange {
         const timestamp = this.parse8601 (this.safeString (ticker, 'time'));
         const marketId = this.safeString (ticker, 'instrument_code');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const last = this.safeNumber (ticker, 'last_price');
-        const percentage = this.safeNumber (ticker, 'price_change_percentage');
-        const change = this.safeNumber (ticker, 'price_change');
-        const baseVolume = this.safeNumber (ticker, 'base_volume');
-        const quoteVolume = this.safeNumber (ticker, 'quote_volume');
-        const vwap = this.vwap (baseVolume, quoteVolume);
+        const last = this.safeString (ticker, 'last_price');
+        const percentage = this.safeString (ticker, 'price_change_percentage');
+        const change = this.safeString (ticker, 'price_change');
+        const baseVolume = this.safeString (ticker, 'base_volume');
+        const quoteVolume = this.safeString (ticker, 'quote_volume');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'best_bid'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'best_bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'best_ask'),
+            'ask': this.safeString (ticker, 'best_ask'),
             'askVolume': undefined,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
@@ -529,7 +570,7 @@ module.exports = class bitpanda extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {

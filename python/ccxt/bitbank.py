@@ -12,7 +12,6 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.precise import Precise
 
 
 class bitbank(Exchange):
@@ -24,17 +23,46 @@ class bitbank(Exchange):
             'countries': ['JP'],
             'version': 'v1',
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchDepositAddress': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -151,63 +179,71 @@ class bitbank(Exchange):
             quoteId = self.safe_string(entry, 'quote_asset')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            maker = self.safe_number(entry, 'maker_fee_rate_quote')
-            taker = self.safe_number(entry, 'taker_fee_rate_quote')
-            pricePrecisionString = self.safe_string(entry, 'price_digits')
-            priceLimit = self.parse_precision(pricePrecisionString)
-            precision = {
-                'price': int(pricePrecisionString),
-                'amount': self.safe_integer(entry, 'amount_digits'),
-            }
-            active = self.safe_value(entry, 'is_enabled')
-            minAmountString = self.safe_string(entry, 'unit_amount')
-            minCost = Precise.string_mul(minAmountString, priceLimit)
-            limits = {
-                'amount': {
-                    'min': self.safe_number(entry, 'unit_amount'),
-                    'max': self.safe_number(entry, 'limit_max_amount'),
-                },
-                'price': {
-                    'min': self.parse_number(priceLimit),
-                    'max': None,
-                },
-                'cost': {
-                    'min': self.parse_number(minCost),
-                    'max': None,
-                },
-            }
             result.append({
-                'info': entry,
                 'id': id,
-                'symbol': symbol,
-                'baseId': baseId,
-                'quoteId': quoteId,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
-                'precision': precision,
-                'limits': limits,
+                'settle': None,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
-                'maker': maker,
-                'taker': taker,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': self.safe_value(entry, 'is_enabled'),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'taker': self.safe_number(entry, 'taker_fee_rate_quote'),
+                'maker': self.safe_number(entry, 'maker_fee_rate_quote'),
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': self.safe_integer(entry, 'price_digits'),
+                    'amount': self.safe_integer(entry, 'amount_digits'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': self.safe_number(entry, 'unit_amount'),
+                        'max': self.safe_number(entry, 'limit_max_amount'),
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'info': entry,
             })
         return result
 
     def parse_ticker(self, ticker, market=None):
         symbol = self.safe_symbol(None, market)
         timestamp = self.safe_integer(ticker, 'timestamp')
-        last = self.safe_number(ticker, 'last')
+        last = self.safe_string(ticker, 'last')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'buy'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'sell'),
+            'ask': self.safe_string(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -217,10 +253,10 @@ class bitbank(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'vol'),
+            'baseVolume': self.safe_string(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()

@@ -15,20 +15,32 @@ module.exports = class cex extends Exchange {
             'countries': [ 'GB', 'EU', 'CY', 'RU' ],
             'rateLimit': 1500,
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': undefined, // has but unimplemented
+                'swap': false,
+                'future': false,
+                'option': false,
+                'cancelOrder': true,
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -304,10 +316,8 @@ module.exports = class cex extends Exchange {
             const market = markets[i];
             const baseId = this.safeString (market, 'symbol1');
             const quoteId = this.safeString (market, 'symbol2');
-            const id = baseId + '/' + quoteId;
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
             const baseCurrency = this.safeValue (currenciesById, baseId, {});
             const quoteCurrency = this.safeValue (currenciesById, quoteId, {});
             let pricePrecision = this.safeInteger (quoteCurrency, 'precision', 8);
@@ -320,24 +330,39 @@ module.exports = class cex extends Exchange {
             }
             const baseCcyPrecision = this.safeInteger (baseCurrency, 'precision', 8);
             const baseCcyScale = this.safeInteger (baseCurrency, 'scale', 0);
-            const amountPrecision = baseCcyPrecision - baseCcyScale;
-            const precision = {
-                'amount': amountPrecision,
-                'price': pricePrecision,
-            };
             result.push ({
-                'id': id,
-                'info': market,
-                'symbol': symbol,
+                'id': baseId + '/' + quoteId,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'margin': undefined,
+                'future': false,
+                'swap': false,
+                'option': false,
                 'active': undefined,
-                'precision': precision,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': pricePrecision,
+                    'amount': baseCcyPrecision - baseCcyScale,
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'minLotSize'),
                         'max': this.safeNumber (market, 'maxLotSize'),
@@ -351,6 +376,7 @@ module.exports = class cex extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': market,
             });
         }
         return result;
@@ -449,17 +475,14 @@ module.exports = class cex extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
-        const volume = this.safeNumber (ticker, 'volume');
-        const high = this.safeNumber (ticker, 'high');
-        const low = this.safeNumber (ticker, 'low');
-        const bid = this.safeNumber (ticker, 'bid');
-        const ask = this.safeNumber (ticker, 'ask');
-        const last = this.safeNumber (ticker, 'last');
-        let symbol = undefined;
-        if (market) {
-            symbol = market['symbol'];
-        }
-        return {
+        const volume = this.safeString (ticker, 'volume');
+        const high = this.safeString (ticker, 'high');
+        const low = this.safeString (ticker, 'low');
+        const bid = this.safeString (ticker, 'bid');
+        const ask = this.safeString (ticker, 'ask');
+        const last = this.safeString (ticker, 'last');
+        const symbol = this.safeSymbol (undefined, market);
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -480,7 +503,7 @@ module.exports = class cex extends Exchange {
             'baseVolume': volume,
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

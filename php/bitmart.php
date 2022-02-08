@@ -24,6 +24,12 @@ class bitmart extends Exchange {
             'certified' => true,
             'pro' => true,
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => null, // has but unimplemented
+                'swap' => null, // has but unimplemented
+                'future' => null, // has but unimplemented
+                'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
@@ -291,6 +297,7 @@ class bitmart extends Exchange {
                 'DMS' => 'DimSum', // conflict with Dragon Mainland Shards
                 'FOX' => 'Fox Finance',
                 'GDT' => 'Gorilla Diamond',
+                '$GM' => 'GOLDMINER',
                 '$HERO' => 'Step Hero',
                 '$PAC' => 'PAC',
                 'MIM' => 'MIM Swarm',
@@ -718,38 +725,31 @@ class bitmart extends Exchange {
         //
         $timestamp = $this->safe_timestamp_2($ticker, 'timestamp', 's_t', $this->milliseconds());
         $marketId = $this->safe_string_2($ticker, 'symbol', 'contract_id');
-        $marketId = $this->safe_string($ticker, 'contract_symbol', $marketId);
-        $symbol = $this->safe_symbol($marketId, $market);
-        $last = $this->safe_number_2($ticker, 'close_24h', 'last_price');
-        $percentage = $this->safe_number_2($ticker, 'fluctuation', 'rise_fall_rate');
-        if ($percentage !== null) {
-            $percentage *= 100;
-        }
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
+        $last = $this->safe_string_2($ticker, 'close_24h', 'last_price');
+        $percentage = $this->safe_string_2($ticker, 'fluctuation', 'rise_fall_rate');
+        $percentage = Precise::string_mul($percentage, '100');
         if ($percentage === null) {
-            $percentage = $this->safe_number($ticker, 'price_change_percent_24h');
+            $percentage = $this->safe_string($ticker, 'price_change_percent_24h');
         }
-        $baseVolume = $this->safe_number_2($ticker, 'base_coin_volume', 'base_volume_24h');
-        $quoteVolume = $this->safe_number_2($ticker, 'quote_coin_volume', 'quote_volume_24h');
-        $quoteVolume = $this->safe_number($ticker, 'volume_24h', $quoteVolume);
-        $open = $this->safe_number_2($ticker, 'open_24h', 'open');
-        $average = null;
-        if (($last !== null) && ($open !== null)) {
-            $average = $this->sum($last, $open) / 2;
-        }
-        $average = $this->safe_number($ticker, 'avg_price', $average);
-        $price = $this->safe_value($ticker, 'depth_price', $ticker);
-        return array(
+        $baseVolume = $this->safe_string_2($ticker, 'base_coin_volume', 'base_volume_24h');
+        $quoteVolume = $this->safe_string_2($ticker, 'quote_coin_volume', 'quote_volume_24h');
+        $quoteVolume = $this->safe_string($ticker, 'volume_24h', $quoteVolume);
+        $average = $this->safe_string($ticker, 'avg_price');
+        $price = $this->safe_string($ticker, 'depth_price', $ticker);
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number_2($ticker, 'high', 'high_24h'),
-            'low' => $this->safe_number_2($ticker, 'low', 'low_24h'),
-            'bid' => $this->safe_number_2($price, 'best_bid', 'bid_price'),
-            'bidVolume' => $this->safe_number($ticker, 'best_bid_size'),
-            'ask' => $this->safe_number_2($price, 'best_ask', 'ask_price'),
-            'askVolume' => $this->safe_number($ticker, 'best_ask_size'),
+            'high' => $this->safe_string_2($ticker, 'high', 'high_24h'),
+            'low' => $this->safe_string_2($ticker, 'low', 'low_24h'),
+            'bid' => $this->safe_string_2($price, 'best_bid', 'bid_price'),
+            'bidVolume' => $this->safe_string($ticker, 'best_bid_size'),
+            'ask' => $this->safe_string_2($price, 'best_ask', 'ask_price'),
+            'askVolume' => $this->safe_string($ticker, 'best_ask_size'),
             'vwap' => null,
-            'open' => $this->safe_number($ticker, 'open_24h'),
+            'open' => $this->safe_string($ticker, 'open_24h'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
@@ -759,7 +759,7 @@ class bitmart extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -834,16 +834,13 @@ class bitmart extends Exchange {
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit($params, 'type');
-        $method = null;
-        if (($type === 'swap') || ($type === 'future')) {
-            $method = 'publicContractGetTickers';
-        } else if ($type === 'spot') {
-            $method = 'publicSpotGetTicker';
-        }
-        $response = $this->$method ($params);
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', null, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'publicSpotGetTicker',
+            'swap' => 'publicContractGetTickers',
+            'future' => 'publicContractGetTickers',
+        ));
+        $response = $this->$method ($query);
         $data = $this->safe_value($response, 'data', array());
         $tickers = $this->safe_value($data, 'tickers', array());
         $result = array();
@@ -1298,7 +1295,7 @@ class bitmart extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        $method = null;
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
         $request = array();
         if ($market['spot']) {
             $request['symbol'] = $market['id'];
@@ -1307,16 +1304,19 @@ class bitmart extends Exchange {
                 $limit = 100; // max 100
             }
             $request['limit'] = $limit;
-            $method = 'privateSpotGetTrades';
         } else if ($market['swap'] || $market['future']) {
             $request['contractID'] = $market['id'];
             // $request['offset'] = 1;
             if ($limit !== null) {
                 $request['size'] = $limit; // max 60
             }
-            $method = 'privateContractGetUserTrades';
         }
-        $response = $this->$method (array_merge($request, $params));
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateSpotGetTrades',
+            'swap' => 'privateContractGetUserTrades',
+            'future' => 'privateContractGetUserTrades',
+        ));
+        $response = $this->$method (array_merge($request, $query));
         //
         // spot
         //
@@ -1379,18 +1379,21 @@ class bitmart extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        $method = null;
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchOrderTrades', $market, $params);
         $request = array();
         if ($market['spot']) {
             $request['symbol'] = $market['id'];
             $request['order_id'] = $id;
-            $method = 'privateSpotGetTrades';
         } else if ($market['swap'] || $market['future']) {
             $request['contractID'] = $market['id'];
             $request['orderID'] = $id;
-            $method = 'privateContractGetOrderTrades';
         }
-        $response = $this->$method (array_merge($request, $params));
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateSpotGetTrades',
+            'swap' => 'privateContractGetOrderTrades',
+            'future' => 'privateContractGetOrderTrades',
+        ));
+        $response = $this->$method (array_merge($request, $query));
         //
         // spot
         //
@@ -1466,20 +1469,15 @@ class bitmart extends Exchange {
 
     public function fetch_balance($params = array ()) {
         $this->load_markets();
-        $method = null;
-        $options = $this->safe_value($this->options, 'fetchBalance', array());
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
-        $type = $this->safe_string($options, 'type', $defaultType);
-        $type = $this->safe_string($params, 'type', $type);
-        $params = $this->omit($params, 'type');
-        if ($type === 'spot') {
-            $method = 'privateSpotGetWallet';
-        } else if ($type === 'account') {
-            $method = 'privateAccountGetWallet';
-        } else if (($type === 'swap') || ($type === 'future') || ($type === 'contract')) {
-            $method = 'privateContractGetAccounts';
-        }
-        $response = $this->$method ($params);
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateSpotGetWallet',
+            'swap' => 'privateContractGetAccounts',
+            'future' => 'privateContractGetAccounts',
+            'contract' => 'privateContractGetAccounts',
+            'account' => 'privateAccountGetWallet',
+        ));
+        $response = $this->$method ($query);
         //
         // spot
         //
@@ -1841,7 +1839,7 @@ class bitmart extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        if (!$market['spot']) {
+        if (!$market['contract']) {
             throw new NotSupported($this->id . ' cancelOrders() does not support ' . $market['type'] . ' $orders, only contract $orders are accepted');
         }
         $orders = array();
@@ -1887,10 +1885,9 @@ class bitmart extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params);
         $request = array();
-        $method = null;
         if ($market['spot']) {
-            $method = 'privateSpotGetOrders';
             $request['symbol'] = $market['id'];
             $request['offset'] = 1; // max offset * $limit < 500
             $request['limit'] = 100; // max $limit is 100
@@ -1914,7 +1911,6 @@ class bitmart extends Exchange {
                 $request['status'] = $status;
             }
         } else if ($market['swap'] || $market['future']) {
-            $method = 'privateContractGetUserOrders';
             $request['contractID'] = $market['id'];
             // $request['offset'] = 1;
             if ($limit !== null) {
@@ -1933,7 +1929,12 @@ class bitmart extends Exchange {
                 $request['status'] = $status;
             }
         }
-        $response = $this->$method (array_merge($request, $params));
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateSpotGetOrders',
+            'swap' => 'privateContractGetUserOrders',
+            'future' => 'privateContractGetUserOrders',
+        ));
+        $response = $this->$method (array_merge($request, $query));
         //
         // spot
         //
@@ -2028,20 +2029,23 @@ class bitmart extends Exchange {
         $this->load_markets();
         $request = array();
         $market = $this->market($symbol);
-        $method = null;
         if (gettype($id) !== 'string') {
             $id = (string) $id;
         }
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
         if ($market['spot']) {
             $request['symbol'] = $market['id'];
             $request['order_id'] = $id;
-            $method = 'privateSpotGetOrderDetail';
         } else if ($market['swap'] || $market['future']) {
             $request['contractID'] = $market['id'];
             $request['orderID'] = $id;
-            $method = 'privateContractGetUserOrderInfo';
         }
-        $response = $this->$method (array_merge($request, $params));
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateSpotGetOrderDetail',
+            'swap' => 'privateContractGetUserOrderInfo',
+            'future' => 'privateContractGetUserOrderInfo',
+        ));
+        $response = $this->$method (array_merge($request, $query));
         //
         // spot
         //

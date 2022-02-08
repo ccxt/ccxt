@@ -22,28 +22,58 @@ class vcc extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v3',
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'editOrder' => null,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => null,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => 'emulated',
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => true,
                 'fetchTradingFees' => null,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
             ),
             'timeframes' => array(
                 '1m' => '60000',
@@ -179,29 +209,45 @@ class vcc extends Exchange {
             $quoteId = $this->safe_string($market, 'currency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $active = $this->safe_value($market, 'active');
             $precision = $this->safe_value($market, 'precision', array());
             $limits = $this->safe_value($market, 'limits', array());
             $amountLimits = $this->safe_value($limits, 'amount', array());
             $priceLimits = $this->safe_value($limits, 'price', array());
             $costLimits = $this->safe_value($limits, 'cost', array());
             $entry = array(
-                'info' => $market,
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settledId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'active' => $active,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => $this->safe_value($market, 'active'),
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
                 'precision' => array(
                     'price' => $this->safe_integer($precision, 'price'),
                     'amount' => $this->safe_integer($precision, 'amount'),
                     'cost' => $this->safe_integer($precision, 'cost'),
                 ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->safe_number($amountLimits, 'min'),
                         'max' => null,
@@ -215,6 +261,7 @@ class vcc extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'info' => $market,
             );
             $result[] = $entry;
         }
@@ -250,14 +297,18 @@ class vcc extends Exchange {
             $id = $this->safe_string_lower($ids, $i);
             $currency = $this->safe_value($data, $ids[$i]);
             $code = $this->safe_currency_code($id);
-            $canDeposit = $this->safe_value($currency, 'can_deposit');
-            $canWithdraw = $this->safe_value($currency, 'can_withdraw');
+            $canDeposit = $this->safe_integer($currency, 'can_deposit');
+            $canWithdraw = $this->safe_integer($currency, 'can_withdraw');
             $active = ($canDeposit && $canWithdraw);
+            $depositEnabled = ($canDeposit === 1);
+            $withdrawEnabled = ($canWithdraw === 1);
             $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
                 'name' => $this->safe_string($currency, 'name'),
                 'active' => $active,
+                'deposit' => $depositEnabled,
+                'withdraw' => $withdrawEnabled,
                 'fee' => $this->safe_number($currency, 'withdrawal_fee'),
                 'precision' => $this->safe_integer($currency, 'decimal'),
                 'limits' => array(
@@ -436,23 +487,22 @@ class vcc extends Exchange {
         //     }
         //
         $timestamp = $this->milliseconds();
-        $baseVolume = $this->safe_number($ticker, 'base_volume');
-        $quoteVolume = $this->safe_number($ticker, 'quote_volume');
-        $open = $this->safe_number($ticker, 'open_price');
-        $last = $this->safe_number($ticker, 'last_price');
-        $vwap = $this->vwap($baseVolume, $quoteVolume);
+        $baseVolume = $this->safe_string($ticker, 'base_volume');
+        $quoteVolume = $this->safe_string($ticker, 'quote_volume');
+        $open = $this->safe_string($ticker, 'open_price');
+        $last = $this->safe_string($ticker, 'last_price');
         $symbol = $this->safe_symbol(null, $market);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'max_price'),
-            'low' => $this->safe_number($ticker, 'min_price'),
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'high' => $this->safe_string($ticker, 'max_price'),
+            'low' => $this->safe_string($ticker, 'min_price'),
+            'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
-            'vwap' => $vwap,
+            'vwap' => null,
             'open' => $open,
             'close' => $last,
             'last' => $last,
@@ -463,7 +513,7 @@ class vcc extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

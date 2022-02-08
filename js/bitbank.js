@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired } = require ('./base/errors');
-const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,17 +15,46 @@ module.exports = class bitbank extends Exchange {
             'countries': [ 'JP' ],
             'version': 'v1',
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchDepositAddress': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -144,47 +172,55 @@ module.exports = class bitbank extends Exchange {
             const quoteId = this.safeString (entry, 'quote_asset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const maker = this.safeNumber (entry, 'maker_fee_rate_quote');
-            const taker = this.safeNumber (entry, 'taker_fee_rate_quote');
-            const pricePrecisionString = this.safeString (entry, 'price_digits');
-            const priceLimit = this.parsePrecision (pricePrecisionString);
-            const precision = {
-                'price': parseInt (pricePrecisionString),
-                'amount': this.safeInteger (entry, 'amount_digits'),
-            };
-            const active = this.safeValue (entry, 'is_enabled');
-            const minAmountString = this.safeString (entry, 'unit_amount');
-            const minCost = Precise.stringMul (minAmountString, priceLimit);
-            const limits = {
-                'amount': {
-                    'min': this.safeNumber (entry, 'unit_amount'),
-                    'max': this.safeNumber (entry, 'limit_max_amount'),
-                },
-                'price': {
-                    'min': this.parseNumber (priceLimit),
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': this.parseNumber (minCost),
-                    'max': undefined,
-                },
-            };
             result.push ({
-                'info': entry,
                 'id': id,
-                'symbol': symbol,
-                'baseId': baseId,
-                'quoteId': quoteId,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
-                'precision': precision,
-                'limits': limits,
+                'settle': undefined,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
-                'maker': maker,
-                'taker': taker,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': this.safeValue (entry, 'is_enabled'),
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': this.safeNumber (entry, 'taker_fee_rate_quote'),
+                'maker': this.safeNumber (entry, 'maker_fee_rate_quote'),
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': this.safeInteger (entry, 'price_digits'),
+                    'amount': this.safeInteger (entry, 'amount_digits'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (entry, 'unit_amount'),
+                        'max': this.safeNumber (entry, 'limit_max_amount'),
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'info': entry,
             });
         }
         return result;
@@ -193,16 +229,16 @@ module.exports = class bitbank extends Exchange {
     parseTicker (ticker, market = undefined) {
         const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.safeInteger (ticker, 'timestamp');
-        const last = this.safeNumber (ticker, 'last');
+        const last = this.safeString (ticker, 'last');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'buy'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'sell'),
+            'ask': this.safeString (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -212,10 +248,10 @@ module.exports = class bitbank extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'vol'),
+            'baseVolume': this.safeString (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {

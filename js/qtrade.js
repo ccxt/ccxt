@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InvalidOrder, InsufficientFunds, AuthenticationError, RateLimitExceeded, BadSymbol } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -23,29 +24,57 @@ module.exports = class qtrade extends Exchange {
                 'referral': 'https://qtrade.io/?ref=BKOQWVFGRH2C',
             },
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
+                'cancelOrder': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTransactions': undefined,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -168,29 +197,45 @@ module.exports = class qtrade extends Exchange {
             const quoteId = this.safeString (market, 'base_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const precision = {
-                'amount': this.safeInteger (market, 'market_precision'),
-                'price': this.safeInteger (market, 'base_precision'),
-            };
             const canView = this.safeValue (market, 'can_view', false);
             const canTrade = this.safeValue (market, 'can_trade', false);
             const active = canTrade && canView;
             result.push ({
-                'symbol': symbol,
                 'id': marketId,
                 'numericId': numericId,
-                'baseId': baseId,
-                'quoteId': quoteId,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'active': active,
-                'precision': precision,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
                 'taker': this.safeNumber (market, 'taker_fee'),
                 'maker': this.safeNumber (market, 'maker_fee'),
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': this.safeInteger (market, 'base_precision'),
+                    'amount': this.safeInteger (market, 'market_precision'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'minimum_sell_value'),
                         'max': undefined,
@@ -263,10 +308,13 @@ module.exports = class qtrade extends Exchange {
             const name = this.safeString (currency, 'long_name');
             const type = this.safeString (currency, 'type');
             const canWithdraw = this.safeValue (currency, 'can_withdraw', true);
+            const withdrawDisabled = this.safeValue (currency, 'withdraw_disabled', false);
             const depositDisabled = this.safeValue (currency, 'deposit_disabled', false);
+            const deposit = !depositDisabled;
+            const withdraw = canWithdraw && !withdrawDisabled;
             const config = this.safeValue (currency, 'config', {});
             const status = this.safeString (currency, 'status');
-            const active = canWithdraw && (status === 'ok') && !depositDisabled;
+            const active = withdraw && deposit && (status === 'ok');
             result[code] = {
                 'id': id,
                 'code': code,
@@ -276,6 +324,8 @@ module.exports = class qtrade extends Exchange {
                 'fee': this.safeNumber (config, 'withdraw_fee'),
                 'precision': this.safeInteger (currency, 'precision'),
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'limits': {
                     'amount': {
                         'min': this.safeNumber (currency, 'minimum_order'),
@@ -404,32 +454,25 @@ module.exports = class qtrade extends Exchange {
         const marketId = this.safeString (ticker, 'id_hr');
         const symbol = this.safeSymbol (marketId, market, '_');
         const timestamp = this.safeIntegerProduct (ticker, 'last_change', 0.001);
-        const previous = this.safeNumber (ticker, 'day_open');
-        const last = this.safeNumber (ticker, 'last');
-        const day_change = this.safeNumber (ticker, 'day_change');
-        let percentage = undefined;
-        let change = undefined;
-        const average = this.safeNumber (ticker, 'day_avg_price');
-        if (day_change !== undefined) {
-            percentage = day_change * 100;
-            if (previous !== undefined) {
-                change = day_change * previous;
-            }
-        }
-        const baseVolume = this.safeNumber (ticker, 'day_volume_market');
-        const quoteVolume = this.safeNumber (ticker, 'day_volume_base');
-        const vwap = this.vwap (baseVolume, quoteVolume);
+        const previous = this.safeString (ticker, 'day_open');
+        const last = this.safeString (ticker, 'last');
+        const day_change = this.safeString (ticker, 'day_change');
+        const average = this.safeString (ticker, 'day_avg_price');
+        const baseVolume = this.safeString (ticker, 'day_volume_market');
+        const quoteVolume = this.safeString (ticker, 'day_volume_base');
+        const percentage = Precise.stringMul (day_change, '100');
+        const change = Precise.stringMul (day_change, previous);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'day_high'),
-            'low': this.safeNumber (ticker, 'day_low'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeString (ticker, 'day_high'),
+            'low': this.safeString (ticker, 'day_low'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': previous,
             'close': last,
             'last': last,
@@ -440,7 +483,7 @@ module.exports = class qtrade extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

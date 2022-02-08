@@ -21,19 +21,48 @@ class btcalpha(Exchange):
             'countries': ['US'],
             'version': 'v1',
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': None,
                 'fetchTrades': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
             },
             'timeframes': {
                 '1m': '1',
@@ -107,24 +136,42 @@ class btcalpha(Exchange):
             quoteId = self.safe_string(market, 'currency2')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
             pricePrecision = self.safe_string(market, 'price_precision')
             priceLimit = self.parse_precision(pricePrecision)
-            precision = {
-                'amount': 8,
-                'price': int(pricePrecision),
-            }
             amountLimit = self.safe_string(market, 'minimum_order_size')
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'active': True,
-                'precision': precision,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': int('8'),
+                    'price': int(pricePrecision),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.parse_number(amountLimit),
                         'max': self.safe_number(market, 'maximum_order_size'),
@@ -139,8 +186,6 @@ class btcalpha(Exchange):
                     },
                 },
                 'info': market,
-                'baseId': None,
-                'quoteId': None,
             })
         return result
 

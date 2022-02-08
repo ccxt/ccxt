@@ -20,6 +20,12 @@ class delta extends Exchange {
             'version' => 'v2',
             // new metainfo interface
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => null,
+                'swap' => null,
+                'future' => null,
+                'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
@@ -34,6 +40,8 @@ class delta extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrderBook' => true,
+                'fetchPosition' => true,
+                'fetchPositions' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -370,76 +378,105 @@ class delta extends Exchange {
             // $settlingAsset = $this->safe_value($market, 'settling_asset', array());
             $quotingAsset = $this->safe_value($market, 'quoting_asset', array());
             $underlyingAsset = $this->safe_value($market, 'underlying_asset', array());
+            $settlingAsset = $this->safe_value($market, 'settling_asset');
             $baseId = $this->safe_string($underlyingAsset, 'symbol');
             $quoteId = $this->safe_string($quotingAsset, 'symbol');
+            $settleId = $this->safe_string($settlingAsset, 'symbol');
             $id = $this->safe_string($market, 'symbol');
             $numericId = $this->safe_integer($market, 'id');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $id;
-            $swap = false;
-            $future = false;
-            $option = false;
-            if ($type === 'perpetual_futures') {
-                $type = 'swap';
-                $swap = true;
-                $future = false;
-                $option = false;
-                if (mb_strpos($id, '_') === false) {
-                    $symbol = $base . '/' . $quote;
+            $settle = $this->safe_currency_code($settleId);
+            $callOptions = ($type === 'call_options');
+            $putOptions = ($type === 'put_options');
+            $moveOptions = ($type === 'move_options');
+            $spot = ($type === 'spot');
+            $swap = ($type === 'perpetual_futures');
+            $future = ($type === 'futures');
+            $option = ($callOptions || $putOptions || $moveOptions);
+            $strike = $this->safe_string($market, 'strike_price');
+            $expiryDatetime = $this->safe_string($market, 'settlement_time');
+            $expiry = $this->parse8601($expiryDatetime);
+            $contractSize = $this->safe_number($market, 'contract_value');
+            $linear = ($settle === $base);
+            $optionType = null;
+            $symbol = $base . '/' . $quote;
+            if ($swap || $future || $option) {
+                $symbol = $symbol . ':' . $settle;
+                if ($future || $option) {
+                    $symbol = $symbol . '-' . $this->yymmdd($expiry);
+                    if ($option) {
+                        $type = 'option';
+                        $letter = 'C';
+                        $optionType = 'call';
+                        if ($putOptions) {
+                            $letter = 'P';
+                            $optionType = 'put';
+                        } else if ($moveOptions) {
+                            $letter = 'M';
+                            $optionType = 'move';
+                        }
+                        $symbol = $symbol . ':' . $strike . ':' . $letter;
+                    } else {
+                        $type = 'future';
+                    }
+                } else {
+                    $type = 'swap';
                 }
-            } else if (($type === 'call_options') || ($type === 'put_options') || ($type === 'move_options')) {
-                $type = 'option';
-                $swap = false;
-                $option = true;
-                $future = false;
-            } else if ($type === 'futures') {
-                $type = 'future';
-                $swap = false;
-                $option = false;
-                $future = true;
+            } else {
+                $symbol = $id;
             }
-            $precision = array(
-                'amount' => 1.0, // number of contracts
-                'price' => $this->safe_number($market, 'tick_size'),
-            );
-            $limits = array(
-                'amount' => array(
-                    'min' => 1.0,
-                    'max' => $this->safe_number($market, 'position_size_limit'),
-                ),
-                'price' => array(
-                    'min' => $precision['price'],
-                    'max' => null,
-                ),
-                'cost' => array(
-                    'min' => $this->safe_number($market, 'min_size'),
-                    'max' => null,
-                ),
-            );
             $state = $this->safe_string($market, 'state');
-            $active = ($state === 'live');
-            $maker = $this->safe_number($market, 'maker_commission_rate');
-            $taker = $this->safe_number($market, 'taker_commission_rate');
             $result[] = array(
                 'id' => $id,
                 'numericId' => $numericId,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => $settle,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => $settleId,
                 'type' => $type,
-                'spot' => false,
-                'option' => $option,
+                'spot' => $spot,
+                'margin' => $spot ? null : false,
                 'swap' => $swap,
                 'future' => $future,
-                'maker' => $maker,
-                'taker' => $taker,
-                'precision' => $precision,
-                'limits' => $limits,
+                'option' => $option,
+                'active' => ($state === 'live'),
+                'contract' => !$spot,
+                'linear' => $spot ? null : $linear,
+                'inverse' => $spot ? null : !$linear,
+                'taker' => $this->safe_number($market, 'taker_commission_rate'),
+                'maker' => $this->safe_number($market, 'maker_commission_rate'),
+                'contractSize' => $contractSize,
+                'expiry' => $expiry,
+                'expiryDatetime' => $expiryDatetime,
+                'strike' => $this->parse_number($strike),
+                'optionType' => $optionType,
+                'precision' => array(
+                    'price' => $this->safe_number($market, 'tick_size'),
+                    'amount' => $this->parse_number('1'), // number of contracts
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => $this->parse_number('1'),
+                        'max' => $this->safe_number($market, 'position_size_limit'),
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => $this->safe_number($market, 'min_size'),
+                        'max' => null,
+                    ),
+                ),
                 'info' => $market,
-                'active' => $active,
             );
         }
         return $result;
@@ -469,22 +506,21 @@ class delta extends Exchange {
         $timestamp = $this->safe_integer_product($ticker, 'timestamp', 0.001);
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $last = $this->safe_number($ticker, 'close');
-        $open = $this->safe_number($ticker, 'open');
-        $baseVolume = $this->safe_number($ticker, 'volume');
-        $quoteVolume = $this->safe_number($ticker, 'turnover');
-        $vwap = $this->vwap($baseVolume, $quoteVolume);
+        $last = $this->safe_string($ticker, 'close');
+        $open = $this->safe_string($ticker, 'open');
+        $baseVolume = $this->safe_string($ticker, 'volume');
+        $quoteVolume = $this->safe_string($ticker, 'turnover');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
             'bid' => null,
             'bidVolume' => null,
             'ask' => null,
             'askVolume' => null,
-            'vwap' => $vwap,
+            'vwap' => null,
             'open' => $open,
             'close' => $last,
             'last' => $last,
@@ -495,7 +531,7 @@ class delta extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

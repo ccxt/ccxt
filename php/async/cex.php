@@ -21,20 +21,32 @@ class cex extends Exchange {
             'countries' => array( 'GB', 'EU', 'CY', 'RU' ),
             'rateLimit' => 1500,
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => null, // has but unimplemented
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'cancelOrder' => true,
                 'createOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
@@ -310,10 +322,8 @@ class cex extends Exchange {
             $market = $markets[$i];
             $baseId = $this->safe_string($market, 'symbol1');
             $quoteId = $this->safe_string($market, 'symbol2');
-            $id = $baseId . '/' . $quoteId;
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
             $baseCurrency = $this->safe_value($currenciesById, $baseId, array());
             $quoteCurrency = $this->safe_value($currenciesById, $quoteId, array());
             $pricePrecision = $this->safe_integer($quoteCurrency, 'precision', 8);
@@ -326,24 +336,39 @@ class cex extends Exchange {
             }
             $baseCcyPrecision = $this->safe_integer($baseCurrency, 'precision', 8);
             $baseCcyScale = $this->safe_integer($baseCurrency, 'scale', 0);
-            $amountPrecision = $baseCcyPrecision - $baseCcyScale;
-            $precision = array(
-                'amount' => $amountPrecision,
-                'price' => $pricePrecision,
-            );
             $result[] = array(
-                'id' => $id,
-                'info' => $market,
-                'symbol' => $symbol,
+                'id' => $baseId . '/' . $quoteId,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
+                'margin' => null,
+                'future' => false,
+                'swap' => false,
+                'option' => false,
                 'active' => null,
-                'precision' => $precision,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'price' => $pricePrecision,
+                    'amount' => $baseCcyPrecision - $baseCcyScale,
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->safe_number($market, 'minLotSize'),
                         'max' => $this->safe_number($market, 'maxLotSize'),
@@ -357,6 +382,7 @@ class cex extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'info' => $market,
             );
         }
         return $result;
@@ -455,17 +481,14 @@ class cex extends Exchange {
 
     public function parse_ticker($ticker, $market = null) {
         $timestamp = $this->safe_timestamp($ticker, 'timestamp');
-        $volume = $this->safe_number($ticker, 'volume');
-        $high = $this->safe_number($ticker, 'high');
-        $low = $this->safe_number($ticker, 'low');
-        $bid = $this->safe_number($ticker, 'bid');
-        $ask = $this->safe_number($ticker, 'ask');
-        $last = $this->safe_number($ticker, 'last');
-        $symbol = null;
-        if ($market) {
-            $symbol = $market['symbol'];
-        }
-        return array(
+        $volume = $this->safe_string($ticker, 'volume');
+        $high = $this->safe_string($ticker, 'high');
+        $low = $this->safe_string($ticker, 'low');
+        $bid = $this->safe_string($ticker, 'bid');
+        $ask = $this->safe_string($ticker, 'ask');
+        $last = $this->safe_string($ticker, 'last');
+        $symbol = $this->safe_symbol(null, $market);
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -486,7 +509,7 @@ class cex extends Exchange {
             'baseVolume' => $volume,
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

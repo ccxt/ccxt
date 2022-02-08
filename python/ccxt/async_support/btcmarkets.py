@@ -25,25 +25,53 @@ class btcmarkets(Exchange):
             'rateLimit': 1000,  # market data cached for 1 second(trades cached for 2 seconds)
             'version': 'v3',
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelOrder': True,
                 'cancelOrders': True,
-                'CORS': None,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': 'emulated',
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/89731817-b3fb8480-da52-11ea-817f-783b08aaf32b.jpg',
@@ -305,39 +333,55 @@ class btcmarkets(Exchange):
             minPrice = None
             if quote == 'AUD':
                 minPrice = math.pow(10, -pricePrecision)
-            precision = {
-                'amount': amountPrecision,
-                'price': pricePrecision,
-            }
-            limits = {
-                'amount': {
-                    'min': minAmount,
-                    'max': maxAmount,
-                },
-                'price': {
-                    'min': minPrice,
-                    'max': None,
-                },
-                'cost': {
-                    'min': None,
-                    'max': None,
-                },
-            }
             result.append({
-                'info': market,
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'active': None,
-                'maker': fees['maker'],
+                'contract': False,
+                'linear': None,
+                'inverse': None,
                 'taker': fees['taker'],
-                'limits': limits,
-                'precision': precision,
+                'maker': fees['maker'],
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': amountPrecision,
+                    'price': pricePrecision,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': minAmount,
+                        'max': maxAmount,
+                    },
+                    'price': {
+                        'min': minPrice,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'info': market,
             })
         return result
 
@@ -459,36 +503,26 @@ class btcmarkets(Exchange):
         #         "timestamp":"2020-08-09T18:28:23.280000Z"
         #     }
         #
-        symbol = None
         marketId = self.safe_string(ticker, 'marketId')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        market = self.safe_market(marketId, market, '-')
+        symbol = market['symbol']
         timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
-        last = self.safe_number(ticker, 'lastPrice')
-        baseVolume = self.safe_number(ticker, 'volume24h')
-        quoteVolume = self.safe_number(ticker, 'volumeQte24h')
-        vwap = self.vwap(baseVolume, quoteVolume)
-        change = self.safe_number(ticker, 'price24h')
-        percentage = self.safe_number(ticker, 'pricePct24h')
-        return {
+        last = self.safe_string(ticker, 'lastPrice')
+        baseVolume = self.safe_string(ticker, 'volume24h')
+        quoteVolume = self.safe_string(ticker, 'volumeQte24h')
+        change = self.safe_string(ticker, 'price24h')
+        percentage = self.safe_string(ticker, 'pricePct24h')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high24h'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bestBid'),
+            'high': self.safe_string(ticker, 'high24h'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bestBid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'bestAsk'),
+            'ask': self.safe_string(ticker, 'bestAsk'),
             'askVolume': None,
-            'vwap': vwap,
+            'vwap': None,
             'open': None,
             'close': last,
             'last': last,
@@ -499,7 +533,7 @@ class btcmarkets(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
+        }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

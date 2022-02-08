@@ -25,16 +25,28 @@ class currencycom extends Exchange {
             'version' => 'v1',
             // new metainfo interface
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => null, // has but not fully implemented
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'cancelOrder' => true,
                 'createOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrderBook' => true,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -151,9 +163,11 @@ class currencycom extends Exchange {
                 'ACN' => 'Accenture',
                 'BNS' => 'Bank of Nova Scotia',
                 'CAR' => 'Avis Budget Group Inc',
+                'CLR' => 'Continental Resources',
                 'EDU' => 'New Oriental Education & Technology Group Inc',
                 'ETN' => 'Eaton',
                 'FOX' => 'Fox Corporation',
+                'GM' => 'General Motors Co',
                 'IQ' => 'iQIYI',
                 'PLAY' => "Dave & Buster's Entertainment",
             ),
@@ -349,8 +363,8 @@ class currencycom extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $precisionAmount,
                     'price' => $precisionPrice,
+                    'amount' => $precisionAmount,
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -557,35 +571,31 @@ class currencycom extends Exchange {
         //
         $timestamp = $this->safe_integer($ticker, 'closeTime');
         $marketId = $this->safe_string($ticker, 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market);
-        $last = $this->safe_number($ticker, 'lastPrice');
-        $open = $this->safe_number($ticker, 'openPrice');
-        $average = null;
-        if (($open !== null) && ($last !== null)) {
-            $average = $this->sum($open, $last) / 2;
-        }
-        return array(
-            'symbol' => $symbol,
+        $market = $this->safe_market($marketId, $market, '/');
+        $last = $this->safe_string($ticker, 'lastPrice');
+        $open = $this->safe_string($ticker, 'openPrice');
+        return $this->safe_ticker(array(
+            'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'highPrice'),
-            'low' => $this->safe_number($ticker, 'lowPrice'),
-            'bid' => $this->safe_number($ticker, 'bidPrice'),
-            'bidVolume' => $this->safe_number($ticker, 'bidQty'),
-            'ask' => $this->safe_number($ticker, 'askPrice'),
-            'askVolume' => $this->safe_number($ticker, 'askQty'),
-            'vwap' => $this->safe_number($ticker, 'weightedAvgPrice'),
+            'high' => $this->safe_string($ticker, 'highPrice'),
+            'low' => $this->safe_string($ticker, 'lowPrice'),
+            'bid' => $this->safe_string($ticker, 'bidPrice'),
+            'bidVolume' => $this->safe_string($ticker, 'bidQty'),
+            'ask' => $this->safe_string($ticker, 'askPrice'),
+            'askVolume' => $this->safe_string($ticker, 'askQty'),
+            'vwap' => $this->safe_string($ticker, 'weightedAvgPrice'),
             'open' => $open,
             'close' => $last,
             'last' => $last,
-            'previousClose' => $this->safe_number($ticker, 'prevClosePrice'), // previous day close
-            'change' => $this->safe_number($ticker, 'priceChange'),
-            'percentage' => $this->safe_number($ticker, 'priceChangePercent'),
-            'average' => $average,
-            'baseVolume' => $this->safe_number($ticker, 'volume'),
-            'quoteVolume' => $this->safe_number($ticker, 'quoteVolume'),
+            'previousClose' => $this->safe_string($ticker, 'prevClosePrice'), // previous day close
+            'change' => $this->safe_string($ticker, 'priceChange'),
+            'percentage' => $this->safe_string($ticker, 'priceChangePercent'),
+            'average' => null,
+            'baseVolume' => $this->safe_string($ticker, 'volume'),
+            'quoteVolume' => $this->safe_string($ticker, 'quoteVolume'),
             'info' => $ticker,
-        );
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

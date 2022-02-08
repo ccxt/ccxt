@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, InvalidOrder, ArgumentsRequired, AuthenticationError, OrderNotFound, PermissionDenied, InsufficientFunds, BadRequest } = require ('./base/errors');
 const Precise = require ('./base/Precise');
+
 //  ---------------------------------------------------------------------------
 
 module.exports = class whitebit extends Exchange {
@@ -16,8 +17,13 @@ module.exports = class whitebit extends Exchange {
             'countries': [ 'EE' ],
             'rateLimit': 500,
             'has': {
-                'cancelOrder': undefined,
                 'CORS': undefined,
+                'spot': true,
+                'margin': undefined, // has but unimplemented
+                'swap': false,
+                'future': false,
+                'option': false,
+                'cancelOrder': true,
                 'createDepositAddress': undefined,
                 'createLimitOrder': undefined,
                 'createMarketOrder': undefined,
@@ -28,19 +34,25 @@ module.exports = class whitebit extends Exchange {
                 'fetchBidsAsks': undefined,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDepositAddress': true,
                 'fetchFundingFees': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchOHLCV': true,
+                'fetchOpenOrders': true,
                 'fetchOrderBook': true,
                 'fetchOrderTrades': true,
-                'fetchOpenOrders': true,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFees': true,
-                'privateAPI': true,
-                'publicAPI': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -76,7 +88,7 @@ module.exports = class whitebit extends Exchange {
                     },
                 },
                 'www': 'https://www.whitebit.com',
-                'doc': 'https://documenter.getpostman.com/view/7473075/Szzj8dgv?version=latest',
+                'doc': 'https://github.com/whitebit-exchange/api-docs',
                 'fees': 'https://whitebit.com/fee-schedule',
                 'referral': 'https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963',
             },
@@ -203,23 +215,27 @@ module.exports = class whitebit extends Exchange {
     async fetchMarkets (params = {}) {
         const response = await this.v2PublicGetMarkets (params);
         //
-        //     {
-        //         "success":true,
-        //         "message":"",
-        //         "result":[
-        //             {
-        //                 "name":"BTC_USD",
-        //                 "moneyPrec":"2",
-        //                 "stock":"BTC",
-        //                 "money":"USD",
-        //                 "stockPrec":"6",
-        //                 "feePrec":"4",
-        //                 "minAmount":"0.001",
-        //                 "tradesEnabled":true,
-        //                 "minTotal":"0.001"
-        //             }
-        //         ]
-        //     }
+        //    {
+        //        "success": true,
+        //        "message": "",
+        //        "result": [
+        //            {
+        //                "name":
+        //                "C98_USDT",
+        //                "stock":"C98",
+        //                "money":"USDT",
+        //                "stockPrec":"3",
+        //                "moneyPrec":"5",
+        //                "feePrec":"6",
+        //                "makerFee":"0.001",
+        //                "takerFee":"0.001",
+        //                "minAmount":"2.5",
+        //                "minTotal":"5.05",
+        //                "tradesEnabled":true
+        //            },
+        //            ...
+        //        ]
+        //    }
         //
         const markets = this.safeValue (response, 'result');
         const result = [];
@@ -237,17 +253,36 @@ module.exports = class whitebit extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'margin': undefined,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'active': active,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': this.safeNumber (market, 'makerFee'),
+                'maker': this.safeNumber (market, 'takerFee'),
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
                 'precision': {
                     'amount': this.safeInteger (market, 'stockPrec'),
                     'price': this.safeInteger (market, 'moneyPrec'),
                 },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'minAmount'),
                         'max': undefined,
@@ -261,6 +296,7 @@ module.exports = class whitebit extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': market,
             };
             result.push (entry);
         }
@@ -300,6 +336,8 @@ module.exports = class whitebit extends Exchange {
                 'info': currency, // the original payload
                 'name': undefined, // see the comment above
                 'active': active,
+                'deposit': canDeposit,
+                'withdraw': canWithdraw,
                 'fee': undefined,
                 'precision': undefined,
                 'limits': {
@@ -432,30 +470,31 @@ module.exports = class whitebit extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const last = this.safeNumber (ticker, 'last_price');
-        const percentage = this.safeNumber (ticker, 'change') * 0.01;
+        const last = this.safeString (ticker, 'last_price');
+        const change = this.safeString (ticker, 'change');
+        const percentage = Precise.stringMul (change, '0.01');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeNumber (ticker, 'open'),
+            'open': this.safeString (ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeNumber2 (ticker, 'base_volume', 'volume'),
-            'quoteVolume': this.safeNumber2 (ticker, 'quote_volume', 'deal'),
+            'baseVolume': this.safeString2 (ticker, 'base_volume', 'volume'),
+            'quoteVolume': this.safeString2 (ticker, 'quote_volume', 'deal'),
             'info': ticker,
-        });
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

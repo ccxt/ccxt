@@ -28,24 +28,48 @@ class bitpanda(Exchange):
             'version': 'v1',
             # new metainfo interface
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
-                'CORS': None,
                 'createDepositAddress': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderTrades': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -54,6 +78,10 @@ class bitpanda(Exchange):
                 'fetchWithdrawals': True,
                 'privateAPI': True,
                 'publicAPI': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -318,42 +346,56 @@ class bitpanda(Exchange):
             id = baseId + '_' + quoteId
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            precision = {
-                'amount': self.safe_integer(market, 'amount_precision'),
-                'price': self.safe_integer(market, 'market_precision'),
-            }
-            limits = {
-                'amount': {
-                    'min': None,
-                    'max': None,
-                },
-                'price': {
-                    'min': None,
-                    'max': None,
-                },
-                'cost': {
-                    'min': self.safe_number(market, 'min_size'),
-                    'max': None,
-                },
-            }
             state = self.safe_string(market, 'state')
-            active = (state == 'ACTIVE')
             result.append({
                 'info': market,
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'precision': precision,
-                'limits': limits,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': (state == 'ACTIVE'),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
                 'deposit': None,
                 'withdraw': None,
+                'precision': {
+                    'amount': self.safe_integer(market, 'amount_precision'),
+                    'price': self.safe_integer(market, 'market_precision'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': self.safe_number(market, 'min_size'),
+                        'max': None,
+                    },
+                },
             })
         return result
 
@@ -499,23 +541,22 @@ class bitpanda(Exchange):
         timestamp = self.parse8601(self.safe_string(ticker, 'time'))
         marketId = self.safe_string(ticker, 'instrument_code')
         symbol = self.safe_symbol(marketId, market, '_')
-        last = self.safe_number(ticker, 'last_price')
-        percentage = self.safe_number(ticker, 'price_change_percentage')
-        change = self.safe_number(ticker, 'price_change')
-        baseVolume = self.safe_number(ticker, 'base_volume')
-        quoteVolume = self.safe_number(ticker, 'quote_volume')
-        vwap = self.vwap(baseVolume, quoteVolume)
+        last = self.safe_string(ticker, 'last_price')
+        percentage = self.safe_string(ticker, 'price_change_percentage')
+        change = self.safe_string(ticker, 'price_change')
+        baseVolume = self.safe_string(ticker, 'base_volume')
+        quoteVolume = self.safe_string(ticker, 'quote_volume')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'best_bid'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'best_bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'best_ask'),
+            'ask': self.safe_string(ticker, 'best_ask'),
             'askVolume': None,
-            'vwap': vwap,
+            'vwap': None,
             'open': None,
             'close': last,
             'last': last,
@@ -526,7 +567,7 @@ class bitpanda(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

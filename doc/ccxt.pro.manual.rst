@@ -54,7 +54,7 @@ The CCXT Pro heavily relies on the transpiler of CCXT for `multilanguage support
 Exchanges
 ---------
 
-The CCXT Pro library currently supports the following 36 cryptocurrency exchange markets and WebSocket trading APIs:
+The CCXT Pro library currently supports the following 37 cryptocurrency exchange markets and WebSocket trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -99,11 +99,11 @@ The CCXT Pro library currently supports the following 36 cryptocurrency exchange
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg
-          :target: https://www.binance.com
+          :target: https://www.binance.com/en/register?ref=D7YA7CLY
           :alt: binance
      
      - binance
-     - `Binance <https://www.binance.com>`__
+     - `Binance <https://www.binance.com/en/register?ref=D7YA7CLY>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://binance-docs.github.io/apidocs/spot/en
           :alt: API Version *
@@ -117,11 +117,11 @@ The CCXT Pro library currently supports the following 36 cryptocurrency exchange
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
-          :target: https://www.binance.com
+          :target: https://www.binance.com/en/register?ref=D7YA7CLY
           :alt: binancecoinm
      
      - binancecoinm
-     - `Binance COIN-M <https://www.binance.com>`__
+     - `Binance COIN-M <https://www.binance.com/en/register?ref=D7YA7CLY>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://binance-docs.github.io/apidocs/delivery/en/
           :alt: API Version *
@@ -150,11 +150,11 @@ The CCXT Pro library currently supports the following 36 cryptocurrency exchange
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
-          :target: https://www.binance.com
+          :target: https://www.binance.com/en/register?ref=D7YA7CLY
           :alt: binanceusdm
      
      - binanceusdm
-     - `Binance USDⓈ-M <https://www.binance.com>`__
+     - `Binance USDⓈ-M <https://www.binance.com/en/register?ref=D7YA7CLY>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://binance-docs.github.io/apidocs/futures/en/
           :alt: API Version *
@@ -172,7 +172,7 @@ The CCXT Pro library currently supports the following 36 cryptocurrency exchange
           :alt: bitcoincom
      
      - bitcoincom
-     - `bitcoin.com <https://fmfw.io/referral/da948b21d6c92d69>`__
+     - `FMFW.io <https://fmfw.io/referral/da948b21d6c92d69>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://api.fmfw.io/api/2/explore/
           :alt: API Version 2
@@ -326,6 +326,36 @@ The CCXT Pro library currently supports the following 36 cryptocurrency exchange
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87443317-01c0d080-c5fe-11ea-95c2-9ebe1a8fafd9.jpg
+          :target: https://one.ndax.io/bfQiSL
+          :alt: flowbtc
+     
+     - flowbtc
+     - `flowBTC <https://one.ndax.io/bfQiSL>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://www.flowbtc.com.br/api.html
+          :alt: API Version *
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/97296144-514fa300-1861-11eb-952b-3d55d492200b.jpg
+          :target: https://fmfw.io/referral/da948b21d6c92d69
+          :alt: fmfwio
+     
+     - fmfwio
+     - `FMFW.io <https://fmfw.io/referral/da948b21d6c92d69>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://api.fmfw.io/api/2/explore/
+          :alt: API Version 2
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg
           :target: https://ftx.com/#a=ccxt
           :alt: ftx
@@ -408,11 +438,11 @@ The CCXT Pro library currently supports the following 36 cryptocurrency exchange
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg
-          :target: https://www.huobi.com
+          :target: https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223
           :alt: huobi
      
      - huobi
-     - `Huobi <https://www.huobi.com>`__
+     - `Huobi <https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://huobiapi.github.io/docs/spot/v1/cn/
           :alt: API Version 1
@@ -518,35 +548,20 @@ The CCXT Pro library currently supports the following 36 cryptocurrency exchange
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-   * - .. image:: https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg
-          :target: https://www.okex.com
-          :alt: okex
+   * - .. image:: https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg
+          :target: https://www.okx.com/join/1888677
+          :alt: okx
      
-     - okex
-     - `OKEX <https://www.okex.com>`__
+     - okx
+     - `OKX <https://www.okx.com/join/1888677>`__
      - .. image:: https://img.shields.io/badge/5-lightgray
-          :target: https://www.okex.com/docs-v5/en/
+          :target: https://www.okx.com/docs-v5/en/
           :alt: API Version 5
      
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
           :alt: CCXT Certified
      
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
-     
-   * - .. image:: https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg
-          :target: https://www.okex.com/join/1888677
-          :alt: okex3
-     
-     - okex3
-     - `OKEX <https://www.okex.com/join/1888677>`__
-     - .. image:: https://img.shields.io/badge/3-lightgray
-          :target: https://www.okex.com/docs/en/
-          :alt: API Version 3
-     
-     - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro

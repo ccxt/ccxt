@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { AddressPending, AuthenticationError, ExchangeError, NotSupported, PermissionDenied, ArgumentsRequired } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,26 +17,54 @@ module.exports = class buda extends Exchange {
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
+                'cancelOrder': true,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchFundingFees': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': undefined,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'withdraw': true,
             },
             'urls': {
@@ -354,43 +383,69 @@ module.exports = class buda extends Exchange {
             'market': market['id'],
         };
         const response = await this.publicGetMarketsMarketTicker (this.extend (request, params));
+        //
+        //     {
+        //         "ticker":{
+        //             "market_id":"ETH-BTC",
+        //             "last_price":["0.07300001","BTC"],
+        //             "min_ask":["0.07716895","BTC"],
+        //             "max_bid":["0.0754966","BTC"],
+        //             "volume":["0.168965697","ETH"],
+        //             "price_variation_24h":"-0.046",
+        //             "price_variation_7d":"-0.085"
+        //         }
+        //     }
+        //
         const ticker = this.safeValue (response, 'ticker');
         return this.parseTicker (ticker, market);
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        // fetchTicker
+        //
+        //     {
+        //         "market_id":"ETH-BTC",
+        //         "last_price":["0.07300001","BTC"],
+        //         "min_ask":["0.07716895","BTC"],
+        //         "max_bid":["0.0754966","BTC"],
+        //         "volume":["0.168965697","ETH"],
+        //         "price_variation_24h":"-0.046",
+        //         "price_variation_7d":"-0.085"
+        //     }
+        //
         const timestamp = this.milliseconds ();
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        const last = parseFloat (ticker['last_price'][0]);
-        const percentage = parseFloat (ticker['price_variation_24h']);
-        const open = parseFloat (this.priceToPrecision (symbol, last / (percentage + 1)));
-        const change = last - open;
-        const average = this.sum (last, open) / 2;
-        return {
+        const marketId = this.safeString (ticker, 'market_id');
+        const symbol = this.safeSymbol (marketId, market, '-');
+        const lastPrice = this.safeValue (ticker, 'last_price', []);
+        const last = this.safeString (lastPrice, 0);
+        let percentage = this.safeString (ticker, 'price_variation_24h');
+        percentage = Precise.stringMul (percentage, '100');
+        const maxBid = this.safeValue (ticker, 'max_bid', []);
+        const minAsk = this.safeValue (ticker, 'min_ask', []);
+        const baseVolume = this.safeValue (ticker, 'volume', []);
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': parseFloat (ticker['max_bid'][0]),
+            'bid': this.safeString (maxBid, 0),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['min_ask'][0]),
+            'ask': this.safeString (minAsk, 0),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': open,
+            'open': undefined,
             'close': last,
             'last': last,
-            'previousClose': open,
-            'change': change,
-            'percentage': percentage * 100,
-            'average': average,
-            'baseVolume': parseFloat (ticker['volume'][0]),
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': percentage,
+            'average': undefined,
+            'baseVolume': this.safeString (baseVolume, 0),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market, false);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {

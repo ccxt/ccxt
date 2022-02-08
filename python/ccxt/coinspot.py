@@ -18,14 +18,42 @@ class coinspot(Exchange):
             'countries': ['AU'],  # Australia
             'rateLimit': 1000,
             'has': {
-                'cancelOrder': None,
                 'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
                 'createMarketOrder': None,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
+                'fetchMarkOHLCV': False,
                 'fetchOrderBook': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg',
@@ -151,23 +179,28 @@ class coinspot(Exchange):
         orderbook = self.privatePostOrders(self.extend(request, params))
         return self.parse_order_book(orderbook, symbol, None, 'buyorders', 'sellorders', 'rate', 'amount')
 
-    def fetch_ticker(self, symbol, params={}):
-        self.load_markets()
-        response = self.publicGetLatest(params)
-        id = self.market_id(symbol)
-        id = id.lower()
-        ticker = response['prices'][id]
+    def parse_ticker(self, ticker, market=None):
+        #
+        #     {
+        #         "btc":{
+        #             "bid":"51970",
+        #             "ask":"53000",
+        #             "last":"52806.47"
+        #         }
+        #     }
+        #
+        symbol = self.safe_symbol(None, market)
         timestamp = self.milliseconds()
-        last = self.safe_number(ticker, 'last')
-        return {
+        last = self.safe_string(ticker, 'last')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': self.safe_number(ticker, 'bid'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -180,7 +213,29 @@ class coinspot(Exchange):
             'baseVolume': None,
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market, False)
+
+    def fetch_ticker(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        response = self.publicGetLatest(params)
+        id = market['id']
+        id = id.lower()
+        prices = self.safe_value(response, 'prices')
+        #
+        #     {
+        #         "status":"ok",
+        #         "prices":{
+        #             "btc":{
+        #                 "bid":"52732.47000022",
+        #                 "ask":"53268.0699976",
+        #                 "last":"53284.03"
+        #             }
+        #         }
+        #     }
+        #
+        ticker = self.safe_value(prices, id)
+        return self.parse_ticker(ticker, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()

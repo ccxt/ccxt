@@ -12,6 +12,7 @@ from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import AddressPending
 from ccxt.base.errors import NotSupported
+from ccxt.base.precise import Precise
 
 
 class buda(Exchange):
@@ -24,26 +25,54 @@ class buda(Exchange):
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
                 'createDepositAddress': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchFundingFees': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': None,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'urls': {
@@ -346,41 +375,68 @@ class buda(Exchange):
             'market': market['id'],
         }
         response = await self.publicGetMarketsMarketTicker(self.extend(request, params))
+        #
+        #     {
+        #         "ticker":{
+        #             "market_id":"ETH-BTC",
+        #             "last_price":["0.07300001","BTC"],
+        #             "min_ask":["0.07716895","BTC"],
+        #             "max_bid":["0.0754966","BTC"],
+        #             "volume":["0.168965697","ETH"],
+        #             "price_variation_24h":"-0.046",
+        #             "price_variation_7d":"-0.085"
+        #         }
+        #     }
+        #
         ticker = self.safe_value(response, 'ticker')
         return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market=None):
+        #
+        # fetchTicker
+        #
+        #     {
+        #         "market_id":"ETH-BTC",
+        #         "last_price":["0.07300001","BTC"],
+        #         "min_ask":["0.07716895","BTC"],
+        #         "max_bid":["0.0754966","BTC"],
+        #         "volume":["0.168965697","ETH"],
+        #         "price_variation_24h":"-0.046",
+        #         "price_variation_7d":"-0.085"
+        #     }
+        #
         timestamp = self.milliseconds()
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        last = float(ticker['last_price'][0])
-        percentage = float(ticker['price_variation_24h'])
-        open = float(self.price_to_precision(symbol, last / (percentage + 1)))
-        change = last - open
-        average = self.sum(last, open) / 2
-        return {
+        marketId = self.safe_string(ticker, 'market_id')
+        symbol = self.safe_symbol(marketId, market, '-')
+        lastPrice = self.safe_value(ticker, 'last_price', [])
+        last = self.safe_string(lastPrice, 0)
+        percentage = self.safe_string(ticker, 'price_variation_24h')
+        percentage = Precise.string_mul(percentage, '100')
+        maxBid = self.safe_value(ticker, 'max_bid', [])
+        minAsk = self.safe_value(ticker, 'min_ask', [])
+        baseVolume = self.safe_value(ticker, 'volume', [])
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': float(ticker['max_bid'][0]),
+            'bid': self.safe_string(maxBid, 0),
             'bidVolume': None,
-            'ask': float(ticker['min_ask'][0]),
+            'ask': self.safe_string(minAsk, 0),
             'askVolume': None,
             'vwap': None,
-            'open': open,
+            'open': None,
             'close': last,
             'last': last,
-            'previousClose': open,
-            'change': change,
-            'percentage': percentage * 100,
-            'average': average,
-            'baseVolume': float(ticker['volume'][0]),
+            'previousClose': None,
+            'change': None,
+            'percentage': percentage,
+            'average': None,
+            'baseVolume': self.safe_string(baseVolume, 0),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market, False)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()

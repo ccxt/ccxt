@@ -33,9 +33,14 @@ class poloniex(Exchange):
             'certified': False,
             'pro': True,
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': None,  # has but not fully implemented
+                'swap': None,  # has but not fully implemented
+                'future': None,  # has but not fully implemented
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': None,
                 'createDepositAddress': True,
                 'createMarketOrder': None,
                 'createOrder': True,
@@ -53,6 +58,7 @@ class poloniex(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrderBooks': True,
                 'fetchOrderTrades': True,  # True endpoint for trades of a single open or closed order
+                'fetchPosition': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -311,33 +317,48 @@ class poloniex(Exchange):
             quoteId, baseId = id.split('_')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            limits = self.extend(self.limits, {
-                'cost': {
-                    'min': self.safe_value(self.options['limits']['cost']['min'], quote),
-                },
-            })
             isFrozen = self.safe_string(market, 'isFrozen')
-            active = (isFrozen != '1')
-            numericId = self.safe_integer(market, 'id')
+            marginEnabled = self.safe_integer(market, 'marginTradingEnabled')
             # these are known defaults
-            precision = {
-                'price': 8,
-                'amount': 8,
-            }
             result.append({
                 'id': id,
-                'numericId': numericId,
-                'symbol': symbol,
-                'baseId': baseId,
-                'quoteId': quoteId,
+                'numericId': self.safe_integer(market, 'id'),
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
-                'precision': precision,
-                'limits': limits,
+                'margin': (marginEnabled == 1),
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': (isFrozen != '1'),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': 8,
+                    'amount': 8,
+                },
+                'limits': self.extend(self.limits, {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': self.safe_value(self.options['limits']['cost']['min'], quote),
+                        'max': None,
+                    },
+                }),
                 'info': market,
             })
         return result
@@ -433,41 +454,47 @@ class poloniex(Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
+        # {
+        #     id: '121',
+        #     last: '43196.31469670',
+        #     lowestAsk: '43209.61843169',
+        #     highestBid: '43162.41965234',
+        #     percentChange: '0.00963340',
+        #     baseVolume: '13444643.33799658',
+        #     quoteVolume: '315.84780115',
+        #     isFrozen: '0',
+        #     postOnly: '0',
+        #     marginTradingEnabled: '1',
+        #     high24hr: '43451.84481934',
+        #     low24hr: '41749.89529736'
+        # }
         timestamp = self.milliseconds()
-        symbol = None
-        if market:
-            symbol = market['symbol']
-        open = None
-        change = None
-        average = None
-        last = self.safe_number(ticker, 'last')
-        relativeChange = self.safe_number(ticker, 'percentChange')
-        if relativeChange != -1:
-            open = last / self.sum(1, relativeChange)
-            change = last - open
-            average = self.sum(last, open) / 2
-        return {
+        symbol = self.safe_symbol(None, market)
+        last = self.safe_string(ticker, 'last')
+        relativeChange = self.safe_string(ticker, 'percentChange')
+        percentage = Precise.string_mul(relativeChange, '100')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high24hr'),
-            'low': self.safe_number(ticker, 'low24hr'),
-            'bid': self.safe_number(ticker, 'highestBid'),
+            'high': self.safe_string(ticker, 'high24hr'),
+            'low': self.safe_string(ticker, 'low24hr'),
+            'bid': self.safe_string(ticker, 'highestBid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'lowestAsk'),
+            'ask': self.safe_string(ticker, 'lowestAsk'),
             'askVolume': None,
             'vwap': None,
-            'open': open,
+            'open': None,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
-            'percentage': relativeChange * 100,
-            'average': average,
-            'baseVolume': self.safe_number(ticker, 'quoteVolume'),
-            'quoteVolume': self.safe_number(ticker, 'baseVolume'),
+            'change': None,
+            'percentage': percentage,
+            'average': None,
+            'baseVolume': self.safe_string(ticker, 'quoteVolume'),
+            'quoteVolume': self.safe_string(ticker, 'baseVolume'),
             'info': ticker,
-        }
+        }, market, False)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
@@ -493,6 +520,7 @@ class poloniex(Exchange):
 
     async def fetch_currencies(self, params={}):
         response = await self.publicGetReturnCurrencies(params)
+        #
         #     {
         #       "id": "293",
         #       "name": "0x",
@@ -508,6 +536,7 @@ class poloniex(Exchange):
         #       "delisted": "0",
         #       "isGeofenced": 0
         #     }
+        #
         ids = list(response.keys())
         result = {}
         for i in range(0, len(ids)):
@@ -516,7 +545,11 @@ class poloniex(Exchange):
             precision = 8  # default precision, todo: fix "magic constants"
             amountLimit = '1e-8'
             code = self.safe_currency_code(id)
-            active = (currency['delisted'] == 0) and not currency['disabled']
+            delisted = self.safe_integer(currency, 'delisted', 0)
+            disabled = self.safe_integer(currency, 'disabled', 0)
+            listed = not delisted
+            enabled = not disabled
+            active = enabled and listed
             numericId = self.safe_integer(currency, 'id')
             fee = self.safe_number(currency, 'txFee')
             result[code] = {
@@ -526,6 +559,8 @@ class poloniex(Exchange):
                 'info': currency,
                 'name': currency['name'],
                 'active': active,
+                'deposit': None,
+                'withdraw': None,
                 'fee': fee,
                 'precision': precision,
                 'limits': {
@@ -545,6 +580,23 @@ class poloniex(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         response = await self.publicGetReturnTicker(params)
+        # {
+        #     "BTC_BTS":{
+        #        "id":14,
+        #        "last":"0.00000073",
+        #        "lowestAsk":"0.00000075",
+        #        "highestBid":"0.00000073",
+        #        "percentChange":"0.01388888",
+        #        "baseVolume":"0.01413528",
+        #        "quoteVolume":"19431.16872167",
+        #        "isFrozen":"0",
+        #        "postOnly":"0",
+        #        "marginTradingEnabled":"0",
+        #        "high24hr":"0.00000074",
+        #        "low24hr":"0.00000071"
+        #     },
+        #     ...
+        # }
         ticker = response[market['id']]
         return self.parse_ticker(ticker, market)
 
@@ -1109,7 +1161,8 @@ class poloniex(Exchange):
         response = await self.privatePostGenerateNewAddress(self.extend(request, params))
         address = None
         tag = None
-        if response['success'] == 1:
+        success = self.safe_string(response, 'success')
+        if success == '1':
             address = self.safe_string(response, 'response')
         self.check_address(address)
         if currency is not None:

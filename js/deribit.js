@@ -20,13 +20,23 @@ module.exports = class deribit extends Exchange {
             // 5 requests per second for matching-engine endpoints, cost = (1000ms / rateLimit) / 5 = 4
             'rateLimit': 50,
             'has': {
+                'CORS': true,
+                'spot': false,
+                'margin': false,
+                'swap': undefined,
+                'future': undefined,
+                'option': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': true,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
@@ -41,6 +51,7 @@ module.exports = class deribit extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': undefined,
                 'fetchOrderTrades': true,
+                'fetchPosition': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
@@ -344,6 +355,9 @@ module.exports = class deribit extends Exchange {
                 'fetchBalance': {
                     'code': 'BTC',
                 },
+                'fetchPositions': {
+                    'code': 'BTC',
+                },
             },
         });
     }
@@ -480,7 +494,8 @@ module.exports = class deribit extends Exchange {
                         type = 'option';
                         strike = this.safeNumber (market, 'strike');
                         optionType = this.safeString (market, 'option_type');
-                        symbol = symbol + ':' + this.numberToString (strike) + ':' + optionType;
+                        const letter = (optionType === 'call') ? 'C' : 'P';
+                        symbol = symbol + ':' + this.numberToString (strike) + ':' + letter;
                     } else {
                         type = 'future';
                     }
@@ -514,8 +529,8 @@ module.exports = class deribit extends Exchange {
                     'strike': strike,
                     'optionType': optionType,
                     'precision': {
-                        'amount': minTradeAmount,
                         'price': tickSize,
+                        'amount': minTradeAmount,
                     },
                     'limits': {
                         'leverage': {
@@ -726,18 +741,18 @@ module.exports = class deribit extends Exchange {
         const timestamp = this.safeInteger2 (ticker, 'timestamp', 'creation_timestamp');
         const marketId = this.safeString (ticker, 'instrument_name');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeNumber2 (ticker, 'last_price', 'last');
+        const last = this.safeString2 (ticker, 'last_price', 'last');
         const stats = this.safeValue (ticker, 'stats', ticker);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber2 (stats, 'high', 'max_price'),
-            'low': this.safeNumber2 (stats, 'low', 'min_price'),
-            'bid': this.safeNumber2 (ticker, 'best_bid_price', 'bid_price'),
-            'bidVolume': this.safeNumber (ticker, 'best_bid_amount'),
-            'ask': this.safeNumber2 (ticker, 'best_ask_price', 'ask_price'),
-            'askVolume': this.safeNumber (ticker, 'best_ask_amount'),
+            'high': this.safeString2 (stats, 'high', 'max_price'),
+            'low': this.safeString2 (stats, 'low', 'min_price'),
+            'bid': this.safeString2 (ticker, 'best_bid_price', 'bid_price'),
+            'bidVolume': this.safeString (ticker, 'best_bid_amount'),
+            'ask': this.safeString2 (ticker, 'best_ask_price', 'ask_price'),
+            'askVolume': this.safeString (ticker, 'best_ask_amount'),
             'vwap': undefined,
             'open': undefined,
             'close': last,
@@ -747,9 +762,9 @@ module.exports = class deribit extends Exchange {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': this.safeNumber (stats, 'volume'),
+            'quoteVolume': this.safeString (stats, 'volume'),
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -1715,7 +1730,8 @@ module.exports = class deribit extends Exchange {
         const contract = this.safeString (position, 'instrument_name');
         market = this.safeMarket (contract, market);
         const size = this.safeString (position, 'size');
-        const side = this.safeString (position, 'direction');
+        let side = this.safeString (position, 'direction');
+        side = (side === 'buy') ? 'long' : 'short';
         const maintenanceRate = this.safeString (position, 'maintenance_margin');
         const markPrice = this.safeString (position, 'mark_price');
         const notionalString = Precise.stringMul (markPrice, size);
@@ -1790,16 +1806,30 @@ module.exports = class deribit extends Exchange {
         for (let i = 0; i < positions.length; i++) {
             result.push (this.parsePosition (positions[i]));
         }
-        // todo unify parsePositions
         return result;
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const code = this.codeFromOptions ('fetchPositions', params);
+        let code = undefined;
+        if (symbols === undefined) {
+            code = this.codeFromOptions ('fetchPositions', params);
+        } else if (typeof symbols === 'string') {
+            code = symbols;
+        } else {
+            if (Array.isArray (symbols)) {
+                const length = symbols.length;
+                if (length !== 1) {
+                    throw new BadRequest (this.id + ' fetchPositions symbols argument cannot contain more than 1 symbol');
+                }
+                const market = this.market (symbols[0]);
+                code = market['base'];
+            }
+        }
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
+            // "kind" : "future", "option"
         };
         const response = await this.privateGetGetPositions (this.extend (request, params));
         //
@@ -1827,15 +1857,12 @@ module.exports = class deribit extends Exchange {
         //                 "size": 50,
         //                 "size_currency": 0.006687487,
         //                 "total_profit_loss": 0.000032781
-        //             }
+        //             },
         //         ]
         //     }
         //
-        // response is returning an empty list for result
-        // todo unify parsePositions
-        const result = this.safeValue (response, 'result', []);
-        const positions = this.parsePositions (result);
-        return this.filterByArray (positions, 'symbol', symbols, false);
+        const result = this.safeValue (response, 'result');
+        return this.parsePositions (result);
     }
 
     async fetchHistoricalVolatility (code, params = {}) {

@@ -37,11 +37,14 @@ class kucoin(Exchange):
             'comment': 'Platform 2.0',
             'quoteJsonNumbers': False,
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': None,
                 'swap': False,
                 'future': False,
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': None,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'fetchAccounts': True,
@@ -54,7 +57,9 @@ class kucoin(Exchange):
                 'fetchDeposits': True,
                 'fetchFundingFee': True,
                 'fetchFundingHistory': False,
+                'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
                 'fetchL3OrderBook': True,
                 'fetchLedger': True,
@@ -307,6 +312,7 @@ class kucoin(Exchange):
                     '400100': BadRequest,
                     '400350': InvalidOrder,  # {"code":"400350","msg":"Upper limit for holding: 10,000USDT, you can still buy 10,000USDT worth of coin."}
                     '400500': InvalidOrder,  # {"code":"400500","msg":"Your located country/region is currently not supported for the trading of self token"}
+                    '401000': BadRequest,  # {"code":"401000","msg":"The interface has been deprecated"}
                     '411100': AccountSuspended,
                     '415000': BadRequest,  # {"code":"415000","msg":"Unsupported Media Type"}
                     '500000': ExchangeNotAvailable,  # {"code":"500000","msg":"Internal Server Error"}
@@ -420,6 +426,7 @@ class kucoin(Exchange):
                     'margin': 'margin',
                     'main': 'main',
                     'funding': 'main',
+                    'future': 'contract',
                     'futures': 'contract',
                     'contract': 'contract',
                     'pool': 'pool',
@@ -542,9 +549,6 @@ class kucoin(Exchange):
             baseId, quoteId = id.split('-')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            active = self.safe_value(market, 'enableTrading')
-            margin = self.safe_value(market, 'isMarginEnabled')
             baseMaxSize = self.safe_number(market, 'baseMaxSize')
             baseMinSizeString = self.safe_string(market, 'baseMinSize')
             quoteMaxSizeString = self.safe_string(market, 'quoteMaxSize')
@@ -552,49 +556,59 @@ class kucoin(Exchange):
             quoteMaxSize = self.parse_number(quoteMaxSizeString)
             quoteMinSize = self.safe_number(market, 'quoteMinSize')
             # quoteIncrement = self.safe_number(market, 'quoteIncrement')
-            precision = {
-                'amount': self.precision_from_string(self.safe_string(market, 'baseIncrement')),
-                'price': self.precision_from_string(self.safe_string(market, 'priceIncrement')),
-            }
-            limits = {
-                'amount': {
-                    'min': baseMinSize,
-                    'max': baseMaxSize,
-                },
-                'price': {
-                    'min': self.safe_number(market, 'priceIncrement'),
-                    'max': self.parse_number(Precise.string_div(quoteMaxSizeString, baseMinSizeString)),
-                },
-                'cost': {
-                    'min': quoteMinSize,
-                    'max': quoteMaxSize,
-                },
-                'leverage': {
-                    'max': self.safe_number(market, 'maxLeverage', 1),  # * Don't default to 1 for margin markets, leverage is located elsewhere
-                },
-            }
             ticker = self.safe_value(tickersByMarketId, id, {})
             makerFeeRate = self.safe_string(ticker, 'makerFeeRate')
             takerFeeRate = self.safe_string(ticker, 'makerFeeRate')
             makerCoefficient = self.safe_string(ticker, 'makerCoefficient')
             takerCoefficient = self.safe_string(ticker, 'takerCoefficient')
-            maker = self.parse_number(Precise.string_mul(makerFeeRate, makerCoefficient))
-            taker = self.parse_number(Precise.string_mul(takerFeeRate, takerCoefficient))
             result.append({
                 'id': id,
-                'symbol': symbol,
-                'baseId': baseId,
-                'quoteId': quoteId,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'margin': margin,
-                'active': active,
-                'maker': maker,
-                'taker': taker,
-                'precision': precision,
-                'limits': limits,
+                'margin': self.safe_value(market, 'isMarginEnabled'),
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': self.safe_value(market, 'enableTrading'),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'taker': self.parse_number(Precise.string_mul(takerFeeRate, takerCoefficient)),
+                'maker': self.parse_number(Precise.string_mul(makerFeeRate, makerCoefficient)),
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': self.precision_from_string(self.safe_string(market, 'priceIncrement')),
+                    'amount': self.precision_from_string(self.safe_string(market, 'baseIncrement')),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': baseMinSize,
+                        'max': baseMaxSize,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': quoteMinSize,
+                        'max': quoteMaxSize,
+                    },
+                },
                 'info': market,
             })
         return result
@@ -635,6 +649,8 @@ class kucoin(Exchange):
                 'precision': precision,
                 'info': entry,
                 'active': active,
+                'deposit': isDepositEnabled,
+                'withdraw': isWithdrawEnabled,
                 'fee': fee,
                 'limits': self.limits,
             }
@@ -712,7 +728,7 @@ class kucoin(Exchange):
             keys = list(accountsByType.keys())
             raise ExchangeError(self.id + ' type must be one of ' + ', '.join(keys))
         params = self.omit(params, 'type')
-        return(type == 'contract') or (type == 'futures')
+        return(type == 'contract') or (type == 'future') or (type == 'futures')  # * (type == 'futures') deprecated, use(type == 'future')
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -770,40 +786,39 @@ class kucoin(Exchange):
         #         time: 1634641777363
         #     }
         #
-        percentage = self.safe_number(ticker, 'changeRate')
+        percentage = self.safe_string(ticker, 'changeRate')
         if percentage is not None:
-            percentage = percentage * 100
-        last = self.safe_number_2(ticker, 'last', 'lastTradedPrice')
-        last = self.safe_number(ticker, 'price', last)
+            percentage = Precise.string_mul(percentage, '100')
+        last = self.safe_string_2(ticker, 'last', 'lastTradedPrice')
+        last = self.safe_string(ticker, 'price', last)
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market, '-')
         symbol = market['symbol']
-        baseVolume = self.safe_number(ticker, 'vol')
-        quoteVolume = self.safe_number(ticker, 'volValue')
-        vwap = self.vwap(baseVolume, quoteVolume)
+        baseVolume = self.safe_string(ticker, 'vol')
+        quoteVolume = self.safe_string(ticker, 'volValue')
         timestamp = self.safe_integer_2(ticker, 'time', 'datetime')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number_2(ticker, 'buy', 'bestBid'),
-            'bidVolume': self.safe_number(ticker, 'bestBidSize'),
-            'ask': self.safe_number_2(ticker, 'sell', 'bestAsk'),
-            'askVolume': self.safe_number(ticker, 'bestAskSize'),
-            'vwap': vwap,
-            'open': self.safe_number(ticker, 'open'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string_2(ticker, 'buy', 'bestBid'),
+            'bidVolume': self.safe_string(ticker, 'bestBidSize'),
+            'ask': self.safe_string_2(ticker, 'sell', 'bestAsk'),
+            'askVolume': self.safe_string(ticker, 'bestAskSize'),
+            'vwap': None,
+            'open': self.safe_string(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_number(ticker, 'changePrice'),
+            'change': self.safe_string(ticker, 'changePrice'),
             'percentage': percentage,
-            'average': self.safe_number(ticker, 'averagePrice'),
+            'average': self.safe_string(ticker, 'averagePrice'),
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
@@ -1315,8 +1330,11 @@ class kucoin(Exchange):
         # bool
         isActive = self.safe_value(order, 'isActive', False)
         cancelExist = self.safe_value(order, 'cancelExist', False)
+        stop = self.safe_string(order, 'stop')
+        stopTriggered = self.safe_value(order, 'stopTriggered', False)
         status = 'open' if isActive else 'closed'
-        status = 'canceled' if cancelExist else status
+        cancelExistWithStop = cancelExist or (not isActive and stop and not stopTriggered)
+        status = 'canceled' if cancelExistWithStop else status
         fee = {
             'currency': feeCurrency,
             'cost': feeCost,
@@ -2228,5 +2246,7 @@ class kucoin(Exchange):
         #
         errorCode = self.safe_string(response, 'code')
         message = self.safe_string(response, 'msg', '')
-        self.throw_exactly_matched_exception(self.exceptions['exact'], message, self.id + ' ' + message)
-        self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, self.id + ' ' + message)
+        feedback = self.id + ' ' + message
+        self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+        self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+        self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)

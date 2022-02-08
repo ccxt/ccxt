@@ -19,23 +19,50 @@ class luno(Exchange):
             'rateLimit': 1000,
             'version': '1',
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchAccounts': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
                 'fetchLedger': True,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTradingFees': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
             },
             'urls': {
                 'referral': 'https://www.luno.com/invite/44893A',
@@ -140,25 +167,40 @@ class luno(Exchange):
             quoteId = self.safe_string(market, 'counter_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
             status = self.safe_string(market, 'trading_status')
-            active = (status == 'ACTIVE')
-            precision = {
-                'amount': self.safe_integer(market, 'volume_scale'),
-                'price': self.safe_integer(market, 'price_scale'),
-            }
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
-                'precision': precision,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': (status == 'ACTIVE'),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_integer(market, 'volume_scale'),
+                    'price': self.safe_integer(market, 'price_scale'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(market, 'min_volume'),
                         'max': self.safe_number(market, 'max_volume'),
@@ -354,20 +396,28 @@ class luno(Exchange):
         return await self.fetch_orders_by_state('COMPLETE', symbol, since, limit, params)
 
     def parse_ticker(self, ticker, market=None):
+        # {
+        #     "pair":"XBTAUD",
+        #     "timestamp":1642201439301,
+        #     "bid":"59972.30000000",
+        #     "ask":"59997.99000000",
+        #     "last_trade":"59997.99000000",
+        #     "rolling_24_hour_volume":"1.89510000",
+        #     "status":"ACTIVE"
+        # }
         timestamp = self.safe_integer(ticker, 'timestamp')
-        symbol = None
-        if market:
-            symbol = market['symbol']
-        last = self.safe_number(ticker, 'last_trade')
-        return {
+        marketId = self.safe_string(ticker, 'pair')
+        symbol = self.safe_symbol(marketId, market)
+        last = self.safe_string(ticker, 'last_trade')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': self.safe_number(ticker, 'bid'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -377,10 +427,10 @@ class luno(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'rolling_24_hour_volume'),
+            'baseVolume': self.safe_string(ticker, 'rolling_24_hour_volume'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market, False)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
@@ -403,6 +453,15 @@ class luno(Exchange):
             'pair': market['id'],
         }
         response = await self.publicGetTicker(self.extend(request, params))
+        # {
+        #     "pair":"XBTAUD",
+        #     "timestamp":1642201439301,
+        #     "bid":"59972.30000000",
+        #     "ask":"59997.99000000",
+        #     "last_trade":"59997.99000000",
+        #     "rolling_24_hour_volume":"1.89510000",
+        #     "status":"ACTIVE"
+        # }
         return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market):

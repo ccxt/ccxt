@@ -21,20 +21,40 @@ class kuna(Exchange):
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': None,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchL3OrderBook': True,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': 'emulated',
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setPositionMode': False,
                 'withdraw': None,
             },
             'timeframes': None,
@@ -298,22 +318,39 @@ class kuna(Exchange):
                     baseId = id[0] + slicedId.replace(quoteId, '')
                     base = self.safe_currency_code(baseId)
                     quote = self.safe_currency_code(quoteId)
-                    symbol = base + '/' + quote
                     markets.append({
                         'id': id,
-                        'symbol': symbol,
+                        'symbol': base + '/' + quote,
                         'base': base,
                         'quote': quote,
+                        'settle': None,
                         'baseId': baseId,
                         'quoteId': quoteId,
+                        'settleId': None,
                         'type': 'spot',
                         'spot': True,
+                        'margin': False,
+                        'swap': False,
+                        'future': False,
+                        'option': False,
                         'active': None,
+                        'contract': False,
+                        'linear': None,
+                        'inverse': None,
+                        'contractSize': None,
+                        'expiry': None,
+                        'expiryDatetime': None,
+                        'strike': None,
+                        'optionType': None,
                         'precision': {
                             'amount': None,
                             'price': None,
                         },
                         'limits': {
+                            'leverage': {
+                                'min': None,
+                                'max': None,
+                            },
                             'amount': {
                                 'min': None,
                                 'max': None,
@@ -346,32 +383,30 @@ class kuna(Exchange):
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_timestamp(ticker, 'at')
         ticker = ticker['ticker']
-        symbol = None
-        if market:
-            symbol = market['symbol']
-        last = self.safe_number(ticker, 'last')
-        return {
+        symbol = self.safe_symbol(None, market)
+        last = self.safe_string(ticker, 'last')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'buy'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'sell'),
+            'ask': self.safe_string(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_number(ticker, 'open'),
+            'open': self.safe_string(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'vol'),
+            'baseVolume': self.safe_string(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market, False)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()

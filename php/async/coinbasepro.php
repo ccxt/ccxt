@@ -24,9 +24,14 @@ class coinbasepro extends Exchange {
             'userAgent' => $this->userAgents['chrome'],
             'pro' => true,
             'has' => array(
+                'CORS' => true,
+                'spot' => true,
+                'margin' => null, // has but not fully inplemented
+                'swap' => null, // has but not fully inplemented
+                'future' => null, // has but not fully inplemented
+                'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => true,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'deposit' => true,
@@ -312,34 +317,48 @@ class coinbasepro extends Exchange {
             $quoteId = $this->safe_string($market, 'quote_currency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $priceLimits = array(
-                'min' => $this->safe_number($market, 'quote_increment'),
-                'max' => null,
-            );
-            $precision = array(
-                'amount' => $this->safe_number($market, 'base_increment'),
-                'price' => $this->safe_number($market, 'quote_increment'),
-            );
             $status = $this->safe_string($market, 'status');
-            $active = ($status === 'online');
             $result[] = array_merge($this->fees['trading'], array(
                 'id' => $id,
-                'symbol' => $symbol,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'active' => $active,
-                'precision' => $precision,
+                'margin' => $this->safe_value($market, 'margin_enabled'),
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => ($status === 'online'),
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'price' => $this->safe_number($market, 'quote_increment'),
+                    'amount' => $this->safe_number($market, 'base_increment'),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->safe_number($market, 'base_min_size'),
                         'max' => $this->safe_number($market, 'base_max_size'),
                     ),
-                    'price' => $priceLimits,
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'cost' => array(
                         'min' => $this->safe_number($market, 'min_market_funds'),
                         'max' => $this->safe_number($market, 'max_market_funds'),
@@ -486,17 +505,17 @@ class coinbasepro extends Exchange {
         $volume = null;
         $symbol = ($market === null) ? null : $market['symbol'];
         if (gettype($ticker) === 'array' && count(array_filter(array_keys($ticker), 'is_string')) == 0) {
-            $last = $this->safe_number($ticker, 4);
+            $last = $this->safe_string($ticker, 4);
             $timestamp = $this->milliseconds();
         } else {
             $timestamp = $this->parse8601($this->safe_value($ticker, 'time'));
-            $bid = $this->safe_number($ticker, 'bid');
-            $ask = $this->safe_number($ticker, 'ask');
-            $high = $this->safe_number($ticker, 'high');
-            $low = $this->safe_number($ticker, 'low');
-            $open = $this->safe_number($ticker, 'open');
-            $last = $this->safe_number_2($ticker, 'price', 'last');
-            $volume = $this->safe_number($ticker, 'volume');
+            $bid = $this->safe_string($ticker, 'bid');
+            $ask = $this->safe_string($ticker, 'ask');
+            $high = $this->safe_string($ticker, 'high');
+            $low = $this->safe_string($ticker, 'low');
+            $open = $this->safe_string($ticker, 'open');
+            $last = $this->safe_string_2($ticker, 'price', 'last');
+            $volume = $this->safe_string($ticker, 'volume');
         }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -519,7 +538,7 @@ class coinbasepro extends Exchange {
             'baseVolume' => $volume,
             'quoteVolume' => null,
             'info' => $ticker,
-        ));
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

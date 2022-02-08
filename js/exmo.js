@@ -17,14 +17,25 @@ module.exports = class exmo extends Exchange {
             'rateLimit': 350, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version': 'v1.1',
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': undefined, // has but unimplemented
+                'swap': false,
+                'future': false,
+                'option': false,
+                'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchFundingFees': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -32,6 +43,7 @@ module.exports = class exmo extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderBooks': true,
                 'fetchOrderTrades': true,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -342,6 +354,8 @@ module.exports = class exmo extends Exchange {
                 },
             };
             let fee = undefined;
+            let depositEnabled = undefined;
+            let withdrawEnabled = undefined;
             if (providers === undefined) {
                 active = true;
                 type = 'fiat';
@@ -355,6 +369,19 @@ module.exports = class exmo extends Exchange {
                         maxValue = undefined;
                     }
                     const activeProvider = this.safeValue (provider, 'enabled');
+                    if (type === 'deposit') {
+                        if (activeProvider && !depositEnabled) {
+                            depositEnabled = true;
+                        } else if (!activeProvider) {
+                            depositEnabled = false;
+                        }
+                    } else if (type === 'withdraw') {
+                        if (activeProvider && !withdrawEnabled) {
+                            withdrawEnabled = true;
+                        } else if (!activeProvider) {
+                            withdrawEnabled = false;
+                        }
+                    }
                     if (activeProvider) {
                         active = true;
                         if ((limits[type]['min'] === undefined) || (minValue < limits[type]['min'])) {
@@ -375,6 +402,8 @@ module.exports = class exmo extends Exchange {
                 'name': name,
                 'type': type,
                 'active': active,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': fee,
                 'precision': 8,
                 'limits': limits,
@@ -412,21 +441,41 @@ module.exports = class exmo extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const takerString = this.safeString (market, 'commission_taker_percent');
             const makerString = this.safeString (market, 'commission_maker_percent');
-            const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
-            const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'margin': false,
+                'future': false,
+                'swap': false,
+                'option': false,
                 'active': true,
-                'taker': taker,
-                'maker': maker,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': this.parseNumber (Precise.stringDiv (takerString, '100')),
+                'maker': this.parseNumber (Precise.stringDiv (makerString, '100')),
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': 8,
+                    'price': this.safeInteger (market, 'price_precision'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'min_quantity'),
                         'max': this.safeNumber (market, 'max_quantity'),
@@ -439,10 +488,6 @@ module.exports = class exmo extends Exchange {
                         'min': this.safeNumber (market, 'min_amount'),
                         'max': this.safeNumber (market, 'max_amount'),
                     },
-                },
-                'precision': {
-                    'amount': 8,
-                    'price': this.safeInteger (market, 'price_precision'),
                 },
                 'info': market,
             });
@@ -606,21 +651,31 @@ module.exports = class exmo extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         "buy_price":"0.00002996",
+        //         "sell_price":"0.00003002",
+        //         "last_trade":"0.00002992",
+        //         "high":"0.00003028",
+        //         "low":"0.00002935",
+        //         "avg":"0.00002963",
+        //         "vol":"1196546.3163222",
+        //         "vol_curr":"35.80066578",
+        //         "updated":1642291733
+        //     }
+        //
         const timestamp = this.safeTimestamp (ticker, 'updated');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        const last = this.safeNumber (ticker, 'last_trade');
-        return {
-            'symbol': symbol,
+        market = this.safeMarket (undefined, market);
+        const last = this.safeString (ticker, 'last_trade');
+        return this.safeTicker ({
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'buy_price'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'buy_price'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'sell_price'),
+            'ask': this.safeString (ticker, 'sell_price'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -629,23 +684,38 @@ module.exports = class exmo extends Exchange {
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': this.safeNumber (ticker, 'avg'),
-            'baseVolume': this.safeNumber (ticker, 'vol'),
-            'quoteVolume': this.safeNumber (ticker, 'vol_curr'),
+            'average': this.safeString (ticker, 'avg'),
+            'baseVolume': this.safeString (ticker, 'vol'),
+            'quoteVolume': this.safeString (ticker, 'vol_curr'),
             'info': ticker,
-        };
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.publicGetTicker (params);
+        //
+        //     {
+        //         "ADA_BTC":{
+        //             "buy_price":"0.00002996",
+        //             "sell_price":"0.00003002",
+        //             "last_trade":"0.00002992",
+        //             "high":"0.00003028",
+        //             "low":"0.00002935",
+        //             "avg":"0.00002963",
+        //             "vol":"1196546.3163222",
+        //             "vol_curr":"35.80066578",
+        //             "updated":1642291733
+        //         }
+        //     }
+        //
         const result = {};
-        const ids = Object.keys (response);
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const market = this.markets_by_id[id];
+        const marketIds = Object.keys (response);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const market = this.safeMarket (marketId, undefined, '_');
             const symbol = market['symbol'];
-            const ticker = response[id];
+            const ticker = this.safeValue (response, marketId);
             result[symbol] = this.parseTicker (ticker, market);
         }
         return this.filterByArray (result, 'symbol', symbols);

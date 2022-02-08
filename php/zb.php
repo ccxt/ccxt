@@ -24,8 +24,13 @@ class zb extends Exchange {
             'certified' => true,
             'pro' => true,
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => null, // has but unimplemented
+                'swap' => null, // has but unimplemented
+                'future' => null,
+                'option' => null,
+                'cancelOrder' => true,
                 'createMarketOrder' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
@@ -137,6 +142,7 @@ class zb extends Exchange {
                 ),
                 'broad' => array(
                     '提币地址有误，请先添加提币地址。' => '\\ccxt\\InvalidAddress', // array("code":1001,"message":"提币地址有误，请先添加提币地址。")
+                    '资金不足,无法划账' => '\\ccxt\\InsufficientFunds', // array("code":1001,"message":"资金不足,无法划账")
                 ),
             ),
             'urls' => array(
@@ -382,6 +388,8 @@ class zb extends Exchange {
                 'precision' => $precision,
                 'info' => $currency,
                 'active' => $active,
+                'deposit' => $isDepositEnabled,
+                'withdraw' => $isWithdrawEnabled,
                 'fee' => null,
                 'fees' => $fees,
                 'limits' => $this->limits,
@@ -621,33 +629,29 @@ class zb extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($ticker, 'date', $this->milliseconds());
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        $last = $this->safe_number($ticker, 'last');
-        return array(
-            'symbol' => $symbol,
+        $last = $this->safe_string($ticker, 'last');
+        return $this->safe_ticker(array(
+            'symbol' => $this->safe_symbol(null, $market),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'buy'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'sell'),
+            'ask' => $this->safe_string($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => null,
+            'open' => $this->safe_string($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'vol'),
+            'baseVolume' => $this->safe_string($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market, false);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {

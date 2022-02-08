@@ -24,9 +24,14 @@ class bitfinex2 extends bitfinex {
             'pro' => false,
             // new metainfo interface
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => null, // has but unimplemented
+                'swap' => null, // has but unimplemented
+                'future' => null,
+                'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => null,
                 'createDepositAddress' => true,
                 'createLimitOrder' => true,
                 'createMarketOrder' => true,
@@ -35,17 +40,18 @@ class bitfinex2 extends bitfinex {
                 'editOrder' => null,
                 'fetchBalance' => true,
                 'fetchClosedOrder' => true,
-                'fetchClosedOrders' => null,
+                'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchFundingFees' => null,
                 'fetchIndexOHLCV' => false,
+                'fetchLedger' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrder' => true,
                 'fetchOpenOrders' => true,
-                'fetchOrder' => null,
+                'fetchOrder' => true,
                 'fetchOrderTrades' => true,
                 'fetchStatus' => true,
                 'fetchTickers' => true,
@@ -70,7 +76,8 @@ class bitfinex2 extends bitfinex {
                 '2w' => '14D',
                 '1M' => '1M',
             ),
-            'rateLimit' => 1500,
+            // cheapest endpoint is 240 requests per minute => ~ 4 requests per second => ( 1000ms / 4 ) = 250ms between requests on average
+            'rateLimit' => 250,
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
                 'api' => array(
@@ -94,137 +101,147 @@ class bitfinex2 extends bitfinex {
                 ),
                 'public' => array(
                     'get' => array(
-                        'conf/{config}',
-                        'conf/pub:{action}:{object}',
-                        'conf/pub:{action}:{object}:{detail}',
-                        'conf/pub:map:{object}',
-                        'conf/pub:map:{object}:{detail}',
-                        'conf/pub:map:currency:{detail}',
-                        'conf/pub:map:currency:sym', // maps symbols to their API symbols, BAB > BCH
-                        'conf/pub:map:currency:label', // verbose friendly names, BNT > Bancor
-                        'conf/pub:map:currency:unit', // maps symbols to unit of measure where applicable
-                        'conf/pub:map:currency:undl', // maps derivatives symbols to their underlying currency
-                        'conf/pub:map:currency:pool', // maps symbols to underlying network/protocol they operate on
-                        'conf/pub:map:currency:explorer', // maps symbols to their recognised block explorer URLs
-                        'conf/pub:map:currency:tx:fee', // maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745
-                        'conf/pub:map:tx:method',
-                        'conf/pub:list:{object}',
-                        'conf/pub:list:{object}:{detail}',
-                        'conf/pub:list:currency',
-                        'conf/pub:list:pair:exchange',
-                        'conf/pub:list:pair:margin',
-                        'conf/pub:list:pair:futures',
-                        'conf/pub:list:competitions',
-                        'conf/pub:info:{object}',
-                        'conf/pub:info:{object}:{detail}',
-                        'conf/pub:info:pair',
-                        'conf/pub:info:tx:status', // array( deposit, withdrawal ) statuses 1 = active, 0 = maintenance
-                        'conf/pub:fees',
-                        'platform/status',
-                        'tickers',
-                        'ticker/{symbol}',
-                        'trades/{symbol}/hist',
-                        'book/{symbol}/{precision}',
-                        'book/{symbol}/P0',
-                        'book/{symbol}/P1',
-                        'book/{symbol}/P2',
-                        'book/{symbol}/P3',
-                        'book/{symbol}/R0',
-                        'stats1/{key}:{size}:{symbol}:{side}/{section}',
-                        'stats1/{key}:{size}:{symbol}:{side}/last',
-                        'stats1/{key}:{size}:{symbol}:{side}/hist',
-                        'stats1/{key}:{size}:{symbol}/{section}',
-                        'stats1/{key}:{size}:{symbol}/last',
-                        'stats1/{key}:{size}:{symbol}/hist',
-                        'stats1/{key}:{size}:{symbol}:long/last',
-                        'stats1/{key}:{size}:{symbol}:long/hist',
-                        'stats1/{key}:{size}:{symbol}:short/last',
-                        'stats1/{key}:{size}:{symbol}:short/hist',
-                        'candles/trade:{timeframe}:{symbol}:{period}/{section}',
-                        'candles/trade:{timeframe}:{symbol}/{section}',
-                        'candles/trade:{timeframe}:{symbol}/last',
-                        'candles/trade:{timeframe}:{symbol}/hist',
-                        'status/{type}',
-                        'status/deriv',
-                        'liquidations/hist',
-                        'rankings/{key}:{timeframe}:{symbol}/{section}',
-                        'rankings/{key}:{timeframe}:{symbol}/hist',
-                        'pulse/hist',
-                        'pulse/profile/{nickname}',
-                        'funding/stats/{symbol}/hist',
+                        'conf/{config}' => 2.66, // 90 requests a minute
+                        'conf/pub:{action}:{object}' => 2.66,
+                        'conf/pub:{action}:{object}:{detail}' => 2.66,
+                        'conf/pub:map:{object}' => 2.66,
+                        'conf/pub:map:{object}:{detail}' => 2.66,
+                        'conf/pub:map:currency:{detail}' => 2.66,
+                        'conf/pub:map:currency:sym' => 2.66, // maps symbols to their API symbols, BAB > BCH
+                        'conf/pub:map:currency:label' => 2.66, // verbose friendly names, BNT > Bancor
+                        'conf/pub:map:currency:unit' => 2.66, // maps symbols to unit of measure where applicable
+                        'conf/pub:map:currency:undl' => 2.66, // maps derivatives symbols to their underlying currency
+                        'conf/pub:map:currency:pool' => 2.66, // maps symbols to underlying network/protocol they operate on
+                        'conf/pub:map:currency:explorer' => 2.66, // maps symbols to their recognised block explorer URLs
+                        'conf/pub:map:currency:tx:fee' => 2.66, // maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745
+                        'conf/pub:map:tx:method' => 2.66,
+                        'conf/pub:list:{object}' => 2.66,
+                        'conf/pub:list:{object}:{detail}' => 2.66,
+                        'conf/pub:list:currency' => 2.66,
+                        'conf/pub:list:pair:exchange' => 2.66,
+                        'conf/pub:list:pair:margin' => 2.66,
+                        'conf/pub:list:pair:futures' => 2.66,
+                        'conf/pub:list:competitions' => 2.66,
+                        'conf/pub:info:{object}' => 2.66,
+                        'conf/pub:info:{object}:{detail}' => 2.66,
+                        'conf/pub:info:pair' => 2.66,
+                        'conf/pub:info:tx:status' => 2.66, // array( deposit, withdrawal ) statuses 1 = active, 0 = maintenance
+                        'conf/pub:fees' => 2.66,
+                        'platform/status' => 8, // 30 requests per minute = 0.5 requests per second => ( 1000ms / rateLimit ) / 0.5 = 8
+                        'tickers' => 2.66, // 90 requests a minute = 1.5 requests per second => ( 1000 / rateLimit ) / 1.5 = 2.666666666
+                        'ticker/{symbol}' => 2.66,
+                        'tickers/hist' => 2.66,
+                        'trades/{symbol}/hist' => 2.66,
+                        'book/{symbol}/{precision}' => 1, // 240 requests a minute
+                        'book/{symbol}/P0' => 1,
+                        'book/{symbol}/P1' => 1,
+                        'book/{symbol}/P2' => 1,
+                        'book/{symbol}/P3' => 1,
+                        'book/{symbol}/R0' => 1,
+                        'stats1/{key}:{size}:{symbol}:{side}/{section}' => 2.66,
+                        'stats1/{key}:{size}:{symbol}:{side}/last' => 2.66,
+                        'stats1/{key}:{size}:{symbol}:{side}/hist' => 2.66,
+                        'stats1/{key}:{size}:{symbol}/{section}' => 2.66,
+                        'stats1/{key}:{size}:{symbol}/last' => 2.66,
+                        'stats1/{key}:{size}:{symbol}/hist' => 2.66,
+                        'stats1/{key}:{size}:{symbol}:long/last' => 2.66,
+                        'stats1/{key}:{size}:{symbol}:long/hist' => 2.66,
+                        'stats1/{key}:{size}:{symbol}:short/last' => 2.66,
+                        'stats1/{key}:{size}:{symbol}:short/hist' => 2.66,
+                        'candles/trade:{timeframe}:{symbol}:{period}/{section}' => 2.66,
+                        'candles/trade:{timeframe}:{symbol}/{section}' => 2.66,
+                        'candles/trade:{timeframe}:{symbol}/last' => 2.66,
+                        'candles/trade:{timeframe}:{symbol}/hist' => 2.66,
+                        'status/{type}' => 2.66,
+                        'status/deriv' => 2.66,
+                        'liquidations/hist' => 80, // 3 requests a minute = 0.05 requests a second => ( 1000ms / rateLimit ) / 0.05 = 80
+                        'rankings/{key}:{timeframe}:{symbol}/{section}' => 2.66,
+                        'rankings/{key}:{timeframe}:{symbol}/hist' => 2.66,
+                        'pulse/hist' => 2.66,
+                        'pulse/profile/{nickname}' => 2.66,
+                        'funding/stats/{symbol}/hist' => 10, // ratelimit not in docs
                     ),
                     'post' => array(
-                        'calc/trade/avg',
-                        'calc/fx',
+                        'calc/trade/avg' => 2.66,
+                        'calc/fx' => 2.66,
                     ),
                 ),
                 'private' => array(
                     'post' => array(
                         // 'auth/r/orders/{symbol}/new', // outdated
                         // 'auth/r/stats/perf:{timeframe}/hist', // outdated
-                        'auth/r/wallets',
-                        'auth/r/wallets/hist',
-                        'auth/r/orders',
-                        'auth/r/orders/{symbol}',
-                        'auth/w/order/submit',
-                        'auth/w/order/update',
-                        'auth/w/order/cancel',
-                        'auth/w/order/multi',
-                        'auth/w/order/cancel/multi',
-                        'auth/r/orders/{symbol}/hist',
-                        'auth/r/orders/hist',
-                        'auth/r/order/{symbol}:{id}/trades',
-                        'auth/r/trades/{symbol}/hist',
-                        'auth/r/trades/hist',
-                        'auth/r/ledgers/{currency}/hist',
-                        'auth/r/ledgers/hist',
-                        'auth/r/info/margin/{key}',
-                        'auth/r/info/margin/base',
-                        'auth/r/info/margin/sym_all',
-                        'auth/r/positions',
-                        'auth/w/position/claim',
-                        'auth/r/positions/hist',
-                        'auth/r/positions/audit',
-                        'auth/r/positions/snap',
-                        'auth/w/deriv/collateral/set',
-                        'auth/w/deriv/collateral/limits',
-                        'auth/r/funding/offers',
-                        'auth/r/funding/offers/{symbol}',
-                        'auth/w/funding/offer/submit',
-                        'auth/w/funding/offer/cancel',
-                        'auth/w/funding/offer/cancel/all',
-                        'auth/w/funding/close',
-                        'auth/w/funding/auto',
-                        'auth/w/funding/keep',
-                        'auth/r/funding/offers/{symbol}/hist',
-                        'auth/r/funding/offers/hist',
-                        'auth/r/funding/loans',
-                        'auth/r/funding/loans/hist',
-                        'auth/r/funding/loans/{symbol}',
-                        'auth/r/funding/loans/{symbol}/hist',
-                        'auth/r/funding/credits',
-                        'auth/r/funding/credits/hist',
-                        'auth/r/funding/credits/{symbol}',
-                        'auth/r/funding/credits/{symbol}/hist',
-                        'auth/r/funding/trades/{symbol}/hist',
-                        'auth/r/funding/trades/hist',
-                        'auth/r/info/funding/{key}',
-                        'auth/r/info/user',
-                        'auth/r/logins/hist',
-                        'auth/w/transfer',
-                        'auth/w/deposit/address',
-                        'auth/w/deposit/invoice',
-                        'auth/w/withdraw',
-                        'auth/r/movements/{currency}/hist',
-                        'auth/r/movements/hist',
-                        'auth/r/alerts',
-                        'auth/w/alert/set',
-                        'auth/w/alert/price:{symbol}:{price}/del',
-                        'auth/w/alert/{type}:{symbol}:{price}/del',
-                        'auth/calc/order/avail',
-                        'auth/w/settings/set',
-                        'auth/r/settings',
-                        'auth/w/settings/del',
+                        'auth/r/wallets' => 2.66,
+                        'auth/r/wallets/hist' => 2.66,
+                        'auth/r/orders' => 2.66,
+                        'auth/r/orders/{symbol}' => 2.66,
+                        'auth/w/order/submit' => 2.66,
+                        'auth/w/order/update' => 2.66,
+                        'auth/w/order/cancel' => 2.66,
+                        'auth/w/order/multi' => 2.66,
+                        'auth/w/order/cancel/multi' => 2.66,
+                        'auth/r/orders/{symbol}/hist' => 2.66,
+                        'auth/r/orders/hist' => 2.66,
+                        'auth/r/order/{symbol}:{id}/trades' => 2.66,
+                        'auth/r/trades/{symbol}/hist' => 2.66,
+                        'auth/r/trades/hist' => 2.66,
+                        'auth/r/ledgers/{currency}/hist' => 2.66,
+                        'auth/r/ledgers/hist' => 2.66,
+                        'auth/r/info/margin/{key}' => 2.66,
+                        'auth/r/info/margin/base' => 2.66,
+                        'auth/r/info/margin/sym_all' => 2.66,
+                        'auth/r/positions' => 2.66,
+                        'auth/w/position/claim' => 2.66,
+                        'auth/w/position/increase:' => 2.66,
+                        'auth/r/position/increase/info' => 2.66,
+                        'auth/r/positions/hist' => 2.66,
+                        'auth/r/positions/audit' => 2.66,
+                        'auth/r/positions/snap' => 2.66,
+                        'auth/w/deriv/collateral/set' => 2.66,
+                        'auth/w/deriv/collateral/limits' => 2.66,
+                        'auth/r/funding/offers' => 2.66,
+                        'auth/r/funding/offers/{symbol}' => 2.66,
+                        'auth/w/funding/offer/submit' => 2.66,
+                        'auth/w/funding/offer/cancel' => 2.66,
+                        'auth/w/funding/offer/cancel/all' => 2.66,
+                        'auth/w/funding/close' => 2.66,
+                        'auth/w/funding/auto' => 2.66,
+                        'auth/w/funding/keep' => 2.66,
+                        'auth/r/funding/offers/{symbol}/hist' => 2.66,
+                        'auth/r/funding/offers/hist' => 2.66,
+                        'auth/r/funding/loans' => 2.66,
+                        'auth/r/funding/loans/hist' => 2.66,
+                        'auth/r/funding/loans/{symbol}' => 2.66,
+                        'auth/r/funding/loans/{symbol}/hist' => 2.66,
+                        'auth/r/funding/credits' => 2.66,
+                        'auth/r/funding/credits/hist' => 2.66,
+                        'auth/r/funding/credits/{symbol}' => 2.66,
+                        'auth/r/funding/credits/{symbol}/hist' => 2.66,
+                        'auth/r/funding/trades/{symbol}/hist' => 2.66,
+                        'auth/r/funding/trades/hist' => 2.66,
+                        'auth/r/info/funding/{key}' => 2.66,
+                        'auth/r/info/user' => 2.66,
+                        'auth/r/summary' => 2.66,
+                        'auth/r/logins/hist' => 2.66,
+                        'auth/r/permissions' => 2.66,
+                        'auth/w/token' => 2.66,
+                        'auth/r/audit/hist' => 2.66,
+                        'auth/w/transfer' => 2.66, // ratelimit not in docs...
+                        'auth/w/deposit/address' => 24, // 10 requests a minute = 0.166 requests per second => ( 1000ms / rateLimit ) / 0.166 = 24
+                        'auth/w/deposit/invoice' => 24, // ratelimit not in docs
+                        'auth/w/withdraw' => 24, // ratelimit not in docs
+                        'auth/r/movements/{currency}/hist' => 2.66,
+                        'auth/r/movements/hist' => 2.66,
+                        'auth/r/alerts' => 5.33, // 45 requests a minute = 0.75 requests per second => ( 1000ms / rateLimit ) / 0.75 => 5.33
+                        'auth/w/alert/set' => 2.66,
+                        'auth/w/alert/price:{symbol}:{price}/del' => 2.66,
+                        'auth/w/alert/{type}:{symbol}:{price}/del' => 2.66,
+                        'auth/calc/order/avail' => 2.66,
+                        'auth/w/settings/set' => 2.66,
+                        'auth/r/settings' => 2.66,
+                        'auth/w/settings/del' => 2.66,
+                        'auth/r/pulse/hist' => 2.66,
+                        'auth/w/pulse/add' => 16, // 15 requests a minute = 0.25 requests per second => ( 1000ms / rateLimit ) / 0.25 => 16
+                        'auth/w/pulse/del' => 2.66,
                     ),
                 ),
             ),
@@ -370,17 +387,17 @@ class bitfinex2 extends bitfinex {
         // pub:list:pair:exchange,pub:list:pair:$margin,pub:list:pair:futures,pub:info:pair
         $v2response = $this->publicGetConfPubListPairFutures ($params);
         $v1response = $this->v1GetSymbolsDetails ($params);
-        $futuresMarketIds = $this->safe_value($v2response, 0, array());
+        $swapMarketIds = $this->safe_value($v2response, 0, array());
         $result = array();
         for ($i = 0; $i < count($v1response); $i++) {
             $market = $v1response[$i];
             $id = $this->safe_string_upper($market, 'pair');
             $spot = true;
-            if ($this->in_array($id, $futuresMarketIds)) {
+            if ($this->in_array($id, $swapMarketIds)) {
                 $spot = false;
             }
-            $future = !$spot;
-            $type = $spot ? 'spot' : 'future';
+            $swap = !$spot;
+            $type = $spot ? 'spot' : 'swap';
             $baseId = null;
             $quoteId = null;
             if (mb_strpos($id, ':') !== false) {
@@ -430,10 +447,10 @@ class bitfinex2 extends bitfinex {
                 'limits' => $limits,
                 'info' => $market,
                 'type' => $type,
-                'swap' => false,
+                'swap' => $swap,
                 'spot' => $spot,
                 'margin' => $margin,
-                'future' => $future,
+                'future' => false,
             );
         }
         return $result;
@@ -739,32 +756,72 @@ class bitfinex2 extends bitfinex {
     }
 
     public function parse_ticker($ticker, $market = null) {
+        //
+        // on trading pairs (ex. tBTCUSD)
+        //
+        //     array(
+        //         SYMBOL,
+        //         BID,
+        //         BID_SIZE,
+        //         ASK,
+        //         ASK_SIZE,
+        //         DAILY_CHANGE,
+        //         DAILY_CHANGE_RELATIVE,
+        //         LAST_PRICE,
+        //         VOLUME,
+        //         HIGH,
+        //         LOW
+        //     )
+        //
+        // on funding currencies (ex. fUSD)
+        //
+        //     array(
+        //         SYMBOL,
+        //         FRR,
+        //         BID,
+        //         BID_PERIOD,
+        //         BID_SIZE,
+        //         ASK,
+        //         ASK_PERIOD,
+        //         ASK_SIZE,
+        //         DAILY_CHANGE,
+        //         DAILY_CHANGE_RELATIVE,
+        //         LAST_PRICE,
+        //         VOLUME,
+        //         HIGH,
+        //         LOW,
+        //         _PLACEHOLDER,
+        //         _PLACEHOLDER,
+        //         FRR_AMOUNT_AVAILABLE
+        //     )
+        //
         $timestamp = $this->milliseconds();
         $symbol = $this->safe_symbol(null, $market);
         $length = is_array($ticker) ? count($ticker) : 0;
-        $last = $this->safe_number($ticker, $length - 4);
+        $last = $this->safe_string($ticker, $length - 4);
+        $percentage = $this->safe_string($ticker, $length - 5);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, $length - 2),
-            'low' => $this->safe_number($ticker, $length - 1),
-            'bid' => $this->safe_number($ticker, $length - 10),
+            'high' => $this->safe_string($ticker, $length - 2),
+            'low' => $this->safe_string($ticker, $length - 1),
+            'bid' => $this->safe_string($ticker, $length - 10),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, $length - 8),
+            'ask' => $this->safe_string($ticker, $length - 8),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_number($ticker, $length - 6),
-            'percentage' => $this->safe_number($ticker, $length - 5) * 100,
+            'change' => $this->safe_string($ticker, $length - 6),
+            'percentage' => Precise::string_mul($percentage, '100'),
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, $length - 3),
+            'baseVolume' => $this->safe_string($ticker, $length - 3),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -777,6 +834,45 @@ class bitfinex2 extends bitfinex {
             $request['symbols'] = 'ALL';
         }
         $tickers = $this->publicGetTickers (array_merge($request, $params));
+        //
+        //     array(
+        //         // on trading pairs (ex. tBTCUSD)
+        //         array(
+        //             SYMBOL,
+        //             BID,
+        //             BID_SIZE,
+        //             ASK,
+        //             ASK_SIZE,
+        //             DAILY_CHANGE,
+        //             DAILY_CHANGE_RELATIVE,
+        //             LAST_PRICE,
+        //             VOLUME,
+        //             HIGH,
+        //             LOW
+        //         ),
+        //         // on funding currencies (ex. fUSD)
+        //         array(
+        //             SYMBOL,
+        //             FRR,
+        //             BID,
+        //             BID_PERIOD,
+        //             BID_SIZE,
+        //             ASK,
+        //             ASK_PERIOD,
+        //             ASK_SIZE,
+        //             DAILY_CHANGE,
+        //             DAILY_CHANGE_RELATIVE,
+        //             LAST_PRICE,
+        //             VOLUME,
+        //             HIGH,
+        //             LOW,
+        //             _PLACEHOLDER,
+        //             _PLACEHOLDER,
+        //             FRR_AMOUNT_AVAILABLE
+        //         ),
+        //         ...
+        //     )
+        //
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $ticker = $tickers[$i];
@@ -858,13 +954,10 @@ class bitfinex2 extends bitfinex {
         $priceString = $this->safe_string($trade, $priceIndex);
         if ($amountString[0] === '-') {
             $side = 'sell';
-            $amountString = mb_substr($amountString, 1);
+            $amountString = Precise::string_abs($amountString);
         } else {
             $side = 'buy';
         }
-        $amount = $this->parse_number($amountString);
-        $price = $this->parse_number($priceString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $orderId = null;
         $takerOrMaker = null;
         $type = null;
@@ -885,11 +978,10 @@ class bitfinex2 extends bitfinex {
             $takerOrMaker = ($maker === 1) ? 'maker' : 'taker';
             $feeCostString = $this->safe_string($trade, 9);
             $feeCostString = Precise::string_neg($feeCostString);
-            $feeCost = $this->parse_number($feeCostString);
             $feeCurrencyId = $this->safe_string($trade, 10);
             $feeCurrency = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrency,
             );
             $orderType = $trade[6];
@@ -900,7 +992,7 @@ class bitfinex2 extends bitfinex {
                 $symbol = $market['symbol'];
             }
         }
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -909,12 +1001,12 @@ class bitfinex2 extends bitfinex {
             'side' => $side,
             'type' => $type,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
             'info' => $trade,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -1451,8 +1543,7 @@ class bitfinex2 extends bitfinex {
         } else if ($transactionLength === 22) {
             $id = $this->safe_string($transaction, 0);
             $currencyId = $this->safe_string($transaction, 1);
-            $currency = $this->safe_currency($currencyId, $currency);
-            $code = $currency['code'];
+            $code = $this->safe_currency_code($currencyId, $currency);
             $timestamp = $this->safe_integer($transaction, 5);
             $updated = $this->safe_integer($transaction, 6);
             $status = $this->parse_transaction_status($this->safe_string($transaction, 9));
@@ -1691,5 +1782,109 @@ class bitfinex2 extends bitfinex {
             throw new ExchangeError($this->id . ' ' . $errorText . ' (#' . $errorCode . ')');
         }
         return $response;
+    }
+
+    public function parse_ledger_entry_type($type) {
+        if ($type === null) {
+            return null;
+        } else if (mb_strpos($type, 'fee') !== false || mb_strpos($type, 'charged') !== false) {
+            return 'fee';
+        } else if (mb_strpos($type, 'exchange') !== false || mb_strpos($type, 'position') !== false) {
+            return 'trade';
+        } else if (mb_strpos($type, 'rebate') !== false) {
+            return 'rebate';
+        } else if (mb_strpos($type, 'deposit') !== false || mb_strpos($type, 'withdrawal') !== false) {
+            return 'transaction';
+        } else if (mb_strpos($type, 'transfer') !== false) {
+            return 'transfer';
+        } else if (mb_strpos($type, 'payment') !== false) {
+            return 'payout';
+        } else {
+            return $type;
+        }
+    }
+
+    public function parse_ledger_entry($item, $currency = null) {
+        //
+        //     array(
+        //         array(
+        //             2531822314, // ID => Ledger identifier
+        //             "USD", // CURRENCY => The symbol of the $currency (ex. "BTC")
+        //             null, // PLACEHOLDER
+        //             1573521810000, // MTS => Timestamp in milliseconds
+        //             null, // PLACEHOLDER
+        //             0.01644445, // AMOUNT => Amount of funds moved
+        //             0, // BALANCE => New balance
+        //             null, // PLACEHOLDER
+        //             "Settlement @ 185.79 on wallet margin" // DESCRIPTION => Description of ledger transaction
+        //         )
+        //     )
+        //
+        $type = null;
+        $id = $this->safe_string($item, 0);
+        $currencyId = $this->safe_string($item, 1);
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $timestamp = $this->safe_integer($item, 3);
+        $amount = $this->safe_number($item, 5);
+        $after = $this->safe_number($item, 6);
+        $description = $this->safe_string($item, 8);
+        if ($description !== null) {
+            $parts = explode(' @ ', $description);
+            $first = $this->safe_string_lower($parts, 0);
+            $type = $this->parse_ledger_entry_type($first);
+        }
+        return array(
+            'id' => $id,
+            'direction' => null,
+            'account' => null,
+            'referenceId' => $id,
+            'referenceAccount' => null,
+            'type' => $type,
+            'currency' => $code,
+            'amount' => $amount,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'before' => null,
+            'after' => $after,
+            'status' => null,
+            'fee' => null,
+            'info' => $item,
+        );
+    }
+
+    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $this->load_markets();
+        $currency = null;
+        $request = array();
+        $method = 'privatePostAuthRLedgersHist';
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['uppercaseId'];
+            $method = 'privatePostAuthRLedgersCurrencyHist';
+        }
+        if ($since !== null) {
+            $request['start'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // max 2500
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
+        //     array(
+        //         array(
+        //             2531822314, // ID => Ledger identifier
+        //             "USD", // CURRENCY => The symbol of the $currency (ex. "BTC")
+        //             null, // PLACEHOLDER
+        //             1573521810000, // MTS => Timestamp in milliseconds
+        //             null, // PLACEHOLDER
+        //             0.01644445, // AMOUNT => Amount of funds moved
+        //             0, // BALANCE => New balance
+        //             null, // PLACEHOLDER
+        //             "Settlement @ 185.79 on wallet margin" // DESCRIPTION => Description of ledger transaction
+        //         )
+        //     )
+        //
+        return $this->parse_ledger($response, $currency, $since, $limit);
     }
 }

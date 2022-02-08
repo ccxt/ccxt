@@ -16,22 +16,43 @@ class ndax extends Exchange {
         return $this->deep_extend(parent::describe (), array(
             'id' => 'ndax',
             'name' => 'NDAX',
-            'countries' => array( 'US' ), // United States
+            'countries' => array( 'CA' ), // Canada
             'rateLimit' => 1000,
             'pro' => true,
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'editOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchLedger' => true,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -39,10 +60,19 @@ class ndax extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'signIn' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '60',
@@ -312,8 +342,19 @@ class ndax extends Exchange {
                 'precision' => $precision,
                 'info' => $currency,
                 'active' => $active,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => null,
-                'limits' => $this->limits,
+                'limits' => array(
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
             );
         }
         return $result;
@@ -380,28 +421,42 @@ class ndax extends Exchange {
             $quoteId = $this->safe_string($market, 'Product2');
             $base = $this->safe_currency_code($this->safe_string($market, 'Product1Symbol'));
             $quote = $this->safe_currency_code($this->safe_string($market, 'Product2Symbol'));
-            $symbol = $base . '/' . $quote;
-            $precision = array(
-                'amount' => $this->safe_number($market, 'QuantityIncrement'),
-                'price' => $this->safe_number($market, 'PriceIncrement'),
-            );
             $sessionStatus = $this->safe_string($market, 'SessionStatus');
             $isDisable = $this->safe_value($market, 'IsDisable');
             $sessionRunning = ($sessionStatus === 'Running');
-            $active = ($sessionRunning && !$isDisable) ? true : false;
             $result[] = array(
                 'id' => $id,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'info' => $market,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'active' => $active,
-                'precision' => $precision,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => ($sessionRunning && !$isDisable),
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->safe_number($market, 'QuantityIncrement'),
+                    'price' => $this->safe_number($market, 'PriceIncrement'),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->safe_number($market, 'MinimumQuantity'),
                         'max' => null,
@@ -415,6 +470,7 @@ class ndax extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'info' => $market,
             );
         }
         return $result;
@@ -528,19 +584,16 @@ class ndax extends Exchange {
         //
         $timestamp = $this->safe_integer($ticker, 'TimeStamp');
         $marketId = $this->safe_string($ticker, 'InstrumentId');
+        $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_symbol($marketId, $market);
         $last = $this->safe_number($ticker, 'LastTradedPx');
         $percentage = $this->safe_number($ticker, 'Rolling24HrPxChangePercent');
         $change = $this->safe_number($ticker, 'Rolling24HrPxChange');
         $open = $this->safe_number($ticker, 'SessionOpen');
-        $average = null;
-        if (($last !== null) && ($change !== null)) {
-            $average = $this->sum($last, $open) / 2;
-        }
         $baseVolume = $this->safe_number($ticker, 'Rolling24HrVolume');
         $quoteVolume = $this->safe_number($ticker, 'Rolling24HrNotional');
         $vwap = $this->vwap($baseVolume, $quoteVolume);
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -557,11 +610,11 @@ class ndax extends Exchange {
             'previousClose' => null,
             'change' => $change,
             'percentage' => $percentage,
-            'average' => $average,
+            'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

@@ -20,21 +20,49 @@ class tidex extends Exchange {
             'version' => '3',
             'userAgent' => $this->userAgents['chrome'],
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
+                'cancelOrder' => true,
                 'createMarketOrder' => null,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCurrencies' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -168,11 +196,9 @@ class tidex extends Exchange {
             $code = $this->safe_currency_code($id);
             $visible = $this->safe_value($currency, 'visible');
             $active = $visible === true;
-            $withdrawEnable = $this->safe_value($currency, 'withdrawEnable');
-            $depositEnable = $this->safe_value($currency, 'depositEnable');
-            $canWithdraw = $withdrawEnable === true;
-            $canDeposit = $depositEnable === true;
-            if (!$canWithdraw || !$canDeposit) {
+            $withdrawEnable = $this->safe_value($currency, 'withdrawEnable', true);
+            $depositEnable = $this->safe_value($currency, 'depositEnable', true);
+            if (!$withdrawEnable || !$depositEnable) {
                 $active = false;
             }
             $name = $this->safe_string($currency, 'name');
@@ -182,14 +208,16 @@ class tidex extends Exchange {
                 'code' => $code,
                 'name' => $name,
                 'active' => $active,
+                'deposit' => $depositEnable,
+                'withdraw' => $withdrawEnable,
                 'precision' => $precision,
                 'funding' => array(
                     'withdraw' => array(
-                        'active' => $canWithdraw,
+                        'active' => $withdrawEnable,
                         'fee' => $fee,
                     ),
                     'deposit' => array(
-                        'active' => $canDeposit,
+                        'active' => $depositEnable,
                         'fee' => $this->parse_number('0'),
                     ),
                 ),
@@ -241,42 +269,56 @@ class tidex extends Exchange {
             list($baseId, $quoteId) = explode('_', $id);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $precision = array(
-                'amount' => $this->safe_integer($market, 'decimal_places'),
-                'price' => $this->safe_integer($market, 'decimal_places'),
-            );
-            $limits = array(
-                'amount' => array(
-                    'min' => $this->safe_number($market, 'min_amount'),
-                    'max' => $this->safe_number($market, 'max_amount'),
-                ),
-                'price' => array(
-                    'min' => $this->safe_number($market, 'min_price'),
-                    'max' => $this->safe_number($market, 'max_price'),
-                ),
-                'cost' => array(
-                    'min' => $this->safe_number($market, 'min_total'),
-                ),
-            );
             $hidden = $this->safe_integer($market, 'hidden');
-            $active = ($hidden === 0);
             $takerFeeString = $this->safe_string($market, 'fee');
             $takerFeeString = Precise::string_div($takerFeeString, '100');
-            $takerFee = $this->parse_number($takerFeeString);
             $result[] = array(
                 'id' => $id,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'active' => $active,
-                'taker' => $takerFee,
-                'precision' => $precision,
-                'limits' => $limits,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'contract' => false,
+                'active' => ($hidden === 0),
+                'linear' => null,
+                'inverse' => null,
+                'taker' => $this->parse_number($takerFeeString),
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->safe_integer($market, 'decimal_places'),
+                    'price' => $this->safe_integer($market, 'decimal_places'),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => $this->safe_number($market, 'min_amount'),
+                        'max' => $this->safe_number($market, 'max_amount'),
+                    ),
+                    'price' => array(
+                        'min' => $this->safe_number($market, 'min_price'),
+                        'max' => $this->safe_number($market, 'max_price'),
+                    ),
+                    'cost' => array(
+                        'min' => $this->safe_number($market, 'min_total'),
+                        'max' => null,
+                    ),
+                ),
                 'info' => $market,
             );
         }
@@ -388,34 +430,30 @@ class tidex extends Exchange {
 
     public function parse_ticker($ticker, $market = null) {
         //
-        //   {    high => 0.03497582,
+        //     {
+        //         high => 0.03497582,
         //         low => 0.03248474,
         //         avg => 0.03373028,
         //         vol => 120.11485715062999,
-        //     vol_cur => 3572.24914074,
-        //        $last => 0.0337611,
+        //         vol_cur => 3572.24914074,
+        //         $last => 0.0337611,
         //         buy => 0.0337442,
-        //        sell => 0.03377798,
-        //     updated => 1537522009          }
+        //         sell => 0.03377798,
+        //         updated => 1537522009
+        //     }
         //
         $timestamp = $this->safe_timestamp($ticker, 'updated');
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-            if (!$market['active']) {
-                $timestamp = null;
-            }
-        }
-        $last = $this->safe_number($ticker, 'last');
-        return array(
-            'symbol' => $symbol,
+        $market = $this->safe_market(null, $market);
+        $last = $this->safe_string($ticker, 'last');
+        return $this->safe_ticker(array(
+            'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'buy'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'sell'),
+            'ask' => $this->safe_string($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -424,11 +462,11 @@ class tidex extends Exchange {
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
-            'average' => $this->safe_number($ticker, 'avg'),
-            'baseVolume' => $this->safe_number($ticker, 'vol_cur'),
-            'quoteVolume' => $this->safe_number($ticker, 'vol'),
+            'average' => $this->safe_string($ticker, 'avg'),
+            'baseVolume' => $this->safe_string($ticker, 'vol_cur'),
+            'quoteVolume' => $this->safe_string($ticker, 'vol'),
             'info' => $ticker,
-        );
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

@@ -20,14 +20,16 @@ module.exports = class binance extends Exchange {
             'pro': true,
             // new metainfo interface
             'has': {
+                'CORS': undefined,
+                'spot': true,
                 'margin': true,
                 'swap': true,
                 'future': true,
+                'option': undefined,
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': undefined,
-                'CORS': undefined,
                 'createDepositAddress': undefined,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
@@ -37,6 +39,7 @@ module.exports = class binance extends Exchange {
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
                 'fetchBorrowRate': true,
+                'fetchBorrowRateHistories': true,
                 'fetchBorrowRateHistory': true,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
@@ -59,15 +62,12 @@ module.exports = class binance extends Exchange {
                 'fetchIsolatedPositions': undefined,
                 'fetchL3OrderBook': undefined,
                 'fetchLedger': undefined,
-                'fetchLedgerEntry': undefined,
                 'fetchLeverage': undefined,
                 'fetchMarkets': true,
-                'fetchMarketsByType': undefined,
                 'fetchMarkOHLCV': true,
                 'fetchMyBuys': undefined,
                 'fetchMySells': undefined,
                 'fetchMyTrades': true,
-                'fetchNetworkDepositAddress': undefined,
                 'fetchOHLCV': true,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
@@ -75,10 +75,7 @@ module.exports = class binance extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
                 'fetchOrders': true,
-                'fetchOrdersByState': undefined,
-                'fetchOrdersByStatus': undefined,
                 'fetchOrderTrades': true,
-                'fetchPartiallyFilledOrders': undefined,
                 'fetchPosition': undefined,
                 'fetchPositions': true,
                 'fetchPositionsRisk': true,
@@ -86,7 +83,6 @@ module.exports = class binance extends Exchange {
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchTickersByType': undefined,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
@@ -94,8 +90,6 @@ module.exports = class binance extends Exchange {
                 'fetchTradingLimits': undefined,
                 'fetchTransactions': false,
                 'fetchTransfers': true,
-                'fetchWithdrawAddress': false,
-                'fetchWithdrawAddressesByNetwork': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
@@ -106,7 +100,6 @@ module.exports = class binance extends Exchange {
                 'setPositionMode': true,
                 'signIn': false,
                 'transfer': true,
-                'transferOut': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -131,6 +124,8 @@ module.exports = class binance extends Exchange {
                 'test': {
                     'dapiPublic': 'https://testnet.binancefuture.com/dapi/v1',
                     'dapiPrivate': 'https://testnet.binancefuture.com/dapi/v1',
+                    'vapiPublic': 'https://testnet.binanceops.com/vapi/v1',
+                    'vapiPrivate': 'https://testnet.binanceops.com/vapi/v1',
                     'fapiPublic': 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivate': 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivateV2': 'https://testnet.binancefuture.com/fapi/v2',
@@ -143,6 +138,8 @@ module.exports = class binance extends Exchange {
                     'sapi': 'https://api.binance.com/sapi/v1',
                     'dapiPublic': 'https://dapi.binance.com/dapi/v1',
                     'dapiPrivate': 'https://dapi.binance.com/dapi/v1',
+                    'vapiPublic': 'https://vapi.binance.com/vapi/v1',
+                    'vapiPrivate': 'https://vapi.binance.com/vapi/v1',
                     'dapiPrivateV2': 'https://dapi.binance.com/dapi/v2',
                     'dapiData': 'https://dapi.binance.com/futures/data',
                     'fapiPublic': 'https://fapi.binance.com/fapi/v1',
@@ -154,10 +151,10 @@ module.exports = class binance extends Exchange {
                     'v1': 'https://api.binance.com/api/v1',
                 },
                 'www': 'https://www.binance.com',
-                // 'referral': {
-                //     'url': 'https://www.binance.com/en/register?ref=BLEJC98C',
-                //     'discount': 0.2,
-                // },
+                'referral': {
+                    'url': 'https://www.binance.com/en/register?ref=D7YA7CLY',
+                    'discount': 0.1,
+                },
                 'doc': [
                     'https://binance-docs.github.io/apidocs/spot/en',
                 ],
@@ -168,119 +165,127 @@ module.exports = class binance extends Exchange {
             'api': {
                 // the API structure below will need 3-layer apidefs
                 'sapi': {
+                    // IP (api) = 1200 per minute => (rateLimit = 50)
+                    // IP (sapi) request rate limit of 12 000 per minute
+                    // 1 IP (sapi) => cost = 0.1
+                    // 10 IP (sapi) => cost = 1
+                    // UID (sapi) request rate limit of 180 000 per minute
+                    // 1 UID (sapi) => cost = 1200 / 180 000 = 0.006667
                     'get': {
-                        'system/status': 1,
+                        'system/status': 0.1,
                         // these endpoints require this.apiKey
-                        'accountSnapshot': 1,
-                        'margin/asset': 1,
+                        'accountSnapshot': 240, // Weight(IP): 2400 => cost = 0.1 * 2400 = 240
+                        'margin/asset': 1, // Weight(IP): 10 => cost = 0.1 * 10 = 1
                         'margin/pair': 1,
-                        'margin/allAssets': 1,
-                        'margin/allPairs': 1,
+                        'margin/allAssets': 0.1,
+                        'margin/allPairs': 0.1,
                         'margin/priceIndex': 1,
                         // these endpoints require this.apiKey + this.secret
                         'asset/assetDividend': 1,
-                        'asset/dribblet': 1,
-                        'asset/transfer': 1,
-                        'asset/assetDetail': 1,
-                        'asset/tradeFee': 1,
-                        'asset/get-funding-asset': 1,
+                        'asset/dribblet': 0.1,
+                        'asset/transfer': 0.1,
+                        'asset/assetDetail': 0.1,
+                        'asset/tradeFee': 0.1,
                         'margin/loan': 1,
                         'margin/repay': 1,
                         'margin/account': 1,
-                        'margin/transfer': 1,
-                        'margin/interestHistory': 1,
-                        'margin/forceLiquidationRec': 1,
+                        'margin/transfer': 0.1,
+                        'margin/interestHistory': 0.1,
+                        'margin/forceLiquidationRec': 0.1,
                         'margin/order': 1,
                         'margin/openOrders': 1,
-                        'margin/allOrders': 1,
+                        'margin/allOrders': 20, // Weight(IP): 200 => cost = 0.1 * 200 = 20
                         'margin/myTrades': 1,
-                        'margin/maxBorrowable': 5,
+                        'margin/maxBorrowable': 5, // Weight(IP): 50 => cost = 0.1 * 50 = 5
                         'margin/maxTransferable': 5,
-                        'margin/isolated/transfer': 1,
+                        'margin/isolated/transfer': 0.1,
                         'margin/isolated/account': 1,
                         'margin/isolated/pair': 1,
                         'margin/isolated/allPairs': 1,
-                        'margin/isolated/accountLimit': 1,
-                        'margin/interestRateHistory': 1,
-                        'margin/orderList': 2,
-                        'margin/allOrderList': 10,
-                        'margin/openOrderList': 3,
-                        'margin/crossMarginData': { 'cost': 1, 'noCoin': 5 },
-                        'margin/isolatedMarginData': { 'cost': 1, 'noCoin': 10 },
-                        'margin/isolatedMarginTier': 1,
-                        'loan/income': 1,
-                        'fiat/orders': 1,
-                        'fiat/payments': 1,
-                        'futures/transfer': 5,
+                        'margin/isolated/accountLimit': 0.1,
+                        'margin/interestRateHistory': 0.1,
+                        'margin/orderList': 1,
+                        'margin/allOrderList': 20, // Weight(IP): 200 => cost = 0.1 * 200 = 20
+                        'margin/openOrderList': 1,
+                        'margin/crossMarginData': { 'cost': 0.1, 'noCoin': 0.5 },
+                        'margin/isolatedMarginData': { 'cost': 0.1, 'noCoin': 1 },
+                        'margin/isolatedMarginTier': 0.1,
+                        'loan/income': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
+                        'fiat/orders': 0.1,
+                        'fiat/payments': 0.1,
+                        'futures/transfer': 1,
                         'futures/loan/borrow/history': 1,
                         'futures/loan/repay/history': 1,
                         'futures/loan/wallet': 1,
                         'futures/loan/configs': 1,
-                        'futures/loan/calcAdjustLevel': 1,
-                        'futures/loan/calcMaxAdjustAmount': 1,
+                        'futures/loan/calcAdjustLevel': 5, // Weight(IP): 50 => cost = 0.1 * 50 = 5
+                        'futures/loan/calcMaxAdjustAmount': 5,
                         'futures/loan/adjustCollateral/history': 1,
                         'futures/loan/liquidationHistory': 1,
-                        'rebate/taxQuery': 1,
+                        'rebate/taxQuery': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         // https://binance-docs.github.io/apidocs/spot/en/#withdraw-sapi
                         'capital/config/getall': 1, // get networks for withdrawing USDT ERC20 vs USDT Omni
                         'capital/deposit/address': 1,
-                        'capital/deposit/hisrec': 1,
-                        'capital/deposit/subAddress': 1,
-                        'capital/deposit/subHisrec': 1,
-                        'capital/withdraw/history': 1,
-                        'convert/tradeFlow': 1,
-                        'account/status': 1,
-                        'account/apiTradingStatus': 1,
-                        'account/apiRestrictions/ipRestriction': 1,
-                        'bnbBurn': 1,
-                        'sub-account/assets': 1,
+                        'capital/deposit/hisrec': 0.1,
+                        'capital/deposit/subAddress': 0.1,
+                        'capital/deposit/subHisrec': 0.1,
+                        'capital/withdraw/history': 0.1,
+                        'convert/tradeFlow': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'account/status': 0.1,
+                        'account/apiTradingStatus': 0.1,
+                        'account/apiRestrictions/ipRestriction': 0.1,
+                        'bnbBurn': 0.1,
+                        // 'sub-account/assets': 1, (v3 endpoint)
                         'sub-account/futures/account': 1,
-                        'sub-account/futures/accountSummary': 1,
+                        'sub-account/futures/accountSummary': 0.1,
                         'sub-account/futures/positionRisk': 1,
-                        'sub-account/futures/internalTransfer': 1,
-                        'sub-account/list': 1,
+                        'sub-account/futures/internalTransfer': 0.1,
+                        'sub-account/list': 0.1,
                         'sub-account/margin/account': 1,
                         'sub-account/margin/accountSummary': 1,
-                        'sub-account/spotSummary': 5,
+                        'sub-account/spotSummary': 0.1,
                         'sub-account/status': 1,
-                        'sub-account/sub/transfer/history': 1,
-                        'sub-account/transfer/subUserHistory': 1,
-                        'sub-account/universalTransfer': 1,
-                        'managed-subaccount/asset': 1,
+                        'sub-account/sub/transfer/history': 0.1,
+                        'sub-account/transfer/subUserHistory': 0.1,
+                        'sub-account/universalTransfer': 0.1,
+                        'managed-subaccount/asset': 0.1,
                         // lending endpoints
-                        'lending/daily/product/list': 1,
-                        'lending/daily/userLeftQuota': 1,
-                        'lending/daily/userRedemptionQuota': 1,
-                        'lending/daily/token/position': 1,
-                        'lending/union/account': 1,
-                        'lending/union/purchaseRecord': 1,
-                        'lending/union/redemptionRecord': 1,
-                        'lending/union/interestHistory': 1,
-                        'lending/project/list': 1,
-                        'lending/project/position/list': 1,
+                        'lending/daily/product/list': 0.1,
+                        'lending/daily/userLeftQuota': 0.1,
+                        'lending/daily/userRedemptionQuota': 0.1,
+                        'lending/daily/token/position': 0.1,
+                        'lending/union/account': 0.1,
+                        'lending/union/purchaseRecord': 0.1,
+                        'lending/union/redemptionRecord': 0.1,
+                        'lending/union/interestHistory': 0.1,
+                        'lending/project/list': 0.1,
+                        'lending/project/position/list': 0.1,
                         // mining endpoints
-                        'mining/pub/algoList': 1,
-                        'mining/pub/coinList': 1,
-                        'mining/worker/detail': 5,
-                        'mining/worker/list': 5,
-                        'mining/payment/list': 5,
-                        'mining/statistics/user/status': 5,
-                        'mining/statistics/user/list': 5,
+                        'mining/pub/algoList': 0.1,
+                        'mining/pub/coinList': 0.1,
+                        'mining/worker/detail': 0.5, // Weight(IP): 5 => cost = 0.1 * 5 = 0.5
+                        'mining/worker/list': 0.5,
+                        'mining/payment/list': 0.5,
+                        'mining/statistics/user/status': 0.5,
+                        'mining/statistics/user/list': 0.5,
+                        'mining/payment/uid': 0.5,
                         // liquid swap endpoints
-                        'bswap/pools': 1,
-                        'bswap/liquidity': { 'cost': 1, 'noPoolId': 10 },
-                        'bswap/liquidityOps': 2,
-                        'bswap/quote': 2,
-                        'bswap/swap': 1,
-                        'bswap/poolConfigure': 1,
-                        'bswap/addLiquidityPreview': 1,
-                        'bswap/removeLiquidityPreview': 1,
+                        'bswap/pools': 0.1,
+                        'bswap/liquidity': { 'cost': 0.1, 'noPoolId': 1 },
+                        'bswap/liquidityOps': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'bswap/quote': 1.00005, // Weight(UID): 150 => cost = 0.006667 * 150 = 1.00005
+                        'bswap/swap': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'bswap/poolConfigure': 1.00005, // Weight(UID): 150 => cost = 0.006667 * 150 = 1.00005
+                        'bswap/addLiquidityPreview': 1.00005, // Weight(UID): 150 => cost = 0.006667 * 150 = 1.00005
+                        'bswap/removeLiquidityPreview': 1.00005, // Weight(UID): 150 => cost = 0.006667 * 150 = 1.00005
+                        'bswap/unclaimedRewards': 6.667, // Weight(UID): 1000 => cost = 0.006667 * 1000 = 6.667
+                        'bswap/claimedHistory': 6.667, // Weight(UID): 1000 => cost = 0.006667 * 1000 = 6.667
                         // leveraged token endpoints
-                        'blvt/tokenInfo': 1,
-                        'blvt/subscribe/record': 1,
-                        'blvt/redeem/record': 1,
-                        'blvt/userLimit': 1,
-                        // broker api
+                        'blvt/tokenInfo': 0.1,
+                        'blvt/subscribe/record': 0.1,
+                        'blvt/redeem/record': 0.1,
+                        'blvt/userLimit': 0.1,
+                        // broker api TODO (NOT IN DOCS)
                         'apiReferral/ifNewUser': 1,
                         'apiReferral/customization': 1,
                         'apiReferral/userCustomization': 1,
@@ -288,7 +293,7 @@ module.exports = class binance extends Exchange {
                         'apiReferral/rebate/historicalRecord': 1,
                         'apiReferral/kickback/recentRecord': 1,
                         'apiReferral/kickback/historicalRecord': 1,
-                        // brokerage API
+                        // brokerage API TODO https://binance-docs.github.io/Brokerage-API/General/ does not state ratelimits
                         'broker/subAccountApi': 1,
                         'broker/subAccount': 1,
                         'broker/subAccountApi/commission/futures': 1,
@@ -308,63 +313,64 @@ module.exports = class binance extends Exchange {
                         'broker/universalTransfer': 1,
                         // v2 not supported yet
                         // GET /sapi/v2/broker/subAccount/futuresSummary
-                        'account/apiRestrictions': 1,
+                        'account/apiRestrictions': 0.1,
                         // c2c / p2p
-                        'c2c/orderMatch/listUserOrderHistory': 1,
+                        'c2c/orderMatch/listUserOrderHistory': 0.1,
                         // nft endpoints
-                        'nft/history/transactions': 1,
-                        'nft/history/deposit': 1,
-                        'nft/history/withdraw': 1,
-                        'nft/user/getAsset': 1,
-                        'pay/transactions': 1,
+                        'nft/history/transactions': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'nft/history/deposit': 20.001,
+                        'nft/history/withdraw': 20.001,
+                        'nft/user/getAsset': 20.001,
+                        'pay/transactions': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'giftcard/verify': 0.1,
                     },
                     'post': {
-                        'asset/dust': 1,
-                        'asset/transfer': 1,
-                        'asset/get-funding-asset': 1,
-                        'account/disableFastWithdrawSwitch': 1,
-                        'account/enableFastWithdrawSwitch': 1,
-                        'account/apiRestrictions/ipRestriction': 1,
-                        'account/apiRestrictions/ipRestriction/ipList': 1,
-                        'capital/withdraw/apply': 1,
-                        'margin/transfer': 1,
-                        'margin/loan': 1,
-                        'margin/repay': 1,
-                        'margin/order': 4,
-                        'margin/order/oco': 1,
-                        'margin/isolated/create': 1,
-                        'margin/isolated/transfer': 1,
-                        'margin/isolated/account': 1,
-                        'bnbBurn': 1,
-                        'sub-account/margin/transfer': 1,
-                        'sub-account/margin/enable': 1,
-                        // 'sub-account/margin/enable': 1,
-                        'sub-account/futures/enable': 1,
-                        'sub-account/futures/transfer': 1,
-                        'sub-account/futures/internalTransfer': 1,
-                        'sub-account/transfer/subToSub': 1,
-                        'sub-account/transfer/subToMaster': 1,
-                        'sub-account/universalTransfer': 1,
-                        'managed-subaccount/deposit': 1,
-                        'managed-subaccount/withdraw': 1,
-                        'userDataStream': 1,
-                        'userDataStream/isolated': 1,
-                        'futures/transfer': 1,
-                        'futures/loan/borrow': 20,
-                        'futures/loan/repay': 20,
-                        'futures/loan/adjustCollateral': 20,
+                        'asset/dust': 0.06667, // Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
+                        'asset/transfer': 0.1,
+                        'asset/get-funding-asset': 0.1,
+                        'account/disableFastWithdrawSwitch': 0.1,
+                        'account/enableFastWithdrawSwitch': 0.1,
+                        // 'account/apiRestrictions/ipRestriction': 1, discontinued
+                        // 'account/apiRestrictions/ipRestriction/ipList': 1, discontinued
+                        'capital/withdraw/apply': 0.1,
+                        'margin/transfer': 1, // Weight(IP): 600 => cost = 0.1 * 600 = 60
+                        'margin/loan': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'margin/repay': 20.001,
+                        'margin/order': 0.040002, // Weight(UID): 6 => cost = 0.006667 * 6 = 0.040002
+                        'margin/order/oco': 0.040002,
+                        // 'margin/isolated/create': 1, discontinued
+                        'margin/isolated/transfer': 4.0002, // Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
+                        'margin/isolated/account': 2.0001, // Weight(UID): 300 => cost = 0.006667 * 300 = 2.0001
+                        'bnbBurn': 0.1,
+                        'sub-account/margin/transfer': 4.0002, // Weight(UID): 600 => cost =  0.006667 * 600 = 4.0002
+                        'sub-account/margin/enable': 0.1,
+                        'sub-account/futures/enable': 0.1,
+                        'sub-account/futures/transfer': 0.1,
+                        'sub-account/futures/internalTransfer': 0.1,
+                        'sub-account/transfer/subToSub': 0.1,
+                        'sub-account/transfer/subToMaster': 0.1,
+                        'sub-account/universalTransfer': 0.1,
+                        'managed-subaccount/deposit': 0.1,
+                        'managed-subaccount/withdraw': 0.1,
+                        'userDataStream': 0.1,
+                        'userDataStream/isolated': 0.1,
+                        'futures/transfer': 0.1,
+                        'futures/loan/borrow': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
+                        'futures/loan/repay': 20.001,
+                        'futures/loan/adjustCollateral': 20.001,
                         // lending
-                        'lending/customizedFixed/purchase': 1,
-                        'lending/daily/purchase': 1,
-                        'lending/daily/redeem': 1,
+                        'lending/customizedFixed/purchase': 0.1,
+                        'lending/daily/purchase': 0.1,
+                        'lending/daily/redeem': 0.1,
                         // liquid swap endpoints
-                        'bswap/liquidityAdd': 2,
-                        'bswap/liquidityRemove': 2,
-                        'bswap/swap': 2,
+                        'bswap/liquidityAdd': 60, // Weight(UID): 1000 + (Additional: 1 request every 3 seconds =  0.333 requests per second) => cost = ( 1000 / rateLimit ) / 0.333 = 60.0000006
+                        'bswap/liquidityRemove': 60, // Weight(UID): 1000 + (Additional: 1 request every three seconds)
+                        'bswap/swap': 60, // Weight(UID): 1000 + (Additional: 1 request every three seconds)
+                        'bswap/claimRewards': 6.667, // Weight(UID): 1000 => cost = 0.006667 * 1000 = 6.667
                         // leveraged token endpoints
-                        'blvt/subscribe': 1,
-                        'blvt/redeem': 1,
-                        // brokerage API
+                        'blvt/subscribe': 0.1,
+                        'blvt/redeem': 0.1,
+                        // brokerage API TODO: NO MENTION OF RATELIMITS IN BROKERAGE DOCS
                         'apiReferral/customization': 1,
                         'apiReferral/userCustomization': 1,
                         'apiReferral/rebate/historicalRecord': 1,
@@ -388,20 +394,23 @@ module.exports = class binance extends Exchange {
                         'broker/universalTransfer': 1,
                         'broker/subAccountApi/permission/universalTransfer': 1,
                         'broker/subAccountApi/permission/vanillaOptions': 1,
+                        //
+                        'giftcard/createCode': 0.1,
+                        'giftcard/redeemCode': 0.1,
                     },
                     'put': {
-                        'userDataStream': 1,
-                        'userDataStream/isolated': 1,
+                        'userDataStream': 0.1,
+                        'userDataStream/isolated': 0.1,
                     },
                     'delete': {
-                        'account/apiRestrictions/ipRestriction/ipList': 1,
-                        'margin/openOrders': 1,
-                        'margin/order': 1,
-                        'margin/orderList': 1,
-                        'margin/isolated/account': 1,
-                        'userDataStream': 1,
-                        'userDataStream/isolated': 1,
-                        // brokerage API
+                        // 'account/apiRestrictions/ipRestriction/ipList': 1, discontinued
+                        'margin/openOrders': 0.1,
+                        'margin/order': 0.0066667, // Weight(UID): 1 => cost = 0.006667
+                        'margin/orderList': 0.0066667,
+                        'margin/isolated/account': 2.0001, // Weight(UID): 300 => cost =  0.006667 * 300 = 2.0001
+                        'userDataStream': 0.1,
+                        'userDataStream/isolated': 0.1,
+                        // brokerage API TODO NO MENTION OF RATELIMIT IN BROKERAGE DOCS
                         'broker/subAccountApi': 1,
                         'broker/subAccountApi/ipRestriction/ipList': 1,
                     },
@@ -593,6 +602,47 @@ module.exports = class binance extends Exchange {
                         'positionRisk': 1,
                     },
                 },
+                'vapiPublic': {
+                    'get': [
+                        'ping',
+                        'time',
+                        'optionInfo',
+                        'exchangeInfo',
+                        'index',
+                        'ticker',
+                        'mark',
+                        'depth',
+                        'klines',
+                        'trades',
+                        'historicalTrades',
+                    ],
+                },
+                'vapiPrivate': {
+                    'get': [
+                        'account',
+                        'position',
+                        'order',
+                        'openOrders',
+                        'historyOrders',
+                        'userTrades',
+                    ],
+                    'post': [
+                        'transfer',
+                        'bill',
+                        'order',
+                        'batchOrders',
+                        'userDataStream',
+                    ],
+                    'put': [
+                        'userDataStream',
+                    ],
+                    'delete': [
+                        'order',
+                        'batchOrders',
+                        'allOpenOrders',
+                        'userDataStream',
+                    ],
+                },
                 'public': {
                     'get': {
                         'ping': 1,
@@ -631,7 +681,7 @@ module.exports = class binance extends Exchange {
                     },
                     'post': {
                         'order/oco': 1,
-                        'order': 4,
+                        'order': 1,
                         'order/test': 1,
                     },
                     'delete': {
@@ -719,6 +769,7 @@ module.exports = class binance extends Exchange {
                         },
                     },
                 },
+                'option': {},
             },
             'commonCurrencies': {
                 'BCC': 'BCC', // kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
@@ -921,6 +972,7 @@ module.exports = class binance extends Exchange {
                     "You don't have permission.": PermissionDenied, // {"msg":"You don't have permission.","success":false}
                     'Market is closed.': ExchangeNotAvailable, // {"code":-1013,"msg":"Market is closed."}
                     'Too many requests. Please try again later.': DDoSProtection, // {"msg":"Too many requests. Please try again later.","success":false}
+                    'This action disabled is on this account.': AccountSuspended, // {"code":-2010,"msg":"This action disabled is on this account."}
                     '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
                     '-1001': ExchangeNotAvailable, // {"code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'"}
                     '-1002': AuthenticationError, // {"code":-1002,"msg":"'You are not authorized to execute this request.'"}
@@ -1024,22 +1076,22 @@ module.exports = class binance extends Exchange {
                     '-3044': DDoSProtection, // {"code":-3044,"msg":"System busy."}
                     '-3045': ExchangeError, // {"code":-3045,"msg":"The system doesn't have enough asset now."}
                     '-3999': ExchangeError, // {"code":-3999,"msg":"This function is only available for invited users."}
-                    '-4001 ': BadRequest, // {"code":-4001 ,"msg":"Invalid operation."}
-                    '-4002 ': BadRequest, // {"code":-4002 ,"msg":"Invalid get."}
-                    '-4003 ': BadRequest, // {"code":-4003 ,"msg":"Your input email is invalid."}
+                    '-4001': BadRequest, // {"code":-4001 ,"msg":"Invalid operation."}
+                    '-4002': BadRequest, // {"code":-4002 ,"msg":"Invalid get."}
+                    '-4003': BadRequest, // {"code":-4003 ,"msg":"Your input email is invalid."}
                     '-4004': AuthenticationError, // {"code":-4004,"msg":"You don't login or auth."}
-                    '-4005 ': RateLimitExceeded, // {"code":-4005 ,"msg":"Too many new requests."}
-                    '-4006 ': BadRequest, // {"code":-4006 ,"msg":"Support main account only."}
-                    '-4007 ': BadRequest, // {"code":-4007 ,"msg":"Address validation is not passed."}
-                    '-4008 ': BadRequest, // {"code":-4008 ,"msg":"Address tag validation is not passed."}
-                    '-4010 ': BadRequest, // {"code":-4010 ,"msg":"White list mail has been confirmed."} // [TODO] possible bug: it should probably be "has not been confirmed"
-                    '-4011 ': BadRequest, // {"code":-4011 ,"msg":"White list mail is invalid."}
-                    '-4012 ': BadRequest, // {"code":-4012 ,"msg":"White list is not opened."}
-                    '-4013 ': AuthenticationError, // {"code":-4013 ,"msg":"2FA is not opened."}
-                    '-4014 ': PermissionDenied, // {"code":-4014 ,"msg":"Withdraw is not allowed within 2 min login."}
-                    '-4015 ': ExchangeError, // {"code":-4015 ,"msg":"Withdraw is limited."}
-                    '-4016 ': PermissionDenied, // {"code":-4016 ,"msg":"Within 24 hours after password modification, withdrawal is prohibited."}
-                    '-4017 ': PermissionDenied, // {"code":-4017 ,"msg":"Within 24 hours after the release of 2FA, withdrawal is prohibited."}
+                    '-4005': RateLimitExceeded, // {"code":-4005 ,"msg":"Too many new requests."}
+                    '-4006': BadRequest, // {"code":-4006 ,"msg":"Support main account only."}
+                    '-4007': BadRequest, // {"code":-4007 ,"msg":"Address validation is not passed."}
+                    '-4008': BadRequest, // {"code":-4008 ,"msg":"Address tag validation is not passed."}
+                    '-4010': BadRequest, // {"code":-4010 ,"msg":"White list mail has been confirmed."} // [TODO] possible bug: it should probably be "has not been confirmed"
+                    '-4011': BadRequest, // {"code":-4011 ,"msg":"White list mail is invalid."}
+                    '-4012': BadRequest, // {"code":-4012 ,"msg":"White list is not opened."}
+                    '-4013': AuthenticationError, // {"code":-4013 ,"msg":"2FA is not opened."}
+                    '-4014': PermissionDenied, // {"code":-4014 ,"msg":"Withdraw is not allowed within 2 min login."}
+                    '-4015': ExchangeError, // {"code":-4015 ,"msg":"Withdraw is limited."}
+                    '-4016': PermissionDenied, // {"code":-4016 ,"msg":"Within 24 hours after password modification, withdrawal is prohibited."}
+                    '-4017': PermissionDenied, // {"code":-4017 ,"msg":"Within 24 hours after the release of 2FA, withdrawal is prohibited."}
                     '-4018': BadSymbol, // {"code":-4018,"msg":"We don't have this asset."}
                     '-4019': BadSymbol, // {"code":-4019,"msg":"Current asset is not open for withdrawal."}
                     '-4021': BadRequest, // {"code":-4021,"msg":"Asset withdrawal must be an %s multiple of %s."}
@@ -1472,10 +1524,13 @@ module.exports = class binance extends Exchange {
             const lowercaseId = this.safeStringLower (market, 'symbol');
             const baseId = this.safeString (market, 'baseAsset');
             const quoteId = this.safeString (market, 'quoteAsset');
+            const settleId = this.safeString (market, 'marginAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            const settle = this.safeCurrencyCode (settleId);
+            const contract = future || delivery;
             const contractType = this.safeString (market, 'contractType');
-            const idSymbol = (future || delivery) && (contractType !== 'PERPETUAL');
+            const idSymbol = contract && (contractType !== 'PERPETUAL');
             let symbol = undefined;
             let expiry = undefined;
             if (idSymbol) {
@@ -1486,51 +1541,52 @@ module.exports = class binance extends Exchange {
             }
             const filters = this.safeValue (market, 'filters', []);
             const filtersByType = this.indexBy (filters, 'filterType');
-            const precision = {
-                'base': this.safeInteger (market, 'baseAssetPrecision'),
-                'quote': this.safeInteger (market, 'quotePrecision'),
-                'amount': this.safeInteger (market, 'quantityPrecision'),
-                'price': this.safeInteger (market, 'pricePrecision'),
-            };
             const status = this.safeString2 (market, 'status', 'contractStatus');
-            const active = (status === 'TRADING');
-            const margin = this.safeValue (market, 'isMarginTradingAllowed', false);
             let contractSize = undefined;
             let fees = this.fees;
-            if (future || delivery) {
+            if (contract) {
                 contractSize = this.safeNumber (market, 'contractSize', this.parseNumber ('1'));
                 fees = this.fees[type];
             }
-            const maker = fees['trading']['maker'];
-            const taker = fees['trading']['taker'];
-            const settleId = this.safeString (market, 'marginAsset');
-            const settle = this.safeCurrencyCode (settleId);
+            const isMarginTradingAllowed = this.safeValue (market, 'isMarginTradingAllowed', false);
             const entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
-                'spot': spot,
+                'settleId': settleId,
                 'type': type,
-                'margin': margin,
+                'spot': spot,
+                'margin': spot && isMarginTradingAllowed,
                 'future': future,
                 'delivery': delivery,
-                'linear': future,
-                'inverse': delivery,
+                'option': false,
+                'active': (status === 'TRADING'),
+                'contract': contract,
+                'linear': contract ? future : undefined,
+                'inverse': contract ? delivery : undefined,
+                'taker': fees['trading']['taker'],
+                'maker': fees['trading']['maker'],
+                'contractSize': contractSize,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
-                'settleId': settleId,
-                'settle': settle,
-                'active': active,
-                'precision': precision,
-                'contractSize': contractSize,
-                'maker': maker,
-                'taker': taker,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': this.safeInteger (market, 'pricePrecision'),
+                    'amount': this.safeInteger (market, 'quantityPrecision'),
+                    'base': this.safeInteger (market, 'baseAssetPrecision'),
+                    'quote': this.safeInteger (market, 'quotePrecision'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': undefined,
                         'max': undefined,
@@ -1544,6 +1600,7 @@ module.exports = class binance extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': market,
             };
             if ('PRICE_FILTER' in filtersByType) {
                 const filter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
@@ -1943,39 +2000,39 @@ module.exports = class binance extends Exchange {
         const timestamp = this.safeInteger (ticker, 'closeTime');
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeNumber (ticker, 'lastPrice');
+        const last = this.safeString (ticker, 'lastPrice');
         const isCoinm = ('baseVolume' in ticker);
         let baseVolume = undefined;
         let quoteVolume = undefined;
         if (isCoinm) {
-            baseVolume = this.safeNumber (ticker, 'baseVolume');
-            quoteVolume = this.safeNumber (ticker, 'volume');
+            baseVolume = this.safeString (ticker, 'baseVolume');
+            quoteVolume = this.safeString (ticker, 'volume');
         } else {
-            baseVolume = this.safeNumber (ticker, 'volume');
-            quoteVolume = this.safeNumber (ticker, 'quoteVolume');
+            baseVolume = this.safeString (ticker, 'volume');
+            quoteVolume = this.safeString (ticker, 'quoteVolume');
         }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'highPrice'),
-            'low': this.safeNumber (ticker, 'lowPrice'),
-            'bid': this.safeNumber (ticker, 'bidPrice'),
-            'bidVolume': this.safeNumber (ticker, 'bidQty'),
-            'ask': this.safeNumber (ticker, 'askPrice'),
-            'askVolume': this.safeNumber (ticker, 'askQty'),
-            'vwap': this.safeNumber (ticker, 'weightedAvgPrice'),
-            'open': this.safeNumber (ticker, 'openPrice'),
+            'high': this.safeString (ticker, 'highPrice'),
+            'low': this.safeString (ticker, 'lowPrice'),
+            'bid': this.safeString (ticker, 'bidPrice'),
+            'bidVolume': this.safeString (ticker, 'bidQty'),
+            'ask': this.safeString (ticker, 'askPrice'),
+            'askVolume': this.safeString (ticker, 'askQty'),
+            'vwap': this.safeString (ticker, 'weightedAvgPrice'),
+            'open': this.safeString (ticker, 'openPrice'),
             'close': last,
             'last': last,
-            'previousClose': this.safeNumber (ticker, 'prevClosePrice'), // previous day close
-            'change': this.safeNumber (ticker, 'priceChange'),
-            'percentage': this.safeNumber (ticker, 'priceChangePercent'),
+            'previousClose': this.safeString (ticker, 'prevClosePrice'), // previous day close
+            'change': this.safeString (ticker, 'priceChange'),
+            'percentage': this.safeString (ticker, 'priceChangePercent'),
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchStatus (params = {}) {
@@ -4262,8 +4319,8 @@ module.exports = class binance extends Exchange {
         const indexPrice = this.safeNumber (premiumIndex, 'indexPrice');
         const interestRate = this.safeNumber (premiumIndex, 'interestRate');
         const estimatedSettlePrice = this.safeNumber (premiumIndex, 'estimatedSettlePrice');
-        const nextFundingRate = this.safeNumber (premiumIndex, 'lastFundingRate');
-        const nextFundingTime = this.safeInteger (premiumIndex, 'nextFundingTime');
+        const fundingRate = this.safeNumber (premiumIndex, 'lastFundingRate');
+        const fundingTime = this.safeInteger (premiumIndex, 'nextFundingTime');
         return {
             'info': premiumIndex,
             'symbol': symbol,
@@ -4273,12 +4330,15 @@ module.exports = class binance extends Exchange {
             'estimatedSettlePrice': estimatedSettlePrice,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'fundingRate': fundingRate,
+            'fundingTimestamp': fundingTime,
+            'fundingDatetime': this.iso8601 (fundingTime),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
             'previousFundingRate': undefined,
-            'nextFundingRate': nextFundingRate,
             'previousFundingTimestamp': undefined,
-            'nextFundingTimestamp': nextFundingTime,
             'previousFundingDatetime': undefined,
-            'nextFundingDatetime': this.iso8601 (nextFundingTime),
         };
     }
 
@@ -4358,7 +4418,7 @@ module.exports = class binance extends Exchange {
         //
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol');
         const leverageString = this.safeString (position, 'leverage');
         const leverage = parseInt (leverageString);
         const initialMarginString = this.safeString (position, 'initialMargin');
@@ -4383,7 +4443,8 @@ module.exports = class binance extends Exchange {
         let contractsStringAbs = Precise.stringAbs (contractsString);
         if (contractsString === undefined) {
             const entryNotional = Precise.stringMul (Precise.stringMul (leverageString, initialMarginString), entryPriceString);
-            contractsString = Precise.stringDiv (entryNotional, market['contractSize']);
+            const contractSize = this.safeString (market, 'contractSize');
+            contractsString = Precise.stringDiv (entryNotional, contractSize);
             contractsStringAbs = Precise.stringDiv (Precise.stringAdd (contractsString, '0.5'), '1', 0);
         }
         const contracts = this.parseNumber (contractsStringAbs);
@@ -4905,8 +4966,11 @@ module.exports = class binance extends Exchange {
         // { "code": 200, "msg": "success" }
         //
         marginType = marginType.toUpperCase ();
+        if (marginType === 'CROSS') {
+            marginType = 'CROSSED';
+        }
         if ((marginType !== 'ISOLATED') && (marginType !== 'CROSSED')) {
-            throw new BadRequest (this.id + ' marginType must be either isolated or crossed');
+            throw new BadRequest (this.id + ' marginType must be either isolated or cross');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -4916,7 +4980,7 @@ module.exports = class binance extends Exchange {
         } else if (market['inverse']) {
             method = 'dapiPrivatePostMarginType';
         } else {
-            throw NotSupported (this.id + ' setMarginMode() supports linear and inverse contracts only');
+            throw new NotSupported (this.id + ' setMarginMode() supports linear and inverse contracts only');
         }
         const request = {
             'symbol': market['id'],
@@ -4990,21 +5054,16 @@ module.exports = class binance extends Exchange {
             this.checkRequiredCredentials ();
             let query = undefined;
             const recvWindow = this.safeInteger (this.options, 'recvWindow', 5000);
+            const extendedParams = this.extend ({
+                'timestamp': this.nonce (),
+                'recvWindow': recvWindow,
+            }, params);
             if ((api === 'sapi') && (path === 'asset/dust')) {
-                query = this.urlencodeWithArrayRepeat (this.extend ({
-                    'timestamp': this.nonce (),
-                    'recvWindow': recvWindow,
-                }, params));
-            } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0)) {
-                query = this.rawencode (this.extend ({
-                    'timestamp': this.nonce (),
-                    'recvWindow': recvWindow,
-                }, params));
+                query = this.urlencodeWithArrayRepeat (extendedParams);
+            } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0) || (path === 'capital/withdraw/apply')) {
+                query = this.rawencode (extendedParams);
             } else {
-                query = this.urlencode (this.extend ({
-                    'timestamp': this.nonce (),
-                    'recvWindow': recvWindow,
-                }, params));
+                query = this.urlencode (extendedParams);
             }
             const signature = this.hmac (this.encode (query), this.encode (this.secret));
             query += '&' + 'signature=' + signature;
@@ -5075,13 +5134,21 @@ module.exports = class binance extends Exchange {
             // https://github.com/ccxt/ccxt/issues/6501
             // https://github.com/ccxt/ccxt/issues/7742
             if ((error === '200') || Precise.stringEquals (error, '0')) {
-                return;
+                return undefined;
             }
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
             if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
                 throw new DDoSProtection (this.id + ' temporary banned: ' + body);
+            }
+            if (message === 'No need to change margin type.') {
+                // not an error
+                // https://github.com/ccxt/ccxt/issues/11268
+                // https://github.com/ccxt/ccxt/pull/11624
+                // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
+                // binanceusdm {"code":-4046,"msg":"No need to change margin type."}
+                return true;
             }
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
@@ -5253,5 +5320,69 @@ module.exports = class binance extends Exchange {
             });
         }
         return result;
+    }
+
+    async createGiftCode (code, amount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        // ensure you have enough token in your funding account before calling this code
+        const request = {
+            'token': currency['id'],
+            'amount': amount,
+        };
+        const response = await this.sapiPostGiftcardCreateCode (this.extend (request, params));
+        //
+        //     {
+        //       code: '000000',
+        //       message: 'success',
+        //       data: { referenceNo: '0033002404219823', code: 'AP6EXTLKNHM6CEX7' },
+        //       success: true
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        const giftcardCode = this.safeString (data, 'code');
+        const id = this.safeString (data, 'referenceNo');
+        return {
+            'info': response,
+            'id': id,
+            'code': giftcardCode,
+            'currency': code,
+            'amount': amount,
+        };
+    }
+
+    async redeemGiftCode (giftcardCode, params = {}) {
+        const request = {
+            'code': giftcardCode,
+        };
+        const response = await this.sapiPostGiftcardRedeemCode (this.extend (request, params));
+        //
+        //     {
+        //       code: '000000',
+        //       message: 'success',
+        //       data: {
+        //         referenceNo: '0033002404219823',
+        //         identityNo: '10316431732801474560'
+        //       },
+        //       success: true
+        //     }
+        //
+        return response;
+    }
+
+    async verifyGiftCode (id, params = {}) {
+        const request = {
+            'referenceNo': id,
+        };
+        const response = await this.sapiGetGiftcardVerify (this.extend (request, params));
+        //
+        //     {
+        //       code: '000000',
+        //       message: 'success',
+        //       data: { valid: true },
+        //       success: true
+        //     }
+        //
+        return response;
     }
 };

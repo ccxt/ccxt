@@ -21,11 +21,14 @@ module.exports = class kucoin extends Exchange {
             'comment': 'Platform 2.0',
             'quoteJsonNumbers': false,
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': undefined,
                 'swap': false,
                 'future': false,
+                'option': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': undefined,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'fetchAccounts': true,
@@ -38,7 +41,9 @@ module.exports = class kucoin extends Exchange {
                 'fetchDeposits': true,
                 'fetchFundingFee': true,
                 'fetchFundingHistory': false,
+                'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchL3OrderBook': true,
                 'fetchLedger': true,
@@ -291,6 +296,7 @@ module.exports = class kucoin extends Exchange {
                     '400100': BadRequest,
                     '400350': InvalidOrder, // {"code":"400350","msg":"Upper limit for holding: 10,000USDT, you can still buy 10,000USDT worth of coin."}
                     '400500': InvalidOrder, // {"code":"400500","msg":"Your located country/region is currently not supported for the trading of this token"}
+                    '401000': BadRequest, // {"code":"401000","msg":"The interface has been deprecated"}
                     '411100': AccountSuspended,
                     '415000': BadRequest, // {"code":"415000","msg":"Unsupported Media Type"}
                     '500000': ExchangeNotAvailable, // {"code":"500000","msg":"Internal Server Error"}
@@ -404,6 +410,7 @@ module.exports = class kucoin extends Exchange {
                     'margin': 'margin',
                     'main': 'main',
                     'funding': 'main',
+                    'future': 'contract',
                     'futures': 'contract',
                     'contract': 'contract',
                     'pool': 'pool',
@@ -532,9 +539,6 @@ module.exports = class kucoin extends Exchange {
             const [ baseId, quoteId ] = id.split ('-');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const active = this.safeValue (market, 'enableTrading');
-            const margin = this.safeValue (market, 'isMarginEnabled');
             const baseMaxSize = this.safeNumber (market, 'baseMaxSize');
             const baseMinSizeString = this.safeString (market, 'baseMinSize');
             const quoteMaxSizeString = this.safeString (market, 'quoteMaxSize');
@@ -542,49 +546,59 @@ module.exports = class kucoin extends Exchange {
             const quoteMaxSize = this.parseNumber (quoteMaxSizeString);
             const quoteMinSize = this.safeNumber (market, 'quoteMinSize');
             // const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
-            const precision = {
-                'amount': this.precisionFromString (this.safeString (market, 'baseIncrement')),
-                'price': this.precisionFromString (this.safeString (market, 'priceIncrement')),
-            };
-            const limits = {
-                'amount': {
-                    'min': baseMinSize,
-                    'max': baseMaxSize,
-                },
-                'price': {
-                    'min': this.safeNumber (market, 'priceIncrement'),
-                    'max': this.parseNumber (Precise.stringDiv (quoteMaxSizeString, baseMinSizeString)),
-                },
-                'cost': {
-                    'min': quoteMinSize,
-                    'max': quoteMaxSize,
-                },
-                'leverage': {
-                    'max': this.safeNumber (market, 'maxLeverage', 1), // * Don't default to 1 for margin markets, leverage is located elsewhere
-                },
-            };
             const ticker = this.safeValue (tickersByMarketId, id, {});
             const makerFeeRate = this.safeString (ticker, 'makerFeeRate');
             const takerFeeRate = this.safeString (ticker, 'makerFeeRate');
             const makerCoefficient = this.safeString (ticker, 'makerCoefficient');
             const takerCoefficient = this.safeString (ticker, 'takerCoefficient');
-            const maker = this.parseNumber (Precise.stringMul (makerFeeRate, makerCoefficient));
-            const taker = this.parseNumber (Precise.stringMul (takerFeeRate, takerCoefficient));
             result.push ({
                 'id': id,
-                'symbol': symbol,
-                'baseId': baseId,
-                'quoteId': quoteId,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': margin,
-                'active': active,
-                'maker': maker,
-                'taker': taker,
-                'precision': precision,
-                'limits': limits,
+                'margin': this.safeValue (market, 'isMarginEnabled'),
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': this.safeValue (market, 'enableTrading'),
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': this.parseNumber (Precise.stringMul (takerFeeRate, takerCoefficient)),
+                'maker': this.parseNumber (Precise.stringMul (makerFeeRate, makerCoefficient)),
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': this.precisionFromString (this.safeString (market, 'priceIncrement')),
+                    'amount': this.precisionFromString (this.safeString (market, 'baseIncrement')),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': baseMinSize,
+                        'max': baseMaxSize,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': quoteMinSize,
+                        'max': quoteMaxSize,
+                    },
+                },
                 'info': market,
             });
         }
@@ -627,6 +641,8 @@ module.exports = class kucoin extends Exchange {
                 'precision': precision,
                 'info': entry,
                 'active': active,
+                'deposit': isDepositEnabled,
+                'withdraw': isWithdrawEnabled,
                 'fee': fee,
                 'limits': this.limits,
             };
@@ -710,7 +726,7 @@ module.exports = class kucoin extends Exchange {
             throw new ExchangeError (this.id + ' type must be one of ' + keys.join (', '));
         }
         params = this.omit (params, 'type');
-        return (type === 'contract') || (type === 'futures');
+        return (type === 'contract') || (type === 'future') || (type === 'futures'); // * (type === 'futures') deprecated, use (type === 'future')
     }
 
     parseTicker (ticker, market = undefined) {
@@ -769,41 +785,40 @@ module.exports = class kucoin extends Exchange {
         //         time: 1634641777363
         //     }
         //
-        let percentage = this.safeNumber (ticker, 'changeRate');
+        let percentage = this.safeString (ticker, 'changeRate');
         if (percentage !== undefined) {
-            percentage = percentage * 100;
+            percentage = Precise.stringMul (percentage, '100');
         }
-        let last = this.safeNumber2 (ticker, 'last', 'lastTradedPrice');
-        last = this.safeNumber (ticker, 'price', last);
+        let last = this.safeString2 (ticker, 'last', 'lastTradedPrice');
+        last = this.safeString (ticker, 'price', last);
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];
-        const baseVolume = this.safeNumber (ticker, 'vol');
-        const quoteVolume = this.safeNumber (ticker, 'volValue');
-        const vwap = this.vwap (baseVolume, quoteVolume);
+        const baseVolume = this.safeString (ticker, 'vol');
+        const quoteVolume = this.safeString (ticker, 'volValue');
         const timestamp = this.safeInteger2 (ticker, 'time', 'datetime');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber2 (ticker, 'buy', 'bestBid'),
-            'bidVolume': this.safeNumber (ticker, 'bestBidSize'),
-            'ask': this.safeNumber2 (ticker, 'sell', 'bestAsk'),
-            'askVolume': this.safeNumber (ticker, 'bestAskSize'),
-            'vwap': vwap,
-            'open': this.safeNumber (ticker, 'open'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString2 (ticker, 'buy', 'bestBid'),
+            'bidVolume': this.safeString (ticker, 'bestBidSize'),
+            'ask': this.safeString2 (ticker, 'sell', 'bestAsk'),
+            'askVolume': this.safeString (ticker, 'bestAskSize'),
+            'vwap': undefined,
+            'open': this.safeString (ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeNumber (ticker, 'changePrice'),
+            'change': this.safeString (ticker, 'changePrice'),
             'percentage': percentage,
-            'average': this.safeNumber (ticker, 'averagePrice'),
+            'average': this.safeString (ticker, 'averagePrice'),
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -1352,8 +1367,11 @@ module.exports = class kucoin extends Exchange {
         // bool
         const isActive = this.safeValue (order, 'isActive', false);
         const cancelExist = this.safeValue (order, 'cancelExist', false);
+        const stop = this.safeString (order, 'stop');
+        const stopTriggered = this.safeValue (order, 'stopTriggered', false);
         let status = isActive ? 'open' : 'closed';
-        status = cancelExist ? 'canceled' : status;
+        const cancelExistWithStop = cancelExist || (!isActive && stop && !stopTriggered);
+        status = cancelExistWithStop ? 'canceled' : status;
         const fee = {
             'currency': feeCurrency,
             'cost': feeCost,
@@ -2333,7 +2351,9 @@ module.exports = class kucoin extends Exchange {
         //
         const errorCode = this.safeString (response, 'code');
         const message = this.safeString (response, 'msg', '');
-        this.throwExactlyMatchedException (this.exceptions['exact'], message, this.id + ' ' + message);
-        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, this.id + ' ' + message);
+        const feedback = this.id + ' ' + message;
+        this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+        this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
     }
 };

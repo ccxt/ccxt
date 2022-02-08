@@ -23,19 +23,32 @@ class therock(Exchange):
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': None,  # has but unimplemented
+                'swap': False,
+                'future': False,
+                'option': False,
+                'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistories': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
                 'fetchLedger': True,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -131,30 +144,25 @@ class therock(Exchange):
     async def fetch_markets(self, params={}):
         response = await self.publicGetFunds(params)
         #
-        #     {funds: [{                     id:   "BTCEUR",
-        #                              description:   "Trade Bitcoin with Euro",
-        #                                     type:   "currency",
-        #                            base_currency:   "EUR",
-        #                           trade_currency:   "BTC",
-        #                                  buy_fee:    0.2,
-        #                                 sell_fee:    0.2,
-        #                      minimum_price_offer:    0.01,
-        #                   minimum_quantity_offer:    0.0005,
-        #                   base_currency_decimals:    2,
-        #                  trade_currency_decimals:    4,
-        #                                leverages: []                           },
-        #                {                     id:   "LTCEUR",
-        #                              description:   "Trade Litecoin with Euro",
-        #                                     type:   "currency",
-        #                            base_currency:   "EUR",
-        #                           trade_currency:   "LTC",
-        #                                  buy_fee:    0.2,
-        #                                 sell_fee:    0.2,
-        #                      minimum_price_offer:    0.01,
-        #                   minimum_quantity_offer:    0.01,
-        #                   base_currency_decimals:    2,
-        #                  trade_currency_decimals:    2,
-        #                                leverages: []                            }]}
+        #    {
+        #        funds: [
+        #            {
+        #                id: "BTCEUR",
+        #                description: "Trade Bitcoin with Euro",
+        #                type: "currency",
+        #                base_currency: "EUR",
+        #                trade_currency: "BTC",
+        #                buy_fee: 0.2,
+        #                sell_fee: 0.2,
+        #                minimum_price_offer: 0.01,
+        #                minimum_quantity_offer: 0.0005,
+        #                base_currency_decimals: 2,
+        #                trade_currency_decimals: 4,
+        #                leverages: []
+        #            },
+        #            ...
+        #        ]
+        #    }
         #
         markets = self.safe_value(response, 'funds')
         result = []
@@ -168,30 +176,47 @@ class therock(Exchange):
                 quoteId = self.safe_string(market, 'base_currency')
                 base = self.safe_currency_code(baseId)
                 quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-                buy_fee = self.safe_number(market, 'buy_fee')
-                sell_fee = self.safe_number(market, 'sell_fee')
-                taker = max(buy_fee, sell_fee)
-                taker = taker / 100
-                maker = taker
+                buy_fee = self.safe_string(market, 'buy_fee')
+                sell_fee = self.safe_string(market, 'sell_fee')
+                taker = Precise.string_max(buy_fee, sell_fee)
+                taker = self.parse_number(Precise.string_div(taker, '100'))
+                leverages = self.safe_value(market, 'leverages')
+                leveragesLength = len(leverages)
                 result.append({
                     'id': id,
-                    'symbol': symbol,
+                    'symbol': base + '/' + quote,
                     'base': base,
                     'quote': quote,
+                    'settle': None,
                     'baseId': baseId,
                     'quoteId': quoteId,
-                    'info': market,
+                    'settleId': None,
                     'type': 'spot',
                     'spot': True,
-                    'active': True,
-                    'maker': maker,
+                    'margin': leveragesLength > 0,
+                    'future': False,
+                    'swap': False,
+                    'option': False,
+                    'contract': False,
+                    'linear': None,
+                    'inverse': None,
                     'taker': taker,
+                    'maker': taker,
+                    'contractSize': None,
+                    'active': True,
+                    'expiry': None,
+                    'expiryDatetime': None,
+                    'strike': None,
+                    'optionType': None,
                     'precision': {
                         'amount': self.safe_integer(market, 'trade_currency_decimals'),
                         'price': self.safe_integer(market, 'base_currency_decimals'),
                     },
                     'limits': {
+                        'leverage': {
+                            'min': 1,
+                            'max': self.safe_value(leverages, leveragesLength - 1, 1),
+                        },
                         'amount': {
                             'min': self.safe_number(market, 'minimum_quantity_offer'),
                             'max': None,
@@ -205,6 +230,7 @@ class therock(Exchange):
                             'max': None,
                         },
                     },
+                    'info': market,
                 })
         return result
 
@@ -236,33 +262,46 @@ class therock(Exchange):
         return self.parse_order_book(orderbook, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.parse8601(ticker['date'])
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        last = self.safe_number(ticker, 'last')
-        return {
-            'symbol': symbol,
+        #
+        #     {
+        #         "date":"2022-01-16T00:05:08.192Z",
+        #         "fund_id":"ETHBTC",
+        #         "bid":0.07707802,
+        #         "ask":0.07733404,
+        #         "last":0.07739053,
+        #         "open":0.07628192,
+        #         "close":0.07687651,
+        #         "low":0.07612047,
+        #         "high":0.07703306,
+        #         "volume":1.10179665,
+        #         "volume_traded":14.273
+        #     }
+        #
+        timestamp = self.parse8601(self.safe_string(ticker, 'date'))
+        market = self.safe_market(None, market)
+        last = self.safe_string(ticker, 'last')
+        return self.safe_ticker({
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_number(ticker, 'open'),
+            'open': self.safe_string(ticker, 'open'),
             'close': last,
             'last': last,
-            'previousClose': self.safe_number(ticker, 'close'),  # previous day close, if any
+            'previousClose': self.safe_string(ticker, 'close'),  # previous day close, if any
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'volume_traded'),
-            'quoteVolume': self.safe_number(ticker, 'volume'),
+            'baseVolume': self.safe_string(ticker, 'volume_traded'),
+            'quoteVolume': self.safe_string(ticker, 'volume'),
             'info': ticker,
-        }
+        }, market, False)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
@@ -281,10 +320,26 @@ class therock(Exchange):
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        ticker = await self.publicGetFundsIdTicker(self.extend({
+        request = {
             'id': market['id'],
-        }, params))
-        return self.parse_ticker(ticker, market)
+        }
+        response = await self.publicGetFundsIdTicker(self.extend(request, params))
+        #
+        #     {
+        #         "date":"2022-01-16T00:05:08.192Z",
+        #         "fund_id":"ETHBTC",
+        #         "bid":0.07707802,
+        #         "ask":0.07733404,
+        #         "last":0.07739053,
+        #         "open":0.07628192,
+        #         "close":0.07687651,
+        #         "low":0.07612047,
+        #         "high":0.07703306,
+        #         "volume":1.10179665,
+        #         "volume_traded":14.273
+        #     }
+        #
+        return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market=None):
         #
@@ -1005,7 +1060,7 @@ class therock(Exchange):
             'id': id,
             'fund_id': market['id'],
         }
-        response = await self.privatePostFundsFundIdOrdersId(self.extend(request, params))
+        response = await self.privateGetFundsFundIdOrdersId(self.extend(request, params))
         return self.parse_order(response)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):

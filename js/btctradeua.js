@@ -16,15 +16,43 @@ module.exports = class btctradeua extends Exchange {
             'countries': [ 'UA' ], // Ukraine,
             'rateLimit': 3000,
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
+                'cancelOrder': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
+                'fetchMarkOHLCV': false,
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'signIn': true,
             },
             'urls': {
@@ -142,13 +170,14 @@ module.exports = class btctradeua extends Exchange {
         return this.parseOrderBook (orderbook, symbol, undefined, 'bids', 'asks', 'price', 'currency_trade');
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'symbol': this.marketId (symbol),
-        };
-        const response = await this.publicGetJapanStatHighSymbol (this.extend (request, params));
-        const ticker = this.safeValue (response, 'trades');
+    parseTicker (ticker, market = undefined) {
+        //
+        // [
+        //     [1640789101000, 1292663.0, 1311823.61303, 1295794.252, 1311823.61303, 0.030175],
+        //     [1640790902000, 1311823.61303, 1310820.96, 1290000.0, 1290000.0, 0.042533],
+        // ],
+        //
+        const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.milliseconds ();
         const result = {
             'symbol': symbol,
@@ -178,28 +207,49 @@ module.exports = class btctradeua extends Exchange {
             for (let i = start; i < ticker.length; i++) {
                 const candle = ticker[i];
                 if (result['open'] === undefined) {
-                    result['open'] = this.safeNumber (candle, 1);
+                    result['open'] = this.safeString (candle, 1);
                 }
-                const high = this.safeNumber (candle, 2);
-                if ((result['high'] === undefined) || ((high !== undefined) && (result['high'] < high))) {
+                const high = this.safeString (candle, 2);
+                if ((result['high'] === undefined) || ((high !== undefined) && Precise.stringLt (result['high'], high))) {
                     result['high'] = high;
                 }
-                const low = this.safeNumber (candle, 3);
-                if ((result['low'] === undefined) || ((low !== undefined) && (result['low'] > low))) {
+                const low = this.safeString (candle, 3);
+                if ((result['low'] === undefined) || ((low !== undefined) && Precise.stringLt (result['low'], low))) {
                     result['low'] = low;
                 }
-                const baseVolume = this.safeNumber (candle, 5);
+                const baseVolume = this.safeString (candle, 5);
                 if (result['baseVolume'] === undefined) {
                     result['baseVolume'] = baseVolume;
                 } else {
-                    result['baseVolume'] = this.sum (result['baseVolume'], baseVolume);
+                    result['baseVolume'] = Precise.stringAdd (result['baseVolume'], baseVolume);
                 }
             }
             const last = tickerLength - 1;
-            result['last'] = this.safeNumber (ticker[last], 4);
+            result['last'] = this.safeString (ticker[last], 4);
             result['close'] = result['last'];
         }
-        return result;
+        return this.safeTicker (result, market, false);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetJapanStatHighSymbol (this.extend (request, params));
+        const ticker = this.safeValue (response, 'trades');
+        //
+        // {
+        //     "status": true,
+        //     "volume_trade": "0.495703",
+        //     "trades": [
+        //         [1640789101000, 1292663.0, 1311823.61303, 1295794.252, 1311823.61303, 0.030175],
+        //         [1640790902000, 1311823.61303, 1310820.96, 1290000.0, 1290000.0, 0.042533],
+        //     ],
+        // }
+        //
+        return this.parseTicker (ticker, market);
     }
 
     convertMonthNameToString (cyrillic) {
@@ -279,14 +329,11 @@ module.exports = class btctradeua extends Exchange {
         const side = this.safeString (trade, 'type');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amnt_trade');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        return {
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -296,11 +343,11 @@ module.exports = class btctradeua extends Exchange {
             'side': side,
             'order': undefined,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': undefined,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {

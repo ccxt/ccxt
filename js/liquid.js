@@ -18,8 +18,13 @@ module.exports = class liquid extends Exchange {
             'version': '2',
             'rateLimit': 1000,
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': undefined,
+                'swap': undefined,
+                'future': undefined,
+                'option': undefined,
+                'cancelOrder': true,
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
@@ -257,7 +262,9 @@ module.exports = class liquid extends Exchange {
             const id = this.safeString (currency, 'currency');
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'name');
-            const active = currency['depositable'] && currency['withdrawable'];
+            const depositable = this.safeValue (currency, 'depositable');
+            const withdrawable = this.safeValue (currency, 'withdrawable');
+            const active = depositable && withdrawable;
             const amountPrecision = this.safeInteger (currency, 'assets_precision');
             result[code] = {
                 'id': id,
@@ -265,6 +272,8 @@ module.exports = class liquid extends Exchange {
                 'info': currency,
                 'name': name,
                 'active': active,
+                'deposit': depositable,
+                'withdraw': withdrawable,
                 'fee': this.safeNumber (currency, 'withdrawal_fee'),
                 'precision': amountPrecision,
                 'limits': {
@@ -545,7 +554,7 @@ module.exports = class liquid extends Exchange {
             if (ticker['last_traded_price']) {
                 const length = ticker['last_traded_price'].length;
                 if (length > 0) {
-                    last = this.safeNumber (ticker, 'last_traded_price');
+                    last = this.safeString (ticker, 'last_traded_price');
                 }
             }
         }
@@ -567,16 +576,16 @@ module.exports = class liquid extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const open = this.safeNumber (ticker, 'last_price_24h');
+        const open = this.safeString (ticker, 'last_price_24h');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high_market_ask'),
-            'low': this.safeNumber (ticker, 'low_market_bid'),
-            'bid': this.safeNumber (ticker, 'market_bid'),
+            'high': this.safeString (ticker, 'high_market_ask'),
+            'low': this.safeString (ticker, 'low_market_bid'),
+            'bid': this.safeString (ticker, 'market_bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'market_ask'),
+            'ask': this.safeString (ticker, 'market_ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
@@ -586,10 +595,10 @@ module.exports = class liquid extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'volume_24h'),
+            'baseVolume': this.safeString (ticker, 'volume_24h'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

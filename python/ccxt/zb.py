@@ -34,8 +34,13 @@ class zb(Exchange):
             'certified': True,
             'pro': True,
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': None,  # has but unimplemented
+                'swap': None,  # has but unimplemented
+                'future': None,
+                'option': None,
+                'cancelOrder': True,
                 'createMarketOrder': None,
                 'createOrder': True,
                 'fetchBalance': True,
@@ -147,6 +152,7 @@ class zb(Exchange):
                 },
                 'broad': {
                     '提币地址有误，请先添加提币地址。': InvalidAddress,  # {"code":1001,"message":"提币地址有误，请先添加提币地址。"}
+                    '资金不足,无法划账': InsufficientFunds,  # {"code":1001,"message":"资金不足,无法划账"}
                 },
             },
             'urls': {
@@ -388,6 +394,8 @@ class zb(Exchange):
                 'precision': precision,
                 'info': currency,
                 'active': active,
+                'deposit': isDepositEnabled,
+                'withdraw': isWithdrawEnabled,
                 'fee': None,
                 'fees': fees,
                 'limits': self.limits,
@@ -612,32 +620,29 @@ class zb(Exchange):
         #     }
         #
         timestamp = self.safe_integer(ticker, 'date', self.milliseconds())
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        last = self.safe_number(ticker, 'last')
-        return {
-            'symbol': symbol,
+        last = self.safe_string(ticker, 'last')
+        return self.safe_ticker({
+            'symbol': self.safe_symbol(None, market),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'buy'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'sell'),
+            'ask': self.safe_string(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
-            'open': None,
+            'open': self.safe_string(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'vol'),
+            'baseVolume': self.safe_string(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market, False)
 
     def parse_ohlcv(self, ohlcv, market=None):
         return [

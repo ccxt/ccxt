@@ -261,7 +261,7 @@ These files containing derived exchange classes are transpiled from JS into PHP:
 
 These PHP base classes and files are not transpiled:
 
-- `php/Exchange.php php/ExchangeError.php php/Precise.php ...
+- `php/Exchange.php php/ExchangeError.php php/Precise.php ...`
 
 #### Typescript
 
@@ -296,18 +296,19 @@ If the transpiling process finishes successfully, but generates incorrect Python
 - do not use language-specific code syntax sugar, even if you really want to
 - unfold all maps and comprehensions to basic for-loops
 - don't change the arguments of overridden inherited methods, keep them uniform across all exchanges
-- do everything with base class methods only (for example, use `this.json ()` for converting objects to json).
+- everything should be done using base class methods only (for example, use `this.json ()` for converting objects to json)
 - always put a semicolon `;` at the end of each statement, as in PHP/C-style
-- all associative keys must be single-quoted strings everywhere, `array['good'], array.bad`
-- variables should be declared with `const` or `let` keywords semantically (no `var`!), prefer `const` everywhere
+- all associative keys must be single-quoted strings everywhere (`array['good']`), do not use the dot notation (`array.bad`)
+- never use the `var` keyword, instead use `const` for constants or `let` for variables
 
 And structurally:
 
 - if you need another base method you will have to implement it in all three languages
-- do not issue more than one HTTP request from a unified method
-- try to reduce syntax to basic one-liner expressions
-- multiple lines are ok, but you should avoid deep nesting with lots of brackets
+- try not to issue more than one HTTP request from a unified method
 - avoid changing the contents of the arguments and params passed by reference into function calls
+- keep it simple, don't do more than one statement in one line
+- try to reduce syntax & logic (if possible) to basic one-liner expressions
+- multiple lines are ok, but you should avoid deep nesting with lots of brackets
 - do not use conditional statements that are too complex (heavy if-bracketing)
 - do not use heavy ternary conditionals
 - avoid operators clutter (**don't do this**: `a && b || c ? d + 80 : e ** f`)
@@ -317,7 +318,6 @@ And structurally:
 - do not use the `in` operator to check if a value is in a non-associative array (list)
 - don't add custom currency or symbol/pair conversions and formatting, copy from existing code instead
 - **don't access non-existent keys, `array['key'] || {}` won't work in other languages!**
-- keep it simple, don't do more than one statement in one line
 
 #### Sending Market Ids
 
@@ -580,11 +580,15 @@ In order to convert to milliseconds timestamps, CCXT implements the following me
 const data = {
    'unixTimestampInSeconds': 1565242530,
    'unixTimestampInMilliseconds': 1565242530165,
+   'unixTimestampAsDecimal': 1565242530.165,
    'stringInSeconds': '1565242530',
 };
 
 // convert to integer if the underlying value is already in milliseconds
 const timestamp = this.safeInteger (data, 'unixTimestampInMilliseconds'); // === 1565242530165
+
+// convert to integer and multiply by a thousand if the value has milliseconds after dot
+const timestamp = this.safeTimestamp (data, 'unixTimestampAsDecimal'); // === 1565242530165
 
 // convert to integer and multiply by a thousand if the value is a UNIX timestamp in seconds
 const timestamp = this.safeTimestamp (data, 'unixTimestampInSeconds'); // === 1565242530000
@@ -895,20 +899,50 @@ node run-tests
 You can restrict tests to a specific language, a particular exchange or symbol:
 
 ```
-node run-tests [--php] [--js] [--python] [--python3] [exchange] [symbol]
+node run-tests [--js] [--python] [--python-async] [--php] [--php-async] [exchange] [symbol]
 ```
+
+The `node run-tests exchangename` will try 5 tests: `js`, `python`, `python-async`, `php`, `php-async`. You can control that like so:
+
+```
+node run-tests exchange --js
+node run-tests exchange --js --python-async
+node run-tests exchange --js --php
+node run-tests exchange --python --python-async
+...
+```
+
+However, if that fails, you might have to bury one level lower and run language-specific tests to see what exactly is wrong:
+
+```
+node js/test/test exchange --verbose
+python3 python/ccxt/test/test_sync.py exchange --verbose
+python3 python/ccxt/test/test_async.py exchange --verbose
+php -f php/test/test_sync.php exchange --verbose
+php -f php/test/test_async.php exchange --verbose
+```
+
+The `test_sync` is just a synchronous version of `test_async`, so in most cases just running `test_async.py` and `test_async.php` is enough:
+
+```
+node js/test/test exchange --verbose
+python3 python/ccxt/test/test_async.py exchange --verbose
+php -f php/test/test_async.php exchange --verbose
+```
+
+When all of the language-specific tests work, then node run-tests will also succeed. In order to run those tests you want to make sure that the build has completed successfully.
 
 For example, the first of the following lines will only test the source JS version of the library (`ccxt.js`). It does not require an `npm run build` before running it (can be useful if you need to verify quickly whether your changes break the code or not):
 
 ```shell
 
-node run-tests --js             # test master ccxt.js, all exchanges
+node run-tests --js                  # test master ccxt.js, all exchanges
 
 # other examples require the 'npm run build' to run
 
-node run-tests --python         # test Python 2 version, all exchanges
-node run-tests --php bitfinex   # test Bitfinex with PHP
-node run-tests --python3 kraken # test Kraken with Python 3, requires 'npm run build'
+node run-tests --python              # test Python 2 version, all exchanges
+node run-tests --php bitfinex        # test Bitfinex with PHP
+node run-tests --python-async kraken # test Kraken with Python async test, requires 'npm run build'
 ```
 
 ## Committing Changes To The Repository

@@ -32,13 +32,19 @@ class bitfinex(Exchange):
             'name': 'Bitfinex',
             'countries': ['VG'],
             'version': 'v1',
-            'rateLimit': 1500,
+            # cheapest is 90 requests a minute = 1.5 requests per second on average =>( 1000ms / 1.5) = 666.666 ms between requests on average
+            'rateLimit': 666.666,
             'pro': True,
             # new metainfo interface
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': None,  # has but unimplemented
+                'swap': None,  # has but unimplemented
+                'future': None,
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': None,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'editOrder': True,
@@ -101,81 +107,82 @@ class bitfinex(Exchange):
                 # v2 symbol ids require a 't' prefix
                 # just the public part of it(use bitfinex2 for everything else)
                 'v2': {
-                    'get': [
-                        'platform/status',
-                        'tickers',
-                        'ticker/{symbol}',
-                        'trades/{symbol}/hist',
-                        'book/{symbol}/{precision}',
-                        'book/{symbol}/P0',
-                        'book/{symbol}/P1',
-                        'book/{symbol}/P2',
-                        'book/{symbol}/P3',
-                        'book/{symbol}/R0',
-                        'stats1/{key}:{size}:{symbol}:{side}/{section}',
-                        'stats1/{key}:{size}:{symbol}/{section}',
-                        'stats1/{key}:{size}:{symbol}:long/last',
-                        'stats1/{key}:{size}:{symbol}:long/hist',
-                        'stats1/{key}:{size}:{symbol}:short/last',
-                        'stats1/{key}:{size}:{symbol}:short/hist',
-                        'candles/trade:{timeframe}:{symbol}/{section}',
-                        'candles/trade:{timeframe}:{symbol}/last',
-                        'candles/trade:{timeframe}:{symbol}/hist',
-                    ],
+                    'get': {
+                        'platform/status': 3,  # 30 requests per minute
+                        'tickers': 1,  # 90 requests a minute
+                        'ticker/{symbol}': 1,
+                        'tickers/hist': 1,
+                        'trades/{symbol}/hist': 1,
+                        'book/{symbol}/{precision}': 0.375,  # 240 requests per minute = 4 requests per second(1000ms / rateLimit) / 4  = 0.37500375
+                        'book/{symbol}/P0': 0.375,
+                        'book/{symbol}/P1': 0.375,
+                        'book/{symbol}/P2': 0.375,
+                        'book/{symbol}/P3': 0.375,
+                        'book/{symbol}/R0': 0.375,
+                        'stats1/{key}:{size}:{symbol}:{side}/{section}': 1,  # 90 requests a minute
+                        'stats1/{key}:{size}:{symbol}/{section}': 1,
+                        'stats1/{key}:{size}:{symbol}:long/last': 1,
+                        'stats1/{key}:{size}:{symbol}:long/hist': 1,
+                        'stats1/{key}:{size}:{symbol}:short/last': 1,
+                        'stats1/{key}:{size}:{symbol}:short/hist': 1,
+                        'candles/trade:{timeframe}:{symbol}/{section}': 1,  # 90 requests a minute
+                        'candles/trade:{timeframe}:{symbol}/last': 1,
+                        'candles/trade:{timeframe}:{symbol}/hist': 1,
+                    },
                 },
                 'public': {
-                    'get': [
-                        'book/{symbol}',
-                        # 'candles/{symbol}',
-                        'lendbook/{currency}',
-                        'lends/{currency}',
-                        'pubticker/{symbol}',
-                        'stats/{symbol}',
-                        'symbols',
-                        'symbols_details',
-                        'tickers',
-                        'trades/{symbol}',
-                    ],
+                    'get': {
+                        'book/{symbol}': 1,  # 90 requests a minute
+                        # 'candles/{symbol}':0,
+                        'lendbook/{currency}': 6,  # 15 requests a minute
+                        'lends/{currency}': 3,  # 30 requests a minute
+                        'pubticker/{symbol}': 3,  # 30 requests a minute = 0.5 requests per second =>(1000ms / rateLimit) / 0.5 = 3.00003
+                        'stats/{symbol}': 6,  # 15 requests a minute = 0.25 requests per second =>(1000ms / rateLimit ) /0.25 = 6.00006(endpoint returns red html... or 'unknown symbol')
+                        'symbols': 18,  # 5 requests a minute = 0.08333 requests per second =>(1000ms / rateLimit) / 0.08333 = 18.0009
+                        'symbols_details': 18,  # 5 requests a minute
+                        'tickers': 1,  # endpoint not mentioned in v1 docs... but still responds
+                        'trades/{symbol}': 3,  # 60 requests a minute = 1 request per second =>(1000ms / rateLimit) / 1 = 1.5 ... but only works if set to 3
+                    },
                 },
                 'private': {
-                    'post': [
-                        'account_fees',
-                        'account_infos',
-                        'balances',
-                        'basket_manage',
-                        'credits',
-                        'deposit/new',
-                        'funding/close',
-                        'history',
-                        'history/movements',
-                        'key_info',
-                        'margin_infos',
-                        'mytrades',
-                        'mytrades_funding',
-                        'offer/cancel',
-                        'offer/new',
-                        'offer/status',
-                        'offers',
-                        'offers/hist',
-                        'order/cancel',
-                        'order/cancel/all',
-                        'order/cancel/multi',
-                        'order/cancel/replace',
-                        'order/new',
-                        'order/new/multi',
-                        'order/status',
-                        'orders',
-                        'orders/hist',
-                        'position/claim',
-                        'position/close',
-                        'positions',
-                        'summary',
-                        'taken_funds',
-                        'total_taken_funds',
-                        'transfer',
-                        'unused_taken_funds',
-                        'withdraw',
-                    ],
+                    'post': {
+                        'account_fees': 18,
+                        'account_infos': 6,
+                        'balances': 9.036,  # 10 requests a minute = 0.166 requests per second =>(1000ms / rateLimit) / 0.166 = 9.036
+                        'basket_manage': 6,
+                        'credits': 6,
+                        'deposit/new': 18,
+                        'funding/close': 6,
+                        'history': 6,  # 15 requests a minute
+                        'history/movements': 6,
+                        'key_info': 6,
+                        'margin_infos': 3,  # 30 requests a minute
+                        'mytrades': 3,
+                        'mytrades_funding': 6,
+                        'offer/cancel': 6,
+                        'offer/new': 6,
+                        'offer/status': 6,
+                        'offers': 6,
+                        'offers/hist': 90.03,  # one request per minute
+                        'order/cancel': 0.2,
+                        'order/cancel/all': 0.2,
+                        'order/cancel/multi': 0.2,
+                        'order/cancel/replace': 0.2,
+                        'order/new': 0.2,  # 450 requests a minute = 7.5 request a second =>(1000ms / rateLimit) / 7.5 = 0.2000002
+                        'order/new/multi': 0.2,
+                        'order/status': 0.2,
+                        'orders': 0.2,
+                        'orders/hist': 90.03,  # one request per minute = 0.1666 =>(1000ms /  rateLimit) / 0.01666 = 90.03
+                        'position/claim': 18,
+                        'position/close': 18,
+                        'positions': 18,
+                        'summary': 18,
+                        'taken_funds': 6,
+                        'total_taken_funds': 6,
+                        'transfer': 18,
+                        'unused_taken_funds': 6,
+                        'withdraw': 18,
+                    },
                 },
             },
             'fees': {
@@ -472,44 +479,55 @@ class bitfinex(Exchange):
                 quoteId = id[3:6]
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            precision = {
-                'price': self.safe_integer(market, 'price_precision'),
-                # https://docs.bitfinex.com/docs/introduction#amount-precision
-                # The amount field allows up to 8 decimals.
-                # Anything exceeding self will be rounded to the 8th decimal.
-                'amount': 8,
-            }
-            minAmountString = self.safe_string(market, 'minimum_order_size')
-            maxAmountString = self.safe_string(market, 'maximum_order_size')
-            limits = {
-                'amount': {
-                    'min': self.parse_number(minAmountString),
-                    'max': self.parse_number(maxAmountString),
-                },
-                'price': {
-                    'min': self.parse_number('1e-8'),
-                    'max': None,
-                },
-            }
-            limits['cost'] = {
-                'min': None,
-                'max': None,
-            }
-            margin = self.safe_value(market, 'margin')
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': True,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'margin': margin,
-                'precision': precision,
-                'limits': limits,
+                'margin': self.safe_value(market, 'margin'),
+                'future': False,
+                'swap': False,
+                'option': False,
+                'active': True,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': self.safe_integer(market, 'price_precision'),
+                    # https://docs.bitfinex.com/docs/introduction#amount-precision
+                    # The amount field allows up to 8 decimals.
+                    # Anything exceeding self will be rounded to the 8th decimal.
+                    'amount': self.parse_number('8'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': self.safe_number(market, 'minimum_order_size'),
+                        'max': self.safe_number(market, 'maximum_order_size'),
+                    },
+                    'price': {
+                        'min': self.parse_number('1e-8'),
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': self.safe_number(market, 'minimum_margin'),
+                        'max': None,
+                    },
+                },
                 'info': market,
             })
         return result
@@ -665,10 +683,7 @@ class bitfinex(Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.safe_number(ticker, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
-        timestamp = int(timestamp)
+        timestamp = self.safe_timestamp(ticker, 'timestamp')
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -684,16 +699,16 @@ class bitfinex(Exchange):
                     base = self.safe_currency_code(baseId)
                     quote = self.safe_currency_code(quoteId)
                     symbol = base + '/' + quote
-        last = self.safe_number(ticker, 'last_price')
+        last = self.safe_string(ticker, 'last_price')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -702,11 +717,11 @@ class bitfinex(Exchange):
             'previousClose': None,
             'change': None,
             'percentage': None,
-            'average': self.safe_number(ticker, 'mid'),
-            'baseVolume': self.safe_number(ticker, 'volume'),
+            'average': self.safe_string(ticker, 'mid'),
+            'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def parse_trade(self, trade, market=None):
         #

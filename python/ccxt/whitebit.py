@@ -29,8 +29,13 @@ class whitebit(Exchange):
             'countries': ['EE'],
             'rateLimit': 500,
             'has': {
-                'cancelOrder': None,
                 'CORS': None,
+                'spot': True,
+                'margin': None,  # has but unimplemented
+                'swap': False,
+                'future': False,
+                'option': False,
+                'cancelOrder': True,
                 'createDepositAddress': None,
                 'createLimitOrder': None,
                 'createMarketOrder': None,
@@ -41,19 +46,25 @@ class whitebit(Exchange):
                 'fetchBidsAsks': None,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchDepositAddress': True,
                 'fetchFundingFees': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchOHLCV': True,
+                'fetchOpenOrders': True,
                 'fetchOrderBook': True,
                 'fetchOrderTrades': True,
-                'fetchOpenOrders': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFees': True,
-                'privateAPI': True,
-                'publicAPI': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -89,7 +100,7 @@ class whitebit(Exchange):
                     },
                 },
                 'www': 'https://www.whitebit.com',
-                'doc': 'https://documenter.getpostman.com/view/7473075/Szzj8dgv?version=latest',
+                'doc': 'https://github.com/whitebit-exchange/api-docs',
                 'fees': 'https://whitebit.com/fee-schedule',
                 'referral': 'https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963',
             },
@@ -215,23 +226,27 @@ class whitebit(Exchange):
     def fetch_markets(self, params={}):
         response = self.v2PublicGetMarkets(params)
         #
-        #     {
-        #         "success":true,
-        #         "message":"",
-        #         "result":[
-        #             {
-        #                 "name":"BTC_USD",
-        #                 "moneyPrec":"2",
-        #                 "stock":"BTC",
-        #                 "money":"USD",
-        #                 "stockPrec":"6",
-        #                 "feePrec":"4",
-        #                 "minAmount":"0.001",
-        #                 "tradesEnabled":true,
-        #                 "minTotal":"0.001"
-        #             }
-        #         ]
-        #     }
+        #    {
+        #        "success": True,
+        #        "message": "",
+        #        "result": [
+        #            {
+        #                "name":
+        #                "C98_USDT",
+        #                "stock":"C98",
+        #                "money":"USDT",
+        #                "stockPrec":"3",
+        #                "moneyPrec":"5",
+        #                "feePrec":"6",
+        #                "makerFee":"0.001",
+        #                "takerFee":"0.001",
+        #                "minAmount":"2.5",
+        #                "minTotal":"5.05",
+        #                "tradesEnabled":true
+        #            },
+        #            ...
+        #        ]
+        #    }
         #
         markets = self.safe_value(response, 'result')
         result = []
@@ -249,17 +264,36 @@ class whitebit(Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
+                'margin': None,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'active': active,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'taker': self.safe_number(market, 'makerFee'),
+                'maker': self.safe_number(market, 'takerFee'),
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
                 'precision': {
                     'amount': self.safe_integer(market, 'stockPrec'),
                     'price': self.safe_integer(market, 'moneyPrec'),
                 },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(market, 'minAmount'),
                         'max': None,
@@ -273,6 +307,7 @@ class whitebit(Exchange):
                         'max': None,
                     },
                 },
+                'info': market,
             }
             result.append(entry)
         return result
@@ -310,6 +345,8 @@ class whitebit(Exchange):
                 'info': currency,  # the original payload
                 'name': None,  # see the comment above
                 'active': active,
+                'deposit': canDeposit,
+                'withdraw': canWithdraw,
                 'fee': None,
                 'precision': None,
                 'limits': {
@@ -435,30 +472,31 @@ class whitebit(Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        last = self.safe_number(ticker, 'last_price')
-        percentage = self.safe_number(ticker, 'change') * 0.01
+        last = self.safe_string(ticker, 'last_price')
+        change = self.safe_string(ticker, 'change')
+        percentage = Precise.string_mul(change, '0.01')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
             'datetime': None,
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_number(ticker, 'open'),
+            'open': self.safe_string(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
             'change': None,
             'percentage': percentage,
             'average': None,
-            'baseVolume': self.safe_number_2(ticker, 'base_volume', 'volume'),
-            'quoteVolume': self.safe_number_2(ticker, 'quote_volume', 'deal'),
+            'baseVolume': self.safe_string_2(ticker, 'base_volume', 'volume'),
+            'quoteVolume': self.safe_string_2(ticker, 'quote_volume', 'deal'),
             'info': ticker,
-        })
+        }, market, False)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()

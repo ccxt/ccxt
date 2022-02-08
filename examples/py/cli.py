@@ -29,6 +29,9 @@ class Argv(object):
 
     table = False
     verbose = False
+    sandbox = False
+    testnet = False
+    test = False
     nonce = None
     exchange_id = None
     method = None
@@ -42,6 +45,10 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--table', action='store_true', help='output as table')
 parser.add_argument('--cors', action='store_true', help='enable CORS proxy')
 parser.add_argument('--verbose', action='store_true', help='enable verbose output')
+parser.add_argument('--debug', action='store_true', help='enable debug output')
+parser.add_argument('--sandbox', action='store_true', help='enable sandbox/testnet')
+parser.add_argument('--testnet', action='store_true', help='enable sandbox/testnet')
+parser.add_argument('--test', action='store_true', help='enable sandbox/testnet')
 parser.add_argument('exchange_id', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('method', type=str, help='method or property', nargs='?')
 parser.add_argument('args', type=str, help='arguments', nargs='*')
@@ -146,6 +153,12 @@ for arg in argv.args:
         args.append(exchange.parse8601(arg))
     else:
         args.append(arg)
+
+if argv.testnet or argv.sandbox or argv.test:
+    exchange.set_sandbox_mode(True)
+
+if argv.verbose and argv.debug:
+    exchange.verbose = argv.verbose
 
 exchange.load_markets()
 

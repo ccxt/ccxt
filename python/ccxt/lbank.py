@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -22,19 +21,48 @@ class lbank(Exchange):
             'countries': ['CN'],
             'version': 'v1',
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': None,  # status 0 API doesn't work
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -121,30 +149,48 @@ class lbank(Exchange):
                 quoteId = parts[1]
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            precision = {
-                'amount': self.safe_integer(market, 'quantityAccuracy'),
-                'price': self.safe_integer(market, 'priceAccuracy'),
-            }
+            precisionPrice = self.safe_string(market, 'priceAccuracy')
+            precisionAmount = self.safe_string(market, 'quantityAccuracy')
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'active': True,
-                'precision': precision,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': self.parse_number(precisionPrice),
+                    'amount': self.parse_number(precisionAmount),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
+                        'min': None,
                         'max': None,
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
-                        'max': math.pow(10, precision['price']),
+                        'min': None,
+                        'max': None,
                     },
                     'cost': {
                         'min': None,
@@ -156,50 +202,34 @@ class lbank(Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(ticker, 'symbol')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                parts = marketId.split('_')
-                baseId = None
-                quoteId = None
-                numParts = len(parts)
-                # lbank will return symbols like "vet_erc20_usdt"
-                if numParts > 2:
-                    baseId = parts[0] + '_' + parts[1]
-                    quoteId = parts[2]
-                else:
-                    baseId = parts[0]
-                    quoteId = parts[1]
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
+        #
+        #     {
+        #         "symbol":"btc_usdt",
+        #         "ticker":{
+        #             "high":43416.06,
+        #             "vol":7031.7427,
+        #             "low":41804.26,
+        #             "change":1.33,
+        #             "turnover":300302447.81,
+        #             "latest":43220.4
+        #         },
+        #         "timestamp":1642201617747
+        #     }
+        #
+        marketId = self.safe_string(ticker, 'symbol')
+        market = self.safe_market(marketId, market, '_')
+        symbol = market['symbol']
         timestamp = self.safe_integer(ticker, 'timestamp')
         info = ticker
         ticker = info['ticker']
-        last = self.safe_number(ticker, 'latest')
-        percentage = self.safe_number(ticker, 'change')
-        open = None
-        if percentage is not None:
-            relativeChange = self.sum(1, percentage / 100)
-            if relativeChange > 0:
-                open = last / self.sum(1, relativeChange)
-        change = None
-        average = None
-        if last is not None and open is not None:
-            change = last - open
-            average = self.sum(last, open) / 2
-        if market is not None:
-            symbol = market['symbol']
-        return {
+        last = self.safe_string(ticker, 'latest')
+        percentage = self.safe_string(ticker, 'change')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
             'bid': None,
             'bidVolume': None,
             'ask': None,
@@ -209,13 +239,13 @@ class lbank(Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
+            'change': None,
             'percentage': percentage,
-            'average': average,
-            'baseVolume': self.safe_number(ticker, 'vol'),
-            'quoteVolume': self.safe_number(ticker, 'turnover'),
+            'average': None,
+            'baseVolume': self.safe_string(ticker, 'vol'),
+            'quoteVolume': self.safe_string(ticker, 'turnover'),
             'info': info,
-        }
+        }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -224,6 +254,18 @@ class lbank(Exchange):
             'symbol': market['id'],
         }
         response = self.publicGetTicker(self.extend(request, params))
+        # {
+        #     "symbol":"btc_usdt",
+        #     "ticker":{
+        #         "high":43416.06,
+        #         "vol":7031.7427,
+        #         "low":41804.26,
+        #         "change":1.33,
+        #         "turnover":300302447.81,
+        #         "latest":43220.4
+        #         },
+        #     "timestamp":1642201617747
+        # }
         return self.parse_ticker(response, market)
 
     def fetch_tickers(self, symbols=None, params={}):

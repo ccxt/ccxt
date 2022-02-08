@@ -21,16 +21,28 @@ module.exports = class currencycom extends Exchange {
             'version': 'v1',
             // new metainfo interface
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': undefined, // has but not fully implemented
+                'swap': false,
+                'future': false,
+                'option': false,
+                'cancelOrder': true,
                 'createOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -147,9 +159,11 @@ module.exports = class currencycom extends Exchange {
                 'ACN': 'Accenture',
                 'BNS': 'Bank of Nova Scotia',
                 'CAR': 'Avis Budget Group Inc',
+                'CLR': 'Continental Resources',
                 'EDU': 'New Oriental Education & Technology Group Inc',
                 'ETN': 'Eaton',
                 'FOX': 'Fox Corporation',
+                'GM': 'General Motors Co',
                 'IQ': 'iQIYI',
                 'PLAY': "Dave & Buster's Entertainment",
             },
@@ -345,8 +359,8 @@ module.exports = class currencycom extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': precisionAmount,
                     'price': precisionPrice,
+                    'amount': precisionAmount,
                 },
                 'limits': {
                     'leverage': {
@@ -553,35 +567,31 @@ module.exports = class currencycom extends Exchange {
         //
         const timestamp = this.safeInteger (ticker, 'closeTime');
         const marketId = this.safeString (ticker, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeNumber (ticker, 'lastPrice');
-        const open = this.safeNumber (ticker, 'openPrice');
-        let average = undefined;
-        if ((open !== undefined) && (last !== undefined)) {
-            average = this.sum (open, last) / 2;
-        }
-        return {
-            'symbol': symbol,
+        market = this.safeMarket (marketId, market, '/');
+        const last = this.safeString (ticker, 'lastPrice');
+        const open = this.safeString (ticker, 'openPrice');
+        return this.safeTicker ({
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'highPrice'),
-            'low': this.safeNumber (ticker, 'lowPrice'),
-            'bid': this.safeNumber (ticker, 'bidPrice'),
-            'bidVolume': this.safeNumber (ticker, 'bidQty'),
-            'ask': this.safeNumber (ticker, 'askPrice'),
-            'askVolume': this.safeNumber (ticker, 'askQty'),
-            'vwap': this.safeNumber (ticker, 'weightedAvgPrice'),
+            'high': this.safeString (ticker, 'highPrice'),
+            'low': this.safeString (ticker, 'lowPrice'),
+            'bid': this.safeString (ticker, 'bidPrice'),
+            'bidVolume': this.safeString (ticker, 'bidQty'),
+            'ask': this.safeString (ticker, 'askPrice'),
+            'askVolume': this.safeString (ticker, 'askQty'),
+            'vwap': this.safeString (ticker, 'weightedAvgPrice'),
             'open': open,
             'close': last,
             'last': last,
-            'previousClose': this.safeNumber (ticker, 'prevClosePrice'), // previous day close
-            'change': this.safeNumber (ticker, 'priceChange'),
-            'percentage': this.safeNumber (ticker, 'priceChangePercent'),
-            'average': average,
-            'baseVolume': this.safeNumber (ticker, 'volume'),
-            'quoteVolume': this.safeNumber (ticker, 'quoteVolume'),
+            'previousClose': this.safeString (ticker, 'prevClosePrice'), // previous day close
+            'change': this.safeString (ticker, 'priceChange'),
+            'percentage': this.safeString (ticker, 'priceChangePercent'),
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'volume'),
+            'quoteVolume': this.safeString (ticker, 'quoteVolume'),
             'info': ticker,
-        };
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {

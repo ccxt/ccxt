@@ -8,6 +8,8 @@
     "bitforex":      { "skip": true },
     "bitget":        { "skip": true },
     "bitmart":       { "skip": true },
+    "bitmex":        { "skip": true },
+    "bitstamp1":     { "skip": true },
     "btcmarkets":    { "skip": true },
     "braziliex":     { "skip": true },
     "buda":          { "skip": true },
@@ -41,6 +43,7 @@
     "rightbtc":      { "skip": true },
     "stex":          { "skip": true },
     "tidebit":       { "skip": true },
+    "tidex":         { "skip": true },
     "vcc":           { "skip": true },
     "xbtce":         { "skip": true },
     "zaif":          { "skip": true }

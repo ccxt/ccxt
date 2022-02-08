@@ -33,32 +33,35 @@ class kucoinfutures(kucoin):
             'comment': 'Platform 2.0',
             'quoteJsonNumbers': False,
             'has': {
+                'CORS': None,
                 'spot': False,
                 'margin': False,
                 'swap': True,
                 'future': True,
                 'option': False,
+                'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': None,
-                'createDepositAddress': False,
+                'createDepositAddress': True,
                 'createOrder': True,
-                'fetchAccounts': False,
+                'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': False,
                 'fetchDepositAddress': True,
-                'fetchDeposits': None,
-                'fetchFundingFee': False,
+                'fetchDeposits': True,
+                'fetchFundingFee': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': False,
                 'fetchIndexOHLCV': False,
-                'fetchL3OrderBook': False,
-                'fetchLedger': False,
+                'fetchL3OrderBook': True,
+                'fetchLedger': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -66,7 +69,6 @@ class kucoinfutures(kucoin):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrdersByStatus': True,
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
@@ -74,12 +76,10 @@ class kucoinfutures(kucoin):
                 'fetchTickers': False,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'fetchWithdrawals': None,
+                'fetchWithdrawals': True,
                 'setMarginMode': False,
                 'transfer': True,
-                'transferOut': True,
                 'withdraw': None,
-                'addMargin': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/147508995-9e35030a-d046-43a1-a006-6fabd981b554.jpg',
@@ -420,38 +420,40 @@ class kucoinfutures(kucoin):
             quoteMinSize = self.safe_number(market, 'quoteMinSize')
             inverse = self.safe_value(market, 'isInverse')
             status = self.safe_string(market, 'status')
-            active = status == 'Open'
+            multiplier = self.safe_string(market, 'multiplier')
             result.append({
                 'id': id,
                 'symbol': symbol,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
                 'base': base,
                 'quote': quote,
                 'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
                 'type': type,
                 'spot': False,
                 'margin': False,
                 'swap': swap,
                 'future': future,
                 'option': False,
-                'active': active,
+                'active': (status == 'Open'),
                 'contract': True,
                 'linear': not inverse,
                 'inverse': inverse,
                 'taker': self.safe_number(market, 'takerFeeRate'),
                 'maker': self.safe_number(market, 'makerFeeRate'),
-                'contractSize': self.parse_number(Precise.string_abs(self.safe_string(market, 'multiplier'))),
+                'contractSize': self.parse_number(Precise.string_abs(multiplier)),
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
+                'strike': None,
+                'optionType': None,
                 'precision': {
-                    'amount': self.safe_number(market, 'lotSize'),
                     'price': self.safe_number(market, 'tickSize'),
+                    'amount': self.safe_number(market, 'lotSize'),
                 },
                 'limits': {
                     'leverage': {
-                        'min': None,
+                        'min': self.parse_number('1'),
                         'max': self.safe_number(market, 'maxLeverage'),
                     },
                     'amount': {
@@ -658,7 +660,7 @@ class kucoinfutures(kucoin):
         #          }
         #     }
         #
-        last = self.safe_number(ticker, 'price')
+        last = self.safe_string(ticker, 'price')
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market, '-')
         timestamp = Precise.string_div(self.safe_string(ticker, 'ts'), '1000000')
@@ -668,10 +670,10 @@ class kucoinfutures(kucoin):
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': self.safe_number(ticker, 'bestBidPrice'),
-            'bidVolume': self.safe_number(ticker, 'bestBidSize'),
-            'ask': self.safe_number(ticker, 'bestAskPrice'),
-            'askVolume': self.safe_number(ticker, 'bestAskSize'),
+            'bid': self.safe_string(ticker, 'bestBidPrice'),
+            'bidVolume': self.safe_string(ticker, 'bestBidSize'),
+            'ask': self.safe_string(ticker, 'bestAskPrice'),
+            'askVolume': self.safe_string(ticker, 'bestAskSize'),
             'vwap': None,
             'open': None,
             'close': last,
@@ -683,7 +685,7 @@ class kucoinfutures(kucoin):
             'baseVolume': None,
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
         #
@@ -860,9 +862,9 @@ class kucoinfutures(kucoin):
         size = self.safe_string(position, 'currentQty')
         side = None
         if Precise.string_gt(size, '0'):
-            side = 'buy'
+            side = 'long'
         elif Precise.string_lt(size, '0'):
-            side = 'sell'
+            side = 'short'
         notional = Precise.string_abs(self.safe_string(position, 'posCost'))
         initialMargin = self.safe_string(position, 'posInit')
         initialMarginPercentage = Precise.string_div(initialMargin, notional)
@@ -1098,10 +1100,11 @@ class kucoinfutures(kucoin):
         cost = Precise.string_div(rawCost, leverage)
         average = None
         if Precise.string_gt(filled, '0'):
+            contractSize = self.safe_string(market, 'contractSize')
             if market['linear']:
-                average = Precise.string_div(rawCost, Precise.string_mul(market['contractSize'], filled))
+                average = Precise.string_div(rawCost, Precise.string_mul(contractSize, filled))
             else:
-                average = Precise.string_div(Precise.string_mul(market['contractSize'], filled), rawCost)
+                average = Precise.string_div(Precise.string_mul(contractSize, filled), rawCost)
         # precision reported by their api is 8 d.p.
         # average = Precise.string_div(rawCost, Precise.string_mul(filled, market['contractSize']))
         # bool
@@ -1160,7 +1163,7 @@ class kucoinfutures(kucoin):
         #    }
         #
         data = self.safe_value(response, 'data')
-        timestamp = self.safe_number(data, 'timePoint')
+        fundingTimestamp = self.safe_number(data, 'timePoint')
         return {
             'info': data,
             'symbol': symbol,
@@ -1170,12 +1173,15 @@ class kucoinfutures(kucoin):
             'estimatedSettlePrice': None,
             'timestamp': None,
             'datetime': None,
-            'previousFundingRate': self.safe_number(data, 'value'),
+            'fundingRate': self.safe_number(data, 'value'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': self.iso8601(fundingTimestamp),
             'nextFundingRate': self.safe_number(data, 'predictedValue'),
-            'previousFundingTimestamp': timestamp,
             'nextFundingTimestamp': None,
-            'previousFundingDatetime': self.iso8601(timestamp),
             'nextFundingDatetime': None,
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
         }
 
     def parse_balance(self, response):
@@ -1198,7 +1204,7 @@ class kucoinfutures(kucoin):
         # only fetches one balance at a time
         # by default it will only fetch the BTC balance of the futures account
         # you can send 'currency' in params to fetch other currencies
-        # fetchBalance({'type': 'futures', 'currency': 'USDT'})
+        # fetchBalance({'type': 'future', 'currency': 'USDT'})
         response = await self.futuresPrivateGetAccountOverview(params)
         #
         #     {
@@ -1218,8 +1224,8 @@ class kucoinfutures(kucoin):
         return self.parse_balance(response)
 
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
-        if (toAccount != 'spot' and toAccount != 'trade' and toAccount != 'trading') or (fromAccount != 'futures' and fromAccount != 'contract'):
-            raise BadRequest(self.id + ' only supports transfers from contract(futures) account to trade(spot) account')
+        if (toAccount != 'main' and toAccount != 'funding') or (fromAccount != 'futures' and fromAccount != 'future' and fromAccount != 'contract'):
+            raise BadRequest(self.id + ' only supports transfers from contract(future) account to main(funding) account')
         return self.transfer_out(code, amount, params)
 
     async def transfer_out(self, code, amount, params={}):
@@ -1248,7 +1254,7 @@ class kucoinfutures(kucoin):
             'datetime': self.iso8601(timestamp),
             'currency': code,
             'amount': amount,
-            'fromAccount': 'futures',
+            'fromAccount': 'future',
             'toAccount': 'spot',
             'status': self.safe_string(data, 'status'),
         }

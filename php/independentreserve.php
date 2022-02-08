@@ -16,18 +16,46 @@ class independentreserve extends Exchange {
             'countries' => array( 'AU', 'NZ' ), // Australia, New Zealand
             'rateLimit' => 1000,
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
+                'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87182090-1e9e9080-c2ec-11ea-8e49-563db9a38f37.jpg',
@@ -118,22 +146,50 @@ class independentreserve extends Exchange {
                 $quoteId = $quoteCurrencies[$j];
                 $quote = $this->safe_currency_code($quoteId);
                 $id = $baseId . '/' . $quoteId;
-                $symbol = $base . '/' . $quote;
                 $result[] = array(
                     'id' => $id,
-                    'symbol' => $symbol,
+                    'symbol' => $base . '/' . $quote,
                     'base' => $base,
                     'quote' => $quote,
+                    'settle' => null,
                     'baseId' => $baseId,
                     'quoteId' => $quoteId,
-                    'info' => $id,
+                    'settleId' => null,
                     'type' => 'spot',
                     'spot' => true,
+                    'margin' => false,
+                    'swap' => false,
+                    'future' => false,
+                    'option' => false,
                     'active' => null,
+                    'contract' => false,
+                    'linear' => null,
+                    'inverse' => null,
+                    'contractSize' => null,
+                    'expiry' => null,
+                    'expiryDatetime' => null,
+                    'strike' => null,
+                    'optionType' => null,
                     'precision' => $this->precision,
                     'limits' => array(
-                        'amount' => array( 'min' => $minAmount, 'max' => null ),
+                        'leverage' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'amount' => array(
+                            'min' => $minAmount,
+                            'max' => null,
+                        ),
+                        'price' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'cost' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
                     ),
+                    'info' => $id,
                 );
             }
         }
@@ -173,21 +229,38 @@ class independentreserve extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
+        // {
+        //     "DayHighestPrice":43489.49,
+        //     "DayLowestPrice":41998.32,
+        //     "DayAvgPrice":42743.9,
+        //     "DayVolumeXbt":44.54515625000,
+        //     "DayVolumeXbtInSecondaryCurrrency":0.12209818,
+        //     "CurrentLowestOfferPrice":43619.64,
+        //     "CurrentHighestBidPrice":43153.58,
+        //     "LastPrice":43378.43,
+        //     "PrimaryCurrencyCode":"Xbt",
+        //     "SecondaryCurrencyCode":"Usd",
+        //     "CreatedTimestampUtc":"2022-01-14T22:52:29.5029223Z"
+        // }
         $timestamp = $this->parse8601($this->safe_string($ticker, 'CreatedTimestampUtc'));
-        $symbol = null;
-        if ($market) {
-            $symbol = $market['symbol'];
+        $baseId = $this->safe_string($ticker, 'PrimaryCurrencyCode');
+        $quoteId = $this->safe_string($ticker, 'SecondaryCurrencyCode');
+        $defaultMarketId = null;
+        if (($baseId !== null) && ($quoteId !== null)) {
+            $defaultMarketId = $baseId . '/' . $quoteId;
         }
-        $last = $this->safe_number($ticker, 'LastPrice');
-        return array(
+        $market = $this->safe_market($defaultMarketId, $market, '/');
+        $symbol = $market['symbol'];
+        $last = $this->safe_string($ticker, 'LastPrice');
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'DayHighestPrice'),
-            'low' => $this->safe_number($ticker, 'DayLowestPrice'),
-            'bid' => $this->safe_number($ticker, 'CurrentHighestBidPrice'),
+            'high' => $this->safe_string($ticker, 'DayHighestPrice'),
+            'low' => $this->safe_string($ticker, 'DayLowestPrice'),
+            'bid' => $this->safe_string($ticker, 'CurrentHighestBidPrice'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'CurrentLowestOfferPrice'),
+            'ask' => $this->safe_string($ticker, 'CurrentLowestOfferPrice'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -196,11 +269,11 @@ class independentreserve extends Exchange {
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
-            'average' => $this->safe_number($ticker, 'DayAvgPrice'),
-            'baseVolume' => $this->safe_number($ticker, 'DayVolumeXbtInSecondaryCurrrency'),
+            'average' => $this->safe_string($ticker, 'DayAvgPrice'),
+            'baseVolume' => $this->safe_string($ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -211,6 +284,19 @@ class independentreserve extends Exchange {
             'secondaryCurrencyCode' => $market['quoteId'],
         );
         $response = $this->publicGetGetMarketSummary (array_merge($request, $params));
+        // {
+        //     "DayHighestPrice":43489.49,
+        //     "DayLowestPrice":41998.32,
+        //     "DayAvgPrice":42743.9,
+        //     "DayVolumeXbt":44.54515625000,
+        //     "DayVolumeXbtInSecondaryCurrrency":0.12209818,
+        //     "CurrentLowestOfferPrice":43619.64,
+        //     "CurrentHighestBidPrice":43153.58,
+        //     "LastPrice":43378.43,
+        //     "PrimaryCurrencyCode":"Xbt",
+        //     "SecondaryCurrencyCode":"Usd",
+        //     "CreatedTimestampUtc":"2022-01-14T22:52:29.5029223Z"
+        // }
         return $this->parse_ticker($response, $market);
     }
 

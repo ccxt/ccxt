@@ -18,36 +18,48 @@ class blockchaincom extends Exchange {
             'secret' => null,
             'name' => 'Blockchain.com',
             'countries' => array( 'LX' ),
-            'rateLimit' => 10000,
+            'rateLimit' => 1000,
             'version' => 'v3',
             'has' => array(
                 'CORS' => false,
-                'fetchTrades' => false,
-                'fetchOHLCV' => false,
-                'fetchLedger' => false,
-                'fetchMarkets' => true,
-                'fetchTickers' => true,
-                'fetchTicker' => true,
-                'fetchOrderBook' => true,
-                'fetchL2OrderBook' => true,
-                'fetchL3OrderBook' => true,
-                'fetchOrder' => true,
-                'fetchOpenOrders' => true,
-                'fetchClosedOrders' => true,
-                'fetchPartiallyFilledOrders' => true,
-                'fetchCanceledOrders' => true,
-                'fetchBalance' => true,
-                'createOrder' => true,
+                'spot' => true,
+                'margin' => null, // on exchange but not implemented in CCXT
+                'swap' => false,
+                'future' => false,
+                'option' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
-                'fetchWithdrawals' => true,
-                'fetchWithdrawal' => true,
-                'fetchDeposits' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
+                'fetchCanceledOrders' => true,
+                'fetchClosedOrders' => true,
                 'fetchDeposit' => true,
-                'withdraw' => true,
-                'fetchTradingFees' => true,
-                'fetchWithdrawalWhitelist' => true, // fetches exchange specific benficiary-ids needed for withdrawals
+                'fetchDepositAddress' => true,
+                'fetchDeposits' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchL2OrderBook' => true,
+                'fetchL3OrderBook' => true,
+                'fetchLedger' => false,
+                'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
+                'fetchOHLCV' => false,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchPremiumIndexOHLCV' => false,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => false,
+                'fetchTradingFees' => true,
+                'fetchWithdrawal' => true,
+                'fetchWithdrawals' => true,
+                'fetchWithdrawalWhitelist' => true, // fetches exchange specific benficiary-ids needed for withdrawals
+                'withdraw' => true,
             ),
             'timeframes' => null,
             'urls' => array(
@@ -158,27 +170,26 @@ class blockchaincom extends Exchange {
 
     public function fetch_markets($params = array ()) {
         //
-        // },
-        // "USDC-GBP" => array(
-        // "base_currency" => "USDC",
-        // "base_currency_scale" => 6,
-        // "counter_currency" => "GBP",
-        // "counter_currency_scale" => 2,
-        // "min_price_increment" => 10000,
-        // "min_price_increment_scale" => 8,
-        // "min_order_size" => 500000000,
-        // "min_order_size_scale" => 8,
-        // "max_order_size" => 0,
-        // "max_order_size_scale" => 8,
-        // "lot_size" => 10000,
-        // "lot_size_scale" => 8,
-        // "status" => "open",
-        // "id" => 68,
-        // "auction_price" => 0,
-        // "auction_size" => 0,
-        // "auction_time" => "",
-        // "imbalance" => 0
-        // ), ...
+        //     "USDC-GBP" => {
+        //         "base_currency" => "USDC",
+        //         "base_currency_scale" => 6,
+        //         "counter_currency" => "GBP",
+        //         "counter_currency_scale" => 2,
+        //         "min_price_increment" => 10000,
+        //         "min_price_increment_scale" => 8,
+        //         "min_order_size" => 500000000,
+        //         "min_order_size_scale" => 8,
+        //         "max_order_size" => 0,
+        //         "max_order_size_scale" => 8,
+        //         "lot_size" => 10000,
+        //         "lot_size_scale" => 8,
+        //         "status" => "open",
+        //         "id" => 68,
+        //         "auction_price" => 0,
+        //         "auction_size" => 0,
+        //         "auction_time" => "",
+        //         "imbalance" => 0
+        //     }
         //
         $markets = yield $this->publicGetSymbols ($params);
         $marketIds = is_array($markets) ? array_keys($markets) : array();
@@ -198,23 +209,18 @@ class blockchaincom extends Exchange {
             } else {
                 $active = 'false';
             }
-            // price $precision
+            // price precision
             $minPriceIncrementString = $this->safe_string($market, 'min_price_increment');
             $minPriceIncrementScaleString = $this->safe_string($market, 'min_price_increment_scale');
             $minPriceScalePrecisionString = $this->parse_precision($minPriceIncrementScaleString);
             $pricePrecisionString = Precise::string_mul($minPriceIncrementString, $minPriceScalePrecisionString);
             $pricePrecision = $this->parse_number($pricePrecisionString);
-            // amount $precision
+            // amount precision
             $lotSizeString = $this->safe_string($market, 'lot_size');
             $lotSizeScaleString = $this->safe_string($market, 'lot_size_scale');
             $lotSizeScalePrecisionString = $this->parse_precision($lotSizeScaleString);
             $amountPrecisionString = Precise::string_mul($lotSizeString, $lotSizeScalePrecisionString);
             $amountPrecision = $this->parse_number($amountPrecisionString);
-            // $precision
-            $precision = array(
-                'price' => $pricePrecision,
-                'amount' => $amountPrecision,
-            );
             // minimum order size
             $minOrderSizeString = $this->safe_string($market, 'min_order_size');
             $minOrderSizeScaleString = $this->safe_string($market, 'min_order_size_scale');
@@ -232,33 +238,54 @@ class blockchaincom extends Exchange {
             } else {
                 $maxOrderSize = null;
             }
-            $limits = array(
-                'amount' => array(
-                    'min' => $minOrderSize,
-                    'max' => $maxOrderSize,
-                ),
-                'price' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-                'cost' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-            );
-            $symbol = $base . '/' . $quote;
             $result[] = array(
+                'info' => $market,
                 'id' => $marketId,
                 'numericId' => $numericId,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'precision' => $precision,
-                'limits' => $limits,
+                'settleId' => null,
+                'type' => 'spot',
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
                 'active' => $active,
-                'info' => $market,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'price' => $pricePrecision,
+                    'amount' => $amountPrecision,
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => $minOrderSize,
+                        'max' => $maxOrderSize,
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
             );
         }
         return $result;
@@ -303,9 +330,9 @@ class blockchaincom extends Exchange {
         //
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '-');
-        $last = $this->safe_number($ticker, 'last_trade_price');
-        $baseVolume = $this->safe_number($ticker, 'volume_24h');
-        $open = $this->safe_number($ticker, 'price_24h');
+        $last = $this->safe_string($ticker, 'last_trade_price');
+        $baseVolume = $this->safe_string($ticker, 'volume_24h');
+        $open = $this->safe_string($ticker, 'price_24h');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,
@@ -327,7 +354,7 @@ class blockchaincom extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -391,7 +418,7 @@ class blockchaincom extends Exchange {
         $datetime = $this->iso8601($timestamp);
         $filled = $this->safe_string($order, 'cumQty');
         $remaining = $this->safe_string($order, 'leavesQty');
-        $result = $this->safeOrder2 (array(
+        $result = $this->safe_order(array(
             'id' => $exchangeOrderId,
             'clientOrderId' => $clientOrderId,
             'datetime' => $datetime,
@@ -846,7 +873,7 @@ class blockchaincom extends Exchange {
             $account['total'] = $this->safe_string($entry, 'balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result);
+        return $this->safe_balance($result);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

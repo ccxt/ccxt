@@ -17,21 +17,47 @@ module.exports = class bithumb extends Exchange {
             'countries': [ 'KR' ], // South Korea
             'rateLimit': 500,
             'has': {
-                'cancelOrder': true,
                 'CORS': true,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
+                'cancelOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'withdraw': true,
             },
             'hostname': 'bithumb.com',
@@ -284,22 +310,21 @@ module.exports = class bithumb extends Exchange {
         //
         const timestamp = this.safeInteger (ticker, 'date');
         const symbol = this.safeSymbol (undefined, market);
-        const open = this.safeNumber (ticker, 'opening_price');
-        const close = this.safeNumber (ticker, 'closing_price');
-        const baseVolume = this.safeNumber (ticker, 'units_traded_24H');
-        const quoteVolume = this.safeNumber (ticker, 'acc_trade_value_24H');
-        const vwap = this.vwap (baseVolume, quoteVolume);
+        const open = this.safeString (ticker, 'opening_price');
+        const close = this.safeString (ticker, 'closing_price');
+        const baseVolume = this.safeString (ticker, 'units_traded_24H');
+        const quoteVolume = this.safeString (ticker, 'acc_trade_value_24H');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'max_price'),
-            'low': this.safeNumber (ticker, 'min_price'),
-            'bid': this.safeNumber (ticker, 'buy_price'),
+            'high': this.safeString (ticker, 'max_price'),
+            'low': this.safeString (ticker, 'min_price'),
+            'bid': this.safeString (ticker, 'buy_price'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'sell_price'),
+            'ask': this.safeString (ticker, 'sell_price'),
             'askVolume': undefined,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': open,
             'close': close,
             'last': close,
@@ -310,7 +335,7 @@ module.exports = class bithumb extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

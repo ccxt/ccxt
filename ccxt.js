@@ -36,7 +36,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.67.1'
+const version = '1.72.43'
 
 Exchange.ccxtVersion = version
 
@@ -105,6 +105,7 @@ const exchanges = {
     'equos':                   require ('./js/equos.js'),
     'exmo':                    require ('./js/exmo.js'),
     'flowbtc':                 require ('./js/flowbtc.js'),
+    'fmfwio':                  require ('./js/fmfwio.js'),
     'ftx':                     require ('./js/ftx.js'),
     'ftxus':                   require ('./js/ftxus.js'),
     'gateio':                  require ('./js/gateio.js'),
@@ -136,8 +137,8 @@ const exchanges = {
     'oceanex':                 require ('./js/oceanex.js'),
     'okcoin':                  require ('./js/okcoin.js'),
     'okex':                    require ('./js/okex.js'),
-    'okex3':                   require ('./js/okex3.js'),
     'okex5':                   require ('./js/okex5.js'),
+    'okx':                     require ('./js/okx.js'),
     'paymium':                 require ('./js/paymium.js'),
     'phemex':                  require ('./js/phemex.js'),
     'poloniex':                require ('./js/poloniex.js'),
@@ -154,6 +155,7 @@ const exchanges = {
     'wavesexchange':           require ('./js/wavesexchange.js'),
     'wazirx':                  require ('./js/wazirx.js'),
     'whitebit':                require ('./js/whitebit.js'),
+    'woo':                     require ('./js/woo.js'),
     'xena':                    require ('./js/xena.js'),
     'yobit':                   require ('./js/yobit.js'),
     'zaif':                    require ('./js/zaif.js'),

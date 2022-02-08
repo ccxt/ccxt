@@ -14,22 +14,34 @@ class lykke(Exchange):
             'id': 'lykke',
             'name': 'Lykke',
             'countries': ['CH'],
-            'version': 'v1',
+            'version': 'v1',  # v2 - https://lykkecity.github.io/Trading-API/
             'rateLimit': 200,
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
-                'fetchOHLCV': None,
+                'fetchOHLCV': 'emulated',
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
             },
@@ -322,22 +334,19 @@ class lykke(Exchange):
     async def fetch_markets(self, params={}):
         markets = await self.publicGetAssetPairs()
         #
-        #     [{               Id: "AEBTC",
-        #                      Name: "AE/BTC",
-        #                  Accuracy:  6,
-        #          InvertedAccuracy:  8,
-        #               BaseAssetId: "6f75280b-a005-4016-a3d8-03dc644e8912",
+        #    [
+        #        {
+        #            Id: "AEBTC",
+        #            Name: "AE/BTC",
+        #            Accuracy:  6,
+        #            InvertedAccuracy:  8,
+        #            BaseAssetId: "6f75280b-a005-4016-a3d8-03dc644e8912",
         #            QuotingAssetId: "BTC",
-        #                 MinVolume:  0.4,
-        #         MinInvertedVolume:  0.0001                                 },
-        #       {               Id: "AEETH",
-        #                      Name: "AE/ETH",
-        #                  Accuracy:  6,
-        #          InvertedAccuracy:  8,
-        #               BaseAssetId: "6f75280b-a005-4016-a3d8-03dc644e8912",
-        #            QuotingAssetId: "ETH",
-        #                 MinVolume:  0.4,
-        #         MinInvertedVolume:  0.001                                  }]
+        #            MinVolume:  0.4,
+        #            MinInvertedVolume:  0.0001
+        #        },
+        #        ...
+        #    ]
         #
         result = []
         for i in range(0, len(markets)):
@@ -347,24 +356,41 @@ class lykke(Exchange):
             baseId, quoteId = name.split('/')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
             pricePrecision = self.safe_string(market, 'Accuracy')
             priceLimit = self.parse_precision(pricePrecision)
-            precision = {
-                'price': int(pricePrecision),
-                'amount': self.safe_integer(market, 'InvertedAccuracy'),
-            }
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
+                'baseId': None,
+                'quoteId': None,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
+                'margin': None,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'active': True,
-                'info': market,
-                'precision': precision,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': int(pricePrecision),
+                    'amount': self.safe_integer(market, 'InvertedAccuracy'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(market, 'MinVolume'),
                         'max': None,
@@ -378,26 +404,31 @@ class lykke(Exchange):
                         'max': None,
                     },
                 },
-                'baseId': None,
-                'quoteId': None,
+                'info': market,
             })
         return result
 
     def parse_ticker(self, ticker, market=None):
+        # {
+        #     "assetPair":"ADAUSD",
+        #     "volume24H":264.6398,
+        #     "lastPrice":1.29535,
+        #     "bid":1.28805,
+        #     "ask":1.29074
+        # }
         timestamp = self.milliseconds()
-        symbol = None
-        if market:
-            symbol = market['symbol']
-        close = self.safe_number(ticker, 'lastPrice')
-        return {
-            'symbol': symbol,
+        marketId = self.safe_string(ticker, 'assetPair')
+        market = self.safe_market(marketId, market)
+        close = self.safe_string(ticker, 'lastPrice')
+        return self.safe_ticker({
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': self.safe_number(ticker, 'bid'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -408,9 +439,9 @@ class lykke(Exchange):
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': self.safe_number(ticker, 'volume24H'),
+            'quoteVolume': self.safe_string(ticker, 'volume24H'),
             'info': ticker,
-        }
+        }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
@@ -419,6 +450,13 @@ class lykke(Exchange):
             'market': market['id'],
         }
         ticker = await self.mobileGetMarketMarket(self.extend(request, params))
+        # {
+        #     "assetPair":"ADAUSD",
+        #     "volume24H":264.6398,
+        #     "lastPrice":1.29535,
+        #     "bid":1.28805,
+        #     "ask":1.29074
+        # }
         return self.parse_ticker(ticker, market)
 
     def parse_order_status(self, status):

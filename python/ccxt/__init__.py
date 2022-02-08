@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.67.1'
+__version__ = '1.72.43'
 
 # ----------------------------------------------------------------------------
 
@@ -44,6 +44,7 @@ from ccxt.base.errors import ExchangeError                  # noqa: F401
 from ccxt.base.errors import AuthenticationError            # noqa: F401
 from ccxt.base.errors import PermissionDenied               # noqa: F401
 from ccxt.base.errors import AccountSuspended               # noqa: F401
+from ccxt.base.errors import AccountNotEnabled              # noqa: F401
 from ccxt.base.errors import ArgumentsRequired              # noqa: F401
 from ccxt.base.errors import BadRequest                     # noqa: F401
 from ccxt.base.errors import BadSymbol                      # noqa: F401
@@ -131,6 +132,7 @@ from ccxt.eqonex import eqonex                              # noqa: F401
 from ccxt.equos import equos                                # noqa: F401
 from ccxt.exmo import exmo                                  # noqa: F401
 from ccxt.flowbtc import flowbtc                            # noqa: F401
+from ccxt.fmfwio import fmfwio                              # noqa: F401
 from ccxt.ftx import ftx                                    # noqa: F401
 from ccxt.ftxus import ftxus                                # noqa: F401
 from ccxt.gateio import gateio                              # noqa: F401
@@ -162,8 +164,8 @@ from ccxt.novadax import novadax                            # noqa: F401
 from ccxt.oceanex import oceanex                            # noqa: F401
 from ccxt.okcoin import okcoin                              # noqa: F401
 from ccxt.okex import okex                                  # noqa: F401
-from ccxt.okex3 import okex3                                # noqa: F401
 from ccxt.okex5 import okex5                                # noqa: F401
+from ccxt.okx import okx                                    # noqa: F401
 from ccxt.paymium import paymium                            # noqa: F401
 from ccxt.phemex import phemex                              # noqa: F401
 from ccxt.poloniex import poloniex                          # noqa: F401
@@ -180,6 +182,7 @@ from ccxt.vcc import vcc                                    # noqa: F401
 from ccxt.wavesexchange import wavesexchange                # noqa: F401
 from ccxt.wazirx import wazirx                              # noqa: F401
 from ccxt.whitebit import whitebit                          # noqa: F401
+from ccxt.woo import woo                                    # noqa: F401
 from ccxt.xena import xena                                  # noqa: F401
 from ccxt.yobit import yobit                                # noqa: F401
 from ccxt.zaif import zaif                                  # noqa: F401
@@ -250,6 +253,7 @@ exchanges = [
     'equos',
     'exmo',
     'flowbtc',
+    'fmfwio',
     'ftx',
     'ftxus',
     'gateio',
@@ -281,8 +285,8 @@ exchanges = [
     'oceanex',
     'okcoin',
     'okex',
-    'okex3',
     'okex5',
+    'okx',
     'paymium',
     'phemex',
     'poloniex',
@@ -299,6 +303,7 @@ exchanges = [
     'wavesexchange',
     'wazirx',
     'whitebit',
+    'woo',
     'xena',
     'yobit',
     'zaif',

@@ -36,29 +36,55 @@ class bitvavo(Exchange):
             'certified': True,
             'pro': True,
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': None,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'editOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchWithdrawals': True,
-                'privateAPI': True,
-                'publicAPI': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -465,22 +491,21 @@ class bitvavo(Exchange):
         marketId = self.safe_string(ticker, 'market')
         symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.safe_integer(ticker, 'timestamp')
-        last = self.safe_number(ticker, 'last')
-        baseVolume = self.safe_number(ticker, 'volume')
-        quoteVolume = self.safe_number(ticker, 'volumeQuote')
-        vwap = self.vwap(baseVolume, quoteVolume)
-        open = self.safe_number(ticker, 'open')
+        last = self.safe_string(ticker, 'last')
+        baseVolume = self.safe_string(ticker, 'volume')
+        quoteVolume = self.safe_string(ticker, 'volumeQuote')
+        open = self.safe_string(ticker, 'open')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bid'),
-            'bidVolume': self.safe_number(ticker, 'bidSize'),
-            'ask': self.safe_number(ticker, 'ask'),
-            'askVolume': self.safe_number(ticker, 'askSize'),
-            'vwap': vwap,
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
+            'bidVolume': self.safe_string(ticker, 'bidSize'),
+            'ask': self.safe_string(ticker, 'ask'),
+            'askVolume': self.safe_string(ticker, 'askSize'),
+            'vwap': None,
             'open': open,
             'close': last,
             'last': last,
@@ -491,7 +516,7 @@ class bitvavo(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()

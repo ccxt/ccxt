@@ -315,27 +315,22 @@ function try_all_proxies($exchange, $proxies) {
     }
 }
 
-function test_exchange($exchange) {
-
-    $symbol = is_array($exchange->symbols) ? current($exchange->symbols) : '';
-    $symbols = array(
-        'BTC/USD',
-        'BTC/USDT',
-        'BTC/CNY',
-        'BTC/EUR',
-        'BTC/ETH',
-        'ETH/BTC',
-        'ETH/USDT',
-        'BTC/JPY',
-        'LTC/BTC',
-    );
-
+function get_test_symbol($exchange, $symbols) {
+    $symbol = null;
     foreach ($symbols as $s) {
-        if (in_array ($s, $exchange->symbols) && (array_key_exists ('active', $exchange->markets[$s]) ? $exchange->markets[$s]['active'] : true)) {
-            $symbol = $s;
-            break;
+        $market = $exchange->safe_value($exchange->markets, $s);
+        if ($market !== null) {
+            $active = $exchange->safe_value($market, 'active');
+            if ($active || $active === null) {
+                $symbol = $s;
+                break;
+            }
         }
     }
+    return $symbol;
+}
+
+function test_exchange($exchange) {
 
     $codes = array(
         'BTC',
@@ -375,6 +370,54 @@ function test_exchange($exchange) {
         if (array_key_exists($codes[$i], $exchange->currencies)) {
             $code = $codes[$i];
         }
+    }
+
+    $symbol = get_test_symbol($exchange, array(
+        'BTC/USD',
+        'BTC/USDT',
+        'BTC/CNY',
+        'BTC/EUR',
+        'BTC/ETH',
+        'ETH/BTC',
+        'ETH/USDT',
+        'BTC/JPY',
+        'LTC/BTC',
+        'USD/SLL',
+    ));
+
+    if ($symbol === null) {
+        $markets = array_values($exchange->markets);
+        foreach ($codes as $code) {
+            $activeMarkets = array_filter($markets, function($market) use ($exchange, $code) {
+                return $market['base'] === $code;
+            });
+            if (count($activeMarkets)) {
+                $activeSymbols = array_map(function($market) {
+                    return $market['symbol'];
+                }, $activeMarkets);
+                $symbol = get_test_symbol($exchange, $activeSymbols);
+                break;
+            }
+        }
+    }
+
+    if ($symbol === null) {
+        $markets = array_values($exchange->markets);
+        $activeMarkets = array_filter($markets, function($market) use ($exchange) {
+            return !$exchange->safe_value($market, 'active', false);
+        });
+        $activeSymbols = array_map(function($market) {
+            return $market['symbol'];
+        }, $activeMarkets);
+        $symbol = get_test_symbol($exchange, $activeSymbols);
+    }
+
+    if ($symbol === null) {
+        $symbol = get_test_symbol($exchange, $exchange->symbols);
+    }
+
+    if ($symbol === null) {
+        $symbol = $exchange->symbols[0];
     }
 
     if (strpos($symbol, '.d') === false) {

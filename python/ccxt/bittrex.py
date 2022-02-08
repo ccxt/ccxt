@@ -43,36 +43,58 @@ class bittrex(Exchange):
             'pro': True,
             # new metainfo interface
             'has': {
+                'CORS': None,
+                'spot': True,
                 'margin': False,
                 'swap': False,
                 'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': None,
                 'createDepositAddress': True,
                 'createMarketOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': 'emulated',
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderTrades': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTransactions': None,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -246,6 +268,7 @@ class bittrex(Exchange):
             },
             'commonCurrencies': {
                 'BIFI': 'Bifrost Finance',
+                'BTR': 'BTRIPS',
                 'MEME': 'Memetic',  # conflict with Meme Inu
                 'MER': 'Mercury',  # conflict with Mercurial Finance
                 'PROS': 'Pros.Finance',
@@ -290,46 +313,56 @@ class bittrex(Exchange):
             market = response[i]
             baseId = self.safe_string(market, 'baseCurrencySymbol')
             quoteId = self.safe_string(market, 'quoteCurrencySymbol')
-            id = self.safe_string(market, 'symbol')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            pricePrecision = self.safe_integer(market, 'precision', 8)
-            precision = {
-                'amount': 8,
-                'price': pricePrecision,
-            }
             status = self.safe_string(market, 'status')
-            active = (status == 'ONLINE')
             result.append({
-                'id': id,
-                'symbol': symbol,
+                'id': self.safe_string(market, 'symbol'),
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
-                'info': market,
-                'precision': precision,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': (status == 'ONLINE'),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': self.safe_integer(market, 'precision', 8),
+                    'amount': int('8'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(market, 'minTradeSize'),
                         'max': None,
                     },
                     'price': {
-                        'min': 1 / math.pow(10, precision['price']),
+                        'min': None,
                         'max': None,
                     },
                     'cost': {
                         'min': None,
                         'max': None,
                     },
-                    'leverage': {
-                        'max': 1,
-                    },
                 },
+                'info': market,
             })
         return result
 
@@ -458,18 +491,19 @@ class bittrex(Exchange):
         #
         timestamp = self.parse8601(self.safe_string(ticker, 'updatedAt'))
         marketId = self.safe_string(ticker, 'symbol')
-        symbol = self.safe_symbol(marketId, market, '-')
-        percentage = self.safe_number(ticker, 'percentChange')
-        last = self.safe_number(ticker, 'lastTradeRate')
-        return {
+        market = self.safe_market(marketId, market, '-')
+        symbol = market['symbol']
+        percentage = self.safe_string(ticker, 'percentChange')
+        last = self.safe_string(ticker, 'lastTradeRate')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bidRate'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bidRate'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'askRate'),
+            'ask': self.safe_string(ticker, 'askRate'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -479,10 +513,10 @@ class bittrex(Exchange):
             'change': None,
             'percentage': percentage,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'volume'),
-            'quoteVolume': self.safe_number(ticker, 'quoteVolume'),
+            'baseVolume': self.safe_string(ticker, 'volume'),
+            'quoteVolume': self.safe_string(ticker, 'quoteVolume'),
             'info': ticker,
-        }
+        }, market, False)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()

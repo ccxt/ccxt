@@ -38,6 +38,7 @@ module.exports = class ftx extends Exchange {
                 },
             },
             'has': {
+                'CORS': undefined,
                 'spot': true,
                 'margin': true,
                 'swap': true,
@@ -46,20 +47,22 @@ module.exports = class ftx extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': true,
-                'fetchBorrowRateHistory': false,
+                'fetchBorrowRateHistories': true,
+                'fetchBorrowRateHistory': true,
                 'fetchBorrowRates': true,
                 'fetchClosedOrders': undefined,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchFundingFees': undefined,
-                'fetchFundingRate': true,
                 'fetchFundingHistory': true,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': undefined,
+                'fetchFundingRates': false,
                 'fetchIndexOHLCV': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -70,7 +73,9 @@ module.exports = class ftx extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
+                'fetchPosition': false,
                 'fetchPositions': true,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -78,8 +83,10 @@ module.exports = class ftx extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFees': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
                 'setLeverage': true,
                 'setMarginMode': false, // FTX only supports cross margin
+                'setPositionMode': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -303,7 +310,7 @@ module.exports = class ftx extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    'Please slow down': RateLimitExceeded, // {"error":"Please slow down","success":false}
+                    'Slow down': RateLimitExceeded, // {"error":"Slow down","success":false}
                     'Size too small for provide': InvalidOrder, // {"error":"Size too small for provide","success":false}
                     'Not enough balances': InsufficientFunds, // {"error":"Not enough balances","success":false}
                     'InvalidPrice': InvalidOrder, // {"error":"Invalid price","success":false}
@@ -372,6 +379,9 @@ module.exports = class ftx extends Exchange {
                     'BEP20': 'bsc',
                     'BSC': 'bsc',
                 },
+            },
+            'commonCurrencies': {
+                'STARS': 'StarLaunch',
             },
         });
     }
@@ -551,7 +561,7 @@ module.exports = class ftx extends Exchange {
             const settle = this.safeCurrencyCode (settleId);
             const spot = !contract;
             const margin = !contract;
-            const perpetual = this.safeValue (future, 'perpetual');
+            const perpetual = this.safeValue (future, 'perpetual', false);
             const swap = perpetual;
             const option = false;
             const isFuture = contract && !swap;
@@ -582,8 +592,6 @@ module.exports = class ftx extends Exchange {
                 symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry, '');
             }
             // check if a market is a spot or future market
-            const sizeIncrement = this.safeNumber (market, 'sizeIncrement');
-            const priceIncrement = this.safeNumber (market, 'priceIncrement');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -600,7 +608,6 @@ module.exports = class ftx extends Exchange {
                 'future': isFuture,
                 'option': option,
                 'active': this.safeValue (market, 'enabled'),
-                'derivative': contract,
                 'contract': contract,
                 'linear': true,
                 'inverse': false,
@@ -610,25 +617,25 @@ module.exports = class ftx extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': sizeIncrement,
-                    'price': priceIncrement,
+                    'price': this.safeNumber (market, 'priceIncrement'),
+                    'amount': this.safeNumber (market, 'sizeIncrement'),
                 },
                 'limits': {
+                    'leverage': {
+                        'min': this.parseNumber ('1'),
+                        'max': this.parseNumber ('20'),
+                    },
                     'amount': {
-                        'min': sizeIncrement,
+                        'min': undefined,
                         'max': undefined,
                     },
                     'price': {
-                        'min': priceIncrement,
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
                         'min': undefined,
                         'max': undefined,
-                    },
-                    'leverage': {
-                        'min': this.parseNumber ('1'),
-                        'max': this.parseNumber ('20'),
                     },
                 },
                 'info': market,
@@ -664,22 +671,22 @@ module.exports = class ftx extends Exchange {
             market = this.markets_by_id[marketId];
         }
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeNumber (ticker, 'last');
+        const last = this.safeString (ticker, 'last');
         const timestamp = this.safeTimestamp (ticker, 'time', this.milliseconds ());
-        let percentage = this.safeNumber (ticker, 'change24h');
+        let percentage = this.safeString (ticker, 'change24h');
         if (percentage !== undefined) {
-            percentage *= 100;
+            percentage = Precise.stringMul (percentage, '100');
         }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
-            'bidVolume': this.safeNumber (ticker, 'bidSize'),
-            'ask': this.safeNumber (ticker, 'ask'),
-            'askVolume': this.safeNumber (ticker, 'askSize'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
+            'bidVolume': this.safeString (ticker, 'bidSize'),
+            'ask': this.safeString (ticker, 'ask'),
+            'askVolume': this.safeString (ticker, 'askSize'),
             'vwap': undefined,
             'open': undefined,
             'close': last,
@@ -689,9 +696,9 @@ module.exports = class ftx extends Exchange {
             'percentage': percentage,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': this.safeNumber (ticker, 'quoteVolume24h'),
+            'quoteVolume': this.safeString (ticker, 'quoteVolume24h'),
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -987,10 +994,18 @@ module.exports = class ftx extends Exchange {
         //         "baseCurrency": "BCHA",
         //         "quoteCurrency": "USD"
         //     }
+        //
         const id = this.safeString (trade, 'id');
         const takerOrMaker = this.safeString (trade, 'liquidity');
-        const marketId = this.safeString (trade, 'market');
-        market = this.safeMarket (marketId, market);
+        // a workaround for the OTC trades, they don't have a symbol
+        const baseId = this.safeString (trade, 'baseCurrency');
+        const quoteId = this.safeString (trade, 'quoteCurrency');
+        let defaultMarketId = undefined;
+        if ((baseId !== undefined) && (quoteId !== undefined)) {
+            defaultMarketId = baseId + '/' + quoteId;
+        }
+        const marketId = this.safeString (trade, 'market', defaultMarketId);
+        market = this.safeMarket (marketId, market, '/');
         const symbol = market['symbol'];
         const timestamp = this.parse8601 (this.safeString (trade, 'time'));
         const priceString = this.safeString (trade, 'price');
@@ -1032,6 +1047,11 @@ module.exports = class ftx extends Exchange {
             'market_name': marketId,
         };
         if (since !== undefined) {
+            // the exchange aligns results to end_time returning 5000 trades max
+            // the user must set the end_time (in seconds) close enough to start_time
+            // for a proper pagination, fetch the most recent trades first
+            // then set the end_time parameter to the timestamp of the last trade
+            // start_time and end_time must be in seconds, divided by a thousand
             request['start_time'] = parseInt (since / 1000);
             // start_time doesn't work without end_time
             request['end_time'] = this.seconds ();
@@ -1486,6 +1506,13 @@ module.exports = class ftx extends Exchange {
         //
         const result = this.safeValue (response, 'result', []);
         return this.parseOrder (result, market);
+    }
+
+    async createReduceOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        const request = {
+            'reduceOnly': true,
+        };
+        return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
     }
 
     async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
@@ -2348,9 +2375,8 @@ module.exports = class ftx extends Exchange {
         //       "openInterest": "48307.96"
         //     }
         //
-        const nextFundingRate = this.safeNumber (fundingRate, 'nextFundingRate');
-        const nextFundingRateDatetimeRaw = this.safeString (fundingRate, 'nextFundingTime');
-        const nextFundingRateTimestamp = this.parse8601 (nextFundingRateDatetimeRaw);
+        const fundingRateDatetimeRaw = this.safeString (fundingRate, 'nextFundingTime');
+        const fundingRateTimestamp = this.parse8601 (fundingRateDatetimeRaw);
         const estimatedSettlePrice = this.safeNumber (fundingRate, 'predictedExpirationPrice');
         return {
             'info': fundingRate,
@@ -2361,12 +2387,15 @@ module.exports = class ftx extends Exchange {
             'estimatedSettlePrice': estimatedSettlePrice,
             'timestamp': undefined,
             'datetime': undefined,
+            'fundingRate': this.safeNumber (fundingRate, 'nextFundingRate'),
+            'fundingTimestamp': fundingRateTimestamp,
+            'fundingDatetime': this.iso8601 (fundingRateTimestamp),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
             'previousFundingRate': undefined,
-            'nextFundingRate': nextFundingRate,
             'previousFundingTimestamp': undefined,
-            'nextFundingTimestamp': nextFundingRateTimestamp,
             'previousFundingDatetime': undefined,
-            'nextFundingDatetime': this.iso8601 (nextFundingRateTimestamp),
         };
     }
 
@@ -2424,5 +2453,73 @@ module.exports = class ftx extends Exchange {
             };
         }
         return rates;
+    }
+
+    async fetchBorrowRateHistories (since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        const endTime = this.safeNumber2 (params, 'till', 'end_time');
+        if (since !== undefined) {
+            request['start_time'] = since / 1000;
+            if (endTime === undefined) {
+                request['end_time'] = this.milliseconds () / 1000;
+            }
+        }
+        if (endTime !== undefined) {
+            request['end_time'] = endTime / 1000;
+        }
+        const response = await this.publicGetSpotMarginHistory (this.extend (request, params));
+        //
+        //    {
+        //        "success": true,
+        //        "result": [
+        //            {
+        //                "coin": "PYPL",
+        //                "time": "2022-01-24T13:00:00+00:00",
+        //                "size": 0.00500172,
+        //                "rate": 1e-6
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        const result = this.safeValue (response, 'result');
+        // How to calculate borrow rate
+        // https://help.ftx.com/hc/en-us/articles/360053007671-Spot-Margin-Trading-Explainer
+        const takerFee = this.fees['trading']['taker'].toString ();
+        const spotMarginBorrowRate = Precise.stringMul ('500', takerFee);
+        const borrowRateHistories = {};
+        for (let i = 0; i < result.length; i++) {
+            const item = result[i];
+            const currency = this.safeCurrencyCode (this.safeString (item, 'coin'));
+            if (!(currency in borrowRateHistories)) {
+                borrowRateHistories[currency] = [];
+            }
+            const datetime = this.safeString (item, 'time');
+            const lendingRate = this.safeString (item, 'rate');
+            borrowRateHistories[currency].push ({
+                'currency': currency,
+                'rate': Precise.stringMul (lendingRate, Precise.stringAdd ('1', spotMarginBorrowRate)),
+                'timestamp': this.parse8601 (datetime),
+                'datetime': datetime,
+                'info': item,
+            });
+        }
+        const keys = Object.keys (borrowRateHistories);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            borrowRateHistories[key] = this.filterByCurrencySinceLimit (borrowRateHistories[key], key, since, limit);
+        }
+        return borrowRateHistories;
+    }
+
+    async fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {}) {
+        const histories = await this.fetchBorrowRateHistories (since, limit, params);
+        const borrowRateHistory = this.safeValue (histories, code);
+        if (borrowRateHistory === undefined) {
+            throw new BadRequest (this.id + '.fetchBorrowRateHistory returned no data for ' + code);
+        } else {
+            return borrowRateHistory;
+        }
     }
 };

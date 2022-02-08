@@ -22,8 +22,13 @@ class bibox extends Exchange {
             'version' => 'v1',
             'hostname' => 'bibox.com',
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => null, // has but unimplemented
+                'swap' => null, // has but unimplemented
+                'future' => null,
+                'option' => null,
+                'cancelOrder' => true,
                 'createMarketOrder' => null, // or they will return https://github.com/ccxt/ccxt/issues/2338
                 'createOrder' => true,
                 'fetchBalance' => true,
@@ -145,6 +150,7 @@ class bibox extends Exchange {
                 'NFT' => 'NFT Protocol',
                 'PAI' => 'PCHAIN',
                 'REVO' => 'Revo Network',
+                'STAR' => 'Starbase',
                 'TERN' => 'Ternio-ERC20',
             ),
         ));
@@ -216,33 +222,49 @@ class bibox extends Exchange {
             $spot = true;
             $areaId = $this->safe_integer($market, 'area_id');
             if ($areaId === 16) {
-                $type = null;
-                $spot = false;
+                // TODO => update to v3 api
+                continue;
             }
-            $precision = array(
-                'amount' => $this->safe_number($market, 'amount_scale'),
-                'price' => $this->safe_number($market, 'decimal'),
-            );
             $result[] = array(
                 'id' => $id,
                 'numericId' => $numericId,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => $type,
                 'spot' => $spot,
-                'active' => true,
-                'info' => $market,
-                'precision' => $precision,
+                'margin' => false,
+                'future' => false,
+                'swap' => false,
+                'option' => false,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'active' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'price' => $this->safe_number($market, 'decimal'),
+                    'amount' => $this->safe_number($market, 'amount_scale'),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
-                        'min' => pow(10, -$precision['amount']),
+                        'min' => null,
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision['price']),
+                        'min' => null,
                         'max' => null,
                     ),
                     'cost' => array(
@@ -250,6 +272,7 @@ class bibox extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'info' => $market,
             );
         }
         return $result;
@@ -268,24 +291,23 @@ class bibox extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
         }
-        $last = $this->safe_number($ticker, 'last');
-        $change = $this->safe_number($ticker, 'change');
-        $baseVolume = $this->safe_number_2($ticker, 'vol', 'vol24H');
+        $last = $this->safe_string($ticker, 'last');
+        $change = $this->safe_string($ticker, 'change');
+        $baseVolume = $this->safe_string_2($ticker, 'vol', 'vol24H');
         $percentage = $this->safe_string($ticker, 'percent');
         if ($percentage !== null) {
             $percentage = str_replace('%', '', $percentage);
-            $percentage = $this->parse_number($percentage);
         }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'buy'),
-            'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'sell'),
-            'askVolume' => null,
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'buy'),
+            'bidVolume' => $this->safe_string($ticker, 'buy_amount'),
+            'ask' => $this->safe_string($ticker, 'sell'),
+            'askVolume' => $this->safe_string($ticker, 'sell_amount'),
             'vwap' => null,
             'open' => null,
             'close' => $last,
@@ -295,9 +317,9 @@ class bibox extends Exchange {
             'percentage' => $percentage,
             'average' => null,
             'baseVolume' => $baseVolume,
-            'quoteVolume' => $this->safe_number($ticker, 'amount'),
+            'quoteVolume' => $this->safe_string($ticker, 'amount'),
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

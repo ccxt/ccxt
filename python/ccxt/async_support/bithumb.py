@@ -28,21 +28,47 @@ class bithumb(Exchange):
             'countries': ['KR'],  # South Korea
             'rateLimit': 500,
             'has': {
-                'cancelOrder': True,
                 'CORS': True,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
                 'createMarketOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'hostname': 'bithumb.com',
@@ -282,22 +308,21 @@ class bithumb(Exchange):
         #
         timestamp = self.safe_integer(ticker, 'date')
         symbol = self.safe_symbol(None, market)
-        open = self.safe_number(ticker, 'opening_price')
-        close = self.safe_number(ticker, 'closing_price')
-        baseVolume = self.safe_number(ticker, 'units_traded_24H')
-        quoteVolume = self.safe_number(ticker, 'acc_trade_value_24H')
-        vwap = self.vwap(baseVolume, quoteVolume)
+        open = self.safe_string(ticker, 'opening_price')
+        close = self.safe_string(ticker, 'closing_price')
+        baseVolume = self.safe_string(ticker, 'units_traded_24H')
+        quoteVolume = self.safe_string(ticker, 'acc_trade_value_24H')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'max_price'),
-            'low': self.safe_number(ticker, 'min_price'),
-            'bid': self.safe_number(ticker, 'buy_price'),
+            'high': self.safe_string(ticker, 'max_price'),
+            'low': self.safe_string(ticker, 'min_price'),
+            'bid': self.safe_string(ticker, 'buy_price'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'sell_price'),
+            'ask': self.safe_string(ticker, 'sell_price'),
             'askVolume': None,
-            'vwap': vwap,
+            'vwap': None,
             'open': open,
             'close': close,
             'last': close,
@@ -308,7 +333,7 @@ class bithumb(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
