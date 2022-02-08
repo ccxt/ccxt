@@ -904,16 +904,17 @@ class hollaex(Exchange):
         request = {
             'symbol': market['id'],
             'side': side,
-            'size': amount,
+            'size': self.normalize_number_if_needed(amount),
             'type': type,
             # 'stop': float(self.price_to_precision(symbol, stopPrice)),
             # 'meta': {},  # other options such as post_only
         }
         if type != 'market':
-            request['price'] = price
+            convertedPrice = float(self.price_to_precision(symbol, price))
+            request['price'] = self.normalize_number_if_needed(convertedPrice)
         stopPrice = self.safe_float_2(params, 'stopPrice', 'stop')
         if stopPrice is not None:
-            request['stop'] = float(self.price_to_precision(symbol, stopPrice))
+            request['stop'] = self.normalize_number_if_needed(float(self.price_to_precision(symbol, stopPrice)))
             params = self.omit(params, ['stopPrice', 'stop'])
         response = self.privatePostOrder(self.extend(request, params))
         #
@@ -1299,6 +1300,11 @@ class hollaex(Exchange):
             'info': response,
             'id': None,
         }
+
+    def normalize_number_if_needed(self, number):
+        if number % 1 == 0:
+            number = int(number)
+        return number
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))

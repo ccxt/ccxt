@@ -935,17 +935,18 @@ class hollaex extends Exchange {
         $request = array(
             'symbol' => $market['id'],
             'side' => $side,
-            'size' => $amount,
+            'size' => $this->normalize_number_if_needed($amount),
             'type' => $type,
             // 'stop' => floatval($this->price_to_precision($symbol, $stopPrice)),
             // 'meta' => array(), // other options such as post_only
         );
         if ($type !== 'market') {
-            $request['price'] = $price;
+            $convertedPrice = floatval($this->price_to_precision($symbol, $price));
+            $request['price'] = $this->normalize_number_if_needed($convertedPrice);
         }
         $stopPrice = $this->safe_float_2($params, 'stopPrice', 'stop');
         if ($stopPrice !== null) {
-            $request['stop'] = floatval($this->price_to_precision($symbol, $stopPrice));
+            $request['stop'] = $this->normalize_number_if_needed(floatval($this->price_to_precision($symbol, $stopPrice)));
             $params = $this->omit($params, array( 'stopPrice', 'stop' ));
         }
         $response = yield $this->privatePostOrder (array_merge($request, $params));
@@ -1357,6 +1358,13 @@ class hollaex extends Exchange {
             'info' => $response,
             'id' => null,
         );
+    }
+
+    public function normalize_number_if_needed($number) {
+        if (fmod($number, 1) === 0) {
+            $number = intval($number);
+        }
+        return $number;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
