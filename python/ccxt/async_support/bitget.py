@@ -825,25 +825,19 @@ class bitget(Exchange):
         marketType = 'spot'
         spot = True
         swap = False
-        baseId = self.safe_string_2(market, 'base_currency', 'coin')
+        baseId = self.safe_string_2(market, 'base_currency', 'underlying_index')
         quoteId = self.safe_string(market, 'quote_currency')
+        settleId = self.safe_string(market, 'coin')
         contractVal = self.safe_number(market, 'contract_val')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        settle = self.safe_currency_code(settleId)
+        symbol = base + '/' + quote
         if contractVal is not None:
             marketType = 'swap'
             spot = False
             swap = True
-        base = self.safe_currency_code(baseId)
-        quote = self.safe_currency_code(quoteId)
-        symbol = id.upper()
-        if spot:
-            symbol = base + '/' + quote
-        tickSize = self.safe_string(market, 'tick_size')
-        sizeIncrement = self.safe_string(market, 'size_increment')
-        precision = {
-            'amount': self.parse_number(self.parse_precision(sizeIncrement)),
-            'price': self.parse_number(self.parse_precision(tickSize)),
-        }
-        minAmount = self.safe_number_2(market, 'min_size', 'base_min_size')
+            symbol = symbol + ':' + settle
         status = self.safe_string(market, 'status')
         active = None
         if status is not None:
@@ -854,28 +848,49 @@ class bitget(Exchange):
             'symbol': symbol,
             'base': base,
             'quote': quote,
+            'settle': settle,
             'baseId': baseId,
             'quoteId': quoteId,
-            'info': market,
+            'settleId': settleId,
             'type': marketType,
             'spot': spot,
+            'margin': False,
             'swap': swap,
+            'future': False,
+            'option': False,
             'active': active,
-            'precision': precision,
+            'contract': swap,
+            'linear': (base == settle),
+            'inverse': (quote == settle),
+            'contractSize': contractVal,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'price': self.parse_precision(self.safe_string(market, 'tick_size')),
+                'amount': self.parse_precision(self.safe_string(market, 'size_increment')),
+                'base': self.parse_precision(self.safe_string(market, 'base_asset_precision')),
+            },
             'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
+                },
                 'amount': {
-                    'min': minAmount,
+                    'min': self.safe_number_2(market, 'min_size', 'base_min_size'),
                     'max': None,
                 },
                 'price': {
-                    'min': precision['price'],
+                    'min': None,
                     'max': None,
                 },
                 'cost': {
-                    'min': precision['price'],
+                    'min': None,
                     'max': None,
                 },
             },
+            'info': market,
         })
 
     async def fetch_markets_by_type(self, type, params={}):
