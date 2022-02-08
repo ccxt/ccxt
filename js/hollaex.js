@@ -933,17 +933,18 @@ module.exports = class hollaex extends Exchange {
         const request = {
             'symbol': market['id'],
             'side': side,
-            'size': amount,
+            'size': this.normalizeNumberIfNeeded (amount),
             'type': type,
             // 'stop': parseFloat (this.priceToPrecision (symbol, stopPrice)),
             // 'meta': {}, // other options such as post_only
         };
         if (type !== 'market') {
-            request['price'] = price;
+            const convertedPrice = parseFloat (this.priceToPrecision (symbol, price));
+            request['price'] = this.normalizeNumberIfNeeded (convertedPrice);
         }
         const stopPrice = this.safeFloat2 (params, 'stopPrice', 'stop');
         if (stopPrice !== undefined) {
-            request['stop'] = parseFloat (this.priceToPrecision (symbol, stopPrice));
+            request['stop'] = this.normalizeNumberIfNeeded (parseFloat (this.priceToPrecision (symbol, stopPrice)));
             params = this.omit (params, [ 'stopPrice', 'stop' ]);
         }
         const response = await this.privatePostOrder (this.extend (request, params));
@@ -1355,6 +1356,13 @@ module.exports = class hollaex extends Exchange {
             'info': response,
             'id': undefined,
         };
+    }
+
+    normalizeNumberIfNeeded (number) {
+        if (number % 1 === 0) {
+            number = parseInt (number);
+        }
+        return number;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
