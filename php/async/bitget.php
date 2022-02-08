@@ -816,27 +816,20 @@ class bitget extends Exchange {
         $marketType = 'spot';
         $spot = true;
         $swap = false;
-        $baseId = $this->safe_string_2($market, 'base_currency', 'coin');
+        $baseId = $this->safe_string_2($market, 'base_currency', 'underlying_index');
         $quoteId = $this->safe_string($market, 'quote_currency');
+        $settleId = $this->safe_string($market, 'coin');
         $contractVal = $this->safe_number($market, 'contract_val');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $settle = $this->safe_currency_code($settleId);
+        $symbol = $base . '/' . $quote;
         if ($contractVal !== null) {
             $marketType = 'swap';
             $spot = false;
             $swap = true;
+            $symbol = $symbol . ':' . $settle;
         }
-        $base = $this->safe_currency_code($baseId);
-        $quote = $this->safe_currency_code($quoteId);
-        $symbol = strtoupper($id);
-        if ($spot) {
-            $symbol = $base . '/' . $quote;
-        }
-        $tickSize = $this->safe_string($market, 'tick_size');
-        $sizeIncrement = $this->safe_string($market, 'size_increment');
-        $precision = array(
-            'amount' => $this->parse_number($this->parse_precision($sizeIncrement)),
-            'price' => $this->parse_number($this->parse_precision($tickSize)),
-        );
-        $minAmount = $this->safe_number_2($market, 'min_size', 'base_min_size');
         $status = $this->safe_string($market, 'status');
         $active = null;
         if ($status !== null) {
@@ -848,28 +841,49 @@ class bitget extends Exchange {
             'symbol' => $symbol,
             'base' => $base,
             'quote' => $quote,
+            'settle' => $settle,
             'baseId' => $baseId,
             'quoteId' => $quoteId,
-            'info' => $market,
+            'settleId' => $settleId,
             'type' => $marketType,
             'spot' => $spot,
+            'margin' => false,
             'swap' => $swap,
+            'future' => false,
+            'option' => false,
             'active' => $active,
-            'precision' => $precision,
+            'contract' => $swap,
+            'linear' => ($base === $settle),
+            'inverse' => ($quote === $settle),
+            'contractSize' => $contractVal,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'price' => $this->parse_precision($this->safe_string($market, 'tick_size')),
+                'amount' => $this->parse_precision($this->safe_string($market, 'size_increment')),
+                'base' => $this->parse_precision($this->safe_string($market, 'base_asset_precision')),
+            ),
             'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
                 'amount' => array(
-                    'min' => $minAmount,
+                    'min' => $this->safe_number_2($market, 'min_size', 'base_min_size'),
                     'max' => null,
                 ),
                 'price' => array(
-                    'min' => $precision['price'],
+                    'min' => null,
                     'max' => null,
                 ),
                 'cost' => array(
-                    'min' => $precision['price'],
+                    'min' => null,
                     'max' => null,
                 ),
             ),
+            'info' => $market,
         ));
     }
 
