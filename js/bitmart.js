@@ -578,8 +578,6 @@ module.exports = class bitmart extends Exchange {
             //
             // the docs are wrong: https://github.com/ccxt/ccxt/issues/5612
             //
-            const amountPrecision = this.safeNumber (contract, 'vol_unit');
-            const pricePrecision = this.safeNumber (contract, 'price_unit');
             const contractType = this.safeValue (contract, 'contract_type');
             let future = false;
             let swap = false;
@@ -612,20 +610,20 @@ module.exports = class bitmart extends Exchange {
                 'swap': swap,
                 'future': future,
                 'option': false,
+                'active': undefined,
                 'contract': true,
                 'linear': undefined,
                 'inverse': undefined,
                 'taker': this.safeNumber (feeConfig, 'taker_fee'),
                 'maker': this.safeNumber (feeConfig, 'maker_fee'),
                 'contractSize': this.safeNumber (market, 'contract_size'),
-                'active': undefined,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': amountPrecision,
-                    'price': pricePrecision,
+                    'price': this.safeNumber (contract, 'price_unit'),
+                    'amount': this.safeNumber (contract, 'vol_unit'),
                 },
                 'limits': {
                     'leverage': {
