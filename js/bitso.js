@@ -183,14 +183,12 @@ module.exports = class bitso extends Exchange {
             let quote = quoteId.toUpperCase ();
             base = this.safeCurrencyCode (base);
             quote = this.safeCurrencyCode (quote);
-            const defaultPricePrecision = this.safeNumber (this.options['precision'], quote, this.options['defaultPrecision']);
-            const pricePrecision = this.safeNumber (market, 'tick_size', defaultPricePrecision);
             const fees = this.safeValue (market, 'fees', {});
             const flatRate = this.safeValue (fees, 'flat_rate', {});
-            const makerString = this.safeString (flatRate, 'maker');
             const takerString = this.safeString (flatRate, 'taker');
-            const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
+            const makerString = this.safeString (flatRate, 'maker');
             const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
+            const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
             const feeTiers = this.safeValue (fees, 'structure', []);
             const fee = {
                 'taker': taker,
@@ -217,6 +215,7 @@ module.exports = class bitso extends Exchange {
                 'maker': makerFees,
             };
             fee['tiers'] = tiers;
+            const defaultPricePrecision = this.safeNumber (this.options['precision'], quote, this.options['defaultPrecision']);
             result.push (this.extend ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -244,8 +243,8 @@ module.exports = class bitso extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
+                    'price': this.safeNumber (market, 'tick_size', defaultPricePrecision),
                     'amount': this.safeNumber (this.options['precision'], base, this.options['defaultPrecision']),
-                    'price': pricePrecision,
                 },
                 'limits': {
                     'leverage': {
