@@ -2024,8 +2024,9 @@ module.exports = class gateio extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            request['from'] = parseInt (since / 1000);
-            request['to'] = since + 30 * 24 * 60 * 60;
+            const start = parseInt (since / 1000)
+            request['from'] = start;
+            request['to'] = this.sum (start, 30 * 24 * 60 * 60);
         }
         const response = await this.privateWalletGetDeposits (this.extend (request, params));
         return this.parseTransactions (response, currency);
@@ -2043,8 +2044,9 @@ module.exports = class gateio extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            request['from'] = parseInt (since / 1000);
-            request['to'] = since + 30 * 24 * 60 * 60;
+            const start = parseInt (since / 1000)
+            request['from'] = start;
+            request['to'] = this.sum (start, 30 * 24 * 60 * 60);
         }
         const response = await this.privateWalletGetWithdrawals (this.extend (request, params));
         return this.parseTransactions (response, currency);
