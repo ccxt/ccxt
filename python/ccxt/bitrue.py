@@ -580,74 +580,64 @@ class bitrue(Exchange):
             quoteId = self.safe_string(market, 'quoteAsset')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
             filters = self.safe_value(market, 'filters', [])
             filtersByType = self.index_by(filters, 'filterType')
-            precision = {
-                'base': self.safe_integer(market, 'baseAssetPrecision'),
-                'quote': self.safe_integer(market, 'quotePrecision'),
-                'amount': self.safe_integer(market, 'quantityPrecision'),
-                'price': self.safe_integer(market, 'pricePrecision'),
-            }
             status = self.safe_string(market, 'status')
-            active = (status == 'TRADING')
+            priceDefault = self.safe_integer(market, 'pricePrecision')
+            amountDefault = self.safe_integer(market, 'quantityPrecision')
+            priceFilter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
+            amountFilter = self.safe_value(filtersByType, 'LOT_SIZE', {})
             entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
-                'spot': True,
+                'settleId': None,
                 'type': 'spot',
+                'spot': True,
                 'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': (status == 'TRADING'),
+                'contract': False,
                 'linear': None,
                 'inverse': None,
-                'future': False,
-                'swap': False,
-                'option': False,
-                'contract': False,
                 'contractSize': None,
-                'optionType': None,
-                'strike': None,
-                'settle': None,
-                'settleId': None,
                 'expiry': None,
                 'expiryDatetime': None,
-                'active': active,
-                'precision': precision,
+                'optionType': None,
+                'strike': None,
+                'precision': {
+                    'price': self.safe_integer(priceFilter, 'priceScale', priceDefault),
+                    'amount': self.safe_integer(amountFilter, 'volumeScale', amountDefault),
+                    'base': self.safe_integer(market, 'baseAssetPrecision'),
+                    'quote': self.safe_integer(market, 'quotePrecision'),
+                },
                 'limits': {
-                    'amount': {
+                    'leverage': {
                         'min': None,
                         'max': None,
+                    },
+                    'amount': {
+                        'min': self.safe_number(amountFilter, 'minQty'),
+                        'max': self.safe_number(amountFilter, 'maxQty'),
                     },
                     'price': {
-                        'min': None,
-                        'max': None,
+                        'min': self.safe_number(priceFilter, 'minPrice'),
+                        'max': self.safe_number(priceFilter, 'maxPrice'),
                     },
                     'cost': {
-                        'min': None,
+                        'min': self.safe_number(amountFilter, 'minVal'),
                         'max': None,
                     },
                 },
+                'info': market,
             }
-            if 'PRICE_FILTER' in filtersByType:
-                filter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
-                entry['limits']['price'] = {
-                    'min': self.safe_number(filter, 'minPrice'),
-                    'max': self.safe_number(filter, 'maxPrice'),
-                }
-                entry['precision']['price'] = self.safe_integer(filter, 'priceScale')
-            if 'LOT_SIZE' in filtersByType:
-                filter = self.safe_value(filtersByType, 'LOT_SIZE', {})
-                entry['precision']['amount'] = self.safe_integer(filter, 'volumeScale')
-                entry['limits']['amount'] = {
-                    'min': self.safe_number(filter, 'minQty'),
-                    'max': self.safe_number(filter, 'maxQty'),
-                }
-                entry['limits']['cost']['min'] = self.safe_number(filter, 'minVal')
             result.append(entry)
         return result
 

@@ -579,76 +579,64 @@ class bitrue extends Exchange {
             $quoteId = $this->safe_string($market, 'quoteAsset');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
             $filters = $this->safe_value($market, 'filters', array());
             $filtersByType = $this->index_by($filters, 'filterType');
-            $precision = array(
-                'base' => $this->safe_integer($market, 'baseAssetPrecision'),
-                'quote' => $this->safe_integer($market, 'quotePrecision'),
-                'amount' => $this->safe_integer($market, 'quantityPrecision'),
-                'price' => $this->safe_integer($market, 'pricePrecision'),
-            );
             $status = $this->safe_string($market, 'status');
-            $active = ($status === 'TRADING');
+            $priceDefault = $this->safe_integer($market, 'pricePrecision');
+            $amountDefault = $this->safe_integer($market, 'quantityPrecision');
+            $priceFilter = $this->safe_value($filtersByType, 'PRICE_FILTER', array());
+            $amountFilter = $this->safe_value($filtersByType, 'LOT_SIZE', array());
             $entry = array(
                 'id' => $id,
                 'lowercaseId' => $lowercaseId,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'info' => $market,
-                'spot' => true,
+                'settleId' => null,
                 'type' => 'spot',
+                'spot' => true,
                 'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => ($status === 'TRADING'),
+                'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                'future' => false,
-                'swap' => false,
-                'option' => false,
-                'contract' => false,
                 'contractSize' => null,
-                'optionType' => null,
-                'strike' => null,
-                'settle' => null,
-                'settleId' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
-                'active' => $active,
-                'precision' => $precision,
+                'optionType' => null,
+                'strike' => null,
+                'precision' => array(
+                    'price' => $this->safe_integer($priceFilter, 'priceScale', $priceDefault),
+                    'amount' => $this->safe_integer($amountFilter, 'volumeScale', $amountDefault),
+                    'base' => $this->safe_integer($market, 'baseAssetPrecision'),
+                    'quote' => $this->safe_integer($market, 'quotePrecision'),
+                ),
                 'limits' => array(
-                    'amount' => array(
+                    'leverage' => array(
                         'min' => null,
                         'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => $this->safe_number($amountFilter, 'minQty'),
+                        'max' => $this->safe_number($amountFilter, 'maxQty'),
                     ),
                     'price' => array(
-                        'min' => null,
-                        'max' => null,
+                        'min' => $this->safe_number($priceFilter, 'minPrice'),
+                        'max' => $this->safe_number($priceFilter, 'maxPrice'),
                     ),
                     'cost' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($amountFilter, 'minVal'),
                         'max' => null,
                     ),
                 ),
+                'info' => $market,
             );
-            if (is_array($filtersByType) && array_key_exists('PRICE_FILTER', $filtersByType)) {
-                $filter = $this->safe_value($filtersByType, 'PRICE_FILTER', array());
-                $entry['limits']['price'] = array(
-                    'min' => $this->safe_number($filter, 'minPrice'),
-                    'max' => $this->safe_number($filter, 'maxPrice'),
-                );
-                $entry['precision']['price'] = $this->safe_integer($filter, 'priceScale');
-            }
-            if (is_array($filtersByType) && array_key_exists('LOT_SIZE', $filtersByType)) {
-                $filter = $this->safe_value($filtersByType, 'LOT_SIZE', array());
-                $entry['precision']['amount'] = $this->safe_integer($filter, 'volumeScale');
-                $entry['limits']['amount'] = array(
-                    'min' => $this->safe_number($filter, 'minQty'),
-                    'max' => $this->safe_number($filter, 'maxQty'),
-                );
-                $entry['limits']['cost']['min'] = $this->safe_number($filter, 'minVal');
-            }
             $result[] = $entry;
         }
         return $result;
