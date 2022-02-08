@@ -99,31 +99,53 @@ module.exports = class bitflyer extends Exchange {
         });
     }
 
+    parseExpiryDate (expiry) {
+        const day = expiry.slice (0, 2);
+        const monthName = expiry.slice (2, 5);
+        const year = expiry.slice (5, 9);
+        const months = {
+            'JAN': '01',
+            'FEB': '02',
+            'MAR': '03',
+            'APR': '04',
+            'MAY': '05',
+            'JUN': '06',
+            'JUL': '07',
+            'AUG': '08',
+            'SEP': '09',
+            'OCT': '10',
+            'NOV': '11',
+            'DEC': '12',
+        };
+        const month = this.safeString (months, monthName);
+        return this.parse8601 (year + '-' + month + '-' + day + 'T00:00:00Z');
+    }
+
     async fetchMarkets (params = {}) {
         const jp_markets = await this.publicGetGetmarkets (params);
-        //
-        //  SPOT
-        //    {
-        //        "product_code": "BTC_JPY",
-        //        "market_type": "Spot"
-        //    },
-        //    {
-        //        "product_code": "BCH_BTC",
-        //        "market_type": "Spot"
-        //    },
-        //
-        //  SWAP
-        //    {
-        //        "product_code": "FX_BTC_JPY",
-        //        "market_type": "FX"
-        //    },
-        //
-        //  FUTURE
-        //    {
-        //        "product_code": "BTCJPY11FEB2022",
-        //        "alias": "BTCJPY_MAT1WK",
-        //        "market_type": "Futures"
-        //    },
+        // //
+        //     [
+        //         // spot
+        //         {
+        //             "product_code": "BTC_JPY",
+        //             "market_type": "Spot"
+        //         },
+        //         {
+        //             "product_code": "BCH_BTC",
+        //             "market_type": "Spot"
+        //         },
+        //         // forex swap
+        //         {
+        //             "product_code": "FX_BTC_JPY",
+        //             "market_type": "FX"
+        //         },
+        //         // future
+        //         {
+        //             "product_code": "BTCJPY11FEB2022",
+        //             "alias": "BTCJPY_MAT1WK",
+        //             "market_type": "Futures"
+        //         },
+        //     ]
         //
         const us_markets = await this.publicGetGetmarketsUsa (params);
         //
@@ -148,23 +170,25 @@ module.exports = class bitflyer extends Exchange {
             const spot = !swap && !future;
             let type = 'spot';
             let settle = undefined;
-            let baseId = currencies[0];
-            let quoteId = currencies[1];
+            let baseId = undefined;
+            let quoteId = undefined;
             let expiry = undefined;
-            if (swap) {
+            if (spot) {
+                baseId = this.safeString (currencies, 0);
+                quoteId = this.safeString (currencies, 1);
+            } else if (swap) {
                 type = 'swap';
-                baseId = currencies[1];
-                quoteId = currencies[2];
+                baseId = this.safeString (currencies, 1);
+                quoteId = this.safeString (currencies, 2);
             } else if (future) {
                 const alias = this.safeString (market, 'alias');
                 const splitAlias = alias.split ('_');
-                const currencyId = this.safeString (splitAlias, 0);
-                baseId = currencyId.slice (0, -3);
-                quoteId = currencyId.slice (-3);
-                const splitId = id.split (currencyId);
-                const date = this.safeString (splitId, 1);
-                const rfc2616 = this.rfc2616 (date);
-                expiry = this.parseDate (rfc2616);
+                const currencyIds = this.safeString (splitAlias, 0);
+                baseId = currencyIds.slice (0, -3);
+                quoteId = currencyIds.slice (-3);
+                const splitId = id.split (currencyIds);
+                const expiryDate = this.safeString (splitId, 1);
+                expiry = this.parseExpiryDate (expiryDate);
                 type = 'future';
             }
             const base = this.safeCurrencyCode (baseId);
