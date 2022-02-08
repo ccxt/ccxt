@@ -43,7 +43,7 @@ module.exports = class lykke2 extends Exchange {
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
-                'fetchIndexOHLCV': true,
+                'fetchIndexOHLCV': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -52,7 +52,7 @@ module.exports = class lykke2 extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
-                'fetchOrderTrades': true,
+                'fetchOrderTrades': false,
                 'fetchPositions': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -521,13 +521,6 @@ module.exports = class lykke2 extends Exchange {
         const orderbook = this.safeValue (payload, 0, {});
         const timestamp = this.safeString (orderbook, 'timestamp');
         return this.parseOrderBook (orderbook, symbol, timestamp, 'bids', 'asks', 'p', 'v');
-    }
-
-    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'price': 'index',
-        };
-        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
     parseTrade (trade, market) {
