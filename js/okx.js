@@ -826,11 +826,10 @@ module.exports = class okx extends Exchange {
         if (contract) {
             symbol = symbol + ':' + settle;
             expiry = this.safeInteger (market, 'expTime');
-            if (expiry !== undefined) {
+            if (futures) {
                 const ymd = this.yymmdd (expiry);
                 symbol = symbol + '-' + ymd;
-            }
-            if (option) {
+            } else if (option) {
                 strikePrice = this.safeString (market, 'stk');
                 optionType = this.safeString (market, 'optType');
                 symbol = symbol + '-' + strikePrice + '-' + optionType;
