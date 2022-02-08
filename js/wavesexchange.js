@@ -356,30 +356,27 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     async calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        const settings = await this.matcherGetMatcherSettings ();
-        const customKeys = Object.keys (settings['orderFee']['composite']['custom']);
-        const markets = Object.keys (this.markets);
-        for (let i = 0; i < customKeys.length; i++) {
-            const key = customKeys[i];
-            for (let v = 0; v < markets.length; v++) {
-                const market = this.markets[markets[v]];
-                if (market['id'] === key) {
-                    console.log ('Custom Market:', v);
-                    break;
-                }
-            }
-        }
-        const dynamic = this.safeGetDynamic (settings);
-        const baseMatcherFee = this.safeString (dynamic, 'baseFee');
+        const response = await this.getFeesForAsset(symbol, side, amount, price);
+        // {
+        //     "base":{
+        //        "feeAssetId":"WAVES",
+        //        "matcherFee":"1000000"
+        //     },
+        //     "discount":{
+        //        "feeAssetId":"EMAMLxDnv3xiz8RXg8Btj33jcEw3wLczL3JKYYmuubpc",
+        //        "matcherFee":"4077612"
+        //     }
+        //  }
+        const base = this.safeValue(response, 'base');
+        const baseMatcherFee = this.safeString(base, 'matcherFee');
+        const wavesMatcherFee = this.currencyFromPrecision ('WAVES', baseMatcherFee);
         const amountAsString = this.numberToString (amount);
         const priceAsString = this.numberToString (price);
-        const wavesMatcherFee = this.currencyFromPrecision ('WAVES', baseMatcherFee);
         const feeCost = this.feeToPrecision (symbol, this.parseNumber (wavesMatcherFee));
         const feeRate = Precise.stringDiv (wavesMatcherFee, Precise.stringMul (amountAsString, priceAsString));
         return {
             'type': takerOrMaker,
             'currency': 'WAVES',
-            // To calculate the rate since Waves has a fixed fee.
             'rate': this.parseNumber (feeRate),
             'cost': this.parseNumber (feeCost),
         };
