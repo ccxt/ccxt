@@ -381,8 +381,7 @@ function exportKeywordsToPackageJson (exchanges) {
         keywords.add (ex.name)
     }
 
-    const uniqueKeywords = values (fromEntries (Array.from (keywords).map (s => [ s.toLowerCase (), s ])));
-    packageJSON.keywords = uniqueKeywords
+    packageJSON.keywords = values (fromEntries ([ ... keywords ].map (s => [ s.toLowerCase (), s ])));
     fs.writeFileSync ('./package.json', JSON.stringify (packageJSON, null, 2) + "\n")
 }
 
