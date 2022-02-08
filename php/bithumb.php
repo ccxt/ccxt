@@ -189,7 +189,6 @@ class bithumb extends Exchange {
                 }
                 $market = $data[$currencyId];
                 $base = $this->safe_currency_code($currencyId);
-                $symbol = $currencyId . '/' . $quote;
                 $active = true;
                 if (gettype($market) === 'array' && count(array_filter(array_keys($market), 'is_string')) == 0) {
                     $numElements = is_array($market) ? count($market) : 0;
@@ -199,18 +198,37 @@ class bithumb extends Exchange {
                 }
                 $entry = $this->deep_extend(array(
                     'id' => $currencyId,
-                    'symbol' => $symbol,
+                    'symbol' => $base . '/' . $quote,
                     'base' => $base,
                     'quote' => $quote,
-                    'info' => $market,
+                    'settle' => null,
+                    'baseId' => $currencyId,
+                    'quoteId' => null,
+                    'settleId' => null,
                     'type' => 'spot',
                     'spot' => true,
+                    'margin' => false,
+                    'swap' => false,
+                    'future' => false,
+                    'option' => false,
                     'active' => $active,
+                    'contract' => false,
+                    'linear' => null,
+                    'inverse' => null,
+                    'contractSize' => null,
+                    'expiry' => null,
+                    'expiryDateTime' => null,
+                    'strike' => null,
+                    'optionType' => null,
                     'precision' => array(
-                        'amount' => 4,
-                        'price' => 4,
+                        'price' => $this->parse_number('4'),
+                        'amount' => $this->parse_number('4'),
                     ),
                     'limits' => array(
+                        'leverage' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
                         'amount' => array(
                             'min' => null,
                             'max' => null,
@@ -221,8 +239,7 @@ class bithumb extends Exchange {
                         ),
                         'cost' => array(), // set via options
                     ),
-                    'baseId' => null,
-                    'quoteId' => null,
+                    'info' => $market,
                 ), $extension);
                 $result[] = $entry;
             }

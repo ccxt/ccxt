@@ -195,7 +195,6 @@ class bithumb(Exchange):
                     continue
                 market = data[currencyId]
                 base = self.safe_currency_code(currencyId)
-                symbol = currencyId + '/' + quote
                 active = True
                 if isinstance(market, list):
                     numElements = len(market)
@@ -203,18 +202,37 @@ class bithumb(Exchange):
                         active = False
                 entry = self.deep_extend({
                     'id': currencyId,
-                    'symbol': symbol,
+                    'symbol': base + '/' + quote,
                     'base': base,
                     'quote': quote,
-                    'info': market,
+                    'settle': None,
+                    'baseId': currencyId,
+                    'quoteId': None,
+                    'settleId': None,
                     'type': 'spot',
                     'spot': True,
+                    'margin': False,
+                    'swap': False,
+                    'future': False,
+                    'option': False,
                     'active': active,
+                    'contract': False,
+                    'linear': None,
+                    'inverse': None,
+                    'contractSize': None,
+                    'expiry': None,
+                    'expiryDateTime': None,
+                    'strike': None,
+                    'optionType': None,
                     'precision': {
-                        'amount': 4,
-                        'price': 4,
+                        'price': self.parse_number('4'),
+                        'amount': self.parse_number('4'),
                     },
                     'limits': {
+                        'leverage': {
+                            'min': None,
+                            'max': None,
+                        },
                         'amount': {
                             'min': None,
                             'max': None,
@@ -225,8 +243,7 @@ class bithumb(Exchange):
                         },
                         'cost': {},  # set via options
                     },
-                    'baseId': None,
-                    'quoteId': None,
+                    'info': market,
                 }, extension)
                 result.append(entry)
         return result
