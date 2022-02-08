@@ -599,7 +599,7 @@ module.exports = class lykke2 extends Exchange {
         }
         const request = {
             'AssetPairId': market['id'],
-            'offset': 0,
+            // 'offset': 0,
             'take': limit,
         };
         const response = await this.publicGetTradesPublicAssetPairId (this.extend (request, params));
@@ -866,7 +866,13 @@ module.exports = class lykke2 extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {};
+        const request = {
+            // 'offset': 0,
+            // 'take': 1,
+        };
+        if (limit !== undefined) {
+            request['take'] = limit;
+        }
         const response = await this.privateGetOrdersActive (this.extend (request, params));
         const payload = this.safeValue (response, 'payload');
         //
@@ -899,7 +905,13 @@ module.exports = class lykke2 extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {};
+        const request = {
+            // 'offset': 0,
+            // 'take': 1,
+        };
+        if (limit !== undefined) {
+            request['take'] = limit;
+        }
         const response = await this.privateGetOrdersClosed (this.extend (request, params));
         const payload = this.safeValue (response, 'payload');
         //
@@ -928,7 +940,12 @@ module.exports = class lykke2 extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {};
+        const request = {
+            // 'side': 'buy',
+            // 'offset': 0,
+            // 'take': 1,
+            // 'to': 0,
+        };
         let market = undefined;
         if (limit !== undefined) {
             request['take'] = limit; // How many maximum items have to be returned, max 1000 default 100.
@@ -936,6 +953,9 @@ module.exports = class lykke2 extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['assetPairId'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['from'] = since;
         }
         const response = await this.privateGetTrades (this.extend (request, params));
         const payload = this.safeValue (response, 'payload');
@@ -1081,11 +1101,11 @@ module.exports = class lykke2 extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (api === 'mobile') {
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
-            }
-        } else if (api === 'public') {
+        headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        };
+        if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
@@ -1096,11 +1116,7 @@ module.exports = class lykke2 extends Exchange {
                 }
             }
             this.checkRequiredCredentials ();
-            headers = {
-                'Authorization': 'Bearer ' + this.apiKey,
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            };
+            headers['Authorization'] = 'Bearer ' + this.apiKey;
             if (method === 'POST') {
                 if (Object.keys (params).length) {
                     body = this.json (params);
