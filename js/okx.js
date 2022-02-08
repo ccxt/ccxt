@@ -44,7 +44,7 @@ module.exports = class okx extends Exchange {
                 'fetchBorrowRates': true,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledOrders': true,
-                'fetchClosedOrder': undefined,
+                'fetchClosedOrder': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDeposit': undefined,
@@ -2385,6 +2385,24 @@ module.exports = class okx extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
+    }
+
+    async fetchClosedOrder (id, symbol = undefined, params = {}) {
+        if (id === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrder() requires an id argument');
+        }
+        const request = {};
+        const orders = await this.fetchClosedOrders (symbol, undefined, undefined, this.extend (request, params));
+        const result = [];
+        for (let i = 0; i < orders.length; i++) {
+            if (orders[i].id === id) {
+                result.push (orders[i]);
+            }
+        }
+        if (result.length === 0) {
+            throw new OrderNotFound (this.id + ' order ' + id + ' not found');
+        }
+        return result;
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
