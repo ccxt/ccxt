@@ -355,8 +355,6 @@ class bitmex extends Exchange {
             $positionId = $this->safe_string_2($market, 'positionCurrency', 'quoteCurrency');
             $position = $this->safe_currency_code($positionId);
             $positionIsQuote = ($position === $quote);
-            $lotSize = $this->safe_number($market, 'lotSize');
-            $tickSize = $this->safe_number($market, 'tickSize');
             $maxOrderQty = $this->safe_number($market, 'maxOrderQty');
             $contract = !$index;
             $initMargin = $this->safe_string($market, 'initMargin', '1');
@@ -378,20 +376,20 @@ class bitmex extends Exchange {
                 'option' => false,
                 'prediction' => $prediction,
                 'index' => $index,
+                'active' => $active,
                 'contract' => $contract,
                 'linear' => $contract ? !$inverse : null,
                 'inverse' => $contract ? $inverse : null,
                 'taker' => $this->safe_number($market, 'takerFee'),
                 'maker' => $this->safe_number($market, 'makerFee'),
                 'contractSize' => $this->safe_number($market, 'multiplier'),
-                'active' => $active,
                 'expiry' => $expiry,
                 'expiryDatetime' => $expiryDatetime,
                 'strike' => $this->safe_number($market, 'optionStrikePrice'),
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $lotSize,
-                    'price' => $tickSize,
+                    'price' => $this->safe_number($market, 'tickSize'),
+                    'amount' => $this->safe_number($market, 'lotSize'),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -399,15 +397,15 @@ class bitmex extends Exchange {
                         'max' => $contract ? $maxLeverage : null,
                     ),
                     'amount' => array(
-                        'min' => $positionIsQuote ? null : $lotSize,
+                        'min' => null,
                         'max' => $positionIsQuote ? null : $maxOrderQty,
                     ),
                     'price' => array(
-                        'min' => $tickSize,
+                        'min' => null,
                         'max' => $this->safe_number($market, 'maxPrice'),
                     ),
                     'cost' => array(
-                        'min' => $positionIsQuote ? $lotSize : null,
+                        'min' => null,
                         'max' => $positionIsQuote ? $maxOrderQty : null,
                     ),
                 ),

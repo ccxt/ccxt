@@ -359,8 +359,6 @@ class bitmex(Exchange):
             positionId = self.safe_string_2(market, 'positionCurrency', 'quoteCurrency')
             position = self.safe_currency_code(positionId)
             positionIsQuote = (position == quote)
-            lotSize = self.safe_number(market, 'lotSize')
-            tickSize = self.safe_number(market, 'tickSize')
             maxOrderQty = self.safe_number(market, 'maxOrderQty')
             contract = not index
             initMargin = self.safe_string(market, 'initMargin', '1')
@@ -382,20 +380,20 @@ class bitmex(Exchange):
                 'option': False,
                 'prediction': prediction,
                 'index': index,
+                'active': active,
                 'contract': contract,
                 'linear': not inverse if contract else None,
                 'inverse': inverse if contract else None,
                 'taker': self.safe_number(market, 'takerFee'),
                 'maker': self.safe_number(market, 'makerFee'),
                 'contractSize': self.safe_number(market, 'multiplier'),
-                'active': active,
                 'expiry': expiry,
                 'expiryDatetime': expiryDatetime,
                 'strike': self.safe_number(market, 'optionStrikePrice'),
                 'optionType': None,
                 'precision': {
-                    'amount': lotSize,
-                    'price': tickSize,
+                    'price': self.safe_number(market, 'tickSize'),
+                    'amount': self.safe_number(market, 'lotSize'),
                 },
                 'limits': {
                     'leverage': {
@@ -403,15 +401,15 @@ class bitmex(Exchange):
                         'max': maxLeverage if contract else None,
                     },
                     'amount': {
-                        'min': None if positionIsQuote else lotSize,
+                        'min': None,
                         'max': None if positionIsQuote else maxOrderQty,
                     },
                     'price': {
-                        'min': tickSize,
+                        'min': None,
                         'max': self.safe_number(market, 'maxPrice'),
                     },
                     'cost': {
-                        'min': lotSize if positionIsQuote else None,
+                        'min': None,
                         'max': maxOrderQty if positionIsQuote else None,
                     },
                 },
