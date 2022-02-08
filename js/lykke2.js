@@ -553,8 +553,8 @@ module.exports = class lykke2 extends Exchange {
         //         }
         //
         const marketId = this.safeString (trade, 'assetPairId');
-        const symbol = this.safeSymbol (marketId, market);
         market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const id = this.safeString2 (trade, 'id', 'id');
         const orderId = this.safeString (trade, 'orderId');
         const timestamp = this.safeInteger (trade, 'timestamp');
