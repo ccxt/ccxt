@@ -61,6 +61,7 @@ module.exports = class bitget3 extends Exchange {
                     'api': 'https://api.{hostname}',
                     'capi': 'https://api.{hostname}',
                     'swap': 'https://api.{hostname}',
+                    'spot': 'https://api.{hostname}',
                 },
                 'www': 'https://www.bitget.com',
                 'doc': [
@@ -162,6 +163,17 @@ module.exports = class bitget3 extends Exchange {
                         'order/cancel_plan',
                         'position/changeHoldModel',
                         'trace/closeTrackOrder',
+                    ],
+                },
+                'spot': {
+                    'get': [
+                        'public/currencies',
+                        'account/transferRecords', // fetch withdrawals
+                    ],
+                    'post': [
+                        'account/bills', // fetch deposits
+                        'trade/orders', // create ordertrade
+                        'trade/history',
                     ],
                 },
             },
@@ -923,7 +935,7 @@ module.exports = class bitget3 extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const response = await this.dataGetCommonCurrencys (params);
+        const response = await this.spotGetPublicCurrencies (params);
         //
         //     {
         //         "status":"ok",
@@ -945,12 +957,15 @@ module.exports = class bitget3 extends Exchange {
         const result = {};
         const data = this.safeValue (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
-            const id = data[i];
-            const code = this.safeCurrencyCode (id);
+            const currency = data[i];
+            const id = this.safeString (currency, 'coinName');
+            const coinId = this.safeString (currency, 'coinId');
+            const code = this.safeString (currency, 'coinName');
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': id,
+                'coinId': coinId,
                 'type': undefined,
                 'name': undefined,
                 'active': undefined,
@@ -2444,75 +2459,71 @@ module.exports = class bitget3 extends Exchange {
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a currency code argument');
-        }
+        // if (code === undefined) {
+        //     throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a currency code argument');
+        // }
         await this.loadMarkets ();
-        const currency = this.currency (code);
+        let currency = undefined;
         const request = {
-            'currency': currency['id'],
-            'method': 'deposit_withdraw',
             'type': 'deposit',
-            'size': 12,
         };
-        const response = await this.apiGetOrderDepositWithdraw (this.extend (request, params));
-        //
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coinId'] = currency['coinId'];
+        }
+        const response = await this.spotPostAccountBills (this.extend (request, params));
+        // {
+        //   "code": "200",
+        //   "message": "success",
+        //   "data": [
         //     {
-        //         "status": "ok",
-        //         "data": [
-        //             {
-        //                 "id": 1171,
-        //                 "type": "deposit",
-        //                 "currency": "usdt",
-        //                 "tx_hash": "ed03094b84eafbe4bc16e7ef766ee959885ee5bcb265872baaa9c64e1cf86c2b",
-        //                 "amount": 7.457467,
-        //                 "address": "rae93V8d2mdoUQHwBDBdM4NHCMehRJAsbm",
-        //                 "address_tag": "100040",
-        //                 "fee": 0,
-        //                 "state": "safe",
-        //                 "created_at": 1510912472199,
-        //                 "updated_at": 1511145876575
-        //             },
-        //         ]
+        //       "cTime": "1622697148",
+        //       "coinId": "22",
+        //       "coinName": "usdt",
+        //       "groupType": "deposit",
+        //       "bizType": "transfer-in",
+        //       "quantity": "1",
+        //       "balance": "1",
+        //       "fees": "0",
+        //       "billId": "1291"
         //     }
-        //
+        //   ]
+        // }
         const data = this.safeValue (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a currency code argument');
-        }
+        // if (code === undefined) {
+        //     throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a currency code argument');
+        // }
         await this.loadMarkets ();
-        const currency = this.currency (code);
+        let currency = undefined;
         const request = {
-            'currency': currency['id'],
-            'method': 'deposit_withdraw',
             'type': 'withdraw',
-            'size': 12,
         };
-        const response = await this.apiGetOrderDepositWithdraw (this.extend (request, params));
-        //
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coinId'] = currency['coinId'];
+        }
+        const response = await this.spotGetAccountTransferRecords (this.extend (request, params));
+        // {
+        //     "code":"00000",
+        //     "data":[
         //     {
-        //         "status": "ok",
-        //         "data": [
-        //             {
-        //                 "id": 1171,
-        //                 "type": "withdraw",
-        //                 "currency": "usdt",
-        //                 "tx_hash": "ed03094b84eafbe4bc16e7ef766ee959885ee5bcb265872baaa9c64e1cf86c2b",
-        //                 "amount": 7.457467,
-        //                 "address": "rae93V8d2mdoUQHwBDBdM4NHCMehRJAsbm",
-        //                 "address_tag": "100040",
-        //                 "fee": 0,
-        //                 "state": "safe",
-        //                 "created_at": 1510912472199,
-        //                 "updated_at": 1511145876575
-        //             },
-        //         ]
+        //         "coinName":"btc",
+        //         "status":"SUCCESS",
+        //         "toType":"USD_MIX",
+        //         "toSymbol":"",
+        //         "fromType":"CONTRACT",
+        //         "fromSymbol":"BTC/USD",
+        //         "amount":"1000.00000000",
+        //         "tradeTime":"1631070374488"
         //     }
-        //
+        //     ],
+        //     "msg":"success",
+        //     "requestTime":1631608142260
+        // };
         const data = this.safeValue (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit, params);
     }
@@ -2554,7 +2565,7 @@ module.exports = class bitget3 extends Exchange {
         //         "updated_at": 1511145876575
         //     }
         //
-        const id = this.safeString (transaction, 'id');
+        const id = this.safeString (transaction, 'billId');
         const address = this.safeString (transaction, 'address');
         const tag = this.safeString (transaction, 'address_tag');
         const tagFrom = undefined;
@@ -2567,12 +2578,12 @@ module.exports = class bitget3 extends Exchange {
         } else if (type === 'deposit') {
             type = 'deposit';
         }
-        const currencyId = this.safeString (transaction, 'currency');
+        const currencyId = this.safeString (transaction, 'coinName');
         const code = this.safeCurrencyCode (currencyId);
         const amount = this.safeNumber (transaction, 'amount');
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const txid = this.safeString (transaction, 'tx_hash');
-        const timestamp = this.safeInteger (transaction, 'created_at');
+        const timestamp = this.safeInteger2 (transaction, 'cTime', 'tradeTime');
         const updated = this.safeInteger (transaction, 'updated_at');
         const feeCost = this.safeNumber (transaction, 'fee');
         let fee = undefined;
@@ -2627,7 +2638,7 @@ module.exports = class bitget3 extends Exchange {
         //     size false string Query record size 100 <=100
         //
         const request = {
-            'symbol': market['id'],
+            'symbol': 'BTCUSDT_SPBL',
             'method': 'matchresults',
             // 'types': 'buy-market,sell-market,buy-limit,sell-limit',
             // 'start_date': this.yyyymmdd (since),
@@ -2643,26 +2654,28 @@ module.exports = class bitget3 extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit; // default 100, max 100
         }
-        const response = await this.apiPostOrderMatchresults (this.extend (request, query));
-        //
+        const response = await this.spotPostTradeHistory (this.extend (request, query));
+        // {
+        //   "code": "200",
+        //   "message": "success",
+        //   "data": [
         //     {
-        //         "status": "ok",
-        //         "data": [
-        //             {
-        //                 "id": 29555,
-        //                 "order_id": 59378,
-        //                 "match_id": 59335,
-        //                 "symbol": "eth_usdt",
-        //                 "type": "buy-limit",
-        //                 "source": "api",
-        //                 "price": "100.1000000000",
-        //                 "filled_amount": "0.9845000000",
-        //                 "filled_fees": "0.0019690000",
-        //                 "created_at": 1494901400487
-        //             }
-        //         ]
+        //       "accountId": "10012",
+        //       "symbol": "btcusdt_spbl",
+        //       "orderId": "2222222",
+        //       "clientOrderId": "xxxxxxx",
+        //       "price": "34982.12",
+        //       "quantity": "1",
+        //       "orderType": "limit",
+        //       "side": "buy",
+        //       "status": "new",
+        //       "fillPrice": "34982.12",
+        //       "fillQuantity": "1",
+        //       "fillTotalAmount": "34982.12",
+        //       "cTime": "1622697148"
         //     }
-        //
+        //   ]
+        // }
         const data = this.safeValue (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
@@ -2799,6 +2812,8 @@ module.exports = class bitget3 extends Exchange {
         let request = '/' + this.implodeParams (path, params);
         if ((api === 'capi') || (api === 'swap')) {
             request = '/api/swap/' + this.version + request;
+        } else if (api === 'spot') {
+            request = '/api/spot/v1' + request;
         } else {
             request = '/' + api + '/v1' + request;
         }
@@ -2808,7 +2823,7 @@ module.exports = class bitget3 extends Exchange {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
-        } else if (api === 'swap') {
+        } else if (api === 'swap' || (api === 'spot')) {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
             let auth = timestamp + method + request;
