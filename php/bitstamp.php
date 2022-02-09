@@ -339,6 +339,20 @@ class bitstamp extends Exchange {
 
     public function fetch_markets($params = array ()) {
         $response = $this->fetch_markets_from_cache($params);
+        //
+        //     array(
+        //         {
+        //             "trading" => "Enabled",
+        //             "base_decimals" => 8,
+        //             "url_symbol" => "btcusd",
+        //             "name" => "BTC/USD",
+        //             "instant_and_market_orders" => "Enabled",
+        //             "minimum_order" => "20.0 USD",
+        //             "counter_decimals" => 2,
+        //             "description" => "Bitcoin / U.S. dollar"
+        //         }
+        //     )
+        //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $market = $response[$i];
@@ -377,8 +391,8 @@ class bitstamp extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'counter_decimals'))),
-                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'base_decimals'))),
+                    'price' => $this->safe_integer($market, 'counter_decimals'),
+                    'amount' => $this->safe_integer($market, 'base_decimals'),
                 ),
                 'limits' => array(
                     'leverage' => array(
