@@ -231,8 +231,8 @@ class bitflyer(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': None,
                     'amount': None,
+                    'price': None,
                 },
                 'limits': {
                     'leverage': {

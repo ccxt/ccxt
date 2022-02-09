@@ -200,16 +200,16 @@ class wazirx extends Exchange {
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                'maker' => $this->parse_number($makerString),
                 'taker' => $this->parse_number($takerString),
+                'maker' => $this->parse_number($makerString),
                 'contractSize' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($entry, 'quoteAssetPrecision'),
                     'amount' => $this->safe_integer($entry, 'baseAssetPrecision'),
+                    'price' => $this->safe_integer($entry, 'quoteAssetPrecision'),
                 ),
                 'limits' => array(
                     'leverage' => array(

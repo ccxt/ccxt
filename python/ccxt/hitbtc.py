@@ -343,8 +343,8 @@ class hitbtc(Exchange):
                 'optionType': None,
                 'feeCurrency': self.safe_currency_code(feeCurrencyId),
                 'precision': {
-                    'price': step,
                     'amount': lot,
+                    'price': step,
                 },
                 'limits': {
                     'leverage': {

@@ -365,8 +365,8 @@ class crex24(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_number(market, 'tickSize'),
                     'amount': self.safe_number(market, 'volumeIncrement'),
+                    'price': self.safe_number(market, 'tickSize'),
                 },
                 'limits': {
                     'leverage': {

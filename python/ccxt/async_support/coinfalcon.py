@@ -172,8 +172,8 @@ class coinfalcon(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(market, 'price_precision'),
                     'amount': self.safe_integer(market, 'size_precision'),
+                    'price': self.safe_integer(market, 'price_precision'),
                 },
                 'limits': {
                     'leverage': {

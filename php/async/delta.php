@@ -455,8 +455,8 @@ class delta extends Exchange {
                 'strike' => $this->parse_number($strike),
                 'optionType' => $optionType,
                 'precision' => array(
-                    'price' => $this->safe_number($market, 'tick_size'),
                     'amount' => $this->parse_number('1'), // number of contracts
+                    'price' => $this->safe_number($market, 'tick_size'),
                 ),
                 'limits' => array(
                     'leverage' => array(

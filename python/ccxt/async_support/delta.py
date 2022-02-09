@@ -451,8 +451,8 @@ class delta(Exchange):
                 'strike': self.parse_number(strike),
                 'optionType': optionType,
                 'precision': {
-                    'price': self.safe_number(market, 'tick_size'),
                     'amount': self.parse_number('1'),  # number of contracts
+                    'price': self.safe_number(market, 'tick_size'),
                 },
                 'limits': {
                     'leverage': {

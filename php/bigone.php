@@ -204,8 +204,8 @@ class bigone extends Exchange {
                 'type' => 'spot',
                 'spot' => true,
                 'margin' => false,
-                'future' => false,
                 'swap' => false,
+                'future' => false,
                 'option' => false,
                 'active' => true,
                 'contract' => false,
@@ -217,8 +217,8 @@ class bigone extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($market, 'quote_scale'),
                     'amount' => $this->safe_integer($market, 'base_scale'),
+                    'price' => $this->safe_integer($market, 'quote_scale'),
                 ),
                 'limits' => array(
                     'leverage' => array(

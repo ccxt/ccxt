@@ -357,8 +357,8 @@ class currencycom(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': precisionPrice,
                     'amount': precisionAmount,
+                    'price': precisionPrice,
                 },
                 'limits': {
                     'leverage': {

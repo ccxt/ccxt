@@ -885,8 +885,8 @@ class okx(Exchange):
             'strike': strikePrice,
             'optionType': optionType,
             'precision': {
-                'price': precisionPrice,
                 'amount': self.safe_number(market, 'lotSz'),
+                'price': precisionPrice,
             },
             'limits': {
                 'leverage': {

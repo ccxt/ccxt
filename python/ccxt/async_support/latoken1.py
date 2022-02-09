@@ -228,8 +228,8 @@ class latoken1(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': int(pricePrecisionString),
                     'amount': self.safe_integer(market, 'amountPrecision'),
+                    'price': int(pricePrecisionString),
                 },
                 'limits': {
                     'leverage': {

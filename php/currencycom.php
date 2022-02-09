@@ -363,8 +363,8 @@ class currencycom extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $precisionPrice,
                     'amount' => $precisionAmount,
+                    'price' => $precisionPrice,
                 ),
                 'limits' => array(
                     'leverage' => array(

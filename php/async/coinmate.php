@@ -255,11 +255,11 @@ class coinmate extends Exchange {
                 'quoteId' => $quoteId,
                 'settleId' => null,
                 'type' => 'spot',
+                'spot' => true,
                 'margin' => false,
                 'swap' => false,
                 'future' => false,
                 'option' => false,
-                'spot' => true,
                 'active' => null,
                 'contract' => false,
                 'linear' => null,
@@ -272,8 +272,8 @@ class coinmate extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($market, 'priceDecimals'),
                     'amount' => $this->safe_integer($market, 'lotDecimals'),
+                    'price' => $this->safe_integer($market, 'priceDecimals'),
                 ),
                 'limits' => array(
                     'leverage' => array(

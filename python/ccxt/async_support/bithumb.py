@@ -225,8 +225,8 @@ class bithumb(Exchange):
                     'strike': None,
                     'optionType': None,
                     'precision': {
-                        'price': int('4'),
                         'amount': int('4'),
+                        'price': int('4'),
                     },
                     'limits': {
                         'leverage': {

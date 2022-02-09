@@ -621,8 +621,8 @@ class ftx extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_number($market, 'priceIncrement'),
                     'amount' => $this->safe_number($market, 'sizeIncrement'),
+                    'price' => $this->safe_number($market, 'priceIncrement'),
                 ),
                 'limits' => array(
                     'leverage' => array(

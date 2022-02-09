@@ -589,8 +589,8 @@ class kucoin(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.precision_from_string(self.safe_string(market, 'priceIncrement')),
                     'amount': self.precision_from_string(self.safe_string(market, 'baseIncrement')),
+                    'price': self.precision_from_string(self.safe_string(market, 'priceIncrement')),
                 },
                 'limits': {
                     'leverage': {

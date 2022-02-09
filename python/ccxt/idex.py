@@ -243,8 +243,8 @@ class idex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': int(quotePrecisionString),
                     'amount': int(basePrecisionString),
+                    'price': int(quotePrecisionString),
                 },
                 'limits': {
                     'leverage': {

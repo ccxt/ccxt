@@ -516,12 +516,12 @@ class aax(Exchange):
                 'optionType': None,
                 'quanto': quanto,
                 'precision': {
-                    'price': self.safe_number(market, 'tickSize'),
                     'amount': self.safe_number(market, 'lotSize'),
+                    'price': self.safe_number(market, 'tickSize'),
                 },
                 'limits': {
                     'leverage': {
-                        'min': self.parse_number('1'),
+                        'min': None,
                         'max': None,
                     },
                     'amount': {

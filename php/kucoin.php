@@ -581,8 +581,8 @@ class kucoin extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->precision_from_string($this->safe_string($market, 'priceIncrement')),
                     'amount' => $this->precision_from_string($this->safe_string($market, 'baseIncrement')),
+                    'price' => $this->precision_from_string($this->safe_string($market, 'priceIncrement')),
                 ),
                 'limits' => array(
                     'leverage' => array(

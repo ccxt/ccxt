@@ -610,11 +610,11 @@ class bitrue(Exchange):
                 'contractSize': None,
                 'expiry': None,
                 'expiryDatetime': None,
-                'optionType': None,
                 'strike': None,
+                'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(priceFilter, 'priceScale', priceDefault),
                     'amount': self.safe_integer(amountFilter, 'volumeScale', amountDefault),
+                    'price': self.safe_integer(priceFilter, 'priceScale', priceDefault),
                     'base': self.safe_integer(market, 'baseAssetPrecision'),
                     'quote': self.safe_integer(market, 'quotePrecision'),
                 },

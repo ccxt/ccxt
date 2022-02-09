@@ -344,8 +344,8 @@ class gemini(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_number(pricePrecisionParts, 0),
                     'amount': self.safe_number(amountPrecisionParts, 0),
+                    'price': self.safe_number(pricePrecisionParts, 0),
                 },
                 'limits': {
                     'leverage': {

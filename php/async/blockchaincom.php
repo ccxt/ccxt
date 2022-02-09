@@ -265,8 +265,8 @@ class blockchaincom extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $pricePrecision,
                     'amount' => $amountPrecision,
+                    'price' => $pricePrecision,
                 ),
                 'limits' => array(
                     'leverage' => array(

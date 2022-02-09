@@ -407,8 +407,8 @@ class bitstamp(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(market, 'counter_decimals'),
                     'amount': self.safe_integer(market, 'base_decimals'),
+                    'price': self.safe_integer(market, 'counter_decimals'),
                 },
                 'limits': {
                     'leverage': {

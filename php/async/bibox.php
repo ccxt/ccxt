@@ -238,8 +238,8 @@ class bibox extends Exchange {
                 'type' => $type,
                 'spot' => $spot,
                 'margin' => false,
-                'future' => false,
                 'swap' => false,
+                'future' => false,
                 'option' => false,
                 'active' => null,
                 'contract' => false,
@@ -252,8 +252,8 @@ class bibox extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($market, 'decimal'),
                     'amount' => $this->safe_integer($market, 'amount_scale'),
+                    'price' => $this->safe_integer($market, 'decimal'),
                 ),
                 'limits' => array(
                     'leverage' => array(
