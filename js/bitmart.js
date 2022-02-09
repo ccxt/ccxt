@@ -605,7 +605,14 @@ module.exports = class bitmart extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        return await this.fetchSpotMarkets ();
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
+        const lowerCaseType = type.toLowerCase ();
+        const method = this.getSupportedMapping (lowerCaseType, {
+            'spot': 'fetchSpotMarkets',
+            'margin': 'fetchSpotMarkets',
+            'swap': 'fetchContractMarkets',
+        });
+        return await this[method] (query);
     }
 
     async fetchFundingFee (code, params = {}) {
