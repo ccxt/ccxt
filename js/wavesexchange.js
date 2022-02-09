@@ -1168,15 +1168,15 @@ module.exports = class wavesexchange extends Exchange {
         let matcherFeeAssetId = undefined;
         let matcherFee = undefined;
         // check first if user supplied asset fee is valid
-        if ('feeAssetId' in params) {
-            matcherFeeAssetId = params['feeAssetId'];
-        } else if ('feeAssetId' in this.options) {
-            matcherFeeAssetId = this.options['feeAssetId'];
+        if ('feeAsset' in params || 'feeAsset' in this.options) {
+            const feeAsset = this.safeString (params, 'feeAsset', this.options['feeAsset']);
+            const feeCurrency = this.currency (feeAsset);
+            matcherFeeAssetId = this.safeString (feeCurrency, 'id');
         }
         const balances = await this.fetchBalance ();
         if (matcherFeeAssetId !== undefined) {
             if (baseFeeAssetId !== matcherFeeAssetId && discountFeeAssetId !== matcherFeeAssetId) {
-                throw new InvalidOrder (this.id + ' asset fee id must be ' + baseFeeAssetId + ' or ' + discountFeeAssetId);
+                throw new InvalidOrder (this.id + ' asset fee must be ' + baseFeeAsset + ' or ' + discountFeeAsset);
             }
             const matcherFeeAsset = this.safeCurrencyCode (matcherFeeAssetId);
             const rawMatcherFee = (matcherFeeAssetId === baseFeeAssetId) ? baseMatcherFee : discountMatcherFee;
