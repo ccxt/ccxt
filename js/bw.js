@@ -183,47 +183,46 @@ module.exports = class bw extends Exchange {
             quote = this.safeCurrencyCode (quote);
             const baseId = this.safeString (market, 'sellerCurrencyId');
             const quoteId = this.safeString (market, 'buyerCurrencyId');
-            const baseNumericId = parseInt (baseId);
-            const quoteNumericId = parseInt (quoteId);
-            const symbol = base + '/' + quote;
             const state = this.safeInteger (market, 'state');
-            const active = (state === 1);
             const fee = this.safeNumber (market, 'defaultFee');
             result.push ({
                 'id': id,
                 'numericId': numericId,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'baseNumericId': baseNumericId,
-                'quoteNumericId': quoteNumericId,
+                'settleId': undefined,
+                'baseNumericId': parseInt (baseId),
+                'quoteNumericId': parseInt (quoteId),
                 'type': 'spot',
                 'spot': true,
                 'margin': false,
-                'future': false,
                 'swap': false,
+                'future': false,
                 'option': false,
-                'optionType': undefined,
-                'strike': undefined,
+                'active': (state === 1),
+                'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'contract': false,
+                'taker': fee,
+                'maker': fee,
                 'contractSize': undefined,
-                'settle': undefined,
-                'settleId': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
-                'active': active,
-                'maker': fee,
-                'taker': fee,
-                'info': market,
+                'strike': undefined,
+                'optionType': undefined,
                 'precision': {
                     'amount': this.safeInteger (market, 'amountDecimal'),
                     'price': this.safeInteger (market, 'priceDecimal'),
                 },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'minAmount'),
                         'max': undefined,
@@ -237,6 +236,7 @@ module.exports = class bw extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': market,
             });
         }
         return result;
