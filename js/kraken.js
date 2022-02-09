@@ -481,6 +481,7 @@ module.exports = class kraken extends Exchange {
                 'maker': maker,
                 'taker': taker,
                 'contractSize': undefined,
+                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,

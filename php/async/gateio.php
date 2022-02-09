@@ -734,6 +734,7 @@ class gateio extends Exchange {
                         'taker' => $this->parse_number(Precise::string_div($takerPercent, '100')), // Fee is in %, so divide by 100
                         'maker' => $this->parse_number(Precise::string_div($makerPercent, '100')),
                         'contractSize' => $this->safe_number($market, 'quanto_multiplier'),
+                        'maintenanceMarginRate' => $this->safe_number($market, 'maintenance_rate'),
                         'expiry' => $expiry,
                         'expiryDatetime' => $this->iso8601($expiry),
                         'strike' => null,
@@ -830,6 +831,7 @@ class gateio extends Exchange {
                     'taker' => $this->parse_number(Precise::string_div($takerPercent, '100')),
                     'maker' => $this->parse_number(Precise::string_div($makerPercent, '100')),
                     'contractSize' => null,
+                    'maintenanceMarginRate' => null,
                     'expiry' => null,
                     'expiryDatetime' => null,
                     'strike' => null,

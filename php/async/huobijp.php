@@ -475,6 +475,7 @@ class huobijp extends Exchange {
                 'taker' => $fee,
                 'maker' => $fee,
                 'contractSize' => null,
+                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,

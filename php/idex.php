@@ -231,6 +231,7 @@ class idex extends Exchange {
                 'inverse' => null,
                 'taker' => $taker,
                 'maker' => $maker,
+                'maintenanceMarginRate' => null,
                 'contractSize' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,

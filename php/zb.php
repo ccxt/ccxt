@@ -288,18 +288,19 @@ class zb extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
+                'active' => true,
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
                 'contractSize' => null,
-                'active' => true,
+                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => intval($amountPrecisionString),
                     'price' => intval($pricePrecisionString),
+                    'amount' => intval($amountPrecisionString),
                 ),
                 'limits' => array(
                     'leverage' => array(

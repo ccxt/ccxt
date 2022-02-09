@@ -902,6 +902,7 @@ class bybit extends Exchange {
                 'option' => $option,
                 'linear' => $linear,
                 'inverse' => $inverse,
+                'maintenanceMarginRate' => null,
                 'limits' => array(
                     'amount' => array(
                         'min' => $this->safe_number($lotSizeFilter, 'min_trading_qty'),

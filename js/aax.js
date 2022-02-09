@@ -496,6 +496,7 @@ module.exports = class aax extends Exchange {
                 'taker': this.safeNumber (market, 'takerFee'),
                 'maker': this.safeNumber (market, 'makerFee'),
                 'contractSize': contractSize,
+                'maintenanceMarginRate': swap ? this.safeNumber (market, 'mmRate') : undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,

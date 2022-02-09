@@ -222,47 +222,60 @@ class buda extends Exchange {
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
-            $id = $this->safe_string($market, 'id');
             $baseId = $this->safe_string($market, 'base_currency');
             $quoteId = $this->safe_string($market, 'quote_currency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $baseInfo = yield $this->fetch_currency_info($baseId, $currencies);
             $quoteInfo = yield $this->fetch_currency_info($quoteId, $currencies);
-            $symbol = $base . '/' . $quote;
             $pricePrecisionString = $this->safe_string($quoteInfo, 'input_decimals');
-            $priceLimit = $this->parse_precision($pricePrecisionString);
-            $precision = array(
-                'amount' => $this->safe_integer($baseInfo, 'input_decimals'),
-                'price' => intval($pricePrecisionString),
-            );
             $minimumOrderAmount = $this->safe_value($market, 'minimum_order_amount', array());
-            $limits = array(
-                'amount' => array(
-                    'min' => $this->safe_number($minimumOrderAmount, 0),
-                    'max' => null,
-                ),
-                'price' => array(
-                    'min' => $this->parse_number($priceLimit),
-                    'max' => null,
-                ),
-                'cost' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-            );
             $result[] = array(
-                'id' => $id,
-                'symbol' => $symbol,
+                'id' => $this->safe_string($market, 'id'),
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
                 'active' => true,
-                'precision' => $precision,
-                'limits' => $limits,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->safe_integer($baseInfo, 'input_decimals'),
+                    'price' => intval($pricePrecisionString),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => $this->safe_number($minimumOrderAmount, 0),
+                        'max' => null,
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
                 'info' => $market,
             );
         }

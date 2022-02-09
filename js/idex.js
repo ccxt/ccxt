@@ -228,6 +228,7 @@ module.exports = class idex extends Exchange {
                 'inverse': undefined,
                 'taker': taker,
                 'maker': maker,
+                'maintenanceMarginRate': undefined,
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,

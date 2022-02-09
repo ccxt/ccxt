@@ -502,6 +502,7 @@ class kraken(Exchange):
                 'maker': maker,
                 'taker': taker,
                 'contractSize': None,
+                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,

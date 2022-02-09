@@ -394,6 +394,7 @@ class hitbtc3 extends Exchange {
                 'taker' => $this->safe_number($market, 'take_rate'),
                 'maker' => $this->safe_number($market, 'make_rate'),
                 'contractSize' => $contractSize,
+                'maintenanceMarginRate' => null,
                 'expiry' => $expiry,
                 'expiryDatetime' => null,
                 'strike' => null,

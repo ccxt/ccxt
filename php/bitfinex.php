@@ -500,7 +500,7 @@ class bitfinex extends Exchange {
                     // https://docs.bitfinex.com/docs/introduction#amount-precision
                     // The amount field allows up to 8 decimals.
                     // Anything exceeding this will be rounded to the 8th decimal.
-                    'amount' => $this->parse_number('8'),
+                    'amount' => intval('8'),
                 ),
                 'limits' => array(
                     'leverage' => array(
