@@ -2601,8 +2601,12 @@ module.exports = class binance extends Exchange {
         const side = this.safeStringLower (order, 'side');
         const fills = this.safeValue (order, 'fills', []);
         const clientOrderId = this.safeString (order, 'clientOrderId');
-        const timeInForce = this.safeString (order, 'timeInForce');
-        const postOnly = (type === 'limit_maker') || (timeInForce === 'GTX');
+        let timeInForce = this.safeString (order, 'timeInForce');
+        if (timeInForce === 'GTX') {
+            // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
+            timeInForce = 'PO';
+        }
+        const postOnly = (type === 'limit_maker') || (timeInForce === 'PO');
         if (type === 'limit_maker') {
             type = 'limit';
         }
