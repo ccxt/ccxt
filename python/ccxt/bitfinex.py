@@ -508,7 +508,7 @@ class bitfinex(Exchange):
                     # https://docs.bitfinex.com/docs/introduction#amount-precision
                     # The amount field allows up to 8 decimals.
                     # Anything exceeding self will be rounded to the 8th decimal.
-                    'amount': self.parse_number('8'),
+                    'amount': int('8'),
                 },
                 'limits': {
                     'leverage': {
