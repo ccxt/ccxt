@@ -471,8 +471,8 @@ module.exports = class bitmart extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.parsePrecision (this.safeString (market, 'price_max_precision')),
                     'amount': this.safeNumber (market, 'base_min_size'),
+                    'price': this.parsePrecision (this.safeString (market, 'price_max_precision')),
                 },
                 'limits': {
                     'leverage': {
@@ -592,7 +592,7 @@ module.exports = class bitmart extends Exchange {
     async fetchMarkets (params = {}) {
         const spot = await this.fetchSpotMarkets (params);
         const contract = await this.fetchContractMarkets (params);
-        return spot.concat (contract);
+        return this.arrayConcat (spot, contract);
     }
 
     async fetchFundingFee (code, params = {}) {
