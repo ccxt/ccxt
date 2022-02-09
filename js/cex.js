@@ -356,7 +356,7 @@ module.exports = class cex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (Precise.stringSub (baseCcyPrecision, baseCcyScale)),
+                    'amount': parseInt (Precise.stringSub (baseCcyPrecision, baseCcyScale)),
                     'price': pricePrecision,
                 },
                 'limits': {
