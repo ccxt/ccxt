@@ -396,7 +396,7 @@ module.exports = class ascendex extends Exchange {
                 'precision': parseInt (precision),
                 'limits': {
                     'amount': {
-                        'min': this.parsePrecision (precision),
+                        'min': this.parseNumber (this.parsePrecision (precision)),
                         'max': undefined,
                     },
                     'withdraw': {

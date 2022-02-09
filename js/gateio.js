@@ -829,8 +829,8 @@ module.exports = class gateio extends Exchange {
                     'strike': undefined,
                     'optionType': undefined,
                     'precision': {
-                        'price': this.parsePrecision (pricePrecisionString),
-                        'amount': this.parsePrecision (amountPrecisionString),
+                        'price': this.parseNumber (this.parsePrecision (pricePrecisionString)),
+                        'amount': this.parseNumber (this.parsePrecision (amountPrecisionString)),
                     },
                     'limits': {
                         'leverage': {
