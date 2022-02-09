@@ -23,6 +23,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class cex(Exchange):
@@ -340,8 +341,8 @@ class cex(Exchange):
                 if (pair['symbol1'] == baseId) and (pair['symbol2'] == quoteId):
                     # we might need to account for `priceScale` here
                     pricePrecision = self.safe_integer(pair, 'pricePrecision', pricePrecision)
-            baseCcyPrecision = self.safe_integer(baseCurrency, 'precision', 8)
-            baseCcyScale = self.safe_integer(baseCurrency, 'scale', 0)
+            baseCcyPrecision = self.safe_string(baseCurrency, 'precision', '8')
+            baseCcyScale = self.safe_string(baseCurrency, 'scale', '0')
             result.append({
                 'id': baseId + '/' + quoteId,
                 'symbol': base + '/' + quote,
@@ -354,8 +355,8 @@ class cex(Exchange):
                 'type': 'spot',
                 'spot': True,
                 'margin': None,
-                'future': False,
                 'swap': False,
+                'future': False,
                 'option': False,
                 'active': None,
                 'contract': False,
@@ -367,8 +368,8 @@ class cex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
+                    'amount': int(Precise.string_sub(baseCcyPrecision, baseCcyScale)),
                     'price': pricePrecision,
-                    'amount': baseCcyPrecision - baseCcyScale,
                 },
                 'limits': {
                     'leverage': {

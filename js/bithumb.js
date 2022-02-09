@@ -219,8 +219,8 @@ module.exports = class bithumb extends Exchange {
                     'strike': undefined,
                     'optionType': undefined,
                     'precision': {
-                        'amount': this.parseNumber ('4'),
-                        'price': this.parseNumber ('4'),
+                        'amount': parseInt ('4'),
+                        'price': parseInt ('4'),
                     },
                     'limits': {
                         'leverage': {

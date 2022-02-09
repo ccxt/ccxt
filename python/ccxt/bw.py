@@ -189,60 +189,60 @@ class bw(Exchange):
             quote = self.safe_currency_code(quote)
             baseId = self.safe_string(market, 'sellerCurrencyId')
             quoteId = self.safe_string(market, 'buyerCurrencyId')
-            baseNumericId = int(baseId)
-            quoteNumericId = int(quoteId)
-            symbol = base + '/' + quote
             state = self.safe_integer(market, 'state')
-            active = (state == 1)
             fee = self.safe_number(market, 'defaultFee')
             result.append({
                 'id': id,
                 'numericId': numericId,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'baseNumericId': baseNumericId,
-                'quoteNumericId': quoteNumericId,
+                'settleId': None,
+                'baseNumericId': int(baseId),
+                'quoteNumericId': int(quoteId),
                 'type': 'spot',
                 'spot': True,
                 'margin': False,
-                'future': False,
                 'swap': False,
+                'future': False,
                 'option': False,
-                'optionType': None,
-                'strike': None,
+                'active': (state == 1),
+                'contract': False,
                 'linear': None,
                 'inverse': None,
-                'contract': False,
+                'taker': fee,
+                'maker': fee,
                 'contractSize': None,
-                'settle': None,
-                'settleId': None,
                 'expiry': None,
                 'expiryDatetime': None,
-                'active': active,
-                'maker': fee,
-                'taker': fee,
-                'info': market,
+                'strike': None,
+                'optionType': None,
                 'precision': {
                     'amount': self.safe_integer(market, 'amountDecimal'),
                     'price': self.safe_integer(market, 'priceDecimal'),
                 },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(market, 'minAmount'),
                         'max': None,
                     },
                     'price': {
-                        'min': 0,
+                        'min': self.parse_number('0'),
                         'max': None,
                     },
                     'cost': {
-                        'min': 0,
+                        'min': self.parse_number('0'),
                         'max': None,
                     },
                 },
+                'info': market,
             })
         return result
 
