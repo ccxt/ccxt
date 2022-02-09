@@ -520,7 +520,7 @@ class kraken(Exchange):
                         'max': None,
                     },
                     'price': {
-                        'min': self.parse_precision(precisionPrice),
+                        'min': self.parse_number(self.parse_precision(precisionPrice)),
                         'max': None,
                     },
                     'cost': {

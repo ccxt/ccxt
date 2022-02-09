@@ -241,7 +241,7 @@ class buda(Exchange):
                     'max': None,
                 },
                 'price': {
-                    'min': priceLimit,
+                    'min': self.parse_number(priceLimit),
                     'max': None,
                 },
                 'cost': {

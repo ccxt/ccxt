@@ -242,7 +242,7 @@ class buda extends Exchange {
                     'max' => null,
                 ),
                 'price' => array(
-                    'min' => $priceLimit,
+                    'min' => $this->parse_number($priceLimit),
                     'max' => null,
                 ),
                 'cost' => array(

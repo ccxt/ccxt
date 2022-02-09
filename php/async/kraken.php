@@ -509,7 +509,7 @@ class kraken extends Exchange {
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => $this->parse_precision($precisionPrice),
+                        'min' => $this->parse_number($this->parse_precision($precisionPrice)),
                         'max' => null,
                     ),
                     'cost' => array(
