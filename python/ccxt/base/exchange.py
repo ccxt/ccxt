@@ -2686,7 +2686,7 @@ class Exchange(object):
     def parse_precision(self, precision):
         if precision is None:
             return None
-        return '1e' + Precise.string_neg(precision)
+        return self.parse_number('1e' + Precise.string_neg(precision))
 
     def omit_zero(self, string_number):
         if string_number is None or string_number == '':

@@ -3564,7 +3564,7 @@ class Exchange {
         if ($precision === null) {
             return null;
         }
-        return '1e' . Precise::string_neg($precision);
+        return $this->parse_number('1e' . Precise::string_neg($precision));
     }
 
     public function omit_zero($string_number) {
