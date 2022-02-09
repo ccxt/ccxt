@@ -18,7 +18,10 @@ if (count($argv) > 2) {
 
     if ($exchange_found) {
         $verbose = count(array_filter($args, function ($option) { return strstr($option, '--verbose') !== false; })) > 0;
-        $args = array_filter($args, function ($option) { return strstr($option, '--verbose') === false; });
+        $args = array_filter($args, function ($option) { return strstr($option, '--+') === false; });
+
+        $test = count(array_filter($args, function ($option) { return strstr($option, '--test') !== false || strstr($option, '--testnet') !== false || strstr($option, '--sandbox') !== false; })) > 0;
+        $args = array_filter($args, function ($option) { return strstr($option, '--test') === false || strstr($option, '--testnet') !== false || strstr($option, '--sandbox') !== false; });
 
         $debug = count(array_filter($args, function ($option) { return strstr($option, '--debug') !== false; })) > 0;
         $args = array_filter($args, function ($option) { return strstr($option, '--debug') === false; });
@@ -36,6 +39,10 @@ if (count($argv) > 2) {
         // instantiate the exchange by id
         $exchange = '\\ccxt\\' . $id;
         $exchange = new $exchange($config);
+
+        if ($test) {
+            $exchange->set_sandbox_mode(true);
+        }
 
         // check auth keys in env var
         foreach ($exchange->requiredCredentials as $credential => $is_required) {
