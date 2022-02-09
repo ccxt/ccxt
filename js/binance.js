@@ -4821,7 +4821,7 @@ module.exports = class binance extends Exchange {
                     'tier': this.safeNumber (bracket, 'bracket'),
                     'notionalFloor': this.safeFloat2 (bracket, 'notionalFloor', 'qtyFloor'),
                     'notionalCap': this.safeNumber (bracket, 'notionalCap'),
-                    'maintenanceMarginRatio': this.safeNumber (bracket, 'maintMarginRatio'),
+                    'maintenanceMarginRate': this.safeNumber (bracket, 'maintMarginRatio'),
                     'maxLeverage': this.safeNumber (bracket, 'initialLeverage'),
                     'info': bracket,
                 });

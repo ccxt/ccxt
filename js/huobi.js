@@ -5413,7 +5413,7 @@ module.exports = class huobi extends Exchange {
                         'tier': this.safeInteger (bracket, 'ladder'),
                         'notionalFloor': this.safeNumber (bracket, 'min_size'),
                         'notionalCap': this.safeNumber (bracket, 'max_size'),
-                        'maintenanceMarginRatio': this.parseNumber (Precise.stringDiv (adjustFactor, leverage)),
+                        'maintenanceMarginRate': this.parseNumber (Precise.stringDiv (adjustFactor, leverage)),
                         'maxLeverage': this.parseNumber (leverage),
                         'info': bracket,
                     });

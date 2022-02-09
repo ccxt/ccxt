@@ -2474,13 +2474,13 @@ For many contract markets, the maximum leverage and maintenance margin rate will
 fetchLeverageTiers(symbol, params = {})
 ```
 
-`fetchLeverageTiers` can be used to obtain the maximum leverage for a market at varying trade sizes. It can also be used to obtain the maintenance margin ratio(or maintenance margin rate), and the max tradeable amount for a market when that amount is not available in the markets object
+`fetchLeverageTiers` can be used to obtain the maximum leverage for a market at varying trade sizes. It can also be used to obtain the maintenance margin rate(or maintenance margin ratio), and the max tradeable cost for a market when that amount is not available in the markets object
 
 ### Fetch Leverage Tiers Structure
 
 The `fetchLeverageTiers()` method will return a structure like shown below:
 
-```
+```Javascript
 {
     'BNB/USDT': [
         {
@@ -2499,7 +2499,7 @@ The `fetchLeverageTiers()` method will return a structure like shown below:
             "notionalCurrency": "USDT",
             "notionalFloor": 10000,             // min stake amount at 50x leverage = 200.0
             "notionalCap": 50000,               // max stake amount at 50x leverage = 1000.0
-            "maintenanceMarginRatio": 0.01,
+            "maintenanceMarginRate": 0.01,
             "maxLeverage": 50,
             "info": {
                 // Response from exchange
@@ -2517,14 +2517,14 @@ The `fetchLeverageTiers()` method will return a structure like shown below:
                 // Response from exchange
             }
         },
-    ]
+    ],
     ...
-  ],
 }
 ```
 
 In the example above
 
+- The maximum `cost` for this market is 50000000, which can be traded at 1x leverage
 - stakes below 133.33       = a max leverage of 75
 - stakes from 200 + 1000    = a max leverage of 50
 - a stake amount of 150     = a max leverage of (10000 / 150)   = 66.66

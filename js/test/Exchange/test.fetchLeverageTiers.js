@@ -14,7 +14,7 @@ module.exports = async (exchange, symbol) => {
             'tier': 1,
             'notionalFloor': 0,
             'notionalCap': 5000,
-            'maintenanceMarginRatio': 0.01,
+            'maintenanceMarginRate': 0.01,
             'maxLeverage': 25,
             'info': {}
         //   },
@@ -40,8 +40,8 @@ module.exports = async (exchange, symbol) => {
                 assert (tier['tier'] >= 0)
                 assert (tier['notionalFloor'] >= 0)
                 assert (tier['notionalCap'] >= 0)
-                assert (tier['maintenanceMarginRatio'] >= 0)
-                assert (tier['maintenanceMarginRatio'] <= 1)
+                assert (tier['maintenanceMarginRate'] >= 0)
+                assert (tier['maintenanceMarginRate'] <= 1)
                 assert (tier['maxLeverage'] >= 1)
             }
         }
