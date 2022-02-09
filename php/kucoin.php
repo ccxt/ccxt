@@ -575,6 +575,7 @@ class kucoin extends Exchange {
                 'taker' => $this->parse_number(Precise::string_mul($takerFeeRate, $takerCoefficient)),
                 'maker' => $this->parse_number(Precise::string_mul($makerFeeRate, $makerCoefficient)),
                 'contractSize' => null,
+                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,

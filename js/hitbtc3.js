@@ -386,6 +386,7 @@ module.exports = class hitbtc3 extends Exchange {
                 'taker': this.safeNumber (market, 'take_rate'),
                 'maker': this.safeNumber (market, 'make_rate'),
                 'contractSize': contractSize,
+                'maintenanceMarginRate': undefined,
                 'expiry': expiry,
                 'expiryDatetime': undefined,
                 'strike': undefined,

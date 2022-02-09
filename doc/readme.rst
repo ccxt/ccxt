@@ -94,10 +94,10 @@ See Also
 
    `OctoBot <https://www.octobot.online>`__ – cryptocurrency trading bot with an advanced web interface.
  * .. image:: https://user-images.githubusercontent.com/1294454/152720975-0522b803-70f0-4f18-a305-3c99b37cd990.png
-       :target: https://www.tokenbot.com
+       :target: https://tokenbot.com/?utm_source=github&utm_medium=ccxt&utm_campaign=algodevs
        :alt: TokenBot
 
-   `TokenBot <https://www.tokenbot.com>`__ – discover and copy the best algorithmic traders in the world.
+   `TokenBot <https://tokenbot.com/?utm_source=github&utm_medium=ccxt&utm_campaign=algodevs>`__ – discover and copy the best algorithmic traders in the world.
 
 Certified Cryptocurrency Exchanges
 ----------------------------------
@@ -2033,14 +2033,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.72.61/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@1.72.61/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.72.64/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@1.72.64/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.72.61/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.72.64/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

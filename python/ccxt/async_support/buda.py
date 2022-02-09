@@ -220,47 +220,60 @@ class buda(Exchange):
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            id = self.safe_string(market, 'id')
             baseId = self.safe_string(market, 'base_currency')
             quoteId = self.safe_string(market, 'quote_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             baseInfo = await self.fetch_currency_info(baseId, currencies)
             quoteInfo = await self.fetch_currency_info(quoteId, currencies)
-            symbol = base + '/' + quote
             pricePrecisionString = self.safe_string(quoteInfo, 'input_decimals')
-            priceLimit = self.parse_precision(pricePrecisionString)
-            precision = {
-                'amount': self.safe_integer(baseInfo, 'input_decimals'),
-                'price': int(pricePrecisionString),
-            }
             minimumOrderAmount = self.safe_value(market, 'minimum_order_amount', [])
-            limits = {
-                'amount': {
-                    'min': self.safe_number(minimumOrderAmount, 0),
-                    'max': None,
-                },
-                'price': {
-                    'min': self.parse_number(priceLimit),
-                    'max': None,
-                },
-                'cost': {
-                    'min': None,
-                    'max': None,
-                },
-            }
             result.append({
-                'id': id,
-                'symbol': symbol,
+                'id': self.safe_string(market, 'id'),
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'active': True,
-                'precision': precision,
-                'limits': limits,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_integer(baseInfo, 'input_decimals'),
+                    'price': int(pricePrecisionString),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': self.safe_number(minimumOrderAmount, 0),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
                 'info': market,
             })
         return result
