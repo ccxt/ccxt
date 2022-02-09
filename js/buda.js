@@ -238,7 +238,7 @@ module.exports = class buda extends Exchange {
                     'max': undefined,
                 },
                 'price': {
-                    'min': priceLimit,
+                    'min': this.parseNumber (priceLimit),
                     'max': undefined,
                 },
                 'cost': {

@@ -334,7 +334,10 @@ module.exports = class stex extends Exchange {
                 'fee': fee,
                 'precision': parseInt (precision),
                 'limits': {
-                    'amount': { 'min': this.parseNumber (amountLimit), 'max': undefined },
+                    'amount': {
+                        'min': this.parseNumber (amountLimit),
+                        'max': undefined,
+                    },
                     'deposit': {
                         'min': this.safeNumber (currency, 'minimum_deposit_amount'),
                         'max': undefined,

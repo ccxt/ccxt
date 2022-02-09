@@ -499,7 +499,7 @@ module.exports = class kraken extends Exchange {
                         'max': undefined,
                     },
                     'price': {
-                        'min': this.parsePrecision (precisionPrice),
+                        'min': this.parseNumber (this.parsePrecision (precisionPrice)),
                         'max': undefined,
                     },
                     'cost': {
