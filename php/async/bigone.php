@@ -217,8 +217,8 @@ class bigone extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_number($market, 'quote_scale'),
-                    'amount' => $this->safe_number($market, 'base_scale'),
+                    'price' => $this->safe_integer($market, 'quote_scale'),
+                    'amount' => $this->safe_integer($market, 'base_scale'),
                 ),
                 'limits' => array(
                     'leverage' => array(

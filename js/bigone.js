@@ -214,8 +214,8 @@ module.exports = class bigone extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeNumber (market, 'base_scale'),
-                    'price': this.safeNumber (market, 'quote_scale'),
+                    'amount': this.safeInteger (market, 'base_scale'),
+                    'price': this.safeInteger (market, 'quote_scale'),
                 },
                 'limits': {
                     'leverage': {

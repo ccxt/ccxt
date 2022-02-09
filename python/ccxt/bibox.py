@@ -259,8 +259,8 @@ class bibox(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_number(market, 'decimal'),
-                    'amount': self.safe_number(market, 'amount_scale'),
+                    'price': self.safe_integer(market, 'decimal'),
+                    'amount': self.safe_integer(market, 'amount_scale'),
                 },
                 'limits': {
                     'leverage': {

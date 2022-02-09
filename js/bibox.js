@@ -246,8 +246,8 @@ module.exports = class bibox extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeNumber (market, 'amount_scale'),
-                    'price': this.safeNumber (market, 'decimal'),
+                    'amount': this.safeInteger (market, 'amount_scale'),
+                    'price': this.safeInteger (market, 'decimal'),
                 },
                 'limits': {
                     'leverage': {

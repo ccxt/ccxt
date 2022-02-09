@@ -378,8 +378,8 @@ class bitstamp extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->parse_precision($this->safe_string($market, 'counter_decimals')),
-                    'amount' => $this->parse_precision($this->safe_string($market, 'base_decimals')),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'counter_decimals'))),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'base_decimals'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
