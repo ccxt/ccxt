@@ -2715,10 +2715,17 @@ We currently load spot markets with the unified ``BASE/QUOTE`` symbol schema int
 
  **Please, check this announcement: `Unified contract naming conventions <https://github.com/ccxt/ccxt/issues/10931>`__
 
-Futures Contracts
-"""""""""""""""""
+CCXT supports the following types of derivative contracts:
 
-A futures market symbol consists of the underlying currency, the quoting currency, the settlement currency and an arbitrary identifier. Most often the identifier is the settlement date of the futures contract in ``YYMMDD`` format:
+
+ * ``future`` – for expiring futures contracts that have a delivery/settlement date ` <https://en.wikipedia.org/wiki/Futures_contract>`__
+ * ``swap`` – for perpetual swap futures that don't have a delivery date ` <https://en.wikipedia.org/wiki/Perpetual_futures>`__
+ * ``option`` – for option contracts (https://en.wikipedia.org/wiki/Option_contract)
+
+Future
+""""""
+
+A future market symbol consists of the underlying currency, the quoting currency, the settlement currency and an arbitrary identifier. Most often the identifier is the settlement date of the future contract in ``YYMMDD`` format:
 
 .. code-block:: JavaScript
 
@@ -2737,8 +2744,8 @@ A futures market symbol consists of the underlying currency, the quoting currenc
    'ETH/USDT:ETH-210625'  // ETH/USDT futures contract settled in ETH (inverse) on 2021-06-25
    'ETH/USDT:USDT-210625' // ETH/USDT futures contract settled in USDT (linear, vanilla) on 2021-06-25
 
-Perpetual Swaps (Perpetual Futures)
-"""""""""""""""""""""""""""""""""""
+Perpetual Swap (Perpetual Future)
+"""""""""""""""""""""""""""""""""
 
 .. code-block:: JavaScript
 
@@ -2754,8 +2761,8 @@ Perpetual Swaps (Perpetual Futures)
    'ETH/USDT:ETH'  // ETH/USDT inverse perpetual swap contract funded in ETH
    'ETH/USDT:USDT' // ETH/USDT linear perpetual swap contract funded in USDT
 
-Options
-"""""""
+Option
+""""""
 
 .. code-block:: JavaScript
 
