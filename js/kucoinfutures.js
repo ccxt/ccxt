@@ -437,6 +437,7 @@ module.exports = class kucoinfutures extends kucoin {
                 'taker': this.safeNumber (market, 'takerFeeRate'),
                 'maker': this.safeNumber (market, 'makerFeeRate'),
                 'contractSize': this.parseNumber (Precise.stringAbs (multiplier)),
+                'maintenanceMarginRate': undefined,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
                 'strike': undefined,

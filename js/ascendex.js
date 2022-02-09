@@ -555,6 +555,7 @@ module.exports = class ascendex extends Exchange {
                 'taker': fee,
                 'maker': fee,
                 'contractSize': swap ? this.parseNumber ('1') : undefined,
+                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,

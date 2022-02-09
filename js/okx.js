@@ -866,6 +866,7 @@ module.exports = class okx extends Exchange {
             'linear': contract ? (quoteId === settleId) : undefined,
             'inverse': contract ? (baseId === settleId) : undefined,
             'contractSize': contract ? this.safeNumber (market, 'ctVal') : undefined,
+            'maintenanceMarginRate': undefined,
             'expiry': expiry,
             'expiryDatetime': this.iso8601 (expiry),
             'strike': strikePrice,
