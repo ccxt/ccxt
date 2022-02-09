@@ -344,7 +344,10 @@ class stex(Exchange):
                 'fee': fee,
                 'precision': int(precision),
                 'limits': {
-                    'amount': {'min': self.parse_number(amountLimit), 'max': None},
+                    'amount': {
+                        'min': self.parse_number(amountLimit),
+                        'max': None,
+                    },
                     'deposit': {
                         'min': self.safe_number(currency, 'minimum_deposit_amount'),
                         'max': None,
