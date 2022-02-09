@@ -647,8 +647,8 @@ module.exports = class mexc extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (quantityScale)),
-                    'price': this.parseNumber (this.parsePrecision (priceScale)),
+                    'amount': this.parsePrecision (quantityScale),
+                    'price': this.parsePrecision (priceScale),
                 },
                 'limits': {
                     'leverage': {

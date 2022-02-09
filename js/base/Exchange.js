@@ -2079,7 +2079,7 @@ module.exports = class Exchange {
         if (precision === undefined) {
             return undefined
         }
-        return '1e' + Precise.stringNeg (precision)
+        return this.parseNumber ('1e' + Precise.stringNeg (precision))
     }
 
     handleWithdrawTagAndParams (tag, params) {
