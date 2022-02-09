@@ -355,6 +355,20 @@ class bitstamp(Exchange):
 
     async def fetch_markets(self, params={}):
         response = await self.fetch_markets_from_cache(params)
+        #
+        #     [
+        #         {
+        #             "trading": "Enabled",
+        #             "base_decimals": 8,
+        #             "url_symbol": "btcusd",
+        #             "name": "BTC/USD",
+        #             "instant_and_market_orders": "Enabled",
+        #             "minimum_order": "20.0 USD",
+        #             "counter_decimals": 2,
+        #             "description": "Bitcoin / U.S. dollar"
+        #         }
+        #     ]
+        #
         result = []
         for i in range(0, len(response)):
             market = response[i]
@@ -393,8 +407,8 @@ class bitstamp(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'counter_decimals'))),
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'base_decimals'))),
+                    'price': self.safe_integer(market, 'counter_decimals'),
+                    'amount': self.safe_integer(market, 'base_decimals'),
                 },
                 'limits': {
                     'leverage': {
