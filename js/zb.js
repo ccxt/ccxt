@@ -146,6 +146,9 @@ module.exports = class zb extends Exchange {
                     'public': 'https://api.zb.work/data',
                     'private': 'https://trade.zb.work/api',
                     'trade': 'https://trade.zb.work/api',
+                    'swapV1': 'https://fapi.zb.com/api/public',
+                    'swapV2': 'https://fapi.zb.com/Server/api',
+                    'swapV2Private': 'https://fapi.zb.com/Server/api',
                 },
                 'www': 'https://www.zb.com',
                 'doc': 'https://www.zb.com/i/developer',
@@ -223,6 +226,64 @@ module.exports = class zb extends Exchange {
                         'doCrossLoan',
                         'doCrossRepay',
                         'getCrossRepayRecords',
+                    ],
+                },
+                'swapV1': {
+                    'get': [
+                        'depth',
+                        'fundingRate',
+                        'indexKline',
+                        'indexPrice',
+                        'kCline',
+                        'markKline',
+                        'markPrice',
+                        'ticker',
+                        'trade',
+                    ],
+                },
+                'swapV2': {
+                    'get': [
+                        'allForceOrders',
+                        'config/marketList',
+                        'topLongShortAccountRatio',
+                        'topLongShortPositionRatio',
+                        'fundingRate',
+                        'premiumIndex',
+                    ],
+                },
+                'swapV2Private': {
+                    'get': [
+                        'Fund/balance',
+                        'Fund/getAccount',
+                        'Fund/getBill',
+                        'Fund/getBillTypeList',
+                        'Fund/marginHistory',
+                        'Positions/getPositions',
+                        'Positions/getNominalValue',
+                        'Positions/marginInfo',
+                        'setting/get',
+                        'trade/getAllOrders',
+                        'trade/getOrder',
+                        'trade/getOrderAlgos',
+                        'trade/getTradeList',
+                        'trade/getUndoneOrders',
+                        'trade/tradeHistory',
+                    ],
+                    'post': [
+                        'activity/buyTicket',
+                        'Fund/transferFund',
+                        'Positions/setMarginCoins',
+                        'Positions/updateAppendUSDValue',
+                        'Positions/updateMargin',
+                        'setting/setLeverage',
+                        'trade/batchOrder',
+                        'trade/batchCancelOrder',
+                        'trade/cancelAlgos',
+                        'trade/cancelAllOrders',
+                        'trade/cancelOrder',
+                        'trade/order',
+                        'trade/orderAlgo',
+                        'trade/updateOrderAlgo',
                     ],
                 },
             },
@@ -1196,6 +1257,28 @@ module.exports = class zb extends Exchange {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
+        } else if (api === 'swapV1') {
+            url += '/' + this.version + '/' + path;
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            }
+        } else if (api === 'swapV2') {
+            url += '/' + this.version + '/' + path;
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            }
+        } else if (api === 'swapV2Private') {
+            let query = this.keysort (this.extend ({
+                'method': path,
+                'accesskey': this.apiKey,
+            }, params));
+            const nonce = this.nonce ();
+            query = this.keysort (query);
+            const auth = this.rawencode (query);
+            const secret = this.hash (this.encode (this.secret), 'sha1');
+            const signature = this.hmac (this.encode (auth), this.encode (secret), 'md5');
+            const suffix = 'sign=' + signature + '&reqTime=' + nonce.toString ();
+            url += '/' + this.version + '/' + path + '?' + auth + '&' + suffix;
         } else {
             let query = this.keysort (this.extend ({
                 'method': path,
