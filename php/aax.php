@@ -499,6 +499,7 @@ class aax extends Exchange {
                 'taker' => $this->safe_number($market, 'takerFee'),
                 'maker' => $this->safe_number($market, 'makerFee'),
                 'contractSize' => $contractSize,
+                'maintenanceMarginRate' => $swap ? $this->safe_number($market, 'mmRate') : null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,

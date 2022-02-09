@@ -402,6 +402,7 @@ class hitbtc3(Exchange):
                 'taker': self.safe_number(market, 'take_rate'),
                 'maker': self.safe_number(market, 'make_rate'),
                 'contractSize': contractSize,
+                'maintenanceMarginRate': None,
                 'expiry': expiry,
                 'expiryDatetime': None,
                 'strike': None,

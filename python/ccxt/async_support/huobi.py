@@ -1297,6 +1297,7 @@ class huobi(Exchange):
                 'taker': taker,
                 'maker': maker,
                 'contractSize': contractSize,
+                'maintenanceMarginRate': None,
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
                 'strike': None,

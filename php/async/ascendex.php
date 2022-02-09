@@ -560,6 +560,7 @@ class ascendex extends Exchange {
                 'taker' => $fee,
                 'maker' => $fee,
                 'contractSize' => $swap ? $this->parse_number('1') : null,
+                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,

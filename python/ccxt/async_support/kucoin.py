@@ -583,6 +583,7 @@ class kucoin(Exchange):
                 'taker': self.parse_number(Precise.string_mul(takerFeeRate, takerCoefficient)),
                 'maker': self.parse_number(Precise.string_mul(makerFeeRate, makerCoefficient)),
                 'contractSize': None,
+                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,

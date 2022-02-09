@@ -443,6 +443,7 @@ class kucoinfutures(kucoin):
                 'taker': self.safe_number(market, 'takerFeeRate'),
                 'maker': self.safe_number(market, 'makerFeeRate'),
                 'contractSize': self.parse_number(Precise.string_abs(multiplier)),
+                'maintenanceMarginRate': None,
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
                 'strike': None,

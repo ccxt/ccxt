@@ -490,6 +490,7 @@ class kraken extends Exchange {
                 'maker' => $maker,
                 'taker' => $taker,
                 'contractSize' => null,
+                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,

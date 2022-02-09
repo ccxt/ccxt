@@ -615,6 +615,7 @@ class ftx extends Exchange {
                 'linear' => true,
                 'inverse' => false,
                 'contractSize' => $this->parse_number('1'),
+                'maintenanceMarginRate' => null,
                 'expiry' => $expiry,
                 'expiryDatetime' => $this->iso8601($expiry),
                 'strike' => null,
