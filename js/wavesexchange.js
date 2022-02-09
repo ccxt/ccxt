@@ -1168,7 +1168,7 @@ module.exports = class wavesexchange extends Exchange {
         let matcherFeeAssetId = undefined;
         let matcherFee = undefined;
         // check first if user supplied asset fee is valid
-        if ('feeAsset' in params || 'feeAsset' in this.options) {
+        if (('feeAsset' in params) || ('feeAsset' in this.options)) {
             const feeAsset = this.safeString (params, 'feeAsset', this.options['feeAsset']);
             const feeCurrency = this.currency (feeAsset);
             matcherFeeAssetId = this.safeString (feeCurrency, 'id');
