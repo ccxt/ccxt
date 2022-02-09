@@ -833,7 +833,7 @@ class delta(Exchange):
         #
         return self.parse_balance(response)
 
-    async def fetch_position(self, symbol, params=None):
+    async def fetch_position(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {

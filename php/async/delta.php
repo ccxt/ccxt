@@ -857,7 +857,7 @@ class delta extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_position($symbol, $params = null) {
+    public function fetch_position($symbol, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
