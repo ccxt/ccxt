@@ -222,8 +222,8 @@ class bigone(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_number(market, 'quote_scale'),
-                    'amount': self.safe_number(market, 'base_scale'),
+                    'price': self.safe_integer(market, 'quote_scale'),
+                    'amount': self.safe_integer(market, 'base_scale'),
                 },
                 'limits': {
                     'leverage': {

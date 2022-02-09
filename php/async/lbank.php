@@ -148,8 +148,6 @@ class lbank extends Exchange {
             }
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $precisionPrice = $this->safe_string($market, 'priceAccuracy');
-            $precisionAmount = $this->safe_string($market, 'quantityAccuracy');
             $result[] = array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
@@ -175,8 +173,8 @@ class lbank extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->parse_number($precisionPrice),
-                    'amount' => $this->parse_number($precisionAmount),
+                    'price' => $this->safe_integer($market, 'priceAccuracy'),
+                    'amount' => $this->safe_integer($market, 'quantityAccuracy'),
                 ),
                 'limits' => array(
                     'leverage' => array(
