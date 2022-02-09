@@ -442,7 +442,6 @@ module.exports = class bitmart extends Exchange {
             //
             // the docs are wrong: https://github.com/ccxt/ccxt/issues/5612
             //
-            const pricePrecision = this.safeInteger (market, 'price_max_precision');
             const minBuyCost = this.safeString (market, 'min_buy_amount');
             const minSellCost = this.safeString (market, 'min_sell_amount');
             const minCost = Precise.stringMax (minBuyCost, minSellCost);
@@ -472,7 +471,7 @@ module.exports = class bitmart extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.parsePrecision (pricePrecision),
+                    'price': this.parsePrecision (this.safeString (market, 'price_max_precision')),
                     'amount': this.safeNumber (market, 'base_min_size'),
                 },
                 'limits': {
