@@ -121,29 +121,29 @@ module.exports = class kucoin extends Exchange {
                 'private': {
                     'get': {
                         'market/orderbook/level{level}': 1,
-                        'market/orderbook/level2': 1,
+                        'market/orderbook/level2': { 'v3': 2 }, // 30/3s = 10/s => cost = 20 / 10 = 2
                         'market/orderbook/level3': 1,
                         'accounts': 1,
                         'accounts/{accountId}': 1,
                         // 'accounts/{accountId}/ledgers': 1, Deprecated endpoint
-                        'accounts/ledgers': 1,
+                        'accounts/ledgers': 3.333, // 18/3s = 6/s => cost = 20 / 6 = 3.333
                         'accounts/{accountId}/holds': 1,
                         'accounts/transferable': 1,
                         'sub/user': 1,
                         'sub-accounts': 1,
                         'sub-accounts/{subUserId}': 1,
                         'deposit-addresses': 1,
-                        'deposits': 1,
-                        'hist-deposits': 1,
+                        'deposits': 10, // 6/3s = 2/s => cost = 20 / 2 = 10
+                        'hist-deposits': 10, // 6/3 = 2/s => cost = 20 / 2 = 10
                         'hist-orders': 1,
-                        'hist-withdrawals': 1,
-                        'withdrawals': 1,
+                        'hist-withdrawals': 10, // 6/3 = 2/s => cost = 20 / 2 = 10
+                        'withdrawals': 10, // 6/3 = 2/s => cost = 20 / 2 = 10
                         'withdrawals/quotas': 1,
-                        'orders': 1,
+                        'orders': 2, // 30/3s =  10/s => cost  = 20 / 10 = 2
                         'order/client-order/{clientOid}': 1,
                         'orders/{orderId}': 1,
                         'limit/orders': 1,
-                        'fills': 1,
+                        'fills': 6.66667, // 9/3s = 3/s => cost  = 20 / 3 = 6.666667
                         'limit/fills': 1,
                         'margin/account': 1,
                         'margin/borrow': 1,
@@ -162,12 +162,12 @@ module.exports = class kucoin extends Exchange {
                     },
                     'post': {
                         'accounts': 1,
-                        'accounts/inner-transfer': 1,
-                        'accounts/sub-transfer': 20, // cost = 20 / 1
+                        'accounts/inner-transfer': { 'v2': 1 },
+                        'accounts/sub-transfer': { 'v2': 25 }, // bad docs
                         'deposit-addresses': 1,
                         'withdrawals': 1,
-                        'orders': 1,
-                        'orders/multi': 1,
+                        'orders': 1.3334, // 45/3s = 15/s => cost = 20 / 15 = 1.333333
+                        'orders/multi': 20, // 3/3s = 1/s => cost = 20 / 1 = 20
                         'margin/borrow': 1,
                         'margin/order': 1,
                         'margin/repay/all': 1,
@@ -179,9 +179,9 @@ module.exports = class kucoin extends Exchange {
                     },
                     'delete': {
                         'withdrawals/{withdrawalId}': 1,
-                        'orders': 1,
+                        'orders': 20, // 3/3s = 1/s => cost = 20/1
                         'orders/client-order/{clientOid}': 1,
-                        'orders/{orderId}': 1,
+                        'orders/{orderId}': 1, // rateLimit: 60/3s = 20/s => cost = 1
                         'margin/lend/{orderId}': 1,
                         'stop-order/cancelOrderByClientOid': 1,
                         'stop-order/{orderId}': 1,
@@ -2284,6 +2284,22 @@ module.exports = class kucoin extends Exchange {
         const data = this.safeValue (response, 'data');
         const items = this.safeValue (data, 'items');
         return this.parseLedger (items, currency, since, limit);
+    }
+
+    calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
+        const versions = this.safeValue (this.options, 'versions', {});
+        const apiVersions = this.safeValue (versions, api, {});
+        const methodVersions = this.safeValue (apiVersions, method, {});
+        const defaultVersion = this.safeString (methodVersions, path, this.options['version']);
+        const version = this.safeString (params, 'version', defaultVersion);
+        if (version === 'v3' && ('v3' in config)) {
+            return config['v3'];
+        } else if (version === 'v2' && ('v2' in config)) {
+            return config['v2'];
+        } else if (version === 'v1' && ('v1' in config)) {
+            return config['v1'];
+        }
+        return this.safeInteger (config, 'cost', 1);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
