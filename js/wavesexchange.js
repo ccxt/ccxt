@@ -1181,7 +1181,7 @@ module.exports = class wavesexchange extends Exchange {
             const matcherFeeAsset = this.safeCurrencyCode (matcherFeeAssetId);
             const rawMatcherFee = (matcherFeeAssetId === baseFeeAssetId) ? baseMatcherFee : discountMatcherFee;
             const floatMatcherFee = parseFloat (this.currencyFromPrecision (matcherFeeAsset, rawMatcherFee));
-            if (matcherFeeAsset in balances && balances[matcherFeeAsset]['free'] >= floatMatcherFee) {
+            if ((matcherFeeAsset in balances) && (balances[matcherFeeAsset]['free'] >= floatMatcherFee)) {
                 matcherFee = this.parseNumber (rawMatcherFee);
             } else {
                 throw new InsufficientFunds (this.id + ' not enough funds of the selected asset fee');
@@ -1190,12 +1190,12 @@ module.exports = class wavesexchange extends Exchange {
         if (matcherFeeAssetId === undefined) {
             // try to the pay the fee using the base first then discount asset
             const floatBaseMatcherFee = parseFloat (this.currencyFromPrecision (baseFeeAsset, baseMatcherFee));
-            if (baseFeeAsset in balances && balances[baseFeeAsset]['free'] >= floatBaseMatcherFee) {
+            if ((baseFeeAsset in balances) && (balances[baseFeeAsset]['free'] >= floatBaseMatcherFee)) {
                 matcherFeeAssetId = baseFeeAssetId;
                 matcherFee = this.parseNumber (baseMatcherFee);
             } else {
                 const floatDiscountMatcherFee = parseFloat (this.currencyFromPrecision (discountFeeAsset, discountMatcherFee));
-                if (discountFeeAsset in balances && balances[discountFeeAsset]['free'] >= floatDiscountMatcherFee) {
+                if ((discountFeeAsset in balances) && (balances[discountFeeAsset]['free'] >= floatDiscountMatcherFee)) {
                     matcherFeeAssetId = discountFeeAssetId;
                     matcherFee = this.parseNumber (discountMatcherFee);
                 }
