@@ -590,7 +590,9 @@ module.exports = class bitmart extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        return await this.fetchSpotMarkets ();
+        const spot = await this.fetchSpotMarkets (params);
+        const contract = await this.fetchContractMarkets (params);
+        return spot.concat (contract);
     }
 
     async fetchFundingFee (code, params = {}) {
