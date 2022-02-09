@@ -146,8 +146,6 @@ module.exports = class lbank extends Exchange {
             }
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const precisionPrice = this.safeString (market, 'priceAccuracy');
-            const precisionAmount = this.safeString (market, 'quantityAccuracy');
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -173,8 +171,8 @@ module.exports = class lbank extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.parseNumber (precisionPrice),
-                    'amount': this.parseNumber (precisionAmount),
+                    'price': this.safeInteger (market, 'priceAccuracy'),
+                    'amount': this.safeInteger (market, 'quantityAccuracy'),
                 },
                 'limits': {
                     'leverage': {
