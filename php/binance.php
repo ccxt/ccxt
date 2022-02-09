@@ -1132,6 +1132,10 @@ class binance extends \ccxt\async\binance {
         }
         $stopPrice = $this->safe_float_2($order, 'P', 'sp');
         $timeInForce = $this->safe_string($order, 'f');
+        if ($timeInForce === 'GTX') {
+            // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
+            $timeInForce = 'PO';
+        }
         return array(
             'info' => $order,
             'symbol' => $symbol,

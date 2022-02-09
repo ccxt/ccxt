@@ -1050,6 +1050,9 @@ class binance(Exchange, ccxt.binance):
             clientOrderId = self.safe_string(order, 'c')
         stopPrice = self.safe_float_2(order, 'P', 'sp')
         timeInForce = self.safe_string(order, 'f')
+        if timeInForce == 'GTX':
+            # GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
+            timeInForce = 'PO'
         return {
             'info': order,
             'symbol': symbol,
