@@ -228,11 +228,11 @@ module.exports = class bw extends Exchange {
                         'max': undefined,
                     },
                     'price': {
-                        'min': 0,
+                        'min': this.parseNumber ('0'),
                         'max': undefined,
                     },
                     'cost': {
-                        'min': 0,
+                        'min': this.parseNumber ('0'),
                         'max': undefined,
                     },
                 },
