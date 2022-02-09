@@ -2,14 +2,16 @@
 
 import os
 import sys
+from asyncio import run
 
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root + '/python')
 
-import ccxt  # noqa: E402
+
+import ccxt.async_support as ccxt
 
 
-def main():
+async def main():
     exchange = ccxt.bitget({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
@@ -21,12 +23,12 @@ def main():
 
     try:
 
-        markets = exchange.load_markets()
+        markets = await exchange.load_markets()
 
         # exchange.verbose = True  # uncomment for debugging purposes if necessary
 
         # fetching balance
-        balance = exchange.fetch_balance()
+        balance = await exchange.fetch_balance()
         print(balance['total'])
 
         # placing a limit order
@@ -35,7 +37,7 @@ def main():
         side = 'buy'
         amount = 1  # how many contracts to buy or sell, integer number of contracts
         price = 3000
-        order = exchange.create_order(symbol, type, side, amount, price)
+        order = await exchange.create_order(symbol, type, side, amount, price)
         print(order)
 
         # placing a market order
@@ -43,11 +45,13 @@ def main():
         type = 'market'
         side = 'sell'
         amount = 1  # how many contracts to buy or sell, integer number of contracts
-        order = exchange.create_order(symbol, type, side, amount)
+        order = await exchange.create_order(symbol, type, side, amount)
         print(order)
 
     except Exception as e:
         print(type(e).__name__, str(e))
 
+    await exchange.close()
 
-main()
+
+run(main())
