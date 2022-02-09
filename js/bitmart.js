@@ -538,8 +538,6 @@ module.exports = class bitmart extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const settle = 'USDT';
             const status = this.safeString (market, 'trade_status');
-            const minBuyAmount = this.safeString (market, 'min_buy_amount');
-            const minSellAmount = this.safeString (market, 'min_sell_amount');
             //
             // https://github.com/bitmartexchange/bitmart-official-api-docs/blob/master/rest/public/symbols_details.md#response-details
             // from the above API doc:
@@ -549,6 +547,9 @@ module.exports = class bitmart extends Exchange {
             //
             // the docs are wrong: https://github.com/ccxt/ccxt/issues/5612
             //
+            const minBuyCost = this.safeString (market, 'min_buy_amount');
+            const minSellCost = this.safeString (market, 'min_sell_amount');
+            const minCost = Precise.stringMax (minBuyCost, minSellCost);
             result.push ({
                 'id': this.safeString (market, 'symbol'),
                 'numericId': this.safeInteger (market, 'symbol_id'),
@@ -575,7 +576,7 @@ module.exports = class bitmart extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.parsePrecision (this.safeString (market, 'price_min_precision')),
+                    'price': this.parsePrecision (this.safeString (market, 'price_max_precision')),
                     'amount': undefined,
                     'quote': this.safeString (market, 'quote_increment'),
                 },
@@ -585,15 +586,15 @@ module.exports = class bitmart extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': this.parseNumber (Precise.stringMax (minBuyAmount, minSellAmount)),
-                        'max': undefined,
+                        'min': this.safeNumber (market, 'base_min_size'),
+                        'max': this.safeNumber (market, 'base_max_size'),
                     },
                     'price': {
                         'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.parseNumber (minCost),
                         'max': undefined,
                     },
                 },
