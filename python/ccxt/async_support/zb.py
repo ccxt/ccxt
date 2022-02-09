@@ -34,8 +34,13 @@ class zb(Exchange):
             'certified': True,
             'pro': True,
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': None,  # has but unimplemented
+                'swap': None,  # has but unimplemented
+                'future': None,
+                'option': None,
+                'cancelOrder': True,
                 'createMarketOrder': None,
                 'createOrder': True,
                 'fetchBalance': True,
@@ -292,18 +297,19 @@ class zb(Exchange):
                 'swap': False,
                 'future': False,
                 'option': False,
+                'active': True,
                 'contract': False,
                 'linear': None,
                 'inverse': None,
                 'contractSize': None,
-                'active': True,
+                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': int(amountPrecisionString),
                     'price': int(pricePrecisionString),
+                    'amount': int(amountPrecisionString),
                 },
                 'limits': {
                     'leverage': {

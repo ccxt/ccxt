@@ -20,11 +20,12 @@ module.exports = class bitbns extends Exchange {
             'version': 'v2',
             // new metainfo interface
             'has': {
+                'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
+                'margin': undefined, // has but unimplemented
                 'swap': false,
                 'future': false,
-                'option': false,
+                'option': undefined, // coming soon
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
@@ -35,8 +36,6 @@ module.exports = class bitbns extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
-                'fetchIsolatedPositions': false,
-                'fetchLeverage': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -44,17 +43,12 @@ module.exports = class bitbns extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchPositions': false,
-                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
                 'fetchTicker': 'emulated',
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
-                'reduceMargin': false,
-                'setLeverage': false,
-                'setPositionMode': false,
             },
             'timeframes': {
             },
@@ -228,18 +222,18 @@ module.exports = class bitbns extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'active': undefined,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
-                'active': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (marketPrecision, 'amount'),
                     'price': this.safeInteger (marketPrecision, 'price'),
+                    'amount': this.safeInteger (marketPrecision, 'amount'),
                 },
                 'limits': {
                     'leverage': {

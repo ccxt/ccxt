@@ -12,7 +12,6 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
-from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
 
 
@@ -26,6 +25,12 @@ class bigone(Exchange):
             'version': 'v3',
             'rateLimit': 1200,  # 500 request per 10 minutes
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': None,  # has but unimplemented
+                'swap': None,  # has but unimplemented
+                'future': None,  # has but unimplemented
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
@@ -123,7 +128,7 @@ class bigone(Exchange):
                     "Price mulit with amount should larger than AssetPair's min_quote_value": InvalidOrder,
                     '10007': BadRequest,  # parameter error, {"code":10007,"message":"Amount's scale must greater than AssetPair's base scale"}
                     '10011': ExchangeError,  # system error
-                    '10013': OrderNotFound,  # {"code":10013,"message":"Resource not found"}
+                    '10013': BadSymbol,  # {"code":10013,"message":"Resource not found"}
                     '10014': InsufficientFunds,  # {"code":10014,"message":"Insufficient funds"}
                     '10403': PermissionDenied,  # permission denied
                     '10429': RateLimitExceeded,  # too many requests
@@ -174,6 +179,7 @@ class bigone(Exchange):
         #                 },
         #                 "base_scale":3,
         #                 "min_quote_value":"0.0001",
+        #                 "max_quote_value":"35"
         #             },
         #         ]
         #     }
@@ -190,54 +196,51 @@ class bigone(Exchange):
             quoteId = self.safe_string(quoteAsset, 'symbol')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            amountPrecisionString = self.safe_string(market, 'base_scale')
-            pricePrecisionString = self.safe_string(market, 'quote_scale')
-            amountLimit = self.parse_precision(amountPrecisionString)
-            priceLimit = self.parse_precision(pricePrecisionString)
-            precision = {
-                'amount': int(amountPrecisionString),
-                'price': int(pricePrecisionString),
-            }
-            minCost = self.safe_number(market, 'min_quote_value')
             entry = {
                 'id': id,
                 'uuid': uuid,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
                 'margin': False,
                 'future': False,
                 'swap': False,
                 'option': False,
+                'active': True,
+                'contract': False,
                 'linear': None,
                 'inverse': None,
+                'contractSize': None,
                 'expiry': None,
                 'expiryDatetime': None,
-                'optionType': None,
                 'strike': None,
-                'contract': False,
-                'contractSize': None,
-                'settle': None,
-                'settleId': None,
-                'active': True,
-                'precision': precision,
+                'optionType': None,
+                'precision': {
+                    'price': self.safe_integer(market, 'quote_scale'),
+                    'amount': self.safe_integer(market, 'base_scale'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
-                        'min': self.parse_number(amountLimit),
+                        'min': None,
                         'max': None,
                     },
                     'price': {
-                        'min': self.parse_number(priceLimit),
+                        'min': None,
                         'max': None,
                     },
                     'cost': {
-                        'min': minCost,
-                        'max': None,
+                        'min': self.safe_number(market, 'min_quote_value'),
+                        'max': self.safe_number(market, 'max_quote_value'),
                     },
                 },
                 'info': market,

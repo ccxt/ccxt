@@ -18,19 +18,48 @@ class coinfalcon extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v1',
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -90,6 +119,26 @@ class coinfalcon extends Exchange {
 
     public function fetch_markets($params = array ()) {
         $response = $this->publicGetMarkets ($params);
+        //
+        //    {
+        //        "data" => array(
+        //            array(
+        //                "name" => "ETH-BTC",
+        //                "precision" => 6,
+        //                "min_volume" => "0.00000001",
+        //                "min_price" => "0.000001",
+        //                "volume" => "0.015713",
+        //                "last_price" => "0.069322",
+        //                "highest_bid" => "0.063892",
+        //                "lowest_ask" => "0.071437",
+        //                "change_in_24h" => "2.85",
+        //                "size_precision" => 8,
+        //                "price_precision" => 6
+        //            ),
+        //            ...
+        //        )
+        //    }
+        //
         $markets = $this->safe_value($response, 'data');
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
@@ -97,29 +146,45 @@ class coinfalcon extends Exchange {
             list($baseId, $quoteId) = explode('-', $market['name']);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $precision = array(
-                'amount' => $this->safe_integer($market, 'size_precision'),
-                'price' => $this->safe_integer($market, 'price_precision'),
-            );
             $result[] = array(
                 'id' => $market['name'],
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
                 'active' => true,
-                'precision' => $precision,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'price' => $this->safe_integer($market, 'price_precision'),
+                    'amount' => $this->safe_integer($market, 'size_precision'),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
-                        'min' => pow(10, -$precision['amount']),
+                        'min' => $this->safe_number($market, 'minPrice'),
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => pow(10, -$precision['price']),
+                        'min' => $this->safe_number($market, 'minVolume'),
                         'max' => null,
                     ),
                     'cost' => array(

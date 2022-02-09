@@ -6,6 +6,7 @@ const errorHierarchy = {
             'AuthenticationError': {
                 'PermissionDenied': {},
                 'AccountSuspended': {},
+                'AccountNotEnabled': {},
             },
             'ArgumentsRequired': {},
             'BadRequest': {

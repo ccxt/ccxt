@@ -42,14 +42,23 @@ class deribit(Exchange):
             # 5 requests per second for matching-engine endpoints, cost = (1000ms / rateLimit) / 5 = 4
             'rateLimit': 50,
             'has': {
-                'fetchPosition': True,
+                'CORS': True,
+                'spot': False,
+                'margin': False,
+                'swap': None,
+                'future': None,
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': True,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
@@ -64,6 +73,7 @@ class deribit(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': None,
                 'fetchOrderTrades': True,
+                'fetchPosition': True,
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
@@ -502,7 +512,8 @@ class deribit(Exchange):
                         type = 'option'
                         strike = self.safe_number(market, 'strike')
                         optionType = self.safe_string(market, 'option_type')
-                        symbol = symbol + ':' + self.number_to_string(strike) + ':' + optionType
+                        letter = 'C' if (optionType == 'call') else 'P'
+                        symbol = symbol + ':' + self.number_to_string(strike) + ':' + letter
                     else:
                         type = 'future'
                 minTradeAmount = self.safe_number(market, 'min_trade_amount')
@@ -534,8 +545,8 @@ class deribit(Exchange):
                     'strike': strike,
                     'optionType': optionType,
                     'precision': {
-                        'amount': minTradeAmount,
                         'price': tickSize,
+                        'amount': minTradeAmount,
                     },
                     'limits': {
                         'leverage': {

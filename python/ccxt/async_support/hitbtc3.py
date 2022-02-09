@@ -29,15 +29,21 @@ class hitbtc3(Exchange):
             'id': 'hitbtc3',
             'name': 'HitBTC',
             'countries': ['HK'],
-            'rateLimit': 100,  # TODO: optimize https://api.hitbtc.com/#rate-limiting
+            # 300 requests per second => 1000ms / 300 = 3.333(Trading: placing, replacing, deleting)
+            # 30 requests per second =>( 1000ms / rateLimit ) / 30 = cost = 10(Market Data and other Public Requests)
+            # 20 requests per second =>( 1000ms / rateLimit ) / 20 = cost = 15(All Other)
+            'rateLimit': 3.333,  # TODO: optimize https://api.hitbtc.com/#rate-limiting
             'version': '3',
             'pro': True,
             'has': {
-                'fetchTradingFees': True,
-                'fetchOrderBooks': True,
+                'CORS': False,
+                'spot': True,
+                'margin': None,  # has but not fully unimplemented
+                'swap': None,  # has but not fully unimplemented
+                'future': None,  # has but not fully unimplemented
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': False,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
@@ -53,16 +59,18 @@ class hitbtc3(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchOrderBooks': True,
                 'fetchOrders': False,
                 'fetchOrderTrades': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
+                'fetchTradingFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
-                'withdraw': True,
                 'transfer': True,
+                'withdraw': True,
             },
             'precisionMode': TICK_SIZE,
             'urls': {
@@ -88,94 +96,94 @@ class hitbtc3(Exchange):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'public/currency',
-                        'public/symbol',
-                        'public/ticker',
-                        'public/price/rate',
-                        'public/trades',
-                        'public/orderbook',
-                        'public/candles',
-                        'public/futures/info',
-                        'public/futures/history/funding',
-                        'public/futures/candles/index_price',
-                        'public/futures/candles/mark_price',
-                        'public/futures/candles/premium_index',
-                        'public/futures/candles/open_interest',
-                    ],
+                    'get': {
+                        'public/currency': 10,
+                        'public/symbol': 10,
+                        'public/ticker': 10,
+                        'public/price/rate': 10,
+                        'public/trades': 10,
+                        'public/orderbook': 10,
+                        'public/candles': 10,
+                        'public/futures/info': 10,
+                        'public/futures/history/funding': 10,
+                        'public/futures/candles/index_price': 10,
+                        'public/futures/candles/mark_price': 10,
+                        'public/futures/candles/premium_index': 10,
+                        'public/futures/candles/open_interest': 10,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'spot/balance',
-                        'spot/order',
-                        'spot/order/{client_order_id}',
-                        'spot/fee',
-                        'spot/fee/{symbol}',
-                        'spot/history/order',
-                        'spot/history/trade',
-                        'margin/account',
-                        'margin/account/isolated/{symbol}',
-                        'margin/order',
-                        'margin/order/{client_order_id}',
-                        'margin/history/order',
-                        'margin/history/trade',
-                        'futures/balance',
-                        'futures/account',
-                        'futures/account/isolated/{symbol}',
-                        'futures/order',
-                        'futures/order/{client_order_id}',
-                        'futures/fee',
-                        'futures/fee/{symbol}',
-                        'futures/history/order',
-                        'futures/history/trade',
-                        'wallet/balance',
-                        'wallet/crypto/address',
-                        'wallet/crypto/address/recent-deposit',
-                        'wallet/crypto/address/recent-withdraw',
-                        'wallet/crypto/address/check-mine',
-                        'wallet/transactions',
-                        'wallet/crypto/check-offchain-available',
-                        'wallet/crypto/fee/estimate',
-                        'sub-account',
-                        'sub-account/acl',
-                        'sub-account/balance/{subAccID}',
-                        'sub-account/crypto/address/{subAccID}/{currency}',
-                    ],
-                    'post': [
-                        'spot/order',
-                        'margin/order',
-                        'futures/order',
-                        'wallet/convert',
-                        'wallet/crypto/withdraw',
-                        'wallet/transfer',
-                        'sub-account/freeze',
-                        'sub-account/activate',
-                        'sub-account/transfer',
-                        'sub-account/acl',
-                    ],
-                    'patch': [
-                        'spot/order/{client_order_id}',
-                        'margin/order/{client_order_id}',
-                        'futures/order/{client_order_id}',
-                    ],
-                    'delete': [
-                        'spot/order',
-                        'spot/order/{client_order_id}',
-                        'margin/position',
-                        'margin/position/isolated/{symbol}',
-                        'margin/order',
-                        'margin/order/{client_order_id}',
-                        'futures/position',
-                        'futures/position/isolated/{symbol}',
-                        'futures/order',
-                        'futures/order/{client_order_id}',
-                        'wallet/crypto/withdraw/{id}',
-                    ],
-                    'put': [
-                        'margin/account/isolated/{symbol}',
-                        'futures/account/isolated/{symbol}',
-                        'wallet/crypto/withdraw/{id}',
-                    ],
+                    'get': {
+                        'spot/balance': 15,
+                        'spot/order': 15,
+                        'spot/order/{client_order_id}': 15,
+                        'spot/fee': 15,
+                        'spot/fee/{symbol}': 15,
+                        'spot/history/order': 15,
+                        'spot/history/trade': 15,
+                        'margin/account': 15,
+                        'margin/account/isolated/{symbol}': 15,
+                        'margin/order': 15,
+                        'margin/order/{client_order_id}': 15,
+                        'margin/history/order': 15,
+                        'margin/history/trade': 15,
+                        'futures/balance': 15,
+                        'futures/account': 15,
+                        'futures/account/isolated/{symbol}': 15,
+                        'futures/order': 15,
+                        'futures/order/{client_order_id}': 15,
+                        'futures/fee': 15,
+                        'futures/fee/{symbol}': 15,
+                        'futures/history/order': 15,
+                        'futures/history/trade': 15,
+                        'wallet/balance': 15,
+                        'wallet/crypto/address': 15,
+                        'wallet/crypto/address/recent-deposit': 15,
+                        'wallet/crypto/address/recent-withdraw': 15,
+                        'wallet/crypto/address/check-mine': 15,
+                        'wallet/transactions': 15,
+                        'wallet/crypto/check-offchain-available': 15,
+                        'wallet/crypto/fee/estimate': 15,
+                        'sub-account': 15,
+                        'sub-account/acl': 15,
+                        'sub-account/balance/{subAccID}': 15,
+                        'sub-account/crypto/address/{subAccID}/{currency}': 15,
+                    },
+                    'post': {
+                        'spot/order': 1,
+                        'margin/order': 1,
+                        'futures/order': 1,
+                        'wallet/convert': 15,
+                        'wallet/crypto/withdraw': 15,
+                        'wallet/transfer': 15,
+                        'sub-account/freeze': 15,
+                        'sub-account/activate': 15,
+                        'sub-account/transfer': 15,
+                        'sub-account/acl': 15,
+                    },
+                    'patch': {
+                        'spot/order/{client_order_id}': 1,
+                        'margin/order/{client_order_id}': 1,
+                        'futures/order/{client_order_id}': 1,
+                    },
+                    'delete': {
+                        'spot/order': 1,
+                        'spot/order/{client_order_id}': 1,
+                        'margin/position': 1,
+                        'margin/position/isolated/{symbol}': 1,
+                        'margin/order': 1,
+                        'margin/order/{client_order_id}': 1,
+                        'futures/position': 1,
+                        'futures/position/isolated/{symbol}': 1,
+                        'futures/order': 1,
+                        'futures/order/{client_order_id}': 1,
+                        'wallet/crypto/withdraw/{id}': 1,
+                    },
+                    'put': {
+                        'margin/account/isolated/{symbol}': 1,
+                        'futures/account/isolated/{symbol}': 1,
+                        'wallet/crypto/withdraw/{id}': 1,
+                    },
                 },
             },
             'fees': {
@@ -372,8 +380,6 @@ class hitbtc3(Exchange):
             stepString = self.safe_string(market, 'tick_size')
             lot = self.parse_number(lotString)
             step = self.parse_number(stepString)
-            taker = self.safe_number(market, 'take_rate')
-            maker = self.safe_number(market, 'make_rate')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -389,13 +395,14 @@ class hitbtc3(Exchange):
                 'swap': swap,
                 'future': future,
                 'option': option,
+                'active': True,
                 'contract': contract,
                 'linear': linear,
                 'inverse': inverse,
-                'taker': taker,
-                'maker': maker,
+                'taker': self.safe_number(market, 'take_rate'),
+                'maker': self.safe_number(market, 'make_rate'),
                 'contractSize': contractSize,
-                'active': True,
+                'maintenanceMarginRate': None,
                 'expiry': expiry,
                 'expiryDatetime': None,
                 'strike': None,
@@ -407,7 +414,7 @@ class hitbtc3(Exchange):
                 },
                 'limits': {
                     'leverage': {
-                        'min': 1,
+                        'min': self.parse_number('1'),
                         'max': self.safe_number(market, 'max_initial_leverage', 1),
                     },
                     'amount': {
@@ -481,8 +488,7 @@ class hitbtc3(Exchange):
                 precision = self.safe_number(rawNetwork, 'precision_payout')
                 payinEnabledNetwork = self.safe_value(entry, 'payin_enabled', False)
                 payoutEnabledNetwork = self.safe_value(entry, 'payout_enabled', False)
-                transferEnabledNetwork = self.safe_value(entry, 'transfer_enabled', False)
-                active = payinEnabledNetwork and payoutEnabledNetwork and transferEnabledNetwork
+                activeNetwork = payinEnabledNetwork and payoutEnabledNetwork
                 if payinEnabledNetwork and not depositEnabled:
                     depositEnabled = True
                 elif not payinEnabledNetwork:
@@ -496,7 +502,7 @@ class hitbtc3(Exchange):
                     'id': networkId,
                     'network': network,
                     'fee': fee,
-                    'active': active,
+                    'active': activeNetwork,
                     'deposit': payinEnabledNetwork,
                     'withdraw': payoutEnabledNetwork,
                     'precision': precision,
@@ -723,51 +729,60 @@ class hitbtc3(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def parse_trade(self, trade, market=None):
-        # createMarketOrder
         #
-        #  {      fee: "0.0004644",
-        #           id:  386394956,
-        #        price: "0.4644",
-        #     quantity: "1",
-        #    timestamp: "2018-10-25T16:41:44.780Z"}
+        # createOrder(market)
+        #
+        #  {
+        #      id: '1569252895',
+        #      position_id: '0',
+        #      quantity: '10',
+        #      price: '0.03919424',
+        #      fee: '0.000979856000',
+        #      timestamp: '2022-01-25T19:38:36.153Z',
+        #      taker: True
+        #  }
         #
         # fetchTrades
         #
-        # {id: 974786185,
-        #   price: '0.032462',
-        #   qty: '0.3673',
-        #   side: 'buy',
-        #   timestamp: '2020-10-16T12:57:39.846Z'}
+        #  {
+        #      id: 974786185,
+        #      price: '0.032462',
+        #      qty: '0.3673',
+        #      side: 'buy',
+        #      timestamp: '2020-10-16T12:57:39.846Z'
+        #  }
         #
         # fetchMyTrades
         #
-        # {id: 277210397,
-        #   clientOrderId: '6e102f3e7f3f4e04aeeb1cdc95592f1a',
-        #   orderId: 28102855393,
-        #   symbol: 'ETHBTC',
-        #   side: 'sell',
-        #   quantity: '0.002',
-        #   price: '0.073365',
-        #   fee: '0.000000147',
-        #   timestamp: '2018-04-28T18:39:55.345Z',
-        #   taker: True}
+        #  {
+        #      id: 277210397,
+        #      clientOrderId: '6e102f3e7f3f4e04aeeb1cdc95592f1a',
+        #      orderId: 28102855393,
+        #      symbol: 'ETHBTC',
+        #      side: 'sell',
+        #      quantity: '0.002',
+        #      price: '0.073365',
+        #      fee: '0.000000147',
+        #      timestamp: '2018-04-28T18:39:55.345Z',
+        #      taker: True
+        #  }
         #
         timestamp = self.parse8601(trade['timestamp'])
         marketId = self.safe_string(trade, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
         fee = None
-        feeCost = self.safe_number(trade, 'fee')
+        feeCostString = self.safe_string(trade, 'fee')
         taker = self.safe_value(trade, 'taker')
         takerOrMaker = None
         if taker is not None:
             takerOrMaker = 'taker' if taker else 'maker'
-        if feeCost is not None:
+        if feeCostString is not None:
             info = self.safe_value(market, 'info', {})
             feeCurrency = self.safe_string(info, 'fee_currency')
             feeCurrencyCode = self.safe_currency_code(feeCurrency)
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
         # we use clientOrderId as the order id with self exchange intentionally
@@ -776,12 +791,9 @@ class hitbtc3(Exchange):
         orderId = self.safe_string(trade, 'clientOrderId')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string_2(trade, 'quantity', 'qty')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         side = self.safe_string(trade, 'side')
         id = self.safe_string(trade, 'id')
-        return {
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'order': orderId,
@@ -791,11 +803,11 @@ class hitbtc3(Exchange):
             'type': None,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     async def fetch_transactions_helper(self, types, code, since, limit, params):
         await self.load_markets()

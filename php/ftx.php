@@ -41,6 +41,7 @@ class ftx extends Exchange {
                 ),
             ),
             'has' => array(
+                'CORS' => null,
                 'spot' => true,
                 'margin' => true,
                 'swap' => true,
@@ -49,20 +50,22 @@ class ftx extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => true,
-                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRateHistories' => true,
+                'fetchBorrowRateHistory' => true,
                 'fetchBorrowRates' => true,
                 'fetchClosedOrders' => null,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchFundingFees' => null,
-                'fetchFundingRate' => true,
                 'fetchFundingHistory' => true,
+                'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
-                'fetchFundingRates' => null,
+                'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
@@ -73,7 +76,9 @@ class ftx extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
+                'fetchPosition' => false,
                 'fetchPositions' => true,
+                'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -81,8 +86,10 @@ class ftx extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFees' => true,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => false,
                 'setLeverage' => true,
                 'setMarginMode' => false, // FTX only supports cross margin
+                'setPositionMode' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -473,8 +480,8 @@ class ftx extends Exchange {
         //         name => "BTC-PERP",
         //         enabled =>  true,
         //         postOnly =>  false,
-        //         $priceIncrement => "1.0",
-        //         $sizeIncrement => "0.0001",
+        //         priceIncrement => "1.0",
+        //         sizeIncrement => "0.0001",
         //         minProvideSize => "0.001",
         //         last => "60397.0",
         //         bid => "60387.0",
@@ -511,8 +518,8 @@ class ftx extends Exchange {
         //                expired => false,
         //                enabled => true,
         //                postOnly => false,
-        //                $priceIncrement => "0.0001",
-        //                $sizeIncrement => "1.0",
+        //                priceIncrement => "0.0001",
+        //                sizeIncrement => "1.0",
         //                last => "2.5556",
         //                bid => "2.5555",
         //                ask => "2.5563",
@@ -588,8 +595,6 @@ class ftx extends Exchange {
                 $symbol = $base . '/' . $quote . ':' . $settle . '-' . $this->yymmdd($expiry, '');
             }
             // check if a $market is a $spot or $future $market
-            $sizeIncrement = $this->safe_number($market, 'sizeIncrement');
-            $priceIncrement = $this->safe_number($market, 'priceIncrement');
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -606,35 +611,35 @@ class ftx extends Exchange {
                 'future' => $isFuture,
                 'option' => $option,
                 'active' => $this->safe_value($market, 'enabled'),
-                'derivative' => $contract,
                 'contract' => $contract,
                 'linear' => true,
                 'inverse' => false,
                 'contractSize' => $this->parse_number('1'),
+                'maintenanceMarginRate' => null,
                 'expiry' => $expiry,
                 'expiryDatetime' => $this->iso8601($expiry),
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $sizeIncrement,
-                    'price' => $priceIncrement,
+                    'price' => $this->safe_number($market, 'priceIncrement'),
+                    'amount' => $this->safe_number($market, 'sizeIncrement'),
                 ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => $this->parse_number('1'),
+                        'max' => $this->parse_number('20'),
+                    ),
                     'amount' => array(
-                        'min' => $sizeIncrement,
+                        'min' => null,
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => $priceIncrement,
+                        'min' => null,
                         'max' => null,
                     ),
                     'cost' => array(
                         'min' => null,
                         'max' => null,
-                    ),
-                    'leverage' => array(
-                        'min' => $this->parse_number('1'),
-                        'max' => $this->parse_number('20'),
                     ),
                 ),
                 'info' => $market,
@@ -1505,6 +1510,13 @@ class ftx extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         return $this->parse_order($result, $market);
+    }
+
+    public function create_reduce_only_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $request = array(
+            'reduceOnly' => true,
+        );
+        return $this->create_order($symbol, $type, $side, $amount, $price, array_merge($request, $params));
     }
 
     public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -2445,5 +2457,73 @@ class ftx extends Exchange {
             );
         }
         return $rates;
+    }
+
+    public function fetch_borrow_rate_histories($since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array();
+        $endTime = $this->safe_number_2($params, 'till', 'end_time');
+        if ($since !== null) {
+            $request['start_time'] = $since / 1000;
+            if ($endTime === null) {
+                $request['end_time'] = $this->milliseconds() / 1000;
+            }
+        }
+        if ($endTime !== null) {
+            $request['end_time'] = $endTime / 1000;
+        }
+        $response = $this->publicGetSpotMarginHistory (array_merge($request, $params));
+        //
+        //    {
+        //        "success" => true,
+        //        "result" => array(
+        //            array(
+        //                "coin" => "PYPL",
+        //                "time" => "2022-01-24T13:00:00+00:00",
+        //                "size" => 0.00500172,
+        //                "rate" => 1e-6
+        //            ),
+        //            ...
+        //        )
+        //    }
+        //
+        $result = $this->safe_value($response, 'result');
+        // How to calculate borrow rate
+        // https://help.ftx.com/hc/en-us/articles/360053007671-Spot-Margin-Trading-Explainer
+        $takerFee = (string) $this->fees['trading']['taker'];
+        $spotMarginBorrowRate = Precise::string_mul('500', $takerFee);
+        $borrowRateHistories = array();
+        for ($i = 0; $i < count($result); $i++) {
+            $item = $result[$i];
+            $currency = $this->safe_currency_code($this->safe_string($item, 'coin'));
+            if (!(is_array($borrowRateHistories) && array_key_exists($currency, $borrowRateHistories))) {
+                $borrowRateHistories[$currency] = array();
+            }
+            $datetime = $this->safe_string($item, 'time');
+            $lendingRate = $this->safe_string($item, 'rate');
+            $borrowRateHistories[$currency][] = array(
+                'currency' => $currency,
+                'rate' => Precise::string_mul($lendingRate, Precise::string_add('1', $spotMarginBorrowRate)),
+                'timestamp' => $this->parse8601($datetime),
+                'datetime' => $datetime,
+                'info' => $item,
+            );
+        }
+        $keys = is_array($borrowRateHistories) ? array_keys($borrowRateHistories) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            $borrowRateHistories[$key] = $this->filter_by_currency_since_limit($borrowRateHistories[$key], $key, $since, $limit);
+        }
+        return $borrowRateHistories;
+    }
+
+    public function fetch_borrow_rate_history($code, $since = null, $limit = null, $params = array ()) {
+        $histories = $this->fetch_borrow_rate_histories($since, $limit, $params);
+        $borrowRateHistory = $this->safe_value($histories, $code);
+        if ($borrowRateHistory === null) {
+            throw new BadRequest($this->id . '.fetchBorrowRateHistory returned no data for ' . $code);
+        } else {
+            return $borrowRateHistory;
+        }
     }
 }

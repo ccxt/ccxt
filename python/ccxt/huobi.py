@@ -12,7 +12,6 @@ try:
 except NameError:
     basestring = str  # Python 2
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -49,23 +48,26 @@ class huobi(Exchange):
             'hostname': 'api.huobi.pro',  # api.testnet.huobi.pro
             'pro': True,
             'has': {
-                # 'margin': True,
+                'CORS': None,
+                'spot': True,
+                'margin': True,
                 'swap': True,
                 'future': True,
+                'option': None,
                 'addMargin': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
-                'CORS': None,
                 'createDepositAddress': None,
                 'createOrder': True,
-                'createReduceOnlyOrder': None,
+                'createReduceOnlyOrder': False,
                 'deposit': None,
                 'fetchAccounts': True,
                 'fetchAllTradingFees': None,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
                 'fetchBorrowRate': True,
+                'fetchBorrowRateHistories': None,
                 'fetchBorrowRateHistory': None,
                 'fetchBorrowRates': True,
                 'fetchBorrowRatesPerSymbol': True,
@@ -83,13 +85,13 @@ class huobi(Exchange):
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
-                'fetchFundingRates': None,
+                'fetchFundingRates': True,
                 'fetchIndexOHLCV': True,
-                'fetchIsolatedPositions': None,
+                'fetchIsolatedPositions': False,
                 'fetchL3OrderBook': None,
-                'fetchLedger': None,
+                'fetchLedger': True,
                 'fetchLedgerEntry': None,
-                'fetchLeverage': None,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
                 'fetchMyBuys': None,
@@ -105,7 +107,7 @@ class huobi(Exchange):
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
                 'fetchPositions': True,
-                'fetchPositionsRisk': None,
+                'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': True,
                 'fetchStatus': None,
                 'fetchTicker': True,
@@ -124,8 +126,8 @@ class huobi(Exchange):
                 'loadLeverageBrackets': None,
                 'reduceMargin': None,
                 'setLeverage': True,
-                'setMarginMode': None,
-                'setPositionMode': None,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'signIn': None,
                 'transfer': True,
                 'withdraw': True,
@@ -166,10 +168,10 @@ class huobi(Exchange):
                     'v2Private': 'https://{hostname}',
                 },
                 'www': 'https://www.huobi.com',
-                # 'referral': {
-                #     'url': 'https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223',
-                #     'discount': 0.15,
-                # },
+                'referral': {
+                    'url': 'https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223',
+                    'discount': 0.15,
+                },
                 'doc': [
                     'https://huobiapi.github.io/docs/spot/v1/cn/',
                     'https://huobiapi.github.io/docs/dm/v1/cn/',
@@ -778,7 +780,13 @@ class huobi(Exchange):
                 'exact': {
                     # err-code
                     '1017': OrderNotFound,  # {"status":"error","err_code":1017,"err_msg":"Order doesnt exist.","ts":1640550859242}
+                    '1034': InvalidOrder,  # {"status":"error","err_code":1034,"err_msg":"Incorrect field of order price type.","ts":1643802870182}
+                    '1036': InvalidOrder,  # {"status":"error","err_code":1036,"err_msg":"Incorrect field of open long form.","ts":1643802518986}
+                    '1039': InvalidOrder,  # {"status":"error","err_code":1039,"err_msg":"Buy price must be lower than 39270.9USDT. Sell price must exceed 37731USDT.","ts":1643802374403}
+                    '1041': InvalidOrder,  # {"status":"error","err_code":1041,"err_msg":"The order amount exceeds the limit(170000Cont), please modify and order again.","ts":1643802784940}
+                    '1047': InsufficientFunds,  # {"status":"error","err_code":1047,"err_msg":"Insufficient margin available.","ts":1643802672652}
                     '1066': BadSymbol,  # {"status":"error","err_code":1066,"err_msg":"The symbol field cannot be empty. Please re-enter.","ts":1640550819147}
+                    '1067': InvalidOrder,  # {"status":"error","err_code":1067,"err_msg":"The client_order_id field is invalid. Please re-enter.","ts":1643802119413}
                     '1013': BadSymbol,  # {"status":"error","err_code":1013,"err_msg":"This contract symbol doesnt exist.","ts":1640550459583}
                     '1094': InvalidOrder,  # {"status":"error","err_code":1094,"err_msg":"The leverage cannot be empty, please switch the leverage or contact customer service","ts":1640496946243}
                     'bad-request': BadRequest,
@@ -1239,17 +1247,12 @@ class huobi(Exchange):
             else:
                 pricePrecision = self.safe_number(market, 'price_tick')
                 amountPrecision = 1
-            precision = {
-                'amount': amountPrecision,
-                'price': pricePrecision,
-                'cost': costPrecision,
-            }
             maker = None
             taker = None
             if spot:
                 maker = 0 if (base == 'OMG') else 0.2 / 100
                 taker = 0 if (base == 'OMG') else 0.2 / 100
-            minAmount = self.safe_number(market, 'min-order-amt', math.pow(10, -precision['amount']))
+            minAmount = self.safe_number(market, 'min-order-amt')
             maxAmount = self.safe_number(market, 'max-order-amt')
             minCost = self.safe_number(market, 'min-order-value', 0)
             active = None
@@ -1259,6 +1262,9 @@ class huobi(Exchange):
             elif contract:
                 contractStatus = self.safe_integer(market, 'contract_status')
                 active = (contractStatus == 1)
+            leverageRatio = self.safe_string(market, 'leverage-ratio', '1')
+            superLeverageRatio = self.safe_string(market, 'super-margin-leverage-ratio', '1')
+            hasLeverage = Precise.string_gt(leverageRatio, '1') or Precise.string_gt(superLeverageRatio, '1')
             # 0 Delisting
             # 1 Listing
             # 2 Pending Listing
@@ -1279,35 +1285,45 @@ class huobi(Exchange):
                 'quoteId': quoteId,
                 'settleId': settleId,
                 'type': type,
-                'contract': contract,
                 'spot': spot,
-                'future': future,
+                'margin': (spot and hasLeverage),
                 'swap': swap,
+                'future': future,
+                'option': False,
+                'active': active,
+                'contract': contract,
                 'linear': linear,
                 'inverse': inverse,
-                'expiry': expiry,
-                'expiryDatetime': self.iso8601(expiry),
-                'contractSize': contractSize,
-                'active': active,
-                'precision': precision,
                 'taker': taker,
                 'maker': maker,
+                'contractSize': contractSize,
+                'maintenanceMarginRate': None,
+                'expiry': expiry,
+                'expiryDatetime': self.iso8601(expiry),
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': amountPrecision,
+                    'price': pricePrecision,
+                    'cost': costPrecision,
+                },
                 'limits': {
+                    'leverage': {
+                        'min': self.parse_number('1'),
+                        'max': self.parse_number(leverageRatio),
+                        'superMax': self.parse_number(superLeverageRatio),
+                    },
                     'amount': {
                         'min': minAmount,
                         'max': maxAmount,
                     },
                     'price': {
-                        'min': pricePrecision,
+                        'min': None,
                         'max': None,
                     },
                     'cost': {
                         'min': minCost,
                         'max': None,
-                    },
-                    'leverage': {
-                        'max': self.safe_number(market, 'leverage-ratio', 1),
-                        'superMax': self.safe_number(market, 'super-margin-leverage-ratio', 1),
                     },
                 },
                 'info': market,
@@ -1728,8 +1744,10 @@ class huobi(Exchange):
         filledPoints = self.safe_string(trade, 'filled-points')
         if filledPoints is not None:
             if (feeCost is None) or Precise.string_equals(feeCost, '0'):
-                feeCost = filledPoints
-                feeCurrency = self.safe_currency_code(self.safe_string(trade, 'fee-deduct-currency'))
+                feeDeductCurrency = self.safe_string(trade, 'fee-deduct-currency')
+                if feeDeductCurrency != '':
+                    feeCost = filledPoints
+                    feeCurrency = self.safe_currency_code(feeDeductCurrency)
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
@@ -2931,6 +2949,7 @@ class huobi(Exchange):
             'filled': 'closed',
             'canceled': 'canceled',
             'submitted': 'open',
+            'created': 'open',  # For stop orders
             # contract
             '1': 'open',
             '2': 'open',
@@ -4232,6 +4251,43 @@ class huobi(Exchange):
         result = self.safe_value(response, 'data', {})
         return self.parse_funding_rate(result, market)
 
+    def fetch_funding_rates(self, symbols, params={}):
+        self.load_markets()
+        options = self.safe_value(self.options, 'fetchFundingRates', {})
+        defaultSubType = self.safe_string(self.options, 'defaultSubType', 'inverse')
+        subType = self.safe_string(options, 'subType', defaultSubType)
+        subType = self.safe_string(params, 'subType', subType)
+        request = {
+            # 'contract_code': market['id'],
+        }
+        method = self.get_supported_mapping(subType, {
+            'linear': 'contractPublicGetLinearSwapApiV1SwapBatchFundingRate',
+            'inverse': 'contractPublicGetSwapApiV1SwapBatchFundingRate',
+        })
+        params = self.omit(params, 'subType')
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "status": "ok",
+        #         "data": [
+        #             {
+        #                 "estimated_rate": "0.000100000000000000",
+        #                 "funding_rate": "0.000100000000000000",
+        #                 "contract_code": "MANA-USDT",
+        #                 "symbol": "MANA",
+        #                 "fee_asset": "USDT",
+        #                 "funding_time": "1643356800000",
+        #                 "next_funding_time": "1643385600000",
+        #                 "trade_partition":"USDT"
+        #             },
+        #         ],
+        #         "ts": 1643346173103
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        result = self.parse_funding_rates(data)
+        return self.filter_by_array(result, 'symbol', symbols)
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/'
         query = self.omit(params, self.extract_params(path))
@@ -4860,3 +4916,121 @@ class huobi(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         })
+
+    def parse_ledger_entry_type(self, type):
+        types = {
+            'trade': 'trade',
+            'etf': 'trade',
+            'transact-fee': 'fee',
+            'fee-deduction': 'fee',
+            'transfer': 'transfer',
+            'credit': 'credit',
+            'liquidation': 'trade',
+            'interest': 'credit',
+            'deposit': 'deposit',
+            'withdraw': 'withdrawal',
+            'withdraw-fee': 'fee',
+            'exchange': 'exchange',
+            'other-types': 'transfer',
+            'rebate': 'rebate',
+        }
+        return self.safe_string(types, type, type)
+
+    def parse_ledger_entry(self, item, currency=None):
+        #
+        #     {
+        #         "accountId": 10000001,
+        #         "currency": "usdt",
+        #         "transactAmt": 10.000000000000000000,
+        #         "transactType": "transfer",
+        #         "transferType": "margin-transfer-out",
+        #         "transactId": 0,
+        #         "transactTime": 1629882331066,
+        #         "transferer": 28483123,
+        #         "transferee": 13496526
+        #     }
+        #
+        id = self.safe_string(item, 'transactId')
+        currencyId = self.safe_string(item, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
+        amount = self.safe_number(item, 'transactAmt')
+        transferType = self.safe_string(item, 'transferType')
+        type = self.parse_ledger_entry_type(transferType)
+        direction = self.safe_string(item, 'direction')
+        timestamp = self.safe_integer(item, 'transactTime')
+        datetime = self.iso8601(timestamp)
+        account = self.safe_string(item, 'accountId')
+        return {
+            'id': id,
+            'direction': direction,
+            'account': account,
+            'referenceId': id,
+            'referenceAccount': account,
+            'type': type,
+            'currency': code,
+            'amount': amount,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'before': None,
+            'after': None,
+            'status': None,
+            'fee': None,
+            'info': item,
+        }
+
+    def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        accountId = self.fetch_account_id_by_type('spot', params)
+        request = {
+            'accountId': accountId,
+            # 'currency': code,
+            # 'transactTypes': 'all',  # default all
+            # 'startTime': 1546272000000,
+            # 'endTime': 1546272000000,
+            # 'sort': asc,  # asc, desc
+            # 'limit': 100,  # range 1-500
+            # 'fromId': 323  # first record ID in self query for pagination
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit  # max 500
+        response = self.spotPrivateGetV2AccountLedger(self.extend(request, params))
+        #
+        #     {
+        #         "code": 200,
+        #         "message": "success",
+        #         "data": [
+        #             {
+        #                 "accountId": 10000001,
+        #                 "currency": "usdt",
+        #                 "transactAmt": 10.000000000000000000,
+        #                 "transactType": "transfer",
+        #                 "transferType": "margin-transfer-out",
+        #                 "transactId": 0,
+        #                 "transactTime": 1629882331066,
+        #                 "transferer": 28483123,
+        #                 "transferee": 13496526
+        #             },
+        #             {
+        #                 "accountId": 10000001,
+        #                 "currency": "usdt",
+        #                 "transactAmt": -10.000000000000000000,
+        #                 "transactType": "transfer",
+        #                 "transferType": "margin-transfer-in",
+        #                 "transactId": 0,
+        #                 "transactTime": 1629882096562,
+        #                 "transferer": 13496526,
+        #                 "transferee": 28483123
+        #             }
+        #         ],
+        #         "nextId": 1624316679,
+        #         "ok": True
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_ledger(data, currency, since, limit)

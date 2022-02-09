@@ -33,6 +33,7 @@ class poloniex(Exchange):
             'certified': False,
             'pro': True,
             'has': {
+                'CORS': None,
                 'spot': True,
                 'margin': None,  # has but not fully implemented
                 'swap': None,  # has but not fully implemented
@@ -40,7 +41,6 @@ class poloniex(Exchange):
                 'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': None,
                 'createDepositAddress': True,
                 'createMarketOrder': None,
                 'createOrder': True,
@@ -1161,7 +1161,8 @@ class poloniex(Exchange):
         response = self.privatePostGenerateNewAddress(self.extend(request, params))
         address = None
         tag = None
-        if response['success'] == 1:
+        success = self.safe_string(response, 'success')
+        if success == '1':
             address = self.safe_string(response, 'response')
         self.check_address(address)
         if currency is not None:

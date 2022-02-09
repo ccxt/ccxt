@@ -21,20 +21,48 @@ class itbit extends Exchange {
             'rateLimit' => 2000,
             'version' => 'v1',
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => true,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
+                'cancelOrder' => true,
                 'createMarketOrder' => null,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
                 'fetchTransactions' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg',
@@ -108,36 +136,50 @@ class itbit extends Exchange {
         return $this->parse_order_book($orderbook, $symbol);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
-        yield $this->load_markets();
-        $request = array(
-            'symbol' => $this->market_id($symbol),
-        );
-        $ticker = yield $this->publicGetMarketsSymbolTicker (array_merge($request, $params));
+    public function parse_ticker($ticker, $market = null) {
+        //
+        // {
+        //     "pair":"XBTUSD",
+        //     "bid":"36734.50",
+        //     "bidAmt":"0.01000000",
+        //     "ask":"36734.75",
+        //     "askAmt":"0.30750480",
+        //     "lastPrice":"36721.75",
+        //     "lastAmt":"0.00070461",
+        //     "volume24h":"275.50596346",
+        //     "volumeToday":"118.19025141",
+        //     "high24h":"37510.50",
+        //     "low24h":"35542.75",
+        //     "highToday":"37510.50",
+        //     "lowToday":"36176.50",
+        //     "openToday":"37156.50",
+        //     "vwapToday":"37008.22463903",
+        //     "vwap24h":"36580.27146808",
+        //     "serverTimeUTC":"2022-01-28T14:46:32.4472864Z"
+        // }
+        //
+        $symbol = $this->safe_symbol(null, $market);
         $serverTimeUTC = $this->safe_string($ticker, 'serverTimeUTC');
         if (!$serverTimeUTC) {
             throw new ExchangeError($this->id . ' fetchTicker returned a bad response => ' . $this->json($ticker));
         }
         $timestamp = $this->parse8601($serverTimeUTC);
-        $vwap = $this->safe_number($ticker, 'vwap24h');
-        $baseVolume = $this->safe_number($ticker, 'volume24h');
-        $quoteVolume = null;
-        if ($baseVolume !== null && $vwap !== null) {
-            $quoteVolume = $baseVolume * $vwap;
-        }
-        $last = $this->safe_number($ticker, 'lastPrice');
-        return array(
+        $vwap = $this->safe_string($ticker, 'vwap24h');
+        $baseVolume = $this->safe_string($ticker, 'volume24h');
+        $quoteVolume = Precise::string_mul($baseVolume, $vwap);
+        $last = $this->safe_string($ticker, 'lastPrice');
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high24h'),
-            'low' => $this->safe_number($ticker, 'low24h'),
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'high' => $this->safe_string($ticker, 'high24h'),
+            'low' => $this->safe_string($ticker, 'low24h'),
+            'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => $vwap,
-            'open' => $this->safe_number($ticker, 'openToday'),
+            'open' => $this->safe_string($ticker, 'openToday'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
@@ -147,7 +189,38 @@ class itbit extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
+        ), $market, false);
+    }
+
+    public function fetch_ticker($symbol, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
         );
+        $ticker = yield $this->publicGetMarketsSymbolTicker (array_merge($request, $params));
+        //
+        // {
+        //     "pair":"XBTUSD",
+        //     "bid":"36734.50",
+        //     "bidAmt":"0.01000000",
+        //     "ask":"36734.75",
+        //     "askAmt":"0.30750480",
+        //     "lastPrice":"36721.75",
+        //     "lastAmt":"0.00070461",
+        //     "volume24h":"275.50596346",
+        //     "volumeToday":"118.19025141",
+        //     "high24h":"37510.50",
+        //     "low24h":"35542.75",
+        //     "highToday":"37510.50",
+        //     "lowToday":"36176.50",
+        //     "openToday":"37156.50",
+        //     "vwapToday":"37008.22463903",
+        //     "vwap24h":"36580.27146808",
+        //     "serverTimeUTC":"2022-01-28T14:46:32.4472864Z"
+        // }
+        //
+        return $this->parse_ticker($ticker, $market);
     }
 
     public function parse_trade($trade, $market = null) {

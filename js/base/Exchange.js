@@ -706,8 +706,10 @@ module.exports = class Exchange {
             if (this.verbose) {
                 this.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponseHeaders:\n", responseHeaders, "\nResponseBody:\n", responseBody, "\n")
             }
-            this.handleErrors (response.status, response.statusText, url, method, responseHeaders, responseBody, json, requestHeaders, requestBody)
-            this.handleHttpStatusCode (response.status, response.statusText, url, method, responseBody)
+            const skipFurtherErrorHandling = this.handleErrors (response.status, response.statusText, url, method, responseHeaders, responseBody, json, requestHeaders, requestBody)
+            if (!skipFurtherErrorHandling) {
+                this.handleHttpStatusCode (response.status, response.statusText, url, method, responseBody)
+            }
             return json || responseBody
         })
     }

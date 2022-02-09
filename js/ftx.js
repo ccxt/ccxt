@@ -38,6 +38,7 @@ module.exports = class ftx extends Exchange {
                 },
             },
             'has': {
+                'CORS': undefined,
                 'spot': true,
                 'margin': true,
                 'swap': true,
@@ -46,20 +47,22 @@ module.exports = class ftx extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': true,
-                'fetchBorrowRateHistory': false,
+                'fetchBorrowRateHistories': true,
+                'fetchBorrowRateHistory': true,
                 'fetchBorrowRates': true,
                 'fetchClosedOrders': undefined,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchFundingFees': undefined,
-                'fetchFundingRate': true,
                 'fetchFundingHistory': true,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': undefined,
+                'fetchFundingRates': false,
                 'fetchIndexOHLCV': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -70,7 +73,9 @@ module.exports = class ftx extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
+                'fetchPosition': false,
                 'fetchPositions': true,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -78,8 +83,10 @@ module.exports = class ftx extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFees': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
                 'setLeverage': true,
                 'setMarginMode': false, // FTX only supports cross margin
+                'setPositionMode': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -585,8 +592,6 @@ module.exports = class ftx extends Exchange {
                 symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry, '');
             }
             // check if a market is a spot or future market
-            const sizeIncrement = this.safeNumber (market, 'sizeIncrement');
-            const priceIncrement = this.safeNumber (market, 'priceIncrement');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -603,35 +608,35 @@ module.exports = class ftx extends Exchange {
                 'future': isFuture,
                 'option': option,
                 'active': this.safeValue (market, 'enabled'),
-                'derivative': contract,
                 'contract': contract,
                 'linear': true,
                 'inverse': false,
                 'contractSize': this.parseNumber ('1'),
+                'maintenanceMarginRate': undefined,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': sizeIncrement,
-                    'price': priceIncrement,
+                    'price': this.safeNumber (market, 'priceIncrement'),
+                    'amount': this.safeNumber (market, 'sizeIncrement'),
                 },
                 'limits': {
+                    'leverage': {
+                        'min': this.parseNumber ('1'),
+                        'max': this.parseNumber ('20'),
+                    },
                     'amount': {
-                        'min': sizeIncrement,
+                        'min': undefined,
                         'max': undefined,
                     },
                     'price': {
-                        'min': priceIncrement,
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
                         'min': undefined,
                         'max': undefined,
-                    },
-                    'leverage': {
-                        'min': this.parseNumber ('1'),
-                        'max': this.parseNumber ('20'),
                     },
                 },
                 'info': market,
@@ -1502,6 +1507,13 @@ module.exports = class ftx extends Exchange {
         //
         const result = this.safeValue (response, 'result', []);
         return this.parseOrder (result, market);
+    }
+
+    async createReduceOnlyOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        const request = {
+            'reduceOnly': true,
+        };
+        return await this.createOrder (symbol, type, side, amount, price, this.extend (request, params));
     }
 
     async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
@@ -2442,5 +2454,73 @@ module.exports = class ftx extends Exchange {
             };
         }
         return rates;
+    }
+
+    async fetchBorrowRateHistories (since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        const endTime = this.safeNumber2 (params, 'till', 'end_time');
+        if (since !== undefined) {
+            request['start_time'] = since / 1000;
+            if (endTime === undefined) {
+                request['end_time'] = this.milliseconds () / 1000;
+            }
+        }
+        if (endTime !== undefined) {
+            request['end_time'] = endTime / 1000;
+        }
+        const response = await this.publicGetSpotMarginHistory (this.extend (request, params));
+        //
+        //    {
+        //        "success": true,
+        //        "result": [
+        //            {
+        //                "coin": "PYPL",
+        //                "time": "2022-01-24T13:00:00+00:00",
+        //                "size": 0.00500172,
+        //                "rate": 1e-6
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        const result = this.safeValue (response, 'result');
+        // How to calculate borrow rate
+        // https://help.ftx.com/hc/en-us/articles/360053007671-Spot-Margin-Trading-Explainer
+        const takerFee = this.fees['trading']['taker'].toString ();
+        const spotMarginBorrowRate = Precise.stringMul ('500', takerFee);
+        const borrowRateHistories = {};
+        for (let i = 0; i < result.length; i++) {
+            const item = result[i];
+            const currency = this.safeCurrencyCode (this.safeString (item, 'coin'));
+            if (!(currency in borrowRateHistories)) {
+                borrowRateHistories[currency] = [];
+            }
+            const datetime = this.safeString (item, 'time');
+            const lendingRate = this.safeString (item, 'rate');
+            borrowRateHistories[currency].push ({
+                'currency': currency,
+                'rate': Precise.stringMul (lendingRate, Precise.stringAdd ('1', spotMarginBorrowRate)),
+                'timestamp': this.parse8601 (datetime),
+                'datetime': datetime,
+                'info': item,
+            });
+        }
+        const keys = Object.keys (borrowRateHistories);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            borrowRateHistories[key] = this.filterByCurrencySinceLimit (borrowRateHistories[key], key, since, limit);
+        }
+        return borrowRateHistories;
+    }
+
+    async fetchBorrowRateHistory (code, since = undefined, limit = undefined, params = {}) {
+        const histories = await this.fetchBorrowRateHistories (since, limit, params);
+        const borrowRateHistory = this.safeValue (histories, code);
+        if (borrowRateHistory === undefined) {
+            throw new BadRequest (this.id + '.fetchBorrowRateHistory returned no data for ' + code);
+        } else {
+            return borrowRateHistory;
+        }
     }
 };

@@ -41,17 +41,19 @@ class aax(Exchange):
             'certified': True,
             'pro': True,
             'has': {
+                'CORS': None,
+                'spot': True,
                 'margin': False,
                 'swap': True,
                 'future': False,
+                'option': False,
                 'addMargin': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': None,
-                'CORS': None,
                 'createDepositAddress': None,
                 'createOrder': True,
-                'createReduceOnlyOrder': None,
+                'createReduceOnlyOrder': False,
                 'deposit': None,
                 'editOrder': True,
                 'fetchAccounts': None,
@@ -59,6 +61,7 @@ class aax(Exchange):
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
                 'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
@@ -76,15 +79,15 @@ class aax(Exchange):
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
-                'fetchFundingRates': None,
-                'fetchIndexOHLCV': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': True,
                 'fetchIsolatedPositions': None,
                 'fetchL3OrderBook': None,
                 'fetchLedger': None,
                 'fetchLedgerEntry': None,
                 'fetchLeverage': None,
                 'fetchMarkets': True,
-                'fetchMarkOHLCV': False,
+                'fetchMarkOHLCV': True,
                 'fetchMyBuys': None,
                 'fetchMySells': None,
                 'fetchMyTrades': True,
@@ -98,8 +101,8 @@ class aax(Exchange):
                 'fetchOrderTrades': None,
                 'fetchPosition': None,
                 'fetchPositions': None,
-                'fetchPositionsRisk': None,
-                'fetchPremiumIndexOHLCV': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': True,
                 'fetchStatus': True,
                 'fetchTicker': 'emulated',
                 'fetchTickers': True,
@@ -115,8 +118,8 @@ class aax(Exchange):
                 'fetchWithdrawalWhitelist': None,
                 'loadLeverageBrackets': None,
                 'reduceMargin': None,
-                'setLeverage': None,
-                'setMarginMode': None,
+                'setLeverage': True,
+                'setMarginMode': False,
                 'setPositionMode': None,
                 'signIn': None,
                 'transfer': None,
@@ -499,21 +502,22 @@ class aax(Exchange):
                 'swap': swap,
                 'future': False,
                 'option': False,
+                'active': (status == 'enable'),
                 'contract': swap,
                 'linear': linear,
                 'inverse': inverse,
                 'taker': self.safe_number(market, 'takerFee'),
                 'maker': self.safe_number(market, 'makerFee'),
                 'contractSize': contractSize,
-                'active': (status == 'enable'),
+                'maintenanceMarginRate': self.safe_number(market, 'mmRate') if swap else None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'quanto': quanto,
                 'precision': {
-                    'amount': self.safe_number(market, 'lotSize'),
                     'price': self.safe_number(market, 'tickSize'),
+                    'amount': self.safe_number(market, 'lotSize'),
                 },
                 'limits': {
                     'leverage': {
@@ -852,7 +856,7 @@ class aax(Exchange):
             self.safe_number(ohlcv, 4),
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1h', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -884,6 +888,24 @@ class aax(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
+
+    async def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'mark',
+        }
+        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+
+    async def fetch_premium_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'premiumIndex',
+        }
+        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
+
+    async def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        request = {
+            'price': 'index',
+        }
+        return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -2176,6 +2198,21 @@ class aax(Exchange):
                 'amount': self.safe_number(entry, 'fundingFee'),
             })
         return result
+
+    async def set_leverage(self, leverage, symbol=None, params={}):
+        await self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        if (leverage < 1) or (leverage > 100):
+            raise BadRequest(self.id + ' leverage should be between 1 and 100')
+        market = self.market(symbol)
+        if market['type'] != 'swap':
+            raise BadSymbol(self.id + ' setLeverage() supports swap contracts only')
+        request = {
+            'symbol': market['id'],
+            'leverage': leverage,
+        }
+        return await self.privatePostFuturesPositionLeverage(self.extend(request, params))
 
     def nonce(self):
         return self.milliseconds()

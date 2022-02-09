@@ -43,22 +43,25 @@ class bittrex(Exchange):
             'pro': True,
             # new metainfo interface
             'has': {
+                'CORS': None,
                 'spot': True,
                 'margin': False,
                 'swap': False,
                 'future': False,
                 'option': False,
+                'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': None,
                 'createDepositAddress': True,
-                'createReduceOnlyOrder': False,
                 'createMarketOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
@@ -69,6 +72,7 @@ class bittrex(Exchange):
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': 'emulated',
@@ -264,6 +268,7 @@ class bittrex(Exchange):
             },
             'commonCurrencies': {
                 'BIFI': 'Bifrost Finance',
+                'BTR': 'BTRIPS',
                 'MEME': 'Memetic',  # conflict with Meme Inu
                 'MER': 'Mercury',  # conflict with Mercurial Finance
                 'PROS': 'Pros.Finance',
@@ -310,7 +315,6 @@ class bittrex(Exchange):
             quoteId = self.safe_string(market, 'quoteCurrencySymbol')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            pricePrecision = self.safe_integer(market, 'precision', 8)
             status = self.safe_string(market, 'status')
             result.append({
                 'id': self.safe_string(market, 'symbol'),
@@ -337,10 +341,14 @@ class bittrex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
+                    'price': self.safe_integer(market, 'precision', 8),
                     'amount': int('8'),
-                    'price': pricePrecision,
                 },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(market, 'minTradeSize'),
                         'max': None,
@@ -350,10 +358,6 @@ class bittrex(Exchange):
                         'max': None,
                     },
                     'cost': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'leverage': {
                         'min': None,
                         'max': None,
                     },
