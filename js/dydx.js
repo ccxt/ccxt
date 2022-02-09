@@ -6,7 +6,7 @@ const Exchange = require ('./base/Exchange');
 const { ExchangeNotAvailable, AuthenticationError, BadSymbol, ExchangeError, InvalidOrder, InsufficientFunds } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 // const Precise = require ('./base/Precise');
-
+function c(o){console.log(o);} function cc(o){console.dir(o, {'maxArrayLength': null});} function x(o){c(o);process.exit();} function xx(o){cc(o);process.exit();}
 // ----------------------------------------------------------------------------
 
 module.exports = class dydx extends Exchange {
@@ -112,8 +112,9 @@ module.exports = class dydx extends Exchange {
                         'trades/BTC-USD',
                         'registration',
                         'api-keys',
-                        'users',
+                        'users', // can ge taker/maker fees https://docs.dydx.exchange/#get-user
                         'accounts',
+                        'accounts/{id}',
                         'positions',
                         'transfers',
                         'orders',
@@ -167,7 +168,6 @@ module.exports = class dydx extends Exchange {
                     'Invalid signature for onboarding request': AuthenticationError,
                     'Invalid signature for ApiKey request': AuthenticationError,
                     'Not Found': ExchangeNotAvailable,
-                    'market must be a valid market (BTC-USD, etc)': BadSymbol,
                     'Invalid value': ExchangeError,
                     'AccountNotFoundError': AuthenticationError,
                     'market must be a valid market': BadSymbol,
@@ -577,8 +577,52 @@ module.exports = class dydx extends Exchange {
         }, market, false);
     }
 
+    async fetchPosition (symbol, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        const market = this.market (symbol);
+        request['market'] = market['id'];
+        const response = await this.privateGetPositions (this.extend (request, params));
+        // TO_DO
+        return this.parsePosition (response, market);
+    }
+
+    async fetchPositions (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetPositions (params);
+        // TO_DO
+        const data = this.safeValue (response, 'data');
+        return this.parsePositions (data);
+    }
+
+    parsePositions (positions) {
+        const result = [];
+        for (let i = 0; i < positions.length; i++) {
+            result.push (this.parsePosition (positions[i]));
+        }
+        return result;
+    }
+
+    parsePosition (position, market = undefined) {
+        return {}; //TO_DO
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // Math.min (limit, 100);
+        }
+        const response = await this.privateGetTransfers (this.extend (request, params));
+        //
+        return this.parseTransactions (response, currency, since, limit);
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        // https://docs.dydx.exchange/?json#create-a-new-order
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -595,7 +639,6 @@ module.exports = class dydx extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // https://docs.dydx.exchange/?json#create-a-new-order
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -659,6 +702,7 @@ module.exports = class dydx extends Exchange {
         const message = this.safeString (response, 'error', '');
         this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
         this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+        console.log (body);
         this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
     }
 };
