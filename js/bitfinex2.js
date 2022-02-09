@@ -386,7 +386,7 @@ module.exports = class bitfinex2 extends bitfinex {
         const result = [];
         for (let i = 0; i < v1response.length; i++) {
             const market = v1response[i];
-            let id = this.safeStringUpper (market, 'pair');
+            const id = this.safeStringUpper (market, 'pair');
             let spot = true;
             if (this.inArray (id, swapMarketIds)) {
                 spot = false;
@@ -406,46 +406,57 @@ module.exports = class bitfinex2 extends bitfinex {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            id = 't' + id;
             baseId = this.getCurrencyId (baseId);
             quoteId = this.getCurrencyId (quoteId);
-            const precision = {
-                'price': this.safeInteger (market, 'price_precision'),
-                'amount': 8, // https://github.com/ccxt/ccxt/issues/7310
-            };
             const minOrderSizeString = this.safeString (market, 'minimum_order_size');
             const maxOrderSizeString = this.safeString (market, 'maximum_order_size');
-            const limits = {
-                'amount': {
-                    'min': this.parseNumber (minOrderSizeString),
-                    'max': this.parseNumber (maxOrderSizeString),
-                },
-                'price': {
-                    'min': this.parseNumber ('1e-8'),
-                    'max': undefined,
-                },
-            };
-            limits['cost'] = {
-                'min': undefined,
-                'max': undefined,
-            };
-            const margin = this.safeValue (market, 'margin');
             result.push ({
-                'id': id,
+                'id': 't' + id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': undefined, // TODO
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': true,
-                'precision': precision,
-                'limits': limits,
-                'info': market,
+                'settleId': undefined, // TODO
                 'type': type,
-                'swap': swap,
                 'spot': spot,
-                'margin': margin,
+                'margin': this.safeValue (market, 'margin'),
+                'swap': swap,
                 'future': false,
+                'option': false,
+                'active': true,
+                'contract': swap,
+                'linear': spot ? undefined : true, // TODO
+                'inverse': spot ? undefined : false, // TODO
+                'contractSize': undefined, // TODO
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': this.safeInteger (market, 'price_precision'),
+                    'amount': parseInt ('8'), // https://github.com/ccxt/ccxt/issues/7310
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.parseNumber (minOrderSizeString),
+                        'max': this.parseNumber (maxOrderSizeString),
+                    },
+                    'price': {
+                        'min': this.parseNumber ('1e-8'),
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'info': market,
             });
         }
         return result;
