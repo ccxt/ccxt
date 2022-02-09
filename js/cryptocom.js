@@ -302,7 +302,6 @@ module.exports = class cryptocom extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const priceDecimals = this.safeString (market, 'price_decimals');
-            const minPrice = this.parsePrecision (priceDecimals);
             const minQuantity = this.safeString (market, 'min_quantity');
             result.push ({
                 'id': id,
@@ -342,7 +341,7 @@ module.exports = class cryptocom extends Exchange {
                         'max': this.safeNumber (market, 'max_quantity'),
                     },
                     'price': {
-                        'min': this.parseNumber (minPrice),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
