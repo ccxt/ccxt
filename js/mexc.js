@@ -557,8 +557,8 @@ module.exports = class mexc extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeNumber (market, 'priceUnit'),
                     'amount': this.safeNumber (market, 'volUnit'),
+                    'price': this.safeNumber (market, 'priceUnit'),
                 },
                 'limits': {
                     'leverage': {
@@ -647,8 +647,8 @@ module.exports = class mexc extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.parseNumber (this.parsePrecision (priceScale)),
                     'amount': this.parseNumber (this.parsePrecision (quantityScale)),
+                    'price': this.parseNumber (this.parsePrecision (priceScale)),
                 },
                 'limits': {
                     'leverage': {

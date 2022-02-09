@@ -347,20 +347,20 @@ module.exports = class currencycom extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'active': active,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
                 'taker': taker,
                 'maker': maker,
                 'contractSize': undefined,
-                'active': active,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': precisionPrice,
                     'amount': precisionAmount,
+                    'price': precisionPrice,
                 },
                 'limits': {
                     'leverage': {

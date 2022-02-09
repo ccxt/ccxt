@@ -243,8 +243,8 @@ module.exports = class bitso extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeNumber (market, 'tick_size', defaultPricePrecision),
                     'amount': this.safeNumber (this.options['precision'], base, this.options['defaultPrecision']),
+                    'price': this.safeNumber (market, 'tick_size', defaultPricePrecision),
                 },
                 'limits': {
                     'leverage': {

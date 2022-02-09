@@ -1577,8 +1577,8 @@ module.exports = class binance extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeInteger (market, 'pricePrecision'),
                     'amount': this.safeInteger (market, 'quantityPrecision'),
+                    'price': this.safeInteger (market, 'pricePrecision'),
                     'base': this.safeInteger (market, 'baseAssetPrecision'),
                     'quote': this.safeInteger (market, 'quotePrecision'),
                 },

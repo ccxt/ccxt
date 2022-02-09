@@ -502,12 +502,12 @@ module.exports = class aax extends Exchange {
                 'optionType': undefined,
                 'quanto': quanto,
                 'precision': {
-                    'price': this.safeNumber (market, 'tickSize'),
                     'amount': this.safeNumber (market, 'lotSize'),
+                    'price': this.safeNumber (market, 'tickSize'),
                 },
                 'limits': {
                     'leverage': {
-                        'min': this.parseNumber ('1'),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'amount': {

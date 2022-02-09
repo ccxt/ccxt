@@ -173,8 +173,8 @@ module.exports = class lbank extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.parseNumber (precisionPrice),
                     'amount': this.parseNumber (precisionAmount),
+                    'price': this.parseNumber (precisionPrice),
                 },
                 'limits': {
                     'leverage': {

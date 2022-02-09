@@ -617,8 +617,8 @@ module.exports = class ftx extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeNumber (market, 'priceIncrement'),
                     'amount': this.safeNumber (market, 'sizeIncrement'),
+                    'price': this.safeNumber (market, 'priceIncrement'),
                 },
                 'limits': {
                     'leverage': {

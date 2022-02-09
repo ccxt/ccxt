@@ -561,8 +561,8 @@ module.exports = class ascendex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeNumber (market, 'tickSize'),
                     'amount': this.safeNumber (market, 'lotSize'),
+                    'price': this.safeNumber (market, 'tickSize'),
                 },
                 'limits': {
                     'leverage': {

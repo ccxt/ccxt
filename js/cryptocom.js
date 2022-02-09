@@ -329,8 +329,8 @@ module.exports = class cryptocom extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': parseInt (priceDecimals),
                     'amount': this.safeInteger (market, 'quantity_decimals'),
+                    'price': parseInt (priceDecimals),
                 },
                 'limits': {
                     'leverage': {

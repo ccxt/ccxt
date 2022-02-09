@@ -578,8 +578,8 @@ module.exports = class kucoin extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.precisionFromString (this.safeString (market, 'priceIncrement')),
                     'amount': this.precisionFromString (this.safeString (market, 'baseIncrement')),
+                    'price': this.precisionFromString (this.safeString (market, 'priceIncrement')),
                 },
                 'limits': {
                     'leverage': {

@@ -599,8 +599,8 @@ module.exports = class coinbase extends Exchange {
                         'strike': undefined,
                         'optionType': undefined,
                         'precision': {
-                            'price': undefined,
                             'amount': undefined,
+                            'price': undefined,
                         },
                         'limits': {
                             'leverage': {
