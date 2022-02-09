@@ -2608,7 +2608,11 @@ class binance extends Exchange {
         $fills = $this->safe_value($order, 'fills', array());
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
-        $postOnly = ($type === 'limit_maker') || ($timeInForce === 'GTX');
+        if ($timeInForce === 'GTX') {
+            // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
+            $timeInForce = 'PO';
+        }
+        $postOnly = ($type === 'limit_maker') || ($timeInForce === 'PO');
         if ($type === 'limit_maker') {
             $type = 'limit';
         }
