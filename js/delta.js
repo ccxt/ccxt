@@ -855,7 +855,7 @@ module.exports = class delta extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchPosition (symbol, params = undefined) {
+    async fetchPosition (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
