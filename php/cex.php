@@ -334,8 +334,8 @@ class cex extends Exchange {
                     $pricePrecision = $this->safe_integer($pair, 'pricePrecision', $pricePrecision);
                 }
             }
-            $baseCcyPrecision = $this->safe_integer($baseCurrency, 'precision', 8);
-            $baseCcyScale = $this->safe_integer($baseCurrency, 'scale', 0);
+            $baseCcyPrecision = $this->safe_string($baseCurrency, 'precision', '8');
+            $baseCcyScale = $this->safe_string($baseCurrency, 'scale', '0');
             $result[] = array(
                 'id' => $baseId . '/' . $quoteId,
                 'symbol' => $base . '/' . $quote,
@@ -348,8 +348,8 @@ class cex extends Exchange {
                 'type' => 'spot',
                 'spot' => true,
                 'margin' => null,
-                'future' => false,
                 'swap' => false,
+                'future' => false,
                 'option' => false,
                 'active' => null,
                 'contract' => false,
@@ -361,8 +361,8 @@ class cex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
+                    'amount' => intval(Precise::string_sub($baseCcyPrecision, $baseCcyScale)),
                     'price' => $pricePrecision,
-                    'amount' => $baseCcyPrecision - $baseCcyScale,
                 ),
                 'limits' => array(
                     'leverage' => array(
