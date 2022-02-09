@@ -354,7 +354,7 @@ module.exports = class currencycom extends Exchange {
                 'taker': taker,
                 'maker': maker,
                 'contractSize': undefined,
-                'maintenanceMarginRatio': undefined,
+                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,

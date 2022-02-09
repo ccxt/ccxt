@@ -612,7 +612,7 @@ module.exports = class ftx extends Exchange {
                 'linear': true,
                 'inverse': false,
                 'contractSize': this.parseNumber ('1'),
-                'maintenanceMarginRatio': undefined,
+                'maintenanceMarginRate': undefined,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
                 'strike': undefined,
