@@ -478,8 +478,8 @@ module.exports = class kraken extends Exchange {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'maker': maker,
                 'taker': taker,
+                'maker': maker,
                 'contractSize': undefined,
                 'maintenanceMarginRate': undefined,
                 'expiry': undefined,
@@ -487,8 +487,8 @@ module.exports = class kraken extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeInteger (market, 'pair_decimals'),
                     'amount': this.safeInteger (market, 'lot_decimals'),
+                    'price': this.safeInteger (market, 'pair_decimals'),
                 },
                 'limits': {
                     'leverage': {

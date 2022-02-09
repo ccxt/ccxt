@@ -252,11 +252,11 @@ module.exports = class coinmate extends Exchange {
                 'quoteId': quoteId,
                 'settleId': undefined,
                 'type': 'spot',
+                'spot': true,
                 'margin': false,
                 'swap': false,
                 'future': false,
                 'option': false,
-                'spot': true,
                 'active': undefined,
                 'contract': false,
                 'linear': undefined,
@@ -269,8 +269,8 @@ module.exports = class coinmate extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeInteger (market, 'priceDecimals'),
                     'amount': this.safeInteger (market, 'lotDecimals'),
+                    'price': this.safeInteger (market, 'priceDecimals'),
                 },
                 'limits': {
                     'leverage': {

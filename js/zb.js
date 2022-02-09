@@ -271,12 +271,12 @@ module.exports = class zb extends Exchange {
             result.push ({
                 'id': id,
                 'symbol': symbol,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
                 'base': base,
                 'quote': quote,
                 'settle': undefined,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
                 'margin': false,
@@ -294,8 +294,8 @@ module.exports = class zb extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': parseInt (pricePrecisionString),
                     'amount': parseInt (amountPrecisionString),
+                    'price': parseInt (pricePrecisionString),
                 },
                 'limits': {
                     'leverage': {

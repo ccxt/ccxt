@@ -235,8 +235,8 @@ module.exports = class vcc extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeInteger (precision, 'price'),
                     'amount': this.safeInteger (precision, 'amount'),
+                    'price': this.safeInteger (precision, 'price'),
                     'cost': this.safeInteger (precision, 'cost'),
                 },
                 'limits': {

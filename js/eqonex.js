@@ -283,18 +283,18 @@ module.exports = class eqonex extends Exchange {
             'swap': swap,
             'future': future,
             'option': false,
+            'active': (status === 1),
             'contract': contract,
             'linear': linear,
             'inverse': inverse,
             'contractSize': this.safeNumber (market, 'contractMultiplier'),
-            'active': (status === 1),
             'expiry': expiry,
             'expiryDatetime': this.iso8601 (expiry),
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'price': this.safeInteger (market, 'price_scale'),
                 'amount': this.safeInteger (market, 'quantity_scale'),
+                'price': this.safeInteger (market, 'price_scale'),
             },
             'limits': {
                 'leverage': {

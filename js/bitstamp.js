@@ -387,8 +387,8 @@ module.exports = class bitstamp extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeInteger (market, 'counter_decimals'),
                     'amount': this.safeInteger (market, 'base_decimals'),
+                    'price': this.safeInteger (market, 'counter_decimals'),
                 },
                 'limits': {
                     'leverage': {

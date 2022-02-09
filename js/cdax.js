@@ -388,8 +388,8 @@ module.exports = class cdax extends Exchange {
                 'type': 'spot',
                 'spot': true,
                 'margin': undefined,
-                'future': false,
                 'swap': false,
+                'future': false,
                 'option': false,
                 'active': (state === 'online'),
                 'contract': false,
@@ -403,12 +403,13 @@ module.exports = class cdax extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeInteger (market, 'price-precision'),
                     'amount': this.safeInteger (market, 'amount-precision'),
+                    'price': this.safeInteger (market, 'price-precision'),
                     'cost': this.safeInteger (market, 'value-precision'),
                 },
                 'limits': {
                     'leverage': {
+                        'min': this.parseNumber ('1'),
                         'max': this.safeNumber (market, 'leverage-ratio', 1),
                         'superMax': this.safeNumber (market, 'super-margin-leverage-ratio', 1),
                     },

@@ -233,8 +233,8 @@ module.exports = class bitflyer extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': undefined,
                     'amount': undefined,
+                    'price': undefined,
                 },
                 'limits': {
                     'leverage': {

@@ -285,8 +285,8 @@ module.exports = class probit extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeNumber (market, 'price_increment'),
                     'amount': this.parseNumber (amountTickSize),
+                    'price': this.safeNumber (market, 'price_increment'),
                     'cost': this.parseNumber (costTickSize),
                 },
                 'limits': {

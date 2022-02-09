@@ -358,8 +358,8 @@ module.exports = class digifinex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeInteger (market, 'price_precision'),
                     'amount': this.safeInteger (market, 'amount_precision'),
+                    'price': this.safeInteger (market, 'price_precision'),
                 },
                 'limits': {
                     'leverage': {

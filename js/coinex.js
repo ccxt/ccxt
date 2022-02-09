@@ -290,8 +290,8 @@ module.exports = class coinex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeInteger (market, 'pricing_decimal'),
                     'amount': this.safeInteger (market, 'trading_decimal'),
+                    'price': this.safeInteger (market, 'pricing_decimal'),
                 },
                 'limits': {
                     'leverage': {
