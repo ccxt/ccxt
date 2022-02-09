@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ExchangeNotAvailable, AccountSuspended, PermissionDenied, RateLimitExceeded, InvalidNonce, InvalidAddress, ArgumentsRequired, ExchangeError, InvalidOrder, InsufficientFunds, BadRequest, OrderNotFound, BadSymbol, NotSupported } = require ('./base/errors');
-const { ROUND, TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
+const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -499,73 +499,60 @@ module.exports = class bitmart extends Exchange {
     }
 
     async fetchContractMarkets (params = {}) {
-        const response = await this.publicSpotGetSymbolsDetails (params);
+        const response = await this.publicContractGetTickers (params);
         //
         //    {
         //        "message": "OK",
         //        "code": 1000,
-        //        "trace": "a67c9146-086d-4d3f-9897-5636a9bb26e1",
+        //        "trace": "045d13a8-4bc7-4974-9748-97d0ea183ef0",
         //        "data": {
-        //            "symbols":[
+        //            "tickers": [
         //                {
-        //                    "symbol": "ICW_USDT",
-        //                    "symbol_id": 2115,
-        //                    "base_currency": "ICW",
-        //                    "quote_currency": "USDT",
-        //                    "quote_increment": "1",
-        //                    "base_min_size": "1",
-        //                    "base_max_size": "10000000000",
-        //                    "price_min_precision": 5,
-        //                    "price_max_precision": 8,
-        //                    "expiration": "NA",
-        //                    "min_buy_amount": "5",
-        //                    "min_sell_amount": "5",
-        //                    "trade_status": "trading"
+        //                    "contract_symbol": "RAYUSDT",
+        //                    "last_price": "3.893",
+        //                    "index_price": "3.90248043",
+        //                    "last_funding_rate": "-0.00054285",
+        //                    "price_change_percent_24h": "-6.955",
+        //                    "volume_24h": "10450969.34602996",
+        //                    "url": "https://futures.bitmart.com/en?symbol=RAYUSDT",
+        //                    "high_price": "4.299",
+        //                    "low_price": "3.887",
+        //                    "legal_coin_price": "3.893056"
         //                },
+        //                ...
         //            ]
         //        }
         //    }
         //
         const data = this.safeValue (response, 'data', {});
-        const symbols = this.safeValue (data, 'symbols', []);
+        const tickers = this.safeValue (data, 'tickers', []);
         const result = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const market = symbols[i];
-            const baseId = this.safeString (market, 'base_currency');
-            const quoteId = this.safeString (market, 'quote_currency');
+        for (let i = 0; i < tickers.length; i++) {
+            const market = tickers[i];
+            const id = this.safeString (market, 'contract_symbol');
+            const baseId = id.slice (0, -4);
+            const quoteId = id.slice (-4);
+            const settleId = quoteId;
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const settle = 'USDT';
-            const status = this.safeString (market, 'trade_status');
-            //
-            // https://github.com/bitmartexchange/bitmart-official-api-docs/blob/master/rest/public/symbols_details.md#response-details
-            // from the above API doc:
-            // quote_increment Minimum order price as well as the price increment
-            // price_min_precision Minimum price precision (digit) used to query price and kline
-            // price_max_precision Maximum price precision (digit) used to query price and kline
-            //
-            // the docs are wrong: https://github.com/ccxt/ccxt/issues/5612
-            //
-            const minBuyCost = this.safeString (market, 'min_buy_amount');
-            const minSellCost = this.safeString (market, 'min_sell_amount');
-            const minCost = Precise.stringMax (minBuyCost, minSellCost);
+            const settle = this.safeCurrencyCode (settleId);
             result.push ({
-                'id': this.safeString (market, 'symbol'),
-                'numericId': this.safeInteger (market, 'symbol_id'),
+                'id': id,
+                'numericId': undefined,
                 'symbol': base + '/' + quote + ':' + settle,
                 'base': base,
                 'quote': quote,
                 'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': undefined,
+                'settleId': settleId,
                 'type': 'swap',
                 'spot': false,
                 'margin': false,
                 'swap': true,
                 'future': false,
                 'option': false,
-                'active': (status === 'trading'),
+                'active': undefined,
                 'contract': true,
                 'linear': true,
                 'inverse': false,
@@ -575,9 +562,8 @@ module.exports = class bitmart extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.parsePrecision (this.safeString (market, 'price_max_precision')),
+                    'price': undefined,
                     'amount': undefined,
-                    'quote': this.safeString (market, 'quote_increment'),
                 },
                 'limits': {
                     'leverage': {
@@ -585,15 +571,15 @@ module.exports = class bitmart extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': this.safeNumber (market, 'base_min_size'),
-                        'max': this.safeNumber (market, 'base_max_size'),
+                        'min': undefined,
+                        'max': undefined,
                     },
                     'price': {
                         'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
-                        'min': this.parseNumber (minCost),
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
