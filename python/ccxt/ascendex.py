@@ -384,7 +384,6 @@ class ascendex(Exchange):
             currency = dataById[id]
             code = self.safe_currency_code(id)
             precision = self.safe_string_2(currency, 'precisionScale', 'nativeScale')
-            minAmount = self.parse_precision(precision)
             # why would the exchange API have different names for the same field
             fee = self.safe_number_2(currency, 'withdrawFee', 'withdrawalFee')
             status = self.safe_string_2(currency, 'status', 'statusCode')
@@ -404,7 +403,7 @@ class ascendex(Exchange):
                 'precision': int(precision),
                 'limits': {
                     'amount': {
-                        'min': self.parse_number(minAmount),
+                        'min': self.parse_number(self.parse_precision(precision)),
                         'max': None,
                     },
                     'withdraw': {

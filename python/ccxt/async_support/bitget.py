@@ -868,9 +868,9 @@ class bitget(Exchange):
             'strike': None,
             'optionType': None,
             'precision': {
-                'price': self.parse_precision(self.safe_string(market, 'tick_size')),
-                'amount': self.parse_precision(self.safe_string(market, 'size_increment')),
-                'base': self.parse_precision(self.safe_string(market, 'base_asset_precision')),
+                'price': self.parse_number(self.parse_precision(self.safe_string(market, 'tick_size'))),
+                'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'size_increment'))),
+                'base': self.parse_number(self.parse_precision(self.safe_string(market, 'base_asset_precision'))),
             },
             'limits': {
                 'leverage': {

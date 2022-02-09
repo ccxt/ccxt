@@ -306,7 +306,7 @@ class currencycom extends Exchange {
                     $limitPriceMax = $maxPrice;
                 }
             }
-            $precisionAmount = $this->parse_precision($this->safe_string($market, 'baseAssetPrecision'));
+            $precisionAmount = $this->parse_number($this->parse_precision($this->safe_string($market, 'baseAssetPrecision')));
             $limitAmount = array(
                 'min' => null,
                 'max' => null,

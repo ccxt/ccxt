@@ -393,8 +393,8 @@ class bitstamp(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.parse_precision(self.safe_string(market, 'counter_decimals')),
-                    'amount': self.parse_precision(self.safe_string(market, 'base_decimals')),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'counter_decimals'))),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'base_decimals'))),
                 },
                 'limits': {
                     'leverage': {
