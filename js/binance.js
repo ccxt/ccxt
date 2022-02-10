@@ -4778,7 +4778,7 @@ module.exports = class binance extends Exchange {
         return this.options['leverageBrackets'];
     }
 
-    async fetchLeverageTiers (params = {}) {
+    async fetchLeverageTiers (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchLeverageTiers', undefined, params);
         let method = undefined;
@@ -4796,12 +4796,12 @@ module.exports = class binance extends Exchange {
         //            "symbol": "SUSHIUSDT",
         //            "brackets": [
         //                {
-        //                    "bracket":1,
-        //                    "initialLeverage":50,
+        //                    "bracket": 1,
+        //                    "initialLeverage": 50,
         //                    "notionalCap": 50000,
-        //                    "notionalFloor":0,
+        //                    "notionalFloor": 0,
         //                    "maintMarginRatio": 0.01,
-        //                    "cum":0.0
+        //                    "cum": 0.0
         //                },
         //                ...
         //            ]
@@ -4828,7 +4828,11 @@ module.exports = class binance extends Exchange {
             }
             leverageBrackets[symbol] = result;
         }
-        return leverageBrackets;
+        if (symbol !== undefined) {
+            return this.safeValue (leverageBrackets, symbol);
+        } else {
+            return leverageBrackets;
+        }
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
