@@ -430,6 +430,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'linear': spot ? undefined : true, // TODO
                 'inverse': spot ? undefined : false, // TODO
                 'contractSize': undefined, // TODO
+                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
