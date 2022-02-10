@@ -11,7 +11,7 @@ const { AuthenticationError, BadRequest, BadSymbol, DDoSProtection, DuplicateOrd
 module.exports = class krakenfu extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'krakenfu',
+            'id': 'krakenfutures',
             'name': 'Kraken Futures',
             'countries': [ 'US' ],
             'version': 'v3',
