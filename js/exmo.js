@@ -463,6 +463,7 @@ module.exports = class exmo extends Exchange {
                 'taker': this.parseNumber (Precise.stringDiv (takerString, '100')),
                 'maker': this.parseNumber (Precise.stringDiv (makerString, '100')),
                 'contractSize': undefined,
+                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,

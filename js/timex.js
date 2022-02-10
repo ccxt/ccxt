@@ -929,6 +929,7 @@ module.exports = class timex extends Exchange {
             'taker': this.safeNumber (market, 'takerFee'),
             'maker': this.safeNumber (market, 'makerFee'),
             'contractSize': undefined,
+            'maintenanceMarginRate': undefined,
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,

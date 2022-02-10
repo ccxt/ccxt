@@ -398,6 +398,7 @@ module.exports = class cdax extends Exchange {
                 'taker': (base === 'OMG') ? 0 : 0.002,
                 'maker': (base === 'OMG') ? 0 : 0.002,
                 'contractSize': undefined,
+                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,

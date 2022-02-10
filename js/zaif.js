@@ -194,6 +194,7 @@ module.exports = class zaif extends Exchange {
                 'taker': fees['taker'],
                 'maker': fees['maker'],
                 'contractSize': undefined,
+                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,

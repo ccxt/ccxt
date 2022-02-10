@@ -288,6 +288,7 @@ module.exports = class eqonex extends Exchange {
             'linear': linear,
             'inverse': inverse,
             'contractSize': this.safeNumber (market, 'contractMultiplier'),
+            'maintenanceMarginRate': undefined,
             'expiry': expiry,
             'expiryDatetime': this.iso8601 (expiry),
             'strike': undefined,

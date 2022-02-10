@@ -362,6 +362,7 @@ module.exports = class btcmarkets extends Exchange {
                 'taker': fees['taker'],
                 'maker': fees['maker'],
                 'contractSize': undefined,
+                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
