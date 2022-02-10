@@ -2289,13 +2289,12 @@ module.exports = class ascendex extends Exchange {
                     const brackets = [];
                     for (let j = 0; j < marginRequirements.length; j++) {
                         const bracket = marginRequirements[j];
-                        const maintenanceMarginRatio = this.safeString (bracket, 'maintenanceMarginRate');
                         brackets.push ({
                             'tier': j,
                             'notionalFloor': this.safeNumber (bracket, 'positionNotionalLowerBound'),
                             'notionalCap': this.safeNumber (bracket, 'positionNotionalUpperBound'),
-                            'maintenanceMarginRatio': this.parseNumber (maintenanceMarginRatio),
-                            'maxLeverage': this.parseNumber (Precise.stringDiv ('1', maintenanceMarginRatio)),
+                            'maintenanceMarginRatio': this.safeNumber (bracket, 'maintenanceMarginRate'),
+                            'maxLeverage': undefined,
                             'info': bracket,
                         });
                     }
