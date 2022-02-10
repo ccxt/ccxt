@@ -316,6 +316,7 @@ class woo extends Exchange {
                 'linear' => false,
                 'inverse' => false,
                 'contractSize' => null,
+                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,

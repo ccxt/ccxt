@@ -302,6 +302,22 @@ class kuna(Exchange):
         quotes = ['btc', 'rub', 'uah', 'usd', 'usdt', 'usdc']
         markets = []
         response = self.publicGetTickers(params)
+        #
+        #    {
+        #        shibuah: {
+        #            at: '1644463685',
+        #            ticker: {
+        #                buy: '0.000911',
+        #                sell: '0.00092',
+        #                low: '0.000872',
+        #                high: '0.000963',
+        #                last: '0.000911',
+        #                vol: '1539278096.0',
+        #                price: '1434244.211249'
+        #            }
+        #        }
+        #    }
+        #
         ids = list(response.keys())
         for i in range(0, len(ids)):
             id = ids[i]
@@ -338,6 +354,7 @@ class kuna(Exchange):
                         'linear': None,
                         'inverse': None,
                         'contractSize': None,
+                        'maintenanceMarginRate': None,
                         'expiry': None,
                         'expiryDatetime': None,
                         'strike': None,

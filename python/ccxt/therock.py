@@ -203,6 +203,7 @@ class therock(Exchange):
                     'taker': taker,
                     'maker': taker,
                     'contractSize': None,
+                    'maintenanceMarginRate': None,
                     'active': True,
                     'expiry': None,
                     'expiryDatetime': None,

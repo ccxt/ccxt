@@ -197,6 +197,7 @@ class bitbank extends Exchange {
                 'taker' => $this->safe_number($entry, 'taker_fee_rate_quote'),
                 'maker' => $this->safe_number($entry, 'maker_fee_rate_quote'),
                 'contractSize' => null,
+                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,

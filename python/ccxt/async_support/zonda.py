@@ -323,6 +323,7 @@ class zonda(Exchange):
                 'taker': self.safe_number(fees, 'taker'),
                 'maker': self.safe_number(fees, 'maker'),
                 'contractSize': None,
+                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'optionType': None,

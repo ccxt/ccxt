@@ -208,6 +208,7 @@ class indodax extends Exchange {
                 'inverse' => null,
                 'taker' => $this->safe_number($market, 'trade_fee_percent'),
                 'contractSize' => null,
+                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,

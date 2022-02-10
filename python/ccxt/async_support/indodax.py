@@ -211,6 +211,7 @@ class indodax(Exchange):
                 'inverse': None,
                 'taker': self.safe_number(market, 'trade_fee_percent'),
                 'contractSize': None,
+                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,

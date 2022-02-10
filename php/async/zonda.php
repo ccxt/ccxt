@@ -314,6 +314,7 @@ class zonda extends Exchange {
                 'taker' => $this->safe_number($fees, 'taker'),
                 'maker' => $this->safe_number($fees, 'maker'),
                 'contractSize' => null,
+                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'optionType' => null,

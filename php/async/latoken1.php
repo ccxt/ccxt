@@ -221,6 +221,7 @@ class latoken1 extends Exchange {
                 'taker' => $this->safe_number($market, 'takerFee', $defaultTaker),
                 'maker' => $this->safe_number($market, 'makerFee', $defaultMaker),
                 'contractSize' => null,
+                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,

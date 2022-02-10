@@ -217,6 +217,7 @@ class bithumb extends Exchange {
                     'linear' => null,
                     'inverse' => null,
                     'contractSize' => null,
+                    'maintenanceMarginRate' => null,
                     'expiry' => null,
                     'expiryDateTime' => null,
                     'strike' => null,

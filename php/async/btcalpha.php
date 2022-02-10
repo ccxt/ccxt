@@ -129,6 +129,21 @@ class btcalpha extends Exchange {
 
     public function fetch_markets($params = array ()) {
         $response = yield $this->publicGetPairs ($params);
+        //
+        //    array(
+        //        array(
+        //            "name" => "1INCH_USDT",
+        //            "currency1" => "1INCH",
+        //            "currency2" => "USDT",
+        //            "price_precision" => 4,
+        //            "amount_precision" => 2,
+        //            "minimum_order_size" => "0.01000000",
+        //            "maximum_order_size" => "900000.00000000",
+        //            "minimum_order_value" => "10.00000000",
+        //            "liquidity_type" => 10
+        //        ),
+        //    )
+        //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $market = $response[$i];
@@ -160,6 +175,7 @@ class btcalpha extends Exchange {
                 'linear' => null,
                 'inverse' => null,
                 'contractSize' => null,
+                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,

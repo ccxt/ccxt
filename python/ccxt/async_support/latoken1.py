@@ -223,6 +223,7 @@ class latoken1(Exchange):
                 'taker': self.safe_number(market, 'takerFee', defaultTaker),
                 'maker': self.safe_number(market, 'makerFee', defaultMaker),
                 'contractSize': None,
+                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,

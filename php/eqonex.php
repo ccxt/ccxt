@@ -290,6 +290,7 @@ class eqonex extends Exchange {
             'linear' => $linear,
             'inverse' => $inverse,
             'contractSize' => $this->safe_number($market, 'contractMultiplier'),
+            'maintenanceMarginRate' => null,
             'expiry' => $expiry,
             'expiryDatetime' => $this->iso8601($expiry),
             'strike' => null,

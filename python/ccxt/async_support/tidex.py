@@ -304,6 +304,7 @@ class tidex(Exchange):
                 'inverse': None,
                 'taker': self.parse_number(takerFeeString),
                 'contractSize': None,
+                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,

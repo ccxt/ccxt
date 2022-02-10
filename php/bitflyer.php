@@ -232,6 +232,7 @@ class bitflyer extends Exchange {
                 'taker' => $taker,
                 'maker' => $maker,
                 'contractSize' => null,
+                'maintenanceMarginRate' => null,
                 'expiry' => $expiry,
                 'expiryDatetime' => $this->iso8601($expiry),
                 'strike' => null,

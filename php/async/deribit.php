@@ -528,6 +528,7 @@ class deribit extends Exchange {
                     'taker' => $this->safe_number($market, 'taker_commission'),
                     'maker' => $this->safe_number($market, 'maker_commission'),
                     'contractSize' => $this->safe_number($market, 'contract_size'),
+                    'maintenanceMarginRate' => null,
                     'expiry' => $expiry,
                     'expiryDatetime' => $this->iso8601($expiry),
                     'strike' => $strike,

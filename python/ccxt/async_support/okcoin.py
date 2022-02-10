@@ -894,6 +894,7 @@ class okcoin(Exchange):
             'linear': (quote == settle) if contract else None,
             'inverse': (base == settle) if contract else None,
             'contractSize': contractVal,
+            'maintenanceMarginRate': None,
             'expiry': expiry,
             'expiryDatetime': self.iso8601(expiry),
             'strike': strike,

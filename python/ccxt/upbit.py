@@ -383,22 +383,14 @@ class upbit(Exchange):
     def fetch_markets(self, params={}):
         response = self.publicGetMarketAll(params)
         #
-        #     [{      market: "KRW-BTC",
-        #          korean_name: "비트코인",
-        #         english_name: "Bitcoin"  },
-        #       {      market: "KRW-DASH",
-        #          korean_name: "대시",
-        #         english_name: "Dash"      },
-        #       {      market: "KRW-ETH",
-        #          korean_name: "이더리움",
-        #         english_name: "Ethereum"},
-        #       {      market: "BTC-ETH",
-        #          korean_name: "이더리움",
-        #         english_name: "Ethereum"},
-        #       ...,
-        #       {      market: "BTC-BSV",
-        #          korean_name: "비트코인에스브이",
-        #         english_name: "Bitcoin SV"}]
+        #    [
+        #        {
+        #            market: "KRW-BTC",
+        #            korean_name: "비트코인",
+        #            english_name: "Bitcoin"
+        #        },
+        #        ...,
+        #    ]
         #
         result = []
         for i in range(0, len(response)):
@@ -429,6 +421,7 @@ class upbit(Exchange):
                 'taker': self.safe_number(self.options['tradingFeesByQuoteCurrency'], quote, self.fees['trading']['taker']),
                 'maker': self.safe_number(self.options['tradingFeesByQuoteCurrency'], quote, self.fees['trading']['maker']),
                 'contractSize': None,
+                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,

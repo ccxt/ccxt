@@ -384,6 +384,7 @@ class bitmex extends Exchange {
                 'taker' => $this->safe_number($market, 'takerFee'),
                 'maker' => $this->safe_number($market, 'makerFee'),
                 'contractSize' => $this->safe_number($market, 'multiplier'),
+                'maintenanceMarginRate' => $this->safe_number($market, 'maintMargin'),
                 'expiry' => $expiry,
                 'expiryDatetime' => $expiryDatetime,
                 'strike' => $this->safe_number($market, 'optionStrikePrice'),

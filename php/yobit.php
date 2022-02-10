@@ -365,6 +365,7 @@ class yobit extends Exchange {
                 'taker' => $this->parse_number($feeString),
                 'maker' => $this->parse_number($feeString),
                 'contractSize' => null,
+                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,

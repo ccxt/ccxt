@@ -439,7 +439,7 @@ class kucoinfutures extends kucoin {
                 'taker' => $this->safe_number($market, 'takerFeeRate'),
                 'maker' => $this->safe_number($market, 'makerFeeRate'),
                 'contractSize' => $this->parse_number(Precise::string_abs($multiplier)),
-                'maintenanceMarginRate' => null,
+                'maintenanceMarginRate' => $this->safe_number($market, 'maintain_margin'),
                 'expiry' => $expiry,
                 'expiryDatetime' => $this->iso8601($expiry),
                 'strike' => null,

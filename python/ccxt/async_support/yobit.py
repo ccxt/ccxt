@@ -377,6 +377,7 @@ class yobit(Exchange):
                 'taker': self.parse_number(feeString),
                 'maker': self.parse_number(feeString),
                 'contractSize': None,
+                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,

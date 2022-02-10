@@ -132,6 +132,17 @@ class lbank(Exchange):
 
     async def fetch_markets(self, params={}):
         response = await self.publicGetAccuracy(params)
+        #
+        #    [
+        #        {
+        #            "symbol": "btc_usdt",
+        #            "quantityAccuracy": "4",
+        #            "minTranQua": "0.0001",
+        #            "priceAccuracy": "2"
+        #        },
+        #        ...
+        #    ]
+        #
         result = []
         for i in range(0, len(response)):
             market = response[i]
@@ -169,6 +180,7 @@ class lbank(Exchange):
                 'linear': None,
                 'inverse': None,
                 'contractSize': None,
+                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,

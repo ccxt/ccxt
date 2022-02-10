@@ -143,36 +143,41 @@ class bw extends Exchange {
     public function fetch_markets($params = array ()) {
         $response = yield $this->publicGetExchangeConfigControllerWebsiteMarketcontrollerGetByWebId ($params);
         //
-        //     {
-        //         "datas" => array(
-        //             {
-        //                 "orderNum":null,
-        //                 "leverEnable":true,
-        //                 "leverMultiple":10,
-        //                 "marketId":"291",
-        //                 "webId":"102",
-        //                 "serverId":"entrust_bw_23",
-        //                 "name":"eos_usdt",
-        //                 "leverType":"2",
-        //                 "buyerCurrencyId":"11",
-        //                 "sellerCurrencyId":"7",
-        //                 "amountDecimal":4,
-        //                 "priceDecimal":3,
-        //                 "minAmount":"0.0100000000",
-        //                 "state":1,
-        //                 "openTime":1572537600000,
-        //                 "defaultFee":"0.00200000",
-        //                 "createUid":null,
-        //                 "createTime":0,
-        //                 "modifyUid":null,
-        //                 "modifyTime":1574160113735,
-        //                 "combineMarketId":"",
-        //                 "isCombine":0,
-        //                 "isMining":0
-        //             }
-        //         ),
-        //         "resMsg" => array( "message":"success !", "method":null, "code":"1" )
-        //     }
+        //    {
+        //        resMsg => array(
+        //            method => null,
+        //            code => '1',
+        //            message => 'success !'
+        //        ),
+        //        datas => array(
+        //            array(
+        //                leverMultiple => '10',
+        //                amountDecimal => '4',
+        //                minAmount => '0.0100000000',
+        //                modifyUid => null,
+        //                buyerCurrencyId => '11',
+        //                isCombine => '0',
+        //                priceDecimal => '3',
+        //                combineMarketId => '',
+        //                openPrice => '0',
+        //                leverEnable => true,
+        //                marketId => '291',
+        //                serverId => 'entrust_bw_2',
+        //                isMining => '0',
+        //                webId => '102',
+        //                modifyTime => '1581595375498',
+        //                defaultFee => '0.00200000',
+        //                sellerCurrencyId => '7',
+        //                createTime => '0',
+        //                $state => '1',
+        //                $name => 'eos_usdt',
+        //                leverType => '2',
+        //                createUid => null,
+        //                orderNum => null,
+        //                openTime => '1574956800000'
+        //            ),
+        //        )
+        //    }
         //
         $markets = $this->safe_value($response, 'datas', array());
         $result = array();
@@ -213,6 +218,7 @@ class bw extends Exchange {
                 'taker' => $fee,
                 'maker' => $fee,
                 'contractSize' => null,
+                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,

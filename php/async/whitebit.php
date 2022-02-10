@@ -275,6 +275,7 @@ class whitebit extends Exchange {
                 'taker' => $this->safe_number($market, 'makerFee'),
                 'maker' => $this->safe_number($market, 'takerFee'),
                 'contractSize' => null,
+                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,

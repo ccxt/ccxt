@@ -286,6 +286,7 @@ class probit extends Exchange {
                 'taker' => $this->parse_number($taker),
                 'maker' => $this->parse_number($maker),
                 'contractSize' => null,
+                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,

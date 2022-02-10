@@ -461,6 +461,7 @@ class exmo(Exchange):
                 'taker': self.parse_number(Precise.string_div(takerString, '100')),
                 'maker': self.parse_number(Precise.string_div(makerString, '100')),
                 'contractSize': None,
+                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,

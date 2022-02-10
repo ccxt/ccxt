@@ -226,6 +226,7 @@ class bitflyer(Exchange):
                 'taker': taker,
                 'maker': maker,
                 'contractSize': None,
+                'maintenanceMarginRate': None,
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
                 'strike': None,

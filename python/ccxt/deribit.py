@@ -540,6 +540,7 @@ class deribit(Exchange):
                     'taker': self.safe_number(market, 'taker_commission'),
                     'maker': self.safe_number(market, 'maker_commission'),
                     'contractSize': self.safe_number(market, 'contract_size'),
+                    'maintenanceMarginRate': None,
                     'expiry': expiry,
                     'expiryDatetime': self.iso8601(expiry),
                     'strike': strike,

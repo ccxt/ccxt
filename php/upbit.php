@@ -385,22 +385,14 @@ class upbit extends Exchange {
     public function fetch_markets($params = array ()) {
         $response = $this->publicGetMarketAll ($params);
         //
-        //     array( array(       $market => "KRW-BTC",
-        //          korean_name => "비트코인",
-        //         english_name => "Bitcoin"  ),
-        //       array(       $market => "KRW-DASH",
-        //          korean_name => "대시",
-        //         english_name => "Dash"      ),
-        //       array(       $market => "KRW-ETH",
-        //          korean_name => "이더리움",
-        //         english_name => "Ethereum" ),
-        //       array(       $market => "BTC-ETH",
-        //          korean_name => "이더리움",
-        //         english_name => "Ethereum" ),
-        //       ...,
-        //       {       $market => "BTC-BSV",
-        //          korean_name => "비트코인에스브이",
-        //         english_name => "Bitcoin SV" } )
+        //    array(
+        //        array(
+        //            $market => "KRW-BTC",
+        //            korean_name => "비트코인",
+        //            english_name => "Bitcoin"
+        //        ),
+        //        ...,
+        //    )
         //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
@@ -431,6 +423,7 @@ class upbit extends Exchange {
                 'taker' => $this->safe_number($this->options['tradingFeesByQuoteCurrency'], $quote, $this->fees['trading']['taker']),
                 'maker' => $this->safe_number($this->options['tradingFeesByQuoteCurrency'], $quote, $this->fees['trading']['maker']),
                 'contractSize' => null,
+                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,

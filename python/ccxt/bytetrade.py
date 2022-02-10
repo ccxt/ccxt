@@ -339,6 +339,7 @@ class bytetrade(Exchange):
                 'taker': self.safe_number(market, 'taker'),
                 'maker': self.safe_number(market, 'maker'),
                 'contractSize': None,
+                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,

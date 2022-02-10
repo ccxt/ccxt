@@ -287,6 +287,7 @@ class eqonex(Exchange):
             'linear': linear,
             'inverse': inverse,
             'contractSize': self.safe_number(market, 'contractMultiplier'),
+            'maintenanceMarginRate': None,
             'expiry': expiry,
             'expiryDatetime': self.iso8601(expiry),
             'strike': None,
