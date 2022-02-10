@@ -133,6 +133,14 @@ module.exports = class luno extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': true, // based on volume from your primary currency (not the same for everyone)
+                    'percentage': true,
+                    'taker': this.parseNumber ('0.001'),
+                    'maker': this.parseNumber ('0'),
+                },
+            },
         });
     }
 
@@ -191,8 +199,6 @@ module.exports = class luno extends Exchange {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'maker': 0,
-                'taker': 0.1 / 100,
                 'precision': {
                     'amount': this.safeInteger (market, 'volume_scale'),
                     'price': this.safeInteger (market, 'price_scale'),
