@@ -473,8 +473,8 @@ module.exports = class bitmart extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'base_min_size'),
-                    'price': parseInt (pricePrecision),
+                    'amount': this.safeNumber (market, 'base_min_size'),
+                    'price': this.parseNumber (pricePrecision),
                 },
                 'limits': {
                     'leverage': {
