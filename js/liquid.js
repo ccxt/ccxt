@@ -444,6 +444,7 @@ module.exports = class liquid extends Exchange {
                 'taker': taker,
                 'maker': maker,
                 'contractSize': this.parseNumber ('1'),
+                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
