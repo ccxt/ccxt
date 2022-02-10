@@ -4034,10 +4034,8 @@ module.exports = class okx extends Exchange {
             const tier = data[i];
             brackets.push ({
                 'tier': this.safeInteger (tier, 'tier'),
-                'minBase': this.safeNumber (tier, 'minSz'),
-                'maxBase': this.safeNumber (tier, 'maxSz'),
-                'minQuote': undefined,
-                'maxQuote': undefined,
+                'notionalFloor': this.safeNumber (tier, 'minSz'),
+                'notionalCap': this.safeNumber (tier, 'maxSz'),
                 'maintenanceMarginRatio': this.safeNumber (tier, 'mmr'),
                 'maxLeverage': this.safeNumber (tier, 'maxLever'),
                 'info': tier,

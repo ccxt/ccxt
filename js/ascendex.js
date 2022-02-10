@@ -2397,10 +2397,8 @@ module.exports = class ascendex extends Exchange {
                         const initialMarginRate = this.safeString (bracket, 'initialMarginRate');
                         brackets.push ({
                             'tier': j + 1,
-                            'minBase': this.safeNumber (bracket, 'positionNotionalLowerBound'),
-                            'maxBase': this.safeNumber (bracket, 'positionNotionalUpperBound'),
-                            'minQuote': undefined,
-                            'maxQuote': undefined,
+                            'notionalFloor': this.safeNumber (bracket, 'positionNotionalLowerBound'),
+                            'notionalCap': this.safeNumber (bracket, 'positionNotionalUpperBound'),
                             'maintenanceMarginRatio': this.safeNumber (bracket, 'maintenanceMarginRate'),
                             'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRate)),
                             'info': bracket,
