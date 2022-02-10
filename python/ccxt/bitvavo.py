@@ -340,18 +340,19 @@ class bitvavo(Exchange):
                 'swap': False,
                 'future': False,
                 'option': False,
+                'active': (status == 'trading'),
                 'contract': False,
                 'linear': None,
                 'inverse': None,
                 'contractSize': None,
-                'active': (status == 'trading'),
+                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(market, 'pricePrecision'),
                     'amount': amountPrecision,
+                    'price': self.safe_integer(market, 'pricePrecision'),
                 },
                 'limits': {
                     'leverage': {

@@ -257,11 +257,11 @@ class coinmate(Exchange):
                 'quoteId': quoteId,
                 'settleId': None,
                 'type': 'spot',
+                'spot': True,
                 'margin': False,
                 'swap': False,
                 'future': False,
                 'option': False,
-                'spot': True,
                 'active': None,
                 'contract': False,
                 'linear': None,
@@ -274,8 +274,8 @@ class coinmate(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(market, 'priceDecimals'),
                     'amount': self.safe_integer(market, 'lotDecimals'),
+                    'price': self.safe_integer(market, 'priceDecimals'),
                 },
                 'limits': {
                     'leverage': {

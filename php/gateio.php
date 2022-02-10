@@ -733,13 +733,14 @@ class gateio extends Exchange {
                         'taker' => $this->parse_number(Precise::string_div($takerPercent, '100')), // Fee is in %, so divide by 100
                         'maker' => $this->parse_number(Precise::string_div($makerPercent, '100')),
                         'contractSize' => $this->safe_number($market, 'quanto_multiplier'),
+                        'maintenanceMarginRate' => $this->safe_number($market, 'maintenance_rate'),
                         'expiry' => $expiry,
                         'expiryDatetime' => $this->iso8601($expiry),
                         'strike' => null,
                         'optionType' => null,
                         'precision' => array(
-                            'price' => $this->safe_number($market, 'order_price_round'),
                             'amount' => $this->parse_number('1'),
+                            'price' => $this->safe_number($market, 'order_price_round'),
                         ),
                         'limits' => array(
                             'leverage' => array(
@@ -829,13 +830,14 @@ class gateio extends Exchange {
                     'taker' => $this->parse_number(Precise::string_div($takerPercent, '100')),
                     'maker' => $this->parse_number(Precise::string_div($makerPercent, '100')),
                     'contractSize' => null,
+                    'maintenanceMarginRate' => null,
                     'expiry' => null,
                     'expiryDatetime' => null,
                     'strike' => null,
                     'optionType' => null,
                     'precision' => array(
-                        'price' => $this->parse_number($this->parse_precision($pricePrecisionString)),
                         'amount' => $this->parse_number($this->parse_precision($amountPrecisionString)),
+                        'price' => $this->parse_number($this->parse_precision($pricePrecisionString)),
                     ),
                     'limits' => array(
                         'leverage' => array(

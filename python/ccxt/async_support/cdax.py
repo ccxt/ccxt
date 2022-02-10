@@ -394,8 +394,8 @@ class cdax(Exchange):
                 'type': 'spot',
                 'spot': True,
                 'margin': None,
-                'future': False,
                 'swap': False,
+                'future': False,
                 'option': False,
                 'active': (state == 'online'),
                 'contract': False,
@@ -409,12 +409,13 @@ class cdax(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(market, 'price-precision'),
                     'amount': self.safe_integer(market, 'amount-precision'),
+                    'price': self.safe_integer(market, 'price-precision'),
                     'cost': self.safe_integer(market, 'value-precision'),
                 },
                 'limits': {
                     'leverage': {
+                        'min': self.parse_number('1'),
                         'max': self.safe_number(market, 'leverage-ratio', 1),
                         'superMax': self.safe_number(market, 'super-margin-leverage-ratio', 1),
                     },

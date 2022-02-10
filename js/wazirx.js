@@ -63,6 +63,7 @@ module.exports = class wazirx extends Exchange {
                 'www': 'https://wazirx.com',
                 'doc': 'https://docs.wazirx.com/#public-rest-api-for-wazirx',
                 'fees': 'https://wazirx.com/fees',
+                'referral': 'https://wazirx.com/invite/k7rrnks5',
             },
             'api': {
                 'public': {
@@ -193,16 +194,16 @@ module.exports = class wazirx extends Exchange {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'maker': this.parseNumber (makerString),
                 'taker': this.parseNumber (takerString),
+                'maker': this.parseNumber (makerString),
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeInteger (entry, 'quoteAssetPrecision'),
                     'amount': this.safeInteger (entry, 'baseAssetPrecision'),
+                    'price': this.safeInteger (entry, 'quoteAssetPrecision'),
                 },
                 'limits': {
                     'leverage': {

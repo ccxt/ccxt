@@ -481,8 +481,8 @@ module.exports = class bitfinex extends Exchange {
                 'type': 'spot',
                 'spot': true,
                 'margin': this.safeValue (market, 'margin'),
-                'future': false,
                 'swap': false,
+                'future': false,
                 'option': false,
                 'active': true,
                 'contract': false,
@@ -494,11 +494,11 @@ module.exports = class bitfinex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeInteger (market, 'price_precision'),
                     // https://docs.bitfinex.com/docs/introduction#amount-precision
                     // The amount field allows up to 8 decimals.
                     // Anything exceeding this will be rounded to the 8th decimal.
-                    'amount': this.parseNumber ('8'),
+                    'amount': parseInt ('8'),
+                    'price': this.safeInteger (market, 'price_precision'),
                 },
                 'limits': {
                     'leverage': {

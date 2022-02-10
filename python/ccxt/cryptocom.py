@@ -341,8 +341,8 @@ class cryptocom(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': int(priceDecimals),
                     'amount': self.safe_integer(market, 'quantity_decimals'),
+                    'price': int(priceDecimals),
                 },
                 'limits': {
                     'leverage': {

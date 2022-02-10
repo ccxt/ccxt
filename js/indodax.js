@@ -197,8 +197,8 @@ module.exports = class indodax extends Exchange {
                 'type': 'spot',
                 'spot': true,
                 'margin': false,
-                'future': false,
                 'swap': false,
+                'future': false,
                 'option': false,
                 'active': isMaintenance ? false : true,
                 'contract': false,
@@ -212,7 +212,7 @@ module.exports = class indodax extends Exchange {
                 'optionType': undefined,
                 'percentage': true,
                 'precision': {
-                    'amount': 8,
+                    'amount': parseInt ('8'),
                     'price': this.safeInteger (market, 'price_round'),
                 },
                 'limits': {

@@ -857,9 +857,9 @@ module.exports = class bitget extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'price': this.parsePrecision (this.safeString (market, 'tick_size')),
-                'amount': this.parsePrecision (this.safeString (market, 'size_increment')),
-                'base': this.parsePrecision (this.safeString (market, 'base_asset_precision')),
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'size_increment'))),
+                'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'tick_size'))),
+                'base': this.parseNumber (this.parsePrecision (this.safeString (market, 'base_asset_precision'))),
             },
             'limits': {
                 'leverage': {

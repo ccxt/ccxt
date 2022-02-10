@@ -346,8 +346,8 @@ class poloniex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': 8,
-                    'amount': 8,
+                    'amount': int('8'),
+                    'price': int('8'),
                 },
                 'limits': self.extend(self.limits, {
                     'leverage': {

@@ -329,18 +329,19 @@ module.exports = class bitvavo extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'active': (status === 'trading'),
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
-                'active': (status === 'trading'),
+                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeInteger (market, 'pricePrecision'),
                     'amount': amountPrecision,
+                    'price': this.safeInteger (market, 'pricePrecision'),
                 },
                 'limits': {
                     'leverage': {

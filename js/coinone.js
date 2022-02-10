@@ -191,8 +191,8 @@ module.exports = class coinone extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': undefined,
                     'amount': undefined,
+                    'price': undefined,
                 },
                 'limits': {
                     'leverage': {

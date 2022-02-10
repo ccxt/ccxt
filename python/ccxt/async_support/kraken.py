@@ -499,16 +499,17 @@ class kraken(Exchange):
                 'contract': False,
                 'linear': None,
                 'inverse': None,
-                'maker': maker,
                 'taker': taker,
+                'maker': maker,
                 'contractSize': None,
+                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(market, 'pair_decimals'),
                     'amount': self.safe_integer(market, 'lot_decimals'),
+                    'price': self.safe_integer(market, 'pair_decimals'),
                 },
                 'limits': {
                     'leverage': {
@@ -520,7 +521,7 @@ class kraken(Exchange):
                         'max': None,
                     },
                     'price': {
-                        'min': self.parse_precision(precisionPrice),
+                        'min': self.parse_number(self.parse_precision(precisionPrice)),
                         'max': None,
                     },
                     'cost': {

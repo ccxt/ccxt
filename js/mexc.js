@@ -552,13 +552,14 @@ module.exports = class mexc extends Exchange {
                 'taker': this.safeNumber (market, 'takerFeeRate'),
                 'maker': this.safeNumber (market, 'makerFeeRate'),
                 'contractSize': this.safeNumber (market, 'contractSize'),
+                'maintenanceMarginRate': this.safeNumber (market, 'maintenanceMarginRate'),
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeNumber (market, 'priceUnit'),
                     'amount': this.safeNumber (market, 'volUnit'),
+                    'price': this.safeNumber (market, 'priceUnit'),
                 },
                 'limits': {
                     'leverage': {
@@ -642,13 +643,14 @@ module.exports = class mexc extends Exchange {
                 'taker': this.safeNumber (market, 'taker_fee_rate'),
                 'maker': this.safeNumber (market, 'maker_fee_rate'),
                 'contractSize': undefined,
+                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.parseNumber (this.parsePrecision (priceScale)),
                     'amount': this.parseNumber (this.parsePrecision (quantityScale)),
+                    'price': this.parseNumber (this.parsePrecision (priceScale)),
                 },
                 'limits': {
                     'leverage': {

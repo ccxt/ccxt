@@ -247,8 +247,8 @@ class novadax extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($market, 'pricePrecision'),
                     'amount' => $this->safe_integer($market, 'amountPrecision'),
+                    'price' => $this->safe_integer($market, 'pricePrecision'),
                     'cost' => $this->safe_integer($market, 'valuePrecision'),
                 ),
                 'limits' => array(

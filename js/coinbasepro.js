@@ -338,8 +338,8 @@ module.exports = class coinbasepro extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeNumber (market, 'quote_increment'),
                     'amount': this.safeNumber (market, 'base_increment'),
+                    'price': this.safeNumber (market, 'quote_increment'),
                 },
                 'limits': {
                     'leverage': {

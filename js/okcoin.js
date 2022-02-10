@@ -883,12 +883,12 @@ module.exports = class okcoin extends Exchange {
             'strike': strike,
             'optionType': optionType,
             'precision': {
-                'price': precisionPrice,
                 'amount': this.safeNumber (market, 'size_increment', lotSize),
+                'price': precisionPrice,
             },
             'limits': {
                 'leverage': {
-                    'min': 1,
+                    'min': this.parseNumber ('1'),
                     'max': this.parseNumber (maxLeverage),
                 },
                 'amount': {

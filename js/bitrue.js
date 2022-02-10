@@ -605,11 +605,11 @@ module.exports = class bitrue extends Exchange {
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
-                'optionType': undefined,
                 'strike': undefined,
+                'optionType': undefined,
                 'precision': {
-                    'price': this.safeInteger (priceFilter, 'priceScale', priceDefault),
                     'amount': this.safeInteger (amountFilter, 'volumeScale', amountDefault),
+                    'price': this.safeInteger (priceFilter, 'priceScale', priceDefault),
                     'base': this.safeInteger (market, 'baseAssetPrecision'),
                     'quote': this.safeInteger (market, 'quotePrecision'),
                 },

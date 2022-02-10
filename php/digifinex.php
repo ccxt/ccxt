@@ -362,8 +362,8 @@ class digifinex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($market, 'price_precision'),
                     'amount' => $this->safe_integer($market, 'amount_precision'),
+                    'price' => $this->safe_integer($market, 'price_precision'),
                 ),
                 'limits' => array(
                     'leverage' => array(

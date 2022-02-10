@@ -215,8 +215,8 @@ class btcturk extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($entry, 'denominatorScale'),
                     'amount' => $this->safe_integer($entry, 'numeratorScale'),
+                    'price' => $this->safe_integer($entry, 'denominatorScale'),
                 ),
                 'limits' => array(
                     'leverage' => array(

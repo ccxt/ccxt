@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, AuthenticationError, NullResponse, InvalidOrder, NotSupported, InsufficientFunds, InvalidNonce, OrderNotFound, RateLimitExceeded, DDoSProtection } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -328,8 +329,8 @@ module.exports = class cex extends Exchange {
                     pricePrecision = this.safeInteger (pair, 'pricePrecision', pricePrecision);
                 }
             }
-            const baseCcyPrecision = this.safeInteger (baseCurrency, 'precision', 8);
-            const baseCcyScale = this.safeInteger (baseCurrency, 'scale', 0);
+            const baseCcyPrecision = this.safeString (baseCurrency, 'precision', '8');
+            const baseCcyScale = this.safeString (baseCurrency, 'scale', '0');
             result.push ({
                 'id': baseId + '/' + quoteId,
                 'symbol': base + '/' + quote,
@@ -342,8 +343,8 @@ module.exports = class cex extends Exchange {
                 'type': 'spot',
                 'spot': true,
                 'margin': undefined,
-                'future': false,
                 'swap': false,
+                'future': false,
                 'option': false,
                 'active': undefined,
                 'contract': false,
@@ -355,8 +356,8 @@ module.exports = class cex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
+                    'amount': parseInt (Precise.stringSub (baseCcyPrecision, baseCcyScale)),
                     'price': pricePrecision,
-                    'amount': baseCcyPrecision - baseCcyScale,
                 },
                 'limits': {
                     'leverage': {

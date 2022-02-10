@@ -367,8 +367,8 @@ class digifinex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(market, 'price_precision'),
                     'amount': self.safe_integer(market, 'amount_precision'),
+                    'price': self.safe_integer(market, 'price_precision'),
                 },
                 'limits': {
                     'leverage': {

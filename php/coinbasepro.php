@@ -342,8 +342,8 @@ class coinbasepro extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_number($market, 'quote_increment'),
                     'amount' => $this->safe_number($market, 'base_increment'),
+                    'price' => $this->safe_number($market, 'quote_increment'),
                 ),
                 'limits' => array(
                     'leverage' => array(

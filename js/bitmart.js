@@ -445,6 +445,7 @@ module.exports = class bitmart extends Exchange {
             const minBuyCost = this.safeString (market, 'min_buy_amount');
             const minSellCost = this.safeString (market, 'min_sell_amount');
             const minCost = Precise.stringMax (minBuyCost, minSellCost);
+            const pricePrecision = this.parsePrecision (this.safeString (market, 'price_max_precision'));
             result.push ({
                 'id': id,
                 'numericId': numericId,
@@ -472,8 +473,8 @@ module.exports = class bitmart extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeNumber (market, 'base_min_size'),
-                    'price': this.parsePrecision (this.safeString (market, 'price_max_precision')),
+                    'amount': this.safeInteger (market, 'base_min_size'),
+                    'price': parseInt (pricePrecision),
                 },
                 'limits': {
                     'leverage': {
@@ -564,8 +565,8 @@ module.exports = class bitmart extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': undefined,
                     'amount': undefined,
+                    'price': undefined,
                 },
                 'limits': {
                     'leverage': {

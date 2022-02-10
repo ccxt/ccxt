@@ -740,13 +740,14 @@ class gateio(Exchange):
                         'taker': self.parse_number(Precise.string_div(takerPercent, '100')),  # Fee is in %, so divide by 100
                         'maker': self.parse_number(Precise.string_div(makerPercent, '100')),
                         'contractSize': self.safe_number(market, 'quanto_multiplier'),
+                        'maintenanceMarginRate': self.safe_number(market, 'maintenance_rate'),
                         'expiry': expiry,
                         'expiryDatetime': self.iso8601(expiry),
                         'strike': None,
                         'optionType': None,
                         'precision': {
-                            'price': self.safe_number(market, 'order_price_round'),
                             'amount': self.parse_number('1'),
+                            'price': self.safe_number(market, 'order_price_round'),
                         },
                         'limits': {
                             'leverage': {
@@ -834,13 +835,14 @@ class gateio(Exchange):
                     'taker': self.parse_number(Precise.string_div(takerPercent, '100')),
                     'maker': self.parse_number(Precise.string_div(makerPercent, '100')),
                     'contractSize': None,
+                    'maintenanceMarginRate': None,
                     'expiry': None,
                     'expiryDatetime': None,
                     'strike': None,
                     'optionType': None,
                     'precision': {
-                        'price': self.parse_number(self.parse_precision(pricePrecisionString)),
                         'amount': self.parse_number(self.parse_precision(amountPrecisionString)),
+                        'price': self.parse_number(self.parse_precision(pricePrecisionString)),
                     },
                     'limits': {
                         'leverage': {

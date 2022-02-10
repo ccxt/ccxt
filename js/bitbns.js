@@ -232,8 +232,8 @@ module.exports = class bitbns extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeInteger (marketPrecision, 'price'),
                     'amount': this.safeInteger (marketPrecision, 'amount'),
+                    'price': this.safeInteger (marketPrecision, 'price'),
                 },
                 'limits': {
                     'leverage': {

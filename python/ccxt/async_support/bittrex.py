@@ -341,8 +341,8 @@ class bittrex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(market, 'precision', 8),
                     'amount': int('8'),
+                    'price': self.safe_integer(market, 'precision', 8),
                 },
                 'limits': {
                     'leverage': {

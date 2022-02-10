@@ -491,8 +491,8 @@ class bitfinex(Exchange):
                 'type': 'spot',
                 'spot': True,
                 'margin': self.safe_value(market, 'margin'),
-                'future': False,
                 'swap': False,
+                'future': False,
                 'option': False,
                 'active': True,
                 'contract': False,
@@ -504,11 +504,11 @@ class bitfinex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(market, 'price_precision'),
                     # https://docs.bitfinex.com/docs/introduction#amount-precision
                     # The amount field allows up to 8 decimals.
                     # Anything exceeding self will be rounded to the 8th decimal.
-                    'amount': self.parse_number('8'),
+                    'amount': int('8'),
+                    'price': self.safe_integer(market, 'price_precision'),
                 },
                 'limits': {
                     'leverage': {

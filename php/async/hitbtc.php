@@ -330,15 +330,16 @@ class hitbtc extends Exchange {
                 'inverse' => null,
                 'taker' => $this->safe_number($market, 'takeLiquidityRate'),
                 'maker' => $this->safe_number($market, 'provideLiquidityRate'),
-                'feeCurrency' => $this->safe_currency_code($feeCurrencyId),
                 'contractSize' => null,
+                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
+                'feeCurrency' => $this->safe_currency_code($feeCurrencyId),
                 'precision' => array(
-                    'price' => $step,
                     'amount' => $lot,
+                    'price' => $step,
                 ),
                 'limits' => array(
                     'leverage' => array(

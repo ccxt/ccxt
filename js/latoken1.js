@@ -223,8 +223,8 @@ module.exports = class latoken1 extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': parseInt (pricePrecisionString),
                     'amount': this.safeInteger (market, 'amountPrecision'),
+                    'price': parseInt (pricePrecisionString),
                 },
                 'limits': {
                     'leverage': {

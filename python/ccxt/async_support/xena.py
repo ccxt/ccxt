@@ -331,8 +331,8 @@ class xena(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
+                    'amount': int('0'),
                     'price': self.safe_integer_2(market, 'tickSize', 'pricePrecision'),
-                    'amount': 0,
                 },
                 'limits': {
                     'leverage': {

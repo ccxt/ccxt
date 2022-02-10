@@ -307,7 +307,7 @@ class currencycom extends Exchange {
                     $limitPriceMax = $maxPrice;
                 }
             }
-            $precisionAmount = $this->parse_precision($this->safe_string($market, 'baseAssetPrecision'));
+            $precisionAmount = $this->parse_number($this->parse_precision($this->safe_string($market, 'baseAssetPrecision')));
             $limitAmount = array(
                 'min' => null,
                 'max' => null,
@@ -351,20 +351,21 @@ class currencycom extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
+                'active' => $active,
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
                 'taker' => $taker,
                 'maker' => $maker,
                 'contractSize' => null,
-                'active' => $active,
+                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $precisionPrice,
                     'amount' => $precisionAmount,
+                    'price' => $precisionPrice,
                 ),
                 'limits' => array(
                     'leverage' => array(

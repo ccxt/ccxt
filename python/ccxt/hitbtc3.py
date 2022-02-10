@@ -402,14 +402,15 @@ class hitbtc3(Exchange):
                 'taker': self.safe_number(market, 'take_rate'),
                 'maker': self.safe_number(market, 'make_rate'),
                 'contractSize': contractSize,
+                'maintenanceMarginRate': None,
                 'expiry': expiry,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'feeCurrency': feeCurrency,
                 'precision': {
-                    'price': step,
                     'amount': lot,
+                    'price': step,
                 },
                 'limits': {
                     'leverage': {

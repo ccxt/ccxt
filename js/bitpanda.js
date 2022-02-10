@@ -365,8 +365,8 @@ module.exports = class bitpanda extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeInteger (market, 'market_precision'),
                     'amount': this.safeInteger (market, 'amount_precision'),
+                    'price': this.safeInteger (market, 'market_precision'),
                 },
                 'limits': {
                     'leverage': {

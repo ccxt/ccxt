@@ -76,6 +76,7 @@ class wazirx(Exchange):
                 'www': 'https://wazirx.com',
                 'doc': 'https://docs.wazirx.com/#public-rest-api-for-wazirx',
                 'fees': 'https://wazirx.com/fees',
+                'referral': 'https://wazirx.com/invite/k7rrnks5',
             },
             'api': {
                 'public': {
@@ -203,16 +204,16 @@ class wazirx(Exchange):
                 'contract': False,
                 'linear': None,
                 'inverse': None,
-                'maker': self.parse_number(makerString),
                 'taker': self.parse_number(takerString),
+                'maker': self.parse_number(makerString),
                 'contractSize': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(entry, 'quoteAssetPrecision'),
                     'amount': self.safe_integer(entry, 'baseAssetPrecision'),
+                    'price': self.safe_integer(entry, 'quoteAssetPrecision'),
                 },
                 'limits': {
                     'leverage': {

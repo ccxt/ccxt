@@ -236,14 +236,15 @@ class idex(Exchange):
                 'inverse': None,
                 'taker': taker,
                 'maker': maker,
+                'maintenanceMarginRate': None,
                 'contractSize': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': int(quotePrecisionString),
                     'amount': int(basePrecisionString),
+                    'price': int(quotePrecisionString),
                 },
                 'limits': {
                     'leverage': {

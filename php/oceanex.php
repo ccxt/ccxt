@@ -183,8 +183,8 @@ class oceanex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($market, 'price_precision'),
                     'amount' => $this->safe_integer($market, 'amount_precision'),
+                    'price' => $this->safe_integer($market, 'price_precision'),
                     'base' => $this->safe_integer($market, 'ask_precision'),
                     'quote' => $this->safe_integer($market, 'bid_precision'),
                 ),

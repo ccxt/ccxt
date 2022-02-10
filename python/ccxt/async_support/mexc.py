@@ -549,13 +549,14 @@ class mexc(Exchange):
                 'taker': self.safe_number(market, 'takerFeeRate'),
                 'maker': self.safe_number(market, 'makerFeeRate'),
                 'contractSize': self.safe_number(market, 'contractSize'),
+                'maintenanceMarginRate': self.safe_number(market, 'maintenanceMarginRate'),
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_number(market, 'priceUnit'),
                     'amount': self.safe_number(market, 'volUnit'),
+                    'price': self.safe_number(market, 'priceUnit'),
                 },
                 'limits': {
                     'leverage': {
@@ -637,13 +638,14 @@ class mexc(Exchange):
                 'taker': self.safe_number(market, 'taker_fee_rate'),
                 'maker': self.safe_number(market, 'maker_fee_rate'),
                 'contractSize': None,
+                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.parse_number(self.parse_precision(priceScale)),
                     'amount': self.parse_number(self.parse_precision(quantityScale)),
+                    'price': self.parse_number(self.parse_precision(priceScale)),
                 },
                 'limits': {
                     'leverage': {

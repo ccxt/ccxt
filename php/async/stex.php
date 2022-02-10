@@ -338,7 +338,10 @@ class stex extends Exchange {
                 'fee' => $fee,
                 'precision' => intval($precision),
                 'limits' => array(
-                    'amount' => array( 'min' => $this->parse_number($amountLimit), 'max' => null ),
+                    'amount' => array(
+                        'min' => $this->parse_number($amountLimit),
+                        'max' => null,
+                    ),
                     'deposit' => array(
                         'min' => $this->safe_number($currency, 'minimum_deposit_amount'),
                         'max' => null,
@@ -435,8 +438,8 @@ class stex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($market, 'market_precision'),
                     'amount' => $this->safe_integer($market, 'currency_precision'),
+                    'price' => $this->safe_integer($market, 'market_precision'),
                 ),
                 'limits' => array(
                     'leverage' => array(

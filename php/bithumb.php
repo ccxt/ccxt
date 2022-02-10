@@ -221,8 +221,8 @@ class bithumb extends Exchange {
                     'strike' => null,
                     'optionType' => null,
                     'precision' => array(
-                        'price' => $this->parse_number('4'),
-                        'amount' => $this->parse_number('4'),
+                        'amount' => intval('4'),
+                        'price' => intval('4'),
                     ),
                     'limits' => array(
                         'leverage' => array(

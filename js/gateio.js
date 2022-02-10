@@ -728,13 +728,14 @@ module.exports = class gateio extends Exchange {
                         'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')), // Fee is in %, so divide by 100
                         'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
                         'contractSize': this.safeNumber (market, 'quanto_multiplier'),
+                        'maintenanceMarginRate': this.safeNumber (market, 'maintenance_rate'),
                         'expiry': expiry,
                         'expiryDatetime': this.iso8601 (expiry),
                         'strike': undefined,
                         'optionType': undefined,
                         'precision': {
-                            'price': this.safeNumber (market, 'order_price_round'),
                             'amount': this.parseNumber ('1'),
+                            'price': this.safeNumber (market, 'order_price_round'),
                         },
                         'limits': {
                             'leverage': {
@@ -824,13 +825,14 @@ module.exports = class gateio extends Exchange {
                     'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')),
                     'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
                     'contractSize': undefined,
+                    'maintenanceMarginRate': undefined,
                     'expiry': undefined,
                     'expiryDatetime': undefined,
                     'strike': undefined,
                     'optionType': undefined,
                     'precision': {
-                        'price': this.parseNumber (this.parsePrecision (pricePrecisionString)),
                         'amount': this.parseNumber (this.parsePrecision (amountPrecisionString)),
+                        'price': this.parseNumber (this.parsePrecision (pricePrecisionString)),
                     },
                     'limits': {
                         'leverage': {

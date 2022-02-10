@@ -293,8 +293,8 @@ class coinex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($market, 'pricing_decimal'),
                     'amount' => $this->safe_integer($market, 'trading_decimal'),
+                    'price' => $this->safe_integer($market, 'pricing_decimal'),
                 ),
                 'limits' => array(
                     'leverage' => array(

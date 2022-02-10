@@ -231,14 +231,15 @@ class idex extends Exchange {
                 'inverse' => null,
                 'taker' => $taker,
                 'maker' => $maker,
+                'maintenanceMarginRate' => null,
                 'contractSize' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => intval($quotePrecisionString),
                     'amount' => intval($basePrecisionString),
+                    'price' => intval($quotePrecisionString),
                 ),
                 'limits' => array(
                     'leverage' => array(

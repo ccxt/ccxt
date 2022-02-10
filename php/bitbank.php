@@ -202,8 +202,8 @@ class bitbank extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($entry, 'price_digits'),
                     'amount' => $this->safe_integer($entry, 'amount_digits'),
+                    'price' => $this->safe_integer($entry, 'price_digits'),
                 ),
                 'limits' => array(
                     'leverage' => array(

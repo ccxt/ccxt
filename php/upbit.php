@@ -331,7 +331,6 @@ class upbit extends Exchange {
         $askFee = $this->safe_number($response, 'ask_fee');
         $fee = max ($bidFee, $askFee);
         return array(
-            'info' => $response,
             'id' => $marketId,
             'symbol' => $base . '/' . $quote,
             'base' => $base,
@@ -358,8 +357,8 @@ class upbit extends Exchange {
             'strike' => null,
             'optionType' => null,
             'precision' => array(
-                'price' => 8,
-                'amount' => 8,
+                'amount' => intval('8'),
+                'price' => intval('8'),
             ),
             'limits' => array(
                 'leverage' => array(
@@ -378,6 +377,7 @@ class upbit extends Exchange {
                     'min' => $this->safe_number($bid, 'min_total'),
                     'max' => $this->safe_number($marketInfo, 'max_total'),
                 ),
+                'info' => $response,
             ),
         );
     }

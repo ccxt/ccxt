@@ -871,13 +871,14 @@ class okx extends Exchange {
             'linear' => $contract ? ($quoteId === $settleId) : null,
             'inverse' => $contract ? ($baseId === $settleId) : null,
             'contractSize' => $contract ? $this->safe_number($market, 'ctVal') : null,
+            'maintenanceMarginRate' => null,
             'expiry' => $expiry,
             'expiryDatetime' => $this->iso8601($expiry),
             'strike' => $strikePrice,
             'optionType' => $optionType,
             'precision' => array(
-                'price' => $precisionPrice,
                 'amount' => $this->safe_number($market, 'lotSz'),
+                'price' => $precisionPrice,
             ),
             'limits' => array(
                 'leverage' => array(

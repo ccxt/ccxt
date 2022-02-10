@@ -573,13 +573,14 @@ module.exports = class kucoin extends Exchange {
                 'taker': this.parseNumber (Precise.stringMul (takerFeeRate, takerCoefficient)),
                 'maker': this.parseNumber (Precise.stringMul (makerFeeRate, makerCoefficient)),
                 'contractSize': undefined,
+                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.precisionFromString (this.safeString (market, 'priceIncrement')),
                     'amount': this.precisionFromString (this.safeString (market, 'baseIncrement')),
+                    'price': this.precisionFromString (this.safeString (market, 'priceIncrement')),
                 },
                 'limits': {
                     'leverage': {

@@ -257,8 +257,8 @@ class hollaex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_number(market, 'increment_price'),
                     'amount': self.safe_number(market, 'increment_size'),
+                    'price': self.safe_number(market, 'increment_price'),
                 },
                 'limits': {
                     'leverage': {

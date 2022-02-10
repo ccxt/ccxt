@@ -217,47 +217,60 @@ module.exports = class buda extends Exchange {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const id = this.safeString (market, 'id');
             const baseId = this.safeString (market, 'base_currency');
             const quoteId = this.safeString (market, 'quote_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const baseInfo = await this.fetchCurrencyInfo (baseId, currencies);
             const quoteInfo = await this.fetchCurrencyInfo (quoteId, currencies);
-            const symbol = base + '/' + quote;
             const pricePrecisionString = this.safeString (quoteInfo, 'input_decimals');
-            const priceLimit = this.parsePrecision (pricePrecisionString);
-            const precision = {
-                'amount': this.safeInteger (baseInfo, 'input_decimals'),
-                'price': parseInt (pricePrecisionString),
-            };
             const minimumOrderAmount = this.safeValue (market, 'minimum_order_amount', []);
-            const limits = {
-                'amount': {
-                    'min': this.safeNumber (minimumOrderAmount, 0),
-                    'max': undefined,
-                },
-                'price': {
-                    'min': priceLimit,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            };
             result.push ({
-                'id': id,
-                'symbol': symbol,
+                'id': this.safeString (market, 'id'),
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'active': true,
-                'precision': precision,
-                'limits': limits,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeInteger (baseInfo, 'input_decimals'),
+                    'price': parseInt (pricePrecisionString),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (minimumOrderAmount, 0),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
                 'info': market,
             });
         }

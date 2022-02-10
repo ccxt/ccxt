@@ -558,13 +558,14 @@ class mexc extends Exchange {
                 'taker' => $this->safe_number($market, 'takerFeeRate'),
                 'maker' => $this->safe_number($market, 'makerFeeRate'),
                 'contractSize' => $this->safe_number($market, 'contractSize'),
+                'maintenanceMarginRate' => $this->safe_number($market, 'maintenanceMarginRate'),
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_number($market, 'priceUnit'),
                     'amount' => $this->safe_number($market, 'volUnit'),
+                    'price' => $this->safe_number($market, 'priceUnit'),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -648,13 +649,14 @@ class mexc extends Exchange {
                 'taker' => $this->safe_number($market, 'taker_fee_rate'),
                 'maker' => $this->safe_number($market, 'maker_fee_rate'),
                 'contractSize' => null,
+                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->parse_number($this->parse_precision($priceScale)),
                     'amount' => $this->parse_number($this->parse_precision($quantityScale)),
+                    'price' => $this->parse_number($this->parse_precision($priceScale)),
                 ),
                 'limits' => array(
                     'leverage' => array(

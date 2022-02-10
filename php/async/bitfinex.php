@@ -484,8 +484,8 @@ class bitfinex extends Exchange {
                 'type' => 'spot',
                 'spot' => true,
                 'margin' => $this->safe_value($market, 'margin'),
-                'future' => false,
                 'swap' => false,
+                'future' => false,
                 'option' => false,
                 'active' => true,
                 'contract' => false,
@@ -497,11 +497,11 @@ class bitfinex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($market, 'price_precision'),
                     // https://docs.bitfinex.com/docs/introduction#amount-precision
                     // The amount field allows up to 8 decimals.
                     // Anything exceeding this will be rounded to the 8th decimal.
-                    'amount' => $this->parse_number('8'),
+                    'amount' => intval('8'),
+                    'price' => $this->safe_integer($market, 'price_precision'),
                 ),
                 'limits' => array(
                     'leverage' => array(

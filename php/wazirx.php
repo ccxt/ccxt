@@ -69,6 +69,7 @@ class wazirx extends Exchange {
                 'www' => 'https://wazirx.com',
                 'doc' => 'https://docs.wazirx.com/#public-rest-api-for-wazirx',
                 'fees' => 'https://wazirx.com/fees',
+                'referral' => 'https://wazirx.com/invite/k7rrnks5',
             ),
             'api' => array(
                 'public' => array(
@@ -199,16 +200,16 @@ class wazirx extends Exchange {
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                'maker' => $this->parse_number($makerString),
                 'taker' => $this->parse_number($takerString),
+                'maker' => $this->parse_number($makerString),
                 'contractSize' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($entry, 'quoteAssetPrecision'),
                     'amount' => $this->safe_integer($entry, 'baseAssetPrecision'),
+                    'price' => $this->safe_integer($entry, 'quoteAssetPrecision'),
                 ),
                 'limits' => array(
                     'leverage' => array(
