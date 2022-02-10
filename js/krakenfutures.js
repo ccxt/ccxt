@@ -121,59 +121,66 @@ module.exports = class krakenfu extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetInstruments (params);
-        // {
-        //   "result":"success",
-        //   "instruments":[
-        //     {
-        //       "symbol":"fi_ethusd_180928",
-        //       "type":"futures_inverse",                      // futures_vanilla  // spot index
-        //       "underlying":"rr_ethusd",
-        //       "lastTradingTime":"2018-09-28T15:00:00.000Z",
-        //       "tickSize":0.1,
-        //       "contractSize":1,
-        //       "tradeable":true,
-        //       "marginLevels":[
-        //          {
-        //           "contracts":0,
-        //           "initialMargin":0.02,
-        //           "maintenanceMargin":0.01
-        //         },
-        //         {
-        //           "contracts":250000,
-        //           "initialMargin":0.04,
-        //           "maintenanceMargin":0.02
-        //         },
-        //         {
-        //           "contracts":500000,
-        //           "initialMargin":0.06,
-        //           "maintenanceMargin":0.03
-        //         }
-        //       ]
-        //     },
-        // ...
-        //     {
-        //       "symbol":"in_xbtusd",
-        //       "type":"spot index",
-        //       "tradeable":false
-        //     }
-        //   ],
-        //   "serverTime":"2018-07-19T11:32:39.433Z"
-        // }
+        //
+        //    {
+        //        "result": "success",
+        //        "instruments": [
+        //            {
+        //                "symbol": "fi_ethusd_180928",
+        //                "type": "futures_inverse",                      // futures_vanilla  // spot index
+        //                "underlying": "rr_ethusd",
+        //                "lastTradingTime": "2018-09-28T15:00:00.000Z",
+        //                "tickSize": 0.1,
+        //                "contractSize": 1,
+        //                "tradeable": true,
+        //                "marginLevels": [
+        //                    {
+        //                        "contracts":0,
+        //                        "initialMargin":0.02,
+        //                        "maintenanceMargin":0.01
+        //                    },
+        //                    {
+        //                        "contracts":250000,
+        //                        "initialMargin":0.04,
+        //                        "maintenanceMargin":0.02
+        //                    },
+        //                    ...
+        //                ],
+        //                "isin": "GB00JVMLMP88",
+        //                "retailMarginLevels": [
+        //                    {
+        //                        "contracts": 0,
+        //                        "initialMargin": 0.5,
+        //                        "maintenanceMargin": 0.25
+        //                    }
+        //                ],
+        //                "tags": [],
+        //            },
+        //            {
+        //                "symbol":"in_xbtusd",
+        //                "type":"spot index",
+        //                "tradeable":false
+        //            }
+        //        ]
+        //        "serverTime": "2018-07-19T11:32:39.433Z"
+        //    }
+        //
         const instruments = response['instruments'];
         const result = [];
         for (let i = 0; i < instruments.length; i++) {
             const market = instruments[i];
-            const active = true;
             const id = market['symbol'];
             let type = undefined;
             const index = (market['type'].indexOf (' index') >= 0);
             let linear = undefined;
             let inverse = undefined;
+            let expiry = undefined;
             if (!index) {
                 linear = (market['type'].indexOf ('_vanilla') >= 0);
                 inverse = !linear;
                 const settleTime = this.safeString (market, 'lastTradingTime');
                 type = (settleTime === undefined) ? 'swap' : 'future';
+                expiry = this.parse8601 (settleTime);
             } else {
                 type = 'index';
             }
@@ -187,49 +194,65 @@ module.exports = class krakenfu extends Exchange {
             const base = parsed['base'];
             const quote = parsed['quote'];
             // swap == perpetual
-            if (swap) {
-                symbol = base + '/' + quote;
+            let settleId = undefined;
+            let settle = undefined;
+            const contract = (swap || future);
+            if (contract) {
+                settleId = linear ? baseId : quoteId;
+                settle = this.safeCurrencyCode (settleId);
+                symbol = base + '/' + quote + ':' + settle;
+                if (future) {
+                    symbol = symbol + '-' + this.yymmdd (expiry);
+                }
             }
-            const lotSize = this.safeFloat (market, 'contractSize');
-            const precision = {
-                'amount': undefined,
-                'price': this.safeFloat (market, 'tickSize'),
-            };
-            if (!index) {
-                precision['amount'] = 1.0; // this seems to be the case for all markets
-            }
-            const limits = {
-                'amount': {
-                    'min': precision['amount'],
-                    'max': undefined,
-                },
-                'price': {
-                    'min': precision['price'],
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': active,
-                'precision': precision,
-                'limits': limits,
+                'settleId': undefined,
                 'type': type,
                 'spot': false,
+                'margin': false,
                 'swap': swap,
                 'future': future,
-                'prediction': false,
+                'option': false,
+                'index': index,
+                'active': undefined,
+                'contract': contract,
                 'linear': linear,
                 'inverse': inverse,
-                'lotSize': lotSize,
+                'contractSize': this.safeFloat (market, 'contractSize'),
+                'maintenanceMarginRate': undefined,
+                'expiry': expiry,
+                'expiryDatetime': this.iso8601 (expiry),
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': index ? undefined : this.parseNumber ('1'),
+                    'price': this.safeFloat (market, 'tickSize'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
                 'info': market,
             });
         }
