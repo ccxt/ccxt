@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\Precise;
 
 class delta extends Exchange {
 
@@ -427,6 +428,7 @@ class delta extends Exchange {
                 $symbol = $id;
             }
             $state = $this->safe_string($market, 'state');
+            $maintenanceMarginPercentage = $this->safe_string($market, 'maintenance_margin');
             $result[] = array(
                 'id' => $id,
                 'numericId' => $numericId,
@@ -450,6 +452,7 @@ class delta extends Exchange {
                 'taker' => $this->safe_number($market, 'taker_commission_rate'),
                 'maker' => $this->safe_number($market, 'maker_commission_rate'),
                 'contractSize' => $contractSize,
+                'maintenanceMarginRate' => $this->parse_number(Precise::string_div($maintenanceMarginPercentage, '100')),
                 'expiry' => $expiry,
                 'expiryDatetime' => $expiryDatetime,
                 'strike' => $this->parse_number($strike),
