@@ -1870,7 +1870,7 @@ module.exports = class xena extends Exchange {
                         const cap = this.safeNumber (bracket, 'maxVolume');
                         const initialRate = this.safeString (bracket, 'initialRate');
                         brackets.push ({
-                            'tier': j,
+                            'tier': j + 1,
                             'notionalFloor': floor,
                             'notionalCap': cap,
                             'maintenanceMarginRatio': this.safeNumber (bracket, 'maintenanceRate'),
