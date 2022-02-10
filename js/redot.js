@@ -771,14 +771,17 @@ module.exports = class redot extends Exchange {
             };
             body = this.json (params);
         }
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            const accessToken = this.safeString (this.options, 'accessToken');
+            headers['Authorization'] = 'Bearer ' + accessToken;
+        }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     async signIn (params = {}) {
         this.checkRequiredCredentials ();
-        const week = 86400000000 * 7; // microseconds
-        const timestamp = this.sum (this.microseconds (), week); // a week from now
-        // const timestamp = this.microseconds ();
+        const timestamp = this.microseconds ();
         const payload = timestamp + '.' + this.apiKey;
         const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256');
         const request = {
