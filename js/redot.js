@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, BadSymbol, RateLimitExceeded } = require ('./base/errors');
+const { ExchangeError, BadRequest, BadSymbol, RateLimitExceeded, OrderNotFound } = require ('./base/errors');
 
 module.exports = class redot extends Exchange {
     describe () {
@@ -30,9 +30,9 @@ module.exports = class redot extends Exchange {
                 'fetchMarkets': true,
                 'fetchMyTrades': false,
                 'fetchOHLCV': true,
-                'fetchOpenOrders': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': false,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchOrderBook': true,
                 'fetchPositions': false,
                 'fetchStatus': false,
@@ -537,6 +537,18 @@ module.exports = class redot extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        const filter = {
+            'orderId': id,
+        };
+        const response = await this.fetchOrders (symbol, undefined, undefined, this.deepExtend (filter, params));
+        const numResults = response.length;
+        if (numResults === 1) {
+            return response[0];
+        }
+        throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
+    }
+
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -612,6 +624,138 @@ module.exports = class redot extends Exchange {
         // }
         const result = this.safeValue (response, 'result', []);
         return this.parseTrades (result, market, since, limit);
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if (!(type === 'limit') || (type === 'market')) {
+            throw new ExchangeError (this.id + ' createOrder() supports limit and market orders only');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instrumentId': market['id'],
+            'side': side,
+            'qty': amount,
+            'type': type,
+        };
+        if (type === 'limit') {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const response = await this.privatePosPlacetOrder (this.extend (request, params));
+        // {
+        //     "result": {
+        //       "orderId": 234
+        //     }
+        // }
+        const result = this.safeValue (response, 'result', {});
+        return this.parseOrder (result, market);
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+        };
+        const response = await this.privateGetGetDepositAddress (this.extend (request, params));
+        //
+        // {
+        //     "result": {
+        //       "asset": "BTC",
+        //       "address": "17ciVVLxLcdCUCMf9s4t5jTexACxwF55uc"
+        // }
+        //
+        const data = this.safeValue (response, 'result', {});
+        const address = this.safeString (data, 'address');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': undefined,
+            'network': undefined,
+            'info': response,
+        };
+    }
+
+    async fetchFundingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateWalletGetWithdrawStatus (params);
+        //
+        // {
+        //     "result": [
+        //       {
+        //         "asset": "BTC",
+        //         "deposit": {
+        //           "fixedFee": 0.000001,
+        //           "percentFee": 0,
+        //           "minAmount": 0.0001
+        //         },
+        //         "withdrawal": {
+        //           "fixedFee": 0.000002,
+        //           "percentFee": 0,
+        //           "minAmount": 0.002
+        //         }
+        //       },
+        //       ...
+        //     ]
+        //   }
+        //
+        const result = this.safeValue (response, 'result', []);
+        const withdrawFees = {};
+        const depositFees = {};
+        for (let i = 0; i < result.length; i++) {
+            const entry = result[i];
+            const currencyId = this.safeString (entry, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            const withdraw = this.safeValue (entry, 'withdrawal', {});
+            withdrawFees[code] = this.safeNumber (withdraw, 'fixedFee');
+            const deposit = this.safeValue (entry, 'deposit');
+            depositFees[code] = this.safeNumber (deposit, 'fixedFee');
+        }
+        return {
+            'info': response,
+            'withdraw': withdrawFees,
+            'deposit': depositFees,
+        };
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = { };
+        if (code !== undefined) {
+            const currency = this.currency (code);
+            request['asset'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 20
+        }
+        const response = await this.privateGetGetWithdrawals (this.extend (request, params));
+        //
+        // {
+        //     "result": {
+        //       "data": [
+        //         {
+        //           "id": 234,
+        //           "timestamp": 1594800486782215,
+        //           "address": "17ciVVLxLcdCUCMf9s4t5jTexACxwF55uc",
+        //           "asset": "BTC",
+        //           "amount": 0.001,
+        //           "fee": 0.000002,
+        //           "transactionId": null,
+        //           "status": "pending"
+        //         },
+        //         ...
+        //       ],
+        //       "next": true
+        //     }
+        //   }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const withdrawals = this.safeValue (result, 'data', []);
+        return this.parseTransactions (withdrawals, code, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
