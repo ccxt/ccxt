@@ -5359,7 +5359,7 @@ module.exports = class huobi extends Exchange {
     async fetchLeverageTiers (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
-        if (symbol) {
+        if (symbol !== undefined) {
             const market = this.market (symbol);
             if (!market['contract']) {
                 throw new BadRequest (this.id + '.fetchLeverageTiers symbol supports contract markets only');
