@@ -18,9 +18,14 @@ module.exports = class bitget3 extends Exchange {
             'version': 'v3',
             'rateLimit': 1000, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': undefined,
+                'swap': undefined,
+                'future': undefined,
+                'option': undefined,
                 'cancelOrder': true,
                 'cancelOrders': true,
-                'CORS': undefined,
                 'createOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
@@ -34,6 +39,7 @@ module.exports = class bitget3 extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderTrades': true,
+                'fetchPublicProducts': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -167,13 +173,14 @@ module.exports = class bitget3 extends Exchange {
                 },
                 'spot': {
                     'get': [
-                        'public/currencies',
-                        'account/transferRecords', // fetch withdrawals
+                        'public/currencies', // fetch currencies as per the https://bitgetlimited.github.io/apidoc/en/spot/#05-1-2022
+                        'account/transferRecords', // fetch withdrawals as per the https://bitgetlimited.github.io/apidoc/en/spot/#05-1-2022
+                        'public/products', // fetch spot product as per the https://bitgetlimited.github.io/apidoc/en/spot/#05-1-2022
                     ],
                     'post': [
-                        'account/bills', // fetch deposits
-                        'trade/orders', // create ordertrade
-                        'trade/history',
+                        'account/bills', // fetch deposits as per the https://bitgetlimited.github.io/apidoc/en/spot/#05-1-2022
+                        'trade/orders', // create ordertrade as per the https://bitgetlimited.github.io/apidoc/en/spot/#05-1-2022
+                        'trade/history', // fetch my trades as per the https://bitgetlimited.github.io/apidoc/en/spot/#05-1-2022
                     ],
                 },
             },
@@ -847,6 +854,7 @@ module.exports = class bitget3 extends Exchange {
         };
         const minAmount = this.safeNumber2 (market, 'min_size', 'base_min_size');
         const status = this.safeString (market, 'status');
+        const publicSymbol = base + quote;
         let active = undefined;
         if (status !== undefined) {
             active = (status === '1') || (status === 'online');
@@ -855,6 +863,7 @@ module.exports = class bitget3 extends Exchange {
         return this.extend (fees, {
             'id': id,
             'symbol': symbol,
+            'publicSymbol': publicSymbol,
             'base': base,
             'quote': quote,
             'baseId': baseId,
@@ -1408,8 +1417,8 @@ module.exports = class bitget3 extends Exchange {
                 'currency': feeCurrency,
             };
         }
-        const orderId = this.safeString (trade, 'order_id');
-        const id = this.safeString2 (trade, 'trade_id', 'id');
+        const orderId = this.safeString2 (trade, 'order_id', 'orderId');
+        const id = this.safeString2 (trade, 'trade_id', 'id', 'accountId');
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
@@ -2620,6 +2629,7 @@ module.exports = class bitget3 extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const publicSymbol = this.safeString (market, 'publicSymbol');
         const type = this.safeString (params, 'type', market['type']);
         const query = this.omit (params, 'type');
         if (type === 'swap') {
@@ -2638,13 +2648,7 @@ module.exports = class bitget3 extends Exchange {
         //     size false string Query record size 100 <=100
         //
         const request = {
-            'symbol': 'BTCUSDT_SPBL',
-            'method': 'matchresults',
-            // 'types': 'buy-market,sell-market,buy-limit,sell-limit',
-            // 'start_date': this.yyyymmdd (since),
-            // 'end_date': this.yyyymmdd (this.milliseconds ()),
-            // 'size': 100,
-            // 'direct': 'next',
+            'symbol': publicSymbol + '_SPBL',
         };
         if (since !== undefined) {
             request['start_date'] = this.yyyymmdd (since);
@@ -2656,27 +2660,30 @@ module.exports = class bitget3 extends Exchange {
         }
         const response = await this.spotPostTradeHistory (this.extend (request, query));
         // {
-        //   "code": "200",
-        //   "message": "success",
-        //   "data": [
-        //     {
-        //       "accountId": "10012",
-        //       "symbol": "btcusdt_spbl",
-        //       "orderId": "2222222",
-        //       "clientOrderId": "xxxxxxx",
-        //       "price": "34982.12",
-        //       "quantity": "1",
-        //       "orderType": "limit",
-        //       "side": "buy",
-        //       "status": "new",
-        //       "fillPrice": "34982.12",
-        //       "fillQuantity": "1",
-        //       "fillTotalAmount": "34982.12",
-        //       "cTime": "1622697148"
-        //     }
-        //   ]
-        // }
-        const data = this.safeValue (response, 'data', []);
+        //     "code": "200",
+        //     "message": "success",
+        //     "data": [
+        //         {
+        //             "accountId": "10012",
+        //             "symbol": "btcusdt_spbl",
+        //             "orderId": "2222222",
+        //             "clientOrderId": "xxxxxxx",
+        //             "price": "34982.12",
+        //             "quantity": "1",
+        //             "orderType": "limit",
+        //             "side": "buy",
+        //             "status": "new",
+        //             "fillPrice": "34982.12",
+        //             "fillQuantity": "1",
+        //             "fillTotalAmount": "34982.12",
+        //             "cTime": "1622697148"
+        //         }
+        //     ]
+        // };
+        let data = response;
+        if (!Array.isArray (data)) {
+            data = this.safeValue (response, 'data', []);
+        }
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -2806,6 +2813,54 @@ module.exports = class bitget3 extends Exchange {
         //
         // todo unify parsePosition/parsePositions
         return response;
+    }
+
+    async fetchPublicProducts (params = {}) {
+        const response = await this.spotGetPublicProducts (params);
+        // {
+        //     "code": "00000",
+        //     "msg": "success",
+        //     "requestTime": 1644474500845,
+        //     "data": [
+        //         {
+        //             "symbol": "ALPHAUSDT_SPBL",
+        //             "symbolName": "ALPHAUSDT",
+        //             "baseCoin": "ALPHA",
+        //             "quoteCoin": "USDT",
+        //             "minTradeAmount": "2",
+        //             "maxTradeAmount": "0",
+        //             "takerFeeRate": "0.001",
+        //             "makerFeeRate": "0.001",
+        //             "priceScale": "4",
+        //             "quantityScale": "4",
+        //             "status": "online"
+        //         }
+        //     ]
+        // }
+        const result = {};
+        const data = this.safeValue (response, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const currency = data[i];
+            const id = this.safeString (currency, 'symbol');
+            const coinId = this.safeString (currency, 'symbol');
+            const code = this.safeString (currency, 'symbolName');
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': id,
+                'coinId': coinId,
+                'type': undefined,
+                'name': undefined,
+                'active': undefined,
+                'fee': undefined,
+                'precision': undefined,
+                'limits': {
+                    'amount': { 'min': undefined, 'max': undefined },
+                    'withdraw': { 'min': undefined, 'max': undefined },
+                },
+            };
+        }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
