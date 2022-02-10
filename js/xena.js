@@ -35,6 +35,7 @@ module.exports = class xena extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchLedger': true,
+                'fetchLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -1684,6 +1685,205 @@ module.exports = class xena extends Exchange {
         //     ]
         //
         return this.parseLedger (response, currency, since, limit);
+    }
+
+    async fetchLeverageTiers (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let symbols = undefined;
+        if (symbol) {
+            const market = this.market (symbol);
+            if (!market['contract']) {
+                throw new BadRequest (this.id + ' fetchLeverageTiers symbol supports contract markets only');
+            }
+            symbols = [ symbol ];
+        } else {
+            symbols = this.symbols;
+        }
+        const tiers = {};
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market (symbols[i]);
+            //
+            //    {
+            //        limits: {
+            //            leverage: {
+            //                min: undefined,
+            //                max: undefined
+            //            },
+            //            amount: {
+            //                min: undefined,
+            //                max: undefined
+            //            },
+            //            price: {
+            //                min: undefined,
+            //                max: undefined
+            //            },
+            //            cost: {
+            //                min: 0.0001,
+            //                max: 10
+            //            }
+            //        },
+            //        precision: {
+            //            price: 0,
+            //            amount: 0
+            //        },
+            //        tierBased: true,
+            //        percentage: true,
+            //        taker: 0.001,
+            //        maker: 0.0005,
+            //        id: 'XBTUSD',
+            //        symbol: 'BTC/USD:USDC',
+            //        base: 'BTC',
+            //        quote: 'USD',
+            //        settle: 'USDC',
+            //        baseId: 'BTC',
+            //        quoteId: 'USD',
+            //        settleId: 'USDC',
+            //        numericId: '100',
+            //        type: 'swap',
+            //        spot: false,
+            //        margin: false,
+            //        swap: true,
+            //        future: false,
+            //        option: false,
+            //        active: true,
+            //        contract: true,
+            //        linear: true,
+            //        inverse: false,
+            //        contractSize: 1,
+            //        expiry: undefined,
+            //        expiryDatetime: undefined,
+            //        strike: undefined,
+            //        optionType: undefined,
+            //        info: {
+            //            id: '100',
+            //            type: 'Margin',
+            //            marginType: 'XenaListedPerpetual',
+            //            symbol: 'XBTUSD',
+            //            baseCurrency: 'BTC',
+            //            quoteCurrency: 'USD',
+            //            settlCurrency: 'USDC',
+            //            tickSize: '0',
+            //            minOrderQuantity: '0.0001',
+            //            orderQtyStep: '0.0001',
+            //            limitOrderMaxDistance: '10',
+            //            priceInputMask: '00000.0',
+            //            enabled: true,
+            //            liquidationMaxDistance: '0.01',
+            //            contractValue: '1',
+            //            contractCurrency: 'BTC',
+            //            lotSize: '1',
+            //            maxOrderQty: '10',
+            //            maxPosVolume: '200',
+            //            mark: '.XBTUSD_Mark',
+            //            underlying: '.BTC3',
+            //            openInterest: '.XBTUSD_OpenInterest',
+            //            floatingPL: 'BidAsk',
+            //            addUvmToFreeMargin: 'ProfitAndLoss',
+            //            margin: {
+            //                netting: 'PositionsAndOrders',
+            //                rates: [
+            //                    {
+            //                        maxVolume: '10',
+            //                        initialRate: '0.05',
+            //                        maintenanceRate: '0.025'
+            //                    },
+            //                    {
+            //                        maxVolume: '20',
+            //                        initialRate: '0.1',
+            //                        maintenanceRate: '0.05'
+            //                    },
+            //                    {
+            //                        maxVolume: '30',
+            //                        initialRate: '0.2',
+            //                        maintenanceRate: '0.1'
+            //                    },
+            //                    {
+            //                        maxVolume: '40',
+            //                        initialRate: '0.3',
+            //                        maintenanceRate: '0.15'
+            //                    },
+            //                    {
+            //                        maxVolume: '60',
+            //                        initialRate: '0.4',
+            //                        maintenanceRate: '0.2'
+            //                    },
+            //                    {
+            //                        maxVolume: '150',
+            //                        initialRate: '0.5',
+            //                        maintenanceRate: '0.25'
+            //                    },
+            //                    {
+            //                        maxVolume: '200',
+            //                        initialRate: '1',
+            //                        maintenanceRate: '0.5'
+            //                    }
+            //                ],
+            //                rateMultipliers: {
+            //                    LimitBuy: '1',
+            //                    LimitSell: '1',
+            //                    Long: '1',
+            //                    MarketBuy: '1',
+            //                    MarketSell: '1',
+            //                    Short: '1',
+            //                    StopBuy: '0',
+            //                    StopSell: '0'
+            //                }
+            //            },
+            //            clearing: {
+            //                enabled: true,
+            //                index: '.XBTUSD_Mark'
+            //            },
+            //            premium: {
+            //                enabled: true,
+            //                index: '.XBTUSD_Premium_Rate_TWAP'
+            //            },
+            //            riskAdjustment: {
+            //                enabled: true,
+            //                index: '.RiskAdjustment_IR'
+            //            },
+            //            priceRange: {
+            //                enabled: true,
+            //                distance: '0.1',
+            //                movingBoundary: '0',
+            //                lowIndex: '.XBTUSD_LOWRANGE',
+            //                highIndex: '.XBTUSD_HIGHRANGE'
+            //            },
+            //            priceLimits: {
+            //                enabled: true,
+            //                distance: '0.1',
+            //                movingBoundary: '0',
+            //                lowIndex: '.XBTUSD_LOWLIMIT',
+            //                highIndex: '.XBTUSD_HIGHLIMIT'
+            //            },
+            //            tradingStartDate: '0001-01-01 00:00:00'
+            //        }
+            //    }
+            //
+            if (market['contract']) {
+                const margin = this.safeValue (market['info'], 'margin');
+                const rates = this.safeValue (margin, 'rates');
+                let floor = 0;
+                if (rates) {
+                    const brackets = [];
+                    for (let j = 0; j < rates.length; j++) {
+                        const bracket = rates[j];
+                        const cap = this.safeNumber (bracket, 'maxVolume');
+                        const initialRate = this.safeString (bracket, 'initialRate');
+                        brackets.push ({
+                            'tier': j,
+                            'notionalFloor': floor,
+                            'notionalCap': cap,
+                            'maintenanceMarginRatio': this.safeNumber (bracket, 'maintenanceRate'),
+                            'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialRate)),
+                            'info': bracket,
+                        });
+                        floor = cap;
+                    }
+                    tiers[market['symbol']] = brackets;
+                }
+            }
+        }
+        return tiers;
     }
 
     nonce () {
