@@ -577,6 +577,43 @@ module.exports = class redot extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const orderId = parseInt (id);
+        const request = {
+            'id': orderId,
+        };
+        if (symbol !== undefined) {
+            request['instrumentId'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default max 200
+        }
+        const response = await this.privateGetGetTradesByOrder (this.extend (request, params));
+        // {
+        //     "result": [
+        //       {
+        //         "id": 1,
+        //         "instrumentId": "ETH-BTC",
+        //         "price": 0.02595400,
+        //         "qty": 0.02000123,
+        //         "orderId": 234,
+        //         "userSide": "sell",
+        //         "fee": 0.00000001,
+        //         "feeAsset": "BTC",
+        //         "timestamp": 1594800486782215
+        //       },
+        //       ...
+        //     ]
+        // }
+        const result = this.safeValue (response, 'result', []);
+        return this.parseTrades (result, market, since, limit);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + path;
         if (method === 'GET') {
