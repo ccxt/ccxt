@@ -378,6 +378,7 @@ module.exports = class bitmex extends Exchange {
                 'taker': this.safeNumber (market, 'takerFee'),
                 'maker': this.safeNumber (market, 'makerFee'),
                 'contractSize': this.safeNumber (market, 'multiplier'),
+                'maintenanceMarginRate': this.safeNumber (market, 'maintMargin'),
                 'expiry': expiry,
                 'expiryDatetime': expiryDatetime,
                 'strike': this.safeNumber (market, 'optionStrikePrice'),
