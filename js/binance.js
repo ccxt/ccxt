@@ -4813,12 +4813,14 @@ module.exports = class binance extends Exchange {
             const entry = response[i];
             const marketId = this.safeString (entry, 'symbol');
             const symbol = this.safeSymbol (marketId);
+            const market = this.market (symbol);
             const brackets = this.safeValue (entry, 'brackets');
             const result = [];
             for (let j = 0; j < brackets.length; j++) {
                 const bracket = brackets[j];
                 result.push ({
                     'tier': this.safeNumber (bracket, 'bracket'),
+                    'notionalCurrency': market['base'],
                     'notionalFloor': this.safeFloat2 (bracket, 'notionalFloor', 'qtyFloor'),
                     'notionalCap': this.safeNumber (bracket, 'notionalCap'),
                     'maintenanceMarginRate': this.safeNumber (bracket, 'maintMarginRatio'),

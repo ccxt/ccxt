@@ -5411,6 +5411,7 @@ module.exports = class huobi extends Exchange {
                     const adjustFactor = this.safeString (bracket, 'adjust_factor');
                     brackets.push ({
                         'tier': this.safeInteger (bracket, 'ladder'),
+                        'notionalCurrency': market['base'],
                         'notionalFloor': this.safeNumber (bracket, 'min_size'),
                         'notionalCap': this.safeNumber (bracket, 'max_size'),
                         'maintenanceMarginRate': this.parseNumber (Precise.stringDiv (adjustFactor, leverage)),
