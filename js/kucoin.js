@@ -166,7 +166,7 @@ module.exports = class kucoin extends Exchange {
                         'accounts/sub-transfer': { 'v2': 25 }, // bad docs
                         'deposit-addresses': 1,
                         'withdrawals': 1,
-                        'orders': 1.3334, // 45/3s = 15/s => cost = 20 / 15 = 1.333333
+                        'orders': 4, // 45/3s = 15/s => cost = 20 / 15 = 1.333333
                         'orders/multi': 20, // 3/3s = 1/s => cost = 20 / 1 = 20
                         'margin/borrow': 1,
                         'margin/order': 1,
@@ -188,7 +188,8 @@ module.exports = class kucoin extends Exchange {
                         'stop-order/cancel': 1,
                     },
                 },
-                'futuresPublic': { // cheapest futures 'limited' endpoint is 40  requests per 3 seconds = 14.333 per second => cost = 20/14.333 = 1.3953
+                'futuresPublic': {
+                    // cheapest futures 'limited' endpoint is 40  requests per 3 seconds = 14.333 per second => cost = 20/14.333 = 1.3953
                     'get': {
                         'contracts/active': 1.3953,
                         'contracts/{symbol}': 1.3953,
