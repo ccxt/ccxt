@@ -3189,9 +3189,10 @@ module.exports = class bybit extends Exchange {
             }
             tiers[symbol].push ({
                 'tier': tier,
+                'notionalCurrency': market['base'],
                 'notionalFloor': notionalFloor,
                 'notionalCap': notionalCap,
-                'maintenanceMarginRatio': this.safeNumber (item, 'maintain_margin'),
+                'maintenanceMarginRate': this.safeNumber (item, 'maintain_margin'),
                 'maxLeverage': this.safeNumber (item, 'max_leverage'),
                 'info': item,
             });
