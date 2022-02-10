@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeNotAvailable, AuthenticationError, BadSymbol, ExchangeError, InvalidOrder, InsufficientFunds } = require ('./base/errors');
+const { ArgumentsRequired, BadRequest, ExchangeNotAvailable, AuthenticationError, BadSymbol, ExchangeError, InvalidOrder, InsufficientFunds } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 // const Precise = require ('./base/Precise');
 
@@ -164,6 +164,14 @@ module.exports = class dydx extends Exchange {
                     '400': ExchangeError,
                 },
                 'broad': {
+                    'must be a valid string that is less than length:': BadRequest,
+                    'Cannot read property ': BadRequest,
+                    'signature must be a string': AuthenticationError,
+                    'must be a boolean': BadRequest,
+                    'Invalid number': BadRequest,
+                    'expiration must be an ISO8601 string': BadRequest,
+                    'Invalid signature for order': InvalidOrder,
+                    // old
                     'See /corsdemo for more info': AuthenticationError,
                     'Invalid signature for onboarding request': AuthenticationError,
                     'Invalid signature for ApiKey request': AuthenticationError,
@@ -185,6 +193,11 @@ module.exports = class dydx extends Exchange {
                 'password': true,
                 // 'starkKeyYCoordinate': true, // STARK Key Authentication
                 // 'starkKey': true, // STARK Key Authentication
+            },
+            'options': {
+                'mainCurrency': 'USDC',
+                'limitFee': 0.01, // 1% // TODO: this needs to be defined automatically, from either /users or /config endpoints, however we don't implement them
+                'gtcDate': '2099-12-31T23:59:59.999Z',
             },
         });
     }
@@ -265,7 +278,7 @@ module.exports = class dydx extends Exchange {
         const result = [];
         const markets = this.safeValue (marketsResponse, 'markets');
         const keys = Object.keys (markets);
-        const settleId = 'USDC'; // https://docs.dydx.exchange/#margin
+        const settleId = this.options['mainCurrency']; // https://docs.dydx.exchange/#margin
         for (let i = 0; i < keys.length; i++) {
             const marketKey = keys[i];
             const market = markets[marketKey];
@@ -406,8 +419,7 @@ module.exports = class dydx extends Exchange {
         let id = undefined;
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'size');
-        const dateString = this.safeString (trade, 'createdAt');
-        const timestamp = this.parseDate (dateString);
+        const timestamp = this.parseDate (this.safeString (trade, 'createdAt'));
         const symbol = this.safeSymbol (undefined, market, '-');
         const sideString = this.safeString (trade, 'side');
         const side = (sideString === 'BUY') ? 'buy' : 'sell';
@@ -577,22 +589,93 @@ module.exports = class dydx extends Exchange {
         }, market, false);
     }
 
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetAccounts (params);
+        // {
+        //     accounts: [
+        //       {
+        //         starkKey: "02d484e0f494ae46b8342f25a11bcd94848d09c1b619e4a6ddcaef604535aee1",
+        //         positionId: "164655",
+        //         equity: "28.546065",
+        //         freeCollateral: "28.546065",
+        //         pendingDeposits: "0.000000",
+        //         pendingWithdrawals: "0.000000",
+        //         openPositions: {
+        //         },
+        //         accountNumber: "0",
+        //         id: "f1d419ed-dc09-529e-81ae-fdced89a398c",
+        //         quoteBalance: "28.546065",
+        //         createdAt: "2022-01-25T13:03:17.370Z",
+        //       },
+        //     ],
+        // }
+        const accounts = this.safeValue (response, 'accounts');
+        const firstAcc = this.safeValue (accounts, 0);
+        const timestamp = this.parse8601 (this.safeString (firstAcc, 'createdAt'));
+        const result = {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        const code = this.options['mainCurrency'];
+        for (let i = 0; i < accounts.length; i++) {
+            const currentAcc = accounts[i];
+            const account = this.account ();
+            account['free'] = this.safeString (currentAcc, 'freeCollateral');
+            account['used'] = this.safeString (currentAcc, 'unavailable');
+            account['total'] = this.safeString (currentAcc, 'equity');
+            result[code] = account;
+        }
+        result['info'] = response;
+        return this.safeBalance (result);
+    }
+
     async fetchPosition (symbol, params = {}) {
         await this.loadMarkets ();
         const request = {};
         const market = this.market (symbol);
         request['market'] = market['id'];
-        const response = await this.privateGetPositions (this.extend (request, params));
-        // TO_DO
-        return this.parsePosition (response, market);
+        request['status'] = this.parsePositionStatus ('open', true);
+        const response = await this.fetchPositions (undefined, this.extend (request, params));
+        return this.safeValue (response, 0);
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetPositions (params);
-        // TO_DO
-        const data = this.safeValue (response, 'data');
+        // {
+        //     positions: [
+        //       {
+        //         market: "ETH-USD",
+        //         status: "OPEN",
+        //         side: "SHORT",
+        //         size: "-0.144",
+        //         maxSize: "-0.144",
+        //         entryPrice: "3243.100000",
+        //         exitPrice: "0.000000",
+        //         unrealizedPnl: "0.079920",
+        //         realizedPnl: "0.000000",
+        //         createdAt: "2022-02-10T12:25:51.956Z",
+        //         closedAt: null,
+        //         sumOpen: "0.144",
+        //         sumClose: "0",
+        //         netFunding: "0",
+        //       },
+        //     ],
+        //   }
+        const data = this.safeValue (response, 'positions');
         return this.parsePositions (data);
+    }
+
+    parsePositionStatus (status, reversed = false) {
+        let statuses = {
+            'OPEN': 'open',
+            'CLOSED': 'closed',
+        };
+        if (reversed) {
+            statuses = this.changeKeyValue (statuses);
+        }
+        return this.safeString (statuses, status, status);
     }
 
     parsePositions (positions) {
@@ -604,7 +687,39 @@ module.exports = class dydx extends Exchange {
     }
 
     parsePosition (position, market = undefined) {
-        return {}; // TO_DO
+        const rawSide = this.safeString (position, 'side');
+        const side = (rawSide === 'LONG ') ? 'long' : 'short';
+        const size = this.safeNumber (position, 'size');
+        const marketId = this.safeString (position, 'market');
+        market = this.safeMarket (marketId, market);
+        const status = this.safeString (position, 'status') === 'OPEN' ? 'open' : 'closed';
+        const timestamp = this.parse8601 (this.safeString (position, 'createdAt'));
+        return {
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'entryPrice': this.safeNumber (position, 'entryPrice'),
+            'exitPrice': this.safeNumber (position, 'exitPrice'),
+            'status': status,
+            'notional': undefined,
+            'leverage': undefined,
+            'unrealizedPnl': this.safeNumber (position, 'unrealizedPnl'),
+            'contracts': size,
+            'contractSize': undefined,
+            'realisedPnl': this.safeNumber (position, 'realizedPnl'),
+            'marginRatio': undefined,
+            'liquidationPrice': undefined,
+            'markPrice': undefined,
+            'collateral': this.options['mainCurrency'],
+            'marginType': undefined,
+            'side': side,
+            'percentage': undefined,
+            'info': position,
+        };
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -618,41 +733,49 @@ module.exports = class dydx extends Exchange {
             request['limit'] = limit; // Math.min (limit, 100);
         }
         const response = await this.privateGetTransfers (this.extend (request, params));
-        // [
-        //     {
+        // {
+        //    transfers : [
+        //      {
         //       id: "2214697e-3d51-54d3-b89d-baa0029e0330",
         //       type: "DEPOSIT",
         //       debitAsset: "USDT",
         //       creditAsset: "USDC",
         //       debitAmount: "27.272748",
         //       creditAmount: "28.546065",
-        //       transactionHash: "0xf9c64fa258b9eb4a1502474a367b63b1ba7648b5650b7f4bfa86d6b1048be71f",
+        //       transactionHash: "0xf9c11fa258b4eb4a9109444a367b23b1ba1882b5650c1f4bfa86d6b1048ae99d",
         //       status: "CONFIRMED",
         //       createdAt: "2022-02-10T07:39:09.892Z",
         //       confirmedAt: "2022-02-10T07:39:09.924Z",
         //       clientId: null,
         //       fromAddress: null,
         //       toAddress: null,
-        //     },
-        // ]
+        //      },
+        //   ]
+        // }
         const data = this.safeValue (response, 'transfers');
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    parseTransactionStatus (status) {
-        const statuses = {
+    parseTransactionStatus (status, reversed = false) {
+        let statuses = {
             'PENDING': 'pending',
             'CONFIRMED': 'ok',
         };
+        if (reversed) {
+            statuses = this.changeKeyValue (statuses);
+        }
         return this.safeString (statuses, status, status);
     }
 
-    parseTransactionType (status) {
-        const statuses = {
+    parseTransactionType (status, reversed = false) {
+        let statuses = {
             'DEPOSIT': 'deposit',
             'WITHDRAWAL': 'withdraw',
             'FAST_WITHDRAWAL': 'withdraw',
         };
+        if (reversed) {
+            statuses = this.changeKeyValue (statuses);
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -686,15 +809,157 @@ module.exports = class dydx extends Exchange {
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
-            'side': side.toUpperCase (),
-            'type': type.toUpperCase (), // MARKET, LIMIT, STOP_LIMIT, TRAILING_STOP or TAKE_PROFIT.
+            'side': this.parseOrderSide (side, true),
+            'type': this.parseOrderType (type, true),
             'size': this.amountToPrecision (market['symbol'], amount),
+            // 'signature': 'edfwefweawds
         };
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (market['symbol'], price);
         }
-        const response = await this.privatePostOrders (request);
+        // [Required] limitFee
+        request['limitFee'] = this.safeString (params, 'limitFee', this.options['limitFee']);
+        // [Required] timeInForce & expiration
+        const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
+        if (timeInForce === 'GTC') {
+            request['expiration'] = this.options['gtcDate']; // simulate GTC, because only GTT supported, so set it as unrealistic future
+        }
+        // [Required] postOnly
+        const postOnly = this.safeString (params, 'postOnly');
+        if (postOnly === undefined) {
+            request['postOnly'] = false;  // default to false
+        }
+        // [Required] clientId
+        const clientOrderId = this.safeString2 (params, 'clientId', 'clientOrderId');
+        request['clientId'] = (clientOrderId !== undefined) ? clientOrderId : this.nonce ().toString ();
+        params = this.omit (params, [ 'clientOrderId' ]);
+        const response = await this.privatePostOrders (this.extend (request, params));
+        // TODO
         return this.parseOrder (response, market);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'orderId': id,
+            'id': id, // this is needed for path
+        };
+        const response = await this.privateDeleteOrdersId (this.extend (request, params));
+        // {
+        //     cancelOrder: {
+        //       id: "74d1338670a8644055a8432c22829205a96e611c9c4dbee423e932243319e44",
+        //       clientId: "6963517527009325",
+        //       accountId: "f1e443fa-dc14-547f-23ec-fdefa33a471c",
+        //       market: "ETH-USD",
+        //       side: "BUY",
+        //       price: "19",
+        //       triggerPrice: null,
+        //       trailingPercent: null,
+        //       size: "0.1",
+        //       remainingSize: "0.1",
+        //       type: "LIMIT",
+        //       createdAt: "2022-02-10T18:10:50.740Z",
+        //       unfillableAt: null,
+        //       expiresAt: "2022-03-10T18:10:52.275Z",
+        //       status: "OPEN",
+        //       timeInForce: "GTT",
+        //       postOnly: false,
+        //       cancelReason: null,
+        //     },
+        // }
+        const order = this.safeValue (response, 'cancelOrder');
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        } else {
+            const marketId = this.safeString (order, 'market');
+            market = this.safeMarket (marketId, market);
+        }
+        return this.parseOrder (order, market);
+    }
+
+    parseOrder (order, market = undefined) {
+        const marketId = this.safeString (order, 'market');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.parseDate (this.safeString (order, 'createdAt'));
+        const expiresAt = this.safeString (order, 'expiresAt');
+        let timeInForce = this.safeString (order, 'timeInForce');
+        // simulate GTC like we did in order
+        if (expiresAt === this.options['gtcDate'] && timeInForce === 'GTT') {
+            timeInForce = 'GTC';
+        }
+        return this.safeOrder ({
+            'id': this.safeString (order, 'id'),
+            'clientOrderId': this.safeString (order, 'clientId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': market['symbol'],
+            'type': this.parseOrderType (this.safeString (order, 'type')),
+            'timeInForce': timeInForce,
+            'postOnly': this.safeValue (order, 'postOnly'),
+            'side': this.parseOrderSide (this.safeString (order, 'side')),
+            'price': this.parseNumber (order, 'price'),
+            'stopPrice': this.parseNumber (order, 'triggerPrice'),
+            'amount': this.parseNumber (order, 'size'),
+            'cost': undefined,
+            'average': undefined,
+            'filled': undefined,
+            'remaining': this.parseNumber (order, 'remainingSize'),
+            'status': this.parseOrderStatus (this.safeString (order, 'status')),
+            'fee': undefined,
+            'trades': undefined,
+            'info': order,
+        }, market);
+    }
+
+    parseOrderStatus (status, reversed = false) {
+        let statuses = {
+            'PENDING': 'open',
+            'OPEN': 'open',
+            'UNTRIGGERED': 'open',
+            'FILLED': 'closed',
+            'CANCELED': 'canceled',
+        };
+        if (reversed) {
+            statuses = this.changeKeyValue (statuses);
+        }
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderType (status, reversed = false) {
+        let statuses = {
+            'MARKET': 'market',
+            'LIMIT': 'limit',
+            'STOP_LIMIT': 'stop-limit',
+            'TRAILING_STOP': 'trailing-stop-loss',
+            'TAKE_PROFIT': 'take-profit',
+        };
+        if (reversed) {
+            statuses = this.changeKeyValue (statuses);
+        }
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTimeInForce (timeInForce) {
+        const timeInForces = {
+            //
+        };
+        //if (reversed) {
+        //    statuses = this.changeKeyValue (statuses);
+        //}
+        return this.safeString (timeInForces, timeInForce, timeInForce);
+    }
+
+    parseOrderSide (status, reversed = false) {
+        let statuses = {
+            'BUY': 'buy',
+            'SELL': 'sell',
+        };
+        if (reversed) {
+            statuses = this.changeKeyValue (statuses);
+        }
+        return this.safeString (statuses, status, status);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -721,6 +986,7 @@ module.exports = class dydx extends Exchange {
 
     sign (path, api = 'private', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.version + '/' + this.implodeParams (path, params);
+        params = this.omit (params, this.extractParams (path));
         if (method === 'GET') {
             if (Object.keys (params).length) {
                 request += '?' + this.urlencode (params);
@@ -757,10 +1023,34 @@ module.exports = class dydx extends Exchange {
             }
             return; // fallback to default error handler
         }
-        const errorCode = this.safeString (response, 'code');
-        const message = this.safeString (response, 'error', '');
-        this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-        this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+        const errors = this.safeString (response, 'errors', []);
+        if (errors !== undefined) {
+            // {
+            //     "errors": [
+            //         {
+            //             "msg": "clientId must be a valid string that is less than length: 40",
+            //             "param": "clientId",
+            //             "location": "body"
+            //         },
+            //         ..
+            //     ]
+            // }
+            for (let i = 0; i < errors.length; i++) {
+                const message = this.safeString (response, 'msg');
+                this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+            }
+        }
+    }
+
+    changeKeyValue (obj) { // TODO: this method might live in base. this is being used for reverse-parsing or associated key-values
+        const result = {};
+        const keys = Object.keys (obj);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const value = obj[key];
+            result[value] = key;
+        }
+        return result;
     }
 };
