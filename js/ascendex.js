@@ -2283,18 +2283,124 @@ module.exports = class ascendex extends Exchange {
         const tiers = {};
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
+            //
+            //    {
+            //        limits: {
+            //          leverage: { min: undefined, max: undefined },
+            //          amount: { min: 0.0001, max: 1000000000 },
+            //          price: { min: 1, max: 1000000 },
+            //          cost: { min: 0, max: 1000000 }
+            //        },
+            //        precision: { price: 1, amount: 0.0001 },
+            //        tierBased: true,
+            //        percentage: true,
+            //        taker: 0.001,
+            //        maker: 0.001,
+            //        feeSide: 'get',
+            //        id: 'BTC-PERP',
+            //        symbol: 'BTC/USDT:USDT',
+            //        base: 'BTC',
+            //        quote: 'USDT',
+            //        settle: 'USDT',
+            //        baseId: 'BTC',
+            //        quoteId: 'USDT',
+            //        settleId: 'USDT',
+            //        type: 'swap',
+            //        spot: false,
+            //        margin: undefined,
+            //        swap: true,
+            //        future: false,
+            //        option: false,
+            //        active: true,
+            //        contract: true,
+            //        linear: true,
+            //        inverse: false,
+            //        contractSize: 1,
+            //        expiry: undefined,
+            //        expiryDatetime: undefined,
+            //        strike: undefined,
+            //        optionType: undefined,
+            //        info: {
+            //            symbol: 'BTC-PERP',
+            //            displayName: 'BTCUSDT',
+            //            baseAsset: 'BTCUSDT',
+            //            quoteAsset: 'USDT',
+            //            status: 'Normal',
+            //            minNotional: '0',
+            //            maxNotional: '1000000',
+            //            marginTradable: false,
+            //            commissionType: 'Quote',
+            //            commissionReserveRate: '0.001',
+            //            tickSize: '1',
+            //            lotSize: '0.0001',
+            //            settlementAsset: 'USDT',
+            //            underlying: 'BTC/USDT',
+            //            tradingStartTime: '1579701600000',
+            //            priceFilter: {
+            //                minPrice: '1',
+            //                maxPrice: '1000000',
+            //                tickSize: '1'
+            //            },
+            //            lotSizeFilter: {
+            //                minQty: '0.0001',
+            //                maxQty: '1000000000',
+            //                lotSize: '0.0001'
+            //            },
+            //            marketOrderPriceMarkup: '0.03',
+            //            marginRequirements: [
+            //                {
+            //                    positionNotionalLowerBound: '0',
+            //                    positionNotionalUpperBound: '50000',
+            //                    initialMarginRate: '0.01',
+            //                    maintenanceMarginRate: '0.006'
+            //                },
+            //                {
+            //                    positionNotionalLowerBound: '50000',
+            //                    positionNotionalUpperBound: '200000',
+            //                    initialMarginRate: '0.02',
+            //                    maintenanceMarginRate: '0.012'
+            //                },
+            //                {
+            //                    positionNotionalLowerBound: '200000',
+            //                    positionNotionalUpperBound: '2000000',
+            //                    initialMarginRate: '0.04',
+            //                    maintenanceMarginRate: '0.024'
+            //                },
+            //                {
+            //                    positionNotionalLowerBound: '2000000',
+            //                    positionNotionalUpperBound: '20000000',
+            //                    initialMarginRate: '0.1',
+            //                    maintenanceMarginRate: '0.06'
+            //                },
+            //                {
+            //                    positionNotionalLowerBound: '20000000',
+            //                    positionNotionalUpperBound: '40000000',
+            //                    initialMarginRate: '0.2',
+            //                    maintenanceMarginRate: '0.12'
+            //                },
+            //                {
+            //                    positionNotionalLowerBound: '40000000',
+            //                    positionNotionalUpperBound: '1000000000',
+            //                    initialMarginRate: '0.333333',
+            //                    maintenanceMarginRate: '0.2'
+            //                }
+            //            ]
+            //        }
+            //    }
+            //
             if (market['contract']) {
                 const marginRequirements = this.safeValue (market['info'], 'marginRequirements');
                 if (marginRequirements) {
                     const brackets = [];
                     for (let j = 0; j < marginRequirements.length; j++) {
                         const bracket = marginRequirements[j];
+                        const initialMarginRate = this.safeString (bracket, 'initialMarginRate');
                         brackets.push ({
                             'tier': j,
                             'notionalFloor': this.safeNumber (bracket, 'positionNotionalLowerBound'),
                             'notionalCap': this.safeNumber (bracket, 'positionNotionalUpperBound'),
                             'maintenanceMarginRatio': this.safeNumber (bracket, 'maintenanceMarginRate'),
-                            'maxLeverage': undefined,
+                            'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRate)),
                             'info': bracket,
                         });
                     }
