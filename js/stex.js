@@ -429,6 +429,7 @@ module.exports = class stex extends Exchange {
                 'taker': fee,
                 'maker': fee,
                 'contractSize': undefined,
+                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,

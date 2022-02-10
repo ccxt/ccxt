@@ -187,6 +187,7 @@ module.exports = class luno extends Exchange {
                 'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
+                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,

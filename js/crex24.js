@@ -351,6 +351,7 @@ module.exports = class crex24 extends Exchange {
                 'taker': taker,
                 'maker': maker,
                 'contractSize': undefined,
+                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,

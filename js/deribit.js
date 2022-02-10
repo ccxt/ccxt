@@ -524,6 +524,7 @@ module.exports = class deribit extends Exchange {
                     'taker': this.safeNumber (market, 'taker_commission'),
                     'maker': this.safeNumber (market, 'maker_commission'),
                     'contractSize': this.safeNumber (market, 'contract_size'),
+                    'maintenanceMarginRate': undefined,
                     'expiry': expiry,
                     'expiryDatetime': this.iso8601 (expiry),
                     'strike': strike,

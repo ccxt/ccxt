@@ -198,6 +198,7 @@ module.exports = class therock extends Exchange {
                     'taker': taker,
                     'maker': taker,
                     'contractSize': undefined,
+                    'maintenanceMarginRate': undefined,
                     'active': true,
                     'expiry': undefined,
                     'expiryDatetime': undefined,
