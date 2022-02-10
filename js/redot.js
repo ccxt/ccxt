@@ -71,6 +71,9 @@ module.exports = class redot extends Exchange {
                         'get-candles': 1,
                         'get-stats': 1,
                     },
+                    'post': {
+                        'get-token': 1,
+                    },
                 },
                 'private': {
                     'get': {
@@ -91,6 +94,7 @@ module.exports = class redot extends Exchange {
                         'edit-order': 1,
                         'cancel-order': 1,
                         'cancel-all-orders': 1,
+                        'revoke-token': 1,
                     },
                 },
             },
@@ -419,14 +423,121 @@ module.exports = class redot extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        const request = {
+            'orderId': parseInt (id),
+        };
+        const response = await this.privatePostCancelOrder (this.extend (request, params));
+        // {
+        //     "result": {
+        //       "id": 234,
+        //       "instrumentId": "ETH-BTC",
+        //       "status": "cancelled",
+        //       "type": "limit",
+        //       "side": "sell",
+        //       "qty": 0.02000123,
+        //       "cumQty": 0.01595400,
+        //       "price": 0.02595400,
+        //       "timestamp": 1594800486782215
+        //     }
+        //   }
+        return response;
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        const response = await this.privatePostOrdersCancel (params);
+        //
+        // {
+        //     "result": [
+        //       234,
+        //       456
+        //     ]
+        // }
+        //
+        return response;
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = { };
+        if (symbol !== undefined) {
+            request['instrumentId'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default max 200
+        }
+        const response = await this.privateGetGetOpenOrders (this.extend (request, params));
+        //
+        // {
+        //     "result": {
+        //       "data": [
+        //         {
+        //           "id": 234,
+        //           "instrumentId": "ETH-BTC",
+        //           "status": "open",
+        //           "type": "limit",
+        //           "side": "sell",
+        //           "qty": 0.02000123,
+        //           "cumQty": 0.01595400,
+        //           "price": 0.02595400,
+        //           "timestamp": 1594800486782215
+        //         },
+        //         ...
+        //       ],
+        //       "next": true
+        //     }
+        //   }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const data = this.safeValue (result, 'data');
+        return this.parseOrders (data, market, since, limit);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + path;
-        if (api === 'public') {
+        if (method === 'GET') {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
         }
+        if (method === 'POST') {
+            headers = {
+                'Content-Type': 'application/json',
+            };
+            body = this.json (params);
+        }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    async signIn (params = {}) {
+        this.checkRequiredCredentials ();
+        const week = 86400000000 * 7; // microseconds
+        const timestamp = this.sum (this.microseconds (), week); // a week from now
+        // const timestamp = this.microseconds ();
+        const payload = timestamp + '.' + this.apiKey;
+        const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256');
+        const request = {
+            'grantType': 'signature', // the only supported value
+            'apiKey': this.apiKey,
+            'timestamp': timestamp,
+            'signature': signature,
+        };
+        const response = await this.publicPostGetToken (this.extend (request, params));
+        //
+        //     {
+        //         access_token: '0ttDv/2hTTn3bLi8GP1gKaneiEQ6+0hOBenPrxNQt2s=',
+        //         token_type: 'bearer',
+        //         expires_in: 900
+        //     }
+        //
+        // const accessToken = this.safeString (response, 'accessToken');
+        // this.options['accessToken'] = accessToken;
+        // this.options['expires'] = timestamp;
+        return response;
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
