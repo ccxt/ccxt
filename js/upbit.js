@@ -382,22 +382,14 @@ module.exports = class upbit extends Exchange {
     async fetchMarkets (params = {}) {
         const response = await this.publicGetMarketAll (params);
         //
-        //     [ {       market: "KRW-BTC",
-        //          korean_name: "비트코인",
-        //         english_name: "Bitcoin"  },
-        //       {       market: "KRW-DASH",
-        //          korean_name: "대시",
-        //         english_name: "Dash"      },
-        //       {       market: "KRW-ETH",
-        //          korean_name: "이더리움",
-        //         english_name: "Ethereum" },
-        //       {       market: "BTC-ETH",
-        //          korean_name: "이더리움",
-        //         english_name: "Ethereum" },
-        //       ...,
-        //       {       market: "BTC-BSV",
-        //          korean_name: "비트코인에스브이",
-        //         english_name: "Bitcoin SV" } ]
+        //    [
+        //        {
+        //            market: "KRW-BTC",
+        //            korean_name: "비트코인",
+        //            english_name: "Bitcoin"
+        //        },
+        //        ...,
+        //    ]
         //
         const result = [];
         for (let i = 0; i < response.length; i++) {
@@ -428,6 +420,7 @@ module.exports = class upbit extends Exchange {
                 'taker': this.safeNumber (this.options['tradingFeesByQuoteCurrency'], quote, this.fees['trading']['taker']),
                 'maker': this.safeNumber (this.options['tradingFeesByQuoteCurrency'], quote, this.fees['trading']['maker']),
                 'contractSize': undefined,
+                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
