@@ -1757,12 +1757,42 @@ class huobi extends Exchange {
         //         "id" => "131560927-770334322963152896-1"
         //     }
         //
-        $marketId = $this->safe_string($trade, 'symbol');
+        // inverse swap cross margin fetchMyTrades
+        //
+        //     {
+        //         "contract_type":"swap",
+        //         "pair":"O3-USDT",
+        //         "business_type":"swap",
+        //         "query_id":652123190,
+        //         "match_id":28306009409,
+        //         "order_id":941137865226903553,
+        //         "symbol":"O3",
+        //         "contract_code":"O3-USDT",
+        //         "direction":"sell",
+        //         "offset":"open",
+        //         "trade_volume":100.000000000000000000,
+        //         "trade_price":0.398500000000000000,
+        //         "trade_turnover":39.850000000000000000,
+        //         "trade_fee":-0.007970000000000000,
+        //         "offset_profitloss":0E-18,
+        //         "create_date":1644426352999,
+        //         "role":"Maker",
+        //         "order_source":"api",
+        //         "order_id_str":"941137865226903553",
+        //         "id":"28306009409-941137865226903553-1",
+        //         "fee_asset":"USDT",
+        //         "margin_mode":"cross",
+        //         "margin_account":"USDT",
+        //         "real_profit":0E-18,
+        //         "trade_partition":"USDT"
+        //     }
+        //
+        $marketId = $this->safe_string_2($trade, 'contract_code', 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer_2($trade, 'ts', 'created-at');
-        $timestamp = $this->safe_integer($trade, 'created_at', $timestamp);
-        $order = $this->safe_string($trade, 'order-id');
+        $timestamp = $this->safe_integer_2($trade, 'created_at', 'create_date', $timestamp);
+        $order = $this->safe_string_2($trade, 'order-id', 'order_id');
         $side = $this->safe_string($trade, 'direction');
         $type = $this->safe_string($trade, 'type');
         if ($type !== null) {
@@ -1770,7 +1800,7 @@ class huobi extends Exchange {
             $side = $typeParts[0];
             $type = $typeParts[1];
         }
-        $takerOrMaker = $this->safe_string($trade, 'role');
+        $takerOrMaker = $this->safe_string_lower($trade, 'role');
         $priceString = $this->safe_string_2($trade, 'price', 'trade_price');
         $amountString = $this->safe_string_2($trade, 'filled-amount', 'amount');
         $amountString = $this->safe_string($trade, 'trade_volume', $amountString);
@@ -1937,8 +1967,8 @@ class huobi extends Exchange {
         //                     "match_id" => 113891764710,
         //                     "order_id" => 773135295142658048,
         //                     "symbol" => "ADA",
-        //                     "contract_type" => "quarter", // futures only
-        //                     "business_type" => "futures", // usdt-m linear swaps only
+        //                     "contract_type" => "quarter", // swap
+        //                     "business_type" => "futures", // swap
         //                     "contract_code" => "ADA201225",
         //                     "direction" => "buy",
         //                     "offset" => "open",
@@ -1952,10 +1982,11 @@ class huobi extends Exchange {
         //                     "order_source" => "web",
         //                     "order_id_str" => "773135295142658048",
         //                     "fee_asset" => "ADA",
-        //                     "margin_mode" => "isolated", // usdt-m linear swaps only
-        //                     "margin_account" => "BTC-USDT", // usdt-m linear swaps only
+        //                     "margin_mode" => "isolated", // cross
+        //                     "margin_account" => "BTC-USDT",
         //                     "real_profit" => 0,
-        //                     "id" => "113891764710-773135295142658048-1"
+        //                     "id" => "113891764710-773135295142658048-1",
+        //                     "trade_partition":"USDT",
         //                 }
         //             ),
         //             "remain_size" => 15,
