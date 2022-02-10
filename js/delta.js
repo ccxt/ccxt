@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, ArgumentsRequired, OrderNotFound, ExchangeNotAvailable } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -425,6 +426,7 @@ module.exports = class delta extends Exchange {
                 symbol = id;
             }
             const state = this.safeString (market, 'state');
+            const maintenanceMarginPercentage = this.safeString (market, 'maintenance_margin');
             result.push ({
                 'id': id,
                 'numericId': numericId,
@@ -448,6 +450,7 @@ module.exports = class delta extends Exchange {
                 'taker': this.safeNumber (market, 'taker_commission_rate'),
                 'maker': this.safeNumber (market, 'maker_commission_rate'),
                 'contractSize': contractSize,
+                'maintenanceMarginRate': this.parseNumber (Precise.stringDiv (maintenanceMarginPercentage, '100')),
                 'expiry': expiry,
                 'expiryDatetime': expiryDatetime,
                 'strike': this.parseNumber (strike),
