@@ -191,6 +191,8 @@ module.exports = class luno extends Exchange {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
+                'maker': 0,
+                'taker': 0.1 / 100,
                 'precision': {
                     'amount': this.safeInteger (market, 'volume_scale'),
                     'price': this.safeInteger (market, 'price_scale'),
