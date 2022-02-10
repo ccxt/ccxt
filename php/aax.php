@@ -506,12 +506,12 @@ class aax extends Exchange {
                 'optionType' => null,
                 'quanto' => $quanto,
                 'precision' => array(
-                    'price' => $this->safe_number($market, 'tickSize'),
                     'amount' => $this->safe_number($market, 'lotSize'),
+                    'price' => $this->safe_number($market, 'tickSize'),
                 ),
                 'limits' => array(
                     'leverage' => array(
-                        'min' => $this->parse_number('1'),
+                        'min' => null,
                         'max' => null,
                     ),
                     'amount' => array(

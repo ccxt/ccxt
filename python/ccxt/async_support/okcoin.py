@@ -899,12 +899,12 @@ class okcoin(Exchange):
             'strike': strike,
             'optionType': optionType,
             'precision': {
-                'price': precisionPrice,
                 'amount': self.safe_number(market, 'size_increment', lotSize),
+                'price': precisionPrice,
             },
             'limits': {
                 'leverage': {
-                    'min': 1,
+                    'min': self.parse_number('1'),
                     'max': self.parse_number(maxLeverage),
                 },
                 'amount': {

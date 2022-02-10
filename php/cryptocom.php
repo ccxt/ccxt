@@ -334,8 +334,8 @@ class cryptocom extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => intval($priceDecimals),
                     'amount' => $this->safe_integer($market, 'quantity_decimals'),
+                    'price' => intval($priceDecimals),
                 ),
                 'limits' => array(
                     'leverage' => array(

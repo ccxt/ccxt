@@ -282,18 +282,18 @@ class eqonex(Exchange):
             'swap': swap,
             'future': future,
             'option': False,
+            'active': (status == 1),
             'contract': contract,
             'linear': linear,
             'inverse': inverse,
             'contractSize': self.safe_number(market, 'contractMultiplier'),
-            'active': (status == 1),
             'expiry': expiry,
             'expiryDatetime': self.iso8601(expiry),
             'strike': None,
             'optionType': None,
             'precision': {
-                'price': self.safe_integer(market, 'price_scale'),
                 'amount': self.safe_integer(market, 'quantity_scale'),
+                'price': self.safe_integer(market, 'price_scale'),
             },
             'limits': {
                 'leverage': {

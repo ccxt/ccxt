@@ -342,8 +342,8 @@ class bitvavo extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($market, 'pricePrecision'),
                     'amount' => $amountPrecision,
+                    'price' => $this->safe_integer($market, 'pricePrecision'),
                 ),
                 'limits' => array(
                     'leverage' => array(

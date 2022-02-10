@@ -285,12 +285,12 @@ class zb(Exchange):
             result.append({
                 'id': id,
                 'symbol': symbol,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
                 'base': base,
                 'quote': quote,
                 'settle': None,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
                 'margin': False,
@@ -308,8 +308,8 @@ class zb(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': int(pricePrecisionString),
                     'amount': int(amountPrecisionString),
+                    'price': int(pricePrecisionString),
                 },
                 'limits': {
                     'leverage': {

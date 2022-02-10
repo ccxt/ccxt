@@ -226,8 +226,8 @@ class latoken1 extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => intval($pricePrecisionString),
                     'amount' => $this->safe_integer($market, 'amountPrecision'),
+                    'price' => intval($pricePrecisionString),
                 ),
                 'limits' => array(
                     'leverage' => array(

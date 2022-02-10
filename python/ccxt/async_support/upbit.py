@@ -330,7 +330,6 @@ class upbit(Exchange):
         askFee = self.safe_number(response, 'ask_fee')
         fee = max(bidFee, askFee)
         return {
-            'info': response,
             'id': marketId,
             'symbol': base + '/' + quote,
             'base': base,
@@ -357,8 +356,8 @@ class upbit(Exchange):
             'strike': None,
             'optionType': None,
             'precision': {
-                'price': 8,
-                'amount': 8,
+                'amount': int('8'),
+                'price': int('8'),
             },
             'limits': {
                 'leverage': {
@@ -377,6 +376,7 @@ class upbit(Exchange):
                     'min': self.safe_number(bid, 'min_total'),
                     'max': self.safe_number(marketInfo, 'max_total'),
                 },
+                'info': response,
             },
         }
 

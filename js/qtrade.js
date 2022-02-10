@@ -228,8 +228,8 @@ module.exports = class qtrade extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeInteger (market, 'base_precision'),
                     'amount': this.safeInteger (market, 'market_precision'),
+                    'price': this.safeInteger (market, 'base_precision'),
                 },
                 'limits': {
                     'leverage': {

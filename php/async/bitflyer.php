@@ -237,8 +237,8 @@ class bitflyer extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => null,
                     'amount' => null,
+                    'price' => null,
                 ),
                 'limits' => array(
                     'leverage' => array(

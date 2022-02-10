@@ -209,8 +209,8 @@ class bigone(Exchange):
                 'type': 'spot',
                 'spot': True,
                 'margin': False,
-                'future': False,
                 'swap': False,
+                'future': False,
                 'option': False,
                 'active': True,
                 'contract': False,
@@ -222,8 +222,8 @@ class bigone(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(market, 'quote_scale'),
                     'amount': self.safe_integer(market, 'base_scale'),
+                    'price': self.safe_integer(market, 'quote_scale'),
                 },
                 'limits': {
                     'leverage': {

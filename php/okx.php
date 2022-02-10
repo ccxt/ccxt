@@ -877,8 +877,8 @@ class okx extends Exchange {
             'strike' => $strikePrice,
             'optionType' => $optionType,
             'precision' => array(
-                'price' => $precisionPrice,
                 'amount' => $this->safe_number($market, 'lotSz'),
+                'price' => $precisionPrice,
             ),
             'limits' => array(
                 'leverage' => array(

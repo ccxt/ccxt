@@ -334,8 +334,8 @@ module.exports = class hitbtc extends Exchange {
                 'optionType': undefined,
                 'feeCurrency': this.safeCurrencyCode (feeCurrencyId),
                 'precision': {
-                    'price': step,
                     'amount': lot,
+                    'price': step,
                 },
                 'limits': {
                     'leverage': {

@@ -372,8 +372,8 @@ class bitpanda(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(market, 'market_precision'),
                     'amount': self.safe_integer(market, 'amount_precision'),
+                    'price': self.safe_integer(market, 'market_precision'),
                 },
                 'limits': {
                     'leverage': {

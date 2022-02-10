@@ -245,8 +245,8 @@ module.exports = class novadax extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeInteger (market, 'pricePrecision'),
                     'amount': this.safeInteger (market, 'amountPrecision'),
+                    'price': this.safeInteger (market, 'pricePrecision'),
                     'cost': this.safeInteger (market, 'valuePrecision'),
                 },
                 'limits': {

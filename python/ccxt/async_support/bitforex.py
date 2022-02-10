@@ -192,8 +192,8 @@ class bitforex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(market, 'pricePrecision'),
                     'amount': self.safe_integer(market, 'amountPrecision'),
+                    'price': self.safe_integer(market, 'pricePrecision'),
                 },
                 'limits': {
                     'leverage': {

@@ -739,8 +739,8 @@ class gateio extends Exchange {
                         'strike' => null,
                         'optionType' => null,
                         'precision' => array(
-                            'price' => $this->safe_number($market, 'order_price_round'),
                             'amount' => $this->parse_number('1'),
+                            'price' => $this->safe_number($market, 'order_price_round'),
                         ),
                         'limits' => array(
                             'leverage' => array(
@@ -836,8 +836,8 @@ class gateio extends Exchange {
                     'strike' => null,
                     'optionType' => null,
                     'precision' => array(
-                        'price' => $this->parse_number($this->parse_precision($pricePrecisionString)),
                         'amount' => $this->parse_number($this->parse_precision($amountPrecisionString)),
+                        'price' => $this->parse_number($this->parse_precision($pricePrecisionString)),
                     ),
                     'limits' => array(
                         'leverage' => array(

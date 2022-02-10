@@ -252,8 +252,8 @@ module.exports = class hollaex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeNumber (market, 'increment_price'),
                     'amount': this.safeNumber (market, 'increment_size'),
+                    'price': this.safeNumber (market, 'increment_price'),
                 },
                 'limits': {
                     'leverage': {

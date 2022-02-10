@@ -354,8 +354,8 @@ class coinbasepro(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_number(market, 'quote_increment'),
                     'amount': self.safe_number(market, 'base_increment'),
+                    'price': self.safe_number(market, 'quote_increment'),
                 },
                 'limits': {
                     'leverage': {

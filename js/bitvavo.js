@@ -340,8 +340,8 @@ module.exports = class bitvavo extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeInteger (market, 'pricePrecision'),
                     'amount': amountPrecision,
+                    'price': this.safeInteger (market, 'pricePrecision'),
                 },
                 'limits': {
                     'leverage': {

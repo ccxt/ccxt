@@ -235,8 +235,8 @@ class bitbns extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($marketPrecision, 'price'),
                     'amount' => $this->safe_integer($marketPrecision, 'amount'),
+                    'price' => $this->safe_integer($marketPrecision, 'price'),
                 ),
                 'limits' => array(
                     'leverage' => array(

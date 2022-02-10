@@ -235,8 +235,8 @@ module.exports = class idex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': parseInt (quotePrecisionString),
                     'amount': parseInt (basePrecisionString),
+                    'price': parseInt (quotePrecisionString),
                 },
                 'limits': {
                     'leverage': {

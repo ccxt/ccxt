@@ -564,8 +564,8 @@ class mexc extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_number($market, 'priceUnit'),
                     'amount' => $this->safe_number($market, 'volUnit'),
+                    'price' => $this->safe_number($market, 'priceUnit'),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -655,8 +655,8 @@ class mexc extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->parse_number($this->parse_precision($priceScale)),
                     'amount' => $this->parse_number($this->parse_precision($quantityScale)),
+                    'price' => $this->parse_number($this->parse_precision($priceScale)),
                 ),
                 'limits' => array(
                     'leverage' => array(

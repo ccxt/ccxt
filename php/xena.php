@@ -332,8 +332,8 @@ class xena extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
+                    'amount' => intval('0'),
                     'price' => $this->safe_integer_2($market, 'tickSize', 'pricePrecision'),
-                    'amount' => 0,
                 ),
                 'limits' => array(
                     'leverage' => array(

@@ -169,8 +169,8 @@ module.exports = class coinfalcon extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeInteger (market, 'price_precision'),
                     'amount': this.safeInteger (market, 'size_precision'),
+                    'price': this.safeInteger (market, 'price_precision'),
                 },
                 'limits': {
                     'leverage': {

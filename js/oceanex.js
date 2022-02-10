@@ -179,8 +179,8 @@ module.exports = class oceanex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeInteger (market, 'price_precision'),
                     'amount': this.safeInteger (market, 'amount_precision'),
+                    'price': this.safeInteger (market, 'price_precision'),
                     'base': this.safeInteger (market, 'ask_precision'),
                     'quote': this.safeInteger (market, 'bid_precision'),
                 },

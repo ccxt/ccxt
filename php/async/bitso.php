@@ -245,8 +245,8 @@ class bitso extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_number($market, 'tick_size', $defaultPricePrecision),
                     'amount' => $this->safe_number($this->options['precision'], $base, $this->options['defaultPrecision']),
+                    'price' => $this->safe_number($market, 'tick_size', $defaultPricePrecision),
                 ),
                 'limits' => array(
                     'leverage' => array(

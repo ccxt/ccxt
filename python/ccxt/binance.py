@@ -1580,8 +1580,8 @@ class binance(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(market, 'pricePrecision'),
                     'amount': self.safe_integer(market, 'quantityPrecision'),
+                    'price': self.safe_integer(market, 'pricePrecision'),
                     'base': self.safe_integer(market, 'baseAssetPrecision'),
                     'quote': self.safe_integer(market, 'quotePrecision'),
                 },

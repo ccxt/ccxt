@@ -746,8 +746,8 @@ class gateio(Exchange):
                         'strike': None,
                         'optionType': None,
                         'precision': {
-                            'price': self.safe_number(market, 'order_price_round'),
                             'amount': self.parse_number('1'),
+                            'price': self.safe_number(market, 'order_price_round'),
                         },
                         'limits': {
                             'leverage': {
@@ -841,8 +841,8 @@ class gateio(Exchange):
                     'strike': None,
                     'optionType': None,
                     'precision': {
-                        'price': self.parse_number(self.parse_precision(pricePrecisionString)),
                         'amount': self.parse_number(self.parse_precision(amountPrecisionString)),
+                        'price': self.parse_number(self.parse_precision(pricePrecisionString)),
                     },
                     'limits': {
                         'leverage': {

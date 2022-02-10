@@ -872,8 +872,8 @@ module.exports = class okx extends Exchange {
             'strike': strikePrice,
             'optionType': optionType,
             'precision': {
-                'price': precisionPrice,
                 'amount': this.safeNumber (market, 'lotSz'),
+                'price': precisionPrice,
             },
             'limits': {
                 'leverage': {

@@ -352,8 +352,8 @@ class bytetrade extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($precision, 'price'),
                     'amount' => $this->safe_integer($precision, 'amount'),
+                    'price' => $this->safe_integer($precision, 'price'),
                 ),
                 'limits' => array(
                     'leverage' => array(

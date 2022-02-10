@@ -236,8 +236,8 @@ class bitbns(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(marketPrecision, 'price'),
                     'amount': self.safe_integer(marketPrecision, 'amount'),
+                    'price': self.safe_integer(marketPrecision, 'price'),
                 },
                 'limits': {
                     'leverage': {

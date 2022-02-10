@@ -337,8 +337,8 @@ class hitbtc extends Exchange {
                 'optionType' => null,
                 'feeCurrency' => $this->safe_currency_code($feeCurrencyId),
                 'precision' => array(
-                    'price' => $step,
                     'amount' => $lot,
+                    'price' => $step,
                 ),
                 'limits' => array(
                     'leverage' => array(

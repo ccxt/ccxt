@@ -1584,8 +1584,8 @@ class binance extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($market, 'pricePrecision'),
                     'amount' => $this->safe_integer($market, 'quantityPrecision'),
+                    'price' => $this->safe_integer($market, 'pricePrecision'),
                     'base' => $this->safe_integer($market, 'baseAssetPrecision'),
                     'quote' => $this->safe_integer($market, 'quotePrecision'),
                 ),

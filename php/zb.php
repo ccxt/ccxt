@@ -276,12 +276,12 @@ class zb extends Exchange {
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => null,
                 'base' => $base,
                 'quote' => $quote,
                 'settle' => null,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
                 'margin' => false,
@@ -299,8 +299,8 @@ class zb extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => intval($pricePrecisionString),
                     'amount' => intval($amountPrecisionString),
+                    'price' => intval($pricePrecisionString),
                 ),
                 'limits' => array(
                     'leverage' => array(

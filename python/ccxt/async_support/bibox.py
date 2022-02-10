@@ -246,8 +246,8 @@ class bibox(Exchange):
                 'type': type,
                 'spot': spot,
                 'margin': False,
-                'future': False,
                 'swap': False,
+                'future': False,
                 'option': False,
                 'active': None,
                 'contract': False,
@@ -260,8 +260,8 @@ class bibox(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(market, 'decimal'),
                     'amount': self.safe_integer(market, 'amount_scale'),
+                    'price': self.safe_integer(market, 'decimal'),
                 },
                 'limits': {
                     'leverage': {

@@ -174,8 +174,8 @@ class lbank(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(market, 'priceAccuracy'),
                     'amount': self.safe_integer(market, 'quantityAccuracy'),
+                    'price': self.safe_integer(market, 'priceAccuracy'),
                 },
                 'limits': {
                     'leverage': {

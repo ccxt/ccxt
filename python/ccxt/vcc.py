@@ -246,8 +246,8 @@ class vcc(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(precision, 'price'),
                     'amount': self.safe_integer(precision, 'amount'),
+                    'price': self.safe_integer(precision, 'price'),
                     'cost': self.safe_integer(precision, 'cost'),
                 },
                 'limits': {

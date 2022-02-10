@@ -488,8 +488,8 @@ class kraken extends Exchange {
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                'maker' => $maker,
                 'taker' => $taker,
+                'maker' => $maker,
                 'contractSize' => null,
                 'maintenanceMarginRate' => null,
                 'expiry' => null,
@@ -497,8 +497,8 @@ class kraken extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($market, 'pair_decimals'),
                     'amount' => $this->safe_integer($market, 'lot_decimals'),
+                    'price' => $this->safe_integer($market, 'pair_decimals'),
                 ),
                 'limits' => array(
                     'leverage' => array(
