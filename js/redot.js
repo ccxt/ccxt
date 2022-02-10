@@ -72,6 +72,27 @@ module.exports = class redot extends Exchange {
                         'get-stats': 1,
                     },
                 },
+                'private': {
+                    'get': {
+                        'get-account-summary': 1,
+                        'get-deposit-address': 1,
+                        'get-fees': 1,
+                        'get-deposits': 1,
+                        'get-withdrawals': 1,
+                        'get-order': 1,
+                        'get-open-orders': 1,
+                        'get-orders': 1,
+                        'get-trades': 1,
+                        'get-trades-by-order': 1,
+                    },
+                    'post': {
+                        'withdraw': 1,
+                        'place-order': 1,
+                        'edit-order': 1,
+                        'cancel-order': 1,
+                        'cancel-all-orders': 1,
+                    },
+                },
             },
             'timeframes': {
                 '1m': '60',
