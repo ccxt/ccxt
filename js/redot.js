@@ -497,6 +497,86 @@ module.exports = class redot extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = { };
+        if (symbol !== undefined) {
+            request['instrumentId'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default max 200
+        }
+        const response = await this.privateGetGetOrders (this.extend (request, params));
+        //
+        // {
+        //     "result": {
+        //       "data": [
+        //         {
+        //           "id": 234,
+        //           "instrumentId": "ETH-BTC",
+        //           "status": "filled",
+        //           "type": "limit",
+        //           "side": "sell",
+        //           "qty": 0.02000123,
+        //           "cumQty": 0.02000123,
+        //           "price": 0.02595400,
+        //           "timestamp": 1594800486782215
+        //         },
+        //         ...
+        //       ],
+        //       "next": true
+        //     }
+        //   }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const data = this.safeValue (result, 'data');
+        return this.parseOrders (data, market, since, limit);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {};
+        if (symbol !== undefined) {
+            request['instrumentId'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // max 200
+        }
+        const response = await this.privateGetGetTrades (this.extend (request, params));
+        //
+        // {
+        //     "result": {
+        //       "data": [
+        //         {
+        //           "id": 1,
+        //           "instrumentId": "ETH-BTC",
+        //           "price": 0.02595400,
+        //           "qty": 0.02000123,
+        //           "orderId": 234,
+        //           "userSide": "sell",
+        //           "fee": 0.00000001,
+        //           "feeAsset": "BTC",
+        //           "timestamp": 1594800486782215
+        //         },
+        //         ...
+        //       ],
+        //       "next": true
+        //     }
+        //   }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const data = this.safeValue (result, 'data');
+        return this.parseTrades (data, market, since, limit);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + path;
         if (method === 'GET') {
