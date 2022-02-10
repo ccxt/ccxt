@@ -5364,7 +5364,7 @@ module.exports = class huobi extends Exchange {
             if (!market['contract']) {
                 throw new BadRequest (this.id + '.fetchLeverageTiers symbol supports contract markets only');
             }
-            request['symbol'] = market['id'];
+            request['contract_code'] = market['id'];
         }
         const response = await this.contractPublicGetLinearSwapApiV1SwapAdjustfactor (this.extend (request, params));
         //
@@ -5400,11 +5400,12 @@ module.exports = class huobi extends Exchange {
         const tiers = {};
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
+            const leverages = {};
             const list = this.safeValue (market, 'list', []);
-            const brackets = [];
             for (let j = 0; j < list.length; j++) {
                 const obj = list[j];
                 const leverage = this.safeString (obj, 'lever_rate');
+                const brackets = [];
                 const ladders = this.safeValue (obj, 'ladders', []);
                 for (let k = 0; k < ladders.length; k++) {
                     const bracket = ladders[k];
@@ -5419,8 +5420,9 @@ module.exports = class huobi extends Exchange {
                         'info': bracket,
                     });
                 }
-                tiers[market['symbol']] = brackets;
+                leverages[leverage] = brackets;
             }
+            tiers[market['contract_code']] = leverages;
         }
         return tiers;
     }
