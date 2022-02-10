@@ -6,7 +6,7 @@ const Exchange = require ('./base/Exchange');
 const { ExchangeNotAvailable, AuthenticationError, BadSymbol, ExchangeError, InvalidOrder, InsufficientFunds } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 // const Precise = require ('./base/Precise');
-function c(o){console.log(o);} function cc(o){console.dir(o, {'maxArrayLength': null});} function x(o){c(o);process.exit();} function xx(o){cc(o);process.exit();}
+
 // ----------------------------------------------------------------------------
 
 module.exports = class dydx extends Exchange {
@@ -604,7 +604,7 @@ module.exports = class dydx extends Exchange {
     }
 
     parsePosition (position, market = undefined) {
-        return {}; //TO_DO
+        return {}; // TO_DO
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -618,8 +618,67 @@ module.exports = class dydx extends Exchange {
             request['limit'] = limit; // Math.min (limit, 100);
         }
         const response = await this.privateGetTransfers (this.extend (request, params));
-        //
-        return this.parseTransactions (response, currency, since, limit);
+        // [
+        //     {
+        //       id: "2214697e-3d51-54d3-b89d-baa0029e0330",
+        //       type: "DEPOSIT",
+        //       debitAsset: "USDT",
+        //       creditAsset: "USDC",
+        //       debitAmount: "27.272748",
+        //       creditAmount: "28.546065",
+        //       transactionHash: "0xf9c64fa258b9eb4a1502474a367b63b1ba7648b5650b7f4bfa86d6b1048be71f",
+        //       status: "CONFIRMED",
+        //       createdAt: "2022-02-10T07:39:09.892Z",
+        //       confirmedAt: "2022-02-10T07:39:09.924Z",
+        //       clientId: null,
+        //       fromAddress: null,
+        //       toAddress: null,
+        //     },
+        // ]
+        const data = this.safeValue (response, 'transfers');
+        return this.parseTransactions (data, currency, since, limit);
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'PENDING': 'pending',
+            'CONFIRMED': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransactionType (status) {
+        const statuses = {
+            'DEPOSIT': 'deposit',
+            'WITHDRAWAL': 'withdraw',
+            'FAST_WITHDRAWAL': 'withdraw',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        const timestamp = this.parse8601 (this.safeString (transaction, 'createdAt'));
+        return {
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction, 'transactionHash'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': undefined,
+            'addressFrom': this.safeString (transaction, 'fromAddress:'),
+            'address': undefined,
+            'addressTo': this.safeString (transaction, 'toAddress'),
+            'amount': this.safeNumber (transaction, 'creditAmount'),
+            'type': this.parseTransactionType (this.safeString (transaction, 'type')),
+            'currency': this.safeCurrencyCode (this.safeString (transaction, 'creditAsset')),
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
+            'updated': this.parse8601 (this.safeString (transaction, 'confirmedAt')),
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'comment': undefined,
+            'fee': undefined,
+            'info': transaction,
+        };
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -702,7 +761,6 @@ module.exports = class dydx extends Exchange {
         const message = this.safeString (response, 'error', '');
         this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
         this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-        console.log (body);
         this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
     }
 };
