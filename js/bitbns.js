@@ -287,7 +287,7 @@ module.exports = class bitbns extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (response, 'timestamp');
-        return this.parseOrderBook (response, timestamp);
+        return this.parseOrderBook (response, symbol, timestamp);
     }
 
     parseTicker (ticker, market = undefined) {
