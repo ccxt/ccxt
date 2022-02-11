@@ -467,9 +467,6 @@ module.exports = class graviex extends Exchange {
     }
 
     async fetchDepth (symbol, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDepth() requires a symbol argument');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -545,9 +542,6 @@ module.exports = class graviex extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrderBook() requires a symbol argument');
-        }
         await this.loadMarkets ();
         const request = {
             'market': this.marketId (symbol),
@@ -589,8 +583,7 @@ module.exports = class graviex extends Exchange {
         //     },
         //   ]
         // }
-        const timestamp = this.parse8601 (this.safeString (response, 'created_at'));
-        return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', 'price', 'avg_price');
+        return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'price', 'avg_price');
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
@@ -819,9 +812,6 @@ module.exports = class graviex extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        }
         await this.loadMarkets ();
         const request = {
             'desc': true,
@@ -856,19 +846,16 @@ module.exports = class graviex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a symbol argument');
-        }
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
-        }
         await this.loadMarkets ();
         const request = {
             'market': this.marketId (symbol),
             'side': side,
-            'volume': type,
-            'price': this.amountToPrecision (symbol, amount),
+            'volume': amount.toString (),
+            'ord_type': type,
         };
+        if (price !== undefined) {
+            request['price'] = price.toString ();
+        }
         const response = await this.privatePostOrders (this.extend (request));
         // {
         //   "id": 288336422,
@@ -940,9 +927,6 @@ module.exports = class graviex extends Exchange {
     }
 
     async createOrders (symbol, orders, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrders() requires a symbol argument');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
