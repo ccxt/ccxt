@@ -133,6 +133,14 @@ module.exports = class luno extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': true, // based on volume from your primary currency (not the same for everyone)
+                    'percentage': true,
+                    'taker': this.parseNumber ('0.001'),
+                    'maker': this.parseNumber ('0'),
+                },
+            },
         });
     }
 
