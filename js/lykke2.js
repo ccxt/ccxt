@@ -405,7 +405,7 @@ module.exports = class lykke2 extends Exchange {
             'close': close,
             'last': close,
             'previousClose': undefined,
-            'change': undefined,
+            'change': this.safeString (ticker, 'priceChange'),
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'volumeBase'),
