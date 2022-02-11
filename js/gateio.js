@@ -2130,16 +2130,13 @@ module.exports = class gateio extends Exchange {
         //     }
         //
         // withdrawals
-        const amount = this.safeNumber (transaction, 'amount');
         const id = this.safeString (transaction, 'id');
         let type = undefined;
+        let amount = this.safeString (transaction, 'amount');
         if (id[0] === 'b') {
-            // GateCode redemption
-            if (amount > 0) {
-                type = 'deposit'
-            } else {
-                type = 'withdrawal'
-            }
+            // GateCode handling
+            type = Precise.stringGt (amount, '0') ? 'deposit' : 'withdrawal';
+            amount = Precise.stringAbs (amount);
         } else if (id !== undefined) {
             type = this.parseTransactionType (id[0]);
         }
@@ -2160,7 +2157,7 @@ module.exports = class gateio extends Exchange {
             'id': id,
             'txid': txid,
             'currency': code,
-            'amount': amount,
+            'amount': this.parseNumber (amount),
             'network': undefined,
             'address': address,
             'addressTo': undefined,
