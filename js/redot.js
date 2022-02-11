@@ -99,7 +99,8 @@ module.exports = class redot extends Exchange {
                 },
             },
             'options': {
-                'accessToken': 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiIxNTY5MyIsInBybSI6IjE1IiwiYWtkIjoiYU9oamZ2dE84QnU5M1lpK2pGVjJMRGVLWk9taTRya1NGSzVMRkZxb29OdDhDaDh3dElsZGJYRjNTNWxPbzh5Q2NUZ0ZJY1Q1Q2l5alF3aTBtYitoZW8ySUJSTVRZQmoyUk1XbmRmNVhGOWM9IiwicnRpZCI6IjljMTlmNjJhLTA5ZDEtNDliYy1hNDRkLTZiMTFmMTEyNGI3MCIsInJ0ZXhwIjoiMTY0NTgwMjA3NSIsIm5iZiI6MTY0NDU5MjQ3NSwiZXhwIjoxNjQ0NTk0Mjc1LCJpYXQiOjE2NDQ1OTI0NzUsImlzcyI6IkFUTEFOVCIsImF1ZCI6IkFUTEFOVCJ9.SM1mdyo4hBz6ztHIPRcWoSAzS-Kgj7iavOPjnpb2Uzu87ZHcCC7VJOzVLyE89HP0dnEWxuNsk9J_Om0Brdl38DgVgrHCMUqPZxshr7XO2BvgVyTn7pCpd4UUx7zkKaA61Id1fc9E_QLCgafiqQSta5q3CdzhowgcMHYL5VL6LL2oQmMKmcFTCYjj8zH8hnafrPInaP-FMipn1_t4tBievVexEfqFb2Kcht6JUjxL7KhwVmSDIrFmZQgzda3_4Z0Mvi0IIE1sVlxXw3oegPiacCqCmgGbr79sT4qEMSHXHdlgjHJKUzBAgAZIoqqzlkWTFvDH4eaTrFxAhxKvMDZ4uQ","refreshToken":"Rn6ZvX622+WPZQzZxZGBPb1YExkHbSqL9jqdh1zSSlxut/lfxNElm40Bta1sOFZGdsiD/VSIJ+BNQQEtMsOKOA==',
+                'accessToken': 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiIxNTY5MyIsInBybSI6IjExIiwiYWtkIjoieDhwTkVIOW56bmhuMUllWFc4NkxPSU1pMWhMeUhpTTFLS1ZNN3k5L2txWFc2enJyNHZQTlo2SmdaK0lDVjlhQ0tzemVrUEV5TFNDaVB4N0lOR2xlQThva1BjOCsydWtxQWcya01vMldCaUE9IiwicnRpZCI6IjI4ZWE1MWI4LThhNjEtNGIwYi1hNWJiLTAyOGMxNDcxYzkzNiIsInJ0ZXhwIjoiMTY0NTgwNTEzMCIsIm5iZiI6MTY0NDU5NTUzMCwiZXhwIjoxNjQ0NTk3MzMwLCJpYXQiOjE2NDQ1OTU1MzAsImlzcyI6IkFUTEFOVCIsImF1ZCI6IkFUTEFOVCJ9.itjV3wUk1Qrm1AMqwUrpCpd7WYqOgHmTN1rT2eq9-VykdV99YsBDIIO9w6XpMIi7haE8m4URdFHnUhvJnrjAadi0rTcJaoB_rHT98W4JJ9k1unm5gtEIT3TlrIPfz6naQ000RJBgSd5h5PnS32IR7uxpnO5XSCQ9FsDIkdL-eqoJEnp2n1-TQLQVG6Xzk3Encw9Oi4qiGHnlXHRz8ziDOu0KQLSU7FXUbiflXofuxMTd3xRbNndRMRzP-WT3C2KjO3MrjuOv_qJAoRBjqLIGZrSQGJJ2KoO7S862ZXpsmEDRw9i22H-008226V9RTnxie4yRTTZGZYgHN4IfDaIZbA',
+                'refreshToken': 'EmG+8a6pXM40CfpQtEYdFb5oswLb1LfoVvf4USTxNkJT4qSKef//UfKDTslM/Yx/8dcHJTeLi7XCLRHGA91TsQ==',
             },
             'timeframes': {
                 '1m': '60',
@@ -425,6 +426,45 @@ module.exports = class redot extends Exchange {
         const resultResponse = this.safeValue (response, 'result', {});
         const data = this.safeValue (resultResponse, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    parseBalance (response) {
+        const balanceKeys = Object.keys (response);
+        const result = { };
+        for (let i = 0; i < balanceKeys.length; i++) {
+            const id = balanceKeys[i];
+            const asset = response[id];
+            const balance = this.safeValue (asset, 'balance');
+            const code = this.safeCurrencyCode (id);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'blocked');
+            account['total'] = this.safeString (balance, 'total');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetGetAccountSummary (params);
+        //
+        // {
+        //     "result":{
+        //        "assets":{
+        //           "BTC":{
+        //              "depositAddress":"",
+        //              "balance":{
+        //                 "available":"0.0",
+        //                 "blocked":"0.0",
+        //                 "total":"0.0"
+        //              }
+        //           },
+        // }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const assets = this.safeValue (result, 'assets', {});
+        return this.parseBalance (assets);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -769,16 +809,16 @@ module.exports = class redot extends Exchange {
                 url += '?' + this.urlencode (params);
             }
         }
-        if (method === 'POST') {
-            headers = {
-                'Content-Type': 'application/json',
-            };
-            body = this.json (params);
-        }
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const accessToken = this.safeString (this.options, 'accessToken');
-            headers['Authorization'] = 'Bearer ' + accessToken;
+            headers = {
+                'Authorization': 'Bearer ' + accessToken,
+            };
+        }
+        if (method === 'POST') {
+            headers['Content-Type'] = 'application/json';
+            body = this.json (params);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
