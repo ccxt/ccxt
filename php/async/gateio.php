@@ -2114,7 +2114,6 @@ class gateio extends Exchange {
 
     public function parse_transaction_type($type) {
         $types = array(
-            'b' => 'deposit', // GateCode redemption
             'd' => 'deposit',
             'w' => 'withdrawal',
         );
@@ -2139,12 +2138,16 @@ class gateio extends Exchange {
         // withdrawals
         $id = $this->safe_string($transaction, 'id');
         $type = null;
-        if ($id !== null) {
+        $amount = $this->safe_string($transaction, 'amount');
+        if ($id[0] === 'b') {
+            // GateCode handling
+            $type = Precise::string_gt($amount, '0') ? 'deposit' : 'withdrawal';
+            $amount = Precise::string_abs($amount);
+        } else if ($id !== null) {
             $type = $this->parse_transaction_type($id[0]);
         }
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId);
-        $amount = $this->safe_number($transaction, 'amount');
         $txid = $this->safe_string($transaction, 'txid');
         $rawStatus = $this->safe_string($transaction, 'status');
         $status = $this->parse_transaction_status($rawStatus);
@@ -2160,7 +2163,7 @@ class gateio extends Exchange {
             'id' => $id,
             'txid' => $txid,
             'currency' => $code,
-            'amount' => $amount,
+            'amount' => $this->parse_number($amount),
             'network' => null,
             'address' => $address,
             'addressTo' => null,

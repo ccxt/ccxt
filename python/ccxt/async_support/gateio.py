@@ -2041,7 +2041,6 @@ class gateio(Exchange):
 
     def parse_transaction_type(self, type):
         types = {
-            'b': 'deposit',  # GateCode redemption
             'd': 'deposit',
             'w': 'withdrawal',
         }
@@ -2065,11 +2064,15 @@ class gateio(Exchange):
         # withdrawals
         id = self.safe_string(transaction, 'id')
         type = None
-        if id is not None:
+        amount = self.safe_string(transaction, 'amount')
+        if id[0] == 'b':
+            # GateCode handling
+            type = 'deposit' if Precise.string_gt(amount, '0') else 'withdrawal'
+            amount = Precise.string_abs(amount)
+        elif id is not None:
             type = self.parse_transaction_type(id[0])
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId)
-        amount = self.safe_number(transaction, 'amount')
         txid = self.safe_string(transaction, 'txid')
         rawStatus = self.safe_string(transaction, 'status')
         status = self.parse_transaction_status(rawStatus)
@@ -2084,7 +2087,7 @@ class gateio(Exchange):
             'id': id,
             'txid': txid,
             'currency': code,
-            'amount': amount,
+            'amount': self.parse_number(amount),
             'network': None,
             'address': address,
             'addressTo': None,
