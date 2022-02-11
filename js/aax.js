@@ -2552,6 +2552,9 @@ module.exports = class aax extends Exchange {
         const marketPrice = this.safeString (position, 'marketPrice');
         const notional = Precise.stringMul (initialQuote, marketPrice);
         const timestamp = this.safeInteger (position, 'ts');
+        const liquidationPrice = this.safeString (position, 'liquidationPrice');
+        const bankruptPrice = this.safeString (position, 'bankruptPrice');
+        const maintenanceMargin = Precise.stringSub (liquidationPrice, bankruptPrice);
         return {
             'info': position,
             'symbol': this.safeString (market, 'symbol'),
@@ -2559,8 +2562,8 @@ module.exports = class aax extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,
-            'maintenanceMargin': undefined,
-            'maintenanceMarginPercentage': undefined,
+            'maintenanceMargin': maintenanceMargin,
+            'maintenanceMarginPercentage': Precise.stringDiv (maintenanceMargin, notional),
             'entryPrice': this.safeNumber (position, 'avgEntryPrice'),
             'notional': this.parseNumber (notional),
             'leverage': this.parseNumber (leverage),
@@ -2568,7 +2571,7 @@ module.exports = class aax extends Exchange {
             'contracts': this.parseNumber (size),
             'contractSize': this.parseNumber (contractSize),
             'marginRatio': undefined,
-            'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
+            'liquidationPrice': liquidationPrice,
             'markPrice': this.safeNumber (position, 'marketPrice'),
             'collateral': this.safeNumber (position, 'posMargin'),
             'marginType': this.safeString (position, 'settleType'),
