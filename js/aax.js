@@ -66,6 +66,7 @@ module.exports = class aax extends Exchange {
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
                 'fetchLeverage': undefined,
+                'fetchLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyBuys': undefined,
@@ -2300,6 +2301,81 @@ module.exports = class aax extends Exchange {
             'leverage': leverage,
         };
         return await this.privatePostFuturesPositionLeverage (this.extend (request, params));
+    }
+
+    async fetchLeverageTiers (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let symbols = undefined;
+        if (symbol) {
+            const market = this.market (symbol);
+            if (!market['contract']) {
+                throw new BadRequest (this.id + ' fetchLeverageTiers symbol supports contract markets only');
+            }
+            symbols = [ symbol ];
+        } else {
+            symbols = this.symbols;
+        }
+        const result = {};
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market (symbols[i]);
+            //
+            //    {
+            //        base: 'BTC',
+            //        quote: 'USDT',
+            //        contract: true,
+            //        ...
+            //        info: {
+            //            tickSize: '0.01',
+            //            lotSize: '1',
+            //            base: 'BTC',
+            //            quote: 'USDT',
+            //            minQuantity: '1',
+            //            maxQuantity: '30000',
+            //            minPrice: '0.01',
+            //            maxPrice: '999999',
+            //            status: 'enable',
+            //            symbol: 'BTCUSDTFP',
+            //            code: 'FP',
+            //            takerFee: '0.0006',
+            //            makerFee: '0.0004',
+            //            multiplier: '0.001',
+            //            mmRate: '0.00500',
+            //            imRate: '0.01000',
+            //            type: 'futures',
+            //            settleType: 'Vanilla',
+            //            settleCurrency: 'USDT'
+            //        }
+            //    }
+            //
+            if (market['contract']) {
+                const info = market['info'];
+                let maintenanceMarginRate = this.safeString (info, 'mmRate');
+                let initialMarginRate = this.safeString (info, 'imRate');
+                const maxVol = this.safeString (info, 'maxQuantity');
+                const riskIncrVol = maxVol; // TODO
+                const riskIncrMmr = 0.0; // TODO
+                const riskIncrImr = 0.0; // TODO
+                let floor = '0';
+                const tiers = [];
+                while (Precise.stringLt (floor, maxVol)) {
+                    const cap = Precise.stringAdd (floor, riskIncrVol);
+                    tiers.push ({
+                        'tier': this.parseNumber (Precise.stringDiv (cap, riskIncrVol)),
+                        'notionalCurrency': market['base'],
+                        'notionalFloor': this.parseNumber (floor),
+                        'notionalCap': this.parseNumber (cap),
+                        'maintenanceMarginRate': this.parseNumber (maintenanceMarginRate),
+                        'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRate)),
+                        'info': info,
+                    });
+                    maintenanceMarginRate = Precise.stringAdd (maintenanceMarginRate, riskIncrMmr);
+                    initialMarginRate = Precise.stringAdd (initialMarginRate, riskIncrImr);
+                    floor = cap;
+                }
+                result[market['symbol']] = tiers;
+            }
+        }
+        return result;
     }
 
     nonce () {
