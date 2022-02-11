@@ -311,6 +311,16 @@ module.exports = class graviex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        // {
+        //     "id": 14473952,
+        //     "at": 1643681026,
+        //     "price": "0.00000056",
+        //     "volume": "0.2",
+        //     "funds": "0.000000112",
+        //     "market": "giobtc",
+        //     "created_at": "2022-02-01T05:03:46+03:00",
+        //     "side": "sell"
+        // },
         const price = this.safeString2 (trade, 'p', 'price');
         const amount = this.safeString2 (trade, 'volume', 'amount');
         const funds = this.safeString (trade, 'funds');
@@ -321,9 +331,6 @@ module.exports = class graviex extends Exchange {
         let id = this.safeString2 (trade, 't', 'a');
         id = this.safeString2 (trade, 'id', 'tid', id);
         const side = this.safeValue (trade, 'side');
-        const fee = undefined;
-        const cost = undefined;
-        let type = undefined;
         let takerOrMaker = undefined;
         const orderId = this.safeString (trade, 'id');
         if ('side' in trade) {
@@ -336,16 +343,6 @@ module.exports = class graviex extends Exchange {
         if ('date' in trade) {
             timestamp = this.safeInteger2 (trade, 'T', 'date');
         }
-        if ('type' in trade) {
-            type = this.safeValue (trade, 'type');
-        }
-        if ('type' in trade) {
-            if (trade['type'] === 'buy') {
-                takerOrMaker = 'maker';
-            } else {
-                takerOrMaker = 'taker';
-            }
-        }
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
@@ -353,14 +350,14 @@ module.exports = class graviex extends Exchange {
             'symbol': symbol,
             'id': id,
             'order': orderId,
-            'type': type,
+            'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
             'funds': funds,
             'amount': amount,
-            'cost': cost,
-            'fee': fee,
+            'cost': undefined,
+            'fee': undefined,
         }, market);
     }
 
