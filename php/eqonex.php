@@ -285,18 +285,18 @@ class eqonex extends Exchange {
             'swap' => $swap,
             'future' => $future,
             'option' => false,
+            'active' => ($status === 1),
             'contract' => $contract,
             'linear' => $linear,
             'inverse' => $inverse,
             'contractSize' => $this->safe_number($market, 'contractMultiplier'),
-            'active' => ($status === 1),
             'expiry' => $expiry,
             'expiryDatetime' => $this->iso8601($expiry),
             'strike' => null,
             'optionType' => null,
             'precision' => array(
-                'price' => $this->safe_integer($market, 'price_scale'),
                 'amount' => $this->safe_integer($market, 'quantity_scale'),
+                'price' => $this->safe_integer($market, 'price_scale'),
             ),
             'limits' => array(
                 'leverage' => array(

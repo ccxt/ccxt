@@ -128,6 +128,17 @@ module.exports = class lbank extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetAccuracy (params);
+        //
+        //    [
+        //        {
+        //            "symbol": "btc_usdt",
+        //            "quantityAccuracy": "4",
+        //            "minTranQua": "0.0001",
+        //            "priceAccuracy": "2"
+        //        },
+        //        ...
+        //    ]
+        //
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
@@ -171,8 +182,8 @@ module.exports = class lbank extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeInteger (market, 'priceAccuracy'),
                     'amount': this.safeInteger (market, 'quantityAccuracy'),
+                    'price': this.safeInteger (market, 'priceAccuracy'),
                 },
                 'limits': {
                     'leverage': {

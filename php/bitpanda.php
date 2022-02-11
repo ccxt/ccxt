@@ -368,8 +368,8 @@ class bitpanda extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($market, 'market_precision'),
                     'amount' => $this->safe_integer($market, 'amount_precision'),
+                    'price' => $this->safe_integer($market, 'market_precision'),
                 ),
                 'limits' => array(
                     'leverage' => array(

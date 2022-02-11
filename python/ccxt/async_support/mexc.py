@@ -549,14 +549,13 @@ class mexc(Exchange):
                 'taker': self.safe_number(market, 'takerFeeRate'),
                 'maker': self.safe_number(market, 'makerFeeRate'),
                 'contractSize': self.safe_number(market, 'contractSize'),
-                'maintenanceMarginRate': self.safe_number(market, 'maintenanceMarginRate'),
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_number(market, 'priceUnit'),
                     'amount': self.safe_number(market, 'volUnit'),
+                    'price': self.safe_number(market, 'priceUnit'),
                 },
                 'limits': {
                     'leverage': {
@@ -638,14 +637,13 @@ class mexc(Exchange):
                 'taker': self.safe_number(market, 'taker_fee_rate'),
                 'maker': self.safe_number(market, 'maker_fee_rate'),
                 'contractSize': None,
-                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.parse_number(self.parse_precision(priceScale)),
                     'amount': self.parse_number(self.parse_precision(quantityScale)),
+                    'price': self.parse_number(self.parse_precision(priceScale)),
                 },
                 'limits': {
                     'leverage': {
@@ -1486,7 +1484,7 @@ class mexc(Exchange):
         }
         response = await self.fetch_positions(self.extend(request, params))
         firstPosition = self.safe_value(response, 0)
-        return firstPosition
+        return self.parse_position(firstPosition, market)
 
     async def fetch_positions(self, symbols=None, params={}):
         await self.load_markets()
@@ -1521,9 +1519,75 @@ class mexc(Exchange):
         #         ]
         #     }
         #
-        # todo add parsePositions, parsePosition
         data = self.safe_value(response, 'data', [])
-        return data
+        return self.parse_positions(data)
+
+    def parse_position(self, position, market=None):
+        #
+        #     {
+        #         "positionId": 1394650,
+        #         "symbol": "ETH_USDT",
+        #         "positionType": 1,
+        #         "openType": 1,
+        #         "state": 1,
+        #         "holdVol": 1,
+        #         "frozenVol": 0,
+        #         "closeVol": 0,
+        #         "holdAvgPrice": 1217.3,
+        #         "openAvgPrice": 1217.3,
+        #         "closeAvgPrice": 0,
+        #         "liquidatePrice": 1211.2,
+        #         "oim": 0.1290338,
+        #         "im": 0.1290338,
+        #         "holdFee": 0,
+        #         "realised": -0.0073,
+        #         "leverage": 100,
+        #         "createTime": 1609991676000,
+        #         "updateTime": 1609991676000,
+        #         "autoAddIm": False
+        #     }
+        #
+        market = self.safe_market(self.safe_string(position, 'symbol'), market)
+        symbol = market['symbol']
+        contracts = self.safe_string(position, 'holdVol')
+        entryPrice = self.safe_number(position, 'openAvgPrice')
+        initialMargin = self.safe_string(position, 'im')
+        rawSide = self.safe_string(position, 'positionType')
+        side = 'long' if (rawSide == '1') else 'short'
+        openType = self.safe_string(position, 'margin_mode')
+        marginType = 'isolated' if (openType == '1') else 'cross'
+        leverage = self.safe_string(position, 'leverage')
+        liquidationPrice = self.safe_number(position, 'liquidatePrice')
+        timestamp = self.safe_number(position, 'updateTime')
+        return {
+            'info': position,
+            'symbol': symbol,
+            'contracts': self.parse_number(contracts),
+            'contractSize': None,
+            'entryPrice': entryPrice,
+            'collateral': None,
+            'side': side,
+            'unrealizedProfit': None,
+            'leverage': self.parse_number(leverage),
+            'percentage': None,
+            'marginType': marginType,
+            'notional': None,
+            'markPrice': None,
+            'liquidationPrice': liquidationPrice,
+            'initialMargin': self.parse_number(initialMargin),
+            'initialMarginPercentage': None,
+            'maintenanceMargin': None,
+            'maintenanceMarginPercentage': None,
+            'marginRatio': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
+
+    def parse_positions(self, positions):
+        result = []
+        for i in range(0, len(positions)):
+            result.append(self.parse_position(positions[i]))
+        return result
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

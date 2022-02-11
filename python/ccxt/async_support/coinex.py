@@ -297,8 +297,8 @@ class coinex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(market, 'pricing_decimal'),
                     'amount': self.safe_integer(market, 'trading_decimal'),
+                    'price': self.safe_integer(market, 'pricing_decimal'),
                 },
                 'limits': {
                     'leverage': {

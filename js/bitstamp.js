@@ -335,6 +335,20 @@ module.exports = class bitstamp extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.fetchMarketsFromCache (params);
+        //
+        //     [
+        //         {
+        //             "trading": "Enabled",
+        //             "base_decimals": 8,
+        //             "url_symbol": "btcusd",
+        //             "name": "BTC/USD",
+        //             "instant_and_market_orders": "Enabled",
+        //             "minimum_order": "20.0 USD",
+        //             "counter_decimals": 2,
+        //             "description": "Bitcoin / U.S. dollar"
+        //         }
+        //     ]
+        //
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
@@ -373,8 +387,8 @@ module.exports = class bitstamp extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'counter_decimals'))),
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'base_decimals'))),
+                    'amount': this.safeInteger (market, 'base_decimals'),
+                    'price': this.safeInteger (market, 'counter_decimals'),
                 },
                 'limits': {
                     'leverage': {

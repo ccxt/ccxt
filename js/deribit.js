@@ -517,20 +517,20 @@ module.exports = class deribit extends Exchange {
                     'swap': swap,
                     'future': future,
                     'option': option,
+                    'active': this.safeValue (market, 'is_active'),
                     'contract': true,
                     'linear': false,
                     'inverse': true,
                     'taker': this.safeNumber (market, 'taker_commission'),
                     'maker': this.safeNumber (market, 'maker_commission'),
                     'contractSize': this.safeNumber (market, 'contract_size'),
-                    'active': this.safeValue (market, 'is_active'),
                     'expiry': expiry,
                     'expiryDatetime': this.iso8601 (expiry),
                     'strike': strike,
                     'optionType': optionType,
                     'precision': {
-                        'price': tickSize,
                         'amount': minTradeAmount,
+                        'price': tickSize,
                     },
                     'limits': {
                         'leverage': {

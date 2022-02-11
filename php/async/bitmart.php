@@ -472,7 +472,6 @@ class bitmart extends Exchange {
                 'linear' => null,
                 'inverse' => null,
                 'contractSize' => null,
-                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
@@ -602,7 +601,6 @@ class bitmart extends Exchange {
                 $symbol = $symbol . ':' . $settle . '-' . $this->yymmdd($expiry, '');
             }
             $feeConfig = $this->safe_value($market, 'fee_config', array());
-            $riskLimit = $this->safe_value($market, 'risk_limit');
             $result[] = array(
                 'id' => $id,
                 'numericId' => $numericId,
@@ -626,7 +624,6 @@ class bitmart extends Exchange {
                 'taker' => $this->safe_number($feeConfig, 'taker_fee'),
                 'maker' => $this->safe_number($feeConfig, 'maker_fee'),
                 'contractSize' => $this->safe_number($market, 'contract_size'),
-                'maintenanceMarginRate' => $this->safe_number($riskLimit, 'maintenance_margin'),
                 'expiry' => $expiry,
                 'expiryDatetime' => $this->iso8601($expiry),
                 'strike' => null,

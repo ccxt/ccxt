@@ -728,14 +728,13 @@ module.exports = class gateio extends Exchange {
                         'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')), // Fee is in %, so divide by 100
                         'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
                         'contractSize': this.safeNumber (market, 'quanto_multiplier'),
-                        'maintenanceMarginRate': this.safeNumber (market, 'maintenance_rate'),
                         'expiry': expiry,
                         'expiryDatetime': this.iso8601 (expiry),
                         'strike': undefined,
                         'optionType': undefined,
                         'precision': {
-                            'price': this.safeNumber (market, 'order_price_round'),
                             'amount': this.parseNumber ('1'),
+                            'price': this.safeNumber (market, 'order_price_round'),
                         },
                         'limits': {
                             'leverage': {
@@ -825,14 +824,13 @@ module.exports = class gateio extends Exchange {
                     'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')),
                     'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
                     'contractSize': undefined,
-                    'maintenanceMarginRate': undefined,
                     'expiry': undefined,
                     'expiryDatetime': undefined,
                     'strike': undefined,
                     'optionType': undefined,
                     'precision': {
-                        'price': this.parseNumber (this.parsePrecision (pricePrecisionString)),
                         'amount': this.parseNumber (this.parsePrecision (amountPrecisionString)),
+                        'price': this.parseNumber (this.parsePrecision (pricePrecisionString)),
                     },
                     'limits': {
                         'leverage': {
@@ -2103,6 +2101,7 @@ module.exports = class gateio extends Exchange {
             'DMOVE': 'pending',
             'CANCEL': 'failed',
             'DONE': 'ok',
+            'BCODE': 'ok', // GateCode withdrawal
         };
         return this.safeString (statuses, status, status);
     }
@@ -2133,12 +2132,16 @@ module.exports = class gateio extends Exchange {
         // withdrawals
         const id = this.safeString (transaction, 'id');
         let type = undefined;
-        if (id !== undefined) {
+        let amount = this.safeString (transaction, 'amount');
+        if (id[0] === 'b') {
+            // GateCode handling
+            type = Precise.stringGt (amount, '0') ? 'deposit' : 'withdrawal';
+            amount = Precise.stringAbs (amount);
+        } else if (id !== undefined) {
             type = this.parseTransactionType (id[0]);
         }
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId);
-        const amount = this.safeNumber (transaction, 'amount');
         const txid = this.safeString (transaction, 'txid');
         const rawStatus = this.safeString (transaction, 'status');
         const status = this.parseTransactionStatus (rawStatus);
@@ -2154,7 +2157,7 @@ module.exports = class gateio extends Exchange {
             'id': id,
             'txid': txid,
             'currency': code,
-            'amount': amount,
+            'amount': this.parseNumber (amount),
             'network': undefined,
             'address': address,
             'addressTo': undefined,

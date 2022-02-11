@@ -609,11 +609,11 @@ class bitrue extends Exchange {
                 'contractSize' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
-                'optionType' => null,
                 'strike' => null,
+                'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($priceFilter, 'priceScale', $priceDefault),
                     'amount' => $this->safe_integer($amountFilter, 'volumeScale', $amountDefault),
+                    'price' => $this->safe_integer($priceFilter, 'priceScale', $priceDefault),
                     'base' => $this->safe_integer($market, 'baseAssetPrecision'),
                     'quote' => $this->safe_integer($market, 'quotePrecision'),
                 ),

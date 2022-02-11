@@ -476,7 +476,6 @@ class huobijp(Exchange):
                 'taker': fee,
                 'maker': fee,
                 'contractSize': None,
-                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,

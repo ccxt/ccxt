@@ -351,14 +351,13 @@ class currencycom(Exchange):
                 'taker': taker,
                 'maker': maker,
                 'contractSize': None,
-                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': precisionPrice,
                     'amount': precisionAmount,
+                    'price': precisionPrice,
                 },
                 'limits': {
                     'leverage': {

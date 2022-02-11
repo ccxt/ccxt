@@ -324,8 +324,8 @@ module.exports = class xena extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
+                    'amount': parseInt ('0'),
                     'price': this.safeInteger2 (market, 'tickSize', 'pricePrecision'),
-                    'amount': 0,
                 },
                 'limits': {
                     'leverage': {

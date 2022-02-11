@@ -254,8 +254,8 @@ class hollaex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_number($market, 'increment_price'),
                     'amount' => $this->safe_number($market, 'increment_size'),
+                    'price' => $this->safe_number($market, 'increment_price'),
                 ),
                 'limits' => array(
                     'leverage' => array(

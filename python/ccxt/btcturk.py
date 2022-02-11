@@ -216,8 +216,8 @@ class btcturk(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(entry, 'denominatorScale'),
                     'amount': self.safe_integer(entry, 'numeratorScale'),
+                    'price': self.safe_integer(entry, 'denominatorScale'),
                 },
                 'limits': {
                     'leverage': {

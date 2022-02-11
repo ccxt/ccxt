@@ -328,7 +328,6 @@ module.exports = class upbit extends Exchange {
         const askFee = this.safeNumber (response, 'ask_fee');
         const fee = Math.max (bidFee, askFee);
         return {
-            'info': response,
             'id': marketId,
             'symbol': base + '/' + quote,
             'base': base,
@@ -355,8 +354,8 @@ module.exports = class upbit extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'price': 8,
-                'amount': 8,
+                'amount': parseInt ('8'),
+                'price': parseInt ('8'),
             },
             'limits': {
                 'leverage': {
@@ -375,6 +374,7 @@ module.exports = class upbit extends Exchange {
                     'min': this.safeNumber (bid, 'min_total'),
                     'max': this.safeNumber (marketInfo, 'max_total'),
                 },
+                'info': response,
             },
         };
     }
@@ -382,22 +382,14 @@ module.exports = class upbit extends Exchange {
     async fetchMarkets (params = {}) {
         const response = await this.publicGetMarketAll (params);
         //
-        //     [ {       market: "KRW-BTC",
-        //          korean_name: "비트코인",
-        //         english_name: "Bitcoin"  },
-        //       {       market: "KRW-DASH",
-        //          korean_name: "대시",
-        //         english_name: "Dash"      },
-        //       {       market: "KRW-ETH",
-        //          korean_name: "이더리움",
-        //         english_name: "Ethereum" },
-        //       {       market: "BTC-ETH",
-        //          korean_name: "이더리움",
-        //         english_name: "Ethereum" },
-        //       ...,
-        //       {       market: "BTC-BSV",
-        //          korean_name: "비트코인에스브이",
-        //         english_name: "Bitcoin SV" } ]
+        //    [
+        //        {
+        //            market: "KRW-BTC",
+        //            korean_name: "비트코인",
+        //            english_name: "Bitcoin"
+        //        },
+        //        ...,
+        //    ]
         //
         const result = [];
         for (let i = 0; i < response.length; i++) {

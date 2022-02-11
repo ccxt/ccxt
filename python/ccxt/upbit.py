@@ -330,7 +330,6 @@ class upbit(Exchange):
         askFee = self.safe_number(response, 'ask_fee')
         fee = max(bidFee, askFee)
         return {
-            'info': response,
             'id': marketId,
             'symbol': base + '/' + quote,
             'base': base,
@@ -357,8 +356,8 @@ class upbit(Exchange):
             'strike': None,
             'optionType': None,
             'precision': {
-                'price': 8,
-                'amount': 8,
+                'amount': int('8'),
+                'price': int('8'),
             },
             'limits': {
                 'leverage': {
@@ -377,28 +376,21 @@ class upbit(Exchange):
                     'min': self.safe_number(bid, 'min_total'),
                     'max': self.safe_number(marketInfo, 'max_total'),
                 },
+                'info': response,
             },
         }
 
     def fetch_markets(self, params={}):
         response = self.publicGetMarketAll(params)
         #
-        #     [{      market: "KRW-BTC",
-        #          korean_name: "비트코인",
-        #         english_name: "Bitcoin"  },
-        #       {      market: "KRW-DASH",
-        #          korean_name: "대시",
-        #         english_name: "Dash"      },
-        #       {      market: "KRW-ETH",
-        #          korean_name: "이더리움",
-        #         english_name: "Ethereum"},
-        #       {      market: "BTC-ETH",
-        #          korean_name: "이더리움",
-        #         english_name: "Ethereum"},
-        #       ...,
-        #       {      market: "BTC-BSV",
-        #          korean_name: "비트코인에스브이",
-        #         english_name: "Bitcoin SV"}]
+        #    [
+        #        {
+        #            market: "KRW-BTC",
+        #            korean_name: "비트코인",
+        #            english_name: "Bitcoin"
+        #        },
+        #        ...,
+        #    ]
         #
         result = []
         for i in range(0, len(response)):

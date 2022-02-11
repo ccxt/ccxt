@@ -136,6 +136,14 @@ class luno extends Exchange {
                     ),
                 ),
             ),
+            'fees' => array(
+                'trading' => array(
+                    'tierBased' => true, // based on volume from your primary currency (not the same for everyone)
+                    'percentage' => true,
+                    'taker' => $this->parse_number('0.001'),
+                    'maker' => $this->parse_number('0'),
+                ),
+            ),
         ));
     }
 

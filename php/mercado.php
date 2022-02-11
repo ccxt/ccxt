@@ -200,8 +200,8 @@ class mercado extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => 8,
-                    'price' => 5,
+                    'amount' => intval('8'),
+                    'price' => intval('5'),
                 ),
                 'limits' => array(
                     'leverage' => array(

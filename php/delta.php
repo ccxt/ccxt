@@ -455,8 +455,8 @@ class delta extends Exchange {
                 'strike' => $this->parse_number($strike),
                 'optionType' => $optionType,
                 'precision' => array(
-                    'price' => $this->safe_number($market, 'tick_size'),
                     'amount' => $this->parse_number('1'), // number of contracts
+                    'price' => $this->safe_number($market, 'tick_size'),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -857,7 +857,7 @@ class delta extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_position($symbol, $params = null) {
+    public function fetch_position($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(

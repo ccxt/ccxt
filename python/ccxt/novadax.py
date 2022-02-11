@@ -256,8 +256,8 @@ class novadax(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(market, 'pricePrecision'),
                     'amount': self.safe_integer(market, 'amountPrecision'),
+                    'price': self.safe_integer(market, 'pricePrecision'),
                     'cost': self.safe_integer(market, 'valuePrecision'),
                 },
                 'limits': {

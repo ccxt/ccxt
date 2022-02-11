@@ -271,31 +271,29 @@ class cryptocom extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        // {
-        //     "id" => 11,
-        //     "method" => "public/get-instruments",
-        //     "code" => 0,
-        //     "result" => {
-        //       "instruments" => array(
-        //         array(
-        //           "instrument_name" => "BTC_USDT",
-        //           "quote_currency" => "BTC",
-        //           "base_currency" => "USDT",
-        //           "price_decimals" => 2,
-        //           "quantity_decimals" => 6,
-        //           "margin_trading_enabled" => true
-        //         ),
-        //         {
-        //           "instrument_name" => "CRO_BTC",
-        //           "quote_currency" => "BTC",
-        //           "base_currency" => "CRO",
-        //           "price_decimals" => 8,
-        //           "quantity_decimals" => 2,
-        //           "margin_trading_enabled" => false
-        //         }
-        //       )
-        //     }
-        //  }
+        //
+        //    {
+        //        $id => 11,
+        //        method => 'public/get-instruments',
+        //        code => 0,
+        //        $result => {
+        //            'instruments' => array(
+        //                array(
+        //                    instrument_name => 'NEAR_BTC',
+        //                    quote_currency => 'BTC',
+        //                    base_currency => 'NEAR',
+        //                    price_decimals => '8',
+        //                    quantity_decimals => '2',
+        //                    margin_trading_enabled => true,
+        //                    $margin_trading_enabled_5x => true,
+        //                    $margin_trading_enabled_10x => true,
+        //                    max_quantity => '100000000',
+        //                    min_quantity => '0.01'
+        //               ),
+        //            )
+        //        }
+        //    }
+        //
         $response = yield $this->spotPublicGetPublicGetInstruments ($params);
         $resultResponse = $this->safe_value($response, 'result', array());
         $markets = $this->safe_value($resultResponse, 'instruments', array());
@@ -310,6 +308,15 @@ class cryptocom extends Exchange {
             $priceDecimals = $this->safe_string($market, 'price_decimals');
             $minPrice = $this->parse_precision($priceDecimals);
             $minQuantity = $this->safe_string($market, 'min_quantity');
+            $maxLeverage = $this->parse_number('1');
+            $margin_trading_enabled_5x = $this->safe_value($market, 'margin_trading_enabled_5x');
+            if ($margin_trading_enabled_5x) {
+                $maxLeverage = $this->parse_number('5');
+            }
+            $margin_trading_enabled_10x = $this->safe_value($market, 'margin_trading_enabled_10x');
+            if ($margin_trading_enabled_10x) {
+                $maxLeverage = $this->parse_number('10');
+            }
             $result[] = array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
@@ -335,13 +342,13 @@ class cryptocom extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => intval($priceDecimals),
                     'amount' => $this->safe_integer($market, 'quantity_decimals'),
+                    'price' => intval($priceDecimals),
                 ),
                 'limits' => array(
                     'leverage' => array(
-                        'min' => null,
-                        'max' => null,
+                        'min' => $this->parse_number('1'),
+                        'max' => $maxLeverage,
                     ),
                     'amount' => array(
                         'min' => $this->parse_number($minQuantity),

@@ -615,14 +615,13 @@ class ftx extends Exchange {
                 'linear' => true,
                 'inverse' => false,
                 'contractSize' => $this->parse_number('1'),
-                'maintenanceMarginRate' => null,
                 'expiry' => $expiry,
                 'expiryDatetime' => $this->iso8601($expiry),
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_number($market, 'priceIncrement'),
                     'amount' => $this->safe_number($market, 'sizeIncrement'),
+                    'price' => $this->safe_number($market, 'priceIncrement'),
                 ),
                 'limits' => array(
                     'leverage' => array(

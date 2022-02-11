@@ -251,8 +251,8 @@ class bitso(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_number(market, 'tick_size', defaultPricePrecision),
                     'amount': self.safe_number(self.options['precision'], base, self.options['defaultPrecision']),
+                    'price': self.safe_number(market, 'tick_size', defaultPricePrecision),
                 },
                 'limits': {
                     'leverage': {

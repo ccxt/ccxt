@@ -129,6 +129,17 @@ class lbank extends Exchange {
 
     public function fetch_markets($params = array ()) {
         $response = $this->publicGetAccuracy ($params);
+        //
+        //    array(
+        //        array(
+        //            "symbol" => "btc_usdt",
+        //            "quantityAccuracy" => "4",
+        //            "minTranQua" => "0.0001",
+        //            "priceAccuracy" => "2"
+        //        ),
+        //        ...
+        //    )
+        //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $market = $response[$i];
@@ -172,8 +183,8 @@ class lbank extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($market, 'priceAccuracy'),
                     'amount' => $this->safe_integer($market, 'quantityAccuracy'),
+                    'price' => $this->safe_integer($market, 'priceAccuracy'),
                 ),
                 'limits' => array(
                     'leverage' => array(

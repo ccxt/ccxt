@@ -240,8 +240,8 @@ class qtrade(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(market, 'base_precision'),
                     'amount': self.safe_integer(market, 'market_precision'),
+                    'price': self.safe_integer(market, 'base_precision'),
                 },
                 'limits': {
                     'leverage': {
