@@ -206,7 +206,6 @@ module.exports = class indodax extends Exchange {
                 'inverse': undefined,
                 'taker': this.safeNumber (market, 'trade_fee_percent'),
                 'contractSize': undefined,
-                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,

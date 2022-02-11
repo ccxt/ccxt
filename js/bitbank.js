@@ -194,7 +194,6 @@ module.exports = class bitbank extends Exchange {
                 'taker': this.safeNumber (entry, 'taker_fee_rate_quote'),
                 'maker': this.safeNumber (entry, 'maker_fee_rate_quote'),
                 'contractSize': undefined,
-                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,

@@ -852,7 +852,6 @@ module.exports = class bitget extends Exchange {
             'linear': (base === settle),
             'inverse': (quote === settle),
             'contractSize': contractVal,
-            'maintenanceMarginRate': undefined,
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,

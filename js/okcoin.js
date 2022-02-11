@@ -878,7 +878,6 @@ module.exports = class okcoin extends Exchange {
             'linear': contract ? (quote === settle) : undefined,
             'inverse': contract ? (base === settle) : undefined,
             'contractSize': contractVal,
-            'maintenanceMarginRate': undefined,
             'expiry': expiry,
             'expiryDatetime': this.iso8601 (expiry),
             'strike': strike,

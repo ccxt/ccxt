@@ -264,7 +264,6 @@ module.exports = class coinmate extends Exchange {
                 'taker': this.safeNumber (fees, 'taker'),
                 'maker': this.safeNumber (fees, 'maker'),
                 'contractSize': undefined,
-                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,

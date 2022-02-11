@@ -1303,7 +1303,6 @@ module.exports = class huobi extends Exchange {
                 'taker': taker,
                 'maker': maker,
                 'contractSize': contractSize,
-                'maintenanceMarginRate': undefined,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
                 'strike': undefined,

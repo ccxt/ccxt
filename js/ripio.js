@@ -205,7 +205,6 @@ module.exports = class ripio extends Exchange {
                 'taker': this.safeNumber (firstFee, 'taker_fee', 0.0),
                 'maker': this.safeNumber (firstFee, 'maker_fee', 0.0),
                 'contractSize': undefined,
-                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,

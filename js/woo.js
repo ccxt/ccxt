@@ -315,7 +315,6 @@ module.exports = class woo extends Exchange {
                 'linear': false,
                 'inverse': false,
                 'contractSize': undefined,
-                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,

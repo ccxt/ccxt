@@ -312,7 +312,6 @@ module.exports = class zonda extends Exchange {
                 'taker': this.safeNumber (fees, 'taker'),
                 'maker': this.safeNumber (fees, 'maker'),
                 'contractSize': undefined,
-                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'optionType': undefined,

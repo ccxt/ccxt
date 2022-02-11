@@ -363,7 +363,6 @@ module.exports = class yobit extends Exchange {
                 'taker': this.parseNumber (feeString),
                 'maker': this.parseNumber (feeString),
                 'contractSize': undefined,
-                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,

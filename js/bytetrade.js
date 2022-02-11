@@ -343,7 +343,6 @@ module.exports = class bytetrade extends Exchange {
                 'taker': this.safeNumber (market, 'taker'),
                 'maker': this.safeNumber (market, 'maker'),
                 'contractSize': undefined,
-                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,

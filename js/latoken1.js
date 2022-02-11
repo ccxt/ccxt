@@ -218,7 +218,6 @@ module.exports = class latoken1 extends Exchange {
                 'taker': this.safeNumber (market, 'takerFee', defaultTaker),
                 'maker': this.safeNumber (market, 'makerFee', defaultMaker),
                 'contractSize': undefined,
-                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,

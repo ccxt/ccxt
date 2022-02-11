@@ -238,7 +238,6 @@ module.exports = class bitso extends Exchange {
                 'taker': taker,
                 'maker': maker,
                 'contractSize': undefined,
-                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,

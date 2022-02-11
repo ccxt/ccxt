@@ -173,7 +173,6 @@ module.exports = class bitforex extends Exchange {
                 'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
-                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDateTime': undefined,
                 'strike': undefined,

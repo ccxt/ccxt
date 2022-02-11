@@ -270,7 +270,6 @@ module.exports = class whitebit extends Exchange {
                 'taker': this.safeNumber (market, 'makerFee'),
                 'maker': this.safeNumber (market, 'takerFee'),
                 'contractSize': undefined,
-                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,

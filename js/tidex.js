@@ -287,7 +287,6 @@ module.exports = class tidex extends Exchange {
                 'inverse': undefined,
                 'taker': this.parseNumber (takerFeeString),
                 'contractSize': undefined,
-                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,

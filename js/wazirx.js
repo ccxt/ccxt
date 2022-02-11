@@ -197,7 +197,6 @@ module.exports = class wazirx extends Exchange {
                 'taker': this.parseNumber (takerString),
                 'maker': this.parseNumber (makerString),
                 'contractSize': undefined,
-                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,

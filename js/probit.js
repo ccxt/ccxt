@@ -280,7 +280,6 @@ module.exports = class probit extends Exchange {
                 'taker': this.parseNumber (taker),
                 'maker': this.parseNumber (maker),
                 'contractSize': undefined,
-                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
