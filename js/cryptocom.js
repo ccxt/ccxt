@@ -265,31 +265,29 @@ module.exports = class cryptocom extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        // {
-        //     "id": 11,
-        //     "method": "public/get-instruments",
-        //     "code": 0,
-        //     "result": {
-        //       "instruments": [
-        //         {
-        //           "instrument_name": "BTC_USDT",
-        //           "quote_currency": "BTC",
-        //           "base_currency": "USDT",
-        //           "price_decimals": 2,
-        //           "quantity_decimals": 6,
-        //           "margin_trading_enabled": true
-        //         },
-        //         {
-        //           "instrument_name": "CRO_BTC",
-        //           "quote_currency": "BTC",
-        //           "base_currency": "CRO",
-        //           "price_decimals": 8,
-        //           "quantity_decimals": 2,
-        //           "margin_trading_enabled": false
-        //         }
-        //       ]
-        //     }
-        //  }
+        //
+        //    {
+        //        id: 11,
+        //        method: 'public/get-instruments',
+        //        code: 0,
+        //        result: {
+        //            'instruments': [
+        //                {
+        //                    instrument_name: 'NEAR_BTC',
+        //                    quote_currency: 'BTC',
+        //                    base_currency: 'NEAR',
+        //                    price_decimals: '8',
+        //                    quantity_decimals: '2',
+        //                    margin_trading_enabled: true,
+        //                    margin_trading_enabled_5x: true,
+        //                    margin_trading_enabled_10x: true,
+        //                    max_quantity: '100000000',
+        //                    min_quantity: '0.01'
+        //               },
+        //            ]
+        //        }
+        //    }
+        //
         const response = await this.spotPublicGetPublicGetInstruments (params);
         const resultResponse = this.safeValue (response, 'result', {});
         const markets = this.safeValue (resultResponse, 'instruments', []);
@@ -304,6 +302,15 @@ module.exports = class cryptocom extends Exchange {
             const priceDecimals = this.safeString (market, 'price_decimals');
             const minPrice = this.parsePrecision (priceDecimals);
             const minQuantity = this.safeString (market, 'min_quantity');
+            let maxLeverage = this.parseNumber ('1');
+            const margin_trading_enabled_5x = this.safeValue (market, 'margin_trading_enabled_5x');
+            if (margin_trading_enabled_5x) {
+                maxLeverage = this.parseNumber ('5');
+            }
+            const margin_trading_enabled_10x = this.safeValue (market, 'margin_trading_enabled_10x');
+            if (margin_trading_enabled_10x) {
+                maxLeverage = this.parseNumber ('10');
+            }
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -334,8 +341,8 @@ module.exports = class cryptocom extends Exchange {
                 },
                 'limits': {
                     'leverage': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': this.parseNumber ('1'),
+                        'max': maxLeverage,
                     },
                     'amount': {
                         'min': this.parseNumber (minQuantity),
