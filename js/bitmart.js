@@ -20,6 +20,12 @@ module.exports = class bitmart extends Exchange {
             'certified': true,
             'pro': true,
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': undefined, // has but unimplemented
+                'swap': undefined, // has but unimplemented
+                'future': undefined, // has but unimplemented
+                'option': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
@@ -456,18 +462,19 @@ module.exports = class bitmart extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'active': true,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
-                'active': true,
+                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeNumber (market, 'base_min_size'),
                     'price': this.parseNumber (this.decimalToPrecision (Math.pow (10, -pricePrecision), ROUND, 14)),
+                    'amount': this.safeNumber (market, 'base_min_size'),
                 },
                 'limits': {
                     'leverage': {
@@ -590,6 +597,7 @@ module.exports = class bitmart extends Exchange {
                 symbol = symbol + ':' + settle + '-' + this.yymmdd (expiry, '');
             }
             const feeConfig = this.safeValue (market, 'fee_config', {});
+            const riskLimit = this.safeValue (market, 'risk_limit');
             result.push ({
                 'id': id,
                 'numericId': numericId,
@@ -606,20 +614,21 @@ module.exports = class bitmart extends Exchange {
                 'swap': swap,
                 'future': future,
                 'option': false,
+                'active': undefined,
                 'contract': true,
                 'linear': undefined,
                 'inverse': undefined,
                 'taker': this.safeNumber (feeConfig, 'taker_fee'),
                 'maker': this.safeNumber (feeConfig, 'maker_fee'),
                 'contractSize': this.safeNumber (market, 'contract_size'),
-                'active': undefined,
+                'maintenanceMarginRate': this.safeNumber (riskLimit, 'maintenance_margin'),
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': amountPrecision,
                     'price': pricePrecision,
+                    'amount': amountPrecision,
                 },
                 'limits': {
                     'leverage': {

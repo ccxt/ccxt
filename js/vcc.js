@@ -18,6 +18,7 @@ module.exports = class vcc extends Exchange {
             'rateLimit': 1000,
             'version': 'v3',
             'has': {
+                'CORS': undefined,
                 'spot': true,
                 'margin': false,
                 'swap': false,
@@ -31,6 +32,7 @@ module.exports = class vcc extends Exchange {
                 'editOrder': undefined,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,

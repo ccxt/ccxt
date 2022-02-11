@@ -18,6 +18,7 @@ module.exports = class poloniex extends Exchange {
             'certified': false,
             'pro': true,
             'has': {
+                'CORS': undefined,
                 'spot': true,
                 'margin': undefined, // has but not fully implemented
                 'swap': undefined, // has but not fully implemented
@@ -25,7 +26,6 @@ module.exports = class poloniex extends Exchange {
                 'option': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': undefined,
                 'createDepositAddress': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
@@ -1220,7 +1220,8 @@ module.exports = class poloniex extends Exchange {
         const response = await this.privatePostGenerateNewAddress (this.extend (request, params));
         let address = undefined;
         let tag = undefined;
-        if (response['success'] === 1) {
+        const success = this.safeString (response, 'success');
+        if (success === '1') {
             address = this.safeString (response, 'response');
         }
         this.checkAddress (address);

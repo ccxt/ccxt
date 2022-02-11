@@ -19,8 +19,13 @@ module.exports = class zb extends Exchange {
             'certified': true,
             'pro': true,
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': undefined, // has but unimplemented
+                'swap': undefined, // has but unimplemented
+                'future': undefined,
+                'option': undefined,
+                'cancelOrder': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
@@ -278,18 +283,19 @@ module.exports = class zb extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'active': true,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
-                'active': true,
+                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': parseInt (amountPrecisionString),
                     'price': parseInt (pricePrecisionString),
+                    'amount': parseInt (amountPrecisionString),
                 },
                 'limits': {
                     'leverage': {

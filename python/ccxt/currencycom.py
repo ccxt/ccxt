@@ -31,16 +31,28 @@ class currencycom(Exchange):
             'version': 'v1',
             # new metainfo interface
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': None,  # has but not fully implemented
+                'swap': False,
+                'future': False,
+                'option': False,
+                'cancelOrder': True,
                 'createOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -157,6 +169,7 @@ class currencycom(Exchange):
                 'ACN': 'Accenture',
                 'BNS': 'Bank of Nova Scotia',
                 'CAR': 'Avis Budget Group Inc',
+                'CLR': 'Continental Resources',
                 'EDU': 'New Oriental Education & Technology Group Inc',
                 'ETN': 'Eaton',
                 'FOX': 'Fox Corporation',
@@ -290,7 +303,7 @@ class currencycom(Exchange):
                 maxPrice = self.safe_number(filter, 'maxPrice')
                 if (maxPrice is not None) and (maxPrice > 0):
                     limitPriceMax = maxPrice
-            precisionAmount = self.parse_precision(self.safe_string(market, 'baseAssetPrecision'))
+            precisionAmount = self.parse_number(self.parse_precision(self.safe_string(market, 'baseAssetPrecision')))
             limitAmount = {
                 'min': None,
                 'max': None,
@@ -331,20 +344,21 @@ class currencycom(Exchange):
                 'swap': False,
                 'future': False,
                 'option': False,
+                'active': active,
                 'contract': False,
                 'linear': None,
                 'inverse': None,
                 'taker': taker,
                 'maker': maker,
                 'contractSize': None,
-                'active': active,
+                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': precisionAmount,
                     'price': precisionPrice,
+                    'amount': precisionAmount,
                 },
                 'limits': {
                     'leverage': {

@@ -16,8 +16,19 @@ class ftxus(ftx):
             'certified': False,
             'hostname': 'ftx.us',
             'has': {
-                'future': False,
+                'CORS': None,
+                'spot': True,
+                'margin': None,  # Has but not fully implemented
                 'swap': False,
+                'future': False,
+                'option': None,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchMarkOHLCV': False,
+                'fetchPremiumIndexOHLCV': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/141506670-12f6115f-f425-4cd8-b892-b51d157ca01f.jpg',

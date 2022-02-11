@@ -18,6 +18,7 @@ module.exports = class stex extends Exchange {
             'certified': false,
             // new metainfo interface
             'has': {
+                'CORS': undefined,
                 'spot': true,
                 'margin': false,
                 'swap': false,
@@ -26,13 +27,13 @@ module.exports = class stex extends Exchange {
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': undefined,
                 'createDepositAddress': true,
                 'createMarketOrder': undefined, // limit orders only
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
@@ -333,7 +334,10 @@ module.exports = class stex extends Exchange {
                 'fee': fee,
                 'precision': parseInt (precision),
                 'limits': {
-                    'amount': { 'min': this.parseNumber (amountLimit), 'max': undefined },
+                    'amount': {
+                        'min': this.parseNumber (amountLimit),
+                        'max': undefined,
+                    },
                     'deposit': {
                         'min': this.safeNumber (currency, 'minimum_deposit_amount'),
                         'max': undefined,

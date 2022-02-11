@@ -20,22 +20,25 @@ module.exports = class bittrex extends Exchange {
             'pro': true,
             // new metainfo interface
             'has': {
+                'CORS': undefined,
                 'spot': true,
                 'margin': false,
                 'swap': false,
                 'future': false,
                 'option': false,
+                'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': undefined,
                 'createDepositAddress': true,
-                'createReduceOnlyOrder': false,
                 'createMarketOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
@@ -46,6 +49,7 @@ module.exports = class bittrex extends Exchange {
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': 'emulated',
@@ -241,6 +245,7 @@ module.exports = class bittrex extends Exchange {
             },
             'commonCurrencies': {
                 'BIFI': 'Bifrost Finance',
+                'BTR': 'BTRIPS',
                 'MEME': 'Memetic', // conflict with Meme Inu
                 'MER': 'Mercury', // conflict with Mercurial Finance
                 'PROS': 'Pros.Finance',
@@ -290,7 +295,6 @@ module.exports = class bittrex extends Exchange {
             const quoteId = this.safeString (market, 'quoteCurrencySymbol');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const pricePrecision = this.safeInteger (market, 'precision', 8);
             const status = this.safeString (market, 'status');
             result.push ({
                 'id': this.safeString (market, 'symbol'),
@@ -317,10 +321,14 @@ module.exports = class bittrex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
+                    'price': this.safeInteger (market, 'precision', 8),
                     'amount': parseInt ('8'),
-                    'price': pricePrecision,
                 },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'minTradeSize'),
                         'max': undefined,
@@ -330,10 +338,6 @@ module.exports = class bittrex extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'leverage': {
                         'min': undefined,
                         'max': undefined,
                     },

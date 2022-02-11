@@ -978,11 +978,11 @@ The CCXT library currently supports the following 114 cryptocurrency exchange ma
      - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg
-          :target: https://www.huobi.com
+          :target: https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223
           :alt: huobi
      
      - huobi
-     - `Huobi <https://www.huobi.com>`__
+     - `Huobi <https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://huobiapi.github.io/docs/spot/v1/cn/
           :alt: API Version 1
@@ -1271,35 +1271,20 @@ The CCXT library currently supports the following 114 cryptocurrency exchange ma
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-   * - .. image:: https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg
-          :target: https://www.okex.com
-          :alt: okex
+   * - .. image:: https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg
+          :target: https://www.okx.com/join/1888677
+          :alt: okx
      
-     - okex
-     - `OKEX <https://www.okex.com>`__
+     - okx
+     - `OKX <https://www.okx.com/join/1888677>`__
      - .. image:: https://img.shields.io/badge/5-lightgray
-          :target: https://www.okex.com/docs-v5/en/
+          :target: https://www.okx.com/docs-v5/en/
           :alt: API Version 5
      
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
           :alt: CCXT Certified
      
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
-     
-   * - .. image:: https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg
-          :target: https://www.okex.com/join/1888677
-          :alt: okex3
-     
-     - okex3
-     - `OKEX <https://www.okex.com/join/1888677>`__
-     - .. image:: https://img.shields.io/badge/3-lightgray
-          :target: https://www.okex.com/docs/en/
-          :alt: API Version 3
-     
-     - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
@@ -1488,11 +1473,11 @@ The CCXT library currently supports the following 114 cryptocurrency exchange ma
      
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/148647666-c109c20b-f8ac-472f-91c3-5f658cb90f49.jpeg
-          :target: https://wazirx.com
+          :target: https://wazirx.com/invite/k7rrnks5
           :alt: wazirx
      
      - wazirx
-     - `WazirX <https://wazirx.com>`__
+     - `WazirX <https://wazirx.com/invite/k7rrnks5>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://docs.wazirx.com/#public-rest-api-for-wazirx
           :alt: API Version 2
@@ -1508,6 +1493,18 @@ The CCXT library currently supports the following 114 cryptocurrency exchange ma
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://github.com/whitebit-exchange/api-docs
           :alt: API Version 2
+     
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg
+          :target: https://referral.woo.org/BAJS6oNmZb3vi3RGA
+          :alt: woo
+     
+     - woo
+     - `WOO X <https://referral.woo.org/BAJS6oNmZb3vi3RGA>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://docs.woo.org/
+          :alt: API Version 1
      
      - 
      - 
@@ -1868,7 +1865,7 @@ Below is a detailed description of each of the base exchange properties:
   ``timeframes``\ : An associative array of timeframes, supported by the fetchOHLCV method of the exchange. This is only populated when ``has['fetchOHLCV']`` property is true.
 
  * 
-  ``timeout``\ : A timeout in milliseconds for a request-response roundtrip (default timeout is 10000 ms = 10 seconds). You should always set it to a reasonable value, hanging forever with no timeout is not your option, for sure.
+  ``timeout``\ : A timeout in milliseconds for a request-response roundtrip (default timeout is 10000 ms = 10 seconds). If the response is not received in that time, the library will throw an ``RequestTimeout`` exception. You can leave the default timeout value or set it to a reasonable value. Hanging forever with no timeout is not your option, for sure. You don't have to override this option in general case.
 
  * 
   ``rateLimit``\ : A request rate limit in milliseconds. Specifies the required minimal delay between two consequent HTTP requests to the same exchange. The built-in rate-limiter is enabled by default and can be turned off by setting the ``enableRateLimit`` property to false.
@@ -2199,25 +2196,27 @@ Market Structure
        'baseId':  'btc',         // any string, exchange-specific base currency id
        'quoteId': 'usd',         // any string, exchange-specific quote currency id
        'active':   true,         // boolean, market status
-       'taker':    0.002,        // taker fee rate, 0.002 = 0.2%
-       'maker':    0.0016,       // maker fee rate, 0.0016 = 0.16%
-       'type':    'spot'         // spot for spot, future for expiry futures, swap for perpetual swaps, 'option' for options
-       'linear':   true          // the contract is a linear contract (settled in quote currency)
-       'inverse':  false         // the contract is an inverse contract (settled in base currency)
-       'contractSize': 1         // the size of one contract, only used if `contract` is true
+       'type':    'spot',        // spot for spot, future for expiry futures, swap for perpetual swaps, 'option' for options
        'spot':     true,         // whether the market is a spot market
        'margin':   true,         // whether the market is a margin market
        'future':   false,        // whether the market is a expiring future
        'swap':     false,        // whether the market is a perpetual swap
        'option':   false,        // whether the market is an option contract
        'contract': false,        // whether the market is a future, a perpetual swap, or an option
-       'settleId': 'usdt'        // the currencyId of that the contract will settle in, only set if `contract` is true
-       'settle':   'USDT'        // the unified currency code that the contract will settle in, only set if `contract` is true
-       'expiry':  1641370465121  // the unix expiry timestamp in milliseconds, undefined for everything except market['type'] `future`
-       'expiryDatetime': '2022-03-26T00:00:00.000Z' // The datetime contract will in iso8601 format
+       'settle':   'USDT',       // the unified currency code that the contract will settle in, only set if `contract` is true
+       'settleId': 'usdt',       // the currencyId of that the contract will settle in, only set if `contract` is true
+       'contractSize': 1,        // the size of one contract, only used if `contract` is true
+       'linear':   true,         // the contract is a linear contract (settled in quote currency)
+       'inverse':  false,        // the contract is an inverse contract (settled in base currency)
+       'expiry':  1641370465121, // the unix expiry timestamp in milliseconds, undefined for everything except market['type'] `future`
+       'expiryDatetime': '2022-03-26T00:00:00.000Z', // The datetime contract will in iso8601 format
+       'strike': 4000,           // price at which a put or call option can be exercised
+       'optionType': 'call',     // call or put string, call option represents an option with the right to buy and put an option with the right to sell
+       'taker':    0.002,        // taker fee rate, 0.002 = 0.2%
+       'maker':    0.0016,       // maker fee rate, 0.0016 = 0.16%
        'percentage': true,       // whether the taker and maker fee rate is a multiplier or a fixed flat amount
        'tierBased': false,       // whether the fee depends on your trading tier (your trading volume)
-       'feeSide': 'get'          // string literal can be 'get', 'give', 'base', 'quote', 'other'
+       'feeSide': 'get',         // string literal can be 'get', 'give', 'base', 'quote', 'other'
        'precision': {            // number of decimal digits "after the dot"
            'price': 8,           // integer or float for TICK_SIZE roundingMode, might be missing if not supplied by the exchange
            'amount': 8,          // integer, might be missing if not supplied by the exchange
@@ -2230,6 +2229,7 @@ Market Structure
            },
            'price': { ... },     // same min/max limits for the price of the order
            'cost':  { ... },     // same limits for order cost = price * amount
+           'leverage': { ... },  // same min/max limits for the leverage of the order
        },
        'info':      { ... },     // the original unparsed market info from the exchange
    }
@@ -2251,6 +2251,8 @@ Each market is an associative array (aka dictionary) with the following keys:
  * ``info``. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
  * ``precision``. Precision accepted in order values by exchanges upon order placement for price, amount and cost. (The value inside this property depend on the :ref:`\ ``exchange.precisionMode`` <precision mode>`\ ).
  * ``limits``. The minimums and maximums for prices, amounts (volumes) and costs (where cost = price * amount).
+ * ``optionType``. The type of the option, ``call`` option represents an option with the right to buy and ``put`` an option with the right to sell.
+ * ``strike``. Price at which an option can be bought or sold when it is exercised.
 
 Active status
 -------------
@@ -2713,10 +2715,17 @@ We currently load spot markets with the unified ``BASE/QUOTE`` symbol schema int
 
  **Please, check this announcement: `Unified contract naming conventions <https://github.com/ccxt/ccxt/issues/10931>`__
 
-Futures Contracts
-"""""""""""""""""
+CCXT supports the following types of derivative contracts:
 
-A futures market symbol consists of the underlying currency, the quoting currency, the settlement currency and an arbitrary identifier. Most often the identifier is the settlement date of the futures contract in ``YYMMDD`` format:
+
+ * ``future`` – for expiring futures contracts that have a delivery/settlement date ` <https://en.wikipedia.org/wiki/Futures_contract>`__
+ * ``swap`` – for perpetual swap futures that don't have a delivery date ` <https://en.wikipedia.org/wiki/Perpetual_futures>`__
+ * ``option`` – for option contracts (https://en.wikipedia.org/wiki/Option_contract)
+
+Future
+""""""
+
+A future market symbol consists of the underlying currency, the quoting currency, the settlement currency and an arbitrary identifier. Most often the identifier is the settlement date of the future contract in ``YYMMDD`` format:
 
 .. code-block:: JavaScript
 
@@ -2735,8 +2744,8 @@ A futures market symbol consists of the underlying currency, the quoting currenc
    'ETH/USDT:ETH-210625'  // ETH/USDT futures contract settled in ETH (inverse) on 2021-06-25
    'ETH/USDT:USDT-210625' // ETH/USDT futures contract settled in USDT (linear, vanilla) on 2021-06-25
 
-Perpetual Swaps (Perpetual Futures)
-"""""""""""""""""""""""""""""""""""
+Perpetual Swap (Perpetual Future)
+"""""""""""""""""""""""""""""""""
 
 .. code-block:: JavaScript
 
@@ -2752,8 +2761,8 @@ Perpetual Swaps (Perpetual Futures)
    'ETH/USDT:ETH'  // ETH/USDT inverse perpetual swap contract funded in ETH
    'ETH/USDT:USDT' // ETH/USDT linear perpetual swap contract funded in USDT
 
-Options
-"""""""
+Option
+""""""
 
 .. code-block:: JavaScript
 
@@ -3505,7 +3514,7 @@ The levels of detail or levels of order book aggregation are often number-labell
 
 If you want to get an L2 order book, whatever the exchange returns, use the ``fetchL2OrderBook(symbol, limit, params)`` or ``fetch_l2_order_book(symbol, limit, params)`` unified method for that.
 
-The ``limit`` argument does not guarantee that the number of bids or asks will always be equal to ``limit``. It designates the upper boundary or the maximum, so at some moment in time there may be less than ``limit`` bids or asks, but never more than ``limit`` bids or asks. This is the case when the exchange does not have enough orders on the orderbook.
+The ``limit`` argument does not guarantee that the number of bids or asks will always be equal to ``limit``. It designates the upper boundary or the maximum, so at some moment in time there may be less than ``limit`` bids or asks. This is the case when the exchange does not have enough orders on the orderbook. However, if the underlying exchange API does not support a ``limit`` parameter for the orderbook endpoint at all, then the ``limit`` argument will be ignored. CCXT does not trim ``bids`` and ``asks`` if the exchange returns more than you request.
 
 Market Price
 ^^^^^^^^^^^^

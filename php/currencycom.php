@@ -24,16 +24,28 @@ class currencycom extends Exchange {
             'version' => 'v1',
             // new metainfo interface
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => null, // has but not fully implemented
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'cancelOrder' => true,
                 'createOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrderBook' => true,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -150,6 +162,7 @@ class currencycom extends Exchange {
                 'ACN' => 'Accenture',
                 'BNS' => 'Bank of Nova Scotia',
                 'CAR' => 'Avis Budget Group Inc',
+                'CLR' => 'Continental Resources',
                 'EDU' => 'New Oriental Education & Technology Group Inc',
                 'ETN' => 'Eaton',
                 'FOX' => 'Fox Corporation',
@@ -293,7 +306,7 @@ class currencycom extends Exchange {
                     $limitPriceMax = $maxPrice;
                 }
             }
-            $precisionAmount = $this->parse_precision($this->safe_string($market, 'baseAssetPrecision'));
+            $precisionAmount = $this->parse_number($this->parse_precision($this->safe_string($market, 'baseAssetPrecision')));
             $limitAmount = array(
                 'min' => null,
                 'max' => null,
@@ -337,20 +350,21 @@ class currencycom extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
+                'active' => $active,
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
                 'taker' => $taker,
                 'maker' => $maker,
                 'contractSize' => null,
-                'active' => $active,
+                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $precisionAmount,
                     'price' => $precisionPrice,
+                    'amount' => $precisionAmount,
                 ),
                 'limits' => array(
                     'leverage' => array(

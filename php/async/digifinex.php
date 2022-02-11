@@ -20,10 +20,11 @@ class digifinex extends Exchange {
             'version' => 'v3',
             'rateLimit' => 900, // 300 for posts
             'has' => array(
+                'CORS' => null,
                 'spot' => true,
-                'margin' => null,
-                'swap' => false,
-                'future' => false,
+                'margin' => null, // has but unimplemented
+                'swap' => null, // has but unimplemented
+                'future' => null, // has but unimplemented
                 'option' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
@@ -32,34 +33,20 @@ class digifinex extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
-                'fetchFundingHistory' => false,
-                'fetchFundingRate' => false,
-                'fetchFundingRateHistory' => false,
-                'fetchFundingRates' => false,
-                'fetchIndexOHLCV' => false,
-                'fetchIsolatedPositions' => false,
                 'fetchLedger' => true,
-                'fetchLeverage' => false,
                 'fetchMarkets' => true,
-                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
-                'fetchPositions' => false,
-                'fetchPositionsRisk' => false,
-                'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchWithdrawals' => true,
-                'reduceMargin' => false,
-                'setLeverage' => false,
-                'setPositionMode' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -361,7 +348,7 @@ class digifinex extends Exchange {
                 'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'margin' => false,
+                'margin' => null,
                 'swap' => false,
                 'future' => false,
                 'option' => false,
@@ -375,8 +362,8 @@ class digifinex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($market, 'amount_precision'),
                     'price' => $this->safe_integer($market, 'price_precision'),
+                    'amount' => $this->safe_integer($market, 'amount_precision'),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -427,36 +414,52 @@ class digifinex extends Exchange {
             list($baseId, $quoteId) = explode('_', $id);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $precision = array(
-                'amount' => $this->safe_integer($market, 'volume_precision'),
-                'price' => $this->safe_integer($market, 'price_precision'),
-            );
-            $limits = array(
-                'amount' => array(
-                    'min' => $this->safe_number($market, 'min_volume'),
-                    'max' => null,
-                ),
-                'price' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-                'cost' => array(
-                    'min' => $this->safe_number($market, 'min_amount'),
-                    'max' => null,
-                ),
-            );
-            $active = null;
             $result[] = array(
                 'id' => $id,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'active' => $active,
-                'precision' => $precision,
-                'limits' => $limits,
+                'settleId' => null,
+                'type' => 'spot',
+                'spot' => true,
+                'margin' => null,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => null,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'price' => $this->safe_integer($market, 'price_precision'),
+                    'amount' => $this->safe_integer($market, 'volume_precision'),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => $this->safe_number($market, 'min_volume'),
+                        'max' => null,
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => $this->safe_number($market, 'min_amount'),
+                        'max' => null,
+                    ),
+                ),
                 'info' => $market,
             );
         }

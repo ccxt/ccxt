@@ -21,6 +21,7 @@ class btcalpha extends Exchange {
             'countries' => array( 'US' ),
             'version' => 'v1',
             'has' => array(
+                'CORS' => null,
                 'spot' => true,
                 'margin' => false,
                 'swap' => false,
@@ -32,6 +33,7 @@ class btcalpha extends Exchange {
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,

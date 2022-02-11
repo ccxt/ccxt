@@ -18,17 +18,19 @@ class bl3p extends Exchange {
             'version' => '1',
             'comment' => 'An exchange market by BitonicNL',
             'has' => array(
+                'CORS' => null,
                 'spot' => true,
                 'margin' => false,
                 'swap' => false,
                 'future' => false,
                 'option' => false,
+                'addMargin' => false,
                 'cancelOrder' => true,
-                'CORS' => null,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
@@ -41,6 +43,7 @@ class bl3p extends Exchange {
                 'fetchLeverage' => false,
                 'fetchMarkOHLCV' => false,
                 'fetchOrderBook' => true,
+                'fetchPosition' => false,
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
@@ -138,22 +141,35 @@ class bl3p extends Exchange {
         return $this->parse_order_book($orderbook, $symbol, null, 'bids', 'asks', 'price_int', 'amount_int');
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
-        $request = array(
-            'market' => $this->market_id($symbol),
-        );
-        $ticker = $this->publicGetMarketTicker (array_merge($request, $params));
+    public function parse_ticker($ticker, $market = null) {
+        //
+        // {
+        //     "currency":"BTC",
+        //     "last":32654.55595,
+        //     "bid":32552.3642,
+        //     "ask":32703.58231,
+        //     "high":33500,
+        //     "low":31943,
+        //     "timestamp":1643372789,
+        //     "volume":{
+        //         "24h":2.27372413,
+        //         "30d":320.79375456
+        //     }
+        // }
+        //
+        $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->safe_timestamp($ticker, 'timestamp');
-        $last = $this->safe_number($ticker, 'last');
-        return array(
+        $last = $this->safe_string($ticker, 'last');
+        $volume = $this->safe_value($ticker, 'volume', array());
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -163,10 +179,34 @@ class bl3p extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker['volume'], '24h'),
+            'baseVolume' => $this->safe_string($volume, '24h'),
             'quoteVolume' => null,
             'info' => $ticker,
+        ), $market, false);
+    }
+
+    public function fetch_ticker($symbol, $params = array ()) {
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
         );
+        $ticker = $this->publicGetMarketTicker (array_merge($request, $params));
+        //
+        // {
+        //     "currency":"BTC",
+        //     "last":32654.55595,
+        //     "bid":32552.3642,
+        //     "ask":32703.58231,
+        //     "high":33500,
+        //     "low":31943,
+        //     "timestamp":1643372789,
+        //     "volume":{
+        //         "24h":2.27372413,
+        //         "30d":320.79375456
+        //     }
+        // }
+        //
+        return $this->parse_ticker($ticker, $market);
     }
 
     public function parse_trade($trade, $market = null) {

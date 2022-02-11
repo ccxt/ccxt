@@ -28,8 +28,7 @@ class bitpanda(Exchange):
             'version': 'v1',
             # new metainfo interface
             'has': {
-                'privateAPI': True,
-                'publicAPI': True,
+                'CORS': None,
                 'spot': True,
                 'margin': False,
                 'swap': False,
@@ -39,12 +38,12 @@ class bitpanda(Exchange):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
-                'CORS': None,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
@@ -77,6 +76,8 @@ class bitpanda(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFees': True,
                 'fetchWithdrawals': True,
+                'privateAPI': True,
+                'publicAPI': True,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
@@ -347,7 +348,6 @@ class bitpanda(Exchange):
             quote = self.safe_currency_code(quoteId)
             state = self.safe_string(market, 'state')
             result.append({
-                'info': market,
                 'id': id,
                 'symbol': base + '/' + quote,
                 'base': base,
@@ -371,11 +371,9 @@ class bitpanda(Exchange):
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
-                'deposit': None,
-                'withdraw': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'amount_precision'),
                     'price': self.safe_integer(market, 'market_precision'),
+                    'amount': self.safe_integer(market, 'amount_precision'),
                 },
                 'limits': {
                     'leverage': {
@@ -395,6 +393,7 @@ class bitpanda(Exchange):
                         'max': None,
                     },
                 },
+                'info': market,
             })
         return result
 

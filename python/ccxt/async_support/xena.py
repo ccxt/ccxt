@@ -23,6 +23,7 @@ class xena(Exchange):
             'countries': ['VC', 'UK'],
             'rateLimit': 100,
             'has': {
+                'CORS': None,
                 'spot': False,
                 'margin': False,
                 'swap': None,  # has but not fully implemented
@@ -30,12 +31,16 @@ class xena(Exchange):
                 'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': None,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
@@ -528,7 +533,9 @@ class xena(Exchange):
         mdEntry = self.safe_value(response, 'mdEntry', [])
         mdEntriesByType = self.group_by(mdEntry, 'mdEntryType')
         lastUpdateTime = self.safe_integer(response, 'lastUpdateTime')
-        timestamp = int(lastUpdateTime / 1000000)
+        timestamp = None
+        if lastUpdateTime is not None:
+            timestamp = int(lastUpdateTime / 1000000)
         return self.parse_order_book(mdEntriesByType, symbol, timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize')
 
     async def fetch_accounts(self, params={}):

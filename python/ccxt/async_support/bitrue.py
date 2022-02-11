@@ -37,32 +37,34 @@ class bitrue(Exchange):
             'version': 'v1',
             # new metainfo interface
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': None,  # has but unimplemented
+                'future': None,
+                'option': False,
                 'cancelAllOrders': False,
                 'cancelOrder': True,
-                'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': False,
                 'fetchDeposits': True,
                 'fetchFundingFees': False,
-                'fetchFundingHistory': False,
-                'fetchFundingRate': False,
-                'fetchFundingRateHistory': False,
-                'fetchFundingRates': False,
-                'fetchIndexOHLCV': False,
                 'fetchMarkets': True,
-                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': 'emulated',
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': False,
-                'fetchPositions': False,
-                'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -73,8 +75,6 @@ class bitrue(Exchange):
                 'fetchTransactions': False,
                 'fetchTransfers': False,
                 'fetchWithdrawals': True,
-                'setLeverage': False,
-                'setMarginMode': False,
                 'transfer': False,
                 'withdraw': True,
             },
@@ -159,8 +159,8 @@ class bitrue(Exchange):
                     'feeSide': 'get',
                     'tierBased': False,
                     'percentage': True,
-                    'taker': self.parse_number('0.0098'),
-                    'maker': self.parse_number('0.0098'),
+                    'taker': self.parse_number('0.00098'),
+                    'maker': self.parse_number('0.00098'),
                 },
                 'future': {
                     'trading': {
@@ -236,6 +236,7 @@ class bitrue(Exchange):
             # exchange-specific options
             'options': {
                 # 'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades
+                'fetchMyTradesMethod': 'v2PrivateGetMyTrades',  # v1PrivateGetMyTrades
                 'hasAlreadyAuthenticatedSuccessfully': False,
                 'recvWindow': 5 * 1000,  # 5 sec, binance default
                 'timeDifference': 0,  # the difference between system clock and Binance clock
@@ -579,74 +580,64 @@ class bitrue(Exchange):
             quoteId = self.safe_string(market, 'quoteAsset')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
             filters = self.safe_value(market, 'filters', [])
             filtersByType = self.index_by(filters, 'filterType')
-            precision = {
-                'base': self.safe_integer(market, 'baseAssetPrecision'),
-                'quote': self.safe_integer(market, 'quotePrecision'),
-                'amount': self.safe_integer(market, 'quantityPrecision'),
-                'price': self.safe_integer(market, 'pricePrecision'),
-            }
             status = self.safe_string(market, 'status')
-            active = (status == 'TRADING')
+            priceDefault = self.safe_integer(market, 'pricePrecision')
+            amountDefault = self.safe_integer(market, 'quantityPrecision')
+            priceFilter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
+            amountFilter = self.safe_value(filtersByType, 'LOT_SIZE', {})
             entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
-                'spot': True,
+                'settleId': None,
                 'type': 'spot',
+                'spot': True,
                 'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': (status == 'TRADING'),
+                'contract': False,
                 'linear': None,
                 'inverse': None,
-                'future': False,
-                'swap': False,
-                'option': False,
-                'contract': False,
                 'contractSize': None,
-                'optionType': None,
-                'strike': None,
-                'settle': None,
-                'settleId': None,
                 'expiry': None,
                 'expiryDatetime': None,
-                'active': active,
-                'precision': precision,
+                'optionType': None,
+                'strike': None,
+                'precision': {
+                    'price': self.safe_integer(priceFilter, 'priceScale', priceDefault),
+                    'amount': self.safe_integer(amountFilter, 'volumeScale', amountDefault),
+                    'base': self.safe_integer(market, 'baseAssetPrecision'),
+                    'quote': self.safe_integer(market, 'quotePrecision'),
+                },
                 'limits': {
-                    'amount': {
+                    'leverage': {
                         'min': None,
                         'max': None,
+                    },
+                    'amount': {
+                        'min': self.safe_number(amountFilter, 'minQty'),
+                        'max': self.safe_number(amountFilter, 'maxQty'),
                     },
                     'price': {
-                        'min': None,
-                        'max': None,
+                        'min': self.safe_number(priceFilter, 'minPrice'),
+                        'max': self.safe_number(priceFilter, 'maxPrice'),
                     },
                     'cost': {
-                        'min': None,
+                        'min': self.safe_number(amountFilter, 'minVal'),
                         'max': None,
                     },
                 },
+                'info': market,
             }
-            if 'PRICE_FILTER' in filtersByType:
-                filter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
-                entry['limits']['price'] = {
-                    'min': self.safe_number(filter, 'minPrice'),
-                    'max': self.safe_number(filter, 'maxPrice'),
-                }
-                entry['precision']['price'] = self.safe_integer(filter, 'priceScale')
-            if 'LOT_SIZE' in filtersByType:
-                filter = self.safe_value(filtersByType, 'LOT_SIZE', {})
-                entry['precision']['amount'] = self.safe_integer(filter, 'volumeScale')
-                entry['limits']['amount'] = {
-                    'min': self.safe_number(filter, 'minQty'),
-                    'max': self.safe_number(filter, 'maxQty'),
-                }
-                entry['limits']['cost']['min'] = self.safe_number(filter, 'minVal')
             result.append(entry)
         return result
 
@@ -917,7 +908,7 @@ class bitrue(Exchange):
         if 'commission' in trade:
             fee = {
                 'cost': self.safe_string(trade, 'commission'),
-                'currency': self.safe_currency_code(self.safe_string(trade, 'commissionAsset')),
+                'currency': self.safe_currency_code(self.safe_string(trade, 'commissionAssert')),
             }
         takerOrMaker = None
         if 'isMaker' in trade:
@@ -1256,6 +1247,9 @@ class bitrue(Exchange):
         return self.parse_order(response, market)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        method = self.safe_string(self.options, 'fetchMyTradesMethod', 'v2PrivateGetMyTrades')
+        if (symbol is None) and (method == 'v2PrivateGetMyTrades'):
+            raise ArgumentsRequired(self.id + ' v2PrivateGetMyTrades() requires a symbol argument')
         await self.load_markets()
         request = {
             # 'symbol': market['id'],
@@ -1272,7 +1266,7 @@ class bitrue(Exchange):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        response = await self.v1PrivateGetMyTrades(self.extend(request, params))
+        response = await getattr(self, method)(self.extend(request, params))
         #
         #     [
         #         {

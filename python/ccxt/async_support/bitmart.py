@@ -45,6 +45,12 @@ class bitmart(Exchange):
             'certified': True,
             'pro': True,
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': None,  # has but unimplemented
+                'swap': None,  # has but unimplemented
+                'future': None,  # has but unimplemented
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
@@ -475,18 +481,19 @@ class bitmart(Exchange):
                 'swap': False,
                 'future': False,
                 'option': False,
+                'active': True,
                 'contract': False,
                 'linear': None,
                 'inverse': None,
                 'contractSize': None,
-                'active': True,
+                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_number(market, 'base_min_size'),
                     'price': self.parse_number(self.decimal_to_precision(math.pow(10, -pricePrecision), ROUND, 14)),
+                    'amount': self.safe_number(market, 'base_min_size'),
                 },
                 'limits': {
                     'leverage': {
@@ -606,6 +613,7 @@ class bitmart(Exchange):
                 future = True
                 symbol = symbol + ':' + settle + '-' + self.yymmdd(expiry, '')
             feeConfig = self.safe_value(market, 'fee_config', {})
+            riskLimit = self.safe_value(market, 'risk_limit')
             result.append({
                 'id': id,
                 'numericId': numericId,
@@ -622,20 +630,21 @@ class bitmart(Exchange):
                 'swap': swap,
                 'future': future,
                 'option': False,
+                'active': None,
                 'contract': True,
                 'linear': None,
                 'inverse': None,
                 'taker': self.safe_number(feeConfig, 'taker_fee'),
                 'maker': self.safe_number(feeConfig, 'maker_fee'),
                 'contractSize': self.safe_number(market, 'contract_size'),
-                'active': None,
+                'maintenanceMarginRate': self.safe_number(riskLimit, 'maintenance_margin'),
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': amountPrecision,
                     'price': pricePrecision,
+                    'amount': amountPrecision,
                 },
                 'limits': {
                     'leverage': {

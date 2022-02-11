@@ -18,20 +18,40 @@ module.exports = class crex24 extends Exchange {
             'version': 'v2',
             // new metainfo interface
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
-                'CORS': undefined,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchFundingFees': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -39,6 +59,10 @@ module.exports = class crex24 extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -46,6 +70,10 @@ module.exports = class crex24 extends Exchange {
                 'fetchTradingFees': undefined, // actually, true, but will be implemented later
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -282,18 +310,6 @@ module.exports = class crex24 extends Exchange {
             const quoteId = this.safeString (market, 'quoteCurrency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const tickSize = this.safeNumber (market, 'tickSize');
-            const minPrice = this.safeNumber (market, 'minPrice');
-            const maxPrice = this.safeNumber (market, 'maxPrice');
-            const minAmount = this.safeNumber (market, 'minVolume');
-            const maxAmount = this.safeNumber (market, 'maxVolume');
-            const minCost = this.safeNumber (market, 'minQuoteVolume');
-            const maxCost = this.safeNumber (market, 'maxQuoteVolume');
-            const precision = {
-                'amount': minAmount,
-                'price': tickSize,
-            };
             let maker = undefined;
             let taker = undefined;
             const feeSchedule = this.safeString (market, 'feeSchedule');
@@ -312,35 +328,56 @@ module.exports = class crex24 extends Exchange {
                     break;
                 }
             }
-            const active = (market['state'] === 'active');
+            const state = this.safeString (market, 'state');
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
-                'precision': precision,
-                'maker': maker,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': (state === 'active'),
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
                 'taker': taker,
+                'maker': maker,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': this.safeNumber (market, 'tickSize'),
+                    'amount': this.safeNumber (market, 'volumeIncrement'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
-                        'min': minAmount,
-                        'max': maxAmount,
+                        'min': this.safeNumber (market, 'minVolume'),
+                        'max': this.safeNumber (market, 'maxVolume'),
                     },
                     'price': {
-                        'min': minPrice,
-                        'max': maxPrice,
+                        'min': this.safeNumber (market, 'minPrice'),
+                        'max': this.safeNumber (market, 'maxPrice'),
                     },
                     'cost': {
-                        'min': minCost,
-                        'max': maxCost,
+                        'min': this.safeNumber (market, 'minQuoteVolume'),
+                        'max': this.safeNumber (market, 'maxQuoteVolume'),
                     },
                 },
+                'info': market,
             });
         }
         return result;

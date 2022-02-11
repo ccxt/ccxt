@@ -25,8 +25,13 @@ class zb extends Exchange {
             'certified' => true,
             'pro' => true,
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => null, // has but unimplemented
+                'swap' => null, // has but unimplemented
+                'future' => null,
+                'option' => null,
+                'cancelOrder' => true,
                 'createMarketOrder' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
@@ -284,18 +289,19 @@ class zb extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
+                'active' => true,
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
                 'contractSize' => null,
-                'active' => true,
+                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => intval($amountPrecisionString),
                     'price' => intval($pricePrecisionString),
+                    'amount' => intval($amountPrecisionString),
                 ),
                 'limits' => array(
                     'leverage' => array(

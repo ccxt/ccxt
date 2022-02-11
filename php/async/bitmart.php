@@ -25,6 +25,12 @@ class bitmart extends Exchange {
             'certified' => true,
             'pro' => true,
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => null, // has but unimplemented
+                'swap' => null, // has but unimplemented
+                'future' => null, // has but unimplemented
+                'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
@@ -461,18 +467,19 @@ class bitmart extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
+                'active' => true,
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
                 'contractSize' => null,
-                'active' => true,
+                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_number($market, 'base_min_size'),
                     'price' => $this->parse_number($this->decimal_to_precision(pow(10, -$pricePrecision), ROUND, 14)),
+                    'amount' => $this->safe_number($market, 'base_min_size'),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -595,6 +602,7 @@ class bitmart extends Exchange {
                 $symbol = $symbol . ':' . $settle . '-' . $this->yymmdd($expiry, '');
             }
             $feeConfig = $this->safe_value($market, 'fee_config', array());
+            $riskLimit = $this->safe_value($market, 'risk_limit');
             $result[] = array(
                 'id' => $id,
                 'numericId' => $numericId,
@@ -611,20 +619,21 @@ class bitmart extends Exchange {
                 'swap' => $swap,
                 'future' => $future,
                 'option' => false,
+                'active' => null,
                 'contract' => true,
                 'linear' => null,
                 'inverse' => null,
                 'taker' => $this->safe_number($feeConfig, 'taker_fee'),
                 'maker' => $this->safe_number($feeConfig, 'maker_fee'),
                 'contractSize' => $this->safe_number($market, 'contract_size'),
-                'active' => null,
+                'maintenanceMarginRate' => $this->safe_number($riskLimit, 'maintenance_margin'),
                 'expiry' => $expiry,
                 'expiryDatetime' => $this->iso8601($expiry),
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $amountPrecision,
                     'price' => $pricePrecision,
+                    'amount' => $amountPrecision,
                 ),
                 'limits' => array(
                     'leverage' => array(

@@ -17,14 +17,25 @@ module.exports = class exmo extends Exchange {
             'rateLimit': 350, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version': 'v1.1',
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': undefined, // has but unimplemented
+                'swap': false,
+                'future': false,
+                'option': false,
+                'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchFundingFees': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -32,6 +43,7 @@ module.exports = class exmo extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderBooks': true,
                 'fetchOrderTrades': true,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -429,35 +441,41 @@ module.exports = class exmo extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const takerString = this.safeString (market, 'commission_taker_percent');
             const makerString = this.safeString (market, 'commission_maker_percent');
-            const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
-            const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
                 'margin': false,
                 'future': false,
                 'swap': false,
                 'option': false,
-                'optionType': undefined,
-                'strike': undefined,
+                'active': true,
+                'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'contract': false,
+                'taker': this.parseNumber (Precise.stringDiv (takerString, '100')),
+                'maker': this.parseNumber (Precise.stringDiv (makerString, '100')),
                 'contractSize': undefined,
-                'settle': undefined,
-                'settleId': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
-                'active': true,
-                'taker': taker,
-                'maker': maker,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': 8,
+                    'price': this.safeInteger (market, 'price_precision'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
                         'min': this.safeNumber (market, 'min_quantity'),
                         'max': this.safeNumber (market, 'max_quantity'),
@@ -470,10 +488,6 @@ module.exports = class exmo extends Exchange {
                         'min': this.safeNumber (market, 'min_amount'),
                         'max': this.safeNumber (market, 'max_amount'),
                     },
-                },
-                'precision': {
-                    'amount': 8,
-                    'price': this.safeInteger (market, 'price_precision'),
                 },
                 'info': market,
             });

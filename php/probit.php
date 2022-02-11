@@ -22,6 +22,7 @@ class probit extends Exchange {
             'countries' => array( 'SC', 'KR' ), // Seychelles, South Korea
             'rateLimit' => 50, // ms
             'has' => array(
+                'CORS' => true,
                 'spot' => true,
                 'margin' => false,
                 'swap' => false,
@@ -29,12 +30,12 @@ class probit extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
-                'CORS' => true,
                 'createMarketOrder' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
@@ -183,6 +184,7 @@ class probit extends Exchange {
             ),
             'commonCurrencies' => array(
                 'AUTO' => 'Cube',
+                'AZU' => 'Azultec',
                 'BCC' => 'BCC',
                 'BDP' => 'BidiPass',
                 'BIRD' => 'Birdchain',
@@ -190,6 +192,8 @@ class probit extends Exchange {
                 'BTCBULL' => 'BULL',
                 'CBC' => 'CryptoBharatCoin',
                 'CHE' => 'Chellit',
+                'CLR' => 'Color Platform',
+                'CTK' => 'Cryptyk',
                 'DIP' => 'Dipper',
                 'EGC' => 'EcoG9coin',
                 'EPS' => 'Epanus',  // conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
@@ -200,8 +204,10 @@ class probit extends Exchange {
                 'GOL' => 'Goldofir',
                 'GRB' => 'Global Reward Bank',
                 'HBC' => 'Hybrid Bank Cash',
+                'HUSL' => 'The Hustle App',
                 'LBK' => 'Legal Block',
                 'ORC' => 'Oracle System',
+                'PYE' => 'CreamPYE',
                 'ROOK' => 'Reckoon',
                 'SOC' => 'Soda Coin',
                 'SST' => 'SocialSwap',

@@ -16,6 +16,7 @@ module.exports = class btcalpha extends Exchange {
             'countries': [ 'US' ],
             'version': 'v1',
             'has': {
+                'CORS': undefined,
                 'spot': true,
                 'margin': false,
                 'swap': false,
@@ -27,6 +28,7 @@ module.exports = class btcalpha extends Exchange {
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,

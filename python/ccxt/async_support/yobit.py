@@ -35,6 +35,7 @@ class yobit(Exchange):
             'rateLimit': 3000,  # responses are cached every 2 seconds
             'version': '3',
             'has': {
+                'CORS': None,
                 'spot': True,
                 'margin': False,
                 'swap': False,
@@ -42,13 +43,13 @@ class yobit(Exchange):
                 'option': False,
                 'addMargin': False,
                 'cancelOrder': True,
-                'CORS': None,
                 'createDepositAddress': True,
                 'createMarketOrder': None,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,

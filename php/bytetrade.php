@@ -24,26 +24,54 @@ class bytetrade extends Exchange {
             'certified' => false,
             // new metainfo interface
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
+                'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'withdraw' => null,
             ),
             'timeframes' => array(
@@ -196,13 +224,13 @@ class bytetrade extends Exchange {
             $limits = $this->safe_value($currency, 'limits');
             $deposit = $this->safe_value($limits, 'deposit');
             $amountPrecision = $this->safe_integer($currency, 'basePrecision');
-            $maxDeposit = $this->safe_number($deposit, 'max');
-            if ($maxDeposit === -1.0) {
+            $maxDeposit = $this->safe_string($deposit, 'max');
+            if (Precise::string_equals($maxDeposit, '-1')) {
                 $maxDeposit = null;
             }
             $withdraw = $this->safe_value($limits, 'withdraw');
-            $maxWithdraw = $this->safe_number($withdraw, 'max');
-            if ($maxWithdraw === -1.0) {
+            $maxWithdraw = $this->safe_string($withdraw, 'max');
+            if (Precise::string_equals($maxWithdraw, '-1')) {
                 $maxWithdraw = null;
             }
             $result[$code] = array(
@@ -218,11 +246,11 @@ class bytetrade extends Exchange {
                     'amount' => array( 'min' => null, 'max' => null ),
                     'deposit' => array(
                         'min' => $this->safe_number($deposit, 'min'),
-                        'max' => $maxDeposit,
+                        'max' => $this->parse_number($maxDeposit),
                     ),
                     'withdraw' => array(
                         'min' => $this->safe_number($withdraw, 'min'),
-                        'max' => $maxWithdraw,
+                        'max' => $this->parse_number($maxWithdraw),
                     ),
                 ),
                 'info' => $currency,
@@ -233,6 +261,37 @@ class bytetrade extends Exchange {
 
     public function fetch_markets($params = array ()) {
         $markets = $this->publicGetSymbols ($params);
+        //
+        //     array(
+        //         {
+        //             "symbol" => "122406567911",
+        //             "name" => "BTC/USDT",
+        //             "base" => "32",
+        //             "quote" => "57",
+        //             "marketStatus" => 0,
+        //             "baseName" => "BTC",
+        //             "quoteName" => "USDT",
+        //             "active" => true,
+        //             "maker" => "0.0008",
+        //             "taker" => "0.0008",
+        //             "precision" => array(
+        //                 "amount" => 6,
+        //                 "price" => 2,
+        //                 "minPrice":1
+        //             ),
+        //             "limits" => {
+        //                 "amount" => array(
+        //                     "min" => "0.000001",
+        //                     "max" => "-1"
+        //                 ),
+        //                 "price" => {
+        //                     "min" => "0.01",
+        //                     "max" => "-1"
+        //                 }
+        //             }
+        //        }
+        //    )
+        //
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
@@ -253,42 +312,68 @@ class bytetrade extends Exchange {
             if (is_array($this->commonCurrencies) && array_key_exists($quoteId, $this->commonCurrencies)) {
                 $quote = $this->commonCurrencies[$quoteId];
             }
-            $symbol = $base . '/' . $quote;
             $limits = $this->safe_value($market, 'limits', array());
             $amount = $this->safe_value($limits, 'amount', array());
             $price = $this->safe_value($limits, 'price', array());
             $precision = $this->safe_value($market, 'precision', array());
-            $active = $this->safe_string($market, 'active');
+            $maxAmount = $this->safe_string($amount, 'max');
+            if (Precise::string_equals($maxAmount, '-1')) {
+                $maxAmount = null;
+            }
+            $maxPrice = $this->safe_string($price, 'max');
+            if (Precise::string_equals($maxPrice, '-1')) {
+                $maxPrice = null;
+            }
             $entry = array(
                 'id' => $id,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
+                'normalSymbol' => $normalSymbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'info' => $market,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'active' => $active,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => $this->safe_string($market, 'active'),
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'taker' => $this->safe_number($market, 'taker'),
+                'maker' => $this->safe_number($market, 'maker'),
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($precision, 'amount'),
                     'price' => $this->safe_integer($precision, 'price'),
+                    'amount' => $this->safe_integer($precision, 'amount'),
                 ),
-                'normalSymbol' => $normalSymbol,
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->safe_number($amount, 'min'),
-                        'max' => $this->safe_number($amount, 'max'),
+                        'max' => $this->parse_number($maxAmount),
                     ),
                     'price' => array(
                         'min' => $this->safe_number($price, 'min'),
-                        'max' => $this->safe_number($price, 'max'),
+                        'max' => $this->parse_number($maxPrice),
                     ),
                     'cost' => array(
                         'min' => null,
                         'max' => null,
                     ),
                 ),
+                'info' => $market,
             );
             $result[] = $entry;
         }

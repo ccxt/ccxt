@@ -18,21 +18,49 @@ module.exports = class coinone extends Exchange {
             'rateLimit': 667,
             'version': 'v2',
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
+                'cancelOrder': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': undefined, // the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
                 'fetchDepositAddresses': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
@@ -105,6 +133,27 @@ module.exports = class coinone extends Exchange {
             'currency': 'all',
         };
         const response = await this.publicGetTicker (request);
+        //
+        //    {
+        //        "result": "success",
+        //        "errorCode": "0",
+        //        "timestamp": "1643676668",
+        //        "xec": {
+        //          "currency": "xec",
+        //          "first": "0.0914",
+        //          "low": "0.0894",
+        //          "high": "0.096",
+        //          "last": "0.0937",
+        //          "volume": "1673283662.9797",
+        //          "yesterday_first": "0.0929",
+        //          "yesterday_low": "0.0913",
+        //          "yesterday_high": "0.0978",
+        //          "yesterday_last": "0.0913",
+        //          "yesterday_volume": "1167285865.4571"
+        //        },
+        //        ...
+        //    }
+        //
         const result = [];
         const quoteId = 'krw';
         const quote = this.safeCurrencyCode (quoteId);
@@ -118,16 +167,52 @@ module.exports = class coinone extends Exchange {
             }
             const base = this.safeCurrencyCode (baseId);
             result.push ({
-                'info': ticker,
                 'id': baseId,
                 'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': undefined,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': undefined,
+                    'amount': undefined,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'info': ticker,
             });
         }
         return result;

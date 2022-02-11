@@ -15,6 +15,7 @@ module.exports = class zonda extends Exchange {
             'countries': [ 'EE' ], // Estonia
             'rateLimit': 1000,
             'has': {
+                'CORS': true,
                 'spot': true,
                 'margin': false,
                 'swap': false,
@@ -22,11 +23,11 @@ module.exports = class zonda extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
-                'CORS': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,

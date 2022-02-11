@@ -19,10 +19,15 @@ class bw extends Exchange {
             'rateLimit' => 1500,
             'version' => 'v1',
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => null, // has but unimplemented
+                'swap' => null, // has but unimplemented
+                'future' => null,
+                'option' => null,
                 'cancelAllOrders' => null,
                 'cancelOrder' => true,
                 'cancelOrders' => null,
-                'CORS' => null,
                 'createDepositAddress' => null,
                 'createLimitOrder' => true,
                 'createMarketOrder' => null,
@@ -181,60 +186,60 @@ class bw extends Exchange {
             $quote = $this->safe_currency_code($quote);
             $baseId = $this->safe_string($market, 'sellerCurrencyId');
             $quoteId = $this->safe_string($market, 'buyerCurrencyId');
-            $baseNumericId = intval($baseId);
-            $quoteNumericId = intval($quoteId);
-            $symbol = $base . '/' . $quote;
             $state = $this->safe_integer($market, 'state');
-            $active = ($state === 1);
             $fee = $this->safe_number($market, 'defaultFee');
             $result[] = array(
                 'id' => $id,
                 'numericId' => $numericId,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'baseNumericId' => $baseNumericId,
-                'quoteNumericId' => $quoteNumericId,
+                'settleId' => null,
+                'baseNumericId' => intval($baseId),
+                'quoteNumericId' => intval($quoteId),
                 'type' => 'spot',
                 'spot' => true,
                 'margin' => false,
-                'future' => false,
                 'swap' => false,
+                'future' => false,
                 'option' => false,
-                'optionType' => null,
-                'strike' => null,
+                'active' => ($state === 1),
+                'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                'contract' => false,
+                'taker' => $fee,
+                'maker' => $fee,
                 'contractSize' => null,
-                'settle' => null,
-                'settleId' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
-                'active' => $active,
-                'maker' => $fee,
-                'taker' => $fee,
-                'info' => $market,
+                'strike' => null,
+                'optionType' => null,
                 'precision' => array(
                     'amount' => $this->safe_integer($market, 'amountDecimal'),
                     'price' => $this->safe_integer($market, 'priceDecimal'),
                 ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->safe_number($market, 'minAmount'),
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => 0,
+                        'min' => $this->parse_number('0'),
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => 0,
+                        'min' => $this->parse_number('0'),
                         'max' => null,
                     ),
                 ),
+                'info' => $market,
             );
         }
         return $result;

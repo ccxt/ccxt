@@ -17,8 +17,13 @@ module.exports = class bibox extends Exchange {
             'version': 'v1',
             'hostname': 'bibox.com',
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': undefined, // has but unimplemented
+                'swap': undefined, // has but unimplemented
+                'future': undefined,
+                'option': undefined,
+                'cancelOrder': true,
                 'createMarketOrder': undefined, // or they will return https://github.com/ccxt/ccxt/issues/2338
                 'createOrder': true,
                 'fetchBalance': true,
@@ -215,44 +220,47 @@ module.exports = class bibox extends Exchange {
                 // TODO: update to v3 api
                 continue;
             }
-            const precision = {
-                'amount': this.safeNumber (market, 'amount_scale'),
-                'price': this.safeNumber (market, 'decimal'),
-            };
             result.push ({
                 'id': id,
                 'numericId': numericId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': type,
                 'spot': spot,
                 'margin': false,
                 'future': false,
                 'swap': false,
                 'option': false,
-                'optionType': undefined,
-                'strike': undefined,
+                'active': undefined,
+                'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'contract': false,
                 'contractSize': undefined,
-                'settle': undefined,
-                'settleId': undefined,
+                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
-                'active': undefined,
-                'info': market,
-                'precision': precision,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': this.safeInteger (market, 'decimal'),
+                    'amount': this.safeInteger (market, 'amount_scale'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
@@ -260,6 +268,7 @@ module.exports = class bibox extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': market,
             });
         }
         return result;

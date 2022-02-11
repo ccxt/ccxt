@@ -20,6 +20,7 @@ module.exports = class ripio extends Exchange {
             'pro': true,
             // new metainfo interface
             'has': {
+                'CORS': undefined,
                 'spot': true,
                 'margin': false,
                 'swap': false,
@@ -27,11 +28,11 @@ module.exports = class ripio extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
-                'CORS': undefined,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
