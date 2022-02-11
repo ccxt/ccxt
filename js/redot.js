@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, BadSymbol, RateLimitExceeded, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, BadRequest, BadSymbol, RateLimitExceeded, OrderNotFound, AuthenticationError } = require ('./base/errors');
 
 module.exports = class redot extends Exchange {
     describe () {
@@ -98,6 +98,9 @@ module.exports = class redot extends Exchange {
                     },
                 },
             },
+            'options': {
+                'accessToken': 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiIxNTY5MyIsInBybSI6IjE1IiwiYWtkIjoiYU9oamZ2dE84QnU5M1lpK2pGVjJMRGVLWk9taTRya1NGSzVMRkZxb29OdDhDaDh3dElsZGJYRjNTNWxPbzh5Q2NUZ0ZJY1Q1Q2l5alF3aTBtYitoZW8ySUJSTVRZQmoyUk1XbmRmNVhGOWM9IiwicnRpZCI6IjljMTlmNjJhLTA5ZDEtNDliYy1hNDRkLTZiMTFmMTEyNGI3MCIsInJ0ZXhwIjoiMTY0NTgwMjA3NSIsIm5iZiI6MTY0NDU5MjQ3NSwiZXhwIjoxNjQ0NTk0Mjc1LCJpYXQiOjE2NDQ1OTI0NzUsImlzcyI6IkFUTEFOVCIsImF1ZCI6IkFUTEFOVCJ9.SM1mdyo4hBz6ztHIPRcWoSAzS-Kgj7iavOPjnpb2Uzu87ZHcCC7VJOzVLyE89HP0dnEWxuNsk9J_Om0Brdl38DgVgrHCMUqPZxshr7XO2BvgVyTn7pCpd4UUx7zkKaA61Id1fc9E_QLCgafiqQSta5q3CdzhowgcMHYL5VL6LL2oQmMKmcFTCYjj8zH8hnafrPInaP-FMipn1_t4tBievVexEfqFb2Kcht6JUjxL7KhwVmSDIrFmZQgzda3_4Z0Mvi0IIE1sVlxXw3oegPiacCqCmgGbr79sT4qEMSHXHdlgjHJKUzBAgAZIoqqzlkWTFvDH4eaTrFxAhxKvMDZ4uQ","refreshToken":"Rn6ZvX622+WPZQzZxZGBPb1YExkHbSqL9jqdh1zSSlxut/lfxNElm40Bta1sOFZGdsiD/VSIJ+BNQQEtMsOKOA==',
+            },
             'timeframes': {
                 '1m': '60',
                 '5m': '300',
@@ -109,6 +112,7 @@ module.exports = class redot extends Exchange {
                 'exact': {
                     '10002': RateLimitExceeded, // {"error":{"code":10002,"message":"Too many requests."}}
                     '10501': BadRequest, // {"error":{"code":10501,"message":"Request parameters have incorrect format."}}
+                    '12004': AuthenticationError, // {"error":{"code":12004,"message":"Login failed."}}
                     '14500': BadRequest, // {"error":{"code":14500,"message":"Depth is invalid."}}
                     '13500': BadSymbol, // {"error":{"code":13500,"message":"Instrument id is invalid."}}
                 },
@@ -792,15 +796,18 @@ module.exports = class redot extends Exchange {
         };
         const response = await this.publicPostGetToken (this.extend (request, params));
         //
-        //     {
-        //         access_token: '0ttDv/2hTTn3bLi8GP1gKaneiEQ6+0hOBenPrxNQt2s=',
-        //         token_type: 'bearer',
-        //         expires_in: 900
+        // {
+        //     "result":{
+        //        "accessToken":"eyJx6g",
+        //        "refreshToken":"Gp5ZOwczv4XKspo0qMGNjYw=="
         //     }
+        //  }
         //
-        // const accessToken = this.safeString (response, 'accessToken');
-        // this.options['accessToken'] = accessToken;
-        // this.options['expires'] = timestamp;
+        const result = this.safeString (response, 'result');
+        const accessToken = this.safeString (result, 'accessToken');
+        const refreshToken = this.safeString (result, 'refreshToken');
+        this.options['accessToken'] = accessToken;
+        this.options['refreshToken'] = refreshToken;
         return response;
     }
 
