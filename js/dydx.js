@@ -171,6 +171,7 @@ module.exports = class dydx extends Exchange {
                     'Invalid number': BadRequest,
                     'expiration must be an ISO8601 string': BadRequest,
                     'Invalid signature for order': InvalidOrder,
+                    'No order for market: ': InvalidOrder,
                     // old
                     'See /corsdemo for more info': AuthenticationError,
                     'Invalid signature for onboarding request': AuthenticationError,
@@ -198,6 +199,7 @@ module.exports = class dydx extends Exchange {
                 'mainCurrency': 'USDC',
                 'limitFee': 0.01, // 1% // TODO: this needs to be defined automatically, from either /users or /config endpoints, however we don't implement them
                 'gtcDate': '2099-12-31T23:59:59.999Z',
+                'fetchOpenOrdersMethod': 'privateGetOrders',  // 'privateGetActiveOrders' (higher rate-limits, less informational) or 'privateGetOrders' (lower rate-limit, more informational)
             },
         });
     }
@@ -840,34 +842,66 @@ module.exports = class dydx extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'orderId': id,
-            'id': id, // this is needed for path
-        };
-        const response = await this.privateDeleteOrdersId (this.extend (request, params));
-        // {
-        //     cancelOrder: {
-        //       id: "74d1338670a8644055a8432c22829205a96e611c9c4dbee423e932243319e44",
-        //       clientId: "6963517527009325",
-        //       accountId: "f1e443fa-dc14-547f-23ec-fdefa33a471c",
-        //       market: "ETH-USD",
-        //       side: "BUY",
-        //       price: "19",
-        //       triggerPrice: null,
-        //       trailingPercent: null,
-        //       size: "0.1",
-        //       remainingSize: "0.1",
-        //       type: "LIMIT",
-        //       createdAt: "2022-02-10T18:10:50.740Z",
-        //       unfillableAt: null,
-        //       expiresAt: "2022-03-10T18:10:52.275Z",
-        //       status: "OPEN",
-        //       timeInForce: "GTT",
-        //       postOnly: false,
-        //       cancelReason: null,
-        //     },
-        // }
-        const order = this.safeValue (response, 'cancelOrder');
+        let response = undefined;
+        let request = undefined;
+        let order = undefined;
+        // if symbol is inputed, then use this endpoint because of higher Ratelimits (yeah, bad api design, but as is..): https://docs.dydx.exchange/#cancel-active-orders
+        if (symbol !== undefined) {
+            const side = this.safeString (params, 'side');
+            if (side === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrder() does not require `symbol` argument, however, if you set that argument, then you also need to set exchange-specific parameter `side` to either: `BUY` or `SELL`.');
+            }
+            const market = this.market (symbol);
+            request = {
+                'id': id,
+                'side': side,
+                'market': market['id'],
+            };
+            response = await this.privateDeleteActiveOrders (this.extend (request, params));
+            // {
+            //     "cancelOrders": [
+            //         {
+            //             "accountId": "a6e392ed-ea82-419e-81ae-abdde89a638c",
+            //             "market": "MATIC-USD",
+            //             "side": "BUY",
+            //             "id": "1ae4ed6910303442c616f8f332d3aff70d09e3e16bd429ea9c230ebed4021ea",
+            //             "remainingSize": "11",
+            //             "price": "1"
+            //         }
+            //     ]
+            // }
+            const orders = this.safeValue (response, 'cancelOrders');
+            order = this.safeValue (orders, 0);
+        } else {
+            request = {
+                'orderId': id,
+                'id': id, // this is needed for path
+            };
+            response = await this.privateDeleteOrdersId (this.extend (request, params));
+            // {
+            //     cancelOrder: {
+            //       id: "74d1338670a8644055a8432c22001205a96e611c9c4dbca423e932243319e44",
+            //       clientId: "6963517527009325",
+            //       accountId: "a6e392ed-ea82-419e-81ae-abdde89a638c",
+            //       market: "ETH-USD",
+            //       side: "BUY",
+            //       price: "19",
+            //       triggerPrice: null,
+            //       trailingPercent: null,
+            //       size: "0.1",
+            //       remainingSize: "0.1",
+            //       type: "LIMIT",
+            //       createdAt: "2022-02-10T18:10:50.740Z",
+            //       unfillableAt: null,
+            //       expiresAt: "2022-03-10T18:10:52.275Z",
+            //       status: "OPEN",
+            //       timeInForce: "GTT",
+            //       postOnly: false,
+            //       cancelReason: null,
+            //     },
+            // }
+            order = this.safeValue (response, 'cancelOrder');
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -876,6 +910,37 @@ module.exports = class dydx extends Exchange {
             market = this.safeMarket (marketId, market);
         }
         return this.parseOrder (order, market);
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        const request = { };
+        let response = undefined;
+        // both below endpoint supports 'market', but if market is inputed (due to higher RateLimits) we use : https://docs.dydx.exchange/#cancel-active-orders
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+            response = await this.privateDeleteActiveOrders (this.extend (request, params));
+            // {
+            //     "cancelOrders": [
+            //         {
+            //             "accountId": "a6e392ed-ea82-419e-81ae-abdde89a638c",
+            //             "market": "MATIC-USD",
+            //             "side": "BUY",
+            //             "id": "1ae4ed6910303442c616f8f332d3aff70d09e3e16bd429ea9c230ebed4021ea",
+            //             "remainingSize": "11",
+            //             "price": "1"
+            //         },
+            //         ..
+            //     ]
+            // }
+        } else {
+            response = await this.privateDeleteOrders (this.extend (request, params));
+            // TODO - like 'createOrder', this is Unauthorized for now without stark keys
+        }
+        const ordersArray = this.safeValue (response, 'cancelOrders', []);
+        return this.parseOrders (ordersArray, market, undefined, undefined, params);
     }
 
     parseOrder (order, market = undefined) {
@@ -899,13 +964,13 @@ module.exports = class dydx extends Exchange {
             'timeInForce': timeInForce,
             'postOnly': this.safeValue (order, 'postOnly'),
             'side': this.parseOrderSide (this.safeString (order, 'side')),
-            'price': this.parseNumber (order, 'price'),
-            'stopPrice': this.parseNumber (order, 'triggerPrice'),
-            'amount': this.parseNumber (order, 'size'),
+            'price': this.safeNumber (order, 'price'),
+            'stopPrice': this.safeNumber (order, 'triggerPrice'),
+            'amount': this.safeNumber (order, 'size'),
             'cost': undefined,
             'average': undefined,
             'filled': undefined,
-            'remaining': this.parseNumber (order, 'remainingSize'),
+            'remaining': this.safeNumber (order, 'remainingSize'),
             'status': this.parseOrderStatus (this.safeString (order, 'status')),
             'fee': undefined,
             'trades': undefined,
@@ -941,14 +1006,16 @@ module.exports = class dydx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTimeInForce (timeInForce) {
-        const timeInForces = {
-            //
+    parseTimeInForce (status, reversed = false) {
+        let statuses = {
+            'GTT': 'gtt',
+            'FOK': 'fok',
+            'IOC': 'ioc',
         };
-        //if (reversed) {
-        //    statuses = this.changeKeyValue (statuses);
-        //}
-        return this.safeString (timeInForces, timeInForce, timeInForce);
+        if (reversed) {
+            statuses = this.changeKeyValue (status);
+        }
+        return this.safeString (statuses, status, status);
     }
 
     parseOrderSide (status, reversed = false) {
@@ -962,16 +1029,41 @@ module.exports = class dydx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // if symbol is inputed, then use this endpoint because of higher Ratelimits (yeah, bad api design, but as is..): https://docs.dydx.exchange/#get-active-orders
+        let method = this.safeString (this.options, 'fetchOpenOrdersMethod');
+        method = this.safeString (params, 'method', method);
+        if (symbol !== undefined && method === 'privateGetActiveOrders') {
+            const market = this.market (symbol);
+            const request = {
+                'market': market['id'],
+            };
+            const response = await this.privateGetActiveOrders (this.extend (request, params));
+            const ords = this.safeValue (response, 'orders');
+            return this.parseOrders (ords, market, since, limit, params);
+        } else {
+            return await this.fetchOrders (symbol, since, limit, this.extend ({ 'status': 'PENDING,OPEN,UNTRIGGERED' }, params));
+        }
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrders (symbol, since, limit, this.extend ({ 'status': 'FILLED,CANCELED' }, params));
+    }
+
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['symbol'] = market['id'];
+            request['market'] = market['id'];
         }
-        const response = await this.privateGetOrders (request);
-        return response; // this.parseOrder (response, market);
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetOrders (this.extend (request, params));
+        const arrayOrders = this.safeValue (response, 'orders', []);
+        return this.parseOrders (arrayOrders, market, since, limit, params);
     }
 
     async registerApiKey (params = undefined) { // https://docs.dydx.exchange/#register-api-key
@@ -987,7 +1079,7 @@ module.exports = class dydx extends Exchange {
     sign (path, api = 'private', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.version + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
-        if (method === 'GET') {
+        if (method === 'GET' || method === 'DELETE') {
             if (Object.keys (params).length) {
                 request += '?' + this.urlencode (params);
             }
@@ -996,7 +1088,7 @@ module.exports = class dydx extends Exchange {
         if (api === 'private') {
             const timestamp = this.iso8601 (this.milliseconds ());
             let auth = timestamp + method + request;
-            if (method === 'POST') {
+            if (method !== 'GET') {
                 body = this.json (params);
                 auth += body;
             }
@@ -1008,7 +1100,7 @@ module.exports = class dydx extends Exchange {
                 'DYDX-PASSPHRASE': this.password,
                 'DYDX-SIGNATURE': signature,
             };
-            if (method === 'POST') {
+            if (method !== 'GET') {
                 headers['Content-type'] = 'application/json';
             }
         }
