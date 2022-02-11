@@ -18,24 +18,22 @@ module.exports = class dydx extends Exchange {
             'rateLimit': 100,
             'version': 'v3',
             'has': {
-                'CORS': undefined,
-                'spot': true,
-                'margin': undefined,
-                'swap': undefined,
-                'future': undefined,
-                'option': undefined,
-                'cancelOrder': undefined,
-                'createDepositAddress': undefined,
+                'CORS': false,
+                'spot': false,
+                'margin': false,
+                'swap': true,
+                'future': false,
+                'option': false,
+                'cancelOrder': true,
+                'createDepositAddress': false,
                 'createOrder': true,
-                'editOrder': undefined,
-                'fetchBalance': undefined,
-                'fetchCanceledOrders': undefined,
-                'fetchClosedOrders': undefined,
-                'fetchCurrencies': false,
-                'fetchDepositAddress': undefined,
-                'fetchDeposits': undefined,
+                'fetchBalance': true,
+                'fetchCanceledOrders': true,
+                'fetchClosedOrders': true,
+                'fetchDepositAddress': false,
+                'fetchDeposits': false,
                 'fetchMarkets': true,
-                'fetchMyTrades': undefined,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOrder': undefined,
                 'fetchOrderBook': true,
@@ -78,70 +76,67 @@ module.exports = class dydx extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'markets',
-                        'orderbook/{market}',
-                        'trades/{market}',
-                        'fast-withdrawals', // implicit
-                        'stats/{market}',
-                        'historical-funding/{market}',
-                        'candles/{market}',
-                        'config', // Get default maker and taker fees.
-                        'users/exists',
-                        'usernames',
-                        'time',
-                        'leaderboard-pnl',
-                    ],
-                    'put': [
-                        'emails/verify-email',
-                    ],
+                    'get': {
+                        'markets': 60,
+                        'orderbook/{market}': 60,
+                        'trades/{market}': 60,
+                        'fast-withdrawals': 60, // implicit
+                        'stats/{market}': 60,
+                        'historical-funding/{market}': 60,
+                        'candles/{market}': 60,
+                        'config': 60, // Get default maker and taker fees.
+                        'users/exists': 60,
+                        'usernames': 60,
+                        'time': 60,
+                        'leaderboard-pnl': 60,
+                    },
+                    'put': {
+                        'emails/verify-email': 60,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'rewards/public-retroactive-mining', // TODO: write to exchange API team, that this endpoint is listed under 'public' endpoints, but needs apikey
-                        'rewards/retroactive-mining',
-                        'active-orders',
-                        'recovery',
-                        'accounts/{id}',
-                        'accounts/leaderboard-pnl/{period}',
-                        'orders/{id}',
-                        'orders/client/{id}',
-                        'rewards/weight',
-                        'rewards/liquidity',
-                        'trades/BTC-USD',
-                        'trades/BTC-USD',
-                        'registration',
-                        'api-keys',
-                        'users', // can ge taker/maker fees https://docs.dydx.exchange/#get-user
-                        'accounts',
-                        'accounts/{id}',
-                        'positions',
-                        'transfers',
-                        'orders',
-                        'fills',
-                        'funding',
-                        'historical-pnl',
-                    ],
-                    'post': [
-                        'testnet/tokens',
-                        'onboarding',
-                        'transfers',
-                        'api-keys',
-                        'accounts',
-                        'withdrawals',
-                        'fast-withdrawals',
-                        'orders',
-                    ],
-                    'delete': [
-                        'api-keys',
-                        'orders',
-                        'orders/{id}',
-                        'active-orders',
-                    ],
-                    'put': [
-                        'users',
-                        'emails/send-verification-email',
-                    ],
+                    'get': {
+                        'rewards/public-retroactive-mining': 60, // TODO: write to exchange API team, that this endpoint is listed under 'public' endpoints, but needs apikey
+                        'rewards/retroactive-mining': 60,
+                        'active-orders': undefined, // variable
+                        'recovery': 60,
+                        'accounts': 60,
+                        'accounts/{id}': 60,
+                        'accounts/leaderboard-pnl/{period}': 60,
+                        'orders/{id}': undefined,
+                        'orders/client/{id}': undefined,
+                        'rewards/weight': 60,
+                        'rewards/liquidity': 60,
+                        'registration': 60,
+                        'api-keys': 60,
+                        'users': 60, // can ge taker/maker fees https://docs.dydx.exchange/#get-user
+                        'positions': 60,
+                        'transfers': 60,
+                        'orders': undefined,
+                        'fills': 60,
+                        'funding': 60,
+                        'historical-pnl': 60,
+                    },
+                    'post': {
+                        'testnet/tokens': 172800,
+                        'onboarding': 60,
+                        'transfers': 60,
+                        'api-keys': 60,
+                        'accounts': 60,
+                        'withdrawals': 60,
+                        'fast-withdrawals': 60,
+                        'orders': undefined, // variable
+                    },
+                    'delete': {
+                        'api-keys': 60,
+                        'orders': undefined, // 3 requests per 10 seconds PER SYMBOL
+                        'orders/{id}': undefined, // 250 requests per 10 seconds PER SYMBOL
+                        'active-orders': undefined, // variable
+                    },
+                    'put': {
+                        'users': 60,
+                        'emails/send-verification-email': 3000,
+                    },
                 },
             },
             'commonCurrencies': {
@@ -1091,6 +1086,10 @@ module.exports = class dydx extends Exchange {
         } else {
             return await this.fetchOrders (symbol, since, limit, this.extend ({ 'status': 'PENDING,OPEN,UNTRIGGERED' }, params));
         }
+    }
+
+    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrders (symbol, since, limit, this.extend ({ 'status': 'CANCELED' }, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
