@@ -290,7 +290,7 @@ module.exports = class dydx extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
-            const symbol = this.symbolDefine (base, quote, settle);
+            const symbol = base + '/' + quote + ':' + settle;
             const stepSize = this.safeNumber (market, 'stepSize');
             const tickSize = this.safeNumber (market, 'tickSize');
             const minOrderSize = this.safeNumber (market, 'minOrderSize');
@@ -353,17 +353,6 @@ module.exports = class dydx extends Exchange {
         return result;
     }
 
-    symbolDefine (baseCode, quoteCode, settleCode = undefined, deliveryDate = undefined) { // TODO: can be unified method? users will use to avoid any mistakes
-        let symbol = baseCode + '/' + quoteCode;
-        if (settleCode !== undefined) {
-            symbol += ':' + settleCode;
-        }
-        if (deliveryDate !== undefined) {
-            symbol += '-' + deliveryDate;
-        }
-        return symbol;
-    }
-
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -417,40 +406,58 @@ module.exports = class dydx extends Exchange {
     }
 
     parseTrade (trade, market) {
-        let id = undefined;
-        const price = this.safeString (trade, 'price');
-        const amount = this.safeString (trade, 'size');
+        const marketId = this.safeString (trade, 'market');
+        market = this.safeMarket (marketId, market);
+        let id = this.safeString (trade, 'id');
+        const price = this.safeNumber (trade, 'price');
+        const amount = this.safeNumber (trade, 'size');
+        const type = this.parseOrderType (this.safeString (trade, 'type'));
         const timestamp = this.parseDate (this.safeString (trade, 'createdAt'));
-        const symbol = this.safeSymbol (undefined, market, '-');
-        const sideString = this.safeString (trade, 'side');
-        const side = (sideString === 'BUY') ? 'buy' : 'sell';
-        const takerOrMaker = 'taker';
-        if (id === undefined) { // reconstruct artificially, if it doesn't exist
-            id = this.syntheticTradeId (market, timestamp, side, amount, price);
+        const side = this.parseOrderSide (this.safeString (trade, 'side'));
+        const takerOrMaker = this.parseTakerMaker (this.safeString (trade, 'liquidity'));
+        const cost = this.safeNumber (trade, 'fee');
+        const orderId = this.safeString (trade, 'orderId');
+        if (id === undefined) {
+            id = this.syntheticTradeId (market, timestamp, side, amount, price, type, takerOrMaker);
         }
         return this.safeTrade ({
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'order': undefined,
-            'type': 'limit',
+            'symbol': market['symbol'],
+            'order': orderId,
+            'type': type,
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
+            'fee': {
+                'cost': cost,
+            },
             'info': trade,
         });
     }
 
-    syntheticTradeId (market, timestamp, side, amount, price) { // TODO: can be unified method? this approach is being used by multiple exchanges (mexc, woo-coinsbit, dydx, ...)
+    syntheticTradeId (market = undefined, timestamp = undefined, side = undefined, amount = undefined, price = undefined, orderType = undefined, takerOrMaker = undefined) {
+        // TODO: can be unified method? this approach is being used by multiple exchanges (mexc, woo-coinsbit, dydx, ...)
         let id = '';
         if (timestamp !== undefined) {
-            const marketIdStr = this.safeString (market, 'id', '');
-            const amountStr = (amount === undefined) ? '' : amount;
-            const sideStr = (side === undefined) ? '' : side;
-            const priceStr = (price === undefined) ? '' : price;
-            id = this.numberToString (timestamp) + '-' + marketIdStr + '-' + sideStr + '-' + amountStr + '-' + priceStr;
+            id = this.numberToString (timestamp) + '-' + this.safeString (market, 'id', '_');
+            if (side !== undefined) {
+                id += '-' + side;
+            }
+            if (orderType !== undefined) {
+                id += '-' + orderType;
+            }
+            if (takerOrMaker !== undefined) {
+                id += '-' + takerOrMaker;
+            }
+            if (amount !== undefined) {
+                id += '-' + this.numberToString (amount);
+            }
+            if (price !== undefined) {
+                id += '-' + this.numberToString (price);
+            }
         }
         return id;
     }
@@ -679,6 +686,17 @@ module.exports = class dydx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
+    parsePositionSide (status, reversed = false) {
+        let statuses = {
+            'LONG': 'long',
+            'SHORT': 'short',
+        };
+        if (reversed) {
+            statuses = this.changeKeyValue (statuses);
+        }
+        return this.safeString (statuses, status, status);
+    }
+
     parsePositions (positions) {
         const result = [];
         for (let i = 0; i < positions.length; i++) {
@@ -688,8 +706,7 @@ module.exports = class dydx extends Exchange {
     }
 
     parsePosition (position, market = undefined) {
-        const rawSide = this.safeString (position, 'side');
-        const side = (rawSide === 'LONG ') ? 'long' : 'short';
+        const side = this.parsePositionSide (this.safeString (position, 'side'));
         const size = this.safeNumber (position, 'size');
         const marketId = this.safeString (position, 'market');
         market = this.safeMarket (marketId, market);
@@ -1028,6 +1045,17 @@ module.exports = class dydx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
+    parseTakerMaker (status, reversed = false) {
+        let statuses = {
+            'MAKER': 'maker',
+            'TAKER': 'taker',
+        };
+        if (reversed) {
+            statuses = this.changeKeyValue (statuses);
+        }
+        return this.safeString (statuses, status, status);
+    }
+
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
@@ -1083,6 +1111,46 @@ module.exports = class dydx extends Exchange {
         const response = await this.privateGetOrders (this.extend (request, params));
         const arrayOrders = this.safeValue (response, 'orders', []);
         return this.parseOrders (arrayOrders, market, since, limit, params);
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'orderId': id,
+        };
+        return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetFills (this.extend (request, params));
+        // {
+        //     fills: [
+        //       {
+        //         id: "a1ec2811-efd5-12b6-a933-92012de69ecf",
+        //         side: "SELL",
+        //         liquidity: "TAKER",
+        //         type: "MARKET",
+        //         market: "ETH-USD",
+        //         price: "3072.1",
+        //         size: "0.395",
+        //         fee: "0.465188",
+        //         createdAt: "2022-02-10T23:31:18.629Z",
+        //         orderId: null,
+        //       },
+        //       ..
+        //     ],
+        // }
+        const arrayFills = this.safeValue (response, 'fills');
+        return this.parseTrades (arrayFills, market, since, limit);
     }
 
     async registerApiKey (params = undefined) { // https://docs.dydx.exchange/#register-api-key
