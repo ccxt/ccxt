@@ -1550,7 +1550,7 @@ module.exports = class mexc extends Exchange {
         };
         const response = await this.fetchPositions (this.extend (request, params));
         const firstPosition = this.safeValue (response, 0);
-        return this.parsePosition (firstPosition);
+        return this.parsePosition (firstPosition, market);
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
@@ -1615,7 +1615,7 @@ module.exports = class mexc extends Exchange {
         //         "autoAddIm": false
         //     }
         //
-        market = this.safeMarket (this.safeString (position, 'symbol'));
+        market = this.safeMarket (this.safeString (position, 'symbol'), market);
         const symbol = market['symbol'];
         const contracts = this.safeString (position, 'holdVol');
         const entryPrice = this.safeNumber (position, 'openAvgPrice');
