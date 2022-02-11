@@ -2597,14 +2597,12 @@ module.exports = class gateio extends Exchange {
         //
         const put = this.safeValue2 (order, 'put', 'initial');
         const trigger = this.safeValue (order, 'trigger');
-        // if (put) {
         let contract = this.safeString (put, 'contract');
         let type = this.safeString (put, 'type');
         let timeInForce = this.safeStringUpper2 (put, 'time_in_force', 'tif');
         let amount = this.safeString2 (put, 'amount', 'size');
         let side = this.safeString (put, 'side');
         let price = this.safeString (put, 'price');
-        // } else {
         contract = this.safeString (order, 'contract', contract);
         type = this.safeString (order, 'type', type);
         timeInForce = this.safeStringUpper2 (order, 'time_in_force', 'tif', timeInForce);
