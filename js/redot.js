@@ -28,7 +28,7 @@ module.exports = class redot extends Exchange {
                 'fetchFundingRate': false,
                 'fetchFundingRates': false,
                 'fetchMarkets': true,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': false,
