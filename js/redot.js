@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, BadSymbol, RateLimitExceeded, OrderNotFound, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, BadRequest, BadSymbol, RateLimitExceeded, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder } = require ('./base/errors');
 
 module.exports = class redot extends Exchange {
     describe () {
@@ -117,6 +117,9 @@ module.exports = class redot extends Exchange {
                     '12004': AuthenticationError, // {"error":{"code":12004,"message":"Login failed."}}
                     '14500': BadRequest, // {"error":{"code":14500,"message":"Depth is invalid."}}
                     '13500': BadSymbol, // {"error":{"code":13500,"message":"Instrument id is invalid."}}
+                    '15001': OrderNotFound, // {"error":{"code":15001,"message":"Order not found."}}
+                    '15503': InvalidOrder, // {"error":{"code":15503,"message":"Quantity is invalid."}}
+                    '16001': InsufficientFunds, // {"error":{"code":16001,"message":"Insufficient funds."}}
                 },
             },
         });
@@ -303,13 +306,13 @@ module.exports = class redot extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
-        //         {
-        //             "id":744918,
-        //             "time":1594800000857010,
-        //             "price":0.02594000,
-        //             "qty":0.05800000,
-        //             "side":"buy"
-        //         }
+        //  {
+        //      "id":"7466162",
+        //      "time":"1644601530690620",
+        //      "price":"0.99930000",
+        //      "qty":"116.73700000",
+        //      "side":"buy"
+        //   }
         //
         const id = this.safeString (trade, 'id');
         const timestamp = this.safeIntegerProduct (trade, 'time', 0.001);
@@ -490,7 +493,7 @@ module.exports = class redot extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
-        const response = await this.privatePostOrdersCancel (params);
+        const response = await this.privatePostCancelAllOrders (params);
         //
         // {
         //     "result": [
@@ -543,11 +546,12 @@ module.exports = class redot extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const request = { };
+        let market = undefined;
         if (symbol !== undefined) {
+            market = this.market (symbol);
             request['instrumentId'] = market['id'];
         }
         if (since !== undefined) {
@@ -597,6 +601,7 @@ module.exports = class redot extends Exchange {
 
     parseOrderStatus (status) {
         const statuses = {
+            'filled': 'closed',
         };
         return this.safeString (statuses, status, status);
     }
