@@ -2101,12 +2101,14 @@ module.exports = class gateio extends Exchange {
             'DMOVE': 'pending',
             'CANCEL': 'failed',
             'DONE': 'ok',
+            'BCODE': 'ok', // GateCode withdrawal
         };
         return this.safeString (statuses, status, status);
     }
 
     parseTransactionType (type) {
         const types = {
+            'b': 'deposit', // GateCode redemption
             'd': 'deposit',
             'w': 'withdrawal',
         };
