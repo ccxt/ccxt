@@ -1100,6 +1100,9 @@ module.exports = class kucoin extends Exchange {
             } else {
                 maxLength = bids.length;
             }
+            if ((limit !== undefined) && (limit < maxLength)) {
+                maxLength = limit;
+            }
             data['bids'] = bids.slice (0, maxLength);
             data['asks'] = asks.slice (0, maxLength);
         }
