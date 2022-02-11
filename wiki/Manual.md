@@ -2467,8 +2467,8 @@ The possible values in the `status` field are:
 - *Param `symbol` is required for exchanges `okx` and `kucoinfutures`*
 - *On `binance`, this is a private endpoint*
 
-You can obtain the absolute maximum leverage and maintenance margin rate for a market by accessing `market['limits']['leverage']['max']` and `market['maintenanceMarginRate']` respectively
-For many contract markets, the maximum leverage and maintenance margin rate will depend on the size of the trade. You can access these limits via the `fetchLeverageTiers` method
+You can obtain the absolute maximum leverage for a market by accessing `market['limits']['leverage']['max']`
+For many contract markets, the maximum leverage  will depend on the size of the trade. You can access these limits via the `fetchLeverageTiers` method
 
 ```Javascript
 fetchLeverageTiers(symbol, params = {})
