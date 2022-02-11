@@ -389,8 +389,8 @@ class bitmex extends Exchange {
                 'strike' => $this->safe_number($market, 'optionStrikePrice'),
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_number($market, 'tickSize'),
                     'amount' => $this->safe_number($market, 'lotSize'),
+                    'price' => $this->safe_number($market, 'tickSize'),
                 ),
                 'limits' => array(
                     'leverage' => array(

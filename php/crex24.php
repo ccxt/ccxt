@@ -365,8 +365,8 @@ class crex24 extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_number($market, 'tickSize'),
                     'amount' => $this->safe_number($market, 'volumeIncrement'),
+                    'price' => $this->safe_number($market, 'tickSize'),
                 ),
                 'limits' => array(
                     'leverage' => array(

@@ -204,16 +204,16 @@ class wazirx(Exchange):
                 'contract': False,
                 'linear': None,
                 'inverse': None,
-                'maker': self.parse_number(makerString),
                 'taker': self.parse_number(takerString),
+                'maker': self.parse_number(makerString),
                 'contractSize': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(entry, 'quoteAssetPrecision'),
                     'amount': self.safe_integer(entry, 'baseAssetPrecision'),
+                    'price': self.safe_integer(entry, 'quoteAssetPrecision'),
                 },
                 'limits': {
                     'leverage': {

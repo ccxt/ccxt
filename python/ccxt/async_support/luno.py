@@ -135,6 +135,14 @@ class luno(Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': True,  # based on volume from your primary currency(not the same for everyone)
+                    'percentage': True,
+                    'taker': self.parse_number('0.001'),
+                    'maker': self.parse_number('0'),
+                },
+            },
         })
 
     async def fetch_markets(self, params={}):

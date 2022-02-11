@@ -400,8 +400,8 @@ class lykke extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => intval($pricePrecision),
                     'amount' => $this->safe_integer($market, 'InvertedAccuracy'),
+                    'price' => intval($pricePrecision),
                 ),
                 'limits' => array(
                     'leverage' => array(

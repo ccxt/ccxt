@@ -442,8 +442,8 @@ class stex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(market, 'market_precision'),
                     'amount': self.safe_integer(market, 'currency_precision'),
+                    'price': self.safe_integer(market, 'market_precision'),
                 },
                 'limits': {
                     'leverage': {

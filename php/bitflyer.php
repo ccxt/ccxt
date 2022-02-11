@@ -127,39 +127,34 @@ class bitflyer extends Exchange {
 
     public function fetch_markets($params = array ()) {
         $jp_markets = $this->publicGetGetmarkets ($params);
-        // //
+        //
         //     array(
         //         // $spot
-        //         array(
-        //             "product_code" => "BTC_JPY",
-        //             "market_type" => "Spot"
-        //         ),
-        //         array(
-        //             "product_code" => "BCH_BTC",
-        //             "market_type" => "Spot"
-        //         ),
+        //         array( "product_code" => "BTC_JPY", "market_type" => "Spot" ),
+        //         array( "product_code" => "BCH_BTC", "market_type" => "Spot" ),
         //         // forex $swap
-        //         array(
-        //             "product_code" => "FX_BTC_JPY",
-        //             "market_type" => "FX"
-        //         ),
+        //         array( "product_code" => "FX_BTC_JPY", "market_type" => "FX" ),
         //         // $future
         //         array(
         //             "product_code" => "BTCJPY11FEB2022",
         //             "alias" => "BTCJPY_MAT1WK",
-        //             "market_type" => "Futures"
+        //             "market_type" => "Futures",
         //         ),
-        //     )
+        //     );
         //
         $us_markets = $this->publicGetGetmarketsUsa ($params);
         //
-        //    array("product_code" => "BTC_USD", "market_type" => "Spot"),
-        //    array("product_code" => "BTC_JPY", "market_type" => "Spot")
+        //     array(
+        //         array( "product_code" => "BTC_USD", "market_type" => "Spot" ),
+        //         array( "product_code" => "BTC_JPY", "market_type" => "Spot" ),
+        //     );
         //
         $eu_markets = $this->publicGetGetmarketsEu ($params);
         //
-        //    array("product_code" => "BTC_EUR", "market_type" => "Spot"),
-        //    array("product_code" => "BTC_JPY", "market_type" => "Spot")
+        //     array(
+        //         array( "product_code" => "BTC_EUR", "market_type" => "Spot" ),
+        //         array( "product_code" => "BTC_JPY", "market_type" => "Spot" ),
+        //     );
         //
         $markets = $this->array_concat($jp_markets, $us_markets);
         $markets = $this->array_concat($markets, $eu_markets);
@@ -237,8 +232,8 @@ class bitflyer extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => null,
                     'amount' => null,
+                    'price' => null,
                 ),
                 'limits' => array(
                     'leverage' => array(

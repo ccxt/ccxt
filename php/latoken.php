@@ -303,8 +303,8 @@ class latoken extends Exchange {
                     'strike' => null,
                     'optionType' => null,
                     'precision' => array(
-                        'price' => $this->safe_number($market, 'priceTick'),
                         'amount' => $this->safe_number($market, 'quantityTick'),
+                        'price' => $this->safe_number($market, 'priceTick'),
                     ),
                     'limits' => array(
                         'leverage' => array(

@@ -342,8 +342,8 @@ class poloniex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => 8,
-                    'amount' => 8,
+                    'amount' => intval('8'),
+                    'price' => intval('8'),
                 ),
                 'limits' => array_merge($this->limits, array(
                     'leverage' => array(

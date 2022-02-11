@@ -393,8 +393,8 @@ class cdax extends Exchange {
                 'type' => 'spot',
                 'spot' => true,
                 'margin' => null,
-                'future' => false,
                 'swap' => false,
+                'future' => false,
                 'option' => false,
                 'active' => ($state === 'online'),
                 'contract' => false,
@@ -408,12 +408,13 @@ class cdax extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($market, 'price-precision'),
                     'amount' => $this->safe_integer($market, 'amount-precision'),
+                    'price' => $this->safe_integer($market, 'price-precision'),
                     'cost' => $this->safe_integer($market, 'value-precision'),
                 ),
                 'limits' => array(
                     'leverage' => array(
+                        'min' => $this->parse_number('1'),
                         'max' => $this->safe_number($market, 'leverage-ratio', 1),
                         'superMax' => $this->safe_number($market, 'super-margin-leverage-ratio', 1),
                     ),

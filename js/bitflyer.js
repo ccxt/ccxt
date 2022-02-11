@@ -123,39 +123,34 @@ module.exports = class bitflyer extends Exchange {
 
     async fetchMarkets (params = {}) {
         const jp_markets = await this.publicGetGetmarkets (params);
-        // //
+        //
         //     [
         //         // spot
-        //         {
-        //             "product_code": "BTC_JPY",
-        //             "market_type": "Spot"
-        //         },
-        //         {
-        //             "product_code": "BCH_BTC",
-        //             "market_type": "Spot"
-        //         },
+        //         { "product_code": "BTC_JPY", "market_type": "Spot" },
+        //         { "product_code": "BCH_BTC", "market_type": "Spot" },
         //         // forex swap
-        //         {
-        //             "product_code": "FX_BTC_JPY",
-        //             "market_type": "FX"
-        //         },
+        //         { "product_code": "FX_BTC_JPY", "market_type": "FX" },
         //         // future
         //         {
         //             "product_code": "BTCJPY11FEB2022",
         //             "alias": "BTCJPY_MAT1WK",
-        //             "market_type": "Futures"
+        //             "market_type": "Futures",
         //         },
-        //     ]
+        //     ];
         //
         const us_markets = await this.publicGetGetmarketsUsa (params);
         //
-        //    {"product_code": "BTC_USD", "market_type": "Spot"},
-        //    {"product_code": "BTC_JPY", "market_type": "Spot"}
+        //     [
+        //         { "product_code": "BTC_USD", "market_type": "Spot" },
+        //         { "product_code": "BTC_JPY", "market_type": "Spot" },
+        //     ];
         //
         const eu_markets = await this.publicGetGetmarketsEu (params);
         //
-        //    {"product_code": "BTC_EUR", "market_type": "Spot"},
-        //    {"product_code": "BTC_JPY", "market_type": "Spot"}
+        //     [
+        //         { "product_code": "BTC_EUR", "market_type": "Spot" },
+        //         { "product_code": "BTC_JPY", "market_type": "Spot" },
+        //     ];
         //
         let markets = this.arrayConcat (jp_markets, us_markets);
         markets = this.arrayConcat (markets, eu_markets);
@@ -233,8 +228,8 @@ module.exports = class bitflyer extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': undefined,
                     'amount': undefined,
+                    'price': undefined,
                 },
                 'limits': {
                     'leverage': {

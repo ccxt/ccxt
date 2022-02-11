@@ -392,8 +392,8 @@ class bitmex(Exchange):
                 'strike': self.safe_number(market, 'optionStrikePrice'),
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_number(market, 'tickSize'),
                     'amount': self.safe_number(market, 'lotSize'),
+                    'price': self.safe_number(market, 'tickSize'),
                 },
                 'limits': {
                     'leverage': {

@@ -398,8 +398,8 @@ module.exports = class lykke extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': parseInt (pricePrecision),
                     'amount': this.safeInteger (market, 'InvertedAccuracy'),
+                    'price': parseInt (pricePrecision),
                 },
                 'limits': {
                     'leverage': {

@@ -911,7 +911,6 @@ class bybit(Exchange):
                 'option': option,
                 'linear': linear,
                 'inverse': inverse,
-                'maintenanceMarginRate': None,
                 'limits': {
                     'amount': {
                         'min': self.safe_number(lotSizeFilter, 'min_trading_qty'),

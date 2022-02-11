@@ -308,8 +308,8 @@ class latoken(Exchange):
                     'strike': None,
                     'optionType': None,
                     'precision': {
-                        'price': self.safe_number(market, 'priceTick'),
                         'amount': self.safe_number(market, 'quantityTick'),
+                        'price': self.safe_number(market, 'priceTick'),
                     },
                     'limits': {
                         'leverage': {

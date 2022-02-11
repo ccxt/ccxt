@@ -234,8 +234,8 @@ class bitbns extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($marketPrecision, 'price'),
                     'amount' => $this->safe_integer($marketPrecision, 'amount'),
+                    'price' => $this->safe_integer($marketPrecision, 'price'),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -289,7 +289,7 @@ class bitbns extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($response, 'timestamp');
-        return $this->parse_order_book($response, $timestamp);
+        return $this->parse_order_book($response, $symbol, $timestamp);
     }
 
     public function parse_ticker($ticker, $market = null) {

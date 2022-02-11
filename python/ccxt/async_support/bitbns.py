@@ -236,8 +236,8 @@ class bitbns(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(marketPrecision, 'price'),
                     'amount': self.safe_integer(marketPrecision, 'amount'),
+                    'price': self.safe_integer(marketPrecision, 'price'),
                 },
                 'limits': {
                     'leverage': {
@@ -288,7 +288,7 @@ class bitbns(Exchange):
         #     }
         #
         timestamp = self.safe_integer(response, 'timestamp')
-        return self.parse_order_book(response, timestamp)
+        return self.parse_order_book(response, symbol, timestamp)
 
     def parse_ticker(self, ticker, market=None):
         #

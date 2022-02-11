@@ -486,7 +486,6 @@ class bitmart(Exchange):
                 'linear': None,
                 'inverse': None,
                 'contractSize': None,
-                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
@@ -613,7 +612,6 @@ class bitmart(Exchange):
                 future = True
                 symbol = symbol + ':' + settle + '-' + self.yymmdd(expiry, '')
             feeConfig = self.safe_value(market, 'fee_config', {})
-            riskLimit = self.safe_value(market, 'risk_limit')
             result.append({
                 'id': id,
                 'numericId': numericId,
@@ -637,7 +635,6 @@ class bitmart(Exchange):
                 'taker': self.safe_number(feeConfig, 'taker_fee'),
                 'maker': self.safe_number(feeConfig, 'maker_fee'),
                 'contractSize': self.safe_number(market, 'contract_size'),
-                'maintenanceMarginRate': self.safe_number(riskLimit, 'maintenance_margin'),
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
                 'strike': None,

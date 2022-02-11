@@ -509,19 +509,18 @@ class aax(Exchange):
                 'taker': self.safe_number(market, 'takerFee'),
                 'maker': self.safe_number(market, 'makerFee'),
                 'contractSize': contractSize,
-                'maintenanceMarginRate': self.safe_number(market, 'mmRate') if swap else None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'quanto': quanto,
                 'precision': {
-                    'price': self.safe_number(market, 'tickSize'),
                     'amount': self.safe_number(market, 'lotSize'),
+                    'price': self.safe_number(market, 'tickSize'),
                 },
                 'limits': {
                     'leverage': {
-                        'min': self.parse_number('1'),
+                        'min': None,
                         'max': None,
                     },
                     'amount': {

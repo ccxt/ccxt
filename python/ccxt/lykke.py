@@ -383,8 +383,8 @@ class lykke(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': int(pricePrecision),
                     'amount': self.safe_integer(market, 'InvertedAccuracy'),
+                    'price': int(pricePrecision),
                 },
                 'limits': {
                     'leverage': {
