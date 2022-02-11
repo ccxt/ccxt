@@ -113,6 +113,7 @@ module.exports = class redot extends Exchange {
                 'exact': {
                     '10002': RateLimitExceeded, // {"error":{"code":10002,"message":"Too many requests."}}
                     '10501': BadRequest, // {"error":{"code":10501,"message":"Request parameters have incorrect format."}}
+                    '12001': AuthenticationError, // {"error":{"code":12001,"message":"User is not authenticated."}}
                     '12004': AuthenticationError, // {"error":{"code":12004,"message":"Login failed."}}
                     '14500': BadRequest, // {"error":{"code":14500,"message":"Depth is invalid."}}
                     '13500': BadSymbol, // {"error":{"code":13500,"message":"Instrument id is invalid."}}
@@ -503,9 +504,10 @@ module.exports = class redot extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const request = { };
+        let market = undefined;
         if (symbol !== undefined) {
+            market = this.market (symbol);
             request['instrumentId'] = market['id'];
         }
         if (since !== undefined) {
@@ -593,6 +595,58 @@ module.exports = class redot extends Exchange {
         throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrder (order, market = undefined) {
+        // {
+        //     "id":"1432857828",
+        //     "instrumentId":"USDC-USDT",
+        //     "status":"open",
+        //     "type":"limit",
+        //     "side":"sell",
+        //     "qty":"1.00000000",
+        //     "cumQty":"0.00000000",
+        //     "price":"100.00000000",
+        //     "timestamp":"1644600280211136"
+        //  }
+        const created = this.safeIntegerProduct (order, 'timestamp', 0.001);
+        const marketId = this.safeString (order, 'instrumentId');
+        const symbol = this.safeSymbol (marketId, market);
+        const amount = this.safeString (order, 'qty');
+        const filled = this.safeString (order, 'cumQty');
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const id = this.safeString (order, 'id');
+        const price = this.safeString (order, 'price');
+        const type = this.safeStringLower (order, 'type');
+        const side = this.safeStringLower (order, 'side');
+        return this.safeOrder ({
+            'info': order,
+            'id': id,
+            'clientOrderId': undefined,
+            'timestamp': created,
+            'datetime': this.iso8601 (created),
+            'lastTradeTimestamp': undefined,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': filled,
+            'remaining': undefined,
+            'cost': undefined,
+            'fee': undefined,
+            'average': undefined,
+            'trades': [],
+        }, market);
+    }
+
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -671,7 +725,7 @@ module.exports = class redot extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (!(type === 'limit') || (type === 'market')) {
+        if (!((type === 'limit') || (type === 'market'))) {
             throw new ExchangeError (this.id + ' createOrder() supports limit and market orders only');
         }
         await this.loadMarkets ();
@@ -685,7 +739,7 @@ module.exports = class redot extends Exchange {
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await this.privatePosPlacetOrder (this.extend (request, params));
+        const response = await this.privatePostPlaceOrder (this.extend (request, params));
         // {
         //     "result": {
         //       "orderId": 234
@@ -723,7 +777,7 @@ module.exports = class redot extends Exchange {
 
     async fetchFundingFees (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateWalletGetWithdrawStatus (params);
+        const response = await this.privateGetGetFees (params);
         //
         // {
         //     "result": [
@@ -809,6 +863,7 @@ module.exports = class redot extends Exchange {
                 url += '?' + this.urlencode (params);
             }
         }
+        headers = {};
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const accessToken = this.safeString (this.options, 'accessToken');
