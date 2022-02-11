@@ -1666,17 +1666,19 @@ module.exports = class delta extends Exchange {
                 const maxLeverageNotional = this.safeString (info, 'max_leverage_notional');
                 const initialMarginScalingFactor = this.safeString (info, 'initial_margin_scaling_factor');
                 const maintenanceMarginScalingFactor = this.safeString (info, 'maintenance_margin_scaling_factor');
+                const positionSizeLimit = this.safeString (info, 'position_size_limit');
+                const impactSize = this.safeString (info, 'impact_size');
                 let maintenanceMargin = this.safeString (info, 'maintenance_margin');
                 let initialMargin = this.safeString (info, 'initial_margin');
                 const spotIndex = this.safeValue (info, 'spot_index');
                 const config = this.safeString (spotIndex, 'config');
-                const impactSize = this.safeString (config, 'impact_size');
-                const maxImpactSize = this.safeString (impactSize, 'max_impact_size');
-                const minImpactSize = this.safeString (impactSize, 'min_impact_size');
-                const stepValue = this.safeString (impactSize, 'step_value');
+                const configImpactSize = this.safeString (config, 'impact_size');
+                const maxImpactSize = this.safeString (configImpactSize, 'max_impact_size');
+                const minImpactSize = this.safeString (configImpactSize, 'min_impact_size');
+                const stepValue = this.safeString (configImpactSize, 'step_value');
                 let floor = '0';
                 const tiers = [];
-                while (Precise.stringLt (floor, maxVol)) {
+                while (Precise.stringLt (floor, positionSizeLimit)) {
                     const cap = Precise.stringAdd (floor, riskIncrVol);
                     tiers.push ({
                         'tier': this.parseNumber (Precise.stringDiv (cap, riskIncrVol)),
