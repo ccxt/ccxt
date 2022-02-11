@@ -118,7 +118,6 @@ module.exports = class dydx extends Exchange {
                         'positions',
                         'transfers',
                         'orders',
-                        // 'orders/client', ? this endpoint was here, but not listed in apidocs
                         'fills',
                         'funding',
                         'historical-pnl',
@@ -1027,6 +1026,26 @@ module.exports = class dydx extends Exchange {
             statuses = this.changeKeyValue (statuses);
         }
         return this.safeString (statuses, status, status);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        let request = undefined;
+        let response = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientId');
+        if (clientOrderId !== undefined) {
+            request = { 'id': clientOrderId };
+            response = await this.privateGetOrdersClientId (this.extend (request, params));
+        } else {
+            request = { 'id': id };
+            response = await this.privateGetOrdersId (this.extend (request, params));
+        }
+        const data = this.safeValue (response, 'order', {});
+        return this.parseOrder (data, market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
