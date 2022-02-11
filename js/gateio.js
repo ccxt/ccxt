@@ -2108,7 +2108,6 @@ module.exports = class gateio extends Exchange {
 
     parseTransactionType (type) {
         const types = {
-            'b': 'deposit', // GateCode redemption
             'd': 'deposit',
             'w': 'withdrawal',
         };
@@ -2133,12 +2132,16 @@ module.exports = class gateio extends Exchange {
         // withdrawals
         const id = this.safeString (transaction, 'id');
         let type = undefined;
-        if (id !== undefined) {
+        let amount = this.safeString (transaction, 'amount');
+        if (id[0] === 'b') {
+            // GateCode handling
+            type = Precise.stringGt (amount, '0') ? 'deposit' : 'withdrawal';
+            amount = Precise.stringAbs (amount);
+        } else if (id !== undefined) {
             type = this.parseTransactionType (id[0]);
         }
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId);
-        const amount = this.safeNumber (transaction, 'amount');
         const txid = this.safeString (transaction, 'txid');
         const rawStatus = this.safeString (transaction, 'status');
         const status = this.parseTransactionStatus (rawStatus);
@@ -2154,7 +2157,7 @@ module.exports = class gateio extends Exchange {
             'id': id,
             'txid': txid,
             'currency': code,
-            'amount': amount,
+            'amount': this.parseNumber (amount),
             'network': undefined,
             'address': address,
             'addressTo': undefined,
