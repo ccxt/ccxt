@@ -331,7 +331,6 @@ module.exports = class cryptocom extends Exchange {
                 'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
-                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
