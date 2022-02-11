@@ -1060,7 +1060,7 @@ class coinex(Exchange):
         #                     "transfer_method": "onchain",
         #                     "tx_fee": "0",
         #                     "tx_id": "896371d0e23d64d1cac65a0b7c9e9093d835affb572fec89dd4547277fbdd2f6"
-        #                 }, /* many more data points */
+        #                 }, /* many more data points'''
         #             ],
         #             "total": ***,
         #             "total_page":***
