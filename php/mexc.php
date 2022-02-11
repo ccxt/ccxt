@@ -1553,7 +1553,7 @@ class mexc extends Exchange {
         );
         $response = $this->fetch_positions(array_merge($request, $params));
         $firstPosition = $this->safe_value($response, 0);
-        return $firstPosition;
+        return $this->parse_position($firstPosition, $market);
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
@@ -1589,9 +1589,78 @@ class mexc extends Exchange {
         //         )
         //     }
         //
-        // todo add parsePositions, parsePosition
         $data = $this->safe_value($response, 'data', array());
-        return $data;
+        return $this->parse_positions($data);
+    }
+
+    public function parse_position($position, $market = null) {
+        //
+        //     {
+        //         "positionId" => 1394650,
+        //         "symbol" => "ETH_USDT",
+        //         "positionType" => 1,
+        //         "openType" => 1,
+        //         "state" => 1,
+        //         "holdVol" => 1,
+        //         "frozenVol" => 0,
+        //         "closeVol" => 0,
+        //         "holdAvgPrice" => 1217.3,
+        //         "openAvgPrice" => 1217.3,
+        //         "closeAvgPrice" => 0,
+        //         "liquidatePrice" => 1211.2,
+        //         "oim" => 0.1290338,
+        //         "im" => 0.1290338,
+        //         "holdFee" => 0,
+        //         "realised" => -0.0073,
+        //         "leverage" => 100,
+        //         "createTime" => 1609991676000,
+        //         "updateTime" => 1609991676000,
+        //         "autoAddIm" => false
+        //     }
+        //
+        $market = $this->safe_market($this->safe_string($position, 'symbol'), $market);
+        $symbol = $market['symbol'];
+        $contracts = $this->safe_string($position, 'holdVol');
+        $entryPrice = $this->safe_number($position, 'openAvgPrice');
+        $initialMargin = $this->safe_string($position, 'im');
+        $rawSide = $this->safe_string($position, 'positionType');
+        $side = ($rawSide === '1') ? 'long' : 'short';
+        $openType = $this->safe_string($position, 'margin_mode');
+        $marginType = ($openType === '1') ? 'isolated' : 'cross';
+        $leverage = $this->safe_string($position, 'leverage');
+        $liquidationPrice = $this->safe_number($position, 'liquidatePrice');
+        $timestamp = $this->safe_number($position, 'updateTime');
+        return array(
+            'info' => $position,
+            'symbol' => $symbol,
+            'contracts' => $this->parse_number($contracts),
+            'contractSize' => null,
+            'entryPrice' => $entryPrice,
+            'collateral' => null,
+            'side' => $side,
+            'unrealizedProfit' => null,
+            'leverage' => $this->parse_number($leverage),
+            'percentage' => null,
+            'marginType' => $marginType,
+            'notional' => null,
+            'markPrice' => null,
+            'liquidationPrice' => $liquidationPrice,
+            'initialMargin' => $this->parse_number($initialMargin),
+            'initialMarginPercentage' => null,
+            'maintenanceMargin' => null,
+            'maintenanceMarginPercentage' => null,
+            'marginRatio' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
+    }
+
+    public function parse_positions($positions) {
+        $result = array();
+        for ($i = 0; $i < count($positions); $i++) {
+            $result[] = $this->parse_position($positions[$i]);
+        }
+        return $result;
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
