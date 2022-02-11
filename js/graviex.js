@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, OrderNotFound } = require ('./base/errors');
-// const Precise = require ('./base/Precise');
 
 // ---------------------------------------------------------------------------
 
@@ -18,33 +17,38 @@ module.exports = class graviex extends Exchange {
             'rateLimit': 1000,
             'has': {
                 'CORS': undefined,
-                'fetchMarkets': true,
-                'fetchTicker': true,
-                'fetchTickers': true,
-                'fetchBalance': true,
-                'fetchCurrencies': false,
-                'fetchTrades': true,
-                'fetchSimpleTrades': true,
-                'fetchTradesHistory': true,
-                'fetchOHLCV': true,
-                'fetchOrders': true,
-                'fetchOrder': true,
-                'fetchDepth': true,
-                'fetchOrderBook': true,
-                'fetchOrderBooks': false,
-                'fetchL2OrderBook': false,
-                'fetchOrderTrades': false,
-                'fetchMyTrades': true,
-                'fetchWithdrawals': false,
-                'fetchDeposit': true,
-                'fetchDeposits': true,
-                'fetchDepositAddress': true,
-                'createOrder': true,
+                'spot': true,
+                'margin': undefined,
+                'swap': undefined,
+                'future': undefined,
+                'option': undefined,
                 'cancelOrder': true,
                 'clearOrder': true,
                 'createOcoOrder': false,
+                'createOrder': true,
                 'createOrders': false,
+                'fetchBalance': true,
+                'fetchCurrencies': false,
+                'fetchDeposit': true,
+                'fetchDepositAddress': true,
+                'fetchDeposits': true,
+                'fetchDepth': true,
+                'fetchL2OrderBook': false,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrderBooks': false,
+                'fetchOrders': true,
                 'fetchOrdersHistory': true,
+                'fetchOrderTrades': false,
+                'fetchSimpleTrades': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': true,
+                'fetchTradesHistory': true,
+                'fetchWithdrawals': false,
             },
             'timeframes': {
                 '1m': '1',
@@ -81,6 +85,7 @@ module.exports = class graviex extends Exchange {
                         'trades_simple', // Requires market XXXYYY.
                         'k', // Requires market XXXYYY. Optional: limit, timestamp, period
                         'k_with_pending_trades', // API endpoints exists almost same as k endpoint skipping for now.
+                        'tickers/{market}', // Get ticker of specific market
                     ],
                 },
                 'private': {
@@ -130,64 +135,46 @@ module.exports = class graviex extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'id');
-            let symbolParts = this.safeString (market, 'name');
-            symbolParts = symbolParts.split ('/');
-            const baseId = symbolParts[0];
-            const quoteId = symbolParts[1];
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const active = true;
+            const symbol = this.safeString (market, 'name');
+            const [ baseId, quoteId ] = symbol.split ('/');
             result.push ({
                 'id': id,
                 'symbol': symbol,
-                'base': base,
-                'quote': quote,
+                'base': this.safeCurrencyCode (baseId),
+                'quote': this.safeCurrencyCode (quoteId),
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': active,
-                'info': markets[i],
+                'settleId': undefined,
+                'type': 'spot',
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': undefined,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': this.precision,
+                'limits': this.extend ({
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                }, this.limits),
+                'info': market,
             });
         }
         return result;
     }
 
     parseTicker (ticker, market = undefined) {
-        const timestamp = this.milliseconds ();
-        const symbol = market['symbol'];
-        // ticker = ticker['ticker'];
-        const last = this.safeFloat (ticker, 'last');
-        return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'change'),
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume'),
-            'quoteVolume': this.safeFloat (ticker, 'volume2'),
-            'info': ticker,
-        };
-    }
-
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'market': market['id'],
-        };
-        const response = await this.publicGetTickers (this.extend (request, params));
         // {
         //     "name": "GIO/BTC",
         //     "base_unit": "gio",
@@ -214,10 +201,67 @@ module.exports = class graviex extends Exchange {
         //     "buy": "0.00000055",
         //     "at": 1643628427,
         // },
-        if (Array.isArray (response)) {
-            const firstTicker = this.safeValue (response, 0, {});
-            return this.parseTicker (firstTicker, market);
-        }
+        const timestamp = this.milliseconds ();
+        const marketId = this.safeString (ticker, 'name');
+        const symbol = this.safeSymbol (marketId, market);
+        const last = this.safeFloat (ticker, 'last');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'buy'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'sell'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'volume'),
+            'quoteVolume': this.safeString (ticker, 'volume2'),
+            'info': ticker,
+        }, market, false);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        const response = await this.publicGetTickersMarket (this.extend (request, params));
+        // {
+        //     "name": "GIO/BTC",
+        //     "base_unit": "gio",
+        //     "base_fixed": 4,
+        //     "base_fee": 0.002,
+        //     "quote_unit": "btc",
+        //     "quote_fixed": 8,
+        //     "quote_fee": 0.002,
+        //     "api": true,
+        //     "base_lot": null,
+        //     "quote_lot": null,
+        //     "base_min": "0.00000010",
+        //     "quote_min": "0.00000010",
+        //     "blocks": 260722,
+        //     "block_time": "2022-01-31 14:10:08",
+        //     "wstatus": "on",
+        //     "low": "0.0000005",
+        //     "high": "0.00000058",
+        //     "last": "0.00000058",
+        //     "open": "0.000000510",
+        //     "volume": "70673.0412",
+        //     "volume2": "0.03837782973",
+        //     "sell": "0.00000058",
+        //     "buy": "0.00000055",
+        //     "at": 1643628427,
+        // },
         return this.parseTicker (response, market);
     }
 
@@ -975,7 +1019,9 @@ module.exports = class graviex extends Exchange {
         let url = this.urls['api'][api] + '/' + path;
         const request = '/webapi/v3/' + path;
         const query = this.omit (params, this.extractParams (path));
-        if (api === 'public') {
+        if (api === 'public' && path === 'tickers/{market}') {
+            url = this.urls['api'][api] + this.implodeParams (path, params);
+        } else if (api === 'public' && path !== 'tickers/{market}') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
