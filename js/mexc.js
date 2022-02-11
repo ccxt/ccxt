@@ -1586,9 +1586,8 @@ module.exports = class mexc extends Exchange {
         //         ]
         //     }
         //
-        // todo add parsePositions
         const data = this.safeValue (response, 'data', []);
-        return data;
+        return this.parsePositions (data);
     }
 
     parsePosition (position, market = undefined) {
@@ -1651,6 +1650,14 @@ module.exports = class mexc extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
+    }
+
+    parsePositions (positions) {
+        const result = [];
+        for (let i = 0; i < positions.length; i++) {
+            result.push (this.parsePosition (positions[i]));
+        }
+        return result;
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
