@@ -674,7 +674,9 @@ class Exchange(object):
             skip_further_error_handling = self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
             if not skip_further_error_handling:
                 self.handle_http_status_code(http_status_code, http_status_text, url, method, http_response)
-            raise ExchangeError(details) from e
+                raise ExchangeError(details) from e
+            response = response['text'] if response and 'text' in response else None
+            return json_response or response
 
         except requestsConnectionError as e:
             error_string = str(e)
