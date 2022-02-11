@@ -201,7 +201,6 @@ class bitbank(Exchange):
                 'taker': self.safe_number(entry, 'taker_fee_rate_quote'),
                 'maker': self.safe_number(entry, 'maker_fee_rate_quote'),
                 'contractSize': None,
-                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,

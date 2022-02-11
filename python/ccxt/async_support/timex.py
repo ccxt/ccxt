@@ -901,7 +901,6 @@ class timex(Exchange):
             'taker': self.safe_number(market, 'takerFee'),
             'maker': self.safe_number(market, 'makerFee'),
             'contractSize': None,
-            'maintenanceMarginRate': None,
             'expiry': None,
             'expiryDatetime': None,
             'strike': None,

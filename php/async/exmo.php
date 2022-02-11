@@ -468,7 +468,6 @@ class exmo extends Exchange {
                 'taker' => $this->parse_number(Precise::string_div($takerString, '100')),
                 'maker' => $this->parse_number(Precise::string_div($makerString, '100')),
                 'contractSize' => null,
-                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,

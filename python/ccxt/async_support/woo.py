@@ -321,7 +321,6 @@ class woo(Exchange):
                 'linear': False,
                 'inverse': False,
                 'contractSize': None,
-                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,

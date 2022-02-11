@@ -936,7 +936,6 @@ class timex extends Exchange {
             'taker' => $this->safe_number($market, 'takerFee'),
             'maker' => $this->safe_number($market, 'makerFee'),
             'contractSize' => null,
-            'maintenanceMarginRate' => null,
             'expiry' => null,
             'expiryDatetime' => null,
             'strike' => null,

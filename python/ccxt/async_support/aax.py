@@ -509,7 +509,6 @@ class aax(Exchange):
                 'taker': self.safe_number(market, 'takerFee'),
                 'maker': self.safe_number(market, 'makerFee'),
                 'contractSize': contractSize,
-                'maintenanceMarginRate': self.safe_number(market, 'mmRate') if swap else None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,

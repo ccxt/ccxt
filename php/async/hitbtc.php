@@ -331,7 +331,6 @@ class hitbtc extends Exchange {
                 'taker' => $this->safe_number($market, 'takeLiquidityRate'),
                 'maker' => $this->safe_number($market, 'provideLiquidityRate'),
                 'contractSize' => null,
-                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,

@@ -206,7 +206,6 @@ class ripio extends Exchange {
                 'taker' => $this->safe_number($firstFee, 'taker_fee', 0.0),
                 'maker' => $this->safe_number($firstFee, 'maker_fee', 0.0),
                 'contractSize' => null,
-                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,

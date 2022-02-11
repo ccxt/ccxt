@@ -15,7 +15,6 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
-from ccxt.base.precise import Precise
 
 
 class delta(Exchange):
@@ -424,7 +423,6 @@ class delta(Exchange):
             else:
                 symbol = id
             state = self.safe_string(market, 'state')
-            maintenanceMarginPercentage = self.safe_string(market, 'maintenance_margin')
             result.append({
                 'id': id,
                 'numericId': numericId,
@@ -448,7 +446,6 @@ class delta(Exchange):
                 'taker': self.safe_number(market, 'taker_commission_rate'),
                 'maker': self.safe_number(market, 'maker_commission_rate'),
                 'contractSize': contractSize,
-                'maintenanceMarginRate': self.parse_number(Precise.string_div(maintenanceMarginPercentage, '100')),
                 'expiry': expiry,
                 'expiryDatetime': expiryDatetime,
                 'strike': self.parse_number(strike),

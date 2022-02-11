@@ -204,7 +204,6 @@ class wazirx extends Exchange {
                 'taker' => $this->parse_number($takerString),
                 'maker' => $this->parse_number($makerString),
                 'contractSize' => null,
-                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,

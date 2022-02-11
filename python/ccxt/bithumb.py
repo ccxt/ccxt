@@ -220,7 +220,6 @@ class bithumb(Exchange):
                     'linear': None,
                     'inverse': None,
                     'contractSize': None,
-                    'maintenanceMarginRate': None,
                     'expiry': None,
                     'expiryDateTime': None,
                     'strike': None,

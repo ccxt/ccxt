@@ -124,39 +124,34 @@ class bitflyer(Exchange):
 
     async def fetch_markets(self, params={}):
         jp_markets = await self.publicGetGetmarkets(params)
-        #  #
+        #
         #     [
         #         # spot
-        #         {
-        #             "product_code": "BTC_JPY",
-        #             "market_type": "Spot"
-        #         },
-        #         {
-        #             "product_code": "BCH_BTC",
-        #             "market_type": "Spot"
-        #         },
+        #         {"product_code": "BTC_JPY", "market_type": "Spot"},
+        #         {"product_code": "BCH_BTC", "market_type": "Spot"},
         #         # forex swap
-        #         {
-        #             "product_code": "FX_BTC_JPY",
-        #             "market_type": "FX"
-        #         },
+        #         {"product_code": "FX_BTC_JPY", "market_type": "FX"},
         #         # future
         #         {
         #             "product_code": "BTCJPY11FEB2022",
         #             "alias": "BTCJPY_MAT1WK",
-        #             "market_type": "Futures"
+        #             "market_type": "Futures",
         #         },
         #     ]
         #
         us_markets = await self.publicGetGetmarketsUsa(params)
         #
-        #    {"product_code": "BTC_USD", "market_type": "Spot"},
-        #    {"product_code": "BTC_JPY", "market_type": "Spot"}
+        #     [
+        #         {"product_code": "BTC_USD", "market_type": "Spot"},
+        #         {"product_code": "BTC_JPY", "market_type": "Spot"},
+        #     ]
         #
         eu_markets = await self.publicGetGetmarketsEu(params)
         #
-        #    {"product_code": "BTC_EUR", "market_type": "Spot"},
-        #    {"product_code": "BTC_JPY", "market_type": "Spot"}
+        #     [
+        #         {"product_code": "BTC_EUR", "market_type": "Spot"},
+        #         {"product_code": "BTC_JPY", "market_type": "Spot"},
+        #     ]
         #
         markets = self.array_concat(jp_markets, us_markets)
         markets = self.array_concat(markets, eu_markets)
@@ -226,7 +221,6 @@ class bitflyer(Exchange):
                 'taker': taker,
                 'maker': maker,
                 'contractSize': None,
-                'maintenanceMarginRate': None,
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
                 'strike': None,

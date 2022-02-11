@@ -884,7 +884,6 @@ class okcoin extends Exchange {
             'linear' => $contract ? ($quote === $settle) : null,
             'inverse' => $contract ? ($base === $settle) : null,
             'contractSize' => $contractVal,
-            'maintenanceMarginRate' => null,
             'expiry' => $expiry,
             'expiryDatetime' => $this->iso8601($expiry),
             'strike' => $strike,

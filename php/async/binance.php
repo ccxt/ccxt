@@ -1579,7 +1579,6 @@ class binance extends Exchange {
                 'taker' => $fees['trading']['taker'],
                 'maker' => $fees['trading']['maker'],
                 'contractSize' => $contractSize,
-                'maintenanceMarginRate' => null,
                 'expiry' => $expiry,
                 'expiryDatetime' => $this->iso8601($expiry),
                 'strike' => null,

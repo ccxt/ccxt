@@ -863,7 +863,6 @@ class bitget(Exchange):
             'linear': (base == settle),
             'inverse': (quote == settle),
             'contractSize': contractVal,
-            'maintenanceMarginRate': None,
             'expiry': None,
             'expiryDatetime': None,
             'strike': None,

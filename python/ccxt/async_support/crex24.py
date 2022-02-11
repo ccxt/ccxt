@@ -360,7 +360,6 @@ class crex24(Exchange):
                 'taker': taker,
                 'maker': maker,
                 'contractSize': None,
-                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,

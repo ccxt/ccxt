@@ -293,7 +293,6 @@ class probit(Exchange):
                 'taker': self.parse_number(taker),
                 'maker': self.parse_number(maker),
                 'contractSize': None,
-                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,

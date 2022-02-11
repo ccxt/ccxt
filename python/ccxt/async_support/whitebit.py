@@ -281,7 +281,6 @@ class whitebit(Exchange):
                 'taker': self.safe_number(market, 'makerFee'),
                 'maker': self.safe_number(market, 'takerFee'),
                 'contractSize': None,
-                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,

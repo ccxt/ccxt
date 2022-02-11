@@ -559,7 +559,6 @@ class ascendex(Exchange):
                 'taker': fee,
                 'maker': fee,
                 'contractSize': self.parse_number('1') if swap else None,
-                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,

@@ -201,7 +201,6 @@ class therock extends Exchange {
                     'taker' => $taker,
                     'maker' => $taker,
                     'contractSize' => null,
-                    'maintenanceMarginRate' => null,
                     'active' => true,
                     'expiry' => null,
                     'expiryDatetime' => null,

@@ -365,7 +365,6 @@ class btcmarkets extends Exchange {
                 'taker' => $fees['taker'],
                 'maker' => $fees['maker'],
                 'contractSize' => null,
-                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,

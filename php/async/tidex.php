@@ -294,7 +294,6 @@ class tidex extends Exchange {
                 'inverse' => null,
                 'taker' => $this->parse_number($takerFeeString),
                 'contractSize' => null,
-                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,

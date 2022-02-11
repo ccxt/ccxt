@@ -879,7 +879,6 @@ class okx(Exchange):
             'linear': (quoteId == settleId) if contract else None,
             'inverse': (baseId == settleId) if contract else None,
             'contractSize': self.safe_number(market, 'ctVal') if contract else None,
-            'maintenanceMarginRate': None,
             'expiry': expiry,
             'expiryDatetime': self.iso8601(expiry),
             'strike': strikePrice,

@@ -403,7 +403,6 @@ class cdax extends Exchange {
                 'taker' => ($base === 'OMG') ? 0 : 0.002,
                 'maker' => ($base === 'OMG') ? 0 : 0.002,
                 'contractSize' => null,
-                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,

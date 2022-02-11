@@ -196,7 +196,6 @@ class zaif(Exchange):
                 'taker': fees['taker'],
                 'maker': fees['maker'],
                 'contractSize': None,
-                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,

@@ -213,7 +213,6 @@ class ripio(Exchange):
                 'taker': self.safe_number(firstFee, 'taker_fee', 0.0),
                 'maker': self.safe_number(firstFee, 'maker_fee', 0.0),
                 'contractSize': None,
-                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,

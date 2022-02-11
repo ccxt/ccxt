@@ -856,7 +856,6 @@ class bitget extends Exchange {
             'linear' => ($base === $settle),
             'inverse' => ($quote === $settle),
             'contractSize' => $contractVal,
-            'maintenanceMarginRate' => null,
             'expiry' => null,
             'expiryDatetime' => null,
             'strike' => null,

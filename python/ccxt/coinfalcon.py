@@ -167,7 +167,6 @@ class coinfalcon(Exchange):
                 'linear': None,
                 'inverse': None,
                 'contractSize': None,
-                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,

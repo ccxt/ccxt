@@ -357,7 +357,6 @@ class currencycom extends Exchange {
                 'taker' => $taker,
                 'maker' => $maker,
                 'contractSize' => null,
-                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,

@@ -395,7 +395,6 @@ class lykke extends Exchange {
                 'linear' => null,
                 'inverse' => null,
                 'contractSize' => null,
-                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,

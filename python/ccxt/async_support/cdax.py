@@ -404,7 +404,6 @@ class cdax(Exchange):
                 'taker': 0 if (base == 'OMG') else 0.002,
                 'maker': 0 if (base == 'OMG') else 0.002,
                 'contractSize': None,
-                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,

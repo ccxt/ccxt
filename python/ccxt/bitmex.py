@@ -387,7 +387,6 @@ class bitmex(Exchange):
                 'taker': self.safe_number(market, 'takerFee'),
                 'maker': self.safe_number(market, 'makerFee'),
                 'contractSize': self.safe_number(market, 'multiplier'),
-                'maintenanceMarginRate': self.safe_number(market, 'maintMargin'),
                 'expiry': expiry,
                 'expiryDatetime': expiryDatetime,
                 'strike': self.safe_number(market, 'optionStrikePrice'),

@@ -236,7 +236,6 @@ class idex(Exchange):
                 'inverse': None,
                 'taker': taker,
                 'maker': maker,
-                'maintenanceMarginRate': None,
                 'contractSize': None,
                 'expiry': None,
                 'expiryDatetime': None,

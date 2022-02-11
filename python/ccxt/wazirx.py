@@ -207,7 +207,6 @@ class wazirx(Exchange):
                 'taker': self.parse_number(takerString),
                 'maker': self.parse_number(makerString),
                 'contractSize': None,
-                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
