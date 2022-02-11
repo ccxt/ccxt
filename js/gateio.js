@@ -56,6 +56,7 @@ module.exports = class gateio extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
+                'fetchLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
@@ -3066,6 +3067,99 @@ module.exports = class gateio extends Exchange {
         //
         const result = this.parsePositions (response);
         return this.filterByArray (result, 'symbol', symbols, false);
+    }
+
+    async fetchLeverageTiers (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let symbols = undefined;
+        if (symbol) {
+            const market = this.market (symbol);
+            if (!market['contract']) {
+                throw new BadRequest (this.id + ' fetchLeverageTiers symbol supports contract markets only');
+            }
+            symbols = [ symbol ];
+        } else {
+            symbols = this.symbols;
+        }
+        const result = {};
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market (symbols[i]);
+            //
+            //    {
+            //        ...
+            //        base: 'BTC',
+            //        quote: 'USDT',
+            //        contract: true,
+            //        info: {
+            //            funding_rate_indicative: '0.000032',
+            //            mark_price_round: '0.01',
+            //            funding_offset: '0',
+            //            in_delisting: false,
+            //            risk_limit_base: '1000000',
+            //            interest_rate: '0.0003',
+            //            index_price: '42935.53',
+            //            order_price_round: '0.1',
+            //            order_size_min: '1',
+            //            ref_rebate_rate: '0.2',
+            //            name: 'BTC_USDT',
+            //            ref_discount_rate: '0',
+            //            order_price_deviate: '0.5',
+            //            maintenance_rate: '0.005',
+            //            mark_type: 'index',
+            //            funding_interval: '28800',
+            //            type: 'direct',
+            //            risk_limit_step: '1000000',
+            //            enable_bonus: true,
+            //            leverage_min: '1',
+            //            funding_rate: '-0.000027',
+            //            last_price: '42929.3',
+            //            mark_price: '42935.17',
+            //            order_size_max: '1000000',
+            //            funding_next_apply: '1644566400',
+            //            short_users: '2061',
+            //            config_change_time: '1627005770',
+            //            trade_size: '88006372159',
+            //            position_size: '342964617',
+            //            long_users: '2579',
+            //            quanto_multiplier: '0.0001',
+            //            funding_impact_value: '60000',
+            //            leverage_max: '100',
+            //            risk_limit_max: '16000000',
+            //            maker_fee_rate: '-0.00025',
+            //            taker_fee_rate: '0.00075',
+            //            orders_limit: '50',
+            //            trade_id: '71075038',
+            //            orderbook_id: '11573540184'
+            //        }
+            //    }
+            //
+            if (market['contract']) {
+                const info = market['info'];
+                const maintenanceRate = this.safeString (info, 'maintenance_rate'); // '0.005',
+                const leverageMax = this.safeString (info, 'leverage_max'); // '100',
+                const riskLimitStep = this.safeString (info, 'risk_limit_step'); // '1000000',
+                const riskLimitMax = this.safeString (info, 'risk_limit_max'); // '16000000',
+                const initialMargin = Precise.stringDiv ('1', leverageMax);
+                let floor = '0';
+                const tiers = [];
+                while (Precise.stringLt (floor, riskLimitMax)) {
+                    const cap = Precise.stringAdd (floor, riskLimitStep);
+                    tiers.push ({
+                        'tier': this.parseNumber (Precise.stringDiv (cap, riskLimitStep)),
+                        'notionalCurrency': market['base'],
+                        'notionalFloor': this.parseNumber (floor),
+                        'notionalCap': this.parseNumber (cap),
+                        'maintenanceMarginRate': this.parseNumber (maintenanceRate),
+                        'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMargin)),
+                        'info': info,
+                    });
+                    // TODO: Increase maintenanceMarginRate and initialMarginRate by 1 "Unit"
+                    floor = cap;
+                }
+                result[market['symbol']] = tiers;
+            }
+        }
+        return result;
     }
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
