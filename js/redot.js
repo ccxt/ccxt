@@ -514,10 +514,10 @@ module.exports = class redot extends Exchange {
             request['instrumentId'] = market['id'];
         }
         if (since !== undefined) {
-            request['start'] = since;
+            request['start'] = parseInt (since) * 1000;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default max 200
+            request['limit'] = parseInt (limit); // default max 200
         }
         const response = await this.privateGetGetOpenOrders (this.extend (request, params));
         //
@@ -555,10 +555,10 @@ module.exports = class redot extends Exchange {
             request['instrumentId'] = market['id'];
         }
         if (since !== undefined) {
-            request['start'] = since;
+            request['start'] = parseInt (since) * 1000;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default max 200
+            request['limit'] = parseInt (limit); // default max 200
         }
         const response = await this.privateGetGetOrders (this.extend (request, params));
         //
@@ -588,15 +588,25 @@ module.exports = class redot extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        const filter = {
+        const request = {
             'orderId': id,
         };
-        const response = await this.fetchOrders (symbol, undefined, undefined, this.deepExtend (filter, params));
-        const numResults = response.length;
-        if (numResults === 1) {
-            return response[0];
-        }
-        throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
+        const response = await this.privateGetGetOrder (this.extend (request, params));
+        // {
+        //     "result":{
+        //        "id":"1432857356",
+        //        "instrumentId":"USDC-USDT",
+        //        "status":"cancelled",
+        //        "type":"limit",
+        //        "side":"sell",
+        //        "qty":"1.00000000",
+        //        "cumQty":"0.00000000",
+        //        "price":"100.00000000",
+        //        "timestamp":"1644600263569962"
+        //     }
+        //  }
+        const result = this.safeValue (response, 'result');
+        return this.parseOrder (result);
     }
 
     parseOrderStatus (status) {
@@ -660,7 +670,7 @@ module.exports = class redot extends Exchange {
             request['instrumentId'] = market['id'];
         }
         if (since !== undefined) {
-            request['start'] = since;
+            request['start'] = parseInt (since) * 1000;
         }
         if (limit !== undefined) {
             request['limit'] = limit; // max 200
@@ -703,10 +713,10 @@ module.exports = class redot extends Exchange {
             request['instrumentId'] = market['id'];
         }
         if (since !== undefined) {
-            request['start'] = since;
+            request['start'] = parseInt (since) * 1000;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default max 200
+            request['limit'] = parseInt (limit); // default max 200
         }
         const response = await this.privateGetGetTradesByOrder (this.extend (request, params));
         // {
@@ -833,7 +843,7 @@ module.exports = class redot extends Exchange {
             request['start'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default 20
+            request['limit'] = parseInt (limit); // default 20
         }
         const response = await this.privateGetGetWithdrawals (this.extend (request, params));
         //
@@ -889,7 +899,7 @@ module.exports = class redot extends Exchange {
         const payload = timestamp + '.' + this.apiKey;
         const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256');
         const request = {
-            'grantType': 'signature', // the only supported value
+            'grantType': 'signature',
             'apiKey': this.apiKey,
             'timestamp': timestamp,
             'signature': signature,
