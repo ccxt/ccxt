@@ -1056,56 +1056,37 @@ module.exports = class kucoin extends Exchange {
             response = await this[method] (this.extend (request, params));
         }
         //
-        // public (v1) ( market/orderbook/level2_20 ) & ( market/orderbook/level2_100 )
-        //  {
-        //     "sequence": "3262786978",
-        //     "time": 1550653727731,
-        //     "bids": [
-        //          ["6500.12", "0.45054140"],
-        //          ["6500.11", "0.45054140"]
-        //          ...
-        //          ],
-        //     "asks": [
-        //          ["6500.16", "0.57753524"],
-        //          ["6500.15", "0.57753524"],
-        //          ...
-        //          ]
-        //  }
+        // public (v1) market/orderbook/level2_20 and market/orderbook/level2_100
         //
-        // private (v3) ( market/orderbook/level2 )
+        //     {
+        //         "sequence": "3262786978",
+        //         "time": 1550653727731,
+        //         "bids": [
+        //             ["6500.12", "0.45054140"],
+        //             ["6500.11", "0.45054140"],
+        //         ],
+        //         "asks": [
+        //             ["6500.16", "0.57753524"],
+        //             ["6500.15", "0.57753524"],
+        //         ]
+        //     }
         //
-        //  {
-        //     "sequence": "3262786978",
-        //     "time": 1550653727731,
-        //     "bids": [
-        //           ["6500.12", "0.45054140"],
-        //           ["6500.11", "0.45054140"],
-        //           ...
-        //              ],
-        //     "asks": [
-        //          ["6500.16", "0.57753524"],
-        //          ["6500.15", "0.57753524"],
-        //           ...
-        //             ]
-        //  }
+        // private (v3) market/orderbook/level2
+        //
+        //     {
+        //         "sequence": "3262786978",
+        //         "time": 1550653727731,
+        //         "bids": [
+        //             ["6500.12", "0.45054140"],
+        //             ["6500.11", "0.45054140"],
+        //         ],
+        //         "asks": [
+        //             ["6500.16", "0.57753524"],
+        //             ["6500.15", "0.57753524"],
+        //         ]
+        //     }
         //
         const data = this.safeValue (response, 'data', {});
-        // crop the private orderbook bid & ask arrays to the size of the shortest one
-        if (method === 'privateGetMarketOrderbookLevel2') {
-            const bids = this.safeValue (data, 'bids', []);
-            const asks = this.safeValue (data, 'asks', []);
-            let maxLength = undefined;
-            if (bids.length > asks.length) {
-                maxLength = asks.length;
-            } else {
-                maxLength = bids.length;
-            }
-            if ((limit !== undefined) && (limit < maxLength)) {
-                maxLength = limit;
-            }
-            data['bids'] = bids.slice (0, maxLength);
-            data['asks'] = asks.slice (0, maxLength);
-        }
         const timestamp = this.safeInteger (data, 'time');
         const orderbook = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', level - 2, level - 1);
         orderbook['nonce'] = this.safeInteger (data, 'sequence');
