@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, BadSymbol, RateLimitExceeded, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, BadRequest, BadSymbol, RateLimitExceeded, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, PermissionDenied } = require ('./base/errors');
 
 module.exports = class redot extends Exchange {
     describe () {
@@ -44,10 +44,10 @@ module.exports = class redot extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransfers': false,
                 'fetchTransactions': false,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': true,
                 'setLeverage': false,
                 'transfer': false,
-                'withdraw': false,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://cdn.redot.com/static/icons/500px_transparent_background/Icon_0-3.png',
@@ -113,6 +113,7 @@ module.exports = class redot extends Exchange {
                 'exact': {
                     '10002': RateLimitExceeded, // {"error":{"code":10002,"message":"Too many requests."}}
                     '10501': BadRequest, // {"error":{"code":10501,"message":"Request parameters have incorrect format."}}
+                    '12000': PermissionDenied, // "error":{"code":12000,"message":"User is not authorized."}}
                     '12001': AuthenticationError, // {"error":{"code":12001,"message":"User is not authenticated."}}
                     '12004': AuthenticationError, // {"error":{"code":12004,"message":"Login failed."}}
                     '14500': BadRequest, // {"error":{"code":14500,"message":"Depth is invalid."}}
@@ -861,7 +862,7 @@ module.exports = class redot extends Exchange {
             request['asset'] = currency['id'];
         }
         if (since !== undefined) {
-            request['start'] = since;
+            request['start'] = parseInt (since) * 1000;
         }
         if (limit !== undefined) {
             request['limit'] = parseInt (limit); // default 20
@@ -890,6 +891,37 @@ module.exports = class redot extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const withdrawals = this.safeValue (result, 'data', []);
         return this.parseTransactions (withdrawals, code, since, limit);
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+            'address': address,
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        const response = await this.privatePostWithdraw (this.extend (request, params));
+        //
+        // {
+        //     "result": {
+        //       "id": 100,
+        //       "timestamp": 1594800486782215,
+        //       "address": "17ciVVLx423dd32df9s4t5jTexACxwF55uc",
+        //       "asset": "BTC",
+        //       "amount": 0.099998,
+        //       "fee": 0.000002,
+        //       "transactionId": null,
+        //       "status": "pending"
+        //     }
+        //   }s
+        //
+        const result = this.safeValue (response, 'result', {});
+        const id = this.safeString (result, 'id');
+        return {
+            'id': id,
+            'info': response,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
