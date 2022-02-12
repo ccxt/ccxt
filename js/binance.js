@@ -4813,7 +4813,7 @@ module.exports = class binance extends Exchange {
             const entry = response[i];
             const marketId = this.safeString (entry, 'symbol');
             const safeSymbol = this.safeSymbol (marketId);
-            let market = {'base': undefined};
+            let market = { 'base': undefined };
             if (safeSymbol in this.markets) {
                 market = this.market (safeSymbol);
             }
