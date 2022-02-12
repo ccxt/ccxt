@@ -24,9 +24,9 @@ module.exports = class dydx extends Exchange {
                 'future': false,
                 'option': false,
                 'cancelOrder': true,
-                'cancelAllOrders': true,
+                'cancelAllOrders': undefined, // TODO, needs stark sign
                 'createDepositAddress': false,
-                'createOrder': true,
+                'createOrder': undefined, // TODO, needs stark sign
                 'fetchBalance': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': false,
@@ -36,7 +36,7 @@ module.exports = class dydx extends Exchange {
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'fetchCanceledOrders': true,
-                'fetchClosedOrders': true,
+                'fetchClosedOrders': false,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
@@ -51,7 +51,7 @@ module.exports = class dydx extends Exchange {
                 'fetchWithdrawals': false,
                 'privateAPI': true,
                 'publicAPI': true,
-                'withdraw': false,
+                'withdraw': undefined, // TODO, needs stark sign
             },
             'timeframes': {
                 '1m': '1MIN',
@@ -171,6 +171,7 @@ module.exports = class dydx extends Exchange {
                     'expiration must be an ISO8601 string': BadRequest,
                     'Invalid signature for order': InvalidOrder,
                     'No order for market: ': InvalidOrder,
+                    'status must be a valid array of subset': BadRequest,
                     // old
                     'See /corsdemo for more info': AuthenticationError,
                     'Invalid signature for onboarding request': AuthenticationError,
@@ -415,7 +416,14 @@ module.exports = class dydx extends Exchange {
         const timestamp = this.parseDate (this.safeString (trade, 'createdAt'));
         const side = this.parseOrderSide (this.safeString (trade, 'side'));
         const takerOrMaker = this.parseTakerMaker (this.safeString (trade, 'liquidity'));
+        let fee = undefined;
         const cost = this.safeNumber (trade, 'fee');
+        if (cost !== undefined) {
+            fee = {
+                'cost': cost,
+                'currency': this.options['mainCurrency'],
+            };
+        }
         const orderId = this.safeString (trade, 'orderId');
         if (id === undefined) {
             id = this.syntheticTradeId (market, timestamp, side, amount, price, type, takerOrMaker);
@@ -431,9 +439,7 @@ module.exports = class dydx extends Exchange {
             'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
-            'fee': {
-                'cost': cost,
-            },
+            'fee': fee,
             'info': trade,
         });
     }
@@ -1095,10 +1101,6 @@ module.exports = class dydx extends Exchange {
 
     async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchOrders (symbol, since, limit, this.extend ({ 'status': 'CANCELED' }, params));
-    }
-
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOrders (symbol, since, limit, this.extend ({ 'status': 'FILLED,CANCELED' }, params));
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
