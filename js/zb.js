@@ -1268,22 +1268,22 @@ module.exports = class zb extends Exchange {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
-        } else if (section === 'spot' || version === 'v1' || access === 'public') {
+        } else if (section === 'spot' && version === 'v1' && access === 'public') {
             url += '/' + version + '/' + path;
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
-        } else if (section === 'contract' || version === 'v1' || access === 'public') {
+        } else if (section === 'contract' && version === 'v1' && access === 'public') {
             url += '/' + version + '/' + path;
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
-        } else if (section === 'contract' || version === 'v2' || access === 'public') {
+        } else if (section === 'contract' && version === 'v2' && access === 'public') {
             url += '/' + version + '/' + path;
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
-        } else if (section === 'contract' || version === 'v2' || access === 'private') {
+        } else if (section === 'contract' && version === 'v2' && access === 'private') {
             let query = this.keysort (this.extend ({
                 'method': path,
                 'accesskey': this.apiKey,
