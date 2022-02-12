@@ -31,6 +31,7 @@ module.exports = class coincheck extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
+                'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -48,6 +49,7 @@ module.exports = class coincheck extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -497,6 +499,164 @@ module.exports = class coincheck extends Exchange {
             'id': id,
         };
         return await this.privateDeleteExchangeOrdersId (this.extend (request, params));
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        const response = await this.privateGetDepositMoney (this.extend (request, params));
+        // {
+        //   "success": true,
+        //   "deposits": [
+        //     {
+        //       "id": 2,
+        //       "amount": "0.05",
+        //       "currency": "BTC",
+        //       "address": "13PhzoK8me3u5nHzzFD85qT9RqEWR9M4Ty",
+        //       "status": "confirmed",
+        //       "confirmed_at": "2015-06-13T08:29:18.000Z",
+        //       "created_at": "2015-06-13T08:22:18.000Z"
+        //     },
+        //     {
+        //       "id": 1,
+        //       "amount": "0.01",
+        //       "currency": "BTC",
+        //       "address": "13PhzoK8me3u5nHzzFD85qT9RqEWR9M4Ty",
+        //       "status": "received",
+        //       "confirmed_at": "2015-06-13T08:21:18.000Z",
+        //       "created_at": "2015-06-13T08:21:18.000Z"
+        //     }
+        //   ]
+        // }
+        const data = this.safeValue (response, 'deposits', []);
+        return this.parseTransactions (data, currency, since, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const response = await this.privateGetWithdraws (this.extend ({}, params));
+        //  {
+        //   "success": true,
+        //   "pagination": {
+        //     "limit": 25,
+        //     "order": "desc",
+        //     "starting_after": null,
+        //     "ending_before": null
+        //   },
+        //   "data": [
+        //     {
+        //       "id": 398,
+        //       "status": "finished",
+        //       "amount": "242742.0",
+        //       "currency": "JPY",
+        //       "created_at": "2014-12-04T15:00:00.000Z",
+        //       "bank_account_id": 243,
+        //       "fee": "400.0",
+        //       "is_fast": true
+        //     }
+        //   ]
+        // }
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit);
+    }
+
+    parseDepositStatus (status) {
+        const statuses = {
+            'confirmed': 'pending',
+            'received': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseWithdrawalStatus (status) {
+        const statuses = {
+            'pending': 'pending',
+            'processing': 'pending',
+            'finished': 'ok',
+            'canceled': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchDeposits
+        //
+        // {
+        //       "id": 2,
+        //       "amount": "0.05",
+        //       "currency": "BTC",
+        //       "address": "13PhzoK8me3u5nHzzFD85qT9RqEWR9M4Ty",
+        //       "status": "confirmed",
+        //       "confirmed_at": "2015-06-13T08:29:18.000Z",
+        //       "created_at": "2015-06-13T08:22:18.000Z"
+        //  }
+        //
+        // fetchWithdrawals
+        //
+        //  {
+        //       "id": 398,
+        //       "status": "finished",
+        //       "amount": "242742.0",
+        //       "currency": "JPY",
+        //       "created_at": "2014-12-04T15:00:00.000Z",
+        //       "bank_account_id": 243,
+        //       "fee": "400.0",
+        //       "is_fast": true
+        //  }
+        //
+        let type = undefined;
+        let status = undefined;
+        const rawStatus = this.safeString (transaction, 'status');
+        if ('address' in transaction) {
+            type = 'deposit';
+            status = this.parseDepositStatus (rawStatus);
+        } else {
+            type = 'withdrawal';
+            status = this.parseWithdrawalStatus (rawStatus);
+        }
+        const id = this.safeString (transaction, 'id');
+        const address = this.safeString (transaction, 'address');
+        const currencyId = this.safeString (transaction, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const timestamp = this.parse8601 (this.safeString (transaction, 'created_at'));
+        const amount = this.safeNumber (transaction, 'amount');
+        const feeCost = this.safeNumber (transaction, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = { 'currency': code, 'cost': feeCost };
+        }
+        const updated = this.safeInteger (transaction, 'confirmed_at');
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': undefined,
+            'address': address,
+            'addressTo': address,
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'internal': undefined,
+            'fee': fee,
+        };
     }
 
     nonce () {
