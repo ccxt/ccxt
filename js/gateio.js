@@ -2648,20 +2648,8 @@ module.exports = class gateio extends Exchange {
                 'cost': Precise.stringNeg (rebate),
             });
         }
-        const mkfr = this.safeString (order, 'mkfr');
-        const tkfr = this.safeString (order, 'tkfr');
-        if (mkfr) {
-            fees.push ({
-                'currency': this.safeCurrencyCode (this.safeString (market, 'settleId')),
-                'cost': mkfr,
-            });
-        }
-        if (tkfr) {
-            fees.push ({
-                'currency': this.safeCurrencyCode (this.safeString (market, 'settleId')),
-                'cost': tkfr,
-            });
-        }
+        const numFeeCurrencies = fees.length;
+        const multipleFeeCurrencies = numFeeCurrencies > 1;
         return this.safeOrder ({
             'id': this.safeNumber (order, 'id'),
             'clientOrderId': this.safeNumber (order, 'user'),
@@ -2681,7 +2669,8 @@ module.exports = class gateio extends Exchange {
             'cost': cost,
             'filled': this.parseNumber (filled),
             'remaining': this.parseNumber (Precise.stringAbs (remaining)),
-            'fee': fees,
+            'fee': multipleFeeCurrencies ? undefined : fees,
+            'fees': multipleFeeCurrencies ? fees : [],
             'trades': undefined,
             'info': order,
         }, market);
