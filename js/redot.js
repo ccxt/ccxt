@@ -118,6 +118,7 @@ module.exports = class redot extends Exchange {
                     '14500': BadRequest, // {"error":{"code":14500,"message":"Depth is invalid."}}
                     '13500': BadSymbol, // {"error":{"code":13500,"message":"Instrument id is invalid."}}
                     '15001': OrderNotFound, // {"error":{"code":15001,"message":"Order not found."}}
+                    '15502': OrderNotFound, // {"error":{"code":15502,"message":"Order id is invalid."}}
                     '15503': InvalidOrder, // {"error":{"code":15503,"message":"Quantity is invalid."}}
                     '16001': InsufficientFunds, // {"error":{"code":16001,"message":"Insufficient funds."}}
                 },
@@ -305,7 +306,7 @@ module.exports = class redot extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        //
+        // fetchTrades
         //  {
         //      "id":"7466162",
         //      "time":"1644601530690620",
@@ -313,28 +314,46 @@ module.exports = class redot extends Exchange {
         //      "qty":"116.73700000",
         //      "side":"buy"
         //   }
-        //
+        // fetchMyTrades
+        // {
+        //     "id":"7465756",
+        //     "instrumentId":"USDC-USDT",
+        //     "price":"0.99760000",
+        //     "qty":"10.00000000",
+        //     "orderId":"1432795030",
+        //     "userSide":"sell",
+        //     "fee":"0.0149640000000000",
+        //     "feeAsset":"USDT",
+        //     "timestamp":"1644598407866177"
+        //  }
         const id = this.safeString (trade, 'id');
-        const timestamp = this.safeIntegerProduct (trade, 'time', 0.001);
+        const orderId = this.safeString (trade, 'orderId');
+        const marketId = this.safeString2 (trade, 'i', 'instrumentId');
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
+        const timestamp = this.safeIntegerProduct2 (trade, 'time', 'timestamp', 0.001);
         const datetime = this.iso8601 (timestamp);
-        const symbol = this.safeSymbol (undefined, market);
-        const side = this.safeString (trade, 'side');
+        const side = this.safeString2 (trade, 'side', 'userSide');
         const price = this.safeNumber (trade, 'price');
         const amount = this.safeNumber (trade, 'qty');
+        const fee = {
+            'currency': this.safeString (trade, 'feeAsset'),
+            'cost': this.safeString (trade, 'fee'),
+        };
         return this.safeTrade ({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
             'datetime': datetime,
             'symbol': symbol,
-            'order': id,
+            'order': orderId,
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': undefined,
-            'fee': undefined,
+            'fee': fee,
         });
     }
 
@@ -664,9 +683,10 @@ module.exports = class redot extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        let market = undefined;
         const request = {};
         if (symbol !== undefined) {
+            market = this.market (symbol);
             request['instrumentId'] = market['id'];
         }
         if (since !== undefined) {
@@ -704,12 +724,13 @@ module.exports = class redot extends Exchange {
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        let market = undefined;
         const orderId = parseInt (id);
         const request = {
-            'id': orderId,
+            'orderId': orderId,
         };
         if (symbol !== undefined) {
+            market = this.market (symbol);
             request['instrumentId'] = market['id'];
         }
         if (since !== undefined) {
