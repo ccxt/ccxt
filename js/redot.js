@@ -934,6 +934,11 @@ module.exports = class redot extends Exchange {
         headers = {};
         if (api === 'private') {
             this.checkRequiredCredentials ();
+            const expires = this.safeInteger (this.options, 'expires');
+            const now = this.milliseconds ();
+            if ((expires === undefined) || (expires < now)) {
+                throw new AuthenticationError (this.id + ' access token not found or expired, call signIn() method');
+            }
             const accessToken = this.safeString (this.options, 'accessToken');
             headers = {
                 'Authorization': 'Bearer ' + accessToken,
@@ -967,10 +972,9 @@ module.exports = class redot extends Exchange {
         //  }
         //
         const result = this.safeString (response, 'result');
-        const accessToken = this.safeString (result, 'accessToken');
-        const refreshToken = this.safeString (result, 'refreshToken');
+        const accessToken = this.safeString (result, 'accessToken'); // expires in 30 min
         this.options['accessToken'] = accessToken;
-        this.options['refreshToken'] = refreshToken;
+        this.options['expires'] = this.sum (this.milliseconds (), (30 * 60) * 1000);
         return response;
     }
 
