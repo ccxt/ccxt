@@ -957,7 +957,7 @@ module.exports = class redot extends Exchange {
     async signIn (params = {}) {
         this.checkRequiredCredentials ();
         const timestamp = this.microseconds ();
-        const payload = timestamp + '.' + this.apiKey;
+        const payload = timestamp.toString () + '.' + this.apiKey;
         const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256');
         const request = {
             'grantType': 'signature',
@@ -974,7 +974,7 @@ module.exports = class redot extends Exchange {
         //     }
         //  }
         //
-        const result = this.safeString (response, 'result');
+        const result = this.safeValue (response, 'result');
         const accessToken = this.safeString (result, 'accessToken'); // expires in 30 min
         this.options['accessToken'] = accessToken;
         this.options['expires'] = this.sum (this.milliseconds (), 30 * 60 * 1000); // 30 minutes from now
