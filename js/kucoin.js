@@ -1030,69 +1030,61 @@ module.exports = class kucoin extends Exchange {
         };
     }
 
-    async fetchL3OrderBook (symbol, limit = undefined, params = {}) {
-        return await this.fetchOrderBook (symbol, limit, { 'level': 3 });
-    }
-
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const marketId = this.marketId (symbol);
         const level = this.safeInteger (params, 'level', 2);
-        const request = { 'symbol': marketId, 'level': level };
-        let method = 'privateGetMarketOrderbookLevelLevel';
-        if (level === 2) {
-            if (limit !== undefined) {
-                if ((limit === 20) || (limit === 100)) {
-                    request['limit'] = limit;
-                    method = 'publicGetMarketOrderbookLevelLevelLimit';
-                } else {
-                    throw new ExchangeError (this.id + ' fetchOrderBook limit argument must be undefined, 20 or 100');
+        const request = { 'symbol': marketId };
+        let method = 'publicGetMarketOrderbookLevelLevelLimit';
+        const isAuthenticated = this.checkRequiredCredentials (false);
+        let response = undefined;
+        if (!isAuthenticated) {
+            if (level === 2) {
+                request['level'] = level;
+                if (limit !== undefined) {
+                    if ((limit === 20) || (limit === 100)) {
+                        request['limit'] = limit;
+                    } else {
+                        throw new ExchangeError (this.id + ' fetchOrderBook limit argument must be 20 or 100');
+                    }
                 }
+                request['limit'] = limit ? limit : 100;
+                method = 'publicGetMarketOrderbookLevelLevelLimit';
+                response = await this[method] (this.extend (request, params));
             }
+        } else {
+            method = 'privateGetMarketOrderbookLevel2'; // recommended (v3)
+            response = await this[method] (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         //
-        // 'market/orderbook/level2'
-        // 'market/orderbook/level2_20'
-        // 'market/orderbook/level2_100'
+        // public (v1) market/orderbook/level2_20 and market/orderbook/level2_100
         //
         //     {
-        //         "code":"200000",
-        //         "data":{
-        //             "sequence":"1583235112106",
-        //             "asks":[
-        //                 // ...
-        //                 ["0.023197","12.5067468"],
-        //                 ["0.023194","1.8"],
-        //                 ["0.023191","8.1069672"]
-        //             ],
-        //             "bids":[
-        //                 ["0.02319","1.6000002"],
-        //                 ["0.023189","2.2842325"],
-        //             ],
-        //             "time":1586584067274
-        //         }
+        //         "sequence": "3262786978",
+        //         "time": 1550653727731,
+        //         "bids": [
+        //             ["6500.12", "0.45054140"],
+        //             ["6500.11", "0.45054140"],
+        //         ],
+        //         "asks": [
+        //             ["6500.16", "0.57753524"],
+        //             ["6500.15", "0.57753524"],
+        //         ]
         //     }
         //
-        // 'market/orderbook/level3'
+        // private (v3) market/orderbook/level2
         //
         //     {
-        //         "code":"200000",
-        //         "data":{
-        //             "sequence":"1583731857120",
-        //             "asks":[
-        //                 // id, price, size, timestamp in nanoseconds
-        //                 ["5e915f8acd26670009675300","6925.7","0.2","1586585482194286069"],
-        //                 ["5e915f8ace35a200090bba48","6925.7","0.001","1586585482229569826"],
-        //                 ["5e915f8a8857740009ca7d33","6926","0.00001819","1586585482149148621"],
-        //             ],
-        //             "bids":[
-        //                 ["5e915f8acca406000ac88194","6925.6","0.05","1586585482384384842"],
-        //                 ["5e915f93cd26670009676075","6925.6","0.08","1586585491334914600"],
-        //                 ["5e915f906aa6e200099b49f6","6925.4","0.2","1586585488941126340"],
-        //             ],
-        //             "time":1586585492487
-        //         }
+        //         "sequence": "3262786978",
+        //         "time": 1550653727731,
+        //         "bids": [
+        //             ["6500.12", "0.45054140"],
+        //             ["6500.11", "0.45054140"],
+        //         ],
+        //         "asks": [
+        //             ["6500.16", "0.57753524"],
+        //             ["6500.15", "0.57753524"],
+        //         ]
         //     }
         //
         const data = this.safeValue (response, 'data', {});
