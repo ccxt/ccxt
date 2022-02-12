@@ -962,7 +962,7 @@ module.exports = class redot extends Exchange {
         const request = {
             'grantType': 'signature',
             'apiKey': this.apiKey,
-            'timestamp': timestamp,
+            'timestamp': parseInt (timestamp),
             'signature': signature,
         };
         const response = await this.publicPostGetToken (this.extend (request, params));
