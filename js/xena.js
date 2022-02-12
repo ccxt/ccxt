@@ -1871,7 +1871,7 @@ module.exports = class xena extends Exchange {
                         const initialRate = this.safeString (bracket, 'initialRate');
                         brackets.push ({
                             'tier': j + 1,
-                            'notionalCurrency': market['quote'],
+                            'notionalCurrency': market['base'],
                             'notionalFloor': floor,
                             'notionalCap': cap,
                             'maintenanceMarginRatio': this.safeNumber (bracket, 'maintenanceRate'),
