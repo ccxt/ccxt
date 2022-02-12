@@ -307,6 +307,7 @@ class kucoin extends Exchange {
                     '411100' => '\\ccxt\\AccountSuspended',
                     '415000' => '\\ccxt\\BadRequest', // array("code":"415000","msg":"Unsupported Media Type")
                     '500000' => '\\ccxt\\ExchangeNotAvailable', // array("code":"500000","msg":"Internal Server Error")
+                    '260220' => '\\ccxt\\InvalidAddress', // array( "code" => "260220", "msg" => "deposit.address.not.exists" )
                 ),
                 'broad' => array(
                     'Exceeded the access frequency' => '\\ccxt\\RateLimitExceeded',

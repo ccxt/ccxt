@@ -14,6 +14,7 @@ from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
@@ -321,6 +322,7 @@ class kucoin(Exchange):
                     '411100': AccountSuspended,
                     '415000': BadRequest,  # {"code":"415000","msg":"Unsupported Media Type"}
                     '500000': ExchangeNotAvailable,  # {"code":"500000","msg":"Internal Server Error"}
+                    '260220': InvalidAddress,  # {"code": "260220", "msg": "deposit.address.not.exists"}
                 },
                 'broad': {
                     'Exceeded the access frequency': RateLimitExceeded,
