@@ -509,6 +509,9 @@ module.exports = class coincheck extends Exchange {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         const response = await this.privateGetDepositMoney (this.extend (request, params));
         // {
         //   "success": true,
@@ -543,7 +546,11 @@ module.exports = class coincheck extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const response = await this.privateGetWithdraws (this.extend ({}, params));
+        const request = {};
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetWithdraws (this.extend (request, params));
         //  {
         //   "success": true,
         //   "pagination": {
