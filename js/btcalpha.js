@@ -16,6 +16,7 @@ module.exports = class btcalpha extends Exchange {
             'countries': [ 'US' ],
             'version': 'v1',
             'has': {
+                'CORS': undefined,
                 'spot': true,
                 'margin': false,
                 'swap': false,
@@ -27,6 +28,7 @@ module.exports = class btcalpha extends Exchange {
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
@@ -122,6 +124,21 @@ module.exports = class btcalpha extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetPairs (params);
+        //
+        //    [
+        //        {
+        //            "name": "1INCH_USDT",
+        //            "currency1": "1INCH",
+        //            "currency2": "USDT",
+        //            "price_precision": 4,
+        //            "amount_precision": 2,
+        //            "minimum_order_size": "0.01000000",
+        //            "maximum_order_size": "900000.00000000",
+        //            "minimum_order_value": "10.00000000",
+        //            "liquidity_type": 10
+        //        },
+        //    ]
+        //
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];

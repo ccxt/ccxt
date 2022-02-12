@@ -28,22 +28,25 @@ class bittrex extends Exchange {
             'pro' => true,
             // new metainfo interface
             'has' => array(
+                'CORS' => null,
                 'spot' => true,
                 'margin' => false,
                 'swap' => false,
                 'future' => false,
                 'option' => false,
+                'addMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => null,
                 'createDepositAddress' => true,
-                'createReduceOnlyOrder' => false,
                 'createMarketOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
@@ -54,6 +57,7 @@ class bittrex extends Exchange {
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => 'emulated',
@@ -249,6 +253,7 @@ class bittrex extends Exchange {
             ),
             'commonCurrencies' => array(
                 'BIFI' => 'Bifrost Finance',
+                'BTR' => 'BTRIPS',
                 'MEME' => 'Memetic', // conflict with Meme Inu
                 'MER' => 'Mercury', // conflict with Mercurial Finance
                 'PROS' => 'Pros.Finance',
@@ -298,7 +303,6 @@ class bittrex extends Exchange {
             $quoteId = $this->safe_string($market, 'quoteCurrencySymbol');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $pricePrecision = $this->safe_integer($market, 'precision', 8);
             $status = $this->safe_string($market, 'status');
             $result[] = array(
                 'id' => $this->safe_string($market, 'symbol'),
@@ -326,9 +330,13 @@ class bittrex extends Exchange {
                 'optionType' => null,
                 'precision' => array(
                     'amount' => intval('8'),
-                    'price' => $pricePrecision,
+                    'price' => $this->safe_integer($market, 'precision', 8),
                 ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->safe_number($market, 'minTradeSize'),
                         'max' => null,
@@ -338,10 +346,6 @@ class bittrex extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'leverage' => array(
                         'min' => null,
                         'max' => null,
                     ),

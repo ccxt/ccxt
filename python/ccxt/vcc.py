@@ -30,29 +30,58 @@ class vcc(Exchange):
             'rateLimit': 1000,
             'version': 'v3',
             'has': {
-                'fetchTradingFee': True,
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'editOrder': None,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': None,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': 'emulated',
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
                 'fetchTradingFees': None,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
             },
             'timeframes': {
                 '1m': '60000',
@@ -187,29 +216,45 @@ class vcc(Exchange):
             quoteId = self.safe_string(market, 'currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            active = self.safe_value(market, 'active')
             precision = self.safe_value(market, 'precision', {})
             limits = self.safe_value(market, 'limits', {})
             amountLimits = self.safe_value(limits, 'amount', {})
             priceLimits = self.safe_value(limits, 'price', {})
             costLimits = self.safe_value(limits, 'cost', {})
             entry = {
-                'info': market,
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settledId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': self.safe_value(market, 'active'),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(precision, 'price'),
                     'amount': self.safe_integer(precision, 'amount'),
+                    'price': self.safe_integer(precision, 'price'),
                     'cost': self.safe_integer(precision, 'cost'),
                 },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(amountLimits, 'min'),
                         'max': None,
@@ -223,6 +268,7 @@ class vcc(Exchange):
                         'max': None,
                     },
                 },
+                'info': market,
             }
             result.append(entry)
         return result
@@ -434,23 +480,22 @@ class vcc(Exchange):
         #     }
         #
         timestamp = self.milliseconds()
-        baseVolume = self.safe_number(ticker, 'base_volume')
-        quoteVolume = self.safe_number(ticker, 'quote_volume')
-        open = self.safe_number(ticker, 'open_price')
-        last = self.safe_number(ticker, 'last_price')
-        vwap = self.vwap(baseVolume, quoteVolume)
+        baseVolume = self.safe_string(ticker, 'base_volume')
+        quoteVolume = self.safe_string(ticker, 'quote_volume')
+        open = self.safe_string(ticker, 'open_price')
+        last = self.safe_string(ticker, 'last_price')
         symbol = self.safe_symbol(None, market)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'max_price'),
-            'low': self.safe_number(ticker, 'min_price'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'max_price'),
+            'low': self.safe_string(ticker, 'min_price'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
-            'vwap': vwap,
+            'vwap': None,
             'open': open,
             'close': last,
             'last': last,
@@ -461,7 +506,7 @@ class vcc(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()

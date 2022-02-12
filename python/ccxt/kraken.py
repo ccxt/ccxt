@@ -46,20 +46,19 @@ class kraken(Exchange):
             'certified': False,
             'pro': True,
             'has': {
+                'CORS': None,
                 'spot': True,
                 'margin': True,
                 'swap': False,
                 'future': False,
                 'option': False,
-                'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': None,
                 'createDepositAddress': True,
                 'createOrder': True,
-                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchClosedOrders': True,
@@ -83,7 +82,6 @@ class kraken(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrderTrades': 'emulated',
                 'fetchPositions': True,
-                'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -91,10 +89,8 @@ class kraken(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFees': True,
                 'fetchWithdrawals': True,
-                'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,  # Kraken only supports cross margin
-                'setPositionMode': False,
                 'withdraw': True,
             },
             'marketsByAltname': {},
@@ -503,28 +499,28 @@ class kraken(Exchange):
                 'contract': False,
                 'linear': None,
                 'inverse': None,
-                'maker': maker,
                 'taker': taker,
+                'maker': maker,
                 'contractSize': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(market, 'pair_decimals'),
                     'amount': self.safe_integer(market, 'lot_decimals'),
+                    'price': self.safe_integer(market, 'pair_decimals'),
                 },
                 'limits': {
                     'leverage': {
                         'min': self.parse_number('1'),
-                        'max': self.safe_value(leverageBuy, leverageBuyLength - 1, 1),
+                        'max': self.safe_number(leverageBuy, leverageBuyLength - 1, 1),
                     },
                     'amount': {
                         'min': self.safe_number(market, 'ordermin'),
                         'max': None,
                     },
                     'price': {
-                        'min': self.parse_precision(precisionPrice),
+                        'min': self.parse_number(self.parse_precision(precisionPrice)),
                         'max': None,
                     },
                     'cost': {
@@ -686,26 +682,44 @@ class kraken(Exchange):
         return self.parse_order_book(orderbook, symbol)
 
     def parse_ticker(self, ticker, market=None):
+        #
+        #     {
+        #         "a":["2432.77000","1","1.000"],
+        #         "b":["2431.37000","2","2.000"],
+        #         "c":["2430.58000","0.04408910"],
+        #         "v":["4147.94474901","8896.96086304"],
+        #         "p":["2456.22239","2568.63032"],
+        #         "t":[3907,10056],
+        #         "l":["2302.18000","2302.18000"],
+        #         "h":["2621.14000","2860.01000"],
+        #         "o":"2571.56000"
+        #     }
+        #
         timestamp = self.milliseconds()
         symbol = self.safe_symbol(None, market)
-        baseVolume = float(ticker['v'][1])
-        vwap = float(ticker['p'][1])
-        quoteVolume = None
-        if baseVolume is not None and vwap is not None:
-            quoteVolume = baseVolume * vwap
-        last = float(ticker['c'][0])
+        v = self.safe_value(ticker, 'v', [])
+        baseVolume = self.safe_string(v, 1)
+        p = self.safe_value(ticker, 'p', [])
+        vwap = self.safe_string(p, 1)
+        quoteVolume = Precise.string_mul(baseVolume, vwap)
+        c = self.safe_value(ticker, 'c', [])
+        last = self.safe_string(c, 0)
+        high = self.safe_value(ticker, 'h', [])
+        low = self.safe_value(ticker, 'l', [])
+        bid = self.safe_value(ticker, 'b', [])
+        ask = self.safe_value(ticker, 'a', [])
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['h'][1]),
-            'low': float(ticker['l'][1]),
-            'bid': float(ticker['b'][0]),
+            'high': self.safe_string(high, 1),
+            'low': self.safe_string(low, 1),
+            'bid': self.safe_string(bid, 0),
             'bidVolume': None,
-            'ask': float(ticker['a'][0]),
+            'ask': self.safe_string(ask, 0),
             'askVolume': None,
             'vwap': vwap,
-            'open': self.safe_number(ticker, 'o'),
+            'open': self.safe_string(ticker, 'o'),
             'close': last,
             'last': last,
             'previousClose': None,
@@ -715,11 +729,12 @@ class kraken(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_tickers(self, symbols=None, params={}):
+        if symbols is None:
+            raise ArgumentsRequired(self.id + ' fetchTickers() requires a symbols argument, an array of symbols')
         self.load_markets()
-        symbols = self.symbols if (symbols is None) else symbols
         marketIds = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
@@ -1231,6 +1246,12 @@ class kraken(Exchange):
         #         "descr":{"order":"sell 167.28002676 ADAXBT @ stop loss 0.00003280 -> limit 0.00003212"}
         #     }
         #
+        #
+        #     {
+        #         "txid":["OVHMJV-BZW2V-6NZFWF"],
+        #         "descr":{"order":"sell 0.00100000 ETHUSD @ stop loss 2677.00 -> limit 2577.00 with 5:1 leverage"}
+        #     }
+        #
         description = self.safe_value(order, 'descr', {})
         orderDescription = self.safe_string(description, 'order')
         side = None
@@ -1238,15 +1259,18 @@ class kraken(Exchange):
         marketId = None
         price = None
         amount = None
+        stopPrice = None
         if orderDescription is not None:
             parts = orderDescription.split(' ')
-            partsLength = len(parts)
             side = self.safe_string(parts, 0)
             amount = self.safe_string(parts, 1)
             marketId = self.safe_string(parts, 2)
             type = self.safe_string(parts, 4)
-            if (type == 'limit') or (type == 'stop'):
-                price = self.safe_string(parts, partsLength - 1)
+            if type == 'stop':
+                stopPrice = self.safe_string(parts, 6)
+                price = self.safe_string(parts, 9)
+            elif type == 'limit':
+                price = self.safe_string(parts, 5)
         side = self.safe_string(description, 'type', side)
         type = self.safe_string(description, 'ordertype', type)
         marketId = self.safe_string(description, 'pair', marketId)
@@ -1289,7 +1313,7 @@ class kraken(Exchange):
             id = self.safe_string(txid, 0)
         clientOrderId = self.safe_string(order, 'userref')
         rawTrades = self.safe_value(order, 'trades')
-        stopPrice = self.safe_number(order, 'stopprice')
+        stopPrice = self.safe_number(order, 'stopprice', stopPrice)
         return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,

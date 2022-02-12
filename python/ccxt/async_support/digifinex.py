@@ -31,10 +31,11 @@ class digifinex(Exchange):
             'version': 'v3',
             'rateLimit': 900,  # 300 for posts
             'has': {
+                'CORS': None,
                 'spot': True,
-                'margin': None,
-                'swap': False,
-                'future': False,
+                'margin': None,  # has but unimplemented
+                'swap': None,  # has but unimplemented
+                'future': None,  # has but unimplemented
                 'option': False,
                 'cancelOrder': True,
                 'cancelOrders': True,
@@ -43,34 +44,20 @@ class digifinex(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchFundingHistory': False,
-                'fetchFundingRate': False,
-                'fetchFundingRateHistory': False,
-                'fetchFundingRates': False,
-                'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchLedger': True,
-                'fetchLeverage': False,
                 'fetchMarkets': True,
-                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
-                'fetchPositions': False,
-                'fetchPositionsRisk': False,
-                'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchWithdrawals': True,
-                'reduceMargin': False,
-                'setLeverage': False,
-                'setPositionMode': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -272,8 +259,8 @@ class digifinex(Exchange):
             currency = data[i]
             id = self.safe_string(currency, 'currency')
             code = self.safe_currency_code(id)
-            depositStatus = self.safe_value(currency, 'deposit_status', 1)
-            withdrawStatus = self.safe_value(currency, 'withdraw_status', 1)
+            depositStatus = self.safe_integer(currency, 'deposit_status', 1)
+            withdrawStatus = self.safe_integer(currency, 'withdraw_status', 1)
             deposit = depositStatus > 0
             withdraw = withdrawStatus > 0
             active = deposit and withdraw
@@ -366,7 +353,7 @@ class digifinex(Exchange):
                 'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'margin': False,
+                'margin': None,
                 'swap': False,
                 'future': False,
                 'option': False,
@@ -430,36 +417,52 @@ class digifinex(Exchange):
             baseId, quoteId = id.split('_')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            precision = {
-                'amount': self.safe_integer(market, 'volume_precision'),
-                'price': self.safe_integer(market, 'price_precision'),
-            }
-            limits = {
-                'amount': {
-                    'min': self.safe_number(market, 'min_volume'),
-                    'max': None,
-                },
-                'price': {
-                    'min': None,
-                    'max': None,
-                },
-                'cost': {
-                    'min': self.safe_number(market, 'min_amount'),
-                    'max': None,
-                },
-            }
-            active = None
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': active,
-                'precision': precision,
-                'limits': limits,
+                'settleId': None,
+                'type': 'spot',
+                'spot': True,
+                'margin': None,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': None,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': self.safe_integer(market, 'price_precision'),
+                    'amount': self.safe_integer(market, 'volume_precision'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': self.safe_number(market, 'min_volume'),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': self.safe_number(market, 'min_amount'),
+                        'max': None,
+                    },
+                },
                 'info': market,
             })
         return result

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.69.54'
+__version__ = '1.72.79'
 
 # -----------------------------------------------------------------------------
 
@@ -256,14 +256,16 @@ class Exchange(object):
     has = {
         'publicAPI': True,
         'privateAPI': True,
+        'CORS': None,
+        'spot': None,
         'margin': None,
         'swap': None,
         'future': None,
+        'option': None,
         'addMargin': None,
         'cancelAllOrders': None,
         'cancelOrder': True,
         'cancelOrders': None,
-        'CORS': None,
         'createDepositAddress': None,
         'createLimitOrder': True,
         'createMarketOrder': True,
@@ -669,8 +671,9 @@ class Exchange(object):
 
         except HTTPError as e:
             details = ' '.join([self.id, method, url])
-            self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
-            self.handle_http_status_code(http_status_code, http_status_text, url, method, http_response)
+            skip_further_error_handling = self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
+            if not skip_further_error_handling:
+                self.handle_http_status_code(http_status_code, http_status_text, url, method, http_response)
             raise ExchangeError(details) from e
 
         except requestsConnectionError as e:

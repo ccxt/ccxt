@@ -27,6 +27,12 @@ class oceanex extends Exchange {
                 'referral' => 'https://oceanex.pro/signup?referral=VE24QX',
             ),
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => null, // has but unimplemented
+                'future' => null,
+                'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
@@ -34,6 +40,11 @@ class oceanex extends Exchange {
                 'createOrder' => true,
                 'fetchAllTradingFees' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchFundingFees' => null,
                 'fetchMarkets' => true,
@@ -135,6 +146,19 @@ class oceanex extends Exchange {
     public function fetch_markets($params = array ()) {
         $request = array( 'show_details' => true );
         $response = $this->publicGetMarkets (array_merge($request, $params));
+        //
+        //    array(
+        //        $id => 'xtzusdt',
+        //        $name => 'XTZ/USDT',
+        //        ask_precision => '8',
+        //        bid_precision => '8',
+        //        enabled => true,
+        //        price_precision => '4',
+        //        amount_precision => '3',
+        //        usd_precision => '4',
+        //        minimum_trading_amount => '1.0'
+        //    ),
+        //
         $result = array();
         $markets = $this->safe_value($response, 'data');
         for ($i = 0; $i < count($markets); $i++) {
@@ -152,26 +176,25 @@ class oceanex extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
                 'margin' => false,
-                'future' => false,
                 'swap' => false,
+                'future' => false,
                 'option' => false,
-                'optionType' => null,
-                'strike' => null,
+                'active' => null,
+                'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                'contract' => false,
                 'contractSize' => null,
-                'settle' => null,
-                'settleId' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
-                'active' => null,
-                'info' => $market,
+                'strike' => null,
+                'optionType' => null,
                 'precision' => array(
                     'amount' => $this->safe_integer($market, 'amount_precision'),
                     'price' => $this->safe_integer($market, 'price_precision'),
@@ -179,6 +202,10 @@ class oceanex extends Exchange {
                     'quote' => $this->safe_integer($market, 'bid_precision'),
                 ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => null,
                         'max' => null,
@@ -192,6 +219,7 @@ class oceanex extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'info' => $market,
             );
         }
         return $result;
@@ -283,24 +311,24 @@ class oceanex extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'buy'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'sell'),
+            'ask' => $this->safe_string($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => $this->safe_number($ticker, 'last'),
-            'last' => $this->safe_number($ticker, 'last'),
+            'close' => $this->safe_string($ticker, 'last'),
+            'last' => $this->safe_string($ticker, 'last'),
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'volume'),
+            'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

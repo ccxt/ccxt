@@ -21,6 +21,7 @@ class btcalpha(Exchange):
             'countries': ['US'],
             'version': 'v1',
             'has': {
+                'CORS': None,
                 'spot': True,
                 'margin': False,
                 'swap': False,
@@ -32,6 +33,7 @@ class btcalpha(Exchange):
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
@@ -126,6 +128,21 @@ class btcalpha(Exchange):
 
     async def fetch_markets(self, params={}):
         response = await self.publicGetPairs(params)
+        #
+        #    [
+        #        {
+        #            "name": "1INCH_USDT",
+        #            "currency1": "1INCH",
+        #            "currency2": "USDT",
+        #            "price_precision": 4,
+        #            "amount_precision": 2,
+        #            "minimum_order_size": "0.01000000",
+        #            "maximum_order_size": "900000.00000000",
+        #            "minimum_order_value": "10.00000000",
+        #            "liquidity_type": 10
+        #        },
+        #    ]
+        #
         result = []
         for i in range(0, len(response)):
             market = response[i]

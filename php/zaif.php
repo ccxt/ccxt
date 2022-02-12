@@ -18,15 +18,27 @@ class zaif extends Exchange {
             'rateLimit' => 2000,
             'version' => '1',
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => null, // has but unimplemented
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'cancelOrder' => true,
                 'createMarketOrder' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrderBook' => true,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
                 'withdraw' => true,
@@ -257,29 +269,33 @@ class zaif extends Exchange {
         return $this->parse_order_book($response, $symbol);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
-        $this->load_markets();
-        $request = array(
-            'pair' => $this->market_id($symbol),
-        );
-        $ticker = $this->publicGetTickerPair (array_merge($request, $params));
+    public function parse_ticker($ticker, $market = null) {
+        //
+        // {
+        //     "last" => 9e-08,
+        //     "high" => 1e-07,
+        //     "low" => 9e-08,
+        //     "vwap" => 0.0,
+        //     "volume" => 135250.0,
+        //     "bid" => 9e-08,
+        //     "ask" => 1e-07
+        // }
+        //
+        $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->milliseconds();
-        $vwap = $this->safe_number($ticker, 'vwap');
-        $baseVolume = $this->safe_number($ticker, 'volume');
-        $quoteVolume = null;
-        if ($baseVolume !== null && $vwap !== null) {
-            $quoteVolume = $baseVolume * $vwap;
-        }
-        $last = $this->safe_number($ticker, 'last');
-        return array(
+        $vwap = $this->safe_string($ticker, 'vwap');
+        $baseVolume = $this->safe_string($ticker, 'volume');
+        $quoteVolume = Precise::string_mul($baseVolume, $vwap);
+        $last = $this->safe_string($ticker, 'last');
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => $vwap,
             'open' => null,
@@ -292,7 +308,28 @@ class zaif extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
+        ), $market, false);
+    }
+
+    public function fetch_ticker($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'pair' => $market['id'],
         );
+        $ticker = $this->publicGetTickerPair (array_merge($request, $params));
+        //
+        // {
+        //     "last" => 9e-08,
+        //     "high" => 1e-07,
+        //     "low" => 9e-08,
+        //     "vwap" => 0.0,
+        //     "volume" => 135250.0,
+        //     "bid" => 9e-08,
+        //     "ask" => 1e-07
+        // }
+        //
+        return $this->parse_ticker($ticker, $market);
     }
 
     public function parse_trade($trade, $market = null) {

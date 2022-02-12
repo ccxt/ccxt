@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
+use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
 use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
@@ -26,19 +27,40 @@ class crex24 extends Exchange {
             'version' => 'v2',
             // new metainfo interface
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => null,
+                'cancelOrders' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchFundingFees' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -46,6 +68,10 @@ class crex24 extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
@@ -53,6 +79,10 @@ class crex24 extends Exchange {
                 'fetchTradingFees' => null, // actually, true, but will be implemented later
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -289,18 +319,6 @@ class crex24 extends Exchange {
             $quoteId = $this->safe_string($market, 'quoteCurrency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $tickSize = $this->safe_number($market, 'tickSize');
-            $minPrice = $this->safe_number($market, 'minPrice');
-            $maxPrice = $this->safe_number($market, 'maxPrice');
-            $minAmount = $this->safe_number($market, 'minVolume');
-            $maxAmount = $this->safe_number($market, 'maxVolume');
-            $minCost = $this->safe_number($market, 'minQuoteVolume');
-            $maxCost = $this->safe_number($market, 'maxQuoteVolume');
-            $precision = array(
-                'amount' => $minAmount,
-                'price' => $tickSize,
-            );
             $maker = null;
             $taker = null;
             $feeSchedule = $this->safe_string($market, 'feeSchedule');
@@ -319,35 +337,56 @@ class crex24 extends Exchange {
                     break;
                 }
             }
-            $active = ($market['state'] === 'active');
+            $state = $this->safe_string($market, 'state');
             $result[] = array(
                 'id' => $id,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'info' => $market,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'active' => $active,
-                'precision' => $precision,
-                'maker' => $maker,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => ($state === 'active'),
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
                 'taker' => $taker,
+                'maker' => $maker,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->safe_number($market, 'volumeIncrement'),
+                    'price' => $this->safe_number($market, 'tickSize'),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
-                        'min' => $minAmount,
-                        'max' => $maxAmount,
+                        'min' => $this->safe_number($market, 'minVolume'),
+                        'max' => $this->safe_number($market, 'maxVolume'),
                     ),
                     'price' => array(
-                        'min' => $minPrice,
-                        'max' => $maxPrice,
+                        'min' => $this->safe_number($market, 'minPrice'),
+                        'max' => $this->safe_number($market, 'maxPrice'),
                     ),
                     'cost' => array(
-                        'min' => $minCost,
-                        'max' => $maxCost,
+                        'min' => $this->safe_number($market, 'minQuoteVolume'),
+                        'max' => $this->safe_number($market, 'maxQuoteVolume'),
                     ),
                 ),
+                'info' => $market,
             );
         }
         return $result;
@@ -805,6 +844,10 @@ class crex24 extends Exchange {
         //         "childOrderId" => null
         //     }
         //
+        // cancelOrder, cancelOrders, cancelAllOrders
+        //
+        //  465448358
+        //
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $marketId = $this->safe_string($order, 'instrument');
         $symbol = $this->safe_symbol($marketId, $market, '-');
@@ -813,7 +856,7 @@ class crex24 extends Exchange {
         $amount = $this->safe_string($order, 'volume');
         $remaining = $this->safe_string($order, 'remainingVolume');
         $lastTradeTimestamp = $this->parse8601($this->safe_string($order, 'lastUpdate'));
-        $id = $this->safe_string($order, 'id');
+        $id = $this->safe_string($order, 'id', $order); // if $order was integer
         $type = $this->safe_string($order, 'type');
         $side = $this->safe_string($order, 'side');
         $timeInForce = $this->safe_string($order, 'timeInForce');
@@ -1117,12 +1160,22 @@ class crex24 extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        $response = yield $this->cancel_orders(array( $id ), $symbol, $params);
+        return $this->safe_value($response, 0);
+    }
+
+    public function cancel_orders($ids, $symbol = null, $params = array ()) {
+        if (gettype($ids) === 'array' && count(array_filter(array_keys($ids), 'is_string')) != 0) {
+            throw new ArgumentsRequired($this->id . ' cancelOrders $ids argument should be an array');
+        }
         yield $this->load_markets();
         $request = array(
-            'ids' => array(
-                intval($id),
-            ),
+            'ids' => array(),
         );
+        for ($i = 0; $i < count($ids); $i++) {
+            $id = intval($ids[$i]);
+            $request['ids'][] = $id;
+        }
         $response = yield $this->tradingPostCancelOrdersById (array_merge($request, $params));
         //
         //     array(
@@ -1130,18 +1183,35 @@ class crex24 extends Exchange {
         //         468364313
         //     )
         //
-        return $this->parse_order($response);
+        return $this->parse_orders($response);
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
-        $response = yield $this->tradingPostCancelAllOrders ($params);
-        //
-        //     array(
-        //         465448358,
-        //         468364313
-        //     )
-        //
-        return $response;
+        $response = null;
+        $market = null;
+        if ($symbol === null) {
+            $response = yield $this->tradingPostCancelAllOrders ($params);
+            //
+            //     array(
+            //         465448358,
+            //         468364313
+            //     )
+            //
+        } else {
+            yield $this->load_markets();
+            $market = $this->market($symbol);
+            $request = array(
+                'instruments' => [ $market['id'] ],
+            );
+            $response = yield $this->tradingPostCancelOrdersByInstrument (array_merge($request, $params));
+            //
+            //     array(
+            //         465441234,
+            //         468364321
+            //     )
+            //
+        }
+        return $this->parse_orders($response, $market, null, null, $params);
     }
 
     public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {

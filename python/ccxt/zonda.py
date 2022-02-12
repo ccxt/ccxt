@@ -28,6 +28,7 @@ class zonda(Exchange):
             'countries': ['EE'],  # Estonia
             'rateLimit': 1000,
             'has': {
+                'CORS': True,
                 'spot': True,
                 'margin': False,
                 'swap': False,
@@ -35,11 +36,11 @@ class zonda(Exchange):
                 'option': False,
                 'addMargin': False,
                 'cancelOrder': True,
-                'CORS': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
@@ -312,15 +313,15 @@ class zonda(Exchange):
                 'type': 'spot',
                 'spot': True,
                 'margin': False,
-                'future': False,
                 'swap': False,
+                'future': False,
                 'option': False,
                 'active': None,
                 'contract': False,
                 'linear': None,
                 'inverse': None,
-                'maker': self.safe_number(fees, 'maker'),
                 'taker': self.safe_number(fees, 'taker'),
+                'maker': self.safe_number(fees, 'maker'),
                 'contractSize': None,
                 'expiry': None,
                 'expiryDatetime': None,
@@ -508,9 +509,9 @@ class zonda(Exchange):
         #       }
         #
         open = self.safe_string(ticker, 'r24h')
-        high = self.safe_number(ticker, 'h')
-        low = self.safe_number(ticker, 'l')
-        volume = self.safe_number(ticker, 'v')
+        high = self.safe_string(ticker, 'h')
+        low = self.safe_string(ticker, 'l')
+        volume = self.safe_string(ticker, 'v')
         marketId = self.safe_string(ticker, 'm')
         market = self.safe_market(marketId, market, '-')
         symbol = market['symbol']

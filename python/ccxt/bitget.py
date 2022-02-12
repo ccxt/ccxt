@@ -38,14 +38,22 @@ class bitget(Exchange):
             'version': 'v3',
             'rateLimit': 1000,  # up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'has': {
-                'fetchPositions': True,
-                'fetchPosition': True,
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': None,  # has but unimplemented
+                'future': None,  # has but unimplemented
+                'option': False,
                 'cancelOrder': True,
                 'cancelOrders': True,
-                'CORS': None,
                 'createOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDeposits': True,
@@ -56,6 +64,8 @@ class bitget(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderTrades': True,
+                'fetchPosition': True,
+                'fetchPositions': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -705,6 +715,9 @@ class bitget(Exchange):
                 },
             },
             'precisionMode': TICK_SIZE,
+            'commonCurrencies': {
+                'JADE': 'Jade Protocol',
+            },
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
                 'fetchMarkets': [
@@ -812,25 +825,19 @@ class bitget(Exchange):
         marketType = 'spot'
         spot = True
         swap = False
-        baseId = self.safe_string_2(market, 'base_currency', 'coin')
+        baseId = self.safe_string_2(market, 'base_currency', 'underlying_index')
         quoteId = self.safe_string(market, 'quote_currency')
+        settleId = self.safe_string(market, 'coin')
         contractVal = self.safe_number(market, 'contract_val')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        settle = self.safe_currency_code(settleId)
+        symbol = base + '/' + quote
         if contractVal is not None:
             marketType = 'swap'
             spot = False
             swap = True
-        base = self.safe_currency_code(baseId)
-        quote = self.safe_currency_code(quoteId)
-        symbol = id.upper()
-        if spot:
-            symbol = base + '/' + quote
-        tickSize = self.safe_string(market, 'tick_size')
-        sizeIncrement = self.safe_string(market, 'size_increment')
-        precision = {
-            'amount': self.parse_number(self.parse_precision(sizeIncrement)),
-            'price': self.parse_number(self.parse_precision(tickSize)),
-        }
-        minAmount = self.safe_number_2(market, 'min_size', 'base_min_size')
+            symbol = symbol + ':' + settle
         status = self.safe_string(market, 'status')
         active = None
         if status is not None:
@@ -841,28 +848,49 @@ class bitget(Exchange):
             'symbol': symbol,
             'base': base,
             'quote': quote,
+            'settle': settle,
             'baseId': baseId,
             'quoteId': quoteId,
-            'info': market,
+            'settleId': settleId,
             'type': marketType,
             'spot': spot,
+            'margin': False,
             'swap': swap,
+            'future': False,
+            'option': False,
             'active': active,
-            'precision': precision,
+            'contract': swap,
+            'linear': (base == settle),
+            'inverse': (quote == settle),
+            'contractSize': contractVal,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'size_increment'))),
+                'price': self.parse_number(self.parse_precision(self.safe_string(market, 'tick_size'))),
+                'base': self.parse_number(self.parse_precision(self.safe_string(market, 'base_asset_precision'))),
+            },
             'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
+                },
                 'amount': {
-                    'min': minAmount,
+                    'min': self.safe_number_2(market, 'min_size', 'base_min_size'),
                     'max': None,
                 },
                 'price': {
-                    'min': precision['price'],
+                    'min': None,
                     'max': None,
                 },
                 'cost': {
-                    'min': precision['price'],
+                    'min': None,
                     'max': None,
                 },
             },
+            'info': market,
         })
 
     def fetch_markets_by_type(self, type, params={}):
@@ -1094,7 +1122,6 @@ class bitget(Exchange):
             ask = self.safe_string(ask, 0)
         baseVolume = self.safe_string_2(ticker, 'amount', 'volume_24h')
         quoteVolume = self.safe_string(ticker, 'vol')
-        vwap = self.vwap(baseVolume, quoteVolume)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1105,7 +1132,7 @@ class bitget(Exchange):
             'bidVolume': bidVolume,
             'ask': ask,
             'askVolume': askVolume,
-            'vwap': vwap,
+            'vwap': None,
             'open': open,
             'close': last,
             'last': last,
@@ -1659,17 +1686,16 @@ class bitget(Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         self.load_accounts()
-        marketType = None
-        marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
+        marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'apiGetAccountsAccountIdBalance',
             'swap': 'swapGetAccountAccounts',
         })
         if marketType == 'spot':
-            accountId = self.get_account_id(params)
-            params['account_id'] = accountId
-            params['method'] = 'balance'
-        response = getattr(self, method)(params)
+            accountId = self.get_account_id(query)
+            query['account_id'] = accountId
+            query['method'] = 'balance'
+        response = getattr(self, method)(query)
         #
         # spot
         #
@@ -2165,26 +2191,26 @@ class bitget(Exchange):
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        type = self.safe_string(params, 'type', market['type'])
+        marketType, query = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         request = {
             'symbol': market['id'],
         }
-        method = None
-        if type == 'spot':
-            method = 'apiGetOrderOrdersOpenOrders'
+        if marketType == 'spot':
             # request['from'] = self.safe_string(params, 'from')  # order id
             # request['direct'] = 'next'  # or 'prev'
             request['method'] = 'openOrders'
             if limit is None:
                 request['size'] = limit  # default 100, max 1000
-        elif type == 'swap':
-            method = 'swapGetOrderOrders'
+        elif marketType == 'swap':
             request['status'] = '3'  # 0 Failed, 1 Partially Filled, 2 Fully Filled 3 = Open + Partially Filled, 4 Canceling
             request['from'] = '1'
             request['to'] = '1'
             if limit is None:
                 request['limit'] = 100  # default 100, max 100
-        query = self.omit(params, 'type')
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'apiGetOrderOrdersOpenOrders',
+            'swap': 'swapGetOrderOrders',
+        })
         response = getattr(self, method)(self.extend(request, query))
         #
         #  spot
@@ -2244,13 +2270,11 @@ class bitget(Exchange):
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        type = self.safe_string(params, 'type', market['type'])
+        marketType, query = self.handle_market_type_and_params('fetchClosedOrders', market, params)
         request = {
             'symbol': market['id'],
         }
-        method = None
-        if type == 'spot':
-            method = 'apiGetOrderOrdersHistory'
+        if marketType == 'spot':
             # Value range [((end_time) – 48h),(end_time)]
             # the query window is 48 hours at most
             # the window shift range is the last 30 days
@@ -2262,14 +2286,16 @@ class bitget(Exchange):
             request['method'] = 'openOrders'
             if limit is None:
                 request['size'] = limit  # default 100, max 1000
-        elif type == 'swap':
-            method = 'swapGetOrderOrders'
+        elif marketType == 'swap':
             request['status'] = '2'  # 0 Failed, 1 Partially Filled, 2 Fully Filled 3 = Open + Partially Filled, 4 Canceling
             request['from'] = '1'
             request['to'] = '1'
             if limit is None:
                 request['limit'] = 100  # default 100, max 100
-        query = self.omit(params, 'type')
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'apiGetOrderOrdersHistory',
+            'swap': 'swapGetOrderOrders',
+        })
         response = getattr(self, method)(self.extend(request, query))
         #
         #  spot

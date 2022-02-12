@@ -17,8 +17,7 @@ module.exports = class bitpanda extends Exchange {
             'version': 'v1',
             // new metainfo interface
             'has': {
-                'privateAPI': true,
-                'publicAPI': true,
+                'CORS': undefined,
                 'spot': true,
                 'margin': false,
                 'swap': false,
@@ -28,12 +27,12 @@ module.exports = class bitpanda extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
-                'CORS': undefined,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
@@ -66,6 +65,8 @@ module.exports = class bitpanda extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFees': true,
                 'fetchWithdrawals': true,
+                'privateAPI': true,
+                'publicAPI': true,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -340,7 +341,6 @@ module.exports = class bitpanda extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const state = this.safeString (market, 'state');
             result.push ({
-                'info': market,
                 'id': id,
                 'symbol': base + '/' + quote,
                 'base': base,
@@ -364,8 +364,6 @@ module.exports = class bitpanda extends Exchange {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
                 'precision': {
                     'amount': this.safeInteger (market, 'amount_precision'),
                     'price': this.safeInteger (market, 'market_precision'),
@@ -388,6 +386,7 @@ module.exports = class bitpanda extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': market,
             });
         }
         return result;

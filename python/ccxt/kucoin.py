@@ -30,18 +30,25 @@ class kucoin(Exchange):
             'id': 'kucoin',
             'name': 'KuCoin',
             'countries': ['SC'],
-            'rateLimit': 334,
+            # note "only some endpoints are rate-limited"
+            # so I set the 'ratelimit' on those which supposedly 'arent ratelimited'
+            # to the limit of the cheapest endpoint
+            # 60 requests in 3 seconds = 20 requests per second =>( 1000ms / 20 ) = 50 ms between requests on average
+            'rateLimit': 50,
             'version': 'v2',
             'certified': False,
             'pro': True,
             'comment': 'Platform 2.0',
             'quoteJsonNumbers': False,
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': None,
                 'swap': False,
                 'future': False,
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': None,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'fetchAccounts': True,
@@ -54,7 +61,9 @@ class kucoin(Exchange):
                 'fetchDeposits': True,
                 'fetchFundingFee': True,
                 'fetchFundingHistory': False,
+                'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
                 'fetchL3OrderBook': True,
                 'fetchLedger': True,
@@ -103,159 +112,160 @@ class kucoin(Exchange):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'timestamp',
-                        'status',
-                        'symbols',
-                        'markets',
-                        'market/allTickers',
-                        'market/orderbook/level{level}_{limit}',
-                        'market/orderbook/level2_20',
-                        'market/orderbook/level2_100',
-                        'market/histories',
-                        'market/candles',
-                        'market/stats',
-                        'currencies',
-                        'currencies/{currency}',
-                        'prices',
-                        'mark-price/{symbol}/current',
-                        'margin/config',
-                    ],
-                    'post': [
-                        'bullet-public',
-                    ],
+                    'get': {
+                        'timestamp': 1,
+                        'status': 1,
+                        'symbols': 1,
+                        'markets': 1,
+                        'market/allTickers': 1,
+                        'market/orderbook/level{level}_{limit}': 1,
+                        'market/orderbook/level2_20': 1,
+                        'market/orderbook/level2_100': 1,
+                        'market/histories': 1,
+                        'market/candles': 1,
+                        'market/stats': 1,
+                        'currencies': 1,
+                        'currencies/{currency}': 1,
+                        'prices': 1,
+                        'mark-price/{symbol}/current': 1,
+                        'margin/config': 1,
+                    },
+                    'post': {
+                        'bullet-public': 1,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'market/orderbook/level{level}',
-                        'market/orderbook/level2',
-                        'market/orderbook/level3',
-                        'accounts',
-                        'accounts/{accountId}',
-                        # 'accounts/{accountId}/ledgers', Deprecated endpoint
-                        'accounts/ledgers',
-                        'accounts/{accountId}/holds',
-                        'accounts/transferable',
-                        'sub/user',
-                        'sub-accounts',
-                        'sub-accounts/{subUserId}',
-                        'deposit-addresses',
-                        'deposits',
-                        'hist-deposits',
-                        'hist-orders',
-                        'hist-withdrawals',
-                        'withdrawals',
-                        'withdrawals/quotas',
-                        'orders',
-                        'order/client-order/{clientOid}',
-                        'orders/{orderId}',
-                        'limit/orders',
-                        'fills',
-                        'limit/fills',
-                        'margin/account',
-                        'margin/borrow',
-                        'margin/borrow/outstanding',
-                        'margin/borrow/borrow/repaid',
-                        'margin/lend/active',
-                        'margin/lend/done',
-                        'margin/lend/trade/unsettled',
-                        'margin/lend/trade/settled',
-                        'margin/lend/assets',
-                        'margin/market',
-                        'margin/trade/last',
-                        'stop-order/{orderId}',
-                        'stop-order',
-                        'stop-order/queryOrderByClientOid',
-                    ],
-                    'post': [
-                        'accounts',
-                        'accounts/inner-transfer',
-                        'accounts/sub-transfer',
-                        'deposit-addresses',
-                        'withdrawals',
-                        'orders',
-                        'orders/multi',
-                        'margin/borrow',
-                        'margin/order',
-                        'margin/repay/all',
-                        'margin/repay/single',
-                        'margin/lend',
-                        'margin/toggle-auto-lend',
-                        'bullet-private',
-                        'stop-order',
-                    ],
-                    'delete': [
-                        'withdrawals/{withdrawalId}',
-                        'orders',
-                        'orders/client-order/{clientOid}',
-                        'orders/{orderId}',
-                        'margin/lend/{orderId}',
-                        'stop-order/cancelOrderByClientOid',
-                        'stop-order/{orderId}',
-                        'stop-order/cancel',
-                    ],
+                    'get': {
+                        'market/orderbook/level{level}': 1,
+                        'market/orderbook/level2': {'v3': 2},  # 30/3s = 10/s => cost = 20 / 10 = 2
+                        'market/orderbook/level3': 1,
+                        'accounts': 1,
+                        'accounts/{accountId}': 1,
+                        # 'accounts/{accountId}/ledgers': 1, Deprecated endpoint
+                        'accounts/ledgers': 3.333,  # 18/3s = 6/s => cost = 20 / 6 = 3.333
+                        'accounts/{accountId}/holds': 1,
+                        'accounts/transferable': 1,
+                        'sub/user': 1,
+                        'sub-accounts': 1,
+                        'sub-accounts/{subUserId}': 1,
+                        'deposit-addresses': 1,
+                        'deposits': 10,  # 6/3s = 2/s => cost = 20 / 2 = 10
+                        'hist-deposits': 10,  # 6/3 = 2/s => cost = 20 / 2 = 10
+                        'hist-orders': 1,
+                        'hist-withdrawals': 10,  # 6/3 = 2/s => cost = 20 / 2 = 10
+                        'withdrawals': 10,  # 6/3 = 2/s => cost = 20 / 2 = 10
+                        'withdrawals/quotas': 1,
+                        'orders': 2,  # 30/3s =  10/s => cost  = 20 / 10 = 2
+                        'order/client-order/{clientOid}': 1,
+                        'orders/{orderId}': 1,
+                        'limit/orders': 1,
+                        'fills': 6.66667,  # 9/3s = 3/s => cost  = 20 / 3 = 6.666667
+                        'limit/fills': 1,
+                        'margin/account': 1,
+                        'margin/borrow': 1,
+                        'margin/borrow/outstanding': 1,
+                        'margin/borrow/borrow/repaid': 1,
+                        'margin/lend/active': 1,
+                        'margin/lend/done': 1,
+                        'margin/lend/trade/unsettled': 1,
+                        'margin/lend/trade/settled': 1,
+                        'margin/lend/assets': 1,
+                        'margin/market': 1,
+                        'margin/trade/last': 1,
+                        'stop-order/{orderId}': 1,
+                        'stop-order': 1,
+                        'stop-order/queryOrderByClientOid': 1,
+                    },
+                    'post': {
+                        'accounts': 1,
+                        'accounts/inner-transfer': {'v2': 1},
+                        'accounts/sub-transfer': {'v2': 25},  # bad docs
+                        'deposit-addresses': 1,
+                        'withdrawals': 1,
+                        'orders': 4,  # 45/3s = 15/s => cost = 20 / 15 = 1.333333
+                        'orders/multi': 20,  # 3/3s = 1/s => cost = 20 / 1 = 20
+                        'margin/borrow': 1,
+                        'margin/order': 1,
+                        'margin/repay/all': 1,
+                        'margin/repay/single': 1,
+                        'margin/lend': 1,
+                        'margin/toggle-auto-lend': 1,
+                        'bullet-private': 1,
+                        'stop-order': 1,
+                    },
+                    'delete': {
+                        'withdrawals/{withdrawalId}': 1,
+                        'orders': 20,  # 3/3s = 1/s => cost = 20/1
+                        'orders/client-order/{clientOid}': 1,
+                        'orders/{orderId}': 1,  # rateLimit: 60/3s = 20/s => cost = 1
+                        'margin/lend/{orderId}': 1,
+                        'stop-order/cancelOrderByClientOid': 1,
+                        'stop-order/{orderId}': 1,
+                        'stop-order/cancel': 1,
+                    },
                 },
                 'futuresPublic': {
-                    'get': [
-                        'contracts/active',
-                        'contracts/{symbol}',
-                        'ticker',
-                        'level2/snapshot',
-                        'level2/depth20',
-                        'level2/depth100',
-                        'level2/message/query',
-                        'level3/message/query',  # deprecated，level3/snapshot is suggested
-                        'level3/snapshot',  # v2
-                        'trade/history',
-                        'interest/query',
-                        'index/query',
-                        'mark-price/{symbol}/current',
-                        'premium/query',
-                        'funding-rate/{symbol}/current',
-                        'timestamp',
-                        'status',
-                        'kline/query',
-                    ],
-                    'post': [
-                        'bullet-public',
-                    ],
+                    # cheapest futures 'limited' endpoint is 40  requests per 3 seconds = 14.333 per second => cost = 20/14.333 = 1.3953
+                    'get': {
+                        'contracts/active': 1.3953,
+                        'contracts/{symbol}': 1.3953,
+                        'ticker': 1.3953,
+                        'level2/snapshot': 2,  # 30 requests per 3 seconds = 10 requests per second => cost = 20/10 = 2
+                        'level2/depth20': 1.3953,
+                        'level2/depth100': 1.3953,
+                        'level2/message/query': 1.3953,
+                        'level3/message/query': 1.3953,  # deprecated，level3/snapshot is suggested
+                        'level3/snapshot': 1.3953,  # v2
+                        'trade/history': 1.3953,
+                        'interest/query': 1.3953,
+                        'index/query': 1.3953,
+                        'mark-price/{symbol}/current': 1.3953,
+                        'premium/query': 1.3953,
+                        'funding-rate/{symbol}/current': 1.3953,
+                        'timestamp': 1.3953,
+                        'status': 1.3953,
+                        'kline/query': 1.3953,
+                    },
+                    'post': {
+                        'bullet-public': 1.3953,
+                    },
                 },
                 'futuresPrivate': {
-                    'get': [
-                        'account-overview',
-                        'transaction-history',
-                        'deposit-address',
-                        'deposit-list',
-                        'withdrawals/quotas',
-                        'withdrawal-list',
-                        'transfer-list',
-                        'orders',
-                        'stopOrders',
-                        'recentDoneOrders',
-                        'orders/{order-id}',  # ?clientOid={client-order-id}  # get order by orderId
-                        'orders/byClientOid',  # ?clientOid=eresc138b21023a909e5ad59  # get order by clientOid
-                        'fills',
-                        'recentFills',
-                        'openOrderStatistics',
-                        'position',
-                        'positions',
-                        'funding-history',
-                    ],
-                    'post': [
-                        'withdrawals',
-                        'transfer-out',  # v2
-                        'orders',
-                        'position/margin/auto-deposit-status',
-                        'position/margin/deposit-margin',
-                        'bullet-private',
-                    ],
-                    'delete': [
-                        'withdrawals/{withdrawalId}',
-                        'cancel/transfer-out',
-                        'orders/{order-id}',
-                        'orders',
-                        'stopOrders',
-                    ],
+                    'get': {
+                        'account-overview': 2,  # 30 requests per 3 seconds = 10 per second => cost = 20/10 = 2
+                        'transaction-history': 6.666,  # 9 requests per 3 seconds = 3 per second => cost = 20/3 = 6.666
+                        'deposit-address': 1.3953,
+                        'deposit-list': 1.3953,
+                        'withdrawals/quotas': 1.3953,
+                        'withdrawal-list': 1.3953,
+                        'transfer-list': 1.3953,
+                        'orders': 1.3953,
+                        'stopOrders': 1.3953,
+                        'recentDoneOrders': 1.3953,
+                        'orders/{order-id}': 1.3953,  # ?clientOid={client-order-id}  # get order by orderId
+                        'orders/byClientOid': 1.3953,  # ?clientOid=eresc138b21023a909e5ad59  # get order by clientOid
+                        'fills': 6.666,  # 9 requests per 3 seconds = 3 per second => cost = 20/3 = 6.666
+                        'recentFills': 6.666,  # 9 requests per 3 seconds = 3 per second => cost = 20/3 = 6.666
+                        'openOrderStatistics': 1.3953,
+                        'position': 1.3953,
+                        'positions': 6.666,  # 9 requests per 3 seconds = 3 per second => cost = 20/3 = 6.666
+                        'funding-history': 6.666,  # 9 requests per 3 seconds = 3 per second => cost = 20/3 = 6.666
+                    },
+                    'post': {
+                        'withdrawals': 1.3953,
+                        'transfer-out': 1.3953,  # v2
+                        'orders': 1.3953,
+                        'position/margin/auto-deposit-status': 1.3953,
+                        'position/margin/deposit-margin': 1.3953,
+                        'bullet-private': 1.3953,
+                    },
+                    'delete': {
+                        'withdrawals/{withdrawalId}': 1.3953,
+                        'cancel/transfer-out': 1.3953,
+                        'orders/{order-id}': 1.3953,  # 40 requests per 3 seconds = 14.333 per second => cost = 20/14.333 = 1.395
+                        'orders': 6.666,  # 9 requests per 3 seconds = 3 per second => cost = 20/3 = 6.666
+                        'stopOrders': 1.3953,
+                    },
                 },
             },
             'timeframes': {
@@ -544,9 +554,6 @@ class kucoin(Exchange):
             baseId, quoteId = id.split('-')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            active = self.safe_value(market, 'enableTrading')
-            margin = self.safe_value(market, 'isMarginEnabled')
             baseMaxSize = self.safe_number(market, 'baseMaxSize')
             baseMinSizeString = self.safe_string(market, 'baseMinSize')
             quoteMaxSizeString = self.safe_string(market, 'quoteMaxSize')
@@ -554,49 +561,59 @@ class kucoin(Exchange):
             quoteMaxSize = self.parse_number(quoteMaxSizeString)
             quoteMinSize = self.safe_number(market, 'quoteMinSize')
             # quoteIncrement = self.safe_number(market, 'quoteIncrement')
-            precision = {
-                'amount': self.precision_from_string(self.safe_string(market, 'baseIncrement')),
-                'price': self.precision_from_string(self.safe_string(market, 'priceIncrement')),
-            }
-            limits = {
-                'amount': {
-                    'min': baseMinSize,
-                    'max': baseMaxSize,
-                },
-                'price': {
-                    'min': self.safe_number(market, 'priceIncrement'),
-                    'max': self.parse_number(Precise.string_div(quoteMaxSizeString, baseMinSizeString)),
-                },
-                'cost': {
-                    'min': quoteMinSize,
-                    'max': quoteMaxSize,
-                },
-                'leverage': {
-                    'max': self.safe_number(market, 'maxLeverage', 1),  # * Don't default to 1 for margin markets, leverage is located elsewhere
-                },
-            }
             ticker = self.safe_value(tickersByMarketId, id, {})
             makerFeeRate = self.safe_string(ticker, 'makerFeeRate')
             takerFeeRate = self.safe_string(ticker, 'makerFeeRate')
             makerCoefficient = self.safe_string(ticker, 'makerCoefficient')
             takerCoefficient = self.safe_string(ticker, 'takerCoefficient')
-            maker = self.parse_number(Precise.string_mul(makerFeeRate, makerCoefficient))
-            taker = self.parse_number(Precise.string_mul(takerFeeRate, takerCoefficient))
             result.append({
                 'id': id,
-                'symbol': symbol,
-                'baseId': baseId,
-                'quoteId': quoteId,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'margin': margin,
-                'active': active,
-                'maker': maker,
-                'taker': taker,
-                'precision': precision,
-                'limits': limits,
+                'margin': self.safe_value(market, 'isMarginEnabled'),
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': self.safe_value(market, 'enableTrading'),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'taker': self.parse_number(Precise.string_mul(takerFeeRate, takerCoefficient)),
+                'maker': self.parse_number(Precise.string_mul(makerFeeRate, makerCoefficient)),
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.precision_from_string(self.safe_string(market, 'baseIncrement')),
+                    'price': self.precision_from_string(self.safe_string(market, 'priceIncrement')),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': baseMinSize,
+                        'max': baseMaxSize,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': quoteMinSize,
+                        'max': quoteMaxSize,
+                    },
+                },
                 'info': market,
             })
         return result
@@ -774,40 +791,39 @@ class kucoin(Exchange):
         #         time: 1634641777363
         #     }
         #
-        percentage = self.safe_number(ticker, 'changeRate')
+        percentage = self.safe_string(ticker, 'changeRate')
         if percentage is not None:
-            percentage = percentage * 100
-        last = self.safe_number_2(ticker, 'last', 'lastTradedPrice')
-        last = self.safe_number(ticker, 'price', last)
+            percentage = Precise.string_mul(percentage, '100')
+        last = self.safe_string_2(ticker, 'last', 'lastTradedPrice')
+        last = self.safe_string(ticker, 'price', last)
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market, '-')
         symbol = market['symbol']
-        baseVolume = self.safe_number(ticker, 'vol')
-        quoteVolume = self.safe_number(ticker, 'volValue')
-        vwap = self.vwap(baseVolume, quoteVolume)
+        baseVolume = self.safe_string(ticker, 'vol')
+        quoteVolume = self.safe_string(ticker, 'volValue')
         timestamp = self.safe_integer_2(ticker, 'time', 'datetime')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number_2(ticker, 'buy', 'bestBid'),
-            'bidVolume': self.safe_number(ticker, 'bestBidSize'),
-            'ask': self.safe_number_2(ticker, 'sell', 'bestAsk'),
-            'askVolume': self.safe_number(ticker, 'bestAskSize'),
-            'vwap': vwap,
-            'open': self.safe_number(ticker, 'open'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string_2(ticker, 'buy', 'bestBid'),
+            'bidVolume': self.safe_string(ticker, 'bestBidSize'),
+            'ask': self.safe_string_2(ticker, 'sell', 'bestAsk'),
+            'askVolume': self.safe_string(ticker, 'bestAskSize'),
+            'vwap': None,
+            'open': self.safe_string(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': self.safe_number(ticker, 'changePrice'),
+            'change': self.safe_string(ticker, 'changePrice'),
             'percentage': percentage,
-            'average': self.safe_number(ticker, 'averagePrice'),
+            'average': self.safe_string(ticker, 'averagePrice'),
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
@@ -1319,8 +1335,11 @@ class kucoin(Exchange):
         # bool
         isActive = self.safe_value(order, 'isActive', False)
         cancelExist = self.safe_value(order, 'cancelExist', False)
+        stop = self.safe_string(order, 'stop')
+        stopTriggered = self.safe_value(order, 'stopTriggered', False)
         status = 'open' if isActive else 'closed'
-        status = 'canceled' if cancelExist else status
+        cancelExistWithStop = cancelExist or (not isActive and stop and not stopTriggered)
+        status = 'canceled' if cancelExistWithStop else status
         fee = {
             'currency': feeCurrency,
             'cost': feeCost,
@@ -2169,6 +2188,20 @@ class kucoin(Exchange):
         data = self.safe_value(response, 'data')
         items = self.safe_value(data, 'items')
         return self.parse_ledger(items, currency, since, limit)
+
+    def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
+        versions = self.safe_value(self.options, 'versions', {})
+        apiVersions = self.safe_value(versions, api, {})
+        methodVersions = self.safe_value(apiVersions, method, {})
+        defaultVersion = self.safe_string(methodVersions, path, self.options['version'])
+        version = self.safe_string(params, 'version', defaultVersion)
+        if version == 'v3' and ('v3' in config):
+            return config['v3']
+        elif version == 'v2' and ('v2' in config):
+            return config['v2']
+        elif version == 'v1' and ('v1' in config):
+            return config['v1']
+        return self.safe_integer(config, 'cost', 1)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         #

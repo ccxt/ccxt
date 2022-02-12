@@ -34,8 +34,13 @@ class zb(Exchange):
             'certified': True,
             'pro': True,
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': None,  # has but unimplemented
+                'swap': None,  # has but unimplemented
+                'future': None,
+                'option': None,
+                'cancelOrder': True,
                 'createMarketOrder': None,
                 'createOrder': True,
                 'fetchBalance': True,
@@ -147,6 +152,7 @@ class zb(Exchange):
                 },
                 'broad': {
                     '提币地址有误，请先添加提币地址。': InvalidAddress,  # {"code":1001,"message":"提币地址有误，请先添加提币地址。"}
+                    '资金不足,无法划账': InsufficientFunds,  # {"code":1001,"message":"资金不足,无法划账"}
                 },
             },
             'urls': {
@@ -279,23 +285,23 @@ class zb(Exchange):
             result.append({
                 'id': id,
                 'symbol': symbol,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
                 'base': base,
                 'quote': quote,
                 'settle': None,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
                 'margin': False,
                 'swap': False,
                 'future': False,
                 'option': False,
+                'active': True,
                 'contract': False,
                 'linear': None,
                 'inverse': None,
                 'contractSize': None,
-                'active': True,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,

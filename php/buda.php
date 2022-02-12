@@ -21,26 +21,54 @@ class buda extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v2',
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
+                'cancelOrder' => true,
                 'createDepositAddress' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchFundingFees' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => null,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -193,47 +221,60 @@ class buda extends Exchange {
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
-            $id = $this->safe_string($market, 'id');
             $baseId = $this->safe_string($market, 'base_currency');
             $quoteId = $this->safe_string($market, 'quote_currency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $baseInfo = $this->fetch_currency_info($baseId, $currencies);
             $quoteInfo = $this->fetch_currency_info($quoteId, $currencies);
-            $symbol = $base . '/' . $quote;
             $pricePrecisionString = $this->safe_string($quoteInfo, 'input_decimals');
-            $priceLimit = $this->parse_precision($pricePrecisionString);
-            $precision = array(
-                'amount' => $this->safe_integer($baseInfo, 'input_decimals'),
-                'price' => intval($pricePrecisionString),
-            );
             $minimumOrderAmount = $this->safe_value($market, 'minimum_order_amount', array());
-            $limits = array(
-                'amount' => array(
-                    'min' => $this->safe_number($minimumOrderAmount, 0),
-                    'max' => null,
-                ),
-                'price' => array(
-                    'min' => $priceLimit,
-                    'max' => null,
-                ),
-                'cost' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-            );
             $result[] = array(
-                'id' => $id,
-                'symbol' => $symbol,
+                'id' => $this->safe_string($market, 'id'),
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
                 'active' => true,
-                'precision' => $precision,
-                'limits' => $limits,
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->safe_integer($baseInfo, 'input_decimals'),
+                    'price' => intval($pricePrecisionString),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => $this->safe_number($minimumOrderAmount, 0),
+                        'max' => null,
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
                 'info' => $market,
             );
         }
@@ -394,8 +435,9 @@ class buda extends Exchange {
         $marketId = $this->safe_string($ticker, 'market_id');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $lastPrice = $this->safe_value($ticker, 'last_price', array());
-        $last = $this->safe_number($lastPrice, 0);
-        $percentage = $this->safe_number($ticker, 'price_variation_24h');
+        $last = $this->safe_string($lastPrice, 0);
+        $percentage = $this->safe_string($ticker, 'price_variation_24h');
+        $percentage = Precise::string_mul($percentage, '100');
         $maxBid = $this->safe_value($ticker, 'max_bid', array());
         $minAsk = $this->safe_value($ticker, 'min_ask', array());
         $baseVolume = $this->safe_value($ticker, 'volume', array());
@@ -405,9 +447,9 @@ class buda extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => $this->safe_number($maxBid, 0),
+            'bid' => $this->safe_string($maxBid, 0),
             'bidVolume' => null,
-            'ask' => $this->safe_number($minAsk, 0),
+            'ask' => $this->safe_string($minAsk, 0),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -415,12 +457,12 @@ class buda extends Exchange {
             'last' => $last,
             'previousClose' => null,
             'change' => null,
-            'percentage' => $percentage * 100,
+            'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => $this->safe_number($baseVolume, 0),
+            'baseVolume' => $this->safe_string($baseVolume, 0),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {

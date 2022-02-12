@@ -20,32 +20,34 @@ module.exports = class bitrue extends Exchange {
             'version': 'v1',
             // new metainfo interface
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': undefined, // has but unimplemented
+                'future': undefined,
+                'option': false,
                 'cancelAllOrders': false,
                 'cancelOrder': true,
-                'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': true,
                 'fetchFundingFees': false,
-                'fetchFundingHistory': false,
-                'fetchFundingRate': false,
-                'fetchFundingRateHistory': false,
-                'fetchFundingRates': false,
-                'fetchIndexOHLCV': false,
                 'fetchMarkets': true,
-                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': 'emulated',
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
-                'fetchPositions': false,
-                'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -56,8 +58,6 @@ module.exports = class bitrue extends Exchange {
                 'fetchTransactions': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': true,
-                'setLeverage': false,
-                'setMarginMode': false,
                 'transfer': false,
                 'withdraw': true,
             },
@@ -142,8 +142,8 @@ module.exports = class bitrue extends Exchange {
                     'feeSide': 'get',
                     'tierBased': false,
                     'percentage': true,
-                    'taker': this.parseNumber ('0.0098'),
-                    'maker': this.parseNumber ('0.0098'),
+                    'taker': this.parseNumber ('0.00098'),
+                    'maker': this.parseNumber ('0.00098'),
                 },
                 'future': {
                     'trading': {
@@ -219,6 +219,7 @@ module.exports = class bitrue extends Exchange {
             // exchange-specific options
             'options': {
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
+                'fetchMyTradesMethod': 'v2PrivateGetMyTrades', // v1PrivateGetMyTrades
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'recvWindow': 5 * 1000, // 5 sec, binance default
                 'timeDifference': 0, // the difference between system clock and Binance clock
@@ -574,76 +575,64 @@ module.exports = class bitrue extends Exchange {
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
             const filters = this.safeValue (market, 'filters', []);
             const filtersByType = this.indexBy (filters, 'filterType');
-            const precision = {
-                'base': this.safeInteger (market, 'baseAssetPrecision'),
-                'quote': this.safeInteger (market, 'quotePrecision'),
-                'amount': this.safeInteger (market, 'quantityPrecision'),
-                'price': this.safeInteger (market, 'pricePrecision'),
-            };
             const status = this.safeString (market, 'status');
-            const active = (status === 'TRADING');
+            const priceDefault = this.safeInteger (market, 'pricePrecision');
+            const amountDefault = this.safeInteger (market, 'quantityPrecision');
+            const priceFilter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
+            const amountFilter = this.safeValue (filtersByType, 'LOT_SIZE', {});
             const entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
-                'spot': true,
+                'settleId': undefined,
                 'type': 'spot',
+                'spot': true,
                 'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': (status === 'TRADING'),
+                'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'future': false,
-                'swap': false,
-                'option': false,
-                'contract': false,
                 'contractSize': undefined,
-                'optionType': undefined,
-                'strike': undefined,
-                'settle': undefined,
-                'settleId': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
-                'active': active,
-                'precision': precision,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeInteger (amountFilter, 'volumeScale', amountDefault),
+                    'price': this.safeInteger (priceFilter, 'priceScale', priceDefault),
+                    'base': this.safeInteger (market, 'baseAssetPrecision'),
+                    'quote': this.safeInteger (market, 'quotePrecision'),
+                },
                 'limits': {
-                    'amount': {
+                    'leverage': {
                         'min': undefined,
                         'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (amountFilter, 'minQty'),
+                        'max': this.safeNumber (amountFilter, 'maxQty'),
                     },
                     'price': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': this.safeNumber (priceFilter, 'minPrice'),
+                        'max': this.safeNumber (priceFilter, 'maxPrice'),
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.safeNumber (amountFilter, 'minVal'),
                         'max': undefined,
                     },
                 },
+                'info': market,
             };
-            if ('PRICE_FILTER' in filtersByType) {
-                const filter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
-                entry['limits']['price'] = {
-                    'min': this.safeNumber (filter, 'minPrice'),
-                    'max': this.safeNumber (filter, 'maxPrice'),
-                };
-                entry['precision']['price'] = this.safeInteger (filter, 'priceScale');
-            }
-            if ('LOT_SIZE' in filtersByType) {
-                const filter = this.safeValue (filtersByType, 'LOT_SIZE', {});
-                entry['precision']['amount'] = this.safeInteger (filter, 'volumeScale');
-                entry['limits']['amount'] = {
-                    'min': this.safeNumber (filter, 'minQty'),
-                    'max': this.safeNumber (filter, 'maxQty'),
-                };
-                entry['limits']['cost']['min'] = this.safeNumber (filter, 'minVal');
-            }
             result.push (entry);
         }
         return result;
@@ -930,7 +919,7 @@ module.exports = class bitrue extends Exchange {
         if ('commission' in trade) {
             fee = {
                 'cost': this.safeString (trade, 'commission'),
-                'currency': this.safeCurrencyCode (this.safeString (trade, 'commissionAsset')),
+                'currency': this.safeCurrencyCode (this.safeString (trade, 'commissionAssert')),
             };
         }
         let takerOrMaker = undefined;
@@ -1300,6 +1289,10 @@ module.exports = class bitrue extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const method = this.safeString (this.options, 'fetchMyTradesMethod', 'v2PrivateGetMyTrades');
+        if ((symbol === undefined) && (method === 'v2PrivateGetMyTrades')) {
+            throw new ArgumentsRequired (this.id + ' v2PrivateGetMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const request = {
             // 'symbol': market['id'],
@@ -1319,7 +1312,7 @@ module.exports = class bitrue extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v1PrivateGetMyTrades (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     [
         //         {

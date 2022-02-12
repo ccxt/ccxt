@@ -18,21 +18,50 @@ module.exports = class wavesexchange extends Exchange {
             'certified': true,
             'pro': false,
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
                 'cancelOrder': true,
-                'createMarketOrder': undefined,
+                'createMarketOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
-                'fetchOrderBook': true,
                 'fetchOrder': true,
+                'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'signIn': true,
                 'withdraw': true,
             },
@@ -54,7 +83,7 @@ module.exports = class wavesexchange extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg',
                 'test': {
-                    'matcher': 'http://matcher-testnet.waves.exchange',
+                    'matcher': 'https://matcher-testnet.waves.exchange',
                     'node': 'https://nodes-testnet.wavesnodes.com',
                     'public': 'https://api-testnet.wavesplatform.com/v0',
                     'private': 'https://api-testnet.waves.exchange/v1',
@@ -62,7 +91,7 @@ module.exports = class wavesexchange extends Exchange {
                     'market': 'https://testnet.waves.exchange/api/v1/forward/marketdata/api/v1',
                 },
                 'api': {
-                    'matcher': 'http://matcher.waves.exchange',
+                    'matcher': 'https://matcher.waves.exchange',
                     'node': 'https://nodes.waves.exchange',
                     'public': 'https://api.wavesplatform.com/v0',
                     'private': 'https://api.waves.exchange/v1',
@@ -256,6 +285,7 @@ module.exports = class wavesexchange extends Exchange {
             'options': {
                 'allowedCandles': 1440,
                 'accessToken': undefined,
+                'createMarketBuyOrderRequiresPrice': true,
                 'matcherPublicKey': undefined,
                 'quotes': undefined,
                 'createOrderDefaultExpiry': 2419200000, // 60 * 60 * 24 * 28 * 1000
@@ -309,6 +339,24 @@ module.exports = class wavesexchange extends Exchange {
     setSandboxMode (enabled) {
         this.options['messagePrefix'] = enabled ? 'T' : 'W';
         return super.setSandboxMode (enabled);
+    }
+
+    async calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        const settings = await this.matcherGetMatcherSettings ();
+        const dynamic = this.safeGetDynamic (settings);
+        const baseMatcherFee = this.safeString (dynamic, 'baseFee');
+        const amountAsString = this.numberToString (amount);
+        const priceAsString = this.numberToString (price);
+        const wavesMatcherFee = this.currencyFromPrecision ('WAVES', baseMatcherFee);
+        const feeCost = this.feeToPrecision (symbol, this.parseNumber (wavesMatcherFee));
+        const feeRate = Precise.stringDiv (wavesMatcherFee, Precise.stringMul (amountAsString, priceAsString));
+        return {
+            'type': takerOrMaker,
+            'currency': 'WAVES',
+            // To calculate the rate since Waves has a fixed fee.
+            'rate': this.parseNumber (feeRate),
+            'cost': this.parseNumber (feeCost),
+        };
     }
 
     async getQuotes () {
@@ -433,11 +481,11 @@ module.exports = class wavesexchange extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'active': undefined,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
-                'active': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
@@ -661,13 +709,13 @@ module.exports = class wavesexchange extends Exchange {
             symbol = market['symbol'];
         }
         const data = this.safeValue (ticker, 'data', {});
-        const last = this.safeNumber (data, 'lastPrice');
-        const low = this.safeNumber (data, 'low');
-        const high = this.safeNumber (data, 'high');
-        const vwap = this.safeNumber (data, 'weightedAveragePrice');
-        const baseVolume = this.safeNumber (data, 'volume');
-        const quoteVolume = this.safeNumber (data, 'quoteVolume');
-        const open = this.safeNumber (data, 'firstPrice');
+        const last = this.safeString (data, 'lastPrice');
+        const low = this.safeString (data, 'low');
+        const high = this.safeString (data, 'high');
+        const vwap = this.safeString (data, 'weightedAveragePrice');
+        const baseVolume = this.safeString (data, 'volume');
+        const quoteVolume = this.safeString (data, 'quoteVolume');
+        const open = this.safeString (data, 'firstPrice');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -689,7 +737,7 @@ module.exports = class wavesexchange extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -735,15 +783,21 @@ module.exports = class wavesexchange extends Exchange {
             'quoteId': market['quoteId'],
             'interval': this.timeframes[timeframe],
         };
-        if (since !== undefined) {
-            request['timeStart'] = since.toString ();
-        } else {
-            const allowedCandles = this.safeInteger (this.options, 'allowedCandles', 1440);
-            const timeframeUnix = this.parseTimeframe (timeframe) * 1000;
-            const currentTime = Math.floor (this.milliseconds () / timeframeUnix) * timeframeUnix;
-            const delta = (allowedCandles - 1) * timeframeUnix;
+        const allowedCandles = this.safeInteger (this.options, 'allowedCandles', 1440);
+        if (limit === undefined) {
+            limit = allowedCandles;
+        }
+        limit = Math.min (allowedCandles, limit);
+        const duration = this.parseTimeframe (timeframe) * 1000;
+        if (since === undefined) {
+            const currentTime = parseInt (this.milliseconds () / duration) * duration;
+            const delta = (limit - 1) * duration;
             const timeStart = currentTime - delta;
             request['timeStart'] = timeStart.toString ();
+        } else {
+            request['timeStart'] = since.toString ();
+            const timeEnd = this.sum (since, duration * limit);
+            request['timeEnd'] = timeEnd.toString ();
         }
         const response = await this.publicGetCandlesBaseIdQuoteId (this.extend (request, params));
         //
@@ -1022,6 +1076,23 @@ module.exports = class wavesexchange extends Exchange {
         return this.fromPrecision (price, scale);
     }
 
+    safeGetDynamic (settings) {
+        const orderFee = this.safeValue (settings, 'orderFee');
+        if ('dynamic' in orderFee) {
+            return this.safeValue (orderFee, 'dynamic');
+        } else {
+            return this.safeValue (orderFee['composite']['default'], 'dynamic');
+        }
+    }
+
+    safeGetRates (dynamic) {
+        const rates = this.safeValue (dynamic, 'rates');
+        if (rates === undefined) {
+            return { 'WAVES': 1 };
+        }
+        return rates;
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         this.checkRequiredDependencies ();
         this.checkRequiredKeys ();
@@ -1031,6 +1102,10 @@ module.exports = class wavesexchange extends Exchange {
         const amountAsset = this.getAssetId (market['baseId']);
         const priceAsset = this.getAssetId (market['quoteId']);
         amount = this.amountToPrecision (symbol, amount);
+        const isMarketOrder = (type === 'market');
+        if ((isMarketOrder) && (price === undefined)) {
+            throw new InvalidOrder (this.id + ' createOrder() requires a price argument for ' + type + ' orders to determine the max price for buy and the min price for sell');
+        }
         price = this.priceToPrecision (symbol, price);
         const orderType = (side === 'buy') ? 0 : 1;
         const timestamp = this.milliseconds ();
@@ -1085,11 +1160,10 @@ module.exports = class wavesexchange extends Exchange {
         //     "4LHHvYGNKJUg5hj65aGD5vgScvCBmLpdRFtjokvCjSL8"
         //   ]
         // }
-        const orderFee = this.safeValue (settings, 'orderFee');
-        const dynamic = this.safeValue (orderFee, 'dynamic');
+        const dynamic = this.safeGetDynamic (settings);
         const baseMatcherFee = this.safeString (dynamic, 'baseFee');
         const wavesMatcherFee = this.currencyFromPrecision ('WAVES', baseMatcherFee);
-        const rates = this.safeValue (dynamic, 'rates');
+        const rates = this.safeGetRates (dynamic);
         // choose sponsored assets from the list of priceAssets above
         const priceAssets = Object.keys (rates);
         let matcherFeeAssetId = undefined;
@@ -1166,7 +1240,15 @@ module.exports = class wavesexchange extends Exchange {
         if (matcherFeeAssetId !== 'WAVES') {
             body['matcherFeeAssetId'] = matcherFeeAssetId;
         }
-        const response = await this.matcherPostMatcherOrderbook (body);
+        if (isMarketOrder) {
+            const response = await this.matcherPostMatcherOrderbookMarket (body);
+            const value = this.safeValue (response, 'message');
+            return this.parseOrder (value, market);
+        } else {
+            const response = await this.matcherPostMatcherOrderbook (body);
+            const value = this.safeValue (response, 'message');
+            return this.parseOrder (value, market);
+        }
         // { success: true,
         //   message:
         //    { version: 3,
@@ -1188,8 +1270,6 @@ module.exports = class wavesexchange extends Exchange {
         //      proofs:
         //       [ '2EG8zgE6Ze1X5EYA8DbfFiPXAtC7NniYBAMFbJUbzwVbHmmCKHornQfS5F32NwkHF4623KWq1U6K126h4TTqyVq' ] },
         //   status: 'OrderAccepted' }
-        const value = this.safeValue (response, 'message');
-        return this.parseOrder (value, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {

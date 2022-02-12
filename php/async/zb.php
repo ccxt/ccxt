@@ -25,8 +25,13 @@ class zb extends Exchange {
             'certified' => true,
             'pro' => true,
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => null, // has but unimplemented
+                'swap' => null, // has but unimplemented
+                'future' => null,
+                'option' => null,
+                'cancelOrder' => true,
                 'createMarketOrder' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
@@ -138,6 +143,7 @@ class zb extends Exchange {
                 ),
                 'broad' => array(
                     '提币地址有误，请先添加提币地址。' => '\\ccxt\\InvalidAddress', // array("code":1001,"message":"提币地址有误，请先添加提币地址。")
+                    '资金不足,无法划账' => '\\ccxt\\InsufficientFunds', // array("code":1001,"message":"资金不足,无法划账")
                 ),
             ),
             'urls' => array(
@@ -271,23 +277,23 @@ class zb extends Exchange {
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => null,
                 'base' => $base,
                 'quote' => $quote,
                 'settle' => null,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
                 'margin' => false,
                 'swap' => false,
                 'future' => false,
                 'option' => false,
+                'active' => true,
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
                 'contractSize' => null,
-                'active' => true,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,

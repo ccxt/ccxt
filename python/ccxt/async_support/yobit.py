@@ -35,6 +35,7 @@ class yobit(Exchange):
             'rateLimit': 3000,  # responses are cached every 2 seconds
             'version': '3',
             'has': {
+                'CORS': None,
                 'spot': True,
                 'margin': False,
                 'swap': False,
@@ -42,13 +43,13 @@ class yobit(Exchange):
                 'option': False,
                 'addMargin': False,
                 'cancelOrder': True,
-                'CORS': None,
                 'createDepositAddress': True,
                 'createMarketOrder': None,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
@@ -463,16 +464,16 @@ class yobit(Exchange):
         #     }
         #
         timestamp = self.safe_timestamp(ticker, 'updated')
-        last = self.safe_number(ticker, 'last')
+        last = self.safe_string(ticker, 'last')
         return self.safe_ticker({
             'symbol': self.safe_symbol(None, market),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'buy'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'sell'),
+            'ask': self.safe_string(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -481,11 +482,11 @@ class yobit(Exchange):
             'previousClose': None,
             'change': None,
             'percentage': None,
-            'average': self.safe_number(ticker, 'avg'),
-            'baseVolume': self.safe_number(ticker, 'vol_cur'),
-            'quoteVolume': self.safe_number(ticker, 'vol'),
+            'average': self.safe_string(ticker, 'avg'),
+            'baseVolume': self.safe_string(ticker, 'vol_cur'),
+            'quoteVolume': self.safe_string(ticker, 'vol'),
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()

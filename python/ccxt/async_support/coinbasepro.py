@@ -38,9 +38,14 @@ class coinbasepro(Exchange):
             'userAgent': self.userAgents['chrome'],
             'pro': True,
             'has': {
+                'CORS': True,
+                'spot': True,
+                'margin': None,  # has but not fully inplemented
+                'swap': None,  # has but not fully inplemented
+                'future': None,  # has but not fully inplemented
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': True,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'deposit': True,
@@ -293,27 +298,30 @@ class coinbasepro(Exchange):
     async def fetch_markets(self, params={}):
         response = await self.publicGetProducts(params)
         #
-        #     [
-        #         {
-        #             "id":"ZEC-BTC",
-        #             "base_currency":"ZEC",
-        #             "quote_currency":"BTC",
-        #             "base_min_size":"0.01000000",
-        #             "base_max_size":"1500.00000000",
-        #             "quote_increment":"0.00000100",
-        #             "base_increment":"0.00010000",
-        #             "display_name":"ZEC/BTC",
-        #             "min_market_funds":"0.001",
-        #             "max_market_funds":"30",
-        #             "margin_enabled":false,
-        #             "post_only":false,
-        #             "limit_only":false,
-        #             "cancel_only":false,
-        #             "trading_disabled":false,
-        #             "status":"online",
-        #             "status_message":""
-        #         }
-        #     ]
+        #    [
+        #        {
+        #            "id": "ZEC-BTC",
+        #            "base_currency": "ZEC",
+        #            "quote_currency": "BTC",
+        #            "base_min_size": "0.0056",
+        #            "base_max_size": "3600",
+        #            "quote_increment": "0.000001",
+        #            "base_increment": "0.0001",
+        #            "display_name": "ZEC/BTC",
+        #            "min_market_funds": "0.000016",
+        #            "max_market_funds": "12",
+        #            "margin_enabled": False,
+        #            "fx_stablecoin": False,
+        #            "max_slippage_percentage": "0.03000000",
+        #            "post_only": False,
+        #            "limit_only": False,
+        #            "cancel_only": False,
+        #            "trading_disabled": False,
+        #            "status": "online",
+        #            "status_message": "",
+        #            "auction_mode": False
+        #          },
+        #    ]
         #
         result = []
         for i in range(0, len(response)):
@@ -323,48 +331,48 @@ class coinbasepro(Exchange):
             quoteId = self.safe_string(market, 'quote_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            priceLimits = {
-                'min': self.safe_number(market, 'quote_increment'),
-                'max': None,
-            }
-            precision = {
-                'amount': self.safe_number(market, 'base_increment'),
-                'price': self.safe_number(market, 'quote_increment'),
-            }
             status = self.safe_string(market, 'status')
-            active = (status == 'online')
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
-                'symbol': symbol,
-                'baseId': baseId,
-                'quoteId': quoteId,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'margin': False,
-                'future': False,
+                'margin': self.safe_value(market, 'margin_enabled'),
                 'swap': False,
+                'future': False,
                 'option': False,
-                'optionType': None,
-                'strike': None,
+                'active': (status == 'online'),
+                'contract': False,
                 'linear': None,
                 'inverse': None,
-                'contract': False,
                 'contractSize': None,
-                'settle': None,
-                'settleId': None,
                 'expiry': None,
                 'expiryDatetime': None,
-                'active': active,
-                'precision': precision,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_number(market, 'base_increment'),
+                    'price': self.safe_number(market, 'quote_increment'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(market, 'base_min_size'),
                         'max': self.safe_number(market, 'base_max_size'),
                     },
-                    'price': priceLimits,
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
                     'cost': {
                         'min': self.safe_number(market, 'min_market_funds'),
                         'max': self.safe_number(market, 'max_market_funds'),

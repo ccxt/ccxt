@@ -16,19 +16,48 @@ module.exports = class coinfalcon extends Exchange {
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'withdraw': true,
             },
             'urls': {
@@ -88,6 +117,26 @@ module.exports = class coinfalcon extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetMarkets (params);
+        //
+        //    {
+        //        "data": [
+        //            {
+        //                "name": "ETH-BTC",
+        //                "precision": 6,
+        //                "min_volume": "0.00000001",
+        //                "min_price": "0.000001",
+        //                "volume": "0.015713",
+        //                "last_price": "0.069322",
+        //                "highest_bid": "0.063892",
+        //                "lowest_ask": "0.071437",
+        //                "change_in_24h": "2.85",
+        //                "size_precision": 8,
+        //                "price_precision": 6
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
         const markets = this.safeValue (response, 'data');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -95,29 +144,45 @@ module.exports = class coinfalcon extends Exchange {
             const [ baseId, quoteId ] = market['name'].split ('-');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const precision = {
-                'amount': this.safeInteger (market, 'size_precision'),
-                'price': this.safeInteger (market, 'price_precision'),
-            };
             result.push ({
                 'id': market['name'],
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'active': true,
-                'precision': precision,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeInteger (market, 'size_precision'),
+                    'price': this.safeInteger (market, 'price_precision'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
+                        'min': this.safeNumber (market, 'minPrice'),
                         'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
+                        'min': this.safeNumber (market, 'minVolume'),
                         'max': undefined,
                     },
                     'cost': {

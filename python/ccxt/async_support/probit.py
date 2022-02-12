@@ -31,25 +31,53 @@ class probit(Exchange):
             'countries': ['SC', 'KR'],  # Seychelles, South Korea
             'rateLimit': 50,  # ms
             'has': {
-                'fetchDepositAddresses': True,
-                'cancelOrder': True,
                 'CORS': True,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
                 'createMarketOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'signIn': True,
                 'withdraw': True,
             },
@@ -165,6 +193,7 @@ class probit(Exchange):
             },
             'commonCurrencies': {
                 'AUTO': 'Cube',
+                'AZU': 'Azultec',
                 'BCC': 'BCC',
                 'BDP': 'BidiPass',
                 'BIRD': 'Birdchain',
@@ -172,6 +201,8 @@ class probit(Exchange):
                 'BTCBULL': 'BULL',
                 'CBC': 'CryptoBharatCoin',
                 'CHE': 'Chellit',
+                'CLR': 'Color Platform',
+                'CTK': 'Cryptyk',
                 'DIP': 'Dipper',
                 'EGC': 'EcoG9coin',
                 'EPS': 'Epanus',  # conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
@@ -182,8 +213,10 @@ class probit(Exchange):
                 'GOL': 'Goldofir',
                 'GRB': 'Global Reward Bank',
                 'HBC': 'Hybrid Bank Cash',
+                'HUSL': 'The Hustle App',
                 'LBK': 'Legal Block',
                 'ORC': 'Oracle System',
+                'PYE': 'CreamPYE',
                 'ROOK': 'Reckoon',
                 'SOC': 'Soda Coin',
                 'SST': 'SocialSwap',
@@ -229,51 +262,51 @@ class probit(Exchange):
             quoteId = self.safe_string(market, 'quote_currency_id')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
             closed = self.safe_value(market, 'closed', False)
-            active = not closed
             amountPrecision = self.safe_string(market, 'quantity_precision')
             costPrecision = self.safe_string(market, 'cost_precision')
             amountTickSize = self.parse_precision(amountPrecision)
             costTickSize = self.parse_precision(costPrecision)
-            precision = {
-                'amount': self.parse_number(amountTickSize),
-                'price': self.safe_number(market, 'price_increment'),
-                'cost': self.parse_number(costTickSize),
-            }
             takerFeeRate = self.safe_string(market, 'taker_fee_rate')
             taker = Precise.string_div(takerFeeRate, '100')
             makerFeeRate = self.safe_string(market, 'maker_fee_rate')
             maker = Precise.string_div(makerFeeRate, '100')
             result.append({
                 'id': id,
-                'info': market,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
                 'margin': False,
-                'future': False,
                 'swap': False,
+                'future': False,
                 'option': False,
-                'optionType': None,
-                'strike': None,
+                'active': not closed,
+                'contract': False,
                 'linear': None,
                 'inverse': None,
-                'contract': False,
-                'contractSize': None,
-                'settle': None,
-                'settleId': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'active': active,
-                'precision': precision,
                 'taker': self.parse_number(taker),
                 'maker': self.parse_number(maker),
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.parse_number(amountTickSize),
+                    'price': self.safe_number(market, 'price_increment'),
+                    'cost': self.parse_number(costTickSize),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(market, 'min_quantity'),
                         'max': self.safe_number(market, 'max_quantity'),
@@ -287,6 +320,7 @@ class probit(Exchange):
                         'max': self.safe_number(market, 'max_cost'),
                     },
                 },
+                'info': market,
             })
         return result
 
@@ -529,22 +563,21 @@ class probit(Exchange):
         timestamp = self.parse8601(self.safe_string(ticker, 'time'))
         marketId = self.safe_string(ticker, 'market_id')
         symbol = self.safe_symbol(marketId, market, '-')
-        close = self.safe_number(ticker, 'last')
-        change = self.safe_number(ticker, 'change')
-        baseVolume = self.safe_number(ticker, 'base_volume')
-        quoteVolume = self.safe_number(ticker, 'quote_volume')
-        vwap = self.vwap(baseVolume, quoteVolume)
+        close = self.safe_string(ticker, 'last')
+        change = self.safe_string(ticker, 'change')
+        baseVolume = self.safe_string(ticker, 'base_volume')
+        quoteVolume = self.safe_string(ticker, 'quote_volume')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
             'bid': None,
             'bidVolume': None,
             'ask': None,
             'askVolume': None,
-            'vwap': vwap,
+            'vwap': None,
             'open': None,
             'close': close,
             'last': close,
@@ -555,7 +588,7 @@ class probit(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()

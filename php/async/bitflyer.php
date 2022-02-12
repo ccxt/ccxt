@@ -21,9 +21,13 @@ class bitflyer extends Exchange {
             'rateLimit' => 1000, // their nonce-timestamp is in seconds...
             'hostname' => 'bitflyer.com', // or bitflyer.com
             'has' => array(
-                'fetchPositions' => true,
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => null, // has but not fully implemented
+                'future' => null, // has but not fully implemented
+                'option' => false,
+                'cancelOrder' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => 'emulated',
@@ -33,6 +37,7 @@ class bitflyer extends Exchange {
                 'fetchOrder' => 'emulated',
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPositions' => true,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
                 'withdraw' => true,
@@ -98,10 +103,59 @@ class bitflyer extends Exchange {
         ));
     }
 
+    public function parse_expiry_date($expiry) {
+        $day = mb_substr($expiry, 0, 2 - 0);
+        $monthName = mb_substr($expiry, 2, 5 - 2);
+        $year = mb_substr($expiry, 5, 9 - 5);
+        $months = array(
+            'JAN' => '01',
+            'FEB' => '02',
+            'MAR' => '03',
+            'APR' => '04',
+            'MAY' => '05',
+            'JUN' => '06',
+            'JUL' => '07',
+            'AUG' => '08',
+            'SEP' => '09',
+            'OCT' => '10',
+            'NOV' => '11',
+            'DEC' => '12',
+        );
+        $month = $this->safe_string($months, $monthName);
+        return $this->parse8601($year . '-' . $month . '-' . $day . 'T00:00:00Z');
+    }
+
     public function fetch_markets($params = array ()) {
         $jp_markets = yield $this->publicGetGetmarkets ($params);
+        //
+        //     array(
+        //         // $spot
+        //         array( "product_code" => "BTC_JPY", "market_type" => "Spot" ),
+        //         array( "product_code" => "BCH_BTC", "market_type" => "Spot" ),
+        //         // forex $swap
+        //         array( "product_code" => "FX_BTC_JPY", "market_type" => "FX" ),
+        //         // $future
+        //         array(
+        //             "product_code" => "BTCJPY11FEB2022",
+        //             "alias" => "BTCJPY_MAT1WK",
+        //             "market_type" => "Futures",
+        //         ),
+        //     );
+        //
         $us_markets = yield $this->publicGetGetmarketsUsa ($params);
+        //
+        //     array(
+        //         array( "product_code" => "BTC_USD", "market_type" => "Spot" ),
+        //         array( "product_code" => "BTC_JPY", "market_type" => "Spot" ),
+        //     );
+        //
         $eu_markets = yield $this->publicGetGetmarketsEu ($params);
+        //
+        //     array(
+        //         array( "product_code" => "BTC_EUR", "market_type" => "Spot" ),
+        //         array( "product_code" => "BTC_JPY", "market_type" => "Spot" ),
+        //     );
+        //
         $markets = $this->array_concat($jp_markets, $us_markets);
         $markets = $this->array_concat($markets, $eu_markets);
         $result = array();
@@ -109,49 +163,96 @@ class bitflyer extends Exchange {
             $market = $markets[$i];
             $id = $this->safe_string($market, 'product_code');
             $currencies = explode('_', $id);
+            $marketType = $this->safe_string($market, 'market_type');
+            $swap = ($marketType === 'FX');
+            $future = ($marketType === 'Futures');
+            $spot = !$swap && !$future;
+            $type = 'spot';
+            $settle = null;
             $baseId = null;
             $quoteId = null;
-            $base = null;
-            $quote = null;
-            $numCurrencies = is_array($currencies) ? count($currencies) : 0;
-            if ($numCurrencies === 1) {
-                $baseId = mb_substr($id, 0, 3 - 0);
-                $quoteId = mb_substr($id, 3, 6 - 3);
-            } else if ($numCurrencies === 2) {
-                $baseId = $currencies[0];
-                $quoteId = $currencies[1];
-            } else {
-                $baseId = $currencies[1];
-                $quoteId = $currencies[2];
+            $expiry = null;
+            if ($spot) {
+                $baseId = $this->safe_string($currencies, 0);
+                $quoteId = $this->safe_string($currencies, 1);
+            } else if ($swap) {
+                $type = 'swap';
+                $baseId = $this->safe_string($currencies, 1);
+                $quoteId = $this->safe_string($currencies, 2);
+            } else if ($future) {
+                $alias = $this->safe_string($market, 'alias');
+                $splitAlias = explode('_', $alias);
+                $currencyIds = $this->safe_string($splitAlias, 0);
+                $baseId = mb_substr($currencyIds, 0, -3 - 0);
+                $quoteId = mb_substr($currencyIds, -3);
+                $splitId = explode($currencyIds, $id);
+                $expiryDate = $this->safe_string($splitId, 1);
+                $expiry = $this->parse_expiry_date($expiryDate);
+                $type = 'future';
             }
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = ($numCurrencies === 2) ? ($base . '/' . $quote) : $id;
-            $fees = $this->safe_value($this->fees, $symbol, $this->fees['trading']);
-            $maker = $this->safe_value($fees, 'maker', $this->fees['trading']['maker']);
-            $taker = $this->safe_value($fees, 'taker', $this->fees['trading']['taker']);
-            $spot = true;
-            $future = false;
-            $type = 'spot';
-            if ((is_array($market) && array_key_exists('alias', $market)) || ($currencies[0] === 'FX')) {
-                $type = 'future';
-                $future = true;
-                $spot = false;
+            $symbol = $base . '/' . $quote;
+            $taker = $this->fees['trading']['taker'];
+            $maker = $this->fees['trading']['maker'];
+            $contract = $swap || $future;
+            if ($contract) {
                 $maker = 0.0;
                 $taker = 0.0;
+                $settle = 'JPY';
+                $symbol = $symbol . ':' . $settle;
+                if ($future) {
+                    $symbol = $symbol . '-' . $this->yymmdd($expiry);
+                }
             }
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => $settle,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'maker' => $maker,
-                'taker' => $taker,
+                'settleId' => null,
                 'type' => $type,
                 'spot' => $spot,
+                'margin' => false,
+                'swap' => $swap,
                 'future' => $future,
+                'option' => false,
+                'active' => true,
+                'contract' => $contract,
+                'linear' => $spot ? null : true,
+                'inverse' => $spot ? null : false,
+                'taker' => $taker,
+                'maker' => $maker,
+                'contractSize' => null,
+                'expiry' => $expiry,
+                'expiryDatetime' => $this->iso8601($expiry),
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => null,
+                    'price' => null,
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
                 'info' => $market,
             );
         }

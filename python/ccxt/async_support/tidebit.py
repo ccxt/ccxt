@@ -21,17 +21,45 @@ class tidebit(Exchange):
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchDepositAddress': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchOHLCV': True,
                 'fetchOrderBook': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -155,21 +183,38 @@ class tidebit(Exchange):
             id = self.safe_string(market, 'id')
             symbol = self.safe_string(market, 'name')
             baseId, quoteId = symbol.split('/')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
             result.append({
                 'id': id,
                 'symbol': symbol,
-                'base': base,
-                'quote': quote,
+                'base': self.safe_currency_code(baseId),
+                'quote': self.safe_currency_code(quoteId),
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'active': None,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
                 'precision': self.precision,
-                'limits': self.limits,
+                'limits': self.extend({
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                }, self.limits),
+                'info': market,
             })
         return result
 
@@ -221,15 +266,15 @@ class tidebit(Exchange):
         timestamp = self.safe_timestamp(ticker, 'at')
         ticker = self.safe_value(ticker, 'ticker', {})
         market = self.safe_market(None, market)
-        last = self.safe_number(ticker, 'last')
+        last = self.safe_string(ticker, 'last')
         return self.safe_ticker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'buy'),
-            'ask': self.safe_number(ticker, 'sell'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'buy'),
+            'ask': self.safe_string(ticker, 'sell'),
             'bidVolume': None,
             'askVolume': None,
             'vwap': None,
@@ -240,10 +285,10 @@ class tidebit(Exchange):
             'percentage': None,
             'previousClose': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'vol'),
+            'baseVolume': self.safe_string(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()

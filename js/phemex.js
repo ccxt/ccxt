@@ -21,13 +21,22 @@ module.exports = class phemex extends Exchange {
             'pro': true,
             'hostname': 'api.phemex.com',
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': undefined, // has but not fully implemented
+                'future': false,
+                'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
@@ -452,13 +461,13 @@ module.exports = class phemex extends Exchange {
             'swap': true,
             'future': false,
             'option': false,
+            'active': status === 'Listed',
             'contract': true,
             'linear': !inverse,
             'inverse': inverse,
             'taker': this.parseNumber (this.fromEn (takerFeeRateEr, ratioScale)),
             'maker': this.parseNumber (this.fromEn (makerFeeRateEr, ratioScale)),
             'contractSize': contractSize,
-            'active': status === 'Listed',
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
@@ -545,20 +554,20 @@ module.exports = class phemex extends Exchange {
             'swap': false,
             'future': false,
             'option': false,
+            'active': status === 'Listed',
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
             'taker': this.safeNumber (market, 'defaultTakerFee'),
             'maker': this.safeNumber (market, 'defaultMakerFee'),
             'contractSize': undefined,
-            'active': status === 'Listed',
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
             'optionType': undefined,
-            'priceScale': 8,
-            'valueScale': 8,
-            'ratioScale': 8,
+            'priceScale': this.parseNumber ('8'),
+            'valueScale': this.parseNumber ('8'),
+            'ratioScale': this.parseNumber ('8'),
             'precision': {
                 'amount': precisionAmount,
                 'price': precisionPrice,
@@ -1038,30 +1047,24 @@ module.exports = class phemex extends Exchange {
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 0.000001);
-        const lastString = this.fromEp (this.safeString (ticker, 'lastEp'), market);
-        const last = this.parseNumber (lastString);
-        const quoteVolume = this.parseNumber (this.fromEv (this.safeString (ticker, 'turnoverEv'), market));
-        let baseVolume = this.safeNumber (ticker, 'volume');
+        const last = this.fromEp (this.safeString (ticker, 'lastEp'), market);
+        const quoteVolume = this.fromEv (this.safeString (ticker, 'turnoverEv'), market);
+        let baseVolume = this.safeString (ticker, 'volume');
         if (baseVolume === undefined) {
-            baseVolume = this.parseNumber (this.fromEv (this.safeString (ticker, 'volumeEv'), market));
+            baseVolume = this.fromEv (this.safeString (ticker, 'volumeEv'), market);
         }
-        let vwap = undefined;
-        if ((market !== undefined) && (market['spot'])) {
-            vwap = this.vwap (baseVolume, quoteVolume);
-        }
-        const openString = this.fromEp (this.safeString (ticker, 'openEp'), market);
-        const open = this.parseNumber (openString);
+        const open = this.fromEp (this.safeString (ticker, 'openEp'), market);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.parseNumber (this.fromEp (this.safeString (ticker, 'highEp'), market)),
-            'low': this.parseNumber (this.fromEp (this.safeString (ticker, 'lowEp'), market)),
-            'bid': this.parseNumber (this.fromEp (this.safeString (ticker, 'bidEp'), market)),
+            'high': this.fromEp (this.safeString (ticker, 'highEp'), market),
+            'low': this.fromEp (this.safeString (ticker, 'lowEp'), market),
+            'bid': this.fromEp (this.safeString (ticker, 'bidEp'), market),
             'bidVolume': undefined,
-            'ask': this.parseNumber (this.fromEp (this.safeString (ticker, 'askEp'), market)),
+            'ask': this.fromEp (this.safeString (ticker, 'askEp'), market),
             'askVolume': undefined,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': open,
             'close': last,
             'last': last,
@@ -1072,7 +1075,7 @@ module.exports = class phemex extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {

@@ -15,14 +15,42 @@ module.exports = class coinspot extends Exchange {
             'countries': [ 'AU' ], // Australia
             'rateLimit': 1000,
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
+                'cancelOrder': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
+                'fetchMarkOHLCV': false,
                 'fetchOrderBook': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg',
@@ -156,23 +184,28 @@ module.exports = class coinspot extends Exchange {
         return this.parseOrderBook (orderbook, symbol, undefined, 'buyorders', 'sellorders', 'rate', 'amount');
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const response = await this.publicGetLatest (params);
-        let id = this.marketId (symbol);
-        id = id.toLowerCase ();
-        const ticker = response['prices'][id];
+    parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         "btc":{
+        //             "bid":"51970",
+        //             "ask":"53000",
+        //             "last":"52806.47"
+        //         }
+        //     }
+        //
+        const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.milliseconds ();
-        const last = this.safeNumber (ticker, 'last');
-        return {
+        const last = this.safeString (ticker, 'last');
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': this.safeNumber (ticker, 'bid'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -185,7 +218,30 @@ module.exports = class coinspot extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market, false);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const response = await this.publicGetLatest (params);
+        let id = market['id'];
+        id = id.toLowerCase ();
+        const prices = this.safeValue (response, 'prices');
+        //
+        //     {
+        //         "status":"ok",
+        //         "prices":{
+        //             "btc":{
+        //                 "bid":"52732.47000022",
+        //                 "ask":"53268.0699976",
+        //                 "last":"53284.03"
+        //             }
+        //         }
+        //     }
+        //
+        const ticker = this.safeValue (prices, id);
+        return this.parseTicker (ticker, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {

@@ -21,6 +21,7 @@
         "exports": "always-multiline",
         "functions": "never"
     }],
+    "import/extensions": "off",
     "brace-style": ["error", "1tbs"],
     "multiline-comment-style": ["error", "separate-lines"],
     "dot-notation": "off",
@@ -41,7 +42,7 @@
     "no-nested-ternary": "error",
     "eqeqeq": "error",
     "quotes": ["error", "single", { "avoidEscape": true }],
-    "no-unused-vars": ["error", { "argsIgnorePattern": "^(symbol|price|tag|since|limit|params|market|timeframe|api|path|code|currency|response|requestHeaders|requestBody|bidsKey|asksKey|context|config|type)" }],
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^(symbol|price|tag|since|limit|params|market|timeframe|api|path|code|currency|response|requestHeaders|requestBody|bidsKey|asksKey|context|config|type|priceKey|amountKey)" }],
     "new-parens": "error",
     "new-cap": ["error"],
     "no-var": "error",
@@ -80,6 +81,7 @@
     "operator-assignment": "off",
     "no-underscore-dangle": "off",
     "consistent-return": "off",
-    "no-await-in-loop": "off"
+    "no-await-in-loop": "off",
+    "prefer-exponentiation-operator": "off",
   }
 }

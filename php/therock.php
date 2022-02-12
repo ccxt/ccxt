@@ -19,19 +19,32 @@ class therock extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v1',
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => null, // has but unimplemented
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'cancelOrder' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistories' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
@@ -128,30 +141,25 @@ class therock extends Exchange {
     public function fetch_markets($params = array ()) {
         $response = $this->publicGetFunds ($params);
         //
-        //     { funds => array( array(                      $id =>   "BTCEUR",
-        //                              description =>   "Trade Bitcoin with Euro",
-        //                                     type =>   "currency",
-        //                            base_currency =>   "EUR",
-        //                           trade_currency =>   "BTC",
-        //                                  $buy_fee =>    0.2,
-        //                                 $sell_fee =>    0.2,
-        //                      minimum_price_offer =>    0.01,
-        //                   minimum_quantity_offer =>    0.0005,
-        //                   base_currency_decimals =>    2,
-        //                  trade_currency_decimals =>    4,
-        //                                leverages => array()                           ),
-        //                {                      $id =>   "LTCEUR",
-        //                              description =>   "Trade Litecoin with Euro",
-        //                                     type =>   "currency",
-        //                            base_currency =>   "EUR",
-        //                           trade_currency =>   "LTC",
-        //                                  $buy_fee =>    0.2,
-        //                                 $sell_fee =>    0.2,
-        //                      minimum_price_offer =>    0.01,
-        //                   minimum_quantity_offer =>    0.01,
-        //                   base_currency_decimals =>    2,
-        //                  trade_currency_decimals =>    2,
-        //                                leverages => array()                            } ) }
+        //    {
+        //        funds => array(
+        //            array(
+        //                $id => "BTCEUR",
+        //                description => "Trade Bitcoin with Euro",
+        //                type => "currency",
+        //                base_currency => "EUR",
+        //                trade_currency => "BTC",
+        //                $buy_fee => 0.2,
+        //                $sell_fee => 0.2,
+        //                minimum_price_offer => 0.01,
+        //                minimum_quantity_offer => 0.0005,
+        //                base_currency_decimals => 2,
+        //                trade_currency_decimals => 4,
+        //                $leverages => array()
+        //            ),
+        //            ...
+        //        )
+        //    }
         //
         $markets = $this->safe_value($response, 'funds');
         $result = array();
@@ -165,44 +173,47 @@ class therock extends Exchange {
                 $quoteId = $this->safe_string($market, 'base_currency');
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-                $buy_fee = $this->safe_number($market, 'buy_fee');
-                $sell_fee = $this->safe_number($market, 'sell_fee');
-                $taker = max ($buy_fee, $sell_fee);
-                $taker = $taker / 100;
-                $maker = $taker;
+                $buy_fee = $this->safe_string($market, 'buy_fee');
+                $sell_fee = $this->safe_string($market, 'sell_fee');
+                $taker = Precise::string_max($buy_fee, $sell_fee);
+                $taker = $this->parse_number(Precise::string_div($taker, '100'));
+                $leverages = $this->safe_value($market, 'leverages');
+                $leveragesLength = is_array($leverages) ? count($leverages) : 0;
                 $result[] = array(
                     'id' => $id,
-                    'symbol' => $symbol,
+                    'symbol' => $base . '/' . $quote,
                     'base' => $base,
                     'quote' => $quote,
+                    'settle' => null,
                     'baseId' => $baseId,
                     'quoteId' => $quoteId,
-                    'info' => $market,
+                    'settleId' => null,
                     'type' => 'spot',
                     'spot' => true,
-                    'margin' => false,
-                    'future' => false,
+                    'margin' => $leveragesLength > 0,
                     'swap' => false,
+                    'future' => false,
                     'option' => false,
-                    'optionType' => null,
-                    'strike' => null,
+                    'contract' => false,
                     'linear' => null,
                     'inverse' => null,
-                    'contract' => false,
+                    'taker' => $taker,
+                    'maker' => $taker,
                     'contractSize' => null,
-                    'settle' => null,
-                    'settleId' => null,
+                    'active' => true,
                     'expiry' => null,
                     'expiryDatetime' => null,
-                    'active' => true,
-                    'maker' => $maker,
-                    'taker' => $taker,
+                    'strike' => null,
+                    'optionType' => null,
                     'precision' => array(
                         'amount' => $this->safe_integer($market, 'trade_currency_decimals'),
                         'price' => $this->safe_integer($market, 'base_currency_decimals'),
                     ),
                     'limits' => array(
+                        'leverage' => array(
+                            'min' => 1,
+                            'max' => $this->safe_value($leverages, $leveragesLength - 1, 1),
+                        ),
                         'amount' => array(
                             'min' => $this->safe_number($market, 'minimum_quantity_offer'),
                             'max' => null,
@@ -216,6 +227,7 @@ class therock extends Exchange {
                             'max' => null,
                         ),
                     ),
+                    'info' => $market,
                 );
             }
         }
@@ -271,29 +283,29 @@ class therock extends Exchange {
         //
         $timestamp = $this->parse8601($this->safe_string($ticker, 'date'));
         $market = $this->safe_market(null, $market);
-        $last = $this->safe_number($ticker, 'last');
+        $last = $this->safe_string($ticker, 'last');
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_number($ticker, 'open'),
+            'open' => $this->safe_string($ticker, 'open'),
             'close' => $last,
             'last' => $last,
-            'previousClose' => $this->safe_number($ticker, 'close'), // previous day close, if any
+            'previousClose' => $this->safe_string($ticker, 'close'), // previous day close, if any
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'volume_traded'),
-            'quoteVolume' => $this->safe_number($ticker, 'volume'),
+            'baseVolume' => $this->safe_string($ticker, 'volume_traded'),
+            'quoteVolume' => $this->safe_string($ticker, 'volume'),
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -1090,7 +1102,7 @@ class therock extends Exchange {
             'id' => $id,
             'fund_id' => $market['id'],
         );
-        $response = $this->privatePostFundsFundIdOrdersId (array_merge($request, $params));
+        $response = $this->privateGetFundsFundIdOrdersId (array_merge($request, $params));
         return $this->parse_order($response);
     }
 

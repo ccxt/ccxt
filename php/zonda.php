@@ -17,6 +17,7 @@ class zonda extends Exchange {
             'countries' => array( 'EE' ), // Estonia
             'rateLimit' => 1000,
             'has' => array(
+                'CORS' => true,
                 'spot' => true,
                 'margin' => false,
                 'swap' => false,
@@ -24,11 +25,11 @@ class zonda extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
-                'CORS' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
@@ -303,15 +304,15 @@ class zonda extends Exchange {
                 'type' => 'spot',
                 'spot' => true,
                 'margin' => false,
-                'future' => false,
                 'swap' => false,
+                'future' => false,
                 'option' => false,
                 'active' => null,
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                'maker' => $this->safe_number($fees, 'maker'),
                 'taker' => $this->safe_number($fees, 'taker'),
+                'maker' => $this->safe_number($fees, 'maker'),
                 'contractSize' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
@@ -511,9 +512,9 @@ class zonda extends Exchange {
         //       }
         //
         $open = $this->safe_string($ticker, 'r24h');
-        $high = $this->safe_number($ticker, 'h');
-        $low = $this->safe_number($ticker, 'l');
-        $volume = $this->safe_number($ticker, 'v');
+        $high = $this->safe_string($ticker, 'h');
+        $low = $this->safe_string($ticker, 'l');
+        $volume = $this->safe_string($ticker, 'v');
         $marketId = $this->safe_string($ticker, 'm');
         $market = $this->safe_market($marketId, $market, '-');
         $symbol = $market['symbol'];

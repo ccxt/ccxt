@@ -18,15 +18,43 @@ class coincheck(Exchange):
             'countries': ['JP', 'ID'],
             'rateLimit': 1500,
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87182088-1d6d6380-c2ec-11ea-9c64-8ab9f9b289f5.jpg',
@@ -216,26 +244,30 @@ class coincheck(Exchange):
         response = await self.publicGetOrderBooks(self.extend(request, params))
         return self.parse_order_book(response, symbol)
 
-    async def fetch_ticker(self, symbol, params={}):
-        if symbol != 'BTC/JPY':
-            raise BadSymbol(self.id + ' fetchTicker() supports BTC/JPY only')
-        await self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'pair': market['id'],
-        }
-        ticker = await self.publicGetTicker(self.extend(request, params))
+    def parse_ticker(self, ticker, market=None):
+        #
+        # {
+        #     "last":4192632.0,
+        #     "bid":4192496.0,
+        #     "ask":4193749.0,
+        #     "high":4332000.0,
+        #     "low":4101047.0,
+        #     "volume":2313.43191762,
+        #     "timestamp":1643374115
+        # }
+        #
+        symbol = self.safe_symbol(None, market)
         timestamp = self.safe_timestamp(ticker, 'timestamp')
-        last = self.safe_number(ticker, 'last')
-        return {
+        last = self.safe_string(ticker, 'last')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -245,10 +277,32 @@ class coincheck(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'volume'),
+            'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
+        }, market, False)
+
+    async def fetch_ticker(self, symbol, params={}):
+        if symbol != 'BTC/JPY':
+            raise BadSymbol(self.id + ' fetchTicker() supports BTC/JPY only')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'pair': market['id'],
         }
+        ticker = await self.publicGetTicker(self.extend(request, params))
+        #
+        # {
+        #     "last":4192632.0,
+        #     "bid":4192496.0,
+        #     "ask":4193749.0,
+        #     "high":4332000.0,
+        #     "low":4101047.0,
+        #     "volume":2313.43191762,
+        #     "timestamp":1643374115
+        # }
+        #
+        return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
         #

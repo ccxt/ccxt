@@ -33,19 +33,22 @@ class kucoinfutures(kucoin):
             'comment': 'Platform 2.0',
             'quoteJsonNumbers': False,
             'has': {
+                'CORS': None,
                 'spot': False,
                 'margin': False,
                 'swap': True,
                 'future': True,
                 'option': False,
+                'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': None,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
@@ -77,7 +80,6 @@ class kucoinfutures(kucoin):
                 'setMarginMode': False,
                 'transfer': True,
                 'withdraw': None,
-                'addMargin': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/147508995-9e35030a-d046-43a1-a006-6fabd981b554.jpg',
@@ -418,38 +420,40 @@ class kucoinfutures(kucoin):
             quoteMinSize = self.safe_number(market, 'quoteMinSize')
             inverse = self.safe_value(market, 'isInverse')
             status = self.safe_string(market, 'status')
-            active = status == 'Open'
+            multiplier = self.safe_string(market, 'multiplier')
             result.append({
                 'id': id,
                 'symbol': symbol,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
                 'base': base,
                 'quote': quote,
                 'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
                 'type': type,
                 'spot': False,
                 'margin': False,
                 'swap': swap,
                 'future': future,
                 'option': False,
-                'active': active,
+                'active': (status == 'Open'),
                 'contract': True,
                 'linear': not inverse,
                 'inverse': inverse,
                 'taker': self.safe_number(market, 'takerFeeRate'),
                 'maker': self.safe_number(market, 'makerFeeRate'),
-                'contractSize': self.parse_number(Precise.string_abs(self.safe_string(market, 'multiplier'))),
+                'contractSize': self.parse_number(Precise.string_abs(multiplier)),
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
+                'strike': None,
+                'optionType': None,
                 'precision': {
                     'amount': self.safe_number(market, 'lotSize'),
                     'price': self.safe_number(market, 'tickSize'),
                 },
                 'limits': {
                     'leverage': {
-                        'min': None,
+                        'min': self.parse_number('1'),
                         'max': self.safe_number(market, 'maxLeverage'),
                     },
                     'amount': {
@@ -656,7 +660,7 @@ class kucoinfutures(kucoin):
         #          }
         #     }
         #
-        last = self.safe_number(ticker, 'price')
+        last = self.safe_string(ticker, 'price')
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market, '-')
         timestamp = Precise.string_div(self.safe_string(ticker, 'ts'), '1000000')
@@ -666,10 +670,10 @@ class kucoinfutures(kucoin):
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': self.safe_number(ticker, 'bestBidPrice'),
-            'bidVolume': self.safe_number(ticker, 'bestBidSize'),
-            'ask': self.safe_number(ticker, 'bestAskPrice'),
-            'askVolume': self.safe_number(ticker, 'bestAskSize'),
+            'bid': self.safe_string(ticker, 'bestBidPrice'),
+            'bidVolume': self.safe_string(ticker, 'bestBidSize'),
+            'ask': self.safe_string(ticker, 'bestAskPrice'),
+            'askVolume': self.safe_string(ticker, 'bestAskSize'),
             'vwap': None,
             'open': None,
             'close': last,
@@ -681,7 +685,7 @@ class kucoinfutures(kucoin):
             'baseVolume': None,
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
         #
@@ -858,9 +862,9 @@ class kucoinfutures(kucoin):
         size = self.safe_string(position, 'currentQty')
         side = None
         if Precise.string_gt(size, '0'):
-            side = 'buy'
+            side = 'long'
         elif Precise.string_lt(size, '0'):
-            side = 'sell'
+            side = 'short'
         notional = Precise.string_abs(self.safe_string(position, 'posCost'))
         initialMargin = self.safe_string(position, 'posInit')
         initialMarginPercentage = Precise.string_div(initialMargin, notional)
@@ -1096,10 +1100,11 @@ class kucoinfutures(kucoin):
         cost = Precise.string_div(rawCost, leverage)
         average = None
         if Precise.string_gt(filled, '0'):
+            contractSize = self.safe_string(market, 'contractSize')
             if market['linear']:
-                average = Precise.string_div(rawCost, Precise.string_mul(market['contractSize'], filled))
+                average = Precise.string_div(rawCost, Precise.string_mul(contractSize, filled))
             else:
-                average = Precise.string_div(Precise.string_mul(market['contractSize'], filled), rawCost)
+                average = Precise.string_div(Precise.string_mul(contractSize, filled), rawCost)
         # precision reported by their api is 8 d.p.
         # average = Precise.string_div(rawCost, Precise.string_mul(filled, market['contractSize']))
         # bool

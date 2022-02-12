@@ -16,10 +16,11 @@ module.exports = class digifinex extends Exchange {
             'version': 'v3',
             'rateLimit': 900, // 300 for posts
             'has': {
+                'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
-                'swap': false,
-                'future': false,
+                'margin': undefined, // has but unimplemented
+                'swap': undefined, // has but unimplemented
+                'future': undefined, // has but unimplemented
                 'option': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
@@ -28,34 +29,20 @@ module.exports = class digifinex extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
-                'fetchFundingHistory': false,
-                'fetchFundingRate': false,
-                'fetchFundingRateHistory': false,
-                'fetchFundingRates': false,
-                'fetchIndexOHLCV': false,
-                'fetchIsolatedPositions': false,
                 'fetchLedger': true,
-                'fetchLeverage': false,
                 'fetchMarkets': true,
-                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
-                'fetchPositions': false,
-                'fetchPositionsRisk': false,
-                'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
-                'reduceMargin': false,
-                'setLeverage': false,
-                'setPositionMode': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -258,8 +245,8 @@ module.exports = class digifinex extends Exchange {
             const currency = data[i];
             const id = this.safeString (currency, 'currency');
             const code = this.safeCurrencyCode (id);
-            const depositStatus = this.safeValue (currency, 'deposit_status', 1);
-            const withdrawStatus = this.safeValue (currency, 'withdraw_status', 1);
+            const depositStatus = this.safeInteger (currency, 'deposit_status', 1);
+            const withdrawStatus = this.safeInteger (currency, 'withdraw_status', 1);
             const deposit = depositStatus > 0;
             const withdraw = withdrawStatus > 0;
             const active = deposit && withdraw;
@@ -357,7 +344,7 @@ module.exports = class digifinex extends Exchange {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': false,
+                'margin': undefined,
                 'swap': false,
                 'future': false,
                 'option': false,
@@ -423,36 +410,52 @@ module.exports = class digifinex extends Exchange {
             const [ baseId, quoteId ] = id.split ('_');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const precision = {
-                'amount': this.safeInteger (market, 'volume_precision'),
-                'price': this.safeInteger (market, 'price_precision'),
-            };
-            const limits = {
-                'amount': {
-                    'min': this.safeNumber (market, 'min_volume'),
-                    'max': undefined,
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': this.safeNumber (market, 'min_amount'),
-                    'max': undefined,
-                },
-            };
-            const active = undefined;
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': active,
-                'precision': precision,
-                'limits': limits,
+                'settleId': undefined,
+                'type': 'spot',
+                'spot': true,
+                'margin': undefined,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': undefined,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': this.safeInteger (market, 'price_precision'),
+                    'amount': this.safeInteger (market, 'volume_precision'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (market, 'min_volume'),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'min_amount'),
+                        'max': undefined,
+                    },
+                },
                 'info': market,
             });
         }

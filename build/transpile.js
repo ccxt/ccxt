@@ -310,6 +310,7 @@ class Transpiler {
             [ / = new /g, ' = ' ], // python does not have a 'new' keyword
             [ /console\.log\s/g, 'print' ],
             [ /process\.exit\s+/g, 'sys.exit' ],
+            [ /(while \(.*\)) {/, '$1\:' ], // While loops replace bracket with :
             [ /([^:+=\/\*\s-]+) \(/g, '$1(' ], // PEP8 E225 remove whitespaces before left ( round bracket
             [ /\sand\(/g, ' and (' ],
             [ /\sor\(/g, ' or (' ],
@@ -671,6 +672,53 @@ class Transpiler {
 
         const result = header.join ("\n") + "\n" + bodyAsString + "\n" + footer.join ('\n')
         return result
+    }
+
+    // ========================================================================
+    // exchange capabilities ordering
+
+    sortExchangeCapabilities (code) {
+        const lineBreak = '\n';
+        const capabilitiesObjectRegex = /(?<='has': {[\n])([^|})]*)(?=\n(\s+}))/;
+        const found = capabilitiesObjectRegex.exec (code);
+        if (found === null) {
+            return false // capabilities not found
+        }
+        let capabilities = found[0].split (lineBreak);
+        const exchange = new Exchange ()
+        const sortingOrder = {
+            'CORS': 'undefined,',
+            'spot': 'true,',
+            'margin': 'undefined,',
+            'swap': 'undefined,',
+            'future': 'undefined,',
+            'option': 'undefined,',
+            // then everything else
+        }
+        const features = {}
+        let indentation = '                ' // 16 spaces
+        for (let i = 0; i < capabilities.length; i++) {
+            const capability = capabilities[i]
+            const match = capability.match (/(\s+)\'(.+)\': (.+)$/)
+            if (match) {
+                indentation = match[1]
+                const feature = match[2]
+                const value = match[3]
+                features[feature] = value
+            }
+        }
+        let keys = Object.keys (features)
+        keys.sort ((a, b) => a.localeCompare (b))
+        const allKeys = Object.keys (sortingOrder).concat (keys)
+        for (let i = 0; i < allKeys.length; i++) {
+            const key = allKeys[i]
+            sortingOrder[key] = (key in features) ? features[key] : sortingOrder[key]
+        }
+        const result = Object.entries (sortingOrder).map (([ key, value ]) => indentation + "'" + key + "': " + value).join (lineBreak)
+        if (result === found[0]) {
+            return false
+        }
+        return code.replace (capabilitiesObjectRegex, result)
     }
 
     // ------------------------------------------------------------------------
@@ -1048,7 +1096,16 @@ class Transpiler {
             const pythonFilename = filename.replace ('.js', '.py')
             const phpFilename = filename.replace ('.js', '.php')
 
-            const jsMtime = fs.statSync (jsFolder + filename).mtime.getTime ()
+            const jsPath = jsFolder + filename
+
+            let contents = fs.readFileSync (jsPath, 'utf8')
+            const sortedExchangeCapabilities = this.sortExchangeCapabilities (contents)
+            if (sortedExchangeCapabilities) {
+                contents = sortedExchangeCapabilities
+                overwriteFile (jsPath, contents)
+            }
+
+            const jsMtime = fs.statSync (jsPath).mtime.getTime ()
 
             const python2Path  = python2Folder  ? (python2Folder  + pythonFilename) : undefined
             const python3Path  = python3Folder  ? (python3Folder  + pythonFilename) : undefined
@@ -1059,8 +1116,6 @@ class Transpiler {
             const python3Mtime  = python3Path    ? (fs.existsSync (python3Path)  ? fs.statSync (python3Path).mtime.getTime ()  : 0) : undefined
             const phpAsyncMtime = phpAsyncFolder ? (fs.existsSync (phpAsyncPath) ? fs.statSync (phpAsyncPath).mtime.getTime () : 0) : undefined
             const phpMtime      = phpPath        ? (fs.existsSync (phpPath)      ? fs.statSync (phpPath).mtime.getTime ()      : 0) : undefined
-
-            const contents = fs.readFileSync (jsFolder + filename, 'utf8')
 
             if (force ||
                 (python3Folder  && (jsMtime > python3Mtime))  ||

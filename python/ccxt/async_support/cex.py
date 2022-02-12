@@ -23,6 +23,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class cex(Exchange):
@@ -34,20 +35,32 @@ class cex(Exchange):
             'countries': ['GB', 'EU', 'CY', 'RU'],
             'rateLimit': 1500,
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': None,  # has but unimplemented
+                'swap': False,
+                'future': False,
+                'option': False,
+                'cancelOrder': True,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -318,10 +331,8 @@ class cex(Exchange):
             market = markets[i]
             baseId = self.safe_string(market, 'symbol1')
             quoteId = self.safe_string(market, 'symbol2')
-            id = baseId + '/' + quoteId
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
             baseCurrency = self.safe_value(currenciesById, baseId, {})
             quoteCurrency = self.safe_value(currenciesById, quoteId, {})
             pricePrecision = self.safe_integer(quoteCurrency, 'precision', 8)
@@ -330,40 +341,41 @@ class cex(Exchange):
                 if (pair['symbol1'] == baseId) and (pair['symbol2'] == quoteId):
                     # we might need to account for `priceScale` here
                     pricePrecision = self.safe_integer(pair, 'pricePrecision', pricePrecision)
-            baseCcyPrecision = self.safe_integer(baseCurrency, 'precision', 8)
-            baseCcyScale = self.safe_integer(baseCurrency, 'scale', 0)
-            amountPrecision = baseCcyPrecision - baseCcyScale
-            precision = {
-                'amount': amountPrecision,
-                'price': pricePrecision,
-            }
+            baseCcyPrecision = self.safe_string(baseCurrency, 'precision', '8')
+            baseCcyScale = self.safe_string(baseCurrency, 'scale', '0')
             result.append({
-                'id': id,
-                'info': market,
-                'symbol': symbol,
+                'id': baseId + '/' + quoteId,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'margin': False,
-                'future': False,
+                'margin': None,
                 'swap': False,
+                'future': False,
                 'option': False,
-                'optionType': None,
-                'strike': None,
+                'active': None,
+                'contract': False,
                 'linear': None,
                 'inverse': None,
-                'contract': False,
                 'contractSize': None,
-                'settle': None,
-                'settleId': None,
                 'expiry': None,
                 'expiryDatetime': None,
-                'active': None,
-                'precision': precision,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': int(Precise.string_sub(baseCcyPrecision, baseCcyScale)),
+                    'price': pricePrecision,
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(market, 'minLotSize'),
                         'max': self.safe_number(market, 'maxLotSize'),
@@ -377,6 +389,7 @@ class cex(Exchange):
                         'max': None,
                     },
                 },
+                'info': market,
             })
         return result
 
@@ -462,12 +475,12 @@ class cex(Exchange):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_timestamp(ticker, 'timestamp')
-        volume = self.safe_number(ticker, 'volume')
-        high = self.safe_number(ticker, 'high')
-        low = self.safe_number(ticker, 'low')
-        bid = self.safe_number(ticker, 'bid')
-        ask = self.safe_number(ticker, 'ask')
-        last = self.safe_number(ticker, 'last')
+        volume = self.safe_string(ticker, 'volume')
+        high = self.safe_string(ticker, 'high')
+        low = self.safe_string(ticker, 'low')
+        bid = self.safe_string(ticker, 'bid')
+        ask = self.safe_string(ticker, 'ask')
+        last = self.safe_string(ticker, 'last')
         symbol = self.safe_symbol(None, market)
         return self.safe_ticker({
             'symbol': symbol,
@@ -490,7 +503,7 @@ class cex(Exchange):
             'baseVolume': volume,
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()

@@ -18,10 +18,14 @@ module.exports = class poloniex extends Exchange {
             'certified': false,
             'pro': true,
             'has': {
-                'fetchPosition': true,
+                'CORS': undefined,
+                'spot': true,
+                'margin': undefined, // has but not fully implemented
+                'swap': undefined, // has but not fully implemented
+                'future': undefined, // has but not fully implemented
+                'option': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': undefined,
                 'createDepositAddress': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
@@ -39,6 +43,7 @@ module.exports = class poloniex extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderBooks': true,
                 'fetchOrderTrades': true, // true endpoint for trades of a single open or closed order
+                'fetchPosition': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -305,33 +310,48 @@ module.exports = class poloniex extends Exchange {
             const [ quoteId, baseId ] = id.split ('_');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const limits = this.extend (this.limits, {
-                'cost': {
-                    'min': this.safeValue (this.options['limits']['cost']['min'], quote),
-                },
-            });
             const isFrozen = this.safeString (market, 'isFrozen');
-            const active = (isFrozen !== '1');
-            const numericId = this.safeInteger (market, 'id');
+            const marginEnabled = this.safeInteger (market, 'marginTradingEnabled');
             // these are known defaults
-            const precision = {
-                'price': 8,
-                'amount': 8,
-            };
             result.push ({
                 'id': id,
-                'numericId': numericId,
-                'symbol': symbol,
-                'baseId': baseId,
-                'quoteId': quoteId,
+                'numericId': this.safeInteger (market, 'id'),
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'active': active,
-                'precision': precision,
-                'limits': limits,
+                'margin': (marginEnabled === 1),
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': (isFrozen !== '1'),
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': parseInt ('8'),
+                    'price': parseInt ('8'),
+                },
+                'limits': this.extend (this.limits, {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.safeValue (this.options['limits']['cost']['min'], quote),
+                        'max': undefined,
+                    },
+                }),
                 'info': market,
             });
         }
@@ -1200,7 +1220,8 @@ module.exports = class poloniex extends Exchange {
         const response = await this.privatePostGenerateNewAddress (this.extend (request, params));
         let address = undefined;
         let tag = undefined;
-        if (response['success'] === 1) {
+        const success = this.safeString (response, 'success');
+        if (success === '1') {
             address = this.safeString (response, 'response');
         }
         this.checkAddress (address);

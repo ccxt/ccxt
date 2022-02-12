@@ -27,11 +27,12 @@ class bitbns(Exchange):
             'version': 'v2',
             # new metainfo interface
             'has': {
+                'CORS': None,
                 'spot': True,
-                'margin': None,
+                'margin': None,  # has but unimplemented
                 'swap': False,
                 'future': False,
-                'option': False,
+                'option': None,  # coming soon
                 'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
@@ -42,8 +43,6 @@ class bitbns(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
-                'fetchLeverage': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -51,17 +50,12 @@ class bitbns(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchPositions': False,
-                'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': 'emulated',
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchWithdrawals': True,
-                'reduceMargin': False,
-                'setLeverage': False,
-                'setPositionMode': False,
             },
             'timeframes': {
             },
@@ -232,11 +226,11 @@ class bitbns(Exchange):
                 'swap': False,
                 'future': False,
                 'option': False,
+                'active': None,
                 'contract': False,
                 'linear': None,
                 'inverse': None,
                 'contractSize': None,
-                'active': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
@@ -294,7 +288,7 @@ class bitbns(Exchange):
         #     }
         #
         timestamp = self.safe_integer(response, 'timestamp')
-        return self.parse_order_book(response, timestamp)
+        return self.parse_order_book(response, symbol, timestamp)
 
     def parse_ticker(self, ticker, market=None):
         #

@@ -12,6 +12,7 @@ from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import AddressPending
 from ccxt.base.errors import NotSupported
+from ccxt.base.precise import Precise
 
 
 class buda(Exchange):
@@ -24,26 +25,54 @@ class buda(Exchange):
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
                 'createDepositAddress': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchFundingFees': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': None,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'urls': {
@@ -191,47 +220,60 @@ class buda(Exchange):
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            id = self.safe_string(market, 'id')
             baseId = self.safe_string(market, 'base_currency')
             quoteId = self.safe_string(market, 'quote_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             baseInfo = await self.fetch_currency_info(baseId, currencies)
             quoteInfo = await self.fetch_currency_info(quoteId, currencies)
-            symbol = base + '/' + quote
             pricePrecisionString = self.safe_string(quoteInfo, 'input_decimals')
-            priceLimit = self.parse_precision(pricePrecisionString)
-            precision = {
-                'amount': self.safe_integer(baseInfo, 'input_decimals'),
-                'price': int(pricePrecisionString),
-            }
             minimumOrderAmount = self.safe_value(market, 'minimum_order_amount', [])
-            limits = {
-                'amount': {
-                    'min': self.safe_number(minimumOrderAmount, 0),
-                    'max': None,
-                },
-                'price': {
-                    'min': priceLimit,
-                    'max': None,
-                },
-                'cost': {
-                    'min': None,
-                    'max': None,
-                },
-            }
             result.append({
-                'id': id,
-                'symbol': symbol,
+                'id': self.safe_string(market, 'id'),
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'active': True,
-                'precision': precision,
-                'limits': limits,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_integer(baseInfo, 'input_decimals'),
+                    'price': int(pricePrecisionString),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': self.safe_number(minimumOrderAmount, 0),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
                 'info': market,
             })
         return result
@@ -380,8 +422,9 @@ class buda(Exchange):
         marketId = self.safe_string(ticker, 'market_id')
         symbol = self.safe_symbol(marketId, market, '-')
         lastPrice = self.safe_value(ticker, 'last_price', [])
-        last = self.safe_number(lastPrice, 0)
-        percentage = self.safe_number(ticker, 'price_variation_24h')
+        last = self.safe_string(lastPrice, 0)
+        percentage = self.safe_string(ticker, 'price_variation_24h')
+        percentage = Precise.string_mul(percentage, '100')
         maxBid = self.safe_value(ticker, 'max_bid', [])
         minAsk = self.safe_value(ticker, 'min_ask', [])
         baseVolume = self.safe_value(ticker, 'volume', [])
@@ -391,9 +434,9 @@ class buda(Exchange):
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': self.safe_number(maxBid, 0),
+            'bid': self.safe_string(maxBid, 0),
             'bidVolume': None,
-            'ask': self.safe_number(minAsk, 0),
+            'ask': self.safe_string(minAsk, 0),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -401,12 +444,12 @@ class buda(Exchange):
             'last': last,
             'previousClose': None,
             'change': None,
-            'percentage': percentage * 100,
+            'percentage': percentage,
             'average': None,
-            'baseVolume': self.safe_number(baseVolume, 0),
+            'baseVolume': self.safe_string(baseVolume, 0),
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()

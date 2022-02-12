@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired } = require ('./base/errors');
+const { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired, BadSymbol } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -20,10 +20,15 @@ module.exports = class bitmex extends Exchange {
             'rateLimit': 2000,
             'pro': true,
             'has': {
+                'CORS': undefined,
+                'spot': false,
+                'margin': false,
+                'swap': undefined, // has but not fully implemented
+                'future': undefined, // has but not fully implemented
+                'option': undefined, // has but not fully implemented
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
-                'CORS': undefined,
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
@@ -183,92 +188,222 @@ module.exports = class bitmex extends Exchange {
                 'api-expires': 5, // in seconds
                 'fetchOHLCVOpenTimestamp': true,
             },
+            'commonCurrencies': {
+                'USDt': 'USDT',
+                'XBt': 'BTC',
+                'XBT': 'BTC',
+            },
         });
     }
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetInstrumentActiveAndIndices (params);
+        //
+        //    {
+        //        "symbol": "LTCUSDT",
+        //        "rootSymbol": "LTC",
+        //        "state": "Open",
+        //        "typ": "FFWCSX",
+        //        "listing": "2021-11-10T04:00:00.000Z",
+        //        "front": "2021-11-10T04:00:00.000Z",
+        //        "expiry": null,
+        //        "settle": null,
+        //        "listedSettle": null,
+        //        "relistInterval": null,
+        //        "inverseLeg": "",
+        //        "sellLeg": "",
+        //        "buyLeg": "",
+        //        "optionStrikePcnt": null,
+        //        "optionStrikeRound": null,
+        //        "optionStrikePrice": null,
+        //        "optionMultiplier": null,
+        //        "positionCurrency": "LTC",
+        //        "underlying": "LTC",
+        //        "quoteCurrency": "USDT",
+        //        "underlyingSymbol": "LTCT=",
+        //        "reference": "BMEX",
+        //        "referenceSymbol": ".BLTCT",
+        //        "calcInterval": null,
+        //        "publishInterval": null,
+        //        "publishTime": null,
+        //        "maxOrderQty": 1000000000,
+        //        "maxPrice": 1000000,
+        //        "lotSize": 1000,
+        //        "tickSize": 0.01,
+        //        "multiplier": 100,
+        //        "settlCurrency": "USDt",
+        //        "underlyingToPositionMultiplier": 10000,
+        //        "underlyingToSettleMultiplier": null,
+        //        "quoteToSettleMultiplier": 1000000,
+        //        "isQuanto": false,
+        //        "isInverse": false,
+        //        "initMargin": 0.03,
+        //        "maintMargin": 0.015,
+        //        "riskLimit": 1000000000000,
+        //        "riskStep": 1000000000000,
+        //        "limit": null,
+        //        "capped": false,
+        //        "taxed": true,
+        //        "deleverage": true,
+        //        "makerFee": -0.0001,
+        //        "takerFee": 0.0005,
+        //        "settlementFee": 0,
+        //        "insuranceFee": 0,
+        //        "fundingBaseSymbol": ".LTCBON8H",
+        //        "fundingQuoteSymbol": ".USDTBON8H",
+        //        "fundingPremiumSymbol": ".LTCUSDTPI8H",
+        //        "fundingTimestamp": "2022-01-14T20:00:00.000Z",
+        //        "fundingInterval": "2000-01-01T08:00:00.000Z",
+        //        "fundingRate": 0.0001,
+        //        "indicativeFundingRate": 0.0001,
+        //        "rebalanceTimestamp": null,
+        //        "rebalanceInterval": null,
+        //        "openingTimestamp": "2022-01-14T17:00:00.000Z",
+        //        "closingTimestamp": "2022-01-14T18:00:00.000Z",
+        //        "sessionInterval": "2000-01-01T01:00:00.000Z",
+        //        "prevClosePrice": 138.511,
+        //        "limitDownPrice": null,
+        //        "limitUpPrice": null,
+        //        "bankruptLimitDownPrice": null,
+        //        "bankruptLimitUpPrice": null,
+        //        "prevTotalVolume": 12699024000,
+        //        "totalVolume": 12702160000,
+        //        "volume": 3136000,
+        //        "volume24h": 114251000,
+        //        "prevTotalTurnover": 232418052349000,
+        //        "totalTurnover": 232463353260000,
+        //        "turnover": 45300911000,
+        //        "turnover24h": 1604331340000,
+        //        "homeNotional24h": 11425.1,
+        //        "foreignNotional24h": 1604331.3400000003,
+        //        "prevPrice24h": 135.48,
+        //        "vwap": 140.42165,
+        //        "highPrice": 146.42,
+        //        "lowPrice": 135.08,
+        //        "lastPrice": 144.36,
+        //        "lastPriceProtected": 144.36,
+        //        "lastTickDirection": "MinusTick",
+        //        "lastChangePcnt": 0.0655,
+        //        "bidPrice": 143.75,
+        //        "midPrice": 143.855,
+        //        "askPrice": 143.96,
+        //        "impactBidPrice": 143.75,
+        //        "impactMidPrice": 143.855,
+        //        "impactAskPrice": 143.96,
+        //        "hasLiquidity": true,
+        //        "openInterest": 38103000,
+        //        "openValue": 547963053300,
+        //        "fairMethod": "FundingRate",
+        //        "fairBasisRate": 0.1095,
+        //        "fairBasis": 0.004,
+        //        "fairPrice": 143.811,
+        //        "markMethod": "FairPrice",
+        //        "markPrice": 143.811,
+        //        "indicativeTaxRate": null,
+        //        "indicativeSettlePrice": 143.807,
+        //        "optionUnderlyingPrice": null,
+        //        "settledPriceAdjustmentRate": null,
+        //        "settledPrice": null,
+        //        "timestamp": "2022-01-14T17:49:55.000Z"
+        //    }
+        //
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
-            const active = (market['state'] !== 'Unlisted');
-            const id = market['symbol'];
-            const baseId = market['underlying'];
-            const quoteId = market['quoteCurrency'];
-            const basequote = baseId + quoteId;
+            const id = this.safeString (market, 'symbol');
+            const baseId = this.safeString (market, 'underlying');
+            const quoteId = this.safeString (market, 'quoteCurrency');
+            const settleId = this.safeString (market, 'settlCurrency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            const settle = this.safeCurrencyCode (settleId);
+            const basequote = baseId + quoteId;
             const swap = (id === basequote);
             // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
             // so let's take the quote currency first and then adjust if needed
-            const positionId = this.safeString2 (market, 'positionCurrency', 'quoteCurrency');
             let type = undefined;
             let future = false;
             let prediction = false;
-            const position = this.safeCurrencyCode (positionId);
-            let symbol = id;
+            let index = false;
+            let symbol = base + '/' + quote + ':' + settle;
+            const expiryDatetime = this.safeString (market, 'expiry');
+            const expiry = this.parse8601 (expiryDatetime);
+            const inverse = this.safeValue (market, 'isInverse');
+            const status = this.safeString (market, 'state');
+            let active = status !== 'Unlisted';
             if (swap) {
                 type = 'swap';
-                symbol = base + '/' + quote;
             } else if (id.indexOf ('B_') >= 0) {
                 prediction = true;
                 type = 'prediction';
-            } else {
+                symbol = id;
+            } else if (expiry !== undefined) {
                 future = true;
                 type = 'future';
+                symbol = symbol + '-' + this.yymmdd (expiry);
+            } else {
+                index = true;
+                type = 'index';
+                symbol = id;
+                active = false;
             }
-            const precision = {
-                'amount': undefined,
-                'price': undefined,
-            };
-            const lotSize = this.safeNumber (market, 'lotSize');
-            const tickSize = this.safeNumber (market, 'tickSize');
-            if (lotSize !== undefined) {
-                precision['amount'] = lotSize;
-            }
-            if (tickSize !== undefined) {
-                precision['price'] = tickSize;
-            }
-            const maxLeverage = this.parseNumber (Precise.stringDiv ('1', this.safeString (market, 'initMargin', '1')));
-            const limits = {
-                'amount': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'price': {
-                    'min': tickSize,
-                    'max': this.safeNumber (market, 'maxPrice'),
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'leverage': {
-                    'max': maxLeverage,
-                },
-            };
-            const limitField = (position === quote) ? 'cost' : 'amount';
-            limits[limitField] = {
-                'min': lotSize,
-                'max': this.safeNumber (market, 'maxOrderQty'),
-            };
+            const positionId = this.safeString2 (market, 'positionCurrency', 'quoteCurrency');
+            const position = this.safeCurrencyCode (positionId);
+            const positionIsQuote = (position === quote);
+            const maxOrderQty = this.safeNumber (market, 'maxOrderQty');
+            const contract = !index;
+            const initMargin = this.safeString (market, 'initMargin', '1');
+            const maxLeverage = this.parseNumber (Precise.stringDiv ('1', initMargin));
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': active,
-                'precision': precision,
-                'limits': limits,
-                'taker': this.safeNumber (market, 'takerFee'),
-                'maker': this.safeNumber (market, 'makerFee'),
+                'settleId': settleId,
                 'type': type,
                 'spot': false,
+                'margin': false,
                 'swap': swap,
                 'future': future,
+                'option': false,
                 'prediction': prediction,
+                'index': index,
+                'active': active,
+                'contract': contract,
+                'linear': contract ? !inverse : undefined,
+                'inverse': contract ? inverse : undefined,
+                'taker': this.safeNumber (market, 'takerFee'),
+                'maker': this.safeNumber (market, 'makerFee'),
+                'contractSize': this.safeNumber (market, 'multiplier'),
+                'expiry': expiry,
+                'expiryDatetime': expiryDatetime,
+                'strike': this.safeNumber (market, 'optionStrikePrice'),
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeNumber (market, 'lotSize'),
+                    'price': this.safeNumber (market, 'tickSize'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': contract ? this.parseNumber ('1') : undefined,
+                        'max': contract ? maxLeverage : undefined,
+                    },
+                    'amount': {
+                        'min': undefined,
+                        'max': positionIsQuote ? undefined : maxOrderQty,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': this.safeNumber (market, 'maxPrice'),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': positionIsQuote ? maxOrderQty : undefined,
+                    },
+                },
                 'info': market,
             });
         }
@@ -823,12 +958,12 @@ module.exports = class bitmex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['active']) {
-            throw new ExchangeError (this.id + ': symbol ' + symbol + ' is delisted');
+            throw new BadSymbol (this.id + ' fetchTicker() symbol ' + symbol + ' is not tradable');
         }
         const tickers = await this.fetchTickers ([ symbol ], params);
         const ticker = this.safeValue (tickers, symbol);
         if (ticker === undefined) {
-            throw new ExchangeError (this.id + ' ticker symbol ' + symbol + ' not found');
+            throw new BadSymbol (this.id + ' fetchTicker() symbol ' + symbol + ' not found');
         }
         return ticker;
     }

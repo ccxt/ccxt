@@ -27,6 +27,7 @@ class timex(Exchange):
             'version': 'v1',
             'rateLimit': 1500,
             'has': {
+                'CORS': None,
                 'spot': True,
                 'margin': False,
                 'swap': False,
@@ -35,12 +36,12 @@ class timex(Exchange):
                 'addMargin': False,
                 'cancelOrder': True,
                 'cancelOrders': True,
-                'CORS': None,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
@@ -1027,18 +1028,18 @@ class timex(Exchange):
         marketId = self.safe_string(ticker, 'market')
         symbol = self.safe_symbol(marketId, market, '/')
         timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
-        last = self.safe_number(ticker, 'last')
-        open = self.safe_number(ticker, 'open')
+        last = self.safe_string(ticker, 'last')
+        open = self.safe_string(ticker, 'open')
         return self.safe_ticker({
             'symbol': symbol,
             'info': ticker,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': open,
@@ -1048,9 +1049,9 @@ class timex(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'volume'),
-            'quoteVolume': self.safe_number(ticker, 'volumeQuote'),
-        }, market)
+            'baseVolume': self.safe_string(ticker, 'volume'),
+            'quoteVolume': self.safe_string(ticker, 'volumeQuote'),
+        }, market, False)
 
     def parse_trade(self, trade, market=None):
         #

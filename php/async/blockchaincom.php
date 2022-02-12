@@ -21,6 +21,7 @@ class blockchaincom extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v3',
             'has' => array(
+                'CORS' => false,
                 'spot' => true,
                 'margin' => null, // on exchange but not implemented in CCXT
                 'swap' => false,
@@ -28,7 +29,6 @@ class blockchaincom extends Exchange {
                 'option' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
-                'CORS' => false,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchCanceledOrders' => true,
@@ -41,11 +41,9 @@ class blockchaincom extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
-                'fetchIsolatedPositions' => false,
                 'fetchL2OrderBook' => true,
                 'fetchL3OrderBook' => true,
                 'fetchLedger' => false,
-                'fetchLeverage' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -53,8 +51,6 @@ class blockchaincom extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchPositions' => false,
-                'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -63,9 +59,6 @@ class blockchaincom extends Exchange {
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => true, // fetches exchange specific benficiary-ids needed for withdrawals
-                'reduceMargin' => false,
-                'setLeverage' => false,
-                'setPositionMode' => false,
                 'withdraw' => true,
             ),
             'timeframes' => null,
@@ -272,8 +265,8 @@ class blockchaincom extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $pricePrecision,
                     'amount' => $amountPrecision,
+                    'price' => $pricePrecision,
                 ),
                 'limits' => array(
                     'leverage' => array(

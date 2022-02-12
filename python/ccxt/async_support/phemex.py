@@ -35,13 +35,22 @@ class phemex(Exchange):
             'pro': True,
             'hostname': 'api.phemex.com',
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': None,  # has but not fully implemented
+                'future': False,
+                'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
@@ -461,13 +470,13 @@ class phemex(Exchange):
             'swap': True,
             'future': False,
             'option': False,
+            'active': status == 'Listed',
             'contract': True,
             'linear': not inverse,
             'inverse': inverse,
             'taker': self.parse_number(self.from_en(takerFeeRateEr, ratioScale)),
             'maker': self.parse_number(self.from_en(makerFeeRateEr, ratioScale)),
             'contractSize': contractSize,
-            'active': status == 'Listed',
             'expiry': None,
             'expiryDatetime': None,
             'strike': None,
@@ -553,20 +562,20 @@ class phemex(Exchange):
             'swap': False,
             'future': False,
             'option': False,
+            'active': status == 'Listed',
             'contract': False,
             'linear': None,
             'inverse': None,
             'taker': self.safe_number(market, 'defaultTakerFee'),
             'maker': self.safe_number(market, 'defaultMakerFee'),
             'contractSize': None,
-            'active': status == 'Listed',
             'expiry': None,
             'expiryDatetime': None,
             'strike': None,
             'optionType': None,
-            'priceScale': 8,
-            'valueScale': 8,
-            'ratioScale': 8,
+            'priceScale': self.parse_number('8'),
+            'valueScale': self.parse_number('8'),
+            'ratioScale': self.parse_number('8'),
             'precision': {
                 'amount': precisionAmount,
                 'price': precisionPrice,
@@ -1014,28 +1023,23 @@ class phemex(Exchange):
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
         timestamp = self.safe_integer_product(ticker, 'timestamp', 0.000001)
-        lastString = self.from_ep(self.safe_string(ticker, 'lastEp'), market)
-        last = self.parse_number(lastString)
-        quoteVolume = self.parse_number(self.from_ev(self.safe_string(ticker, 'turnoverEv'), market))
-        baseVolume = self.safe_number(ticker, 'volume')
+        last = self.from_ep(self.safe_string(ticker, 'lastEp'), market)
+        quoteVolume = self.from_ev(self.safe_string(ticker, 'turnoverEv'), market)
+        baseVolume = self.safe_string(ticker, 'volume')
         if baseVolume is None:
-            baseVolume = self.parse_number(self.from_ev(self.safe_string(ticker, 'volumeEv'), market))
-        vwap = None
-        if (market is not None) and (market['spot']):
-            vwap = self.vwap(baseVolume, quoteVolume)
-        openString = self.from_ep(self.safe_string(ticker, 'openEp'), market)
-        open = self.parse_number(openString)
+            baseVolume = self.from_ev(self.safe_string(ticker, 'volumeEv'), market)
+        open = self.from_ep(self.safe_string(ticker, 'openEp'), market)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.parse_number(self.from_ep(self.safe_string(ticker, 'highEp'), market)),
-            'low': self.parse_number(self.from_ep(self.safe_string(ticker, 'lowEp'), market)),
-            'bid': self.parse_number(self.from_ep(self.safe_string(ticker, 'bidEp'), market)),
+            'high': self.from_ep(self.safe_string(ticker, 'highEp'), market),
+            'low': self.from_ep(self.safe_string(ticker, 'lowEp'), market),
+            'bid': self.from_ep(self.safe_string(ticker, 'bidEp'), market),
             'bidVolume': None,
-            'ask': self.parse_number(self.from_ep(self.safe_string(ticker, 'askEp'), market)),
+            'ask': self.from_ep(self.safe_string(ticker, 'askEp'), market),
             'askVolume': None,
-            'vwap': vwap,
+            'vwap': None,
             'open': open,
             'close': last,
             'last': last,
@@ -1046,7 +1050,7 @@ class phemex(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

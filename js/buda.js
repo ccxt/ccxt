@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { AddressPending, AuthenticationError, ExchangeError, NotSupported, PermissionDenied, ArgumentsRequired } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,26 +17,54 @@ module.exports = class buda extends Exchange {
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
+                'cancelOrder': true,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchFundingFees': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': undefined,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'withdraw': true,
             },
             'urls': {
@@ -188,47 +217,60 @@ module.exports = class buda extends Exchange {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const id = this.safeString (market, 'id');
             const baseId = this.safeString (market, 'base_currency');
             const quoteId = this.safeString (market, 'quote_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const baseInfo = await this.fetchCurrencyInfo (baseId, currencies);
             const quoteInfo = await this.fetchCurrencyInfo (quoteId, currencies);
-            const symbol = base + '/' + quote;
             const pricePrecisionString = this.safeString (quoteInfo, 'input_decimals');
-            const priceLimit = this.parsePrecision (pricePrecisionString);
-            const precision = {
-                'amount': this.safeInteger (baseInfo, 'input_decimals'),
-                'price': parseInt (pricePrecisionString),
-            };
             const minimumOrderAmount = this.safeValue (market, 'minimum_order_amount', []);
-            const limits = {
-                'amount': {
-                    'min': this.safeNumber (minimumOrderAmount, 0),
-                    'max': undefined,
-                },
-                'price': {
-                    'min': priceLimit,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            };
             result.push ({
-                'id': id,
-                'symbol': symbol,
+                'id': this.safeString (market, 'id'),
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
                 'active': true,
-                'precision': precision,
-                'limits': limits,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeInteger (baseInfo, 'input_decimals'),
+                    'price': parseInt (pricePrecisionString),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (minimumOrderAmount, 0),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
                 'info': market,
             });
         }
@@ -389,8 +431,9 @@ module.exports = class buda extends Exchange {
         const marketId = this.safeString (ticker, 'market_id');
         const symbol = this.safeSymbol (marketId, market, '-');
         const lastPrice = this.safeValue (ticker, 'last_price', []);
-        const last = this.safeNumber (lastPrice, 0);
-        const percentage = this.safeNumber (ticker, 'price_variation_24h');
+        const last = this.safeString (lastPrice, 0);
+        let percentage = this.safeString (ticker, 'price_variation_24h');
+        percentage = Precise.stringMul (percentage, '100');
         const maxBid = this.safeValue (ticker, 'max_bid', []);
         const minAsk = this.safeValue (ticker, 'min_ask', []);
         const baseVolume = this.safeValue (ticker, 'volume', []);
@@ -400,9 +443,9 @@ module.exports = class buda extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': this.safeNumber (maxBid, 0),
+            'bid': this.safeString (maxBid, 0),
             'bidVolume': undefined,
-            'ask': this.safeNumber (minAsk, 0),
+            'ask': this.safeString (minAsk, 0),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -410,12 +453,12 @@ module.exports = class buda extends Exchange {
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': percentage * 100,
+            'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeNumber (baseVolume, 0),
+            'baseVolume': this.safeString (baseVolume, 0),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {

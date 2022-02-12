@@ -19,18 +19,34 @@ module.exports = class bitstamp extends Exchange {
             'userAgent': this.userAgents['chrome'],
             'pro': true,
             'has': {
+                'CORS': true,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchFundingFees': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
                 'fetchLedger': true,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -38,6 +54,9 @@ module.exports = class bitstamp extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
@@ -45,6 +64,10 @@ module.exports = class bitstamp extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'withdraw': true,
             },
             'urls': {
@@ -312,6 +335,20 @@ module.exports = class bitstamp extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.fetchMarketsFromCache (params);
+        //
+        //     [
+        //         {
+        //             "trading": "Enabled",
+        //             "base_decimals": 8,
+        //             "url_symbol": "btcusd",
+        //             "name": "BTC/USD",
+        //             "instant_and_market_orders": "Enabled",
+        //             "minimum_order": "20.0 USD",
+        //             "counter_decimals": 2,
+        //             "description": "Bitcoin / U.S. dollar"
+        //         }
+        //     ]
+        //
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
@@ -321,17 +358,12 @@ module.exports = class bitstamp extends Exchange {
             const quoteId = quote.toLowerCase ();
             base = this.safeCurrencyCode (base);
             quote = this.safeCurrencyCode (quote);
-            const amountPrecisionString = this.safeString (market, 'base_decimals');
-            const pricePrecisionString = this.safeString (market, 'counter_decimals');
-            const amountLimit = this.parsePrecision (amountPrecisionString);
-            const priceLimit = this.parsePrecision (pricePrecisionString);
             const minimumOrder = this.safeString (market, 'minimum_order');
             const parts = minimumOrder.split (' ');
-            const cost = parts[0];
-            // let [ cost, currency ] = market['minimum_order'].split (' ');
-            const trading = this.safeString (market, 'trading');
+            const status = this.safeString (market, 'trading');
             result.push ({
                 'id': this.safeString (market, 'url_symbol'),
+                'marketId': baseId + '_' + quoteId,
                 'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
@@ -339,14 +371,13 @@ module.exports = class bitstamp extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': undefined,
-                'marketId': baseId + '_' + quoteId,
                 'type': 'spot',
                 'spot': true,
                 'margin': false,
                 'future': false,
                 'swap': false,
                 'option': false,
-                'active': (trading === 'Enabled'),
+                'active': (status === 'Enabled'),
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -356,8 +387,8 @@ module.exports = class bitstamp extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': parseInt (pricePrecisionString),
-                    'amount': parseInt (amountPrecisionString),
+                    'amount': this.safeInteger (market, 'base_decimals'),
+                    'price': this.safeInteger (market, 'counter_decimals'),
                 },
                 'limits': {
                     'leverage': {
@@ -365,15 +396,15 @@ module.exports = class bitstamp extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': this.parseNumber (amountLimit),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'price': {
-                        'min': this.parseNumber (priceLimit),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
-                        'min': this.parseNumber (cost),
+                        'min': this.safeNumber (parts, 0),
                         'max': undefined,
                     },
                 },
@@ -509,32 +540,39 @@ module.exports = class bitstamp extends Exchange {
         return orderbook;
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'pair': this.marketId (symbol),
-        };
-        const ticker = await this.publicGetTickerPair (this.extend (request, params));
+    parseTicker (ticker, market = undefined) {
+        //
+        // {
+        //     "high": "37534.15",
+        //     "last": "36487.44",
+        //     "timestamp":
+        //     "1643370585",
+        //     "bid": "36475.15",
+        //     "vwap": "36595.67",
+        //     "volume": "2848.49168527",
+        //     "low": "35511.32",
+        //     "ask": "36487.44",
+        //     "open": "37179.62"
+        // }
+        //
+        const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
-        const vwap = this.safeNumber (ticker, 'vwap');
-        const baseVolume = this.safeNumber (ticker, 'volume');
-        let quoteVolume = undefined;
-        if (baseVolume !== undefined && vwap !== undefined) {
-            quoteVolume = baseVolume * vwap;
-        }
-        const last = this.safeNumber (ticker, 'last');
-        return {
+        const vwap = this.safeString (ticker, 'vwap');
+        const baseVolume = this.safeString (ticker, 'volume');
+        const quoteVolume = Precise.stringMul (baseVolume, vwap);
+        const last = this.safeString (ticker, 'last');
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': vwap,
-            'open': this.safeNumber (ticker, 'open'),
+            'open': this.safeString (ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
@@ -544,7 +582,31 @@ module.exports = class bitstamp extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
+        }, market, false);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'pair': market['id'],
         };
+        const ticker = await this.publicGetTickerPair (this.extend (request, params));
+        //
+        // {
+        //     "high": "37534.15",
+        //     "last": "36487.44",
+        //     "timestamp":
+        //     "1643370585",
+        //     "bid": "36475.15",
+        //     "vwap": "36595.67",
+        //     "volume": "2848.49168527",
+        //     "low": "35511.32",
+        //     "ask": "36487.44",
+        //     "open": "37179.62"
+        // }
+        //
+        return this.parseTicker (ticker, market);
     }
 
     getCurrencyIdFromTransaction (transaction) {
@@ -610,16 +672,6 @@ module.exports = class bitstamp extends Exchange {
             if (marketId in this.markets_by_id) {
                 return this.markets_by_id[marketId];
             }
-        }
-        return undefined;
-    }
-
-    getMarketFromTrades (trades) {
-        const tradesBySymbol = this.indexBy (trades, 'symbol');
-        const symbols = Object.keys (tradesBySymbol);
-        const numSymbols = symbols.length;
-        if (numSymbols === 1) {
-            return this.markets[symbols[0]];
         }
         return undefined;
     }

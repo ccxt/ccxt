@@ -17,13 +17,13 @@ module.exports = class kuna extends Exchange {
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
+                'CORS': undefined,
                 'spot': true,
                 'margin': undefined,
                 'swap': false,
                 'future': false,
                 'option': false,
                 'cancelOrder': true,
-                'CORS': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchFundingHistory': false,
@@ -300,6 +300,22 @@ module.exports = class kuna extends Exchange {
         const quotes = [ 'btc', 'rub', 'uah', 'usd', 'usdt', 'usdc' ];
         const markets = [];
         const response = await this.publicGetTickers (params);
+        //
+        //    {
+        //        shibuah: {
+        //            at: '1644463685',
+        //            ticker: {
+        //                buy: '0.000911',
+        //                sell: '0.00092',
+        //                low: '0.000872',
+        //                high: '0.000963',
+        //                last: '0.000911',
+        //                vol: '1539278096.0',
+        //                price: '1434244.211249'
+        //            }
+        //        }
+        //    }
+        //
         const ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
@@ -388,29 +404,29 @@ module.exports = class kuna extends Exchange {
         const timestamp = this.safeTimestamp (ticker, 'at');
         ticker = ticker['ticker'];
         const symbol = this.safeSymbol (undefined, market);
-        const last = this.safeNumber (ticker, 'last');
+        const last = this.safeString (ticker, 'last');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'buy'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'sell'),
+            'ask': this.safeString (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeNumber (ticker, 'open'),
+            'open': this.safeString (ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'vol'),
+            'baseVolume': this.safeString (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

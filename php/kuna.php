@@ -20,13 +20,13 @@ class kuna extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v2',
             'has' => array(
+                'CORS' => null,
                 'spot' => true,
                 'margin' => null,
                 'swap' => false,
                 'future' => false,
                 'option' => false,
                 'cancelOrder' => true,
-                'CORS' => null,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchFundingHistory' => false,
@@ -303,6 +303,22 @@ class kuna extends Exchange {
         $quotes = array( 'btc', 'rub', 'uah', 'usd', 'usdt', 'usdc' );
         $markets = array();
         $response = $this->publicGetTickers ($params);
+        //
+        //    {
+        //        shibuah => {
+        //            at => '1644463685',
+        //            ticker => {
+        //                buy => '0.000911',
+        //                sell => '0.00092',
+        //                low => '0.000872',
+        //                high => '0.000963',
+        //                last => '0.000911',
+        //                vol => '1539278096.0',
+        //                price => '1434244.211249'
+        //            }
+        //        }
+        //    }
+        //
         $ids = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
@@ -391,29 +407,29 @@ class kuna extends Exchange {
         $timestamp = $this->safe_timestamp($ticker, 'at');
         $ticker = $ticker['ticker'];
         $symbol = $this->safe_symbol(null, $market);
-        $last = $this->safe_number($ticker, 'last');
+        $last = $this->safe_string($ticker, 'last');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'buy'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'sell'),
+            'ask' => $this->safe_string($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_number($ticker, 'open'),
+            'open' => $this->safe_string($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_number($ticker, 'vol'),
+            'baseVolume' => $this->safe_string($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

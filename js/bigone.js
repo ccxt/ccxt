@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, OrderNotFound, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,6 +16,12 @@ module.exports = class bigone extends Exchange {
             'version': 'v3',
             'rateLimit': 1200, // 500 request per 10 minutes
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': undefined, // has but unimplemented
+                'swap': undefined, // has but unimplemented
+                'future': undefined, // has but unimplemented
+                'option': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
@@ -113,7 +119,7 @@ module.exports = class bigone extends Exchange {
                     "Price mulit with amount should larger than AssetPair's min_quote_value": InvalidOrder,
                     '10007': BadRequest, // parameter error, {"code":10007,"message":"Amount's scale must greater than AssetPair's base scale"}
                     '10011': ExchangeError, // system error
-                    '10013': OrderNotFound, // {"code":10013,"message":"Resource not found"}
+                    '10013': BadSymbol, // {"code":10013,"message":"Resource not found"}
                     '10014': InsufficientFunds, // {"code":10014,"message":"Insufficient funds"}
                     '10403': PermissionDenied, // permission denied
                     '10429': RateLimitExceeded, // too many requests
@@ -165,6 +171,7 @@ module.exports = class bigone extends Exchange {
         //                 },
         //                 "base_scale":3,
         //                 "min_quote_value":"0.0001",
+        //                 "max_quote_value":"35"
         //             },
         //         ]
         //     }
@@ -181,54 +188,51 @@ module.exports = class bigone extends Exchange {
             const quoteId = this.safeString (quoteAsset, 'symbol');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const amountPrecisionString = this.safeString (market, 'base_scale');
-            const pricePrecisionString = this.safeString (market, 'quote_scale');
-            const amountLimit = this.parsePrecision (amountPrecisionString);
-            const priceLimit = this.parsePrecision (pricePrecisionString);
-            const precision = {
-                'amount': parseInt (amountPrecisionString),
-                'price': parseInt (pricePrecisionString),
-            };
-            const minCost = this.safeNumber (market, 'min_quote_value');
             const entry = {
                 'id': id,
                 'uuid': uuid,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
                 'margin': false,
-                'future': false,
                 'swap': false,
+                'future': false,
                 'option': false,
+                'active': true,
+                'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
+                'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
-                'optionType': undefined,
                 'strike': undefined,
-                'contract': false,
-                'contractSize': undefined,
-                'settle': undefined,
-                'settleId': undefined,
-                'active': true,
-                'precision': precision,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeInteger (market, 'base_scale'),
+                    'price': this.safeInteger (market, 'quote_scale'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
-                        'min': this.parseNumber (amountLimit),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'price': {
-                        'min': this.parseNumber (priceLimit),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
-                        'min': minCost,
-                        'max': undefined,
+                        'min': this.safeNumber (market, 'min_quote_value'),
+                        'max': this.safeNumber (market, 'max_quote_value'),
                     },
                 },
                 'info': market,

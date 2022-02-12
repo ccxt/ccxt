@@ -21,6 +21,7 @@ class btcturk(Exchange):
             'countries': ['TR'],  # Turkey
             'rateLimit': 100,
             'has': {
+                'CORS': True,
                 'spot': True,
                 'margin': False,
                 'swap': False,
@@ -28,11 +29,11 @@ class btcturk(Exchange):
                 'option': False,
                 'addMargin': False,
                 'cancelOrder': True,
-                'CORS': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
@@ -215,8 +216,8 @@ class btcturk(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(entry, 'denominatorScale'),
                     'amount': self.safe_integer(entry, 'numeratorScale'),
+                    'price': self.safe_integer(entry, 'denominatorScale'),
                 },
                 'limits': {
                     'leverage': {

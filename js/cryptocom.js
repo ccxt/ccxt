@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported } = require ('./base/errors');
+const { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 module.exports = class cryptocom extends Exchange {
@@ -15,14 +15,19 @@ module.exports = class cryptocom extends Exchange {
             'version': 'v2',
             'rateLimit': 10, // 100 requests per second
             'has': {
+                'CORS': false,
+                'spot': true,
+                'margin': undefined, // has but not fully implemented
+                'swap': undefined, // has but not fully implemented
+                'future': undefined, // has but not fully implemented
+                'option': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': false,
                 'createOrder': true,
-                'fetchCurrencies': false,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchClosedOrders': 'emulated',
+                'fetchCurrencies': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
@@ -36,8 +41,8 @@ module.exports = class cryptocom extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
-                'fetchOrders': true,
                 'fetchOrderBook': true,
+                'fetchOrders': true,
                 'fetchPositions': false,
                 'fetchStatus': false,
                 'fetchTicker': true,
@@ -229,6 +234,7 @@ module.exports = class cryptocom extends Exchange {
                     '10009': BadRequest,
                     '20001': BadRequest,
                     '20002': InsufficientFunds,
+                    '20005': AccountNotEnabled, // {"id":"123xxx","method":"private/margin/xxx","code":"20005","message":"ACCOUNT_NOT_FOUND"}
                     '30003': BadSymbol,
                     '30004': BadRequest,
                     '30005': BadRequest,
@@ -259,31 +265,29 @@ module.exports = class cryptocom extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        // {
-        //     "id": 11,
-        //     "method": "public/get-instruments",
-        //     "code": 0,
-        //     "result": {
-        //       "instruments": [
-        //         {
-        //           "instrument_name": "BTC_USDT",
-        //           "quote_currency": "BTC",
-        //           "base_currency": "USDT",
-        //           "price_decimals": 2,
-        //           "quantity_decimals": 6,
-        //           "margin_trading_enabled": true
-        //         },
-        //         {
-        //           "instrument_name": "CRO_BTC",
-        //           "quote_currency": "BTC",
-        //           "base_currency": "CRO",
-        //           "price_decimals": 8,
-        //           "quantity_decimals": 2,
-        //           "margin_trading_enabled": false
-        //         }
-        //       ]
-        //     }
-        //  }
+        //
+        //    {
+        //        id: 11,
+        //        method: 'public/get-instruments',
+        //        code: 0,
+        //        result: {
+        //            'instruments': [
+        //                {
+        //                    instrument_name: 'NEAR_BTC',
+        //                    quote_currency: 'BTC',
+        //                    base_currency: 'NEAR',
+        //                    price_decimals: '8',
+        //                    quantity_decimals: '2',
+        //                    margin_trading_enabled: true,
+        //                    margin_trading_enabled_5x: true,
+        //                    margin_trading_enabled_10x: true,
+        //                    max_quantity: '100000000',
+        //                    min_quantity: '0.01'
+        //               },
+        //            ]
+        //        }
+        //    }
+        //
         const response = await this.spotPublicGetPublicGetInstruments (params);
         const resultResponse = this.safeValue (response, 'result', {});
         const markets = this.safeValue (resultResponse, 'instruments', []);
@@ -295,61 +299,65 @@ module.exports = class cryptocom extends Exchange {
             const quoteId = this.safeString (market, 'quote_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
             const priceDecimals = this.safeString (market, 'price_decimals');
             const minPrice = this.parsePrecision (priceDecimals);
-            const precision = {
-                'amount': this.safeInteger (market, 'quantity_decimals'),
-                'price': parseInt (priceDecimals),
-            };
             const minQuantity = this.safeString (market, 'min_quantity');
-            const minCost = this.parseNumber (Precise.stringMul (minQuantity, minPrice));
-            const maxQuantity = this.safeNumber (market, 'max_quantity');
-            const margin = this.safeValue (market, 'margin_trading_enabled');
+            let maxLeverage = this.parseNumber ('1');
+            const margin_trading_enabled_5x = this.safeValue (market, 'margin_trading_enabled_5x');
+            if (margin_trading_enabled_5x) {
+                maxLeverage = this.parseNumber ('5');
+            }
+            const margin_trading_enabled_10x = this.safeValue (market, 'margin_trading_enabled_10x');
+            if (margin_trading_enabled_10x) {
+                maxLeverage = this.parseNumber ('10');
+            }
             result.push ({
-                'info': market,
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'linear': undefined,
-                'inverse': undefined,
-                'settle': undefined,
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': margin,
-                'future': false,
+                'margin': this.safeValue (market, 'margin_trading_enabled'),
                 'swap': false,
+                'future': false,
                 'option': false,
-                'optionType': undefined,
-                'strike': undefined,
+                'active': undefined,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
-                'contract': false,
-                'contractSize': undefined,
-                'active': undefined,
-                'precision': precision,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeInteger (market, 'quantity_decimals'),
+                    'price': parseInt (priceDecimals),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': this.parseNumber ('1'),
+                        'max': maxLeverage,
+                    },
                     'amount': {
                         'min': this.parseNumber (minQuantity),
-                        'max': maxQuantity,
+                        'max': this.safeNumber (market, 'max_quantity'),
                     },
                     'price': {
                         'min': this.parseNumber (minPrice),
                         'max': undefined,
                     },
                     'cost': {
-                        'min': minCost,
-                        'max': undefined,
-                    },
-                    'leverage': {
-                        'min': undefined,
+                        'min': this.parseNumber (Precise.stringMul (minQuantity, minPrice)),
                         'max': undefined,
                     },
                 },
+                'info': market,
             });
         }
         const futuresResponse = await this.derivativesPublicGetPublicGetInstruments ();
@@ -405,41 +413,39 @@ module.exports = class cryptocom extends Exchange {
                 symbol = symbol + '-' + this.yymmdd (expiry);
             }
             const contractSize = this.safeNumber (market, 'contract_size');
-            const marketId = this.safeString (market, 'symbol');
-            const maxLeverage = this.safeNumber (market, 'max_leverage');
-            const active = this.safeValue (market, 'tradable');
-            const pricePrecision = this.safeInteger (market, 'quote_decimals');
-            const amountPrecision = this.safeInteger (market, 'quantity_decimals');
             result.push ({
-                'info': market,
-                'id': marketId,
+                'id': this.safeString (market, 'symbol'),
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'linear': true,
-                'inverse': false,
-                'settle': quote,
                 'settleId': quoteId,
                 'type': type,
                 'spot': false,
                 'margin': false,
-                'future': future,
                 'swap': swap,
+                'future': future,
                 'option': false,
-                'optionType': undefined,
-                'strike': undefined,
+                'active': this.safeValue (market, 'tradable'),
+                'contract': true,
+                'linear': true,
+                'inverse': false,
+                'contractSize': contractSize,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
-                'contract': true,
-                'contractSize': contractSize,
-                'active': active,
+                'strike': undefined,
+                'optionType': undefined,
                 'precision': {
-                    'price': pricePrecision,
-                    'amount': amountPrecision,
+                    'price': this.safeInteger (market, 'quote_decimals'),
+                    'amount': this.safeInteger (market, 'quantity_decimals'),
                 },
                 'limits': {
+                    'leverage': {
+                        'min': this.parseNumber ('1'),
+                        'max': this.safeNumber (market, 'max_leverage'),
+                    },
                     'amount': {
                         'min': this.parseNumber (contractSize),
                         'max': undefined,
@@ -452,11 +458,8 @@ module.exports = class cryptocom extends Exchange {
                         'min': undefined,
                         'max': undefined,
                     },
-                    'leverage': {
-                        'min': undefined,
-                        'max': maxLeverage,
-                    },
                 },
+                'info': market,
             });
         }
         return result;
@@ -904,7 +907,7 @@ module.exports = class cryptocom extends Exchange {
             request['exec_inst'] = 'POST_ONLY';
             params = this.omit (params, [ 'postOnly' ]);
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateCreateOrder',
             'future': 'derivativesPrivatePostPrivateCreateOrder',
@@ -1488,8 +1491,12 @@ module.exports = class cryptocom extends Exchange {
         const takerOrMaker = this.safeStringLower2 (trade, 'liquidity_indicator', 'taker_side');
         const order = this.safeString (trade, 'order_id');
         let fee = undefined;
-        const feeCost = Precise.stringNeg (this.safeString2 (trade, 'fee', 'fees'));
+        let feeCost = this.safeString2 (trade, 'fee', 'fees');
         if (feeCost !== undefined) {
+            const contract = this.safeValue (market, 'contract', false);
+            if (contract) {
+                feeCost = Precise.stringNeg (feeCost);
+            }
             let feeCurrency = undefined;
             if (market['spot']) {
                 feeCurrency = this.safeString (trade, 'fee_currency');

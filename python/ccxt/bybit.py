@@ -38,12 +38,14 @@ class bybit(Exchange):
             'rateLimit': 100,
             'hostname': 'bybit.com',  # bybit.com, bytick.com
             'has': {
+                'CORS': True,
+                'spot': True,
                 'margin': False,
                 'swap': True,
                 'future': True,
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': True,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
@@ -588,6 +590,7 @@ class bybit(Exchange):
                     '30068': ExchangeError,  # exit value must be positive
                     '30074': InvalidOrder,  # can't create the stop order, because you expect the order will be triggered when the LastPrice(or IndexPrice、 MarkPrice, determined by trigger_by) is raising to stop_px, but the LastPrice(or IndexPrice、 MarkPrice) is already equal to or greater than stop_px, please adjust base_price or stop_px
                     '30075': InvalidOrder,  # can't create the stop order, because you expect the order will be triggered when the LastPrice(or IndexPrice、 MarkPrice, determined by trigger_by) is falling to stop_px, but the LastPrice(or IndexPrice、 MarkPrice) is already equal to or less than stop_px, please adjust base_price or stop_px
+                    # '30084': BadRequest,  # Isolated not modified, see handleErrors below
                     '33004': AuthenticationError,  # apikey already expired
                     '34026': ExchangeError,  # the limit is no change
                 },
@@ -962,25 +965,23 @@ class bybit(Exchange):
         timestamp = None
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_number(ticker, 'last_price')
-        open = self.safe_number(ticker, 'prev_price_24h')
-        percentage = self.safe_number(ticker, 'price_24h_pcnt')
-        if percentage is not None:
-            percentage *= 100
-        baseVolume = self.safe_number(ticker, 'turnover_24h')
-        quoteVolume = self.safe_number(ticker, 'volume_24h')
-        vwap = self.vwap(baseVolume, quoteVolume)
+        last = self.safe_string(ticker, 'last_price')
+        open = self.safe_string(ticker, 'prev_price_24h')
+        percentage = self.safe_string(ticker, 'price_24h_pcnt')
+        percentage = Precise.string_mul(percentage, '100')
+        baseVolume = self.safe_string(ticker, 'turnover_24h')
+        quoteVolume = self.safe_string(ticker, 'volume_24h')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high_price_24h'),
-            'low': self.safe_number(ticker, 'low_price_24h'),
-            'bid': self.safe_number(ticker, 'bid_price'),
+            'high': self.safe_string(ticker, 'high_price_24h'),
+            'low': self.safe_string(ticker, 'low_price_24h'),
+            'bid': self.safe_string(ticker, 'bid_price'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask_price'),
+            'ask': self.safe_string(ticker, 'ask_price'),
             'askVolume': None,
-            'vwap': vwap,
+            'vwap': None,
             'open': open,
             'close': last,
             'last': last,
@@ -991,7 +992,7 @@ class bybit(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -1227,6 +1228,9 @@ class bybit(Exchange):
         #         "symbol": "BTCUSD",
         #         "funding_rate": "0.00010000",
         #         "funding_rate_timestamp": 1577433600
+        #         # some pairs like BTC/USDT return an iso8601 string in funding_rate_timestamp
+        #         # "funding_rate_timestamp":"2022-02-05T08:00:00.000Z"
+        #
         #     },
         #     "ext_info": null,
         #     "time_now": "1577445586.446797",
@@ -1237,8 +1241,10 @@ class bybit(Exchange):
         #
         result = self.safe_value(response, 'result')
         fundingRate = self.safe_number(result, 'funding_rate')
-        fundingTime = self.safe_integer(result, 'funding_rate_timestamp') * 1000
-        nextFundingTime = self.sum(fundingTime, 8 * 3600000)
+        fundingTimestamp = self.safe_timestamp(result, 'funding_rate_timestamp')
+        if fundingTimestamp is None:
+            fundingTimestamp = self.parse8601(self.safe_string(result, 'funding_rate_timestamp'))
+        nextFundingTimestamp = self.sum(fundingTimestamp, 8 * 3600000)
         currentTime = self.milliseconds()
         return {
             'info': result,
@@ -1250,11 +1256,11 @@ class bybit(Exchange):
             'timestamp': currentTime,
             'datetime': self.iso8601(currentTime),
             'fundingRate': fundingRate,
-            'fundingTimestamp': fundingTime,
-            'fundingDatetime': self.iso8601(fundingTime),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': self.iso8601(fundingTimestamp),
             'nextFundingRate': None,
-            'nextFundingTimestamp': nextFundingTime,
-            'nextFundingDatetime': self.iso8601(nextFundingTime),
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
@@ -1630,7 +1636,9 @@ class bybit(Exchange):
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         id = self.safe_string_2(order, 'order_id', 'stop_order_id')
         type = self.safe_string_lower(order, 'order_type')
-        price = self.safe_string(order, 'price')
+        price = None
+        if type != 'market':
+            price = self.safe_string(order, 'price')
         average = self.safe_string(order, 'average_price')
         amount = self.safe_string(order, 'qty')
         cost = self.safe_string(order, 'cum_exec_value')
@@ -1648,7 +1656,7 @@ class bybit(Exchange):
             lastTradeTimestamp = None
         status = self.parse_order_status(self.safe_string_2(order, 'order_status', 'stop_order_status'))
         side = self.safe_string_lower(order, 'side')
-        feeCostString = Precise.string_abs(self.safe_string(order, 'cum_exec_fee'))
+        feeCostString = self.safe_string(order, 'cum_exec_fee')
         fee = None
         if feeCostString is not None:
             fee = {
@@ -2296,8 +2304,7 @@ class bybit(Exchange):
             request['start_time'] = since
         if limit is not None:
             request['limit'] = limit  # default 20, max 50
-        marketType = None
-        marketType, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
+        marketType, query = self.handle_market_type_and_params('fetchMyTrades', market, params)
         marketDefined = (market is not None)
         linear = (marketDefined and market['linear']) or (marketType == 'linear')
         inverse = (marketDefined and market['swap'] and market['inverse']) or (marketType == 'inverse')
@@ -2309,7 +2316,7 @@ class bybit(Exchange):
             method = 'v2PrivateGetExecutionList'
         elif future:
             method = 'futuresPrivateGetExecutionList'
-        response = getattr(self, method)(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, query))
         #
         # inverse
         #
@@ -2744,8 +2751,10 @@ class bybit(Exchange):
         if leverage is None:
             raise ArgumentsRequired(self.id + '.setMarginMode requires a leverage parameter')
         marginType = marginType.upper()
-        if (marginType != 'ISOLATED') and (marginType != 'CROSSED'):
-            raise BadRequest(self.id + ' marginType must be either isolated or crossed')
+        if marginType == 'CROSSED':  # * Deprecated, use 'CROSS' instead
+            marginType = 'CROSS'
+        if (marginType != 'ISOLATED') and (marginType != 'CROSS'):
+            raise BadRequest(self.id + ' marginType must be either isolated or cross')
         self.load_markets()
         market = self.market(symbol)
         method = None
@@ -2768,7 +2777,21 @@ class bybit(Exchange):
             'buy_leverage': leverage,
             'sell_leverage': leverage,
         }
-        return getattr(self, method)(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "ret_code": 0,
+        #         "ret_msg": "OK",
+        #         "ext_code": "",
+        #         "ext_info": "",
+        #         "result": null,
+        #         "time_now": "1585881597.006026",
+        #         "rate_limit_status": 74,
+        #         "rate_limit_reset_ms": 1585881597004,
+        #         "rate_limit": 75
+        #     }
+        #
+        return response
 
     def set_leverage(self, leverage, symbol=None, params={}):
         if symbol is None:
@@ -2905,6 +2928,13 @@ class bybit(Exchange):
         #
         errorCode = self.safe_string_2(response, 'ret_code', 'retCode')
         if errorCode != '0':
+            if errorCode == '30084':
+                # not an error
+                # https://github.com/ccxt/ccxt/issues/11268
+                # https://github.com/ccxt/ccxt/pull/11624
+                # POST https://api.bybit.com/v2/private/position/switch-isolated 200 OK
+                # {"ret_code":30084,"ret_msg":"Isolated not modified","ext_code":"","ext_info":"","result":null,"time_now":"1642005219.937988","rate_limit_status":73,"rate_limit_reset_ms":1642005219894,"rate_limit":75}
+                return None
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)

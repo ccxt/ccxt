@@ -8,6 +8,7 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
+use \ccxt\BadSymbol;
 use \ccxt\OrderNotFound;
 
 class aax extends Exchange {
@@ -24,17 +25,19 @@ class aax extends Exchange {
             'certified' => true,
             'pro' => true,
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
                 'margin' => false,
                 'swap' => true,
                 'future' => false,
+                'option' => false,
                 'addMargin' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => null,
-                'CORS' => null,
                 'createDepositAddress' => null,
                 'createOrder' => true,
-                'createReduceOnlyOrder' => null,
+                'createReduceOnlyOrder' => false,
                 'deposit' => null,
                 'editOrder' => true,
                 'fetchAccounts' => null,
@@ -42,6 +45,7 @@ class aax extends Exchange {
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
                 'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
@@ -59,15 +63,15 @@ class aax extends Exchange {
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
-                'fetchFundingRates' => null,
-                'fetchIndexOHLCV' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => true,
                 'fetchIsolatedPositions' => null,
                 'fetchL3OrderBook' => null,
                 'fetchLedger' => null,
                 'fetchLedgerEntry' => null,
                 'fetchLeverage' => null,
                 'fetchMarkets' => true,
-                'fetchMarkOHLCV' => false,
+                'fetchMarkOHLCV' => true,
                 'fetchMyBuys' => null,
                 'fetchMySells' => null,
                 'fetchMyTrades' => true,
@@ -81,8 +85,8 @@ class aax extends Exchange {
                 'fetchOrderTrades' => null,
                 'fetchPosition' => null,
                 'fetchPositions' => null,
-                'fetchPositionsRisk' => null,
-                'fetchPremiumIndexOHLCV' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => 'emulated',
                 'fetchTickers' => true,
@@ -98,8 +102,8 @@ class aax extends Exchange {
                 'fetchWithdrawalWhitelist' => null,
                 'loadLeverageBrackets' => null,
                 'reduceMargin' => null,
-                'setLeverage' => null,
-                'setMarginMode' => null,
+                'setLeverage' => true,
+                'setMarginMode' => false,
                 'setPositionMode' => null,
                 'signIn' => null,
                 'transfer' => null,
@@ -488,13 +492,13 @@ class aax extends Exchange {
                 'swap' => $swap,
                 'future' => false,
                 'option' => false,
+                'active' => ($status === 'enable'),
                 'contract' => $swap,
                 'linear' => $linear,
                 'inverse' => $inverse,
                 'taker' => $this->safe_number($market, 'takerFee'),
                 'maker' => $this->safe_number($market, 'makerFee'),
                 'contractSize' => $contractSize,
-                'active' => ($status === 'enable'),
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
@@ -506,7 +510,7 @@ class aax extends Exchange {
                 ),
                 'limits' => array(
                     'leverage' => array(
-                        'min' => $this->parse_number('1'),
+                        'min' => null,
                         'max' => null,
                     ),
                     'amount' => array(
@@ -861,7 +865,7 @@ class aax extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1h', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -894,6 +898,27 @@ class aax extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+    }
+
+    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'mark',
+        );
+        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_premium_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'premiumIndex',
+        );
+        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'index',
+        );
+        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
     }
 
     public function fetch_balance($params = array ()) {
@@ -1199,21 +1224,17 @@ class aax extends Exchange {
         $request = array(
             'orderID' => $id,
         );
-        $method = null;
-        $defaultType = $this->safe_string_2($this->options, 'cancelOrder', 'defaultType', 'spot');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit($params, 'type');
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $type = $market['type'];
         }
-        if ($type === 'spot') {
-            $method = 'privateDeleteSpotOrdersCancelOrderID';
-        } else if ($type === 'swap' || $type === 'future' || $type === 'futures') { // $type === 'futures' deprecated, use $type === 'swap'
-            $method = 'privateDeleteFuturesOrdersCancelOrderID';
-        }
-        $response = $this->$method (array_merge($request, $params));
+        list($marketType, $query) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateDeleteSpotOrdersCancelOrderID',
+            'swap' => 'privateDeleteFuturesOrdersCancelOrderID',
+            'future' => 'privateDeleteFuturesOrdersCancelOrderID',
+        ));
+        $response = $this->$method (array_merge($request, $query));
         //
         // spot
         //
@@ -2270,6 +2291,25 @@ class aax extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+        }
+        if (($leverage < 1) || ($leverage > 100)) {
+            throw new BadRequest($this->id . ' $leverage should be between 1 and 100');
+        }
+        $market = $this->market($symbol);
+        if ($market['type'] !== 'swap') {
+            throw new BadSymbol($this->id . ' setLeverage() supports swap contracts only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'leverage' => $leverage,
+        );
+        return $this->privatePostFuturesPositionLeverage (array_merge($request, $params));
     }
 
     public function nonce() {

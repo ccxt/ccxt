@@ -19,16 +19,27 @@ class latoken extends Exchange {
             'version' => 'v2',
             'rateLimit' => 1000,
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => null, // has but unimplemented
+                'future' => null,
+                'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCurrencies' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
-                'fetchOrderBook' => true,
                 'fetchOrder' => true,
+                'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -264,42 +275,56 @@ class latoken extends Exchange {
             if ($baseCurrency !== null && $quoteCurrency !== null) {
                 $base = $this->safe_currency_code($this->safe_string($baseCurrency, 'tag'));
                 $quote = $this->safe_currency_code($this->safe_string($quoteCurrency, 'tag'));
-                $symbol = $base . '/' . $quote;
-                $precision = array(
-                    'price' => $this->safe_number($market, 'priceTick'),
-                    'amount' => $this->safe_number($market, 'quantityTick'),
-                );
                 $lowercaseQuote = strtolower($quote);
                 $capitalizedQuote = $this->capitalize($lowercaseQuote);
-                $limits = array(
-                    'amount' => array(
-                        'min' => $this->safe_number($market, 'minOrderQuantity'),
-                        'max' => null,
-                    ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => $this->safe_number($market, 'minOrderCost' . $capitalizedQuote),
-                        'max' => $this->safe_number($market, 'maxOrderCost' . $capitalizedQuote),
-                    ),
-                );
                 $status = $this->safe_string($market, 'status');
-                $active = ($status === 'PAIR_STATUS_ACTIVE');
                 $result[] = array(
                     'id' => $id,
-                    'info' => $market,
-                    'symbol' => $symbol,
+                    'symbol' => $base . '/' . $quote,
                     'base' => $base,
                     'quote' => $quote,
+                    'settle' => null,
                     'baseId' => $baseId,
                     'quoteId' => $quoteId,
+                    'settleId' => null,
                     'type' => 'spot',
                     'spot' => true,
-                    'active' => $active, // assuming true
-                    'precision' => $precision,
-                    'limits' => $limits,
+                    'margin' => false,
+                    'swap' => false,
+                    'future' => false,
+                    'option' => false,
+                    'active' => ($status === 'PAIR_STATUS_ACTIVE'), // assuming true
+                    'contract' => false,
+                    'linear' => null,
+                    'inverse' => null,
+                    'contractSize' => null,
+                    'expiry' => null,
+                    'expiryDatetime' => null,
+                    'strike' => null,
+                    'optionType' => null,
+                    'precision' => array(
+                        'amount' => $this->safe_number($market, 'quantityTick'),
+                        'price' => $this->safe_number($market, 'priceTick'),
+                    ),
+                    'limits' => array(
+                        'leverage' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'amount' => array(
+                            'min' => $this->safe_number($market, 'minOrderQuantity'),
+                            'max' => null,
+                        ),
+                        'price' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'cost' => array(
+                            'min' => $this->safe_number($market, 'minOrderCost' . $capitalizedQuote),
+                            'max' => $this->safe_number($market, 'maxOrderCost' . $capitalizedQuote),
+                        ),
+                    ),
+                    'info' => $market,
                 );
             }
         }
@@ -504,15 +529,15 @@ class latoken extends Exchange {
         //
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $last = $this->safe_number($ticker, 'lastPrice');
-        $change = $this->safe_number($ticker, 'change24h');
+        $last = $this->safe_string($ticker, 'lastPrice');
+        $change = $this->safe_string($ticker, 'change24h');
         $timestamp = $this->nonce();
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'low' => $this->safe_number($ticker, 'low'),
-            'high' => $this->safe_number($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'high' => $this->safe_string($ticker, 'high'),
             'bid' => null,
             'bidVolume' => null,
             'ask' => null,
@@ -526,9 +551,9 @@ class latoken extends Exchange {
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => $this->safe_number($ticker, 'volume24h'),
+            'quoteVolume' => $this->safe_string($ticker, 'volume24h'),
             'info' => $ticker,
-        ));
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {

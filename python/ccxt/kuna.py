@@ -21,13 +21,13 @@ class kuna(Exchange):
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
+                'CORS': None,
                 'spot': True,
                 'margin': None,
                 'swap': False,
                 'future': False,
                 'option': False,
                 'cancelOrder': True,
-                'CORS': None,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchFundingHistory': False,
@@ -302,6 +302,22 @@ class kuna(Exchange):
         quotes = ['btc', 'rub', 'uah', 'usd', 'usdt', 'usdc']
         markets = []
         response = self.publicGetTickers(params)
+        #
+        #    {
+        #        shibuah: {
+        #            at: '1644463685',
+        #            ticker: {
+        #                buy: '0.000911',
+        #                sell: '0.00092',
+        #                low: '0.000872',
+        #                high: '0.000963',
+        #                last: '0.000911',
+        #                vol: '1539278096.0',
+        #                price: '1434244.211249'
+        #            }
+        #        }
+        #    }
+        #
         ids = list(response.keys())
         for i in range(0, len(ids)):
             id = ids[i]
@@ -384,29 +400,29 @@ class kuna(Exchange):
         timestamp = self.safe_timestamp(ticker, 'at')
         ticker = ticker['ticker']
         symbol = self.safe_symbol(None, market)
-        last = self.safe_number(ticker, 'last')
+        last = self.safe_string(ticker, 'last')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'buy'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'sell'),
+            'ask': self.safe_string(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_number(ticker, 'open'),
+            'open': self.safe_string(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'vol'),
+            'baseVolume': self.safe_string(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()

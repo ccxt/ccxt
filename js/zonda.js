@@ -15,6 +15,7 @@ module.exports = class zonda extends Exchange {
             'countries': [ 'EE' ], // Estonia
             'rateLimit': 1000,
             'has': {
+                'CORS': true,
                 'spot': true,
                 'margin': false,
                 'swap': false,
@@ -22,11 +23,11 @@ module.exports = class zonda extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
-                'CORS': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
@@ -301,15 +302,15 @@ module.exports = class zonda extends Exchange {
                 'type': 'spot',
                 'spot': true,
                 'margin': false,
-                'future': false,
                 'swap': false,
+                'future': false,
                 'option': false,
                 'active': undefined,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'maker': this.safeNumber (fees, 'maker'),
                 'taker': this.safeNumber (fees, 'taker'),
+                'maker': this.safeNumber (fees, 'maker'),
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -509,9 +510,9 @@ module.exports = class zonda extends Exchange {
         //       }
         //
         const open = this.safeString (ticker, 'r24h');
-        const high = this.safeNumber (ticker, 'h');
-        const low = this.safeNumber (ticker, 'l');
-        const volume = this.safeNumber (ticker, 'v');
+        const high = this.safeString (ticker, 'h');
+        const low = this.safeString (ticker, 'l');
+        const volume = this.safeString (ticker, 'v');
         const marketId = this.safeString (ticker, 'm');
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];

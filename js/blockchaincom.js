@@ -18,6 +18,7 @@ module.exports = class blockchaincom extends Exchange {
             'rateLimit': 1000,
             'version': 'v3',
             'has': {
+                'CORS': false,
                 'spot': true,
                 'margin': undefined, // on exchange but not implemented in CCXT
                 'swap': false,
@@ -25,7 +26,6 @@ module.exports = class blockchaincom extends Exchange {
                 'option': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
-                'CORS': false,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
@@ -38,11 +38,9 @@ module.exports = class blockchaincom extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
-                'fetchIsolatedPositions': false,
                 'fetchL2OrderBook': true,
                 'fetchL3OrderBook': true,
                 'fetchLedger': false,
-                'fetchLeverage': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -50,8 +48,6 @@ module.exports = class blockchaincom extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchPositions': false,
-                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -60,9 +56,6 @@ module.exports = class blockchaincom extends Exchange {
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': true, // fetches exchange specific benficiary-ids needed for withdrawals
-                'reduceMargin': false,
-                'setLeverage': false,
-                'setPositionMode': false,
                 'withdraw': true,
             },
             'timeframes': undefined,
@@ -269,8 +262,8 @@ module.exports = class blockchaincom extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': pricePrecision,
                     'amount': amountPrecision,
+                    'price': pricePrecision,
                 },
                 'limits': {
                     'leverage': {

@@ -21,16 +21,28 @@ module.exports = class currencycom extends Exchange {
             'version': 'v1',
             // new metainfo interface
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': undefined, // has but not fully implemented
+                'swap': false,
+                'future': false,
+                'option': false,
+                'cancelOrder': true,
                 'createOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -147,6 +159,7 @@ module.exports = class currencycom extends Exchange {
                 'ACN': 'Accenture',
                 'BNS': 'Bank of Nova Scotia',
                 'CAR': 'Avis Budget Group Inc',
+                'CLR': 'Continental Resources',
                 'EDU': 'New Oriental Education & Technology Group Inc',
                 'ETN': 'Eaton',
                 'FOX': 'Fox Corporation',
@@ -290,7 +303,7 @@ module.exports = class currencycom extends Exchange {
                     limitPriceMax = maxPrice;
                 }
             }
-            let precisionAmount = this.parsePrecision (this.safeString (market, 'baseAssetPrecision'));
+            let precisionAmount = this.parseNumber (this.parsePrecision (this.safeString (market, 'baseAssetPrecision')));
             let limitAmount = {
                 'min': undefined,
                 'max': undefined,
@@ -334,13 +347,13 @@ module.exports = class currencycom extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'active': active,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
                 'taker': taker,
                 'maker': maker,
                 'contractSize': undefined,
-                'active': active,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,

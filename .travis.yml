@@ -12,20 +12,21 @@ before_install:
 - set -e
 - . $HOME/.nvm/nvm.sh
 - nvm ls
+- nvm ls-remote
 # - nvm install 14.9.0 -v
 # - nvm use 14.9.0
-- nvm use stable
+- nvm install v16.13.2
 - rm -rf node_modules
 - npm install
 - git checkout package.json package-lock.json
+- git config pull.rebase false
+- git fetch --depth=50 --tags --verbose --progress
 - sudo -H pip install --upgrade setuptools
 - sudo -H pip install --upgrade pip wheel requests pyopenssl
 - sudo -H pip install --ignore-installed six
 - sudo -H pip install --upgrade tox twine
 - pip install --upgrade setuptools
 - pip install --upgrade aiohttp requests cryptography pyopenssl
-- git config pull.rebase false
-- git pull --tags --verbose --progress
 - phpenv global 7.4.2
 - composer install
 - composer require --ignore-platform-reqs react/http:"^1.4.0" recoil/react:"1.0.2"

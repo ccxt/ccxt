@@ -19,18 +19,30 @@ module.exports = class upbit extends Exchange {
             'pro': true,
             // new metainfo interface
             'has': {
-                'fetchDepositAddresses': true,
-                'fetchCanceledOrders': true,
-                'cancelOrder': true,
                 'CORS': true,
+                'spot': true,
+                'margin': undefined,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'cancelOrder': true,
                 'createDepositAddress': true,
                 'createMarketOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': true,
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistories': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': undefined,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -38,6 +50,7 @@ module.exports = class upbit extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderBooks': true,
                 'fetchOrders': undefined,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -310,43 +323,58 @@ module.exports = class upbit extends Exchange {
         const quoteId = this.safeString (bid, 'currency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = base + '/' + quote;
-        const precision = {
-            'amount': 8,
-            'price': 8,
-        };
         const state = this.safeString (marketInfo, 'state');
-        const active = (state === 'active');
         const bidFee = this.safeNumber (response, 'bid_fee');
         const askFee = this.safeNumber (response, 'ask_fee');
         const fee = Math.max (bidFee, askFee);
         return {
-            'info': response,
             'id': marketId,
-            'symbol': symbol,
+            'symbol': base + '/' + quote,
             'base': base,
             'quote': quote,
+            'settle': undefined,
             'baseId': baseId,
             'quoteId': quoteId,
+            'settleId': undefined,
             'type': 'spot',
             'spot': true,
-            'active': active,
-            'precision': precision,
-            'maker': fee,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': (state === 'active'),
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
             'taker': fee,
+            'maker': fee,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': parseInt ('8'),
+                'price': parseInt ('8'),
+            },
             'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
                 'amount': {
                     'min': this.safeNumber (ask, 'min_total'),
                     'max': undefined,
                 },
                 'price': {
-                    'min': Math.pow (10, -precision['price']),
+                    'min': undefined,
                     'max': undefined,
                 },
                 'cost': {
                     'min': this.safeNumber (bid, 'min_total'),
                     'max': this.safeNumber (marketInfo, 'max_total'),
                 },
+                'info': response,
             },
         };
     }
@@ -354,22 +382,14 @@ module.exports = class upbit extends Exchange {
     async fetchMarkets (params = {}) {
         const response = await this.publicGetMarketAll (params);
         //
-        //     [ {       market: "KRW-BTC",
-        //          korean_name: "비트코인",
-        //         english_name: "Bitcoin"  },
-        //       {       market: "KRW-DASH",
-        //          korean_name: "대시",
-        //         english_name: "Dash"      },
-        //       {       market: "KRW-ETH",
-        //          korean_name: "이더리움",
-        //         english_name: "Ethereum" },
-        //       {       market: "BTC-ETH",
-        //          korean_name: "이더리움",
-        //         english_name: "Ethereum" },
-        //       ...,
-        //       {       market: "BTC-BSV",
-        //          korean_name: "비트코인에스브이",
-        //         english_name: "Bitcoin SV" } ]
+        //    [
+        //        {
+        //            market: "KRW-BTC",
+        //            korean_name: "비트코인",
+        //            english_name: "Bitcoin"
+        //        },
+        //        ...,
+        //    ]
         //
         const result = [];
         for (let i = 0; i < response.length; i++) {
@@ -378,49 +398,47 @@ module.exports = class upbit extends Exchange {
             const [ quoteId, baseId ] = id.split ('-');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const precision = {
-                'amount': 8,
-                'price': 8,
-            };
-            const active = true;
-            const makerFee = this.safeNumber (this.options['tradingFeesByQuoteCurrency'], quote, this.fees['trading']['maker']);
-            const takerFee = this.safeNumber (this.options['tradingFeesByQuoteCurrency'], quote, this.fees['trading']['taker']);
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': active,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
                 'margin': false,
-                'future': false,
                 'swap': false,
+                'future': false,
                 'option': false,
-                'optionType': undefined,
-                'strike': undefined,
+                'active': true,
+                'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'contract': false,
+                'taker': this.safeNumber (this.options['tradingFeesByQuoteCurrency'], quote, this.fees['trading']['taker']),
+                'maker': this.safeNumber (this.options['tradingFeesByQuoteCurrency'], quote, this.fees['trading']['maker']),
                 'contractSize': undefined,
-                'settle': undefined,
-                'settleId': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
-                'info': market,
-                'precision': precision,
-                'maker': makerFee,
-                'taker': takerFee,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': 8,
+                    'amount': 8,
+                },
                 'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
@@ -428,6 +446,7 @@ module.exports = class upbit extends Exchange {
                         'max': undefined,
                     },
                 },
+                'info': market,
             });
         }
         return result;
@@ -570,29 +589,29 @@ module.exports = class upbit extends Exchange {
         const timestamp = this.safeInteger (ticker, 'trade_timestamp');
         const marketId = this.safeString2 (ticker, 'market', 'code');
         market = this.safeMarket (marketId, market, '-');
-        const last = this.safeNumber (ticker, 'trade_price');
+        const last = this.safeString (ticker, 'trade_price');
         return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high_price'),
-            'low': this.safeNumber (ticker, 'low_price'),
+            'high': this.safeString (ticker, 'high_price'),
+            'low': this.safeString (ticker, 'low_price'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeNumber (ticker, 'opening_price'),
+            'open': this.safeString (ticker, 'opening_price'),
             'close': last,
             'last': last,
-            'previousClose': this.safeNumber (ticker, 'prev_closing_price'),
-            'change': this.safeNumber (ticker, 'signed_change_price'),
-            'percentage': this.safeNumber (ticker, 'signed_change_rate'),
+            'previousClose': this.safeString (ticker, 'prev_closing_price'),
+            'change': this.safeString (ticker, 'signed_change_price'),
+            'percentage': this.safeString (ticker, 'signed_change_rate'),
             'average': undefined,
-            'baseVolume': this.safeNumber (ticker, 'acc_trade_volume_24h'),
-            'quoteVolume': this.safeNumber (ticker, 'acc_trade_price_24h'),
+            'baseVolume': this.safeString (ticker, 'acc_trade_volume_24h'),
+            'quoteVolume': this.safeString (ticker, 'acc_trade_price_24h'),
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

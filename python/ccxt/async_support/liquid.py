@@ -29,8 +29,13 @@ class liquid(Exchange):
             'version': '2',
             'rateLimit': 1000,
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': None,
+                'swap': None,
+                'future': None,
+                'option': None,
+                'cancelOrder': True,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
@@ -543,7 +548,7 @@ class liquid(Exchange):
             if ticker['last_traded_price']:
                 length = len(ticker['last_traded_price'])
                 if length > 0:
-                    last = self.safe_number(ticker, 'last_traded_price')
+                    last = self.safe_string(ticker, 'last_traded_price')
         symbol = None
         if market is None:
             marketId = self.safe_string(ticker, 'id')
@@ -558,16 +563,16 @@ class liquid(Exchange):
                     symbol = self.safe_currency_code(baseId) + '/' + self.safe_currency_code(quoteId)
         if market is not None:
             symbol = market['symbol']
-        open = self.safe_number(ticker, 'last_price_24h')
+        open = self.safe_string(ticker, 'last_price_24h')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high_market_ask'),
-            'low': self.safe_number(ticker, 'low_market_bid'),
-            'bid': self.safe_number(ticker, 'market_bid'),
+            'high': self.safe_string(ticker, 'high_market_ask'),
+            'low': self.safe_string(ticker, 'low_market_bid'),
+            'bid': self.safe_string(ticker, 'market_bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'market_ask'),
+            'ask': self.safe_string(ticker, 'market_ask'),
             'askVolume': None,
             'vwap': None,
             'open': open,
@@ -577,10 +582,10 @@ class liquid(Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'volume_24h'),
+            'baseVolume': self.safe_string(ticker, 'volume_24h'),
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()

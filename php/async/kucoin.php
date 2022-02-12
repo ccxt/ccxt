@@ -17,18 +17,25 @@ class kucoin extends Exchange {
             'id' => 'kucoin',
             'name' => 'KuCoin',
             'countries' => array( 'SC' ),
-            'rateLimit' => 334,
+            // note "only some endpoints are rate-limited"
+            // so I set the 'ratelimit' on those which supposedly 'arent ratelimited'
+            // to the limit of the cheapest endpoint
+            // 60 requests in 3 seconds = 20 requests per second => ( 1000ms / 20 ) = 50 ms between requests on average
+            'rateLimit' => 50,
             'version' => 'v2',
             'certified' => false,
             'pro' => true,
             'comment' => 'Platform 2.0',
             'quoteJsonNumbers' => false,
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => null,
                 'swap' => false,
                 'future' => false,
+                'option' => null,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => null,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'fetchAccounts' => true,
@@ -41,7 +48,9 @@ class kucoin extends Exchange {
                 'fetchDeposits' => true,
                 'fetchFundingFee' => true,
                 'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchL3OrderBook' => true,
                 'fetchLedger' => true,
@@ -91,157 +100,158 @@ class kucoin extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'timestamp',
-                        'status',
-                        'symbols',
-                        'markets',
-                        'market/allTickers',
-                        'market/orderbook/level{level}_{limit}',
-                        'market/orderbook/level2_20',
-                        'market/orderbook/level2_100',
-                        'market/histories',
-                        'market/candles',
-                        'market/stats',
-                        'currencies',
-                        'currencies/{currency}',
-                        'prices',
-                        'mark-price/{symbol}/current',
-                        'margin/config',
+                        'timestamp' => 1,
+                        'status' => 1,
+                        'symbols' => 1,
+                        'markets' => 1,
+                        'market/allTickers' => 1,
+                        'market/orderbook/level{level}_{limit}' => 1,
+                        'market/orderbook/level2_20' => 1,
+                        'market/orderbook/level2_100' => 1,
+                        'market/histories' => 1,
+                        'market/candles' => 1,
+                        'market/stats' => 1,
+                        'currencies' => 1,
+                        'currencies/{currency}' => 1,
+                        'prices' => 1,
+                        'mark-price/{symbol}/current' => 1,
+                        'margin/config' => 1,
                     ),
                     'post' => array(
-                        'bullet-public',
+                        'bullet-public' => 1,
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'market/orderbook/level{level}',
-                        'market/orderbook/level2',
-                        'market/orderbook/level3',
-                        'accounts',
-                        'accounts/{accountId}',
-                        // 'accounts/{accountId}/ledgers', Deprecated endpoint
-                        'accounts/ledgers',
-                        'accounts/{accountId}/holds',
-                        'accounts/transferable',
-                        'sub/user',
-                        'sub-accounts',
-                        'sub-accounts/{subUserId}',
-                        'deposit-addresses',
-                        'deposits',
-                        'hist-deposits',
-                        'hist-orders',
-                        'hist-withdrawals',
-                        'withdrawals',
-                        'withdrawals/quotas',
-                        'orders',
-                        'order/client-order/{clientOid}',
-                        'orders/{orderId}',
-                        'limit/orders',
-                        'fills',
-                        'limit/fills',
-                        'margin/account',
-                        'margin/borrow',
-                        'margin/borrow/outstanding',
-                        'margin/borrow/borrow/repaid',
-                        'margin/lend/active',
-                        'margin/lend/done',
-                        'margin/lend/trade/unsettled',
-                        'margin/lend/trade/settled',
-                        'margin/lend/assets',
-                        'margin/market',
-                        'margin/trade/last',
-                        'stop-order/{orderId}',
-                        'stop-order',
-                        'stop-order/queryOrderByClientOid',
+                        'market/orderbook/level{level}' => 1,
+                        'market/orderbook/level2' => array( 'v3' => 2 ), // 30/3s = 10/s => cost = 20 / 10 = 2
+                        'market/orderbook/level3' => 1,
+                        'accounts' => 1,
+                        'accounts/{accountId}' => 1,
+                        // 'accounts/{accountId}/ledgers' => 1, Deprecated endpoint
+                        'accounts/ledgers' => 3.333, // 18/3s = 6/s => cost = 20 / 6 = 3.333
+                        'accounts/{accountId}/holds' => 1,
+                        'accounts/transferable' => 1,
+                        'sub/user' => 1,
+                        'sub-accounts' => 1,
+                        'sub-accounts/{subUserId}' => 1,
+                        'deposit-addresses' => 1,
+                        'deposits' => 10, // 6/3s = 2/s => cost = 20 / 2 = 10
+                        'hist-deposits' => 10, // 6/3 = 2/s => cost = 20 / 2 = 10
+                        'hist-orders' => 1,
+                        'hist-withdrawals' => 10, // 6/3 = 2/s => cost = 20 / 2 = 10
+                        'withdrawals' => 10, // 6/3 = 2/s => cost = 20 / 2 = 10
+                        'withdrawals/quotas' => 1,
+                        'orders' => 2, // 30/3s =  10/s => cost  = 20 / 10 = 2
+                        'order/client-order/{clientOid}' => 1,
+                        'orders/{orderId}' => 1,
+                        'limit/orders' => 1,
+                        'fills' => 6.66667, // 9/3s = 3/s => cost  = 20 / 3 = 6.666667
+                        'limit/fills' => 1,
+                        'margin/account' => 1,
+                        'margin/borrow' => 1,
+                        'margin/borrow/outstanding' => 1,
+                        'margin/borrow/borrow/repaid' => 1,
+                        'margin/lend/active' => 1,
+                        'margin/lend/done' => 1,
+                        'margin/lend/trade/unsettled' => 1,
+                        'margin/lend/trade/settled' => 1,
+                        'margin/lend/assets' => 1,
+                        'margin/market' => 1,
+                        'margin/trade/last' => 1,
+                        'stop-order/{orderId}' => 1,
+                        'stop-order' => 1,
+                        'stop-order/queryOrderByClientOid' => 1,
                     ),
                     'post' => array(
-                        'accounts',
-                        'accounts/inner-transfer',
-                        'accounts/sub-transfer',
-                        'deposit-addresses',
-                        'withdrawals',
-                        'orders',
-                        'orders/multi',
-                        'margin/borrow',
-                        'margin/order',
-                        'margin/repay/all',
-                        'margin/repay/single',
-                        'margin/lend',
-                        'margin/toggle-auto-lend',
-                        'bullet-private',
-                        'stop-order',
+                        'accounts' => 1,
+                        'accounts/inner-transfer' => array( 'v2' => 1 ),
+                        'accounts/sub-transfer' => array( 'v2' => 25 ), // bad docs
+                        'deposit-addresses' => 1,
+                        'withdrawals' => 1,
+                        'orders' => 4, // 45/3s = 15/s => cost = 20 / 15 = 1.333333
+                        'orders/multi' => 20, // 3/3s = 1/s => cost = 20 / 1 = 20
+                        'margin/borrow' => 1,
+                        'margin/order' => 1,
+                        'margin/repay/all' => 1,
+                        'margin/repay/single' => 1,
+                        'margin/lend' => 1,
+                        'margin/toggle-auto-lend' => 1,
+                        'bullet-private' => 1,
+                        'stop-order' => 1,
                     ),
                     'delete' => array(
-                        'withdrawals/{withdrawalId}',
-                        'orders',
-                        'orders/client-order/{clientOid}',
-                        'orders/{orderId}',
-                        'margin/lend/{orderId}',
-                        'stop-order/cancelOrderByClientOid',
-                        'stop-order/{orderId}',
-                        'stop-order/cancel',
+                        'withdrawals/{withdrawalId}' => 1,
+                        'orders' => 20, // 3/3s = 1/s => cost = 20/1
+                        'orders/client-order/{clientOid}' => 1,
+                        'orders/{orderId}' => 1, // rateLimit => 60/3s = 20/s => cost = 1
+                        'margin/lend/{orderId}' => 1,
+                        'stop-order/cancelOrderByClientOid' => 1,
+                        'stop-order/{orderId}' => 1,
+                        'stop-order/cancel' => 1,
                     ),
                 ),
                 'futuresPublic' => array(
+                    // cheapest futures 'limited' endpoint is 40  requests per 3 seconds = 14.333 per second => cost = 20/14.333 = 1.3953
                     'get' => array(
-                        'contracts/active',
-                        'contracts/{symbol}',
-                        'ticker',
-                        'level2/snapshot',
-                        'level2/depth20',
-                        'level2/depth100',
-                        'level2/message/query',
-                        'level3/message/query', // deprecated，level3/snapshot is suggested
-                        'level3/snapshot', // v2
-                        'trade/history',
-                        'interest/query',
-                        'index/query',
-                        'mark-price/{symbol}/current',
-                        'premium/query',
-                        'funding-rate/{symbol}/current',
-                        'timestamp',
-                        'status',
-                        'kline/query',
+                        'contracts/active' => 1.3953,
+                        'contracts/{symbol}' => 1.3953,
+                        'ticker' => 1.3953,
+                        'level2/snapshot' => 2, // 30 requests per 3 seconds = 10 requests per second => cost = 20/10 = 2
+                        'level2/depth20' => 1.3953,
+                        'level2/depth100' => 1.3953,
+                        'level2/message/query' => 1.3953,
+                        'level3/message/query' => 1.3953, // deprecated，level3/snapshot is suggested
+                        'level3/snapshot' => 1.3953, // v2
+                        'trade/history' => 1.3953,
+                        'interest/query' => 1.3953,
+                        'index/query' => 1.3953,
+                        'mark-price/{symbol}/current' => 1.3953,
+                        'premium/query' => 1.3953,
+                        'funding-rate/{symbol}/current' => 1.3953,
+                        'timestamp' => 1.3953,
+                        'status' => 1.3953,
+                        'kline/query' => 1.3953,
                     ),
                     'post' => array(
-                        'bullet-public',
+                        'bullet-public' => 1.3953,
                     ),
                 ),
                 'futuresPrivate' => array(
                     'get' => array(
-                        'account-overview',
-                        'transaction-history',
-                        'deposit-address',
-                        'deposit-list',
-                        'withdrawals/quotas',
-                        'withdrawal-list',
-                        'transfer-list',
-                        'orders',
-                        'stopOrders',
-                        'recentDoneOrders',
-                        'orders/{order-id}', // ?clientOid={client-order-id} // get order by orderId
-                        'orders/byClientOid', // ?clientOid=eresc138b21023a909e5ad59 // get order by clientOid
-                        'fills',
-                        'recentFills',
-                        'openOrderStatistics',
-                        'position',
-                        'positions',
-                        'funding-history',
+                        'account-overview' => 2, // 30 requests per 3 seconds = 10 per second => cost = 20/10 = 2
+                        'transaction-history' => 6.666, // 9 requests per 3 seconds = 3 per second => cost = 20/3 = 6.666
+                        'deposit-address' => 1.3953,
+                        'deposit-list' => 1.3953,
+                        'withdrawals/quotas' => 1.3953,
+                        'withdrawal-list' => 1.3953,
+                        'transfer-list' => 1.3953,
+                        'orders' => 1.3953,
+                        'stopOrders' => 1.3953,
+                        'recentDoneOrders' => 1.3953,
+                        'orders/{order-id}' => 1.3953, // ?clientOid={client-order-id} // get order by orderId
+                        'orders/byClientOid' => 1.3953, // ?clientOid=eresc138b21023a909e5ad59 // get order by clientOid
+                        'fills' => 6.666, // 9 requests per 3 seconds = 3 per second => cost = 20/3 = 6.666
+                        'recentFills' => 6.666, // 9 requests per 3 seconds = 3 per second => cost = 20/3 = 6.666
+                        'openOrderStatistics' => 1.3953,
+                        'position' => 1.3953,
+                        'positions' => 6.666, // 9 requests per 3 seconds = 3 per second => cost = 20/3 = 6.666
+                        'funding-history' => 6.666, // 9 requests per 3 seconds = 3 per second => cost = 20/3 = 6.666
                     ),
                     'post' => array(
-                        'withdrawals',
-                        'transfer-out', // v2
-                        'orders',
-                        'position/margin/auto-deposit-status',
-                        'position/margin/deposit-margin',
-                        'bullet-private',
+                        'withdrawals' => 1.3953,
+                        'transfer-out' => 1.3953, // v2
+                        'orders' => 1.3953,
+                        'position/margin/auto-deposit-status' => 1.3953,
+                        'position/margin/deposit-margin' => 1.3953,
+                        'bullet-private' => 1.3953,
                     ),
                     'delete' => array(
-                        'withdrawals/{withdrawalId}',
-                        'cancel/transfer-out',
-                        'orders/{order-id}',
-                        'orders',
-                        'stopOrders',
+                        'withdrawals/{withdrawalId}' => 1.3953,
+                        'cancel/transfer-out' => 1.3953,
+                        'orders/{order-id}' => 1.3953, // 40 requests per 3 seconds = 14.333 per second => cost = 20/14.333 = 1.395
+                        'orders' => 6.666, // 9 requests per 3 seconds = 3 per second => cost = 20/3 = 6.666
+                        'stopOrders' => 1.3953,
                     ),
                 ),
             ),
@@ -506,7 +516,7 @@ class kucoin extends Exchange {
         //             "time":1602832092060,
         //             "ticker":array(
         //                 {
-        //                     "symbol" => "BTC-USDT",   // $symbol
+        //                     "symbol" => "BTC-USDT",   // symbol
         //                     "symbolName":"BTC-USDT", // Name of trading pairs, it would change after renaming
         //                     "buy" => "11328.9",   // bestAsk
         //                     "sell" => "11329",    // bestBid
@@ -537,9 +547,6 @@ class kucoin extends Exchange {
             list($baseId, $quoteId) = explode('-', $id);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $active = $this->safe_value($market, 'enableTrading');
-            $margin = $this->safe_value($market, 'isMarginEnabled');
             $baseMaxSize = $this->safe_number($market, 'baseMaxSize');
             $baseMinSizeString = $this->safe_string($market, 'baseMinSize');
             $quoteMaxSizeString = $this->safe_string($market, 'quoteMaxSize');
@@ -547,49 +554,59 @@ class kucoin extends Exchange {
             $quoteMaxSize = $this->parse_number($quoteMaxSizeString);
             $quoteMinSize = $this->safe_number($market, 'quoteMinSize');
             // $quoteIncrement = $this->safe_number($market, 'quoteIncrement');
-            $precision = array(
-                'amount' => $this->precision_from_string($this->safe_string($market, 'baseIncrement')),
-                'price' => $this->precision_from_string($this->safe_string($market, 'priceIncrement')),
-            );
-            $limits = array(
-                'amount' => array(
-                    'min' => $baseMinSize,
-                    'max' => $baseMaxSize,
-                ),
-                'price' => array(
-                    'min' => $this->safe_number($market, 'priceIncrement'),
-                    'max' => $this->parse_number(Precise::string_div($quoteMaxSizeString, $baseMinSizeString)),
-                ),
-                'cost' => array(
-                    'min' => $quoteMinSize,
-                    'max' => $quoteMaxSize,
-                ),
-                'leverage' => array(
-                    'max' => $this->safe_number($market, 'maxLeverage', 1), // * Don't default to 1 for $margin markets, leverage is located elsewhere
-                ),
-            );
             $ticker = $this->safe_value($tickersByMarketId, $id, array());
             $makerFeeRate = $this->safe_string($ticker, 'makerFeeRate');
             $takerFeeRate = $this->safe_string($ticker, 'makerFeeRate');
             $makerCoefficient = $this->safe_string($ticker, 'makerCoefficient');
             $takerCoefficient = $this->safe_string($ticker, 'takerCoefficient');
-            $maker = $this->parse_number(Precise::string_mul($makerFeeRate, $makerCoefficient));
-            $taker = $this->parse_number(Precise::string_mul($takerFeeRate, $takerCoefficient));
             $result[] = array(
                 'id' => $id,
-                'symbol' => $symbol,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
-                'margin' => $margin,
-                'active' => $active,
-                'maker' => $maker,
-                'taker' => $taker,
-                'precision' => $precision,
-                'limits' => $limits,
+                'margin' => $this->safe_value($market, 'isMarginEnabled'),
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => $this->safe_value($market, 'enableTrading'),
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'taker' => $this->parse_number(Precise::string_mul($takerFeeRate, $takerCoefficient)),
+                'maker' => $this->parse_number(Precise::string_mul($makerFeeRate, $makerCoefficient)),
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->precision_from_string($this->safe_string($market, 'baseIncrement')),
+                    'price' => $this->precision_from_string($this->safe_string($market, 'priceIncrement')),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => $baseMinSize,
+                        'max' => $baseMaxSize,
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => $quoteMinSize,
+                        'max' => $quoteMaxSize,
+                    ),
+                ),
                 'info' => $market,
             );
         }
@@ -776,41 +793,40 @@ class kucoin extends Exchange {
         //         time => 1634641777363
         //     }
         //
-        $percentage = $this->safe_number($ticker, 'changeRate');
+        $percentage = $this->safe_string($ticker, 'changeRate');
         if ($percentage !== null) {
-            $percentage = $percentage * 100;
+            $percentage = Precise::string_mul($percentage, '100');
         }
-        $last = $this->safe_number_2($ticker, 'last', 'lastTradedPrice');
-        $last = $this->safe_number($ticker, 'price', $last);
+        $last = $this->safe_string_2($ticker, 'last', 'lastTradedPrice');
+        $last = $this->safe_string($ticker, 'price', $last);
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market, '-');
         $symbol = $market['symbol'];
-        $baseVolume = $this->safe_number($ticker, 'vol');
-        $quoteVolume = $this->safe_number($ticker, 'volValue');
-        $vwap = $this->vwap($baseVolume, $quoteVolume);
+        $baseVolume = $this->safe_string($ticker, 'vol');
+        $quoteVolume = $this->safe_string($ticker, 'volValue');
         $timestamp = $this->safe_integer_2($ticker, 'time', 'datetime');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number_2($ticker, 'buy', 'bestBid'),
-            'bidVolume' => $this->safe_number($ticker, 'bestBidSize'),
-            'ask' => $this->safe_number_2($ticker, 'sell', 'bestAsk'),
-            'askVolume' => $this->safe_number($ticker, 'bestAskSize'),
-            'vwap' => $vwap,
-            'open' => $this->safe_number($ticker, 'open'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string_2($ticker, 'buy', 'bestBid'),
+            'bidVolume' => $this->safe_string($ticker, 'bestBidSize'),
+            'ask' => $this->safe_string_2($ticker, 'sell', 'bestAsk'),
+            'askVolume' => $this->safe_string($ticker, 'bestAskSize'),
+            'vwap' => null,
+            'open' => $this->safe_string($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $this->safe_number($ticker, 'changePrice'),
+            'change' => $this->safe_string($ticker, 'changePrice'),
             'percentage' => $percentage,
-            'average' => $this->safe_number($ticker, 'averagePrice'),
+            'average' => $this->safe_string($ticker, 'averagePrice'),
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -1322,9 +1338,9 @@ class kucoin extends Exchange {
         //         "fee" => "0",            // $fee
         //         "feeCurrency" => "USDT", // charge $fee currency
         //         "stp" => "",             // self trade prevention,include CN,CO,DC,CB
-        //         "stop" => "",            // stop $type
-        //         "stopTriggered" => false,  // stop $order is triggered
-        //         "stopPrice" => "0",      // stop $price
+        //         "stop" => "",            // $stop $type
+        //         "stopTriggered" => false,  // $stop $order is triggered
+        //         "stopPrice" => "0",      // $stop $price
         //         "timeInForce" => "GTC",  // time InForce,include GTC,GTT,IOC,FOK
         //         "postOnly" => false,     // $postOnly
         //         "hidden" => false,       // hidden $order
@@ -1359,8 +1375,11 @@ class kucoin extends Exchange {
         // bool
         $isActive = $this->safe_value($order, 'isActive', false);
         $cancelExist = $this->safe_value($order, 'cancelExist', false);
+        $stop = $this->safe_string($order, 'stop');
+        $stopTriggered = $this->safe_value($order, 'stopTriggered', false);
         $status = $isActive ? 'open' : 'closed';
-        $status = $cancelExist ? 'canceled' : $status;
+        $cancelExistWithStop = $cancelExist || (!$isActive && $stop && !$stopTriggered);
+        $status = $cancelExistWithStop ? 'canceled' : $status;
         $fee = array(
             'currency' => $feeCurrency,
             'cost' => $feeCost,
@@ -2269,6 +2288,22 @@ class kucoin extends Exchange {
         $data = $this->safe_value($response, 'data');
         $items = $this->safe_value($data, 'items');
         return $this->parse_ledger($items, $currency, $since, $limit);
+    }
+
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
+        $versions = $this->safe_value($this->options, 'versions', array());
+        $apiVersions = $this->safe_value($versions, $api, array());
+        $methodVersions = $this->safe_value($apiVersions, $method, array());
+        $defaultVersion = $this->safe_string($methodVersions, $path, $this->options['version']);
+        $version = $this->safe_string($params, 'version', $defaultVersion);
+        if ($version === 'v3' && (is_array($config) && array_key_exists('v3', $config))) {
+            return $config['v3'];
+        } else if ($version === 'v2' && (is_array($config) && array_key_exists('v2', $config))) {
+            return $config['v2'];
+        } else if ($version === 'v1' && (is_array($config) && array_key_exists('v1', $config))) {
+            return $config['v1'];
+        }
+        return $this->safe_integer($config, 'cost', 1);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

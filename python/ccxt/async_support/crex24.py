@@ -9,6 +9,7 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import AccountSuspended
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -32,19 +33,40 @@ class crex24(Exchange):
             'version': 'v2',
             # new metainfo interface
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': None,
+                'cancelOrders': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchFundingFees': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -52,6 +74,10 @@ class crex24(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -59,6 +85,10 @@ class crex24(Exchange):
                 'fetchTradingFees': None,  # actually, True, but will be implemented later
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -293,18 +323,6 @@ class crex24(Exchange):
             quoteId = self.safe_string(market, 'quoteCurrency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            tickSize = self.safe_number(market, 'tickSize')
-            minPrice = self.safe_number(market, 'minPrice')
-            maxPrice = self.safe_number(market, 'maxPrice')
-            minAmount = self.safe_number(market, 'minVolume')
-            maxAmount = self.safe_number(market, 'maxVolume')
-            minCost = self.safe_number(market, 'minQuoteVolume')
-            maxCost = self.safe_number(market, 'maxQuoteVolume')
-            precision = {
-                'amount': minAmount,
-                'price': tickSize,
-            }
             maker = None
             taker = None
             feeSchedule = self.safe_string(market, 'feeSchedule')
@@ -319,35 +337,56 @@ class crex24(Exchange):
                             taker = self.safe_number(feeRates[k], 'taker')
                             break
                     break
-            active = (market['state'] == 'active')
+            state = self.safe_string(market, 'state')
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'active': active,
-                'precision': precision,
-                'maker': maker,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': (state == 'active'),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
                 'taker': taker,
+                'maker': maker,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_number(market, 'volumeIncrement'),
+                    'price': self.safe_number(market, 'tickSize'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
-                        'min': minAmount,
-                        'max': maxAmount,
+                        'min': self.safe_number(market, 'minVolume'),
+                        'max': self.safe_number(market, 'maxVolume'),
                     },
                     'price': {
-                        'min': minPrice,
-                        'max': maxPrice,
+                        'min': self.safe_number(market, 'minPrice'),
+                        'max': self.safe_number(market, 'maxPrice'),
                     },
                     'cost': {
-                        'min': minCost,
-                        'max': maxCost,
+                        'min': self.safe_number(market, 'minQuoteVolume'),
+                        'max': self.safe_number(market, 'maxQuoteVolume'),
                     },
                 },
+                'info': market,
             })
         return result
 
@@ -780,6 +819,10 @@ class crex24(Exchange):
         #         "childOrderId": null
         #     }
         #
+        # cancelOrder, cancelOrders, cancelAllOrders
+        #
+        #  465448358
+        #
         status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'instrument')
         symbol = self.safe_symbol(marketId, market, '-')
@@ -788,7 +831,7 @@ class crex24(Exchange):
         amount = self.safe_string(order, 'volume')
         remaining = self.safe_string(order, 'remainingVolume')
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'lastUpdate'))
-        id = self.safe_string(order, 'id')
+        id = self.safe_string(order, 'id', order)  # if order was integer
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'side')
         timeInForce = self.safe_string(order, 'timeInForce')
@@ -1072,12 +1115,19 @@ class crex24(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     async def cancel_order(self, id, symbol=None, params={}):
+        response = await self.cancel_orders([id], symbol, params)
+        return self.safe_value(response, 0)
+
+    async def cancel_orders(self, ids, symbol=None, params={}):
+        if not isinstance(ids, list):
+            raise ArgumentsRequired(self.id + ' cancelOrders ids argument should be an array')
         await self.load_markets()
         request = {
-            'ids': [
-                int(id),
-            ],
+            'ids': [],
         }
+        for i in range(0, len(ids)):
+            id = int(ids[i])
+            request['ids'].append(id)
         response = await self.tradingPostCancelOrdersById(self.extend(request, params))
         #
         #     [
@@ -1085,17 +1135,33 @@ class crex24(Exchange):
         #         468364313
         #     ]
         #
-        return self.parse_order(response)
+        return self.parse_orders(response)
 
     async def cancel_all_orders(self, symbol=None, params={}):
-        response = await self.tradingPostCancelAllOrders(params)
-        #
-        #     [
-        #         465448358,
-        #         468364313
-        #     ]
-        #
-        return response
+        response = None
+        market = None
+        if symbol is None:
+            response = await self.tradingPostCancelAllOrders(params)
+            #
+            #     [
+            #         465448358,
+            #         468364313
+            #     ]
+            #
+        else:
+            await self.load_markets()
+            market = self.market(symbol)
+            request = {
+                'instruments': [market['id']],
+            }
+            response = await self.tradingPostCancelOrdersByInstrument(self.extend(request, params))
+            #
+            #     [
+            #         465441234,
+            #         468364321
+            #     ]
+            #
+        return self.parse_orders(response, market, None, None, params)
 
     async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()

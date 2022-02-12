@@ -22,14 +22,25 @@ class exmo extends Exchange {
             'rateLimit' => 350, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
             'version' => 'v1.1',
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => null, // has but unimplemented
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'cancelOrder' => true,
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchFundingFees' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -37,6 +48,7 @@ class exmo extends Exchange {
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => true,
                 'fetchOrderTrades' => true,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
@@ -434,35 +446,41 @@ class exmo extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $takerString = $this->safe_string($market, 'commission_taker_percent');
             $makerString = $this->safe_string($market, 'commission_maker_percent');
-            $taker = $this->parse_number(Precise::string_div($takerString, '100'));
-            $maker = $this->parse_number(Precise::string_div($makerString, '100'));
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
                 'margin' => false,
-                'future' => false,
                 'swap' => false,
+                'future' => false,
                 'option' => false,
-                'optionType' => null,
-                'strike' => null,
+                'active' => true,
+                'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                'contract' => false,
+                'taker' => $this->parse_number(Precise::string_div($takerString, '100')),
+                'maker' => $this->parse_number(Precise::string_div($makerString, '100')),
                 'contractSize' => null,
-                'settle' => null,
-                'settleId' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
-                'active' => true,
-                'taker' => $taker,
-                'maker' => $maker,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => intval('8'),
+                    'price' => $this->safe_integer($market, 'price_precision'),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->safe_number($market, 'min_quantity'),
                         'max' => $this->safe_number($market, 'max_quantity'),
@@ -475,10 +493,6 @@ class exmo extends Exchange {
                         'min' => $this->safe_number($market, 'min_amount'),
                         'max' => $this->safe_number($market, 'max_amount'),
                     ),
-                ),
-                'precision' => array(
-                    'amount' => 8,
-                    'price' => $this->safe_integer($market, 'price_precision'),
                 ),
                 'info' => $market,
             );

@@ -29,18 +29,17 @@ class whitebit(Exchange):
             'countries': ['EE'],
             'rateLimit': 500,
             'has': {
+                'CORS': None,
                 'spot': True,
+                'margin': None,  # has but unimplemented
                 'swap': False,
                 'future': False,
                 'option': False,
-                'addMargin': False,
                 'cancelOrder': True,
-                'CORS': None,
                 'createDepositAddress': None,
                 'createLimitOrder': None,
                 'createMarketOrder': None,
                 'createOrder': True,
-                'createReduceOnlyOrder': False,
                 'deposit': None,
                 'editOrder': None,
                 'fetchBalance': True,
@@ -54,24 +53,18 @@ class whitebit(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchIsolatedPositions': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
                 'fetchOrderTrades': True,
-                'fetchPosition': False,
-                'fetchPositions': False,
-                'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFees': True,
-                'reduceMargin': False,
-                'setPositionMode': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -479,30 +472,31 @@ class whitebit(Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        last = self.safe_number(ticker, 'last_price')
-        percentage = self.safe_number(ticker, 'change') * 0.01
+        last = self.safe_string(ticker, 'last_price')
+        change = self.safe_string(ticker, 'change')
+        percentage = Precise.string_mul(change, '0.01')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
             'datetime': None,
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_number(ticker, 'open'),
+            'open': self.safe_string(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
             'change': None,
             'percentage': percentage,
             'average': None,
-            'baseVolume': self.safe_number_2(ticker, 'base_volume', 'volume'),
-            'quoteVolume': self.safe_number_2(ticker, 'quote_volume', 'deal'),
+            'baseVolume': self.safe_string_2(ticker, 'base_volume', 'volume'),
+            'quoteVolume': self.safe_string_2(ticker, 'quote_volume', 'deal'),
             'info': ticker,
-        })
+        }, market, False)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()

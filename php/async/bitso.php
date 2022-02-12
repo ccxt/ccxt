@@ -20,15 +20,22 @@ class bitso extends Exchange {
             'rateLimit' => 2000, // 30 requests per minute
             'version' => 'v3',
             'has' => array(
+                'CORS' => null,
                 'spot' => true,
-                'margin' => null,
+                'margin' => false,
                 'swap' => false,
                 'future' => false,
                 'option' => false,
+                'addMargin' => false,
                 'cancelOrder' => true,
-                'CORS' => null,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchDepositAddress' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
@@ -44,6 +51,7 @@ class bitso extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderTrades' => true,
+                'fetchPosition' => false,
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
@@ -51,6 +59,7 @@ class bitso extends Exchange {
                 'fetchTrades' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
+                'setMarginMode' => false,
                 'setPositionMode' => false,
                 'withdraw' => true,
             ),
@@ -176,14 +185,12 @@ class bitso extends Exchange {
             $quote = strtoupper($quoteId);
             $base = $this->safe_currency_code($base);
             $quote = $this->safe_currency_code($quote);
-            $defaultPricePrecision = $this->safe_number($this->options['precision'], $quote, $this->options['defaultPrecision']);
-            $pricePrecision = $this->safe_number($market, 'tick_size', $defaultPricePrecision);
             $fees = $this->safe_value($market, 'fees', array());
             $flatRate = $this->safe_value($fees, 'flat_rate', array());
-            $makerString = $this->safe_string($flatRate, 'maker');
             $takerString = $this->safe_string($flatRate, 'taker');
-            $maker = $this->parse_number(Precise::string_div($makerString, '100'));
+            $makerString = $this->safe_string($flatRate, 'maker');
             $taker = $this->parse_number(Precise::string_div($takerString, '100'));
+            $maker = $this->parse_number(Precise::string_div($makerString, '100'));
             $feeTiers = $this->safe_value($fees, 'structure', array());
             $fee = array(
                 'taker' => $taker,
@@ -210,6 +217,7 @@ class bitso extends Exchange {
                 'maker' => $makerFees,
             );
             $fee['tiers'] = $tiers;
+            $defaultPricePrecision = $this->safe_number($this->options['precision'], $quote, $this->options['defaultPrecision']);
             $result[] = array_merge(array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
@@ -238,7 +246,7 @@ class bitso extends Exchange {
                 'optionType' => null,
                 'precision' => array(
                     'amount' => $this->safe_number($this->options['precision'], $base, $this->options['defaultPrecision']),
-                    'price' => $pricePrecision,
+                    'price' => $this->safe_number($market, 'tick_size', $defaultPricePrecision),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -327,30 +335,36 @@ class bitso extends Exchange {
         return $this->parse_order_book($orderbook, $symbol, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
-        yield $this->load_markets();
-        $request = array(
-            'book' => $this->market_id($symbol),
-        );
-        $response = yield $this->publicGetTicker (array_merge($request, $params));
-        $ticker = $this->safe_value($response, 'payload');
+    public function parse_ticker($ticker, $market = null) {
+        //
+        //     {
+        //         "high":"37446.85",
+        //         "last":"36599.54",
+        //         "created_at":"2022-01-28T12:06:11+00:00",
+        //         "book":"btc_usdt",
+        //         "volume":"7.29075419",
+        //         "vwap":"36579.1564400307",
+        //         "low":"35578.52",
+        //         "ask":"36574.76",
+        //         "bid":"36538.22",
+        //         "change_24":"-105.64"
+        //     }
+        //
+        $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->parse8601($this->safe_string($ticker, 'created_at'));
-        $vwap = $this->safe_number($ticker, 'vwap');
-        $baseVolume = $this->safe_number($ticker, 'volume');
-        $quoteVolume = null;
-        if ($baseVolume !== null && $vwap !== null) {
-            $quoteVolume = $baseVolume * $vwap;
-        }
-        $last = $this->safe_number($ticker, 'last');
-        return array(
+        $vwap = $this->safe_string($ticker, 'vwap');
+        $baseVolume = $this->safe_string($ticker, 'volume');
+        $quoteVolume = Precise::string_mul($baseVolume, $vwap);
+        $last = $this->safe_string($ticker, 'last');
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => $vwap,
             'open' => null,
@@ -363,7 +377,35 @@ class bitso extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
+        ), $market, false);
+    }
+
+    public function fetch_ticker($symbol, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'book' => $market['id'],
         );
+        $response = yield $this->publicGetTicker (array_merge($request, $params));
+        $ticker = $this->safe_value($response, 'payload');
+        //
+        //     {
+        //         "success":true,
+        //         "payload":{
+        //             "high":"37446.85",
+        //             "last":"37051.96",
+        //             "created_at":"2022-01-28T17:03:29+00:00",
+        //             "book":"btc_usdt",
+        //             "volume":"6.16176186",
+        //             "vwap":"36582.6293169472",
+        //             "low":"35578.52",
+        //             "ask":"37083.62",
+        //             "bid":"37039.66",
+        //             "change_24":"478.45"
+        //         }
+        //     }
+        //
+        return $this->parse_ticker($ticker, $market);
     }
 
     public function parse_trade($trade, $market = null) {

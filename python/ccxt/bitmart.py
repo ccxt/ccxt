@@ -45,6 +45,12 @@ class bitmart(Exchange):
             'certified': True,
             'pro': True,
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': None,  # has but unimplemented
+                'swap': None,  # has but unimplemented
+                'future': None,  # has but unimplemented
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
@@ -475,18 +481,18 @@ class bitmart(Exchange):
                 'swap': False,
                 'future': False,
                 'option': False,
+                'active': True,
                 'contract': False,
                 'linear': None,
                 'inverse': None,
                 'contractSize': None,
-                'active': True,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_number(market, 'base_min_size'),
                     'price': self.parse_number(self.decimal_to_precision(math.pow(10, -pricePrecision), ROUND, 14)),
+                    'amount': self.safe_number(market, 'base_min_size'),
                 },
                 'limits': {
                     'leverage': {
@@ -622,20 +628,20 @@ class bitmart(Exchange):
                 'swap': swap,
                 'future': future,
                 'option': False,
+                'active': None,
                 'contract': True,
                 'linear': None,
                 'inverse': None,
                 'taker': self.safe_number(feeConfig, 'taker_fee'),
                 'maker': self.safe_number(feeConfig, 'maker_fee'),
                 'contractSize': self.safe_number(market, 'contract_size'),
-                'active': None,
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': amountPrecision,
                     'price': pricePrecision,
+                    'amount': amountPrecision,
                 },
                 'limits': {
                     'leverage': {
@@ -832,14 +838,13 @@ class bitmart(Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        marketType = None
-        marketType, params = self.handle_market_type_and_params('fetchTickers', None, params)
+        marketType, query = self.handle_market_type_and_params('fetchTickers', None, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'publicSpotGetTicker',
             'swap': 'publicContractGetTickers',
             'future': 'publicContractGetTickers',
         })
-        response = getattr(self, method)(params)
+        response = getattr(self, method)(query)
         data = self.safe_value(response, 'data', {})
         tickers = self.safe_value(data, 'tickers', [])
         result = {}
@@ -1265,7 +1270,7 @@ class bitmart(Exchange):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        method = None
+        marketType, query = self.handle_market_type_and_params('fetchMyTrades', market, params)
         request = {}
         if market['spot']:
             request['symbol'] = market['id']
@@ -1273,14 +1278,17 @@ class bitmart(Exchange):
             if limit is None:
                 limit = 100  # max 100
             request['limit'] = limit
-            method = 'privateSpotGetTrades'
         elif market['swap'] or market['future']:
             request['contractID'] = market['id']
             # request['offset'] = 1
             if limit is not None:
                 request['size'] = limit  # max 60
-            method = 'privateContractGetUserTrades'
-        response = getattr(self, method)(self.extend(request, params))
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateSpotGetTrades',
+            'swap': 'privateContractGetUserTrades',
+            'future': 'privateContractGetUserTrades',
+        })
+        response = getattr(self, method)(self.extend(request, query))
         #
         # spot
         #
@@ -1341,17 +1349,20 @@ class bitmart(Exchange):
             raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        method = None
+        marketType, query = self.handle_market_type_and_params('fetchOrderTrades', market, params)
         request = {}
         if market['spot']:
             request['symbol'] = market['id']
             request['order_id'] = id
-            method = 'privateSpotGetTrades'
         elif market['swap'] or market['future']:
             request['contractID'] = market['id']
             request['orderID'] = id
-            method = 'privateContractGetOrderTrades'
-        response = getattr(self, method)(self.extend(request, params))
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateSpotGetTrades',
+            'swap': 'privateContractGetOrderTrades',
+            'future': 'privateContractGetOrderTrades',
+        })
+        response = getattr(self, method)(self.extend(request, query))
         #
         # spot
         #
@@ -1810,10 +1821,9 @@ class bitmart(Exchange):
             raise ArgumentsRequired(self.id + ' fetchOrdersByStatus() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
+        marketType, query = self.handle_market_type_and_params('fetchOrdersByStatus', market, params)
         request = {}
-        method = None
         if market['spot']:
-            method = 'privateSpotGetOrders'
             request['symbol'] = market['id']
             request['offset'] = 1  # max offset * limit < 500
             request['limit'] = 100  # max limit is 100
@@ -1836,7 +1846,6 @@ class bitmart(Exchange):
             else:
                 request['status'] = status
         elif market['swap'] or market['future']:
-            method = 'privateContractGetUserOrders'
             request['contractID'] = market['id']
             # request['offset'] = 1
             if limit is not None:
@@ -1852,7 +1861,12 @@ class bitmart(Exchange):
                 request['status'] = 4
             else:
                 request['status'] = status
-        response = getattr(self, method)(self.extend(request, params))
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateSpotGetOrders',
+            'swap': 'privateContractGetUserOrders',
+            'future': 'privateContractGetUserOrders',
+        })
+        response = getattr(self, method)(self.extend(request, query))
         #
         # spot
         #
@@ -1939,18 +1953,21 @@ class bitmart(Exchange):
         self.load_markets()
         request = {}
         market = self.market(symbol)
-        method = None
         if not isinstance(id, basestring):
             id = str(id)
+        marketType, query = self.handle_market_type_and_params('fetchOrder', market, params)
         if market['spot']:
             request['symbol'] = market['id']
             request['order_id'] = id
-            method = 'privateSpotGetOrderDetail'
         elif market['swap'] or market['future']:
             request['contractID'] = market['id']
             request['orderID'] = id
-            method = 'privateContractGetUserOrderInfo'
-        response = getattr(self, method)(self.extend(request, params))
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateSpotGetOrderDetail',
+            'swap': 'privateContractGetUserOrderInfo',
+            'future': 'privateContractGetUserOrderInfo',
+        })
+        response = getattr(self, method)(self.extend(request, query))
         #
         # spot
         #

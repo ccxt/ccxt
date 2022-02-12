@@ -18,6 +18,7 @@ class btcturk extends Exchange {
             'countries' => array( 'TR' ), // Turkey
             'rateLimit' => 100,
             'has' => array(
+                'CORS' => true,
                 'spot' => true,
                 'margin' => false,
                 'swap' => false,
@@ -25,11 +26,11 @@ class btcturk extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
-                'CORS' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
@@ -215,8 +216,8 @@ class btcturk extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($entry, 'denominatorScale'),
                     'amount' => $this->safe_integer($entry, 'numeratorScale'),
+                    'price' => $this->safe_integer($entry, 'denominatorScale'),
                 ),
                 'limits' => array(
                     'leverage' => array(

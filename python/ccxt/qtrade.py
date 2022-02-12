@@ -17,6 +17,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.precise import Precise
 
 
 class qtrade(Exchange):
@@ -36,29 +37,57 @@ class qtrade(Exchange):
                 'referral': 'https://qtrade.io/?ref=BKOQWVFGRH2C',
             },
             'has': {
-                'cancelOrder': True,
                 'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
                 'createMarketOrder': None,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDeposit': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTransactions': None,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -180,29 +209,45 @@ class qtrade(Exchange):
             quoteId = self.safe_string(market, 'base_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            precision = {
-                'amount': self.safe_integer(market, 'market_precision'),
-                'price': self.safe_integer(market, 'base_precision'),
-            }
             canView = self.safe_value(market, 'can_view', False)
             canTrade = self.safe_value(market, 'can_trade', False)
             active = canTrade and canView
             result.append({
-                'symbol': symbol,
                 'id': marketId,
                 'numericId': numericId,
-                'baseId': baseId,
-                'quoteId': quoteId,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': None,
                 'type': 'spot',
                 'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'active': active,
-                'precision': precision,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
                 'taker': self.safe_number(market, 'taker_fee'),
                 'maker': self.safe_number(market, 'maker_fee'),
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.safe_integer(market, 'market_precision'),
+                    'price': self.safe_integer(market, 'base_precision'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(market, 'minimum_sell_value'),
                         'max': None,
@@ -412,30 +457,25 @@ class qtrade(Exchange):
         marketId = self.safe_string(ticker, 'id_hr')
         symbol = self.safe_symbol(marketId, market, '_')
         timestamp = self.safe_integer_product(ticker, 'last_change', 0.001)
-        previous = self.safe_number(ticker, 'day_open')
-        last = self.safe_number(ticker, 'last')
-        day_change = self.safe_number(ticker, 'day_change')
-        percentage = None
-        change = None
-        average = self.safe_number(ticker, 'day_avg_price')
-        if day_change is not None:
-            percentage = day_change * 100
-            if previous is not None:
-                change = day_change * previous
-        baseVolume = self.safe_number(ticker, 'day_volume_market')
-        quoteVolume = self.safe_number(ticker, 'day_volume_base')
-        vwap = self.vwap(baseVolume, quoteVolume)
+        previous = self.safe_string(ticker, 'day_open')
+        last = self.safe_string(ticker, 'last')
+        day_change = self.safe_string(ticker, 'day_change')
+        average = self.safe_string(ticker, 'day_avg_price')
+        baseVolume = self.safe_string(ticker, 'day_volume_market')
+        quoteVolume = self.safe_string(ticker, 'day_volume_base')
+        percentage = Precise.string_mul(day_change, '100')
+        change = Precise.string_mul(day_change, previous)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'day_high'),
-            'low': self.safe_number(ticker, 'day_low'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'day_high'),
+            'low': self.safe_string(ticker, 'day_low'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
-            'vwap': vwap,
+            'vwap': None,
             'open': previous,
             'close': last,
             'last': last,
@@ -446,7 +486,7 @@ class qtrade(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()

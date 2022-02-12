@@ -30,21 +30,50 @@ class wavesexchange(Exchange):
             'certified': True,
             'pro': False,
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
                 'cancelOrder': True,
-                'createMarketOrder': None,
+                'createMarketOrder': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedPositions': False,
+                'fetchLeverage': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
-                'fetchOrderBook': True,
                 'fetchOrder': True,
+                'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'signIn': True,
                 'withdraw': True,
             },
@@ -66,7 +95,7 @@ class wavesexchange(Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg',
                 'test': {
-                    'matcher': 'http://matcher-testnet.waves.exchange',
+                    'matcher': 'https://matcher-testnet.waves.exchange',
                     'node': 'https://nodes-testnet.wavesnodes.com',
                     'public': 'https://api-testnet.wavesplatform.com/v0',
                     'private': 'https://api-testnet.waves.exchange/v1',
@@ -74,7 +103,7 @@ class wavesexchange(Exchange):
                     'market': 'https://testnet.waves.exchange/api/v1/forward/marketdata/api/v1',
                 },
                 'api': {
-                    'matcher': 'http://matcher.waves.exchange',
+                    'matcher': 'https://matcher.waves.exchange',
                     'node': 'https://nodes.waves.exchange',
                     'public': 'https://api.wavesplatform.com/v0',
                     'private': 'https://api.waves.exchange/v1',
@@ -268,6 +297,7 @@ class wavesexchange(Exchange):
             'options': {
                 'allowedCandles': 1440,
                 'accessToken': None,
+                'createMarketBuyOrderRequiresPrice': True,
                 'matcherPublicKey': None,
                 'quotes': None,
                 'createOrderDefaultExpiry': 2419200000,  # 60 * 60 * 24 * 28 * 1000
@@ -320,6 +350,23 @@ class wavesexchange(Exchange):
     def set_sandbox_mode(self, enabled):
         self.options['messagePrefix'] = 'T' if enabled else 'W'
         return super(wavesexchange, self).set_sandbox_mode(enabled)
+
+    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
+        settings = self.matcherGetMatcherSettings()
+        dynamic = self.safe_get_dynamic(settings)
+        baseMatcherFee = self.safe_string(dynamic, 'baseFee')
+        amountAsString = self.number_to_string(amount)
+        priceAsString = self.number_to_string(price)
+        wavesMatcherFee = self.currency_from_precision('WAVES', baseMatcherFee)
+        feeCost = self.fee_to_precision(symbol, self.parse_number(wavesMatcherFee))
+        feeRate = Precise.string_div(wavesMatcherFee, Precise.string_mul(amountAsString, priceAsString))
+        return {
+            'type': takerOrMaker,
+            'currency': 'WAVES',
+            # To calculate the rate since Waves has a fixed fee.
+            'rate': self.parse_number(feeRate),
+            'cost': self.parse_number(feeCost),
+        }
 
     def get_quotes(self):
         quotes = self.safe_value(self.options, 'quotes')
@@ -440,11 +487,11 @@ class wavesexchange(Exchange):
                 'swap': False,
                 'future': False,
                 'option': False,
+                'active': None,
                 'contract': False,
                 'linear': None,
                 'inverse': None,
                 'contractSize': None,
-                'active': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
@@ -641,13 +688,13 @@ class wavesexchange(Exchange):
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
         data = self.safe_value(ticker, 'data', {})
-        last = self.safe_number(data, 'lastPrice')
-        low = self.safe_number(data, 'low')
-        high = self.safe_number(data, 'high')
-        vwap = self.safe_number(data, 'weightedAveragePrice')
-        baseVolume = self.safe_number(data, 'volume')
-        quoteVolume = self.safe_number(data, 'quoteVolume')
-        open = self.safe_number(data, 'firstPrice')
+        last = self.safe_string(data, 'lastPrice')
+        low = self.safe_string(data, 'low')
+        high = self.safe_string(data, 'high')
+        vwap = self.safe_string(data, 'weightedAveragePrice')
+        baseVolume = self.safe_string(data, 'volume')
+        quoteVolume = self.safe_string(data, 'quoteVolume')
+        open = self.safe_string(data, 'firstPrice')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -669,7 +716,7 @@ class wavesexchange(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }, market)
+        }, market, False)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -713,15 +760,20 @@ class wavesexchange(Exchange):
             'quoteId': market['quoteId'],
             'interval': self.timeframes[timeframe],
         }
-        if since is not None:
-            request['timeStart'] = str(since)
-        else:
-            allowedCandles = self.safe_integer(self.options, 'allowedCandles', 1440)
-            timeframeUnix = self.parse_timeframe(timeframe) * 1000
-            currentTime = int(math.floor(self.milliseconds()) / timeframeUnix) * timeframeUnix
-            delta = (allowedCandles - 1) * timeframeUnix
+        allowedCandles = self.safe_integer(self.options, 'allowedCandles', 1440)
+        if limit is None:
+            limit = allowedCandles
+        limit = min(allowedCandles, limit)
+        duration = self.parse_timeframe(timeframe) * 1000
+        if since is None:
+            currentTime = int(self.milliseconds() / duration) * duration
+            delta = (limit - 1) * duration
             timeStart = currentTime - delta
             request['timeStart'] = str(timeStart)
+        else:
+            request['timeStart'] = str(since)
+            timeEnd = self.sum(since, duration * limit)
+            request['timeEnd'] = str(timeEnd)
         response = self.publicGetCandlesBaseIdQuoteId(self.extend(request, params))
         #
         #     {
@@ -973,6 +1025,19 @@ class wavesexchange(Exchange):
         scale = wavesPrecision - market['precision']['amount'] + market['precision']['price']
         return self.from_precision(price, scale)
 
+    def safe_get_dynamic(self, settings):
+        orderFee = self.safe_value(settings, 'orderFee')
+        if 'dynamic' in orderFee:
+            return self.safe_value(orderFee, 'dynamic')
+        else:
+            return self.safe_value(orderFee['composite']['default'], 'dynamic')
+
+    def safe_get_rates(self, dynamic):
+        rates = self.safe_value(dynamic, 'rates')
+        if rates is None:
+            return {'WAVES': 1}
+        return rates
+
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.check_required_dependencies()
         self.check_required_keys()
@@ -982,6 +1047,9 @@ class wavesexchange(Exchange):
         amountAsset = self.get_asset_id(market['baseId'])
         priceAsset = self.get_asset_id(market['quoteId'])
         amount = self.amount_to_precision(symbol, amount)
+        isMarketOrder = (type == 'market')
+        if (isMarketOrder) and (price is None):
+            raise InvalidOrder(self.id + ' createOrder() requires a price argument for ' + type + ' orders to determine the max price for buy and the min price for sell')
         price = self.price_to_precision(symbol, price)
         orderType = 0 if (side == 'buy') else 1
         timestamp = self.milliseconds()
@@ -1036,11 +1104,10 @@ class wavesexchange(Exchange):
         #     "4LHHvYGNKJUg5hj65aGD5vgScvCBmLpdRFtjokvCjSL8"
         #   ]
         # }
-        orderFee = self.safe_value(settings, 'orderFee')
-        dynamic = self.safe_value(orderFee, 'dynamic')
+        dynamic = self.safe_get_dynamic(settings)
         baseMatcherFee = self.safe_string(dynamic, 'baseFee')
         wavesMatcherFee = self.currency_from_precision('WAVES', baseMatcherFee)
-        rates = self.safe_value(dynamic, 'rates')
+        rates = self.safe_get_rates(dynamic)
         # choose sponsored assets from the list of priceAssets above
         priceAssets = list(rates.keys())
         matcherFeeAssetId = None
@@ -1110,7 +1177,14 @@ class wavesexchange(Exchange):
         }
         if matcherFeeAssetId != 'WAVES':
             body['matcherFeeAssetId'] = matcherFeeAssetId
-        response = self.matcherPostMatcherOrderbook(body)
+        if isMarketOrder:
+            response = self.matcherPostMatcherOrderbookMarket(body)
+            value = self.safe_value(response, 'message')
+            return self.parse_order(value, market)
+        else:
+            response = self.matcherPostMatcherOrderbook(body)
+            value = self.safe_value(response, 'message')
+            return self.parse_order(value, market)
         # {success: True,
         #   message:
         #    {version: 3,
@@ -1132,8 +1206,6 @@ class wavesexchange(Exchange):
         #      proofs:
         #       ['2EG8zgE6Ze1X5EYA8DbfFiPXAtC7NniYBAMFbJUbzwVbHmmCKHornQfS5F32NwkHF4623KWq1U6K126h4TTqyVq']},
         #   status: 'OrderAccepted'}
-        value = self.safe_value(response, 'message')
-        return self.parse_order(value, market)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.check_required_dependencies()

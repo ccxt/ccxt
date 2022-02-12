@@ -22,18 +22,17 @@ class whitebit extends Exchange {
             'countries' => array( 'EE' ),
             'rateLimit' => 500,
             'has' => array(
+                'CORS' => null,
                 'spot' => true,
+                'margin' => null, // has but unimplemented
                 'swap' => false,
                 'future' => false,
                 'option' => false,
-                'addMargin' => false,
                 'cancelOrder' => true,
-                'CORS' => null,
                 'createDepositAddress' => null,
                 'createLimitOrder' => null,
                 'createMarketOrder' => null,
                 'createOrder' => true,
-                'createReduceOnlyOrder' => false,
                 'deposit' => null,
                 'editOrder' => null,
                 'fetchBalance' => true,
@@ -47,24 +46,18 @@ class whitebit extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
-                'fetchIsolatedPositions' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderTrades' => true,
-                'fetchPosition' => false,
-                'fetchPositions' => false,
-                'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFees' => true,
-                'reduceMargin' => false,
-                'setPositionMode' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -482,30 +475,31 @@ class whitebit extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $last = $this->safe_number($ticker, 'last_price');
-        $percentage = $this->safe_number($ticker, 'change') * 0.01;
+        $last = $this->safe_string($ticker, 'last_price');
+        $change = $this->safe_string($ticker, 'change');
+        $percentage = Precise::string_mul($change, '0.01');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,
             'datetime' => null,
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_number($ticker, 'open'),
+            'open' => $this->safe_string($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
             'change' => null,
             'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => $this->safe_number_2($ticker, 'base_volume', 'volume'),
-            'quoteVolume' => $this->safe_number_2($ticker, 'quote_volume', 'deal'),
+            'baseVolume' => $this->safe_string_2($ticker, 'base_volume', 'volume'),
+            'quoteVolume' => $this->safe_string_2($ticker, 'quote_volume', 'deal'),
             'info' => $ticker,
-        ));
+        ), $market, false);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

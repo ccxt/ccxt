@@ -29,15 +29,22 @@ class bitso(Exchange):
             'rateLimit': 2000,  # 30 requests per minute
             'version': 'v3',
             'has': {
+                'CORS': None,
                 'spot': True,
-                'margin': None,
+                'margin': False,
                 'swap': False,
                 'future': False,
                 'option': False,
+                'addMargin': False,
                 'cancelOrder': True,
-                'CORS': None,
                 'createOrder': True,
+                'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchDepositAddress': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
@@ -53,6 +60,7 @@ class bitso(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderTrades': True,
+                'fetchPosition': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -60,6 +68,7 @@ class bitso(Exchange):
                 'fetchTrades': True,
                 'reduceMargin': False,
                 'setLeverage': False,
+                'setMarginMode': False,
                 'setPositionMode': False,
                 'withdraw': True,
             },
@@ -184,14 +193,12 @@ class bitso(Exchange):
             quote = quoteId.upper()
             base = self.safe_currency_code(base)
             quote = self.safe_currency_code(quote)
-            defaultPricePrecision = self.safe_number(self.options['precision'], quote, self.options['defaultPrecision'])
-            pricePrecision = self.safe_number(market, 'tick_size', defaultPricePrecision)
             fees = self.safe_value(market, 'fees', {})
             flatRate = self.safe_value(fees, 'flat_rate', {})
-            makerString = self.safe_string(flatRate, 'maker')
             takerString = self.safe_string(flatRate, 'taker')
-            maker = self.parse_number(Precise.string_div(makerString, '100'))
+            makerString = self.safe_string(flatRate, 'maker')
             taker = self.parse_number(Precise.string_div(takerString, '100'))
+            maker = self.parse_number(Precise.string_div(makerString, '100'))
             feeTiers = self.safe_value(fees, 'structure', [])
             fee = {
                 'taker': taker,
@@ -216,6 +223,7 @@ class bitso(Exchange):
                 'maker': makerFees,
             }
             fee['tiers'] = tiers
+            defaultPricePrecision = self.safe_number(self.options['precision'], quote, self.options['defaultPrecision'])
             result.append(self.extend({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -244,7 +252,7 @@ class bitso(Exchange):
                 'optionType': None,
                 'precision': {
                     'amount': self.safe_number(self.options['precision'], base, self.options['defaultPrecision']),
-                    'price': pricePrecision,
+                    'price': self.safe_number(market, 'tick_size', defaultPricePrecision),
                 },
                 'limits': {
                     'leverage': {
@@ -327,29 +335,36 @@ class bitso(Exchange):
         timestamp = self.parse8601(self.safe_string(orderbook, 'updated_at'))
         return self.parse_order_book(orderbook, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
 
-    async def fetch_ticker(self, symbol, params={}):
-        await self.load_markets()
-        request = {
-            'book': self.market_id(symbol),
-        }
-        response = await self.publicGetTicker(self.extend(request, params))
-        ticker = self.safe_value(response, 'payload')
+    def parse_ticker(self, ticker, market=None):
+        #
+        #     {
+        #         "high":"37446.85",
+        #         "last":"36599.54",
+        #         "created_at":"2022-01-28T12:06:11+00:00",
+        #         "book":"btc_usdt",
+        #         "volume":"7.29075419",
+        #         "vwap":"36579.1564400307",
+        #         "low":"35578.52",
+        #         "ask":"36574.76",
+        #         "bid":"36538.22",
+        #         "change_24":"-105.64"
+        #     }
+        #
+        symbol = self.safe_symbol(None, market)
         timestamp = self.parse8601(self.safe_string(ticker, 'created_at'))
-        vwap = self.safe_number(ticker, 'vwap')
-        baseVolume = self.safe_number(ticker, 'volume')
-        quoteVolume = None
-        if baseVolume is not None and vwap is not None:
-            quoteVolume = baseVolume * vwap
-        last = self.safe_number(ticker, 'last')
-        return {
+        vwap = self.safe_string(ticker, 'vwap')
+        baseVolume = self.safe_string(ticker, 'volume')
+        quoteVolume = Precise.string_mul(baseVolume, vwap)
+        last = self.safe_string(ticker, 'last')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
             'open': None,
@@ -362,7 +377,34 @@ class bitso(Exchange):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
+        }, market, False)
+
+    async def fetch_ticker(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'book': market['id'],
         }
+        response = await self.publicGetTicker(self.extend(request, params))
+        ticker = self.safe_value(response, 'payload')
+        #
+        #     {
+        #         "success":true,
+        #         "payload":{
+        #             "high":"37446.85",
+        #             "last":"37051.96",
+        #             "created_at":"2022-01-28T17:03:29+00:00",
+        #             "book":"btc_usdt",
+        #             "volume":"6.16176186",
+        #             "vwap":"36582.6293169472",
+        #             "low":"35578.52",
+        #             "ask":"37083.62",
+        #             "bid":"37039.66",
+        #             "change_24":"478.45"
+        #         }
+        #     }
+        #
+        return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
         #

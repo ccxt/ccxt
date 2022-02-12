@@ -21,6 +21,7 @@ class xena extends Exchange {
             'countries' => array( 'VC', 'UK' ),
             'rateLimit' => 100,
             'has' => array(
+                'CORS' => null,
                 'spot' => false,
                 'margin' => false,
                 'swap' => null, // has but not fully implemented
@@ -28,12 +29,16 @@ class xena extends Exchange {
                 'option' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'CORS' => null,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'editOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
@@ -328,8 +333,8 @@ class xena extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
+                    'amount' => intval('0'),
                     'price' => $this->safe_integer_2($market, 'tickSize', 'pricePrecision'),
-                    'amount' => 0,
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -439,20 +444,20 @@ class xena extends Exchange {
         $timestamp = $this->milliseconds();
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $last = $this->safe_number($ticker, 'lastPx');
-        $open = $this->safe_number($ticker, 'firstPx');
-        $buyVolume = $this->safe_number($ticker, 'buyVolume');
-        $sellVolume = $this->safe_number($ticker, 'sellVolume');
+        $last = $this->safe_string($ticker, 'lastPx');
+        $open = $this->safe_string($ticker, 'firstPx');
+        $buyVolume = $this->safe_string($ticker, 'buyVolume');
+        $sellVolume = $this->safe_string($ticker, 'sellVolume');
         $baseVolume = $this->sum($buyVolume, $sellVolume);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'highPx'),
-            'low' => $this->safe_number($ticker, 'lowPx'),
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'high' => $this->safe_string($ticker, 'highPx'),
+            'low' => $this->safe_string($ticker, 'lowPx'),
+            'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => $open,
@@ -465,7 +470,7 @@ class xena extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
@@ -540,7 +545,10 @@ class xena extends Exchange {
         $mdEntry = $this->safe_value($response, 'mdEntry', array());
         $mdEntriesByType = $this->group_by($mdEntry, 'mdEntryType');
         $lastUpdateTime = $this->safe_integer($response, 'lastUpdateTime');
-        $timestamp = intval($lastUpdateTime / 1000000);
+        $timestamp = null;
+        if ($lastUpdateTime !== null) {
+            $timestamp = intval($lastUpdateTime / 1000000);
+        }
         return $this->parse_order_book($mdEntriesByType, $symbol, $timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize');
     }
 

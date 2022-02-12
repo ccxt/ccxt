@@ -19,8 +19,13 @@ module.exports = class zb extends Exchange {
             'certified': true,
             'pro': true,
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': undefined, // has but unimplemented
+                'swap': undefined, // has but unimplemented
+                'future': undefined,
+                'option': undefined,
+                'cancelOrder': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
@@ -132,6 +137,7 @@ module.exports = class zb extends Exchange {
                 },
                 'broad': {
                     '提币地址有误，请先添加提币地址。': InvalidAddress, // {"code":1001,"message":"提币地址有误，请先添加提币地址。"}
+                    '资金不足,无法划账': InsufficientFunds, // {"code":1001,"message":"资金不足,无法划账"}
                 },
             },
             'urls': {
@@ -265,23 +271,23 @@ module.exports = class zb extends Exchange {
             result.push ({
                 'id': id,
                 'symbol': symbol,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
                 'base': base,
                 'quote': quote,
                 'settle': undefined,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
                 'margin': false,
                 'swap': false,
                 'future': false,
                 'option': false,
+                'active': true,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
-                'active': true,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,

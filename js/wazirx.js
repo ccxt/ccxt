@@ -13,28 +13,37 @@ module.exports = class wazirx extends Exchange {
             'version': 'v2',
             'rateLimit': 100,
             'has': {
+                'CORS': false,
+                'spot': true,
+                'margin': undefined, // has but unimplemented
+                'swap': false,
+                'future': false,
+                'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': false,
                 'createOrder': true,
-                'fetchCurrencies': false,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchClosedOrders': false,
+                'fetchCurrencies': false,
                 'fetchDepositAddress': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingFees': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
                 'fetchOHLCV': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
-                'fetchOrders': true,
                 'fetchOrderBook': true,
-                'fetchPositions': false,
+                'fetchOrders': true,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -43,12 +52,10 @@ module.exports = class wazirx extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransactions': false,
-                'fetchWithdrawals': false,
-                'setLeverage': false,
-                'withdraw': false,
-                'fetchDepositAddressesByNetwork': false,
-                'transfer': false,
                 'fetchTransfers': false,
+                'fetchWithdrawals': false,
+                'transfer': false,
+                'withdraw': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/148647666-c109c20b-f8ac-472f-91c3-5f658cb90f49.jpeg',
@@ -56,6 +63,7 @@ module.exports = class wazirx extends Exchange {
                 'www': 'https://wazirx.com',
                 'doc': 'https://docs.wazirx.com/#public-rest-api-for-wazirx',
                 'fees': 'https://wazirx.com/fees',
+                'referral': 'https://wazirx.com/invite/k7rrnks5',
             },
             'api': {
                 'public': {
@@ -151,7 +159,6 @@ module.exports = class wazirx extends Exchange {
             const quoteId = this.safeString (entry, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
             const isSpot = this.safeValue (entry, 'isSpotTradingAllowed');
             const filters = this.safeValue (entry, 'filters');
             let minPrice = undefined;
@@ -165,59 +172,58 @@ module.exports = class wazirx extends Exchange {
             const fee = this.safeValue (this.fees, quote, {});
             let takerString = this.safeString (fee, 'taker', '0.2');
             takerString = Precise.stringDiv (takerString, '100');
-            const taker = this.parseNumber (takerString);
             let makerString = this.safeString (fee, 'maker', '0.2');
             makerString = Precise.stringDiv (makerString, '100');
-            const maker = this.parseNumber (makerString);
             const status = this.safeString (entry, 'status');
-            const active = status === 'trading';
-            const limits = {
-                'price': {
-                    'min': minPrice,
-                    'max': undefined,
-                },
-                'amount': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            };
-            const precision = {
-                'price': this.safeInteger (entry, 'quoteAssetPrecision'),
-                'amount': this.safeInteger (entry, 'baseAssetPrecision'),
-            };
             result.push ({
-                'info': entry,
-                'symbol': symbol,
                 'id': id,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
-                'maker': maker,
-                'taker': taker,
                 'quoteId': quoteId,
-                'limits': limits,
-                'precision': precision,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': isSpot,
                 'margin': false,
-                'future': false,
                 'swap': false,
+                'future': false,
                 'option': false,
-                'optionType': undefined,
-                'strike': undefined,
+                'active': (status === 'trading'),
+                'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'contract': false,
+                'taker': this.parseNumber (takerString),
+                'maker': this.parseNumber (makerString),
                 'contractSize': undefined,
-                'settle': undefined,
-                'settleId': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
-                'active': active,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeInteger (entry, 'baseAssetPrecision'),
+                    'price': this.safeInteger (entry, 'quoteAssetPrecision'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': minPrice,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'info': entry,
             });
         }
         return result;
@@ -412,13 +418,13 @@ module.exports = class wazirx extends Exchange {
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const last = this.safeNumber (ticker, 'lastPrice');
-        const open = this.safeNumber (ticker, 'openPrice');
-        const high = this.safeNumber (ticker, 'highPrice');
-        const low = this.safeNumber (ticker, 'lowPrice');
-        const baseVolume = this.safeNumber (ticker, 'volume');
-        const bid = this.safeNumber (ticker, 'bidPrice');
-        const ask = this.safeNumber (ticker, 'askPrice');
+        const last = this.safeString (ticker, 'lastPrice');
+        const open = this.safeString (ticker, 'openPrice');
+        const high = this.safeString (ticker, 'highPrice');
+        const low = this.safeString (ticker, 'lowPrice');
+        const baseVolume = this.safeString (ticker, 'volume');
+        const bid = this.safeString (ticker, 'bidPrice');
+        const ask = this.safeString (ticker, 'askPrice');
         const timestamp = this.safeString (ticker, 'at');
         return this.safeTicker ({
             'symbol': symbol,
@@ -441,7 +447,7 @@ module.exports = class wazirx extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     parseBalance (response) {

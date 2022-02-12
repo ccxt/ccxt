@@ -18,15 +18,22 @@ module.exports = class bitso extends Exchange {
             'rateLimit': 2000, // 30 requests per minute
             'version': 'v3',
             'has': {
+                'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
+                'margin': false,
                 'swap': false,
                 'future': false,
                 'option': false,
+                'addMargin': false,
                 'cancelOrder': true,
-                'CORS': undefined,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchDepositAddress': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -42,6 +49,7 @@ module.exports = class bitso extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderTrades': true,
+                'fetchPosition': false,
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -49,6 +57,7 @@ module.exports = class bitso extends Exchange {
                 'fetchTrades': true,
                 'reduceMargin': false,
                 'setLeverage': false,
+                'setMarginMode': false,
                 'setPositionMode': false,
                 'withdraw': true,
             },
@@ -174,14 +183,12 @@ module.exports = class bitso extends Exchange {
             let quote = quoteId.toUpperCase ();
             base = this.safeCurrencyCode (base);
             quote = this.safeCurrencyCode (quote);
-            const defaultPricePrecision = this.safeNumber (this.options['precision'], quote, this.options['defaultPrecision']);
-            const pricePrecision = this.safeNumber (market, 'tick_size', defaultPricePrecision);
             const fees = this.safeValue (market, 'fees', {});
             const flatRate = this.safeValue (fees, 'flat_rate', {});
-            const makerString = this.safeString (flatRate, 'maker');
             const takerString = this.safeString (flatRate, 'taker');
-            const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
+            const makerString = this.safeString (flatRate, 'maker');
             const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
+            const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
             const feeTiers = this.safeValue (fees, 'structure', []);
             const fee = {
                 'taker': taker,
@@ -208,6 +215,7 @@ module.exports = class bitso extends Exchange {
                 'maker': makerFees,
             };
             fee['tiers'] = tiers;
+            const defaultPricePrecision = this.safeNumber (this.options['precision'], quote, this.options['defaultPrecision']);
             result.push (this.extend ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -236,7 +244,7 @@ module.exports = class bitso extends Exchange {
                 'optionType': undefined,
                 'precision': {
                     'amount': this.safeNumber (this.options['precision'], base, this.options['defaultPrecision']),
-                    'price': pricePrecision,
+                    'price': this.safeNumber (market, 'tick_size', defaultPricePrecision),
                 },
                 'limits': {
                     'leverage': {
@@ -325,30 +333,36 @@ module.exports = class bitso extends Exchange {
         return this.parseOrderBook (orderbook, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'book': this.marketId (symbol),
-        };
-        const response = await this.publicGetTicker (this.extend (request, params));
-        const ticker = this.safeValue (response, 'payload');
+    parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         "high":"37446.85",
+        //         "last":"36599.54",
+        //         "created_at":"2022-01-28T12:06:11+00:00",
+        //         "book":"btc_usdt",
+        //         "volume":"7.29075419",
+        //         "vwap":"36579.1564400307",
+        //         "low":"35578.52",
+        //         "ask":"36574.76",
+        //         "bid":"36538.22",
+        //         "change_24":"-105.64"
+        //     }
+        //
+        const symbol = this.safeSymbol (undefined, market);
         const timestamp = this.parse8601 (this.safeString (ticker, 'created_at'));
-        const vwap = this.safeNumber (ticker, 'vwap');
-        const baseVolume = this.safeNumber (ticker, 'volume');
-        let quoteVolume = undefined;
-        if (baseVolume !== undefined && vwap !== undefined) {
-            quoteVolume = baseVolume * vwap;
-        }
-        const last = this.safeNumber (ticker, 'last');
-        return {
+        const vwap = this.safeString (ticker, 'vwap');
+        const baseVolume = this.safeString (ticker, 'volume');
+        const quoteVolume = Precise.stringMul (baseVolume, vwap);
+        const last = this.safeString (ticker, 'last');
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': vwap,
             'open': undefined,
@@ -361,7 +375,35 @@ module.exports = class bitso extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
+        }, market, false);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'book': market['id'],
         };
+        const response = await this.publicGetTicker (this.extend (request, params));
+        const ticker = this.safeValue (response, 'payload');
+        //
+        //     {
+        //         "success":true,
+        //         "payload":{
+        //             "high":"37446.85",
+        //             "last":"37051.96",
+        //             "created_at":"2022-01-28T17:03:29+00:00",
+        //             "book":"btc_usdt",
+        //             "volume":"6.16176186",
+        //             "vwap":"36582.6293169472",
+        //             "low":"35578.52",
+        //             "ask":"37083.62",
+        //             "bid":"37039.66",
+        //             "change_24":"478.45"
+        //         }
+        //     }
+        //
+        return this.parseTicker (ticker, market);
     }
 
     parseTrade (trade, market = undefined) {

@@ -23,25 +23,53 @@ class probit extends Exchange {
             'countries' => array( 'SC', 'KR' ), // Seychelles, South Korea
             'rateLimit' => 50, // ms
             'has' => array(
-                'fetchDepositAddresses' => true,
-                'cancelOrder' => true,
                 'CORS' => true,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
+                'cancelOrder' => true,
                 'createMarketOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'signIn' => true,
                 'withdraw' => true,
             ),
@@ -157,6 +185,7 @@ class probit extends Exchange {
             ),
             'commonCurrencies' => array(
                 'AUTO' => 'Cube',
+                'AZU' => 'Azultec',
                 'BCC' => 'BCC',
                 'BDP' => 'BidiPass',
                 'BIRD' => 'Birdchain',
@@ -164,6 +193,8 @@ class probit extends Exchange {
                 'BTCBULL' => 'BULL',
                 'CBC' => 'CryptoBharatCoin',
                 'CHE' => 'Chellit',
+                'CLR' => 'Color Platform',
+                'CTK' => 'Cryptyk',
                 'DIP' => 'Dipper',
                 'EGC' => 'EcoG9coin',
                 'EPS' => 'Epanus',  // conflict with EPS Ellipsis https://github.com/ccxt/ccxt/issues/8909
@@ -174,8 +205,10 @@ class probit extends Exchange {
                 'GOL' => 'Goldofir',
                 'GRB' => 'Global Reward Bank',
                 'HBC' => 'Hybrid Bank Cash',
+                'HUSL' => 'The Hustle App',
                 'LBK' => 'Legal Block',
                 'ORC' => 'Oracle System',
+                'PYE' => 'CreamPYE',
                 'ROOK' => 'Reckoon',
                 'SOC' => 'Soda Coin',
                 'SST' => 'SocialSwap',
@@ -222,51 +255,51 @@ class probit extends Exchange {
             $quoteId = $this->safe_string($market, 'quote_currency_id');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
             $closed = $this->safe_value($market, 'closed', false);
-            $active = !$closed;
             $amountPrecision = $this->safe_string($market, 'quantity_precision');
             $costPrecision = $this->safe_string($market, 'cost_precision');
             $amountTickSize = $this->parse_precision($amountPrecision);
             $costTickSize = $this->parse_precision($costPrecision);
-            $precision = array(
-                'amount' => $this->parse_number($amountTickSize),
-                'price' => $this->safe_number($market, 'price_increment'),
-                'cost' => $this->parse_number($costTickSize),
-            );
             $takerFeeRate = $this->safe_string($market, 'taker_fee_rate');
             $taker = Precise::string_div($takerFeeRate, '100');
             $makerFeeRate = $this->safe_string($market, 'maker_fee_rate');
             $maker = Precise::string_div($makerFeeRate, '100');
             $result[] = array(
                 'id' => $id,
-                'info' => $market,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
                 'margin' => false,
-                'future' => false,
                 'swap' => false,
+                'future' => false,
                 'option' => false,
-                'optionType' => null,
-                'strike' => null,
+                'active' => !$closed,
+                'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                'contract' => false,
-                'contractSize' => null,
-                'settle' => null,
-                'settleId' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'active' => $active,
-                'precision' => $precision,
                 'taker' => $this->parse_number($taker),
                 'maker' => $this->parse_number($maker),
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->parse_number($amountTickSize),
+                    'price' => $this->safe_number($market, 'price_increment'),
+                    'cost' => $this->parse_number($costTickSize),
+                ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
                         'min' => $this->safe_number($market, 'min_quantity'),
                         'max' => $this->safe_number($market, 'max_quantity'),
@@ -280,6 +313,7 @@ class probit extends Exchange {
                         'max' => $this->safe_number($market, 'max_cost'),
                     ),
                 ),
+                'info' => $market,
             );
         }
         return $result;
@@ -536,22 +570,21 @@ class probit extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($ticker, 'time'));
         $marketId = $this->safe_string($ticker, 'market_id');
         $symbol = $this->safe_symbol($marketId, $market, '-');
-        $close = $this->safe_number($ticker, 'last');
-        $change = $this->safe_number($ticker, 'change');
-        $baseVolume = $this->safe_number($ticker, 'base_volume');
-        $quoteVolume = $this->safe_number($ticker, 'quote_volume');
-        $vwap = $this->vwap($baseVolume, $quoteVolume);
+        $close = $this->safe_string($ticker, 'last');
+        $change = $this->safe_string($ticker, 'change');
+        $baseVolume = $this->safe_string($ticker, 'base_volume');
+        $quoteVolume = $this->safe_string($ticker, 'quote_volume');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
             'bid' => null,
             'bidVolume' => null,
             'ask' => null,
             'askVolume' => null,
-            'vwap' => $vwap,
+            'vwap' => null,
             'open' => null,
             'close' => $close,
             'last' => $close,
@@ -562,7 +595,7 @@ class probit extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {

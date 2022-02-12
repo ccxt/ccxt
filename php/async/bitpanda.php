@@ -20,8 +20,7 @@ class bitpanda extends Exchange {
             'version' => 'v1',
             // new metainfo interface
             'has' => array(
-                'privateAPI' => true,
-                'publicAPI' => true,
+                'CORS' => null,
                 'spot' => true,
                 'margin' => false,
                 'swap' => false,
@@ -31,12 +30,12 @@ class bitpanda extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
-                'CORS' => null,
                 'createDepositAddress' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
@@ -69,6 +68,8 @@ class bitpanda extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFees' => true,
                 'fetchWithdrawals' => true,
+                'privateAPI' => true,
+                'publicAPI' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
@@ -343,7 +344,6 @@ class bitpanda extends Exchange {
             $quote = $this->safe_currency_code($quoteId);
             $state = $this->safe_string($market, 'state');
             $result[] = array(
-                'info' => $market,
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
                 'base' => $base,
@@ -367,8 +367,6 @@ class bitpanda extends Exchange {
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
-                'deposit' => null,
-                'withdraw' => null,
                 'precision' => array(
                     'amount' => $this->safe_integer($market, 'amount_precision'),
                     'price' => $this->safe_integer($market, 'market_precision'),
@@ -391,6 +389,7 @@ class bitpanda extends Exchange {
                         'max' => null,
                     ),
                 ),
+                'info' => $market,
             );
         }
         return $result;

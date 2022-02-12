@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.69.54';
+$version = '1.72.79';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.69.54';
+    const VERSION = '1.72.79';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -155,8 +155,8 @@ class Exchange {
         'oceanex',
         'okcoin',
         'okex',
-        'okex3',
         'okex5',
+        'okx',
         'paymium',
         'phemex',
         'poloniex',
@@ -173,6 +173,7 @@ class Exchange {
         'wavesexchange',
         'wazirx',
         'whitebit',
+        'woo',
         'xena',
         'yobit',
         'zaif',
@@ -1180,14 +1181,16 @@ class Exchange {
         $this->has = array(
             'publicAPI' => true,
             'privateAPI' => true,
+            'CORS' => null,
+            'spot' => null,
             'margin' => null,
             'swap' => null,
             'future' => null,
+            'option' => null,
             'addMargin' => null,
             'cancelAllOrders' => null,
             'cancelOrder' => true,
             'cancelOrders' => null,
-            'CORS' => null,
             'createDepositAddress' => null,
             'createLimitOrder' => true,
             'createMarketOrder' => true,
@@ -1765,9 +1768,10 @@ class Exchange {
             throw new ExchangeNotAvailable(implode(' ', array($url, $method, $curl_errno, $curl_error)));
         }
 
-        $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response, $headers, $body);
-        $this->handle_http_status_code($http_status_code, $http_status_text, $url, $method, $result);
-
+        $skip_further_error_handling = $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response, $headers, $body);
+        if (!$skip_further_error_handling) {
+            $this->handle_http_status_code($http_status_code, $http_status_text, $url, $method, $result);
+        }
         // check if $curl_errno is not zero
         if ($curl_errno) {
             throw new NetworkError($this->id . ' unknown error: ' . strval($curl_errno) . ' ' . $curl_error);
@@ -2146,12 +2150,12 @@ class Exchange {
             // $timestamp and $symbol operations don't belong in safeTicker
             // they should be done in the derived classes
             return array_merge($ticker, array(
-                'bid' => $this->safe_number(ticker, 'bid'),
-                'bidVolume'=> $this->safe_number(ticker, 'bidVolume'),
-                'ask' => $this->safe_number(ticker, 'ask'),
-                'askVolume' => $this->safe_number(ticker, 'askVolume'),
-                'high' => $this->safe_number(ticker, 'high'),
-                'low' => $this->safe_number(ticker, 'low'),
+                'bid' => $this->safe_number($ticker, 'bid'),
+                'bidVolume'=> $this->safe_number($ticker, 'bidVolume'),
+                'ask' => $this->safe_number($ticker, 'ask'),
+                'askVolume' => $this->safe_number($ticker, 'askVolume'),
+                'high' => $this->safe_number($ticker, 'high'),
+                'low' => $this->safe_number($ticker, 'low'),
                 'open' => $this->parse_number($open),
                 'close' =>$this->parse_number($close),
                 'last' => $this->parse_number($last),
@@ -2952,6 +2956,9 @@ class Exchange {
 
     public static function number_to_string($x) {
         // avoids scientific notation for too large and too small numbers
+        if ($x === null) {
+            return null;
+        }
         $type = gettype($x);
         $s = (string) $x;
         if (($type !== 'integer') && ($type !== 'double')) {

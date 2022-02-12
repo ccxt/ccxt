@@ -15,22 +15,50 @@ module.exports = class indodax extends Exchange {
             'name': 'INDODAX',
             'countries': [ 'ID' ], // Indonesia
             'has': {
-                'cancelOrder': true,
                 'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
+                'cancelOrder': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedPositions': false,
+                'fetchLeverage': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': undefined,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': undefined,
+                'fetchPosition': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': undefined,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'withdraw': true,
             },
             'version': '2.0', // as of 9 April 2018
@@ -156,57 +184,55 @@ module.exports = class indodax extends Exchange {
             const quoteId = this.safeString (market, 'base_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const taker = this.safeNumber (market, 'trade_fee_percent');
             const isMaintenance = this.safeInteger (market, 'is_maintenance');
-            const active = (isMaintenance) ? false : true;
-            const pricePrecision = this.safeInteger (market, 'price_round');
-            const precision = {
-                'amount': 8,
-                'price': pricePrecision,
-            };
-            const limits = {
-                'amount': {
-                    'min': this.safeNumber (market, 'trade_min_traded_currency'),
-                    'max': undefined,
-                },
-                'price': {
-                    'min': this.safeNumber (market, 'trade_min_base_currency'),
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            };
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
                 'margin': false,
-                'future': false,
                 'swap': false,
+                'future': false,
                 'option': false,
-                'optionType': undefined,
-                'strike': undefined,
+                'active': isMaintenance ? false : true,
+                'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'contract': false,
+                'taker': this.safeNumber (market, 'trade_fee_percent'),
                 'contractSize': undefined,
-                'settle': undefined,
-                'settleId': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
-                'active': active,
-                'taker': taker,
+                'strike': undefined,
+                'optionType': undefined,
                 'percentage': true,
-                'precision': precision,
-                'limits': limits,
+                'precision': {
+                    'amount': parseInt ('8'),
+                    'price': this.safeInteger (market, 'price_round'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (market, 'trade_min_traded_currency'),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': this.safeNumber (market, 'trade_min_base_currency'),
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
                 'info': market,
             });
         }
@@ -280,6 +306,48 @@ module.exports = class indodax extends Exchange {
         return this.parseOrderBook (orderbook, symbol, undefined, 'buy', 'sell');
     }
 
+    parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         "high":"0.01951",
+        //         "low":"0.01877",
+        //         "vol_eth":"39.38839319",
+        //         "vol_btc":"0.75320886",
+        //         "last":"0.01896",
+        //         "buy":"0.01896",
+        //         "sell":"0.019",
+        //         "server_time":1565248908
+        //     }
+        //
+        const symbol = this.safeSymbol (undefined, market);
+        const timestamp = this.safeTimestamp (ticker, 'server_time');
+        const baseVolume = 'vol_' + market['baseId'].toLowerCase ();
+        const quoteVolume = 'vol_' + market['quoteId'].toLowerCase ();
+        const last = this.safeString (ticker, 'last');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'buy'),
+            'bidVolume': undefined,
+            'ask': this.safeString (ticker, 'sell'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, baseVolume),
+            'quoteVolume': this.safeString (ticker, quoteVolume),
+            'info': ticker,
+        }, market, false);
+    }
+
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -301,33 +369,8 @@ module.exports = class indodax extends Exchange {
         //         }
         //     }
         //
-        const ticker = response['ticker'];
-        const timestamp = this.safeTimestamp (ticker, 'server_time');
-        const baseVolume = 'vol_' + market['baseId'].toLowerCase ();
-        const quoteVolume = 'vol_' + market['quoteId'].toLowerCase ();
-        const last = this.safeNumber (ticker, 'last');
-        return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'buy'),
-            'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'sell'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': this.safeNumber (ticker, baseVolume),
-            'quoteVolume': this.safeNumber (ticker, quoteVolume),
-            'info': ticker,
-        };
+        const ticker = this.safeValue (response, 'ticker', {});
+        return this.parseTicker (ticker, market);
     }
 
     parseTrade (trade, market = undefined) {

@@ -19,12 +19,21 @@ class eqonex extends Exchange {
             'countries' => array( 'US', 'SG' ), // United States, Singapore
             'rateLimit' => 10,
             'has' => array(
-                'fetchTradingLimits' => true,
-                'cancelOrder' => true,
                 'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => null, // has but not fully implemented
+                'future' => null, // has but not fully implemented
+                'option' => false,
+                'cancelOrder' => true,
                 'createOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
@@ -39,6 +48,7 @@ class eqonex extends Exchange {
                 'fetchTicker' => null,
                 'fetchTrades' => true,
                 'fetchTradingFees' => true,
+                'fetchTradingLimits' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
@@ -124,37 +134,51 @@ class eqonex extends Exchange {
         );
         $response = yield $this->publicGetGetInstrumentPairs (array_merge($request, $params));
         //
-        //     {
-        //         "instrumentPairs":[
-        //             array(
-        //                 "instrumentId":52,
-        //                 "symbol":"BTC/USDC",
-        //                 "quoteId":1,
-        //                 "baseId":3,
-        //                 "price_scale":2,
-        //                 "quantity_scale":6,
-        //                 "securityStatus":1,
-        //                 "securityDesc":"BTC/USDC", // "BTC/USDC[F]"
-        //                 "assetType":"PAIR", // "PERPETUAL_SWAP"
-        //                 "currency":"BTC",
-        //                 "contAmtCurr":"USDC",
-        //                 "settlCurrency":"USDC",
-        //                 "commCurrency":"USDC",
-        //                 "cfiCode":"XXXXXX",
-        //                 "securityExchange":"XXXX",
-        //                 "instrumentPricePrecision":2,
-        //                 "minPriceIncrement":1.0,
-        //                 "minPriceIncrementAmount":1.0,
-        //                 "roundLot":1,
-        //                 "minTradeVol":0.001000,
-        //                 "maxTradeVol":0.000000
-        //                 // contracts onlye
-        //                 "qtyType":0,
-        //                 "contractMultiplier":1.0,
-        //                 "issueDate":1598608087000
-        //             ),
-        //         ]
-        //     }
+        //    {
+        //        "instrumentPairs" => [
+        //            {
+        //                "instrumentId":303,
+        //                "symbol":"BTC/USDC[220325]",
+        //                "quoteId":1,
+        //                "baseId":3,
+        //                "price_scale":2,
+        //                "quantity_scale":6,
+        //                "securityStatus":1,
+        //                "securityDesc":"BTC Dated Future",
+        //                "assetType":"DATED_FUTURE",
+        //                "currency":"BTC",
+        //                "contAmtCurr":"USDC",
+        //                "settlCurrency":"USDC",
+        //                "commCurrency":"USDC",
+        //                "cfiCode":"FFCPSX",
+        //                "securityExchange":"EQOS",
+        //                "micCode":"EQOD",
+        //                "instrumentPricePrecision":2,
+        //                "minPriceIncrement":1.0,
+        //                "minPriceIncrementAmount":1.0,
+        //                "roundLot":100,
+        //                "minTradeVol":0.000100,
+        //                "maxTradeVol":0.000000,
+        //                "qtyType":0,
+        //                "contractMultiplier":1.0,
+        //                "auctionStartTime":0,
+        //                "auctionDuration":0,
+        //                "auctionFrequency":0,
+        //                "auctionPrice":0,
+        //                "auctionVolume":0,
+        //                "marketStatus":"OPEN",
+        //                "underlyingSymbol":"BTC/USDC",
+        //                "underlyingSecurityId":52,
+        //                "underlyingSecuritySource":"M",
+        //                "underlyingSecurityExchange":"EQOC",
+        //                "issueDate":1643256000000,
+        //                "maturityDate":"2022-03-25",
+        //                "maturityTime":"2022-03-25T08:00:00Z",
+        //                "contractExpireTime":1648195200000
+        //            }
+        //            ...
+        //        ]
+        //    }
         //
         $instrumentPairs = $this->safe_value($response, 'instrumentPairs', array());
         $markets = array();
@@ -167,60 +191,83 @@ class eqonex extends Exchange {
 
     public function parse_market($market) {
         //
-        //     {
-        //         "instrumentId":52,
-        //         "symbol":"BTC/USDC", // "BTC/USDC[F]"
-        //         "quoteId":1,
-        //         "baseId":3,
-        //         "price_scale":2,
-        //         "quantity_scale":6,
-        //         "securityStatus":1,
-        //         "securityDesc":"BTC/USDC", // "BTC/USDC[F]"
-        //         "assetType":"PAIR", // "PERPETUAL_SWAP"
-        //         "currency":"BTC",
-        //         "contAmtCurr":"USDC",
-        //         "settlCurrency":"USDC",
-        //         "commCurrency":"USDC",
-        //         "cfiCode":"XXXXXX",
-        //         "securityExchange":"XXXX",
-        //         "instrumentPricePrecision":2,
-        //         "minPriceIncrement":1.0,
-        //         "minPriceIncrementAmount":1.0,
-        //         "roundLot":1,
-        //         "minTradeVol":0.001000,
-        //         "maxTradeVol":0.000000
-        //         // contracts onlye
-        //         "qtyType":0,
-        //         "contractMultiplier":1.0,
-        //         "issueDate":1598608087000
-        //     }
+        //    {
+        //        "instrumentPairs" => [
+        //            {
+        //                "instrumentId":303,
+        //                "symbol":"BTC/USDC[220325]",
+        //                "quoteId":1,
+        //                "baseId":3,
+        //                "price_scale":2,
+        //                "quantity_scale":6,
+        //                "securityStatus":1,
+        //                "securityDesc":"BTC Dated Future",
+        //                "assetType":"DATED_FUTURE",
+        //                "currency":"BTC",
+        //                "contAmtCurr":"USDC",
+        //                "settlCurrency":"USDC",
+        //                "commCurrency":"USDC",
+        //                "cfiCode":"FFCPSX",
+        //                "securityExchange":"EQOS",
+        //                "micCode":"EQOD",
+        //                "instrumentPricePrecision":2,
+        //                "minPriceIncrement":1.0,
+        //                "minPriceIncrementAmount":1.0,
+        //                "roundLot":100,
+        //                "minTradeVol":0.000100,
+        //                "maxTradeVol":0.000000,
+        //                "qtyType":0,
+        //                "contractMultiplier":1.0,
+        //                "auctionStartTime":0,
+        //                "auctionDuration":0,
+        //                "auctionFrequency":0,
+        //                "auctionPrice":0,
+        //                "auctionVolume":0,
+        //                "marketStatus":"OPEN",
+        //                "underlyingSymbol":"BTC/USDC",
+        //                "underlyingSecurityId":52,
+        //                "underlyingSecuritySource":"M",
+        //                "underlyingSecurityExchange":"EQOC",
+        //                "issueDate":1643256000000,
+        //                "maturityDate":"2022-03-25",
+        //                "maturityTime":"2022-03-25T08:00:00Z",
+        //                "contractExpireTime":1648195200000
+        //            }
+        //            ...
+        //        ]
+        //    }
         //
-        $id = $this->safe_string($market, 'instrumentId');
-        $baseId = $this->safe_string($market, 'currency');
-        $quoteId = $this->safe_string($market, 'contAmtCurr');
-        $settleId = $this->safe_string($market, 'settlCurrency');
-        $base = $this->safe_currency_code($baseId);
-        $quote = $this->safe_currency_code($quoteId);
-        $settle = $this->safe_currency_code($settleId);
         $assetType = $this->safe_string($market, 'assetType');
         $spot = ($assetType === 'PAIR');
         $swap = ($assetType === 'PERPETUAL_SWAP');
+        $future = ($assetType === 'DATED_FUTURE');
+        $contract = $swap || $future;
+        $id = $this->safe_string($market, 'instrumentId');
+        $baseId = $this->safe_string($market, 'currency');
+        $quoteId = $this->safe_string($market, 'contAmtCurr');
+        $settleId = $contract ? $this->safe_string($market, 'settlCurrency') : null;
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $settle = $this->safe_currency_code($settleId);
         $symbol = $base . '/' . $quote;
         $uppercaseId = $this->safe_string($market, 'symbol');
         $type = 'spot';
         $linear = null;
         $inverse = null;
-        $contract = false;
-        if ($swap) {
+        $expiry = $this->safe_number($market, 'contractExpireTime');
+        if ($contract) {
             $symbol = $symbol . ':' . $settle;
-            $type = 'swap';
-            $linear = $quote === $settle;
+            $linear = ($quote === $settle);
             $inverse = !$linear;
-            $contract = true;
-        } else if (!$spot) {
-            $symbol = $uppercaseId;
-            $type = $assetType;
-            $contract = true;
+            if ($swap) {
+                $type = 'swap';
+            } else if ($future) {
+                $symbol = $symbol . '-' . $this->yymmdd($expiry);
+                $type = 'future';
+            } else {
+                $symbol = $uppercaseId;
+                $type = $assetType;
+            }
         }
         $status = $this->safe_integer($market, 'securityStatus');
         return array(
@@ -237,15 +284,15 @@ class eqonex extends Exchange {
             'spot' => $spot,
             'margin' => false,
             'swap' => $swap,
-            'future' => false,
+            'future' => $future,
             'option' => false,
+            'active' => ($status === 1),
             'contract' => $contract,
             'linear' => $linear,
             'inverse' => $inverse,
             'contractSize' => $this->safe_number($market, 'contractMultiplier'),
-            'active' => ($status === 1),
-            'expiry' => null,
-            'expiryDatetime' => null,
+            'expiry' => $expiry,
+            'expiryDatetime' => $this->iso8601($expiry),
             'strike' => null,
             'optionType' => null,
             'precision' => array(

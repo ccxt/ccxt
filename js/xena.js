@@ -12,6 +12,7 @@ module.exports = class xena extends Exchange {
             'countries': [ 'VC', 'UK' ],
             'rateLimit': 100,
             'has': {
+                'CORS': undefined,
                 'spot': false,
                 'margin': false,
                 'swap': undefined, // has but not fully implemented
@@ -19,12 +20,16 @@ module.exports = class xena extends Exchange {
                 'option': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'CORS': undefined,
                 'createDepositAddress': true,
                 'createOrder': true,
                 'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
@@ -319,8 +324,8 @@ module.exports = class xena extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
+                    'amount': parseInt ('0'),
                     'price': this.safeInteger2 (market, 'tickSize', 'pricePrecision'),
-                    'amount': 0,
                 },
                 'limits': {
                     'leverage': {
@@ -430,20 +435,20 @@ module.exports = class xena extends Exchange {
         const timestamp = this.milliseconds ();
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeNumber (ticker, 'lastPx');
-        const open = this.safeNumber (ticker, 'firstPx');
-        const buyVolume = this.safeNumber (ticker, 'buyVolume');
-        const sellVolume = this.safeNumber (ticker, 'sellVolume');
+        const last = this.safeString (ticker, 'lastPx');
+        const open = this.safeString (ticker, 'firstPx');
+        const buyVolume = this.safeString (ticker, 'buyVolume');
+        const sellVolume = this.safeString (ticker, 'sellVolume');
         const baseVolume = this.sum (buyVolume, sellVolume);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'highPx'),
-            'low': this.safeNumber (ticker, 'lowPx'),
-            'bid': this.safeNumber (ticker, 'bid'),
+            'high': this.safeString (ticker, 'highPx'),
+            'low': this.safeString (ticker, 'lowPx'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
@@ -456,7 +461,7 @@ module.exports = class xena extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, market, false);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -531,7 +536,10 @@ module.exports = class xena extends Exchange {
         const mdEntry = this.safeValue (response, 'mdEntry', []);
         const mdEntriesByType = this.groupBy (mdEntry, 'mdEntryType');
         const lastUpdateTime = this.safeInteger (response, 'lastUpdateTime');
-        const timestamp = parseInt (lastUpdateTime / 1000000);
+        let timestamp = undefined;
+        if (lastUpdateTime !== undefined) {
+            timestamp = parseInt (lastUpdateTime / 1000000);
+        }
         return this.parseOrderBook (mdEntriesByType, symbol, timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize');
     }
 

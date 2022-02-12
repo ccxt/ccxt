@@ -24,16 +24,18 @@ class mexc extends Exchange {
             'version' => 'v2',
             'certified' => true,
             'has' => array(
+                'CORS' => null,
                 'spot' => true,
-                'margin' => null,
+                'margin' => null, // has but unimplemented
                 'swap' => true,
-                'future' => null,
-                'option' => null,
+                'future' => false,
+                'option' => false,
                 'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createMarketOrder' => false,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
@@ -41,8 +43,15 @@ class mexc extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => true,
+                'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => true,
+                'fetchIsolatedPositions' => null,
+                'fetchLeverage' => null,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -51,6 +60,8 @@ class mexc extends Exchange {
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
                 'fetchPositions' => true,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -59,6 +70,7 @@ class mexc extends Exchange {
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
                 'setLeverage' => true,
+                'setMarginMode' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -253,11 +265,14 @@ class mexc extends Exchange {
                 'exact' => array(
                     '400' => '\\ccxt\\BadRequest', // Invalid parameter
                     '401' => '\\ccxt\\AuthenticationError', // Invalid signature, fail to pass the validation
+                    '403' => '\\ccxt\\PermissionDenied', // array("msg":"no permission to access the endpoint","code":403)
                     '429' => '\\ccxt\\RateLimitExceeded', // too many requests, rate limit rule is violated
                     '1000' => '\\ccxt\\PermissionDenied', // array("success":false,"code":1000,"message":"Please open contract account first!")
                     '1002' => '\\ccxt\\InvalidOrder', // array("success":false,"code":1002,"message":"Contract not allow place order!")
                     '10072' => '\\ccxt\\AuthenticationError', // Invalid access key
                     '10073' => '\\ccxt\\AuthenticationError', // Invalid request time
+                    '10075' => '\\ccxt\\PermissionDenied', // array("msg":"IP [xxx.xxx.xxx.xxx] not in the ip white list","code":10075)
+                    '10101' => '\\ccxt\\InsufficientFunds', // array("code":10101,"msg":"Insufficient balance")
                     '10216' => '\\ccxt\\InvalidAddress', // array("code":10216,"msg":"No available deposit address")
                     '10232' => '\\ccxt\\BadSymbol', // array("code":10232,"msg":"The currency not exist")
                     '30000' => '\\ccxt\\BadSymbol', // Trading is suspended for the requested symbol
@@ -274,19 +289,19 @@ class mexc extends Exchange {
                     '33333' => '\\ccxt\\BadSymbol', // array("code":33333,"msg":"currency can not be null")
                 ),
                 'broad' => array(
+                    'price and quantity must be positive' => '\\ccxt\\InvalidOrder', // array("msg":"price and quantity must be positive","code":400)
                 ),
             ),
         ));
     }
 
     public function fetch_time($params = array ()) {
-        $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchTime', null, $params);
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchTime', null, $params);
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'spotPublicGetCommonTimestamp',
             'swap' => 'contractPublicGetPing',
         ));
-        $response = $this->$method (array_merge($params));
+        $response = $this->$method (array_merge($query));
         //
         // spot
         //
@@ -535,20 +550,20 @@ class mexc extends Exchange {
                 'swap' => true,
                 'future' => false,
                 'option' => false,
+                'active' => ($state === '0'),
                 'contract' => true,
                 'linear' => true,
                 'inverse' => false,
                 'taker' => $this->safe_number($market, 'takerFeeRate'),
                 'maker' => $this->safe_number($market, 'makerFeeRate'),
                 'contractSize' => $this->safe_number($market, 'contractSize'),
-                'active' => ($state === '0'),
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_number($market, 'priceUnit'),
                     'amount' => $this->safe_number($market, 'volUnit'),
+                    'price' => $this->safe_number($market, 'priceUnit'),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -607,23 +622,19 @@ class mexc extends Exchange {
             list($baseId, $quoteId) = explode('_', $id);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $priceScale = $this->safe_integer($market, 'price_scale');
-            $quantityScale = $this->safe_integer($market, 'quantity_scale');
-            $pricePrecision = 1 / pow(10, $priceScale);
-            $quantityPrecision = 1 / pow(10, $quantityScale);
+            $priceScale = $this->safe_string($market, 'price_scale');
+            $quantityScale = $this->safe_string($market, 'quantity_scale');
             $state = $this->safe_string($market, 'state');
-            $type = 'spot';
             $result[] = array(
                 'id' => $id,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
                 'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'settleId' => null,
-                'type' => $type,
+                'type' => 'spot',
                 'spot' => true,
                 'margin' => false,
                 'swap' => false,
@@ -641,8 +652,8 @@ class mexc extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $pricePrecision,
-                    'amount' => $quantityPrecision,
+                    'amount' => $this->parse_number($this->parse_precision($quantityScale)),
+                    'price' => $this->parse_number($this->parse_precision($priceScale)),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -670,13 +681,12 @@ class mexc extends Exchange {
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
-        $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', null, $params);
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', null, $params);
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'spotPublicGetMarketTicker',
             'swap' => 'contractPublicGetTicker',
         ));
-        $response = $this->$method (array_merge($params));
+        $response = $this->$method (array_merge($query));
         //
         //     {
         //         "success":true,
@@ -820,24 +830,22 @@ class mexc extends Exchange {
         $timestamp = $this->safe_integer_2($ticker, 'time', 'timestamp');
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
-        $baseVolume = $this->safe_number_2($ticker, 'volume', 'volume24');
-        $quoteVolume = $this->safe_number($ticker, 'amount24');
-        $open = $this->safe_number($ticker, 'open');
-        $lastString = $this->safe_string_2($ticker, 'last', 'lastPrice');
-        $last = $this->parse_number($lastString);
-        $change = $this->safe_number($ticker, 'riseFallValue');
+        $baseVolume = $this->safe_string_2($ticker, 'volume', 'volume24');
+        $quoteVolume = $this->safe_string($ticker, 'amount24');
+        $open = $this->safe_string($ticker, 'open');
+        $last = $this->safe_string_2($ticker, 'last', 'lastPrice');
+        $change = $this->safe_string($ticker, 'riseFallValue');
         $riseFallRate = $this->safe_string($ticker, 'riseFallRate');
-        $percentageString = Precise::string_add($riseFallRate, '1');
-        $percentage = $this->parse_number($percentageString);
+        $percentage = Precise::string_add($riseFallRate, '1');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number_2($ticker, 'high', 'high24Price'),
-            'low' => $this->safe_number_2($ticker, 'low', 'lower24Price'),
-            'bid' => $this->safe_number_2($ticker, 'bid', 'bid1'),
+            'high' => $this->safe_string_2($ticker, 'high', 'high24Price'),
+            'low' => $this->safe_string_2($ticker, 'low', 'lower24Price'),
+            'bid' => $this->safe_string_2($ticker, 'bid', 'bid1'),
             'bidVolume' => null,
-            'ask' => $this->safe_number_2($ticker, 'ask', 'ask1'),
+            'ask' => $this->safe_string_2($ticker, 'ask', 'ask1'),
             'askVolume' => null,
             'vwap' => null,
             'open' => $open,
@@ -850,7 +858,7 @@ class mexc extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $market, false);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -1154,16 +1162,37 @@ class mexc extends Exchange {
         ];
     }
 
+    public function fetch_premium_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'premiumIndex',
+        );
+        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'index',
+        );
+        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $request = array(
+            'price' => 'mark',
+        );
+        return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, array_merge($request, $params));
+    }
+
     public function fetch_balance($params = array ()) {
         $this->load_markets();
-        $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'spotPrivateGetAccountInfo',
+            'margin' => 'spotPrivateGetAccountInfo',
             'swap' => 'contractPrivateGetAccountAssets',
         ));
         $spot = ($marketType === 'spot');
-        $response = $this->$method ($params);
+        $response = $this->$method ($query);
         //
         // $spot
         //
@@ -1470,16 +1499,20 @@ class mexc extends Exchange {
         }
         $code = $this->safe_currency_code($currencyId, $currency);
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
-        $amount = $this->safe_number($transaction, 'amount');
+        $amountString = $this->safe_string($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');
         $txid = $this->safe_string($transaction, 'tx_id');
         $fee = null;
-        $feeCost = $this->safe_number($transaction, 'fee');
-        if ($feeCost !== null) {
+        $feeCostString = $this->safe_string($transaction, 'fee');
+        if ($feeCostString !== null) {
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $this->parse_number($feeCostString),
                 'currency' => $code,
             );
+        }
+        if ($type === 'withdrawal') {
+            // mexc withdrawal amount includes the $fee
+            $amountString = Precise::string_sub($amountString, $feeCostString);
         }
         return array(
             'info' => $transaction,
@@ -1495,7 +1528,7 @@ class mexc extends Exchange {
             'tagTo' => null,
             'tagFrom' => null,
             'type' => $type,
-            'amount' => $amount,
+            'amount' => $this->parse_number($amountString),
             'currency' => $code,
             'status' => $status,
             'updated' => $updated,
@@ -1506,6 +1539,7 @@ class mexc extends Exchange {
     public function parse_transaction_status($status) {
         $statuses = array(
             'WAIT' => 'pending',
+            'WAIT_PACKAGING' => 'pending',
             'SUCCESS' => 'ok',
         );
         return $this->safe_string($statuses, $status, $status);
@@ -1519,7 +1553,7 @@ class mexc extends Exchange {
         );
         $response = $this->fetch_positions(array_merge($request, $params));
         $firstPosition = $this->safe_value($response, 0);
-        return $firstPosition;
+        return $this->parse_position($firstPosition, $market);
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
@@ -1555,9 +1589,78 @@ class mexc extends Exchange {
         //         )
         //     }
         //
-        // todo add parsePositions, parsePosition
         $data = $this->safe_value($response, 'data', array());
-        return $data;
+        return $this->parse_positions($data);
+    }
+
+    public function parse_position($position, $market = null) {
+        //
+        //     {
+        //         "positionId" => 1394650,
+        //         "symbol" => "ETH_USDT",
+        //         "positionType" => 1,
+        //         "openType" => 1,
+        //         "state" => 1,
+        //         "holdVol" => 1,
+        //         "frozenVol" => 0,
+        //         "closeVol" => 0,
+        //         "holdAvgPrice" => 1217.3,
+        //         "openAvgPrice" => 1217.3,
+        //         "closeAvgPrice" => 0,
+        //         "liquidatePrice" => 1211.2,
+        //         "oim" => 0.1290338,
+        //         "im" => 0.1290338,
+        //         "holdFee" => 0,
+        //         "realised" => -0.0073,
+        //         "leverage" => 100,
+        //         "createTime" => 1609991676000,
+        //         "updateTime" => 1609991676000,
+        //         "autoAddIm" => false
+        //     }
+        //
+        $market = $this->safe_market($this->safe_string($position, 'symbol'), $market);
+        $symbol = $market['symbol'];
+        $contracts = $this->safe_string($position, 'holdVol');
+        $entryPrice = $this->safe_number($position, 'openAvgPrice');
+        $initialMargin = $this->safe_string($position, 'im');
+        $rawSide = $this->safe_string($position, 'positionType');
+        $side = ($rawSide === '1') ? 'long' : 'short';
+        $openType = $this->safe_string($position, 'margin_mode');
+        $marginType = ($openType === '1') ? 'isolated' : 'cross';
+        $leverage = $this->safe_string($position, 'leverage');
+        $liquidationPrice = $this->safe_number($position, 'liquidatePrice');
+        $timestamp = $this->safe_number($position, 'updateTime');
+        return array(
+            'info' => $position,
+            'symbol' => $symbol,
+            'contracts' => $this->parse_number($contracts),
+            'contractSize' => null,
+            'entryPrice' => $entryPrice,
+            'collateral' => null,
+            'side' => $side,
+            'unrealizedProfit' => null,
+            'leverage' => $this->parse_number($leverage),
+            'percentage' => null,
+            'marginType' => $marginType,
+            'notional' => null,
+            'markPrice' => null,
+            'liquidationPrice' => $liquidationPrice,
+            'initialMargin' => $this->parse_number($initialMargin),
+            'initialMarginPercentage' => null,
+            'maintenanceMargin' => null,
+            'maintenanceMarginPercentage' => null,
+            'marginRatio' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
+    }
+
+    public function parse_positions($positions) {
+        $result = array();
+        for ($i = 0; $i < count($positions); $i++) {
+            $result[] = $this->parse_position($positions[$i]);
+        }
+        return $result;
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1587,8 +1690,6 @@ class mexc extends Exchange {
             $orderType = 'LIMIT_ORDER';
         } else if (($orderType !== 'POST_ONLY') && ($orderType !== 'IMMEDIATE_OR_CANCEL')) {
             throw new InvalidOrder($this->id . ' createOrder() does not support ' . $type . ' order $type, specify one of LIMIT, LIMIT_ORDER, POST_ONLY or IMMEDIATE_OR_CANCEL');
-        } else {
-            throw new InvalidOrder($this->id . ' createOrder() allows limit orders only');
         }
         $request = array(
             'symbol' => $market['id'],
@@ -2088,8 +2189,19 @@ class mexc extends Exchange {
             $params = $this->omit($params, array( 'network', 'chain' ));
         }
         $response = $this->spotPrivatePostAssetWithdraw (array_merge($request, $params));
+        //
+        //     {
+        //         "code":200,
+        //         "data" => {
+        //             "withdrawId":"25fb2831fb6d4fc7aa4094612a26c81d"
+        //         }
+        //     }
+        //
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_transaction($data, $currency);
+        return array(
+            'info' => $data,
+            'id' => $this->safe_string($data, 'withdrawId'),
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -2146,9 +2258,143 @@ class mexc extends Exchange {
         $responseCode = $this->safe_string($response, 'code');
         if (($responseCode !== '200') && ($responseCode !== '0')) {
             $feedback = $this->id . ' ' . $body;
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $responseCode, $feedback);
             throw new ExchangeError($feedback);
         }
+    }
+
+    public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = null;
+        $request = array(
+            // 'symbol' => $market['id'],
+            // 'position_id' => positionId,
+            // 'page_num' => 1,
+            // 'page_size' => $limit, // default 20, max 100
+        );
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($limit !== null) {
+            $request['page_size'] = $limit;
+        }
+        $response = $this->contractPrivateGetPositionFundingRecords (array_merge($request, $params));
+        //
+        //     {
+        //         "success" => true,
+        //         "code" => 0,
+        //         "data" => {
+        //             "pageSize" => 20,
+        //             "totalCount" => 2,
+        //             "totalPage" => 1,
+        //             "currentPage" => 1,
+        //             "resultList" => array(
+        //                 array(
+        //                     "id" => 7423910,
+        //                     "symbol" => "BTC_USDT",
+        //                     "positionType" => 1,
+        //                     "positionValue" => 29.30024,
+        //                     "funding" => 0.00076180624,
+        //                     "rate" => -0.000026,
+        //                     "settleTime" => 1643299200000
+        //                 ),
+        //                 {
+        //                     "id" => 7416473,
+        //                     "symbol" => "BTC_USDT",
+        //                     "positionType" => 1,
+        //                     "positionValue" => 28.9188,
+        //                     "funding" => 0.0014748588,
+        //                     "rate" => -0.000051,
+        //                     "settleTime" => 1643270400000
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $resultList = $this->safe_value($data, 'resultList', array());
+        $result = array();
+        for ($i = 0; $i < count($resultList); $i++) {
+            $entry = $resultList[$i];
+            $timestamp = $this->safe_string($entry, 'settleTime');
+            $result[] = array(
+                'info' => $entry,
+                'symbol' => $symbol,
+                'code' => null,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'id' => $this->safe_number($entry, 'id'),
+                'amount' => $this->safe_number($entry, 'funding'),
+            );
+        }
+        return $result;
+    }
+
+    public function parse_funding_rate($fundingRate, $market = null) {
+        //
+        //     {
+        //         "symbol" => "BTC_USDT",
+        //         "fundingRate" => 0.000014,
+        //         "maxFundingRate" => 0.003,
+        //         "minFundingRate" => -0.003,
+        //         "collectCycle" => 8,
+        //         "nextSettleTime" => 1643241600000,
+        //         "timestamp" => 1643240373359
+        //     }
+        //
+        $nextFundingRate = $this->safe_number($fundingRate, 'fundingRate');
+        $nextFundingTimestamp = $this->safe_integer($fundingRate, 'nextSettleTime');
+        $marketId = $this->safe_string($fundingRate, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $timestamp = $this->safe_integer($fundingRate, 'timestamp');
+        $datetime = $this->iso8601($timestamp);
+        return array(
+            'info' => $fundingRate,
+            'symbol' => $symbol,
+            'markPrice' => null,
+            'indexPrice' => null,
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $datetime,
+            'fundingRate' => null,
+            'fundingTimestamp' => null,
+            'fundingDatetime' => null,
+            'nextFundingRate' => $nextFundingRate,
+            'nextFundingTimestamp' => $nextFundingTimestamp,
+            'nextFundingDatetime' => $this->iso8601($nextFundingTimestamp),
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+        );
+    }
+
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->contractPublicGetFundingRateSymbol (array_merge($request, $params));
+        //
+        //     {
+        //         "success" => true,
+        //         "code" => 0,
+        //         "data" => {
+        //             "symbol" => "BTC_USDT",
+        //             "fundingRate" => 0.000014,
+        //             "maxFundingRate" => 0.003,
+        //             "minFundingRate" => -0.003,
+        //             "collectCycle" => 8,
+        //             "nextSettleTime" => 1643241600000,
+        //             "timestamp" => 1643240373359
+        //         }
+        //     }
+        //
+        $result = $this->safe_value($response, 'data', array());
+        return $this->parse_funding_rate($result, $market);
     }
 
     public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {

@@ -42,6 +42,7 @@ const precisionConstants = {
 // See https://stackoverflow.com/questions/1685680/how-to-avoid-scientific-notation-for-large-numbers-in-javascript for discussion
 
 function numberToString (x) { // avoids scientific notation for too large and too small numbers
+    if (x === undefined) return undefined
 
     if (typeof x !== 'number') return x.toString ()
 

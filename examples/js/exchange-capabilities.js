@@ -38,7 +38,6 @@ async function main () {
             'swap',
             'future',
             'option',
-            'CORS',
         ];
 
         ccxt.unique (basics.concat (methods)).forEach (key => {

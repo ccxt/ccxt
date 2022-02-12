@@ -20,15 +20,43 @@ class bitstamp1 extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v1',
             'has' => array(
-                'cancelOrder' => true,
                 'CORS' => true,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
+                'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedPositions' => false,
+                'fetchLeverage' => false,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchPosition' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
@@ -97,32 +125,38 @@ class bitstamp1 extends Exchange {
         return $this->parse_order_book($orderbook, $symbol, $timestamp);
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
-        if ($symbol !== 'BTC/USD') {
-            throw new ExchangeError($this->id . ' ' . $this->version . " fetchTicker doesn't support " . $symbol . ', use it for BTC/USD only');
-        }
-        $this->load_markets();
-        $ticker = $this->publicGetTicker ($params);
+    public function parse_ticker($ticker, $market = null) {
+        //
+        // {
+        //     "volume" => "2836.47827985",
+        //     "last" => "36544.93",
+        //     "timestamp" => "1643372072",
+        //     "bid" => "36535.79",
+        //     "vwap":"36594.20",
+        //     "high" => "37534.15",
+        //     "low" => "35511.32",
+        //     "ask" => "36548.47",
+        //     "open" => 37179.62
+        // }
+        //
+        $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->safe_timestamp($ticker, 'timestamp');
-        $vwap = $this->safe_number($ticker, 'vwap');
-        $baseVolume = $this->safe_number($ticker, 'volume');
-        $quoteVolume = null;
-        if ($baseVolume !== null && $vwap !== null) {
-            $quoteVolume = $baseVolume * $vwap;
-        }
-        $last = $this->safe_number($ticker, 'last');
-        return array(
+        $vwap = $this->safe_string($ticker, 'vwap');
+        $baseVolume = $this->safe_string($ticker, 'volume');
+        $quoteVolume = Precise::string_mul($baseVolume, $vwap);
+        $last = $this->safe_string($ticker, 'last');
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'bid'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'ask'),
+            'ask' => $this->safe_string($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => $vwap,
-            'open' => $this->safe_number($ticker, 'open'),
+            'open' => $this->safe_string($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
@@ -132,7 +166,30 @@ class bitstamp1 extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
+        ), $market, false);
+    }
+
+    public function fetch_ticker($symbol, $params = array ()) {
+        if ($symbol !== 'BTC/USD') {
+            throw new ExchangeError($this->id . ' ' . $this->version . " fetchTicker doesn't support " . $symbol . ', use it for BTC/USD only');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $ticker = $this->publicGetTicker ($params);
+        //
+        // {
+        //     "volume" => "2836.47827985",
+        //     "last" => "36544.93",
+        //     "timestamp" => "1643372072",
+        //     "bid" => "36535.79",
+        //     "vwap":"36594.20",
+        //     "high" => "37534.15",
+        //     "low" => "35511.32",
+        //     "ask" => "36548.47",
+        //     "open" => 37179.62
+        // }
+        //
+        return $this->parse_ticker($ticker, $market);
     }
 
     public function parse_trade($trade, $market = null) {

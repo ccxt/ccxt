@@ -22,17 +22,19 @@ module.exports = class aax extends Exchange {
             'certified': true,
             'pro': true,
             'has': {
+                'CORS': undefined,
+                'spot': true,
                 'margin': false,
                 'swap': true,
                 'future': false,
+                'option': false,
                 'addMargin': undefined,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': undefined,
-                'CORS': undefined,
                 'createDepositAddress': undefined,
                 'createOrder': true,
-                'createReduceOnlyOrder': undefined,
+                'createReduceOnlyOrder': false,
                 'deposit': undefined,
                 'editOrder': true,
                 'fetchAccounts': undefined,
@@ -40,6 +42,7 @@ module.exports = class aax extends Exchange {
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
                 'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
@@ -57,15 +60,15 @@ module.exports = class aax extends Exchange {
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': undefined,
-                'fetchIndexOHLCV': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': true,
                 'fetchIsolatedPositions': undefined,
                 'fetchL3OrderBook': undefined,
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
                 'fetchLeverage': undefined,
                 'fetchMarkets': true,
-                'fetchMarkOHLCV': false,
+                'fetchMarkOHLCV': true,
                 'fetchMyBuys': undefined,
                 'fetchMySells': undefined,
                 'fetchMyTrades': true,
@@ -79,8 +82,8 @@ module.exports = class aax extends Exchange {
                 'fetchOrderTrades': undefined,
                 'fetchPosition': undefined,
                 'fetchPositions': undefined,
-                'fetchPositionsRisk': undefined,
-                'fetchPremiumIndexOHLCV': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': true,
                 'fetchStatus': true,
                 'fetchTicker': 'emulated',
                 'fetchTickers': true,
@@ -96,8 +99,8 @@ module.exports = class aax extends Exchange {
                 'fetchWithdrawalWhitelist': undefined,
                 'loadLeverageBrackets': undefined,
                 'reduceMargin': undefined,
-                'setLeverage': undefined,
-                'setMarginMode': undefined,
+                'setLeverage': true,
+                'setMarginMode': false,
                 'setPositionMode': undefined,
                 'signIn': undefined,
                 'transfer': undefined,
@@ -486,13 +489,13 @@ module.exports = class aax extends Exchange {
                 'swap': swap,
                 'future': false,
                 'option': false,
+                'active': (status === 'enable'),
                 'contract': swap,
                 'linear': linear,
                 'inverse': inverse,
                 'taker': this.safeNumber (market, 'takerFee'),
                 'maker': this.safeNumber (market, 'makerFee'),
                 'contractSize': contractSize,
-                'active': (status === 'enable'),
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
@@ -504,7 +507,7 @@ module.exports = class aax extends Exchange {
                 },
                 'limits': {
                     'leverage': {
-                        'min': this.parseNumber ('1'),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'amount': {
@@ -859,7 +862,7 @@ module.exports = class aax extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -892,6 +895,27 @@ module.exports = class aax extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'mark',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+    }
+
+    async fetchPremiumIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'premiumIndex',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
+    }
+
+    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'index',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
     async fetchBalance (params = {}) {
@@ -1197,21 +1221,17 @@ module.exports = class aax extends Exchange {
         const request = {
             'orderID': id,
         };
-        let method = undefined;
-        const defaultType = this.safeString2 (this.options, 'cancelOrder', 'defaultType', 'spot');
-        let type = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            type = market['type'];
         }
-        if (type === 'spot') {
-            method = 'privateDeleteSpotOrdersCancelOrderID';
-        } else if (type === 'swap' || type === 'future' || type === 'futures') { // type === 'futures' deprecated, use type === 'swap'
-            method = 'privateDeleteFuturesOrdersCancelOrderID';
-        }
-        const response = await this[method] (this.extend (request, params));
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateDeleteSpotOrdersCancelOrderID',
+            'swap': 'privateDeleteFuturesOrdersCancelOrderID',
+            'future': 'privateDeleteFuturesOrdersCancelOrderID',
+        });
+        const response = await this[method] (this.extend (request, query));
         //
         // spot
         //
@@ -2268,6 +2288,25 @@ module.exports = class aax extends Exchange {
             });
         }
         return result;
+    }
+
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        if ((leverage < 1) || (leverage > 100)) {
+            throw new BadRequest (this.id + ' leverage should be between 1 and 100');
+        }
+        const market = this.market (symbol);
+        if (market['type'] !== 'swap') {
+            throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
+        }
+        const request = {
+            'symbol': market['id'],
+            'leverage': leverage,
+        };
+        return await this.privatePostFuturesPositionLeverage (this.extend (request, params));
     }
 
     nonce () {
