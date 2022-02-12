@@ -5,7 +5,6 @@
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, BadRequest, ExchangeNotAvailable, AuthenticationError, BadSymbol, ExchangeError, InvalidOrder, InsufficientFunds } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
-// const Precise = require ('./base/Precise');
 
 // ----------------------------------------------------------------------------
 
@@ -25,28 +24,34 @@ module.exports = class dydx extends Exchange {
                 'future': false,
                 'option': false,
                 'cancelOrder': true,
+                'cancelAllOrders': true,
                 'createDepositAddress': false,
                 'createOrder': true,
                 'fetchBalance': true,
-                'fetchCanceledOrders': true,
-                'fetchClosedOrders': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOrder': undefined,
+                'fetchOrder': true,
+                'fetchOpenOrders': true,
+                'fetchCanceledOrders': true,
+                'fetchClosedOrders': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchOrderTrades': true,
+                'fetchPosition': true,
+                'fetchPositions': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFees': undefined,
-                'fetchWithdrawals': undefined,
+                'fetchTransactions': true,
+                'fetchWithdrawals': false,
                 'privateAPI': true,
                 'publicAPI': true,
-                'withdraw': undefined,
+                'withdraw': false,
             },
             'timeframes': {
                 '1m': '1MIN',
@@ -98,13 +103,13 @@ module.exports = class dydx extends Exchange {
                     'get': {
                         'rewards/public-retroactive-mining': 60, // TODO: write to exchange API team, that this endpoint is listed under 'public' endpoints, but needs apikey
                         'rewards/retroactive-mining': 60,
-                        'active-orders': undefined, // variable
+                        'active-orders': 1, // variable
                         'recovery': 60,
                         'accounts': 60,
                         'accounts/{id}': 60,
                         'accounts/leaderboard-pnl/{period}': 60,
-                        'orders/{id}': undefined,
-                        'orders/client/{id}': undefined,
+                        'orders/{id}': 1, // variable
+                        'orders/client/{id}': 1, // variable
                         'rewards/weight': 60,
                         'rewards/liquidity': 60,
                         'registration': 60,
@@ -112,7 +117,7 @@ module.exports = class dydx extends Exchange {
                         'users': 60, // can ge taker/maker fees https://docs.dydx.exchange/#get-user
                         'positions': 60,
                         'transfers': 60,
-                        'orders': undefined,
+                        'orders': 1, // variable
                         'fills': 60,
                         'funding': 60,
                         'historical-pnl': 60,
@@ -125,13 +130,13 @@ module.exports = class dydx extends Exchange {
                         'accounts': 60,
                         'withdrawals': 60,
                         'fast-withdrawals': 60,
-                        'orders': undefined, // variable
+                        'orders': 1, // variable
                     },
                     'delete': {
                         'api-keys': 60,
-                        'orders': undefined, // 3 requests per 10 seconds PER SYMBOL
-                        'orders/{id}': undefined, // 250 requests per 10 seconds PER SYMBOL
-                        'active-orders': undefined, // variable
+                        'orders': 1, // variable, 3 requests per 10 seconds PER SYMBOL
+                        'orders/{id}': 1, // variable, 250 requests per 10 seconds PER SYMBOL
+                        'active-orders': 1, // variable
                     },
                     'put': {
                         'users': 60,
