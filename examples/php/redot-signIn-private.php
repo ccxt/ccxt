@@ -6,15 +6,9 @@ include $root . '/ccxt.php';
 
 date_default_timezone_set ('UTC');
 
-// $exchange = new \ccxt\redot (array (
-//     'apiKey' => 'YOUR_API_KEY',
-//     'secret' => 'YOUR_SECRET',
-//     'enableRateLimit' => true,
-// ));
-
 $exchange = new \ccxt\redot (array (
-    'apiKey' => '3nCmZsG1TzHr9rD0',
-    'secret' => 'Bw3drviPQJMONHTKmDuvVus9',
+    'apiKey' => 'YOUR_API_KEY',
+    'secret' => 'YOUR_SECRET',
     'enableRateLimit' => true,
 ));
 
