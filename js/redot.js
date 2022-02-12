@@ -12,9 +12,14 @@ module.exports = class redot extends Exchange {
             'version': 'v1',
             'rateLimit': 300,
             'has': {
+                'CORS': false,
+                'spot': true,
+                'margin': undefined,
+                'swap': undefined,
+                'future': undefined,
+                'option': undefined,
                 'cancelAllOrders': false,
                 'cancelOrder': false,
-                'CORS': false,
                 'createOrder': true,
                 'fetchBalance': false,
                 'fetchBidsAsks': false,
@@ -32,8 +37,8 @@ module.exports = class redot extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': false,
-                'fetchOrders': true,
                 'fetchOrderBook': true,
+                'fetchOrders': true,
                 'fetchPositions': false,
                 'fetchStatus': false,
                 'fetchTicker': true,
@@ -42,8 +47,8 @@ module.exports = class redot extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
-                'fetchTransfers': false,
                 'fetchTransactions': false,
+                'fetchTransfers': false,
                 'fetchWithdrawals': true,
                 'setLeverage': false,
                 'transfer': false,
@@ -99,8 +104,6 @@ module.exports = class redot extends Exchange {
                 },
             },
             'options': {
-                'accessToken': 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiIxNTY5MyIsInBybSI6IjExIiwiYWtkIjoieDhwTkVIOW56bmhuMUllWFc4NkxPSU1pMWhMeUhpTTFLS1ZNN3k5L2txWFc2enJyNHZQTlo2SmdaK0lDVjlhQ0tzemVrUEV5TFNDaVB4N0lOR2xlQThva1BjOCsydWtxQWcya01vMldCaUE9IiwicnRpZCI6IjI4ZWE1MWI4LThhNjEtNGIwYi1hNWJiLTAyOGMxNDcxYzkzNiIsInJ0ZXhwIjoiMTY0NTgwNTEzMCIsIm5iZiI6MTY0NDU5NTUzMCwiZXhwIjoxNjQ0NTk3MzMwLCJpYXQiOjE2NDQ1OTU1MzAsImlzcyI6IkFUTEFOVCIsImF1ZCI6IkFUTEFOVCJ9.itjV3wUk1Qrm1AMqwUrpCpd7WYqOgHmTN1rT2eq9-VykdV99YsBDIIO9w6XpMIi7haE8m4URdFHnUhvJnrjAadi0rTcJaoB_rHT98W4JJ9k1unm5gtEIT3TlrIPfz6naQ000RJBgSd5h5PnS32IR7uxpnO5XSCQ9FsDIkdL-eqoJEnp2n1-TQLQVG6Xzk3Encw9Oi4qiGHnlXHRz8ziDOu0KQLSU7FXUbiflXofuxMTd3xRbNndRMRzP-WT3C2KjO3MrjuOv_qJAoRBjqLIGZrSQGJJ2KoO7S862ZXpsmEDRw9i22H-008226V9RTnxie4yRTTZGZYgHN4IfDaIZbA',
-                'refreshToken': 'EmG+8a6pXM40CfpQtEYdFb5oswLb1LfoVvf4USTxNkJT4qSKef//UfKDTslM/Yx/8dcHJTeLi7XCLRHGA91TsQ==',
             },
             'timeframes': {
                 '1m': '60',
@@ -974,7 +977,7 @@ module.exports = class redot extends Exchange {
         const result = this.safeString (response, 'result');
         const accessToken = this.safeString (result, 'accessToken'); // expires in 30 min
         this.options['accessToken'] = accessToken;
-        this.options['expires'] = this.sum (this.milliseconds (), (30 * 60) * 1000);
+        this.options['expires'] = this.sum (this.milliseconds (), 30 * 60 * 1000); // 30 minutes from now
         return response;
     }
 
