@@ -143,12 +143,21 @@ module.exports = class zb extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
                 'api': {
-                    'public': 'https://api.zb.work/data',
-                    'private': 'https://trade.zb.work/api',
-                    'trade': 'https://trade.zb.work/api',
-                    'swapV1': 'https://fapi.zb.com/api/public',
-                    'swapV2': 'https://fapi.zb.com/Server/api',
-                    'swapV2Private': 'https://fapi.zb.com/Server/api',
+                    'spot': {
+                        'v1': {
+                            'public': 'https://api.zb.work/data',
+                            'private': 'https://trade.zb.work/api',
+                        },
+                    },
+                    'contract': {
+                        'v1': {
+                            'public': 'https://fapi.zb.com/api/public',
+                        },
+                        'v2': {
+                            'public': 'https://fapi.zb.com/Server/api',
+                            'private': 'https://fapi.zb.com/Server/api',
+                        },
+                    },
                 },
                 'www': 'https://www.zb.com',
                 'doc': 'https://www.zb.com/i/developer',
@@ -159,132 +168,138 @@ module.exports = class zb extends Exchange {
                 },
             },
             'api': {
-                'trade': {
-                    'get': [
-                        'getFeeInfo', // withdrawal fees
-                    ],
+                'spot': {
+                    'v1': {
+                        'public': {
+                            'get': [
+                                'markets',
+                                'ticker',
+                                'allTicker',
+                                'depth',
+                                'trades',
+                                'kline',
+                                'getGroupMarkets',
+                            ],
+                        },
+                        'private': {
+                            'get': [
+                                // spot API
+                                'order',
+                                'orderMoreV2',
+                                'cancelOrder',
+                                'getFeeInfo',
+                                'getOrder',
+                                'getOrders',
+                                'getOrdersNew',
+                                'getOrdersIgnoreTradeType',
+                                'getUnfinishedOrdersIgnoreTradeType',
+                                'getFinishedAndPartialOrders',
+                                'getAccountInfo',
+                                'getUserAddress',
+                                'getPayinAddress',
+                                'getWithdrawAddress',
+                                'getWithdrawRecord',
+                                'getChargeRecord',
+                                'getCnyWithdrawRecord',
+                                'getCnyChargeRecord',
+                                'withdraw',
+                                // sub accounts
+                                'addSubUser',
+                                'getSubUserList',
+                                'doTransferFunds',
+                                'createSubUserKey', // removed on 2021-03-16 according to the update log in the API doc
+                                // leverage API
+                                'getLeverAssetsInfo',
+                                'getLeverBills',
+                                'transferInLever',
+                                'transferOutLever',
+                                'loan',
+                                'cancelLoan',
+                                'getLoans',
+                                'getLoanRecords',
+                                'borrow',
+                                'autoBorrow',
+                                'repay',
+                                'doAllRepay',
+                                'getRepayments',
+                                'getFinanceRecords',
+                                'changeInvestMark',
+                                'changeLoop',
+                                // cross API
+                                'getCrossAssets',
+                                'getCrossBills',
+                                'transferInCross',
+                                'transferOutCross',
+                                'doCrossLoan',
+                                'doCrossRepay',
+                                'getCrossRepayRecords',
+                            ],
+                        },
+                    },
                 },
-                'public': {
-                    'get': [
-                        'markets',
-                        'ticker',
-                        'allTicker',
-                        'depth',
-                        'trades',
-                        'kline',
-                        'getGroupMarkets',
-                    ],
-                },
-                'private': {
-                    'get': [
-                        // spot API
-                        'order',
-                        'orderMoreV2',
-                        'cancelOrder',
-                        'getOrder',
-                        'getOrders',
-                        'getOrdersNew',
-                        'getOrdersIgnoreTradeType',
-                        'getUnfinishedOrdersIgnoreTradeType',
-                        'getFinishedAndPartialOrders',
-                        'getAccountInfo',
-                        'getUserAddress',
-                        'getPayinAddress',
-                        'getWithdrawAddress',
-                        'getWithdrawRecord',
-                        'getChargeRecord',
-                        'getCnyWithdrawRecord',
-                        'getCnyChargeRecord',
-                        'withdraw',
-                        // sub accounts
-                        'addSubUser',
-                        'getSubUserList',
-                        'doTransferFunds',
-                        'createSubUserKey', // removed on 2021-03-16 according to the update log in the API doc
-                        // leverage API
-                        'getLeverAssetsInfo',
-                        'getLeverBills',
-                        'transferInLever',
-                        'transferOutLever',
-                        'loan',
-                        'cancelLoan',
-                        'getLoans',
-                        'getLoanRecords',
-                        'borrow',
-                        'autoBorrow',
-                        'repay',
-                        'doAllRepay',
-                        'getRepayments',
-                        'getFinanceRecords',
-                        'changeInvestMark',
-                        'changeLoop',
-                        // cross API
-                        'getCrossAssets',
-                        'getCrossBills',
-                        'transferInCross',
-                        'transferOutCross',
-                        'doCrossLoan',
-                        'doCrossRepay',
-                        'getCrossRepayRecords',
-                    ],
-                },
-                'swapV1': {
-                    'get': [
-                        'depth',
-                        'fundingRate',
-                        'indexKline',
-                        'indexPrice',
-                        'kCline',
-                        'markKline',
-                        'markPrice',
-                        'ticker',
-                        'trade',
-                    ],
-                },
-                'swapV2': {
-                    'get': [
-                        'allForceOrders',
-                        'config/marketList',
-                        'topLongShortAccountRatio',
-                        'topLongShortPositionRatio',
-                        'fundingRate',
-                        'premiumIndex',
-                    ],
-                },
-                'swapV2Private': {
-                    'get': [
-                        'Fund/balance',
-                        'Fund/getAccount',
-                        'Fund/getBill',
-                        'Fund/getBillTypeList',
-                        'Fund/marginHistory',
-                        'Positions/getPositions',
-                        'Positions/getNominalValue',
-                        'Positions/marginInfo',
-                        'setting/get',
-                        'trade/getAllOrders',
-                        'trade/getOrder',
-                        'trade/getOrderAlgos',
-                        'trade/getTradeList',
-                        'trade/getUndoneOrders',
-                        'trade/tradeHistory',
-                    ],
-                    'post': [
-                        'activity/buyTicket',
-                        'Fund/transferFund',
-                        'Positions/setMarginCoins',
-                        'Positions/updateAppendUSDValue',
-                        'Positions/updateMargin',
-                        'setting/setLeverage',
-                        'trade/batchOrder',
-                        'trade/batchCancelOrder',
-                        'trade/cancelAlgos',
-                        'trade/cancelAllOrders',
-                        'trade/cancelOrder',
-                        'trade/order',
-                        'trade/orderAlgo',
-                        'trade/updateOrderAlgo',
-                    ],
+                'contract': {
+                    'v1': {
+                        'public': {
+                            'get': [
+                                'depth',
+                                'fundingRate',
+                                'indexKline',
+                                'indexPrice',
+                                'kCline',
+                                'markKline',
+                                'markPrice',
+                                'ticker',
+                                'trade',
+                            ],
+                        },
+                    },
+                    'v2': {
+                        'public': {
+                            'get': [
+                                'allForceOrders',
+                                'config/marketList',
+                                'topLongShortAccountRatio',
+                                'topLongShortPositionRatio',
+                                'fundingRate',
+                                'premiumIndex',
+                            ],
+                        },
+                        'private': {
+                            'get': [
+                                'Fund/balance',
+                                'Fund/getAccount',
+                                'Fund/getBill',
+                                'Fund/getBillTypeList',
+                                'Fund/marginHistory',
+                                'Positions/getPositions',
+                                'Positions/getNominalValue',
+                                'Positions/marginInfo',
+                                'setting/get',
+                                'trade/getAllOrders',
+                                'trade/getOrder',
+                                'trade/getOrderAlgos',
+                                'trade/getTradeList',
+                                'trade/getUndoneOrders',
+                                'trade/tradeHistory',
+                            ],
+                            'post': [
+                                'activity/buyTicket',
+                                'Fund/transferFund',
+                                'Positions/setMarginCoins',
+                                'Positions/updateAppendUSDValue',
+                                'Positions/updateMargin',
+                                'setting/setLeverage',
+                                'trade/batchOrder',
+                                'trade/batchCancelOrder',
+                                'trade/cancelAlgos',
+                                'trade/cancelAllOrders',
+                                'trade/cancelOrder',
+                                'trade/order',
+                                'trade/orderAlgo',
+                                'trade/updateOrderAlgo',
+                            ],
+                        },
+                    },
                 },
             },
             'fees': {
@@ -306,7 +321,7 @@ module.exports = class zb extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const markets = await this.publicGetMarkets (params);
+        const markets = await this.spotV1PublicGetMarkets (params);
         //
         //     {
         //         "zb_qc":{
@@ -382,7 +397,7 @@ module.exports = class zb extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const response = await this.tradeGetGetFeeInfo (params);
+        const response = await this.spotV1PrivateGetGetFeeInfo (params);
         //
         //     {
         //         "code":1000,
@@ -484,7 +499,7 @@ module.exports = class zb extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetGetAccountInfo (params);
+        const response = await this.spotV1PrivateGetGetAccountInfo (params);
         // todo: use this somehow
         // let permissions = response['result']['base'];
         return this.parseBalance (response);
@@ -539,7 +554,7 @@ module.exports = class zb extends Exchange {
 
     async fetchDepositAddresses (codes = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetGetPayinAddress (params);
+        const response = await this.spotV1PrivateGetGetPayinAddress (params);
         //
         //     {
         //         "code": 1000,
@@ -577,7 +592,7 @@ module.exports = class zb extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.privateGetGetUserAddress (this.extend (request, params));
+        const response = await this.spotV1PrivateGetGetUserAddress (this.extend (request, params));
         //
         //     {
         //         "code": 1000,
@@ -604,7 +619,7 @@ module.exports = class zb extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await this.publicGetDepth (this.extend (request, params));
+        const response = await this.spotV1PublicGetDepth (this.extend (request, params));
         //
         //     {
         //         "asks":[
@@ -625,7 +640,7 @@ module.exports = class zb extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.publicGetAllTicker (params);
+        const response = await this.spotV1PublicGetAllTicker (params);
         const result = {};
         const marketsByIdWithoutUnderscore = {};
         const marketIds = Object.keys (this.markets_by_id);
@@ -647,7 +662,7 @@ module.exports = class zb extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await this.publicGetTicker (this.extend (request, params));
+        const response = await this.spotV1PublicGetTicker (this.extend (request, params));
         //
         //     {
         //         "date":"1624399623587",
@@ -735,7 +750,7 @@ module.exports = class zb extends Exchange {
         if (since !== undefined) {
             request['since'] = since;
         }
-        const response = await this.publicGetKline (this.extend (request, params));
+        const response = await this.spotV1PublicGetKline (this.extend (request, params));
         const data = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
@@ -788,7 +803,7 @@ module.exports = class zb extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await this.publicGetTrades (this.extend (request, params));
+        const response = await this.spotV1PublicGetTrades (this.extend (request, params));
         //
         //     [
         //         {"date":1624537391,"amount":"0.0142","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869018},
@@ -810,7 +825,7 @@ module.exports = class zb extends Exchange {
             'tradeType': (side === 'buy') ? '1' : '0',
             'currency': this.marketId (symbol),
         };
-        const response = await this.privateGetOrder (this.extend (request, params));
+        const response = await this.spotV1PrivateGetOrder (this.extend (request, params));
         return {
             'info': response,
             'id': response['id'],
@@ -823,7 +838,7 @@ module.exports = class zb extends Exchange {
             'id': id.toString (),
             'currency': this.marketId (symbol),
         };
-        return await this.privateGetCancelOrder (this.extend (request, params));
+        return await this.spotV1PrivateGetCancelOrder (this.extend (request, params));
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -835,7 +850,7 @@ module.exports = class zb extends Exchange {
             'id': id.toString (),
             'currency': this.marketId (symbol),
         };
-        const response = await this.privateGetGetOrder (this.extend (request, params));
+        const response = await this.spotV1PrivateGetGetOrder (this.extend (request, params));
         //
         //     {
         //         'total_amount': 0.01,
@@ -863,10 +878,10 @@ module.exports = class zb extends Exchange {
             'pageIndex': 1, // default pageIndex is 1
             'pageSize': limit, // default pageSize is 50
         };
-        let method = 'privateGetGetOrdersIgnoreTradeType';
+        let method = 'spotV1PrivateGetGetOrdersIgnoreTradeType';
         // tradeType 交易类型1/0[buy/sell]
         if ('tradeType' in params) {
-            method = 'privateGetGetOrdersNew';
+            method = 'spotV1PrivateGetGetOrdersNew';
         }
         let response = undefined;
         try {
@@ -891,7 +906,7 @@ module.exports = class zb extends Exchange {
             'pageIndex': 1, // default pageIndex is 1
             'pageSize': limit, // default pageSize is 10, doesn't work with other values now
         };
-        const response = await this.privateGetGetFinishedAndPartialOrders (this.extend (request, params));
+        const response = await this.spotV1PrivateGetGetFinishedAndPartialOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -906,10 +921,10 @@ module.exports = class zb extends Exchange {
             'pageIndex': 1, // default pageIndex is 1
             'pageSize': limit, // default pageSize is 10
         };
-        let method = 'privateGetGetUnfinishedOrdersIgnoreTradeType';
+        let method = 'spotV1PrivateGetGetUnfinishedOrdersIgnoreTradeType';
         // tradeType 交易类型1/0[buy/sell]
         if ('tradeType' in params) {
-            method = 'privateGetGetOrdersNew';
+            method = 'spotV1PrivateGetGetOrdersNew';
         }
         let response = undefined;
         try {
@@ -1126,7 +1141,7 @@ module.exports = class zb extends Exchange {
             'receiveAddr': address,
             'safePwd': password,
         };
-        const response = await this.privateGetWithdraw (this.extend (request, params));
+        const response = await this.spotV1PrivateGetWithdraw (this.extend (request, params));
         //
         //     {
         //         "code": 1000,
@@ -1158,7 +1173,7 @@ module.exports = class zb extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const response = await this.privateGetGetWithdrawRecord (this.extend (request, params));
+        const response = await this.spotV1PrivateGetGetWithdrawRecord (this.extend (request, params));
         //
         //     {
         //         "code": 1000,
@@ -1206,7 +1221,7 @@ module.exports = class zb extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const response = await this.privateGetGetChargeRecord (this.extend (request, params));
+        const response = await this.spotV1PrivateGetGetChargeRecord (this.extend (request, params));
         //
         //     {
         //         "code": 1000,
@@ -1246,28 +1261,29 @@ module.exports = class zb extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api];
-        if (api === 'public') {
-            url += '/' + this.version + '/' + path;
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
-            }
-        } else if (api === 'trade') {
+        const [ section, version, access ] = api;
+        let url = this.urls['api'][section][version][access];
+        if (path === 'getFeeInfo') {
             url += '/' + path;
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
-        } else if (api === 'swapV1') {
-            url += '/' + this.version + '/' + path;
+        } else if (section === 'spot' || version === 'v1' || access === 'public') {
+            url += '/' + version + '/' + path;
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
-        } else if (api === 'swapV2') {
-            url += '/' + this.version + '/' + path;
+        } else if (section === 'contract' || version === 'v1' || access === 'public') {
+            url += '/' + version + '/' + path;
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
-        } else if (api === 'swapV2Private') {
+        } else if (section === 'contract' || version === 'v2' || access === 'public') {
+            url += '/' + version + '/' + path;
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            }
+        } else if (section === 'contract' || version === 'v2' || access === 'private') {
             let query = this.keysort (this.extend ({
                 'method': path,
                 'accesskey': this.apiKey,
@@ -1278,7 +1294,7 @@ module.exports = class zb extends Exchange {
             const secret = this.hash (this.encode (this.secret), 'sha1');
             const signature = this.hmac (this.encode (auth), this.encode (secret), 'md5');
             const suffix = 'sign=' + signature + '&reqTime=' + nonce.toString ();
-            url += '/' + this.version + '/' + path + '?' + auth + '&' + suffix;
+            url += '/' + version + '/' + path + '?' + auth + '&' + suffix;
         } else {
             let query = this.keysort (this.extend ({
                 'method': path,
