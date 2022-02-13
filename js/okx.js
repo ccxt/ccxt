@@ -3333,10 +3333,12 @@ module.exports = class okx extends Exchange {
                 }
             }
         }
+        const contractSize = this.safeValue (market, 'contractSize');
+        const contractSizeString = this.numberToString (contractSize);
         const markPriceString = this.safeString (position, 'markPx');
         let notionalString = this.safeString (position, 'notionalUsd');
         if (market['inverse']) {
-            notionalString = Precise.stringDiv (notionalString, markPriceString);
+            notionalString = Precise.stringDiv (Precise.stringMul (contractsAbs, contractSizeString), markPriceString);
         }
         const notional = this.parseNumber (notionalString);
         const marginType = this.safeString (position, 'mgnMode');
@@ -3378,7 +3380,7 @@ module.exports = class okx extends Exchange {
             'unrealizedPnl': this.parseNumber (unrealizedPnlString),
             'percentage': percentage,
             'contracts': contracts,
-            'contractSize': this.safeValue (market, 'contractSize'),
+            'contractSize': contractSize,
             'markPrice': this.parseNumber (markPriceString),
             'side': side,
             'hedged': hedged,
