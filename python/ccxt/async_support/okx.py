@@ -3202,10 +3202,12 @@ class okx(Exchange):
                     side = 'long'
                 else:
                     side = 'short'
+        contractSize = self.safe_value(market, 'contractSize')
+        contractSizeString = self.number_to_string(contractSize)
         markPriceString = self.safe_string(position, 'markPx')
         notionalString = self.safe_string(position, 'notionalUsd')
         if market['inverse']:
-            notionalString = Precise.string_div(notionalString, markPriceString)
+            notionalString = Precise.string_div(Precise.string_mul(contractsAbs, contractSizeString), markPriceString)
         notional = self.parse_number(notionalString)
         marginType = self.safe_string(position, 'mgnMode')
         initialMarginString = None
@@ -3244,7 +3246,7 @@ class okx(Exchange):
             'unrealizedPnl': self.parse_number(unrealizedPnlString),
             'percentage': percentage,
             'contracts': contracts,
-            'contractSize': self.safe_value(market, 'contractSize'),
+            'contractSize': contractSize,
             'markPrice': self.parse_number(markPriceString),
             'side': side,
             'hedged': hedged,

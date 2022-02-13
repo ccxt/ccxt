@@ -3339,10 +3339,12 @@ class okx extends Exchange {
                 }
             }
         }
+        $contractSize = $this->safe_value($market, 'contractSize');
+        $contractSizeString = $this->number_to_string($contractSize);
         $markPriceString = $this->safe_string($position, 'markPx');
         $notionalString = $this->safe_string($position, 'notionalUsd');
         if ($market['inverse']) {
-            $notionalString = Precise::string_div($notionalString, $markPriceString);
+            $notionalString = Precise::string_div(Precise::string_mul($contractsAbs, $contractSizeString), $markPriceString);
         }
         $notional = $this->parse_number($notionalString);
         $marginType = $this->safe_string($position, 'mgnMode');
@@ -3384,7 +3386,7 @@ class okx extends Exchange {
             'unrealizedPnl' => $this->parse_number($unrealizedPnlString),
             'percentage' => $percentage,
             'contracts' => $contracts,
-            'contractSize' => $this->safe_value($market, 'contractSize'),
+            'contractSize' => $contractSize,
             'markPrice' => $this->parse_number($markPriceString),
             'side' => $side,
             'hedged' => $hedged,
