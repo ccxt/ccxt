@@ -124,7 +124,7 @@ class zaif(Exchange):
             'options': {
                 # zaif schedule defines several market-specific fees
                 'fees': {
-                    'BTC/JPY': {'maker': 0, 'taker': 0},
+                    'BTC/JPY': {'maker': 0, 'taker': 0.1 / 100},
                     'BCH/JPY': {'maker': 0, 'taker': 0.3 / 100},
                     'BCH/BTC': {'maker': 0, 'taker': 0.3 / 100},
                     'PEPECASH/JPY': {'maker': 0, 'taker': 0.01 / 100},
