@@ -16,6 +16,11 @@ function testLeverageTier (exchange, method, tier) {
         const key = keys[i];
         assert (key in tier);
     }
+    assert (typeof tier['tier'] === 'number');
+    assert (typeof tier['notionalFloor'] === 'number');
+    assert (typeof tier['notionalCap'] === 'number');
+    assert (typeof tier['maintenanceMarginRate'] === 'number');
+    assert (typeof tier['maxLeverage'] === 'number');
     assert (tier['tier'] >= 0);
     assert (tier['notionalFloor'] >= 0);
     assert (tier['notionalCap'] >= 0);
