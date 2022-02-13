@@ -92,6 +92,7 @@ class okx(Exchange):
                 'fetchLedger': True,
                 'fetchLedgerEntry': None,
                 'fetchLeverage': True,
+                'fetchLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
                 'fetchMyBuys': None,
@@ -2986,7 +2987,7 @@ class okx(Exchange):
         marginMode = self.safe_string_lower(params, 'mgnMode')
         params = self.omit(params, ['mgnMode'])
         if (marginMode != 'cross') and (marginMode != 'isolated'):
-            raise BadRequest(self.id + ' fetchLeverage params["mgnMode"] must be either cross or isolated')
+            raise BadRequest(self.id + ' fetchLeverage() requires a mgnMode parameter that must be either cross or isolated')
         market = self.market(symbol)
         request = {
             'instId': market['id'],
@@ -3818,6 +3819,61 @@ class okx(Exchange):
 
     def add_margin(self, symbol, amount, params={}):
         return self.modify_margin_helper(symbol, amount, 'add', params)
+
+    def fetch_leverage_tiers(self, symbol=None, params={}):
+        self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchLeverageTiers() requires a symbol argument')
+        market = self.market(symbol)
+        type = 'MARGIN' if market['spot'] else market['type'].upper()
+        uly = self.safe_string(market['info'], 'uly')
+        if not uly:
+            raise BadRequest(self.id + ' fetchLeverageTiers() cannot fetch leverage tiers for ' + symbol)
+        request = {
+            'instType': type,
+            'tdMode': self.safe_string(params, 'tdMode', 'isolated'),
+            'uly': uly,
+        }
+        if type == 'MARGIN':
+            request['instId'] = market['id']
+        response = self.publicGetPublicPositionTiers(self.extend(request, params))
+        #
+        #    {
+        #        "code": "0",
+        #        "data": [
+        #            {
+        #                "baseMaxLoan": "500",
+        #                "imr": "0.1",
+        #                "instId": "ETH-USDT",
+        #                "maxLever": "10",
+        #                "maxSz": "500",
+        #                "minSz": "0",
+        #                "mmr": "0.03",
+        #                "optMgnFactor": "0",
+        #                "quoteMaxLoan": "200000",
+        #                "tier": "1",
+        #                "uly": ""
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        brackets = []
+        for i in range(0, len(data)):
+            tier = data[i]
+            brackets.append({
+                'tier': self.safe_integer(tier, 'tier'),
+                'notionalCurrency': market['quote'],
+                'notionalFloor': self.safe_number(tier, 'minSz'),
+                'notionalCap': self.safe_number(tier, 'maxSz'),
+                'maintenanceMarginRatio': self.safe_number(tier, 'mmr'),
+                'maxLeverage': self.safe_number(tier, 'maxLever'),
+                'info': tier,
+            })
+        result = {}
+        result[symbol] = brackets
+        return result
 
     def set_sandbox_mode(self, enable):
         super(okx, self).set_sandbox_mode(enable)
