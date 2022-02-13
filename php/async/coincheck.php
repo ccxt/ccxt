@@ -423,7 +423,11 @@ class coincheck extends Exchange {
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
-        $response = yield $this->privateGetExchangeOrdersTransactions (array_merge(array(), $params));
+        $request = array();
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = yield $this->privateGetExchangeOrdersTransactionsPagination (array_merge($request, $params));
         //
         //      {
         //          "success" => true,
@@ -627,7 +631,7 @@ class coincheck extends Exchange {
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
-        $updated = $this->safe_integer($transaction, 'confirmed_at');
+        $updated = $this->parse8601($this->safe_string($transaction, 'confirmed_at'));
         $fee = null;
         $feeCost = $this->safe_number($transaction, 'fee');
         if ($feeCost !== null) {

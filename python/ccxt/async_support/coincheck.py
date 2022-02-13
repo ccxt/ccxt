@@ -403,7 +403,10 @@ class coincheck(Exchange):
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.privateGetExchangeOrdersTransactions(self.extend({}, params))
+        request = {}
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.privateGetExchangeOrdersTransactionsPagination(self.extend(request, params))
         #
         #      {
         #          "success": True,
@@ -594,7 +597,7 @@ class coincheck(Exchange):
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
-        updated = self.safe_integer(transaction, 'confirmed_at')
+        updated = self.parse8601(self.safe_string(transaction, 'confirmed_at'))
         fee = None
         feeCost = self.safe_number(transaction, 'fee')
         if feeCost is not None:
