@@ -1600,12 +1600,12 @@ module.exports = class kucoinfutures extends kucoin {
 
     async fetchLeverageTiers (symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        if (!symbol) {
-            throw new ArgumentsRequired (this.id + '.fetchLeverageTiers requires argument symbol');
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchLeverageTiers() requires a symbol argument');
         }
         const market = this.market (symbol);
-        if (market['spot']) {
-            throw new BadRequest (this.id + '.fetchLeverageTiers symbol supports contract markets only');
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' fetchLeverageTiers() supports contract markets only');
         }
         const request = {
             'symbol': market['id'],
