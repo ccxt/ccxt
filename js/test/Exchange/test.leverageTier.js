@@ -12,7 +12,7 @@ function testLeverageTier (exchange, method, tier) {
         'info': {},
     };
     const keys = Object.keys (format);
-    for (let k = 0; k < keys.length; k++) {
+    for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
         assert (key in tier);
     }
