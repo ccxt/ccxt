@@ -420,7 +420,11 @@ module.exports = class coincheck extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const response = await this.privateGetExchangeOrdersTransactions (this.extend ({}, params));
+        const request = {};
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetExchangeOrdersTransactionsPagination (this.extend (request, params));
         //
         //      {
         //          "success": true,
@@ -624,7 +628,7 @@ module.exports = class coincheck extends Exchange {
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const updated = this.safeInteger (transaction, 'confirmed_at');
+        const updated = this.parse8601 (this.safeString (transaction, 'confirmed_at'));
         let fee = undefined;
         const feeCost = this.safeNumber (transaction, 'fee');
         if (feeCost !== undefined) {
