@@ -56,6 +56,7 @@ class phemex(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchIndexOHLCV': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,

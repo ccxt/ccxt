@@ -42,6 +42,7 @@ class coinspot extends Exchange {
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
+                'fetchLeverageTiers' => false,
                 'fetchMarkOHLCV' => false,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
