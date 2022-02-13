@@ -2464,46 +2464,41 @@ The possible values in the `status` field are:
 - `'maintenance'` means regular maintenance, and the `eta` field should contain the datetime when the exchange is expected to be operational again
 
 ## Fetch Leverage Tiers
-- *Param `symbol` is required for exchanges `okx` and `kucoinfutures`*
-- *On `binance`, this is a private endpoint*
 
-You can obtain the absolute maximum leverage for a market by accessing `market['limits']['leverage']['max']`
-For many contract markets, the maximum leverage  will depend on the size of the trade. You can access these limits via the `fetchLeverageTiers` method
+You can obtain the absolute maximum leverage for a market by accessing `market['limits']['leverage']['max']`.
+For many contracts, the maximum leverage will depend on the size of your position.
+You can access those limits via the `fetchLeverageTiers()` method.
 
 ```Javascript
 fetchLeverageTiers(symbol, params = {})
 ```
 
-`fetchLeverageTiers` can be used to obtain the maximum leverage for a market at varying trade sizes. It can also be used to obtain the maintenance margin ratio(or maintenance margin rate), and the max tradeable amount for a market when that amount is not available in the markets object
+The `fetchLeverageTiers()` method can be used to obtain the maximum leverage for a market at varying position sizes. It can also be used to obtain the maintenance margin rate, and the max tradeable amount for a market when that information is not available from the market object:
 
 ### Fetch Leverage Tiers Structure
 
 The `fetchLeverageTiers()` method will return a structure like shown below:
 
-```
+```JavaScript
 {
     'BNB/USDT': [
         {
-            "tier": 1,                          // Tier index
-            "notionalCurrency": "USDT",         // The currency that notionalFloor and notionalCap are in
-            "notionalFloor": 0,                 // The lowest amount of this tier   // stake = 0.0
-            "notionalCap": 10000,               // The highest amount of this tier  // max stake amount at 75x leverage = 133.33333333333334
-            "maintenanceMarginRate": 0.0065,    // Maintenance margin rate
-            "maxLeverage": 75,                  // The maximum available leverage available for this market when the value of the trade is > notionalFloor and < notionalCap
-            "info": {
-                // Response from exchange
-            }
+            "tier": 1,                       // tier index
+            "notionalCurrency": "USDT",      // the currency that notionalFloor and notionalCap are in
+            "notionalFloor": 0,              // the lowest amount of this tier // stake = 0.0
+            "notionalCap": 10000,            // the highest amount of this tier // max stake amount at 75x leverage = 133.33333333333334
+            "maintenanceMarginRate": 0.0065, // maintenance margin rate
+            "maxLeverage": 75,               // max available leverage for this market when the value of the trade is > notionalFloor and < notionalCap
+            "info": { ... }                  // Response from exchange
         },
         {
             "tier": 2,
             "notionalCurrency": "USDT",
-            "notionalFloor": 10000,             // min stake amount at 50x leverage = 200.0
-            "notionalCap": 50000,               // max stake amount at 50x leverage = 1000.0
+            "notionalFloor": 10000,          // min stake amount at 50x leverage = 200.0
+            "notionalCap": 50000,            // max stake amount at 50x leverage = 1000.0
             "maintenanceMarginRatio": 0.01,
             "maxLeverage": 50,
-            "info": {
-                // Response from exchange
-            }
+            "info": { ... },
         },
         ...
         {
@@ -2513,9 +2508,7 @@ The `fetchLeverageTiers()` method will return a structure like shown below:
             "notionalCap": 50000000,
             "maintenanceMarginRate": 0.5,
             "maxLeverage": 1,
-            "info": {
-                // Response from exchange
-            }
+            "info": { ... },
         },
     ]
     ...
@@ -2523,7 +2516,7 @@ The `fetchLeverageTiers()` method will return a structure like shown below:
 }
 ```
 
-In the example above
+In the example above:
 
 - stakes below 133.33       = a max leverage of 75
 - stakes from 200 + 1000    = a max leverage of 50
