@@ -3106,7 +3106,7 @@ module.exports = class okx extends Exchange {
         const marginMode = this.safeStringLower (params, 'mgnMode');
         params = this.omit (params, [ 'mgnMode' ]);
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
-            throw new BadRequest (this.id + ' fetchLeverage params["mgnMode"] must be either cross or isolated');
+            throw new BadRequest (this.id + ' fetchLeverage() requires a mgnMode parameter that must be either cross or isolated');
         }
         const market = this.market (symbol);
         const request = {
@@ -3989,14 +3989,14 @@ module.exports = class okx extends Exchange {
 
     async fetchLeverageTiers (symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        if (!symbol) {
-            throw new ArgumentsRequired (this.id + '.fetchLeverageTiers requires params.symbol');
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchLeverageTiers() requires a symbol argument');
         }
         const market = this.market (symbol);
         const type = market['spot'] ? 'MARGIN' : market['type'].toUpperCase ();
         const uly = this.safeString (market['info'], 'uly');
         if (!uly) {
-            throw new BadRequest (this.id + '.fetchLeverageTiers cannot fetch leverage tiers for ' + symbol);
+            throw new BadRequest (this.id + ' fetchLeverageTiers() cannot fetch leverage tiers for ' + symbol);
         }
         const request = {
             'instType': type,
