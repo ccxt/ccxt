@@ -537,7 +537,7 @@ module.exports = class coincheck extends Exchange {
         //   ]
         // }
         const data = this.safeValue (response, 'deposits', []);
-        return this.parseTransactions (data, currency, since, limit);
+        return this.parseTransactions (data, currency, since, limit, { 'type': 'deposit' });
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -573,23 +573,19 @@ module.exports = class coincheck extends Exchange {
         //   ]
         // }
         const data = this.safeValue (response, 'data', []);
-        return this.parseTransactions (data, currency, since, limit);
+        return this.parseTransactions (data, currency, since, limit, { 'type': 'withdrawal' });
     }
 
-    parseDepositStatus (status) {
+    parseTransactionStatus (status) {
         const statuses = {
-            'confirmed': 'pending',
-            'received': 'ok',
-        };
-        return this.safeString (statuses, status, status);
-    }
-
-    parseWithdrawalStatus (status) {
-        const statuses = {
+            // withdrawals
             'pending': 'pending',
             'processing': 'pending',
             'finished': 'ok',
             'canceled': 'canceled',
+            // deposits
+            'confirmed': 'pending',
+            'received': 'ok',
         };
         return this.safeString (statuses, status, status);
     }
@@ -621,28 +617,22 @@ module.exports = class coincheck extends Exchange {
         //       "is_fast": true
         //  }
         //
-        let type = undefined;
-        let status = undefined;
-        const rawStatus = this.safeString (transaction, 'status');
-        if ('address' in transaction) {
-            type = 'deposit';
-            status = this.parseDepositStatus (rawStatus);
-        } else {
-            type = 'withdrawal';
-            status = this.parseWithdrawalStatus (rawStatus);
-        }
         const id = this.safeString (transaction, 'id');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'created_at'));
         const address = this.safeString (transaction, 'address');
+        const amount = this.safeNumber (transaction, 'amount');
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const timestamp = this.parse8601 (this.safeString (transaction, 'created_at'));
-        const amount = this.safeNumber (transaction, 'amount');
-        const feeCost = this.safeNumber (transaction, 'fee');
-        let fee = undefined;
-        if (feeCost !== undefined) {
-            fee = { 'currency': code, 'cost': feeCost };
-        }
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const updated = this.safeInteger (transaction, 'confirmed_at');
+        let fee = undefined;
+        const feeCost = this.safeNumber (transaction, 'fee');
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            };
+        }
         return {
             'info': transaction,
             'id': id,
@@ -656,7 +646,7 @@ module.exports = class coincheck extends Exchange {
             'tag': undefined,
             'tagTo': undefined,
             'tagFrom': undefined,
-            'type': type,
+            'type': undefined,
             'amount': amount,
             'currency': code,
             'status': status,
