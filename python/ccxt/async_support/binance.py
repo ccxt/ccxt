@@ -2589,20 +2589,20 @@ class binance(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         defaultType = self.safe_string_2(self.options, 'createOrder', 'defaultType', 'spot')
-        orderType = self.safe_string(params, 'type', defaultType)
+        marketType = self.safe_string(params, 'type', defaultType)
         clientOrderId = self.safe_string_2(params, 'newClientOrderId', 'clientOrderId')
         postOnly = self.safe_value(params, 'postOnly', False)
         params = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly'])
         reduceOnly = self.safe_value(params, 'reduceOnly')
         if reduceOnly is not None:
-            if (orderType != 'future') and (orderType != 'delivery'):
-                raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + orderType + ' orders, reduceOnly orders are supported for futures and perpetuals only')
+            if (marketType != 'future') and (marketType != 'delivery'):
+                raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for future and delivery markets only')
         method = 'privatePostOrder'
-        if orderType == 'future':
+        if marketType == 'future':
             method = 'fapiPrivatePostOrder'
-        elif orderType == 'delivery':
+        elif marketType == 'delivery':
             method = 'dapiPrivatePostOrder'
-        elif orderType == 'margin':
+        elif marketType == 'margin':
             method = 'sapiPostMarginOrder'
         # the next 5 lines are added to support for testing orders
         if market['spot']:
@@ -2625,12 +2625,12 @@ class binance(Exchange):
         if clientOrderId is None:
             broker = self.safe_value(self.options, 'broker')
             if broker is not None:
-                brokerId = self.safe_string(broker, orderType)
+                brokerId = self.safe_string(broker, marketType)
                 if brokerId is not None:
                     request['newClientOrderId'] = brokerId + self.uuid22()
         else:
             request['newClientOrderId'] = clientOrderId
-        if (orderType == 'spot') or (orderType == 'margin'):
+        if (marketType == 'spot') or (marketType == 'margin'):
             request['newOrderRespType'] = self.safe_value(self.options['newOrderRespType'], type, 'RESULT')  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         else:
             # delivery and future

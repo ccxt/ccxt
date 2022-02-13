@@ -2655,22 +2655,22 @@ class binance extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $defaultType = $this->safe_string_2($this->options, 'createOrder', 'defaultType', 'spot');
-        $orderType = $this->safe_string($params, 'type', $defaultType);
+        $marketType = $this->safe_string($params, 'type', $defaultType);
         $clientOrderId = $this->safe_string_2($params, 'newClientOrderId', 'clientOrderId');
         $postOnly = $this->safe_value($params, 'postOnly', false);
         $params = $this->omit($params, array( 'type', 'newClientOrderId', 'clientOrderId', 'postOnly' ));
         $reduceOnly = $this->safe_value($params, 'reduceOnly');
         if ($reduceOnly !== null) {
-            if (($orderType !== 'future') && ($orderType !== 'delivery')) {
-                throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $orderType . ' orders, $reduceOnly orders are supported for futures and perpetuals only');
+            if (($marketType !== 'future') && ($marketType !== 'delivery')) {
+                throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $marketType . ' orders, $reduceOnly orders are supported for future and delivery markets only');
             }
         }
         $method = 'privatePostOrder';
-        if ($orderType === 'future') {
+        if ($marketType === 'future') {
             $method = 'fapiPrivatePostOrder';
-        } else if ($orderType === 'delivery') {
+        } else if ($marketType === 'delivery') {
             $method = 'dapiPrivatePostOrder';
-        } else if ($orderType === 'margin') {
+        } else if ($marketType === 'margin') {
             $method = 'sapiPostMarginOrder';
         }
         // the next 5 lines are added to support for testing orders
@@ -2698,7 +2698,7 @@ class binance extends Exchange {
         if ($clientOrderId === null) {
             $broker = $this->safe_value($this->options, 'broker');
             if ($broker !== null) {
-                $brokerId = $this->safe_string($broker, $orderType);
+                $brokerId = $this->safe_string($broker, $marketType);
                 if ($brokerId !== null) {
                     $request['newClientOrderId'] = $brokerId . $this->uuid22();
                 }
@@ -2706,7 +2706,7 @@ class binance extends Exchange {
         } else {
             $request['newClientOrderId'] = $clientOrderId;
         }
-        if (($orderType === 'spot') || ($orderType === 'margin')) {
+        if (($marketType === 'spot') || ($marketType === 'margin')) {
             $request['newOrderRespType'] = $this->safe_value($this->options['newOrderRespType'], $type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         } else {
             // delivery and future
