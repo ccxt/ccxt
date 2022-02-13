@@ -45,6 +45,7 @@ class deribit extends Exchange {
                 'fetchDeposits' => true,
                 'fetchHistoricalVolatility' => true,
                 'fetchIndexOHLCV' => false,
+                'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,

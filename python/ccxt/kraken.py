@@ -73,6 +73,7 @@ class kraken(Exchange):
                 'fetchIsolatedPositions': False,
                 'fetchLedger': True,
                 'fetchLedgerEntry': True,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,

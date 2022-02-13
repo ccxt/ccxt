@@ -34,6 +34,7 @@ class coincheck(Exchange):
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
+                'fetchDeposits': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -51,6 +52,7 @@ class coincheck(Exchange):
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
@@ -401,7 +403,10 @@ class coincheck(Exchange):
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.privateGetExchangeOrdersTransactions(self.extend({}, params))
+        request = {}
+        if limit is not None:
+            request['limit'] = limit
+        response = self.privateGetExchangeOrdersTransactionsPagination(self.extend(request, params))
         #
         #      {
         #          "success": True,
@@ -475,6 +480,152 @@ class coincheck(Exchange):
             'id': id,
         }
         return self.privateDeleteExchangeOrdersId(self.extend(request, params))
+
+    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        currency = None
+        request = {}
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        if limit is not None:
+            request['limit'] = limit
+        response = self.privateGetDepositMoney(self.extend(request, params))
+        # {
+        #   "success": True,
+        #   "deposits": [
+        #     {
+        #       "id": 2,
+        #       "amount": "0.05",
+        #       "currency": "BTC",
+        #       "address": "13PhzoK8me3u5nHzzFD85qT9RqEWR9M4Ty",
+        #       "status": "confirmed",
+        #       "confirmed_at": "2015-06-13T08:29:18.000Z",
+        #       "created_at": "2015-06-13T08:22:18.000Z"
+        #     },
+        #     {
+        #       "id": 1,
+        #       "amount": "0.01",
+        #       "currency": "BTC",
+        #       "address": "13PhzoK8me3u5nHzzFD85qT9RqEWR9M4Ty",
+        #       "status": "received",
+        #       "confirmed_at": "2015-06-13T08:21:18.000Z",
+        #       "created_at": "2015-06-13T08:21:18.000Z"
+        #     }
+        #   ]
+        # }
+        data = self.safe_value(response, 'deposits', [])
+        return self.parse_transactions(data, currency, since, limit, {'type': 'deposit'})
+
+    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        request = {}
+        if limit is not None:
+            request['limit'] = limit
+        response = self.privateGetWithdraws(self.extend(request, params))
+        #  {
+        #   "success": True,
+        #   "pagination": {
+        #     "limit": 25,
+        #     "order": "desc",
+        #     "starting_after": null,
+        #     "ending_before": null
+        #   },
+        #   "data": [
+        #     {
+        #       "id": 398,
+        #       "status": "finished",
+        #       "amount": "242742.0",
+        #       "currency": "JPY",
+        #       "created_at": "2014-12-04T15:00:00.000Z",
+        #       "bank_account_id": 243,
+        #       "fee": "400.0",
+        #       "is_fast": True
+        #     }
+        #   ]
+        # }
+        data = self.safe_value(response, 'data', [])
+        return self.parse_transactions(data, currency, since, limit, {'type': 'withdrawal'})
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            # withdrawals
+            'pending': 'pending',
+            'processing': 'pending',
+            'finished': 'ok',
+            'canceled': 'canceled',
+            # deposits
+            'confirmed': 'pending',
+            'received': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # fetchDeposits
+        #
+        # {
+        #       "id": 2,
+        #       "amount": "0.05",
+        #       "currency": "BTC",
+        #       "address": "13PhzoK8me3u5nHzzFD85qT9RqEWR9M4Ty",
+        #       "status": "confirmed",
+        #       "confirmed_at": "2015-06-13T08:29:18.000Z",
+        #       "created_at": "2015-06-13T08:22:18.000Z"
+        #  }
+        #
+        # fetchWithdrawals
+        #
+        #  {
+        #       "id": 398,
+        #       "status": "finished",
+        #       "amount": "242742.0",
+        #       "currency": "JPY",
+        #       "created_at": "2014-12-04T15:00:00.000Z",
+        #       "bank_account_id": 243,
+        #       "fee": "400.0",
+        #       "is_fast": True
+        #  }
+        #
+        id = self.safe_string(transaction, 'id')
+        timestamp = self.parse8601(self.safe_string(transaction, 'created_at'))
+        address = self.safe_string(transaction, 'address')
+        amount = self.safe_number(transaction, 'amount')
+        currencyId = self.safe_string(transaction, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
+        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+        updated = self.parse8601(self.safe_string(transaction, 'confirmed_at'))
+        fee = None
+        feeCost = self.safe_number(transaction, 'fee')
+        if feeCost is not None:
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            }
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'network': None,
+            'address': address,
+            'addressTo': address,
+            'addressFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'tagFrom': None,
+            'type': None,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'internal': None,
+            'fee': fee,
+        }
 
     def nonce(self):
         return self.milliseconds()

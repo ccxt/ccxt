@@ -63,6 +63,7 @@ module.exports = class binance extends Exchange {
                 'fetchL3OrderBook': undefined,
                 'fetchLedger': undefined,
                 'fetchLeverage': undefined,
+                'fetchLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyBuys': undefined,
@@ -4775,6 +4776,68 @@ module.exports = class binance extends Exchange {
             }
         }
         return this.options['leverageBrackets'];
+    }
+
+    async fetchLeverageTiers (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchLeverageTiers', undefined, params);
+        let method = undefined;
+        if (type === 'future') {
+            method = 'fapiPrivateGetLeverageBracket';
+        } else if (type === 'delivery') {
+            method = 'dapiPrivateV2GetLeverageBracket';
+        } else {
+            throw new NotSupported (this.id + ' fetchLeverageTiers() supports linear and inverse contracts only');
+        }
+        const response = await this[method] (query);
+        //
+        //    [
+        //        {
+        //            "symbol": "SUSHIUSDT",
+        //            "brackets": [
+        //                {
+        //                    "bracket": 1,
+        //                    "initialLeverage": 50,
+        //                    "notionalCap": 50000,
+        //                    "notionalFloor": 0,
+        //                    "maintMarginRatio": 0.01,
+        //                    "cum": 0.0
+        //                },
+        //                ...
+        //            ]
+        //        }
+        //    ]
+        //
+        const leverageBrackets = {};
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const marketId = this.safeString (entry, 'symbol');
+            const safeSymbol = this.safeSymbol (marketId);
+            let market = { 'base': undefined };
+            if (safeSymbol in this.markets) {
+                market = this.market (safeSymbol);
+            }
+            const brackets = this.safeValue (entry, 'brackets');
+            const result = [];
+            for (let j = 0; j < brackets.length; j++) {
+                const bracket = brackets[j];
+                result.push ({
+                    'tier': this.safeNumber (bracket, 'bracket'),
+                    'notionalCurrency': market['quote'],
+                    'notionalFloor': this.safeFloat2 (bracket, 'notionalFloor', 'qtyFloor'),
+                    'notionalCap': this.safeNumber (bracket, 'notionalCap'),
+                    'maintenanceMarginRate': this.safeNumber (bracket, 'maintMarginRatio'),
+                    'maxLeverage': this.safeNumber (bracket, 'initialLeverage'),
+                    'info': bracket,
+                });
+            }
+            leverageBrackets[safeSymbol] = result;
+        }
+        if (symbol !== undefined) {
+            return this.safeValue (leverageBrackets, symbol);
+        } else {
+            return leverageBrackets;
+        }
     }
 
     async fetchPositions (symbols = undefined, params = {}) {

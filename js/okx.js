@@ -64,6 +64,7 @@ module.exports = class okx extends Exchange {
                 'fetchLedger': true,
                 'fetchLedgerEntry': undefined,
                 'fetchLeverage': true,
+                'fetchLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyBuys': undefined,
@@ -3105,7 +3106,7 @@ module.exports = class okx extends Exchange {
         const marginMode = this.safeStringLower (params, 'mgnMode');
         params = this.omit (params, [ 'mgnMode' ]);
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
-            throw new BadRequest (this.id + ' fetchLeverage params["mgnMode"] must be either cross or isolated');
+            throw new BadRequest (this.id + ' fetchLeverage() requires a mgnMode parameter that must be either cross or isolated');
         }
         const market = this.market (symbol);
         const request = {
@@ -3333,10 +3334,12 @@ module.exports = class okx extends Exchange {
                 }
             }
         }
+        const contractSize = this.safeValue (market, 'contractSize');
+        const contractSizeString = this.numberToString (contractSize);
         const markPriceString = this.safeString (position, 'markPx');
         let notionalString = this.safeString (position, 'notionalUsd');
         if (market['inverse']) {
-            notionalString = Precise.stringDiv (notionalString, markPriceString);
+            notionalString = Precise.stringDiv (Precise.stringMul (contractsAbs, contractSizeString), markPriceString);
         }
         const notional = this.parseNumber (notionalString);
         const marginType = this.safeString (position, 'mgnMode');
@@ -3378,7 +3381,7 @@ module.exports = class okx extends Exchange {
             'unrealizedPnl': this.parseNumber (unrealizedPnlString),
             'percentage': percentage,
             'contracts': contracts,
-            'contractSize': this.safeValue (market, 'contractSize'),
+            'contractSize': contractSize,
             'markPrice': this.parseNumber (markPriceString),
             'side': side,
             'hedged': hedged,
@@ -3984,6 +3987,66 @@ module.exports = class okx extends Exchange {
 
     async addMargin (symbol, amount, params = {}) {
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
+    }
+
+    async fetchLeverageTiers (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchLeverageTiers() requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        const type = market['spot'] ? 'MARGIN' : market['type'].toUpperCase ();
+        const uly = this.safeString (market['info'], 'uly');
+        if (!uly) {
+            throw new BadRequest (this.id + ' fetchLeverageTiers() cannot fetch leverage tiers for ' + symbol);
+        }
+        const request = {
+            'instType': type,
+            'tdMode': this.safeString (params, 'tdMode', 'isolated'),
+            'uly': uly,
+        };
+        if (type === 'MARGIN') {
+            request['instId'] = market['id'];
+        }
+        const response = await this.publicGetPublicPositionTiers (this.extend (request, params));
+        //
+        //    {
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "baseMaxLoan": "500",
+        //                "imr": "0.1",
+        //                "instId": "ETH-USDT",
+        //                "maxLever": "10",
+        //                "maxSz": "500",
+        //                "minSz": "0",
+        //                "mmr": "0.03",
+        //                "optMgnFactor": "0",
+        //                "quoteMaxLoan": "200000",
+        //                "tier": "1",
+        //                "uly": ""
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        const brackets = [];
+        for (let i = 0; i < data.length; i++) {
+            const tier = data[i];
+            brackets.push ({
+                'tier': this.safeInteger (tier, 'tier'),
+                'notionalCurrency': market['quote'],
+                'notionalFloor': this.safeNumber (tier, 'minSz'),
+                'notionalCap': this.safeNumber (tier, 'maxSz'),
+                'maintenanceMarginRatio': this.safeNumber (tier, 'mmr'),
+                'maxLeverage': this.safeNumber (tier, 'maxLever'),
+                'info': tier,
+            });
+        }
+        const result = {};
+        result[symbol] = brackets;
+        return result;
     }
 
     setSandboxMode (enable) {
