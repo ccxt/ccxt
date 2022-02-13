@@ -7,17 +7,19 @@ const assert = require ('assert');
 // ----------------------------------------------------------------------------
 
 module.exports = async (exchange, symbol) => {
+    const method = 'fetchLeverageTiers';
     // const format = {
     //     'RAY/USDT': [
     //       {},
     //     ],
     // };
-    if (exchange.has.fetchLeverageTiers) {
-        const method = 'fetchLeverageTiers';
+    if (exchange.has[method]) {
         const tiers = await exchange [ method ] (symbol);
         const tierKeys = Object.keys (tiers);
-        console.log (method + 'for ' + tierKeys.length + ' markets');
-        for (let i = 0; i < tierKeys.length; i++) {
+        const numTierKeys = tierKeys.length;
+        assert (numTierKeys >= 1);
+        console.log (method + 'for ' + numTierKeys + ' markets');
+        for (let i = 0; i < numTierKeys; i++) {
             const tiersForSymbol = tiers [ tierKeys[i] ];
             const arrayLength = tiersForSymbol.length;
             assert (arrayLength >= 1);
