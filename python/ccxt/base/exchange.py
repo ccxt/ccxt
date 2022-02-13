@@ -609,6 +609,37 @@ class Exchange(object):
         else:
             return json.loads(response_body)
 
+    def handleRestResponse(self, response, url, method, request_headers, request_body):
+        # does not try to detect encoding
+        response.encoding = 'utf-8'
+        headers = response.headers
+        http_status_code = response.status_code
+        http_status_text = response.reason
+        http_response = self.on_rest_response(
+            code=http_status_code,
+            reason=http_status_text,
+            url=url,
+            method=method,
+            response_headers=headers,
+            response_body=response.text,
+            request_headers=request_headers,
+            request_body=request_body,
+        )
+        json_response = self.parse_json(http_response)
+        # FIXME remove last_x_responses from subclasses
+        if self.enableLastHttpResponse:
+            self.last_http_response = http_response
+        if self.enableLastJsonResponse:
+            self.last_json_response = json_response
+        if self.enableLastResponseHeaders:
+            self.last_response_headers = headers
+        if self.verbose:
+            self.log("\nfetch Response:", self.id, method, url, http_status_code, "ResponseHeaders:", headers, "ResponseBody:", http_response)
+        self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
+        response.raise_for_status()
+        return json_response
+
+
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
         request_headers = self.prepare_request_headers(headers)
@@ -638,24 +669,7 @@ class Exchange(object):
                 proxies=self.proxies,
                 verify=self.verify
             )
-            # does not try to detect encoding
-            response.encoding = 'utf-8'
-            headers = response.headers
-            http_status_code = response.status_code
-            http_status_text = response.reason
-            http_response = self.on_rest_response(http_status_code, http_status_text, url, method, headers, response.text, request_headers, request_body)
-            json_response = self.parse_json(http_response)
-            # FIXME remove last_x_responses from subclasses
-            if self.enableLastHttpResponse:
-                self.last_http_response = http_response
-            if self.enableLastJsonResponse:
-                self.last_json_response = json_response
-            if self.enableLastResponseHeaders:
-                self.last_response_headers = headers
-            if self.verbose:
-                self.log("\nfetch Response:", self.id, method, url, http_status_code, "ResponseHeaders:", headers, "ResponseBody:", http_response)
-            self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
-            response.raise_for_status()
+            json_response = self.handleRestResponse(response, url, method, request_headers, request_body)
 
         except Timeout as e:
             details = ' '.join([self.id, method, url])
@@ -676,7 +690,7 @@ class Exchange(object):
                 self.handle_http_status_code(http_status_code, http_status_text, url, method, http_response)
                 raise ExchangeError(details) from e
             response = response['text'] if response and 'text' in response else None
-            return json_response or response
+            return self.handleRestRespone(response, url, method, request_headers, request_body)
 
         except requestsConnectionError as e:
             error_string = str(e)
