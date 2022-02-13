@@ -303,6 +303,7 @@ async function testExchange (exchange) {
     await test ('fetchOpenOrders', exchange, symbol)
     await test ('fetchClosedOrders', exchange, symbol)
     await test ('fetchMyTrades', exchange, symbol)
+    await test ('fetchLeverageTiers', exchange, symbol)
 
     await test ('fetchPositions', exchange, symbol)
 
