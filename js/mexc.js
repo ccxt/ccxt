@@ -2462,90 +2462,92 @@ module.exports = class mexc extends Exchange {
 
     async fetchLeverageTiers (symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let symbols = undefined;
-        if (symbol) {
-            const market = this.market (symbol);
+        const symbolDefined = (symbol !== undefined);
+        let market = undefined;
+        if (symbolDefined) {
+            market = this.market (symbol);
             if (!market['contract']) {
                 throw new BadRequest (this.id + ' fetchLeverageTiers symbol supports contract markets only');
             }
-            symbols = [ symbol ];
-        } else {
-            symbols = this.symbols;
         }
         const result = {};
-        for (let i = 0; i < symbols.length; i++) {
-            const market = this.market (symbols[i]);
-            //
-            //    {
-            //        contract: true,
-            //        ...
-            //        info: {
-            //            symbol: 'GALA_USDT',
-            //            displayName: 'GALA_USDT永续',
-            //            displayNameEn: 'GALA_USDT SWAP',
-            //            positionOpenType: '3',
-            //            baseCoin: 'GALA',
-            //            quoteCoin: 'USDT',
-            //            settleCoin: 'USDT',
-            //            contractSize: '10',
-            //            minLeverage: '1',
-            //            maxLeverage: '20',
-            //            priceScale: '5',
-            //            volScale: '0',
-            //            amountScale: '4',
-            //            priceUnit: '0.00001',
-            //            volUnit: '1',
-            //            minVol: '1',
-            //            maxVol: '150000',
-            //            bidLimitPriceRate: '0.2',
-            //            askLimitPriceRate: '0.2',
-            //            takerFeeRate: '0.0006',
-            //            makerFeeRate: '0.0002',
-            //            maintenanceMarginRate: '0.02',
-            //            initialMarginRate: '0.05',
-            //            riskBaseVol: '30000',
-            //            riskIncrVol: '30000',
-            //            riskIncrMmr: '0.01',
-            //            riskIncrImr: '0.01',
-            //            riskLevelLimit: '5',
-            //            priceCoefficientVariation: '0.1',
-            //            indexOrigin: [ 'BINANCE', 'GATEIO', 'MEXC' ],
-            //            state: '0',
-            //            isNew: false,
-            //            isHot: false,
-            //            isHidden: false,
-            //            conceptPlate: []
-            //        }
-            //    }
-            //
-            if (market['contract']) {
-                const info = market['info'];
-                let maintenanceMarginRate = this.safeString (info, 'maintenanceMarginRate');
-                let initialMarginRate = this.safeString (info, 'initialMarginRate');
-                const maxVol = this.safeString (info, 'maxVol');
-                const riskIncrVol = this.safeString (info, 'riskIncrVol');
-                const riskIncrMmr = this.safeString (info, 'riskIncrMmr');
-                const riskIncrImr = this.safeString (info, 'riskIncrImr');
-                let floor = '0';
-                const tiers = [];
-                while (Precise.stringLt (floor, maxVol)) {
-                    const cap = Precise.stringAdd (floor, riskIncrVol);
-                    tiers.push ({
-                        'tier': this.parseNumber (Precise.stringDiv (cap, riskIncrVol)),
-                        'notionalCurrency': market['quote'],
-                        'notionalFloor': this.parseNumber (floor),
-                        'notionalCap': this.parseNumber (cap),
-                        'maintenanceMarginRate': this.parseNumber (maintenanceMarginRate),
-                        'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRate)),
-                        'info': info,
-                    });
-                    initialMarginRate = Precise.stringAdd (initialMarginRate, riskIncrImr);
-                    maintenanceMarginRate = Precise.stringAdd (maintenanceMarginRate, riskIncrMmr);
-                    floor = cap;
-                }
-                result[market['symbol']] = tiers;
+        const response = await this.contractPublicGetDetail ();
+        //
+        //     {
+        //         "success":true,
+        //         "code":0,
+        //         "data":[
+        //             {
+        //                 "symbol":"BTC_USDT",
+        //                 "displayName":"BTC_USDT永续",
+        //                 "displayNameEn":"BTC_USDT SWAP",
+        //                 "positionOpenType":3,
+        //                 "baseCoin":"BTC",
+        //                 "quoteCoin":"USDT",
+        //                 "settleCoin":"USDT",
+        //                 "contractSize":0.0001,
+        //                 "minLeverage":1,
+        //                 "maxLeverage":125,
+        //                 "priceScale":2,
+        //                 "volScale":0,
+        //                 "amountScale":4,
+        //                 "priceUnit":0.5,
+        //                 "volUnit":1,
+        //                 "minVol":1,
+        //                 "maxVol":1000000,
+        //                 "bidLimitPriceRate":0.1,
+        //                 "askLimitPriceRate":0.1,
+        //                 "takerFeeRate":0.0006,
+        //                 "makerFeeRate":0.0002,
+        //                 "maintenanceMarginRate":0.004,
+        //                 "initialMarginRate":0.008,
+        //                 "riskBaseVol":10000,
+        //                 "riskIncrVol":200000,
+        //                 "riskIncrMmr":0.004,
+        //                 "riskIncrImr":0.004,
+        //                 "riskLevelLimit":5,
+        //                 "priceCoefficientVariation":0.1,
+        //                 "indexOrigin":["BINANCE","GATEIO","HUOBI","MXC"],
+        //                 "state":0, // 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
+        //                 "isNew":false,
+        //                 "isHot":true,
+        //                 "isHidden":false
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        for (let i = 0; i < data.length; i++) {
+            const item = data[i];
+            let maintenanceMarginRate = this.safeString (item, 'maintenanceMarginRate');
+            let initialMarginRate = this.safeString (item, 'initialMarginRate');
+            const maxVol = this.safeString (item, 'maxVol');
+            const riskIncrVol = this.safeString (item, 'riskIncrVol');
+            const riskIncrMmr = this.safeString (item, 'riskIncrMmr');
+            const riskIncrImr = this.safeString (item, 'riskIncrImr');
+            let floor = '0';
+            const tiers = [];
+            const quoteId = this.safeString (item, 'quoteCoin');
+            while (Precise.stringLt (floor, maxVol)) {
+                const cap = Precise.stringAdd (floor, riskIncrVol);
+                tiers.push ({
+                    'tier': this.parseNumber (Precise.stringDiv (cap, riskIncrVol)),
+                    'notionalCurrency': this.safeCurrencyCode (quoteId),
+                    'notionalFloor': this.parseNumber (floor),
+                    'notionalCap': this.parseNumber (cap),
+                    'maintenanceMarginRate': this.parseNumber (maintenanceMarginRate),
+                    'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRate)),
+                    'info': item,
+                });
+                initialMarginRate = Precise.stringAdd (initialMarginRate, riskIncrImr);
+                maintenanceMarginRate = Precise.stringAdd (maintenanceMarginRate, riskIncrMmr);
+                floor = cap;
             }
+            const id = this.safeString (item, 'symbol');
+            const ccxtSymbol = this.safeSymbol (id);
+            result[ccxtSymbol] = tiers;
         }
-        return result;
+        return symbolDefined ? this.safeValue (result, symbol) : result;
     }
 };
