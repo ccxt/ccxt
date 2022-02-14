@@ -1,7 +1,7 @@
 language: python
-dist: bionic
+dist: focal
 python:
-- '3.7'
+- '3.8'
 php:
   - 7.4
 before_install:
