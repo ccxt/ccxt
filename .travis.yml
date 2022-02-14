@@ -1,7 +1,7 @@
 language: python
 dist: bionic
 python:
-  - "3.7"
+  - "3.8"
 cache:
  directories:
    # - $HOME/.cache/pip
