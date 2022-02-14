@@ -179,6 +179,7 @@ module.exports = class zb extends Exchange {
                                 'trades',
                                 'kline',
                                 'getGroupMarkets',
+                                'getFeeInfo',
                             ],
                         },
                         'private': {
@@ -187,7 +188,6 @@ module.exports = class zb extends Exchange {
                                 'order',
                                 'orderMoreV2',
                                 'cancelOrder',
-                                'getFeeInfo',
                                 'getOrder',
                                 'getOrders',
                                 'getOrdersNew',
@@ -1263,13 +1263,12 @@ module.exports = class zb extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const [ section, version, access ] = api;
         let url = this.urls['api'][section][version][access];
-        if (path === 'getFeeInfo') {
-            url += '/' + path;
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
+        if (access === 'public') {
+            if (path === 'getFeeInfo') {
+                url = this.urls['api'][section][version]['private'] + '/' + path;
+            } else {
+                url += '/' + version; + '/' + path;
             }
-        } else if (access === 'public') {
-            url += '/' + version + '/' + path;
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
