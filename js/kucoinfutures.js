@@ -286,10 +286,10 @@ module.exports = class kucoinfutures extends kucoin {
                     'ERC20': 'eth',
                     'TRC20': 'trx',
                 },
-                'code': 'BTC',
-                'fetchBalance': {
-                    'code': 'BTC',
-                },
+                // 'code': 'BTC',
+                // 'fetchBalance': {
+                //    'code': 'BTC',
+                // },
             },
         });
     }
@@ -1256,7 +1256,10 @@ module.exports = class kucoinfutures extends kucoin {
         // only fetches one balance at a time
         const request = {};
         const coin = this.safeString (params, 'coin');
-        const code = this.safeString (params, 'code', this.options['code']);
+        let defaultCode = this.safeString (this.options, 'code');
+        const fetchBalanceOptions = this.safeValue (this.options, 'fetchBalance', {});
+        defaultCode = this.safeString (fetchBalanceOptions, 'code', defaultCode);
+        const code = this.safeString (params, 'code', defaultCode);
         if (coin !== undefined) {
             request['currency'] = coin;
         } else if (code !== undefined) {
