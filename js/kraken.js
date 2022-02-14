@@ -1766,6 +1766,9 @@ module.exports = class kraken extends Exchange {
         //         time:  1530481750,
         //       status: "Success"                                                             }
         //
+        // withdrawals may also have an additional 'status-prop' field present
+        //
+        //
         const id = this.safeString (transaction, 'refid');
         const txid = this.safeString (transaction, 'txid');
         const timestamp = this.safeTimestamp (transaction, 'time');
@@ -1774,8 +1777,11 @@ module.exports = class kraken extends Exchange {
         const address = this.safeString (transaction, 'info');
         const amount = this.safeNumber (transaction, 'amount');
         let status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const onHold = this.safeString (transaction, 'status-prop');
-        if (onHold === 'on-hold') {
+        const statusProp = this.safeString (transaction, 'status-prop');
+        const isOnHoldDeposit = statusProp === 'on-hold';
+        const isCancellationRequest = statusProp === 'cancel-pending';
+        const isOnHoldWithdrawal = statusProp === 'onhold';
+        if (isOnHoldDeposit || isCancellationRequest || isOnHoldWithdrawal) {
             status = 'pending';
         }
         const type = this.safeString (transaction, 'type'); // injected from the outside
