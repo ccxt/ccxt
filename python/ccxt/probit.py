@@ -59,6 +59,7 @@ class probit(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -298,8 +299,8 @@ class probit(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_number(market, 'price_increment'),
                     'amount': self.parse_number(amountTickSize),
+                    'price': self.safe_number(market, 'price_increment'),
                     'cost': self.parse_number(costTickSize),
                 },
                 'limits': {

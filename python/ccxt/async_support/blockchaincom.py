@@ -264,8 +264,8 @@ class blockchaincom(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': pricePrecision,
                     'amount': amountPrecision,
+                    'price': pricePrecision,
                 },
                 'limits': {
                     'leverage': {

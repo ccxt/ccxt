@@ -44,6 +44,7 @@ class luno(Exchange):
                 'fetchIsolatedPositions': False,
                 'fetchLedger': True,
                 'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -133,6 +134,14 @@ class luno(Exchange):
                         'quotes/{id}',
                         'withdrawals/{id}',
                     ],
+                },
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': True,  # based on volume from your primary currency(not the same for everyone)
+                    'percentage': True,
+                    'taker': self.parse_number('0.001'),
+                    'maker': self.parse_number('0'),
                 },
             },
         })

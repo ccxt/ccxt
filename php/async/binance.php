@@ -70,6 +70,7 @@ class binance extends Exchange {
                 'fetchL3OrderBook' => null,
                 'fetchLedger' => null,
                 'fetchLeverage' => null,
+                'fetchLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMyBuys' => null,
@@ -1579,14 +1580,13 @@ class binance extends Exchange {
                 'taker' => $fees['trading']['taker'],
                 'maker' => $fees['trading']['maker'],
                 'contractSize' => $contractSize,
-                'maintenanceMarginRate' => null,
                 'expiry' => $expiry,
                 'expiryDatetime' => $this->iso8601($expiry),
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($market, 'pricePrecision'),
                     'amount' => $this->safe_integer($market, 'quantityPrecision'),
+                    'price' => $this->safe_integer($market, 'pricePrecision'),
                     'base' => $this->safe_integer($market, 'baseAssetPrecision'),
                     'quote' => $this->safe_integer($market, 'quotePrecision'),
                 ),
@@ -2656,22 +2656,22 @@ class binance extends Exchange {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $defaultType = $this->safe_string_2($this->options, 'createOrder', 'defaultType', 'spot');
-        $orderType = $this->safe_string($params, 'type', $defaultType);
+        $marketType = $this->safe_string($params, 'type', $defaultType);
         $clientOrderId = $this->safe_string_2($params, 'newClientOrderId', 'clientOrderId');
         $postOnly = $this->safe_value($params, 'postOnly', false);
         $params = $this->omit($params, array( 'type', 'newClientOrderId', 'clientOrderId', 'postOnly' ));
         $reduceOnly = $this->safe_value($params, 'reduceOnly');
         if ($reduceOnly !== null) {
-            if (($orderType !== 'future') && ($orderType !== 'delivery')) {
-                throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $orderType . ' orders, $reduceOnly orders are supported for futures and perpetuals only');
+            if (($marketType !== 'future') && ($marketType !== 'delivery')) {
+                throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $marketType . ' orders, $reduceOnly orders are supported for future and delivery markets only');
             }
         }
         $method = 'privatePostOrder';
-        if ($orderType === 'future') {
+        if ($marketType === 'future') {
             $method = 'fapiPrivatePostOrder';
-        } else if ($orderType === 'delivery') {
+        } else if ($marketType === 'delivery') {
             $method = 'dapiPrivatePostOrder';
-        } else if ($orderType === 'margin') {
+        } else if ($marketType === 'margin') {
             $method = 'sapiPostMarginOrder';
         }
         // the next 5 lines are added to support for testing orders
@@ -2699,7 +2699,7 @@ class binance extends Exchange {
         if ($clientOrderId === null) {
             $broker = $this->safe_value($this->options, 'broker');
             if ($broker !== null) {
-                $brokerId = $this->safe_string($broker, $orderType);
+                $brokerId = $this->safe_string($broker, $marketType);
                 if ($brokerId !== null) {
                     $request['newClientOrderId'] = $brokerId . $this->uuid22();
                 }
@@ -2707,7 +2707,7 @@ class binance extends Exchange {
         } else {
             $request['newClientOrderId'] = $clientOrderId;
         }
-        if (($orderType === 'spot') || ($orderType === 'margin')) {
+        if (($marketType === 'spot') || ($marketType === 'margin')) {
             $request['newOrderRespType'] = $this->safe_value($this->options['newOrderRespType'], $type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         } else {
             // delivery and future
@@ -4783,6 +4783,68 @@ class binance extends Exchange {
             }
         }
         return $this->options['leverageBrackets'];
+    }
+
+    public function fetch_leverage_tiers($symbol = null, $params = array ()) {
+        yield $this->load_markets();
+        list($type, $query) = $this->handle_market_type_and_params('fetchLeverageTiers', null, $params);
+        $method = null;
+        if ($type === 'future') {
+            $method = 'fapiPrivateGetLeverageBracket';
+        } else if ($type === 'delivery') {
+            $method = 'dapiPrivateV2GetLeverageBracket';
+        } else {
+            throw new NotSupported($this->id . ' fetchLeverageTiers() supports linear and inverse contracts only');
+        }
+        $response = yield $this->$method ($query);
+        //
+        //    array(
+        //        {
+        //            "symbol" => "SUSHIUSDT",
+        //            "brackets" => array(
+        //                array(
+        //                    "bracket" => 1,
+        //                    "initialLeverage" => 50,
+        //                    "notionalCap" => 50000,
+        //                    "notionalFloor" => 0,
+        //                    "maintMarginRatio" => 0.01,
+        //                    "cum" => 0.0
+        //                ),
+        //                ...
+        //            )
+        //        }
+        //    )
+        //
+        $leverageBrackets = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $marketId = $this->safe_string($entry, 'symbol');
+            $safeSymbol = $this->safe_symbol($marketId);
+            $market = array( 'base' => null );
+            if (is_array($this->markets) && array_key_exists($safeSymbol, $this->markets)) {
+                $market = $this->market($safeSymbol);
+            }
+            $brackets = $this->safe_value($entry, 'brackets');
+            $result = array();
+            for ($j = 0; $j < count($brackets); $j++) {
+                $bracket = $brackets[$j];
+                $result[] = array(
+                    'tier' => $this->safe_number($bracket, 'bracket'),
+                    'notionalCurrency' => $market['quote'],
+                    'notionalFloor' => $this->safe_float_2($bracket, 'notionalFloor', 'qtyFloor'),
+                    'notionalCap' => $this->safe_number($bracket, 'notionalCap'),
+                    'maintenanceMarginRate' => $this->safe_number($bracket, 'maintMarginRatio'),
+                    'maxLeverage' => $this->safe_number($bracket, 'initialLeverage'),
+                    'info' => $bracket,
+                );
+            }
+            $leverageBrackets[$safeSymbol] = $result;
+        }
+        if ($symbol !== null) {
+            return $this->safe_value($leverageBrackets, $symbol);
+        } else {
+            return $leverageBrackets;
+        }
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {

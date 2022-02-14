@@ -310,6 +310,7 @@ class Transpiler {
             [ / = new /g, ' = ' ], // python does not have a 'new' keyword
             [ /console\.log\s/g, 'print' ],
             [ /process\.exit\s+/g, 'sys.exit' ],
+            [ /(while \(.*\)) {/, '$1\:' ], // While loops replace bracket with :
             [ /([^:+=\/\*\s-]+) \(/g, '$1(' ], // PEP8 E225 remove whitespaces before left ( round bracket
             [ /\sand\(/g, ' and (' ],
             [ /\sor\(/g, ' or (' ],
@@ -323,6 +324,8 @@ class Transpiler {
             [ /\=\=\sTrue/g, 'is True' ], // a correction for PEP8 E712, it likes "is True", not "== True"
             [ /\sdelete\s/g, ' del ' ],
             [ /(?<!#.+)null/, 'None' ],
+            [ /\/\*\*/, '\'\'\'' ], // Doc strings
+            [ / \*\//, '\'\'\'' ], // Doc strings
         ])
     }
 

@@ -34,6 +34,8 @@ class lykke extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchLeverage' => false,
+                'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -400,8 +402,8 @@ class lykke extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => intval($pricePrecision),
                     'amount' => $this->safe_integer($market, 'InvertedAccuracy'),
+                    'price' => intval($pricePrecision),
                 ),
                 'limits' => array(
                     'leverage' => array(

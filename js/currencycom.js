@@ -165,6 +165,7 @@ module.exports = class currencycom extends Exchange {
                 'FOX': 'Fox Corporation',
                 'GM': 'General Motors Co',
                 'IQ': 'iQIYI',
+                'OSK': 'Oshkosh',
                 'PLAY': "Dave & Buster's Entertainment",
             },
         });
@@ -354,14 +355,13 @@ module.exports = class currencycom extends Exchange {
                 'taker': taker,
                 'maker': maker,
                 'contractSize': undefined,
-                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': precisionPrice,
                     'amount': precisionAmount,
+                    'price': precisionPrice,
                 },
                 'limits': {
                     'leverage': {

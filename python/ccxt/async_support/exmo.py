@@ -451,8 +451,8 @@ class exmo(Exchange):
                 'type': 'spot',
                 'spot': True,
                 'margin': False,
-                'future': False,
                 'swap': False,
+                'future': False,
                 'option': False,
                 'active': True,
                 'contract': False,
@@ -466,7 +466,7 @@ class exmo(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': 8,
+                    'amount': int('8'),
                     'price': self.safe_integer(market, 'price_precision'),
                 },
                 'limits': {

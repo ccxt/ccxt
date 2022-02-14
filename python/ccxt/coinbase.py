@@ -66,6 +66,7 @@ class coinbase(Exchange):
                 'fetchL2OrderBook': False,
                 'fetchLedger': True,
                 'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyBuys': True,
@@ -591,8 +592,8 @@ class coinbase(Exchange):
                         'strike': None,
                         'optionType': None,
                         'precision': {
-                            'price': None,
                             'amount': None,
+                            'price': None,
                         },
                         'limits': {
                             'leverage': {

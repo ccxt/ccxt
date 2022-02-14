@@ -6,6 +6,7 @@
     "bitbns":        { "skip": true },
     "bitcoincom":    { "skip": true },
     "bitforex":      { "skip": true },
+    "bitflyer":      { "skip": true },
     "bitget":        { "skip": true },
     "bitmart":       { "skip": true },
     "bitmex":        { "skip": true },

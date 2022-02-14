@@ -53,6 +53,7 @@ class gemini extends Exchange {
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
+                'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -333,8 +334,8 @@ class gemini extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_number($pricePrecisionParts, 0),
                     'amount' => $this->safe_number($amountPrecisionParts, 0),
+                    'price' => $this->safe_number($pricePrecisionParts, 0),
                 ),
                 'limits' => array(
                     'leverage' => array(

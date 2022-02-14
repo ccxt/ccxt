@@ -49,6 +49,7 @@ module.exports = class gemini extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -329,8 +330,8 @@ module.exports = class gemini extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeNumber (pricePrecisionParts, 0),
                     'amount': this.safeNumber (amountPrecisionParts, 0),
+                    'price': this.safeNumber (pricePrecisionParts, 0),
                 },
                 'limits': {
                     'leverage': {

@@ -53,6 +53,7 @@ module.exports = class qtrade extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -228,8 +229,8 @@ module.exports = class qtrade extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeInteger (market, 'base_precision'),
                     'amount': this.safeInteger (market, 'market_precision'),
+                    'price': this.safeInteger (market, 'base_precision'),
                 },
                 'limits': {
                     'leverage': {

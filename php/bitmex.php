@@ -40,6 +40,7 @@ class bitmex extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
+                'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -388,8 +389,8 @@ class bitmex extends Exchange {
                 'strike' => $this->safe_number($market, 'optionStrikePrice'),
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_number($market, 'tickSize'),
                     'amount' => $this->safe_number($market, 'lotSize'),
+                    'price' => $this->safe_number($market, 'tickSize'),
                 ),
                 'limits' => array(
                     'leverage' => array(

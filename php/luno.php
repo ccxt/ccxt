@@ -44,6 +44,7 @@ class luno extends Exchange {
                 'fetchIsolatedPositions' => false,
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
+                'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -133,6 +134,14 @@ class luno extends Exchange {
                         'quotes/{id}',
                         'withdrawals/{id}',
                     ),
+                ),
+            ),
+            'fees' => array(
+                'trading' => array(
+                    'tierBased' => true, // based on volume from your primary currency (not the same for everyone)
+                    'percentage' => true,
+                    'taker' => $this->parse_number('0.001'),
+                    'maker' => $this->parse_number('0'),
                 ),
             ),
         ));

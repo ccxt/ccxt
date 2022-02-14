@@ -39,6 +39,7 @@ module.exports = class bitbank extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -199,8 +200,8 @@ module.exports = class bitbank extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeInteger (entry, 'price_digits'),
                     'amount': this.safeInteger (entry, 'amount_digits'),
+                    'price': this.safeInteger (entry, 'price_digits'),
                 },
                 'limits': {
                     'leverage': {

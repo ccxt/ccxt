@@ -32,6 +32,8 @@ module.exports = class lykke extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -398,8 +400,8 @@ module.exports = class lykke extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': parseInt (pricePrecision),
                     'amount': this.safeInteger (market, 'InvertedAccuracy'),
+                    'price': parseInt (pricePrecision),
                 },
                 'limits': {
                     'leverage': {

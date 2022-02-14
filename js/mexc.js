@@ -45,6 +45,7 @@ module.exports = class mexc extends Exchange {
                 'fetchIndexOHLCV': true,
                 'fetchIsolatedPositions': undefined,
                 'fetchLeverage': undefined,
+                'fetchLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
@@ -552,14 +553,13 @@ module.exports = class mexc extends Exchange {
                 'taker': this.safeNumber (market, 'takerFeeRate'),
                 'maker': this.safeNumber (market, 'makerFeeRate'),
                 'contractSize': this.safeNumber (market, 'contractSize'),
-                'maintenanceMarginRate': this.safeNumber (market, 'maintenanceMarginRate'),
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeNumber (market, 'priceUnit'),
                     'amount': this.safeNumber (market, 'volUnit'),
+                    'price': this.safeNumber (market, 'priceUnit'),
                 },
                 'limits': {
                     'leverage': {
@@ -643,14 +643,13 @@ module.exports = class mexc extends Exchange {
                 'taker': this.safeNumber (market, 'taker_fee_rate'),
                 'maker': this.safeNumber (market, 'maker_fee_rate'),
                 'contractSize': undefined,
-                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.parseNumber (this.parsePrecision (priceScale)),
                     'amount': this.parseNumber (this.parsePrecision (quantityScale)),
+                    'price': this.parseNumber (this.parsePrecision (priceScale)),
                 },
                 'limits': {
                     'leverage': {
@@ -1550,7 +1549,7 @@ module.exports = class mexc extends Exchange {
         };
         const response = await this.fetchPositions (this.extend (request, params));
         const firstPosition = this.safeValue (response, 0);
-        return firstPosition;
+        return this.parsePosition (firstPosition, market);
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
@@ -1586,9 +1585,78 @@ module.exports = class mexc extends Exchange {
         //         ]
         //     }
         //
-        // todo add parsePositions, parsePosition
         const data = this.safeValue (response, 'data', []);
-        return data;
+        return this.parsePositions (data);
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        //     {
+        //         "positionId": 1394650,
+        //         "symbol": "ETH_USDT",
+        //         "positionType": 1,
+        //         "openType": 1,
+        //         "state": 1,
+        //         "holdVol": 1,
+        //         "frozenVol": 0,
+        //         "closeVol": 0,
+        //         "holdAvgPrice": 1217.3,
+        //         "openAvgPrice": 1217.3,
+        //         "closeAvgPrice": 0,
+        //         "liquidatePrice": 1211.2,
+        //         "oim": 0.1290338,
+        //         "im": 0.1290338,
+        //         "holdFee": 0,
+        //         "realised": -0.0073,
+        //         "leverage": 100,
+        //         "createTime": 1609991676000,
+        //         "updateTime": 1609991676000,
+        //         "autoAddIm": false
+        //     }
+        //
+        market = this.safeMarket (this.safeString (position, 'symbol'), market);
+        const symbol = market['symbol'];
+        const contracts = this.safeString (position, 'holdVol');
+        const entryPrice = this.safeNumber (position, 'openAvgPrice');
+        const initialMargin = this.safeString (position, 'im');
+        const rawSide = this.safeString (position, 'positionType');
+        const side = (rawSide === '1') ? 'long' : 'short';
+        const openType = this.safeString (position, 'margin_mode');
+        const marginType = (openType === '1') ? 'isolated' : 'cross';
+        const leverage = this.safeString (position, 'leverage');
+        const liquidationPrice = this.safeNumber (position, 'liquidatePrice');
+        const timestamp = this.safeNumber (position, 'updateTime');
+        return {
+            'info': position,
+            'symbol': symbol,
+            'contracts': this.parseNumber (contracts),
+            'contractSize': undefined,
+            'entryPrice': entryPrice,
+            'collateral': undefined,
+            'side': side,
+            'unrealizedProfit': undefined,
+            'leverage': this.parseNumber (leverage),
+            'percentage': undefined,
+            'marginType': marginType,
+            'notional': undefined,
+            'markPrice': undefined,
+            'liquidationPrice': liquidationPrice,
+            'initialMargin': this.parseNumber (initialMargin),
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'marginRatio': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+    }
+
+    parsePositions (positions) {
+        const result = [];
+        for (let i = 0; i < positions.length; i++) {
+            result.push (this.parsePosition (positions[i]));
+        }
+        return result;
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

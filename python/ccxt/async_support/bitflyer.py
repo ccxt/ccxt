@@ -30,6 +30,7 @@ class bitflyer(Exchange):
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': 'emulated',
+                'fetchDeposits': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': 'emulated',
@@ -39,6 +40,7 @@ class bitflyer(Exchange):
                 'fetchPositions': True,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'fetchWithdrawals': True,
                 'withdraw': True,
             },
             'urls': {
@@ -124,39 +126,34 @@ class bitflyer(Exchange):
 
     async def fetch_markets(self, params={}):
         jp_markets = await self.publicGetGetmarkets(params)
-        #  #
+        #
         #     [
         #         # spot
-        #         {
-        #             "product_code": "BTC_JPY",
-        #             "market_type": "Spot"
-        #         },
-        #         {
-        #             "product_code": "BCH_BTC",
-        #             "market_type": "Spot"
-        #         },
+        #         {"product_code": "BTC_JPY", "market_type": "Spot"},
+        #         {"product_code": "BCH_BTC", "market_type": "Spot"},
         #         # forex swap
-        #         {
-        #             "product_code": "FX_BTC_JPY",
-        #             "market_type": "FX"
-        #         },
+        #         {"product_code": "FX_BTC_JPY", "market_type": "FX"},
         #         # future
         #         {
         #             "product_code": "BTCJPY11FEB2022",
         #             "alias": "BTCJPY_MAT1WK",
-        #             "market_type": "Futures"
+        #             "market_type": "Futures",
         #         },
         #     ]
         #
         us_markets = await self.publicGetGetmarketsUsa(params)
         #
-        #    {"product_code": "BTC_USD", "market_type": "Spot"},
-        #    {"product_code": "BTC_JPY", "market_type": "Spot"}
+        #     [
+        #         {"product_code": "BTC_USD", "market_type": "Spot"},
+        #         {"product_code": "BTC_JPY", "market_type": "Spot"},
+        #     ]
         #
         eu_markets = await self.publicGetGetmarketsEu(params)
         #
-        #    {"product_code": "BTC_EUR", "market_type": "Spot"},
-        #    {"product_code": "BTC_JPY", "market_type": "Spot"}
+        #     [
+        #         {"product_code": "BTC_EUR", "market_type": "Spot"},
+        #         {"product_code": "BTC_JPY", "market_type": "Spot"},
+        #     ]
         #
         markets = self.array_concat(jp_markets, us_markets)
         markets = self.array_concat(markets, eu_markets)
@@ -231,8 +228,8 @@ class bitflyer(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': None,
                     'amount': None,
+                    'price': None,
                 },
                 'limits': {
                     'leverage': {
@@ -578,6 +575,142 @@ class bitflyer(Exchange):
         return {
             'info': response,
             'id': id,
+        }
+
+    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        currency = None
+        request = {}
+        if code is not None:
+            currency = self.currency(code)
+        if limit is not None:
+            request['count'] = limit  # default 100
+        response = await self.privateGetGetcoinins(self.extend(request, params))
+        # [
+        #   {
+        #     "id": 100,
+        #     "order_id": "CDP20151227-024141-055555",
+        #     "currency_code": "BTC",
+        #     "amount": 0.00002,
+        #     "address": "1WriteySQufKZ2pVuM1oMhPrTtTVFq35j",
+        #     "tx_hash": "9f92ee65a176bb9545f7becb8706c50d07d4cee5ffca34d8be3ef11d411405ae",
+        #     "status": "COMPLETED",
+        #     "event_date": "2015-11-27T08:59:20.301"
+        #   }
+        # ]
+        return self.parse_transactions(response, currency, since, limit)
+
+    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        currency = None
+        request = {}
+        if code is not None:
+            currency = self.currency(code)
+        if limit is not None:
+            request['count'] = limit  # default 100
+        response = await self.privateGetGetcoinouts(self.extend(request, params))
+        #
+        # [
+        #   {
+        #     "id": 500,
+        #     "order_id": "CWD20151224-014040-077777",
+        #     "currency_code": "BTC",
+        #     "amount": 0.1234,
+        #     "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+        #     "tx_hash": "724c07dfd4044abcb390b0412c3e707dd5c4f373f0a52b3bd295ce32b478c60a",
+        #     "fee": 0.0005,
+        #     "additional_fee": 0.0001,
+        #     "status": "COMPLETED",
+        #     "event_date": "2015-12-24T01:40:40.397"
+        #   }
+        # ]
+        #
+        return self.parse_transactions(response, currency, since, limit)
+
+    def parse_deposit_status(self, status):
+        statuses = {
+            'PENDING': 'pending',
+            'COMPLETED': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_withdrawal_status(self, status):
+        statuses = {
+            'PENDING': 'pending',
+            'COMPLETED': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # fetchDeposits
+        #
+        #   {
+        #     "id": 100,
+        #     "order_id": "CDP20151227-024141-055555",
+        #     "currency_code": "BTC",
+        #     "amount": 0.00002,
+        #     "address": "1WriteySQufKZ2pVuM1oMhPrTtTVFq35j",
+        #     "tx_hash": "9f92ee65a176bb9545f7becb8706c50d07d4cee5ffca34d8be3ef11d411405ae",
+        #     "status": "COMPLETED",
+        #     "event_date": "2015-11-27T08:59:20.301"
+        #   }
+        #
+        # fetchWithdrawals
+        #
+        #   {
+        #     "id": 500,
+        #     "order_id": "CWD20151224-014040-077777",
+        #     "currency_code": "BTC",
+        #     "amount": 0.1234,
+        #     "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+        #     "tx_hash": "724c07dfd4044abcb390b0412c3e707dd5c4f373f0a52b3bd295ce32b478c60a",
+        #     "fee": 0.0005,
+        #     "additional_fee": 0.0001,
+        #     "status": "COMPLETED",
+        #     "event_date": "2015-12-24T01:40:40.397"
+        #   }
+        #
+        id = self.safe_string(transaction, 'id')
+        address = self.safe_string(transaction, 'address')
+        currencyId = self.safe_string(transaction, 'currency_code')
+        code = self.safe_currency_code(currencyId, currency)
+        timestamp = self.parse8601(self.safe_string(transaction, 'event_date'))
+        amount = self.safe_number(transaction, 'amount')
+        txId = self.safe_string(transaction, 'tx_hash')
+        rawStatus = self.safe_string(transaction, 'status')
+        type = None
+        status = None
+        fee = None
+        if 'fee' in transaction:
+            type = 'withdrawal'
+            status = self.parse_withdrawal_status(rawStatus)
+            feeCost = self.safe_number(transaction, 'fee')
+            additionalFee = self.safe_number(transaction, 'additional_fee')
+            fee = {'currency': code, 'cost': feeCost + additionalFee}
+        else:
+            type = 'deposit'
+            status = self.parse_deposit_status(rawStatus)
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txId,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'network': None,
+            'address': address,
+            'addressTo': address,
+            'addressFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'tagFrom': None,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': None,
+            'internal': None,
+            'fee': fee,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

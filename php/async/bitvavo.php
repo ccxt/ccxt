@@ -49,6 +49,7 @@ class bitvavo extends Exchange {
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
+                'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -336,14 +337,13 @@ class bitvavo extends Exchange {
                 'linear' => null,
                 'inverse' => null,
                 'contractSize' => null,
-                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($market, 'pricePrecision'),
                     'amount' => $amountPrecision,
+                    'price' => $this->safe_integer($market, 'pricePrecision'),
                 ),
                 'limits' => array(
                     'leverage' => array(

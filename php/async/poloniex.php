@@ -226,7 +226,7 @@ class poloniex extends Exchange {
                 ),
                 'broad' => array(
                     'Total must be at least' => '\\ccxt\\InvalidOrder', // array("error":"Total must be at least 0.0001.")
-                    'This account is frozen.' => '\\ccxt\\AccountSuspended',
+                    'This account is frozen' => '\\ccxt\\AccountSuspended', // array("error":"This account is frozen for trading.") || array("error":"This account is frozen.")
                     'This account is locked.' => '\\ccxt\\AccountSuspended', // array("error":"This account is locked.")
                     'Not enough' => '\\ccxt\\InsufficientFunds',
                     'Nonce must be greater' => '\\ccxt\\InvalidNonce',
@@ -342,8 +342,8 @@ class poloniex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => 8,
-                    'amount' => 8,
+                    'amount' => intval('8'),
+                    'price' => intval('8'),
                 ),
                 'limits' => array_merge($this->limits, array(
                     'leverage' => array(

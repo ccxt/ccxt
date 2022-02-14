@@ -27,64 +27,62 @@ markets = exchange.load_markets()
 # exchange.verbose = True  # uncomment for debugging purposes if necessary
 
 
-# Example 1: Creating/cancelling a linear swap (limit) order 
+# creating and canceling a linear swap (limit) order
 symbol = 'ADA/USDT:USDT'
 order_type = 'limit'
 side = 'buy'
 offset = 'open'
-cli_order_id = randint(0,1000)
-leverage = 1 
+leverage = 1
 amount = 1
 price = 1
 
-params = {'offset': offset, 'lever_rate': leverage, 'client_order_id': cli_order_id}
+params = {'offset': offset, 'lever_rate': leverage}
 
 try:
-    # Current Balance
+    # fetching current balance
     balance = exchange.fetch_balance()
     # print(balance)
-    
-    # Order creation
+
+    # placing an order
     order = exchange.create_order(symbol, order_type, side, amount, price, params)
     # print(order)
 
-    # List open positions
+    # listing open orders
     open_orders = exchange.fetch_open_orders(symbol)
     # print(open_orders)
 
-    #Order cancelation
+    # canceling an order
     cancelOrder = exchange.cancel_order(order['id'], symbol)
     print(cancelOrder)
 except Exception as e:
     print(type(e).__name__, str(e))
 
 
-# Example 2: Creating/cancelling inverse swap (limit) order
+# creating and canceling inverse swap (limit) order
 symbol = 'ADA/USD:ADA'
 order_type = 'limit'
 side = 'buy'
 offset = 'open'
-cli_order_id = randint(0,1000)
-leverage = 1 
+leverage = 1
 amount = 1
 price = 1
 
-params = {'offset': offset, 'lever_rate': leverage, 'client_order_id': cli_order_id}
+params = {'offset': offset, 'lever_rate': leverage}
 
 try:
-    # Current Balance
+    # fetching current balance
     balance = exchange.fetch_balance()
     # print(balance)
 
-    # Order creation
+    # placing an order
     order = exchange.create_order(symbol, order_type, side, amount, price, params)
     print(order)
 
-    # List open positions
+    # listing open orders
     open_orders = exchange.fetch_open_orders(symbol)
     # print(open_orders)
 
-    #Order cancelation
+    # canceling an order
     cancelOrder = exchange.cancel_order(order['id'], symbol)
 except Exception as e:
     print(type(e).__name__, str(e))

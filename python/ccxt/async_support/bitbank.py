@@ -47,6 +47,7 @@ class bitbank(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -206,8 +207,8 @@ class bitbank(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(entry, 'price_digits'),
                     'amount': self.safe_integer(entry, 'amount_digits'),
+                    'price': self.safe_integer(entry, 'price_digits'),
                 },
                 'limits': {
                     'leverage': {

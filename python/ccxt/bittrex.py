@@ -73,6 +73,7 @@ class bittrex(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': 'emulated',
@@ -341,8 +342,8 @@ class bittrex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(market, 'precision', 8),
                     'amount': int('8'),
+                    'price': self.safe_integer(market, 'precision', 8),
                 },
                 'limits': {
                     'leverage': {

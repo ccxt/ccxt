@@ -861,8 +861,8 @@ class bitget extends Exchange {
             'strike' => null,
             'optionType' => null,
             'precision' => array(
-                'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'tick_size'))),
                 'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'size_increment'))),
+                'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'tick_size'))),
                 'base' => $this->parse_number($this->parse_precision($this->safe_string($market, 'base_asset_precision'))),
             ),
             'limits' => array(

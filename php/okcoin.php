@@ -888,12 +888,12 @@ class okcoin extends Exchange {
             'strike' => $strike,
             'optionType' => $optionType,
             'precision' => array(
-                'price' => $precisionPrice,
                 'amount' => $this->safe_number($market, 'size_increment', $lotSize),
+                'price' => $precisionPrice,
             ),
             'limits' => array(
                 'leverage' => array(
-                    'min' => 1,
+                    'min' => $this->parse_number('1'),
                     'max' => $this->parse_number($maxLeverage),
                 ),
                 'amount' => array(

@@ -453,8 +453,8 @@ module.exports = class exmo extends Exchange {
                 'type': 'spot',
                 'spot': true,
                 'margin': false,
-                'future': false,
                 'swap': false,
+                'future': false,
                 'option': false,
                 'active': true,
                 'contract': false,
@@ -468,7 +468,7 @@ module.exports = class exmo extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': 8,
+                    'amount': parseInt ('8'),
                     'price': this.safeInteger (market, 'price_precision'),
                 },
                 'limits': {

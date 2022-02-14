@@ -458,8 +458,8 @@ class exmo extends Exchange {
                 'type' => 'spot',
                 'spot' => true,
                 'margin' => false,
-                'future' => false,
                 'swap' => false,
+                'future' => false,
                 'option' => false,
                 'active' => true,
                 'contract' => false,
@@ -473,7 +473,7 @@ class exmo extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => 8,
+                    'amount' => intval('8'),
                     'price' => $this->safe_integer($market, 'price_precision'),
                 ),
                 'limits' => array(

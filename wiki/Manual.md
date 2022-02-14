@@ -2463,6 +2463,66 @@ The possible values in the `status` field are:
 - `'error'` means that either the exchange API is broken, or the implementation of the exchange in CCXT is broken
 - `'maintenance'` means regular maintenance, and the `eta` field should contain the datetime when the exchange is expected to be operational again
 
+## Fetch Leverage Tiers
+
+You can obtain the absolute maximum leverage for a market by accessing `market['limits']['leverage']['max']`.
+For many contracts, the maximum leverage will depend on the size of your position.
+You can access those limits via the `fetchLeverageTiers()` method.
+
+```Javascript
+fetchLeverageTiers(symbol, params = {})
+```
+
+The `fetchLeverageTiers()` method can be used to obtain the maximum leverage for a market at varying position sizes. It can also be used to obtain the maintenance margin rate, and the max tradeable amount for a market when that information is not available from the market object:
+
+### Fetch Leverage Tiers Structure
+
+The `fetchLeverageTiers()` method will return a structure like shown below:
+
+```JavaScript
+{
+    'BNB/USDT': [
+        {
+            "tier": 1,                       // tier index
+            "notionalCurrency": "USDT",      // the currency that notionalFloor and notionalCap are in
+            "notionalFloor": 0,              // the lowest amount of this tier // stake = 0.0
+            "notionalCap": 10000,            // the highest amount of this tier // max stake amount at 75x leverage = 133.33333333333334
+            "maintenanceMarginRate": 0.0065, // maintenance margin rate
+            "maxLeverage": 75,               // max available leverage for this market when the value of the trade is > notionalFloor and < notionalCap
+            "info": { ... }                  // Response from exchange
+        },
+        {
+            "tier": 2,
+            "notionalCurrency": "USDT",
+            "notionalFloor": 10000,          // min stake amount at 50x leverage = 200.0
+            "notionalCap": 50000,            // max stake amount at 50x leverage = 1000.0
+            "maintenanceMarginRatio": 0.01,
+            "maxLeverage": 50,
+            "info": { ... },
+        },
+        ...
+        {
+            "tier": 9,
+            "notionalCurrency": "USDT",
+            "notionalFloor": 20000000,
+            "notionalCap": 50000000,
+            "maintenanceMarginRate": 0.5,
+            "maxLeverage": 1,
+            "info": { ... },
+        },
+    ]
+    ...
+  ],
+}
+```
+
+In the example above:
+
+- stakes below 133.33       = a max leverage of 75
+- stakes from 200 + 1000    = a max leverage of 50
+- a stake amount of 150     = a max leverage of (10000 / 150)   = 66.66
+- stakes between 133.33-200 = a max leverage of (10000 / stake) = 50.01 -> 74.99
+
 # Private API
 
 - [Authentication](#authentication)

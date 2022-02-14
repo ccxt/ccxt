@@ -62,6 +62,7 @@ class kucoinfutures(kucoin):
                 'fetchIndexOHLCV': False,
                 'fetchL3OrderBook': True,
                 'fetchLedger': True,
+                'fetchLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -112,6 +113,7 @@ class kucoinfutures(kucoin):
                     'get': {
                         'contracts/active': 1,
                         'contracts/{symbol}': 1,
+                        'contracts/risk-limit/{symbol}': 1,
                         'ticker': 1,
                         'level2/snapshot': 1.33,
                         'level2/depth{limit}': 1,
@@ -443,14 +445,13 @@ class kucoinfutures(kucoin):
                 'taker': self.safe_number(market, 'takerFeeRate'),
                 'maker': self.safe_number(market, 'makerFeeRate'),
                 'contractSize': self.parse_number(Precise.string_abs(multiplier)),
-                'maintenanceMarginRate': None,
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_number(market, 'tickSize'),
                     'amount': self.safe_number(market, 'lotSize'),
+                    'price': self.safe_number(market, 'tickSize'),
                 },
                 'limits': {
                     'leverage': {
@@ -1523,3 +1524,50 @@ class kucoinfutures(kucoin):
 
     def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         raise BadRequest(self.id + ' has no method fetchLedger')
+
+    def fetch_leverage_tiers(self, symbol=None, params={}):
+        self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchLeverageTiers() requires a symbol argument')
+        market = self.market(symbol)
+        if not market['contract']:
+            raise BadRequest(self.id + ' fetchLeverageTiers() supports contract markets only')
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.futuresPublicGetContractsRiskLimitSymbol(self.extend(request, params))
+        #
+        #    {
+        #        "code": "200000",
+        #        "data": [
+        #            {
+        #                "symbol": "ETHUSDTM",
+        #                "level": 1,
+        #                "maxRiskLimit": 300000,
+        #                "minRiskLimit": 0,
+        #                "maxLeverage": 100,
+        #                "initialMargin": 0.0100000000,
+        #                "maintainMargin": 0.0050000000
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        tiers = {}
+        for i in range(0, len(data)):
+            tier = data[i]
+            symbol = self.safe_symbol(self.safe_string(tier, 'symbol'))
+            if not (symbol in tiers):
+                tiers[symbol] = []
+            market = self.market(symbol)
+            tiers[symbol].append({
+                'tier': self.safe_number(tier, 'level'),
+                'notionalCurrency': market['base'],
+                'notionalFloor': self.safe_number(tier, 'minRiskLimit'),
+                'notionalCap': self.safe_number(tier, 'maxRiskLimit'),
+                'maintenanceMarginRate': self.safe_number(tier, 'maintainMargin'),
+                'maxLeverage': self.safe_number(tier, 'maxLeverage'),
+                'info': tier,
+            })
+        return tiers

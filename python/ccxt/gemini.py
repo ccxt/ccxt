@@ -70,6 +70,7 @@ class gemini(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -344,8 +345,8 @@ class gemini(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_number(pricePrecisionParts, 0),
                     'amount': self.safe_number(amountPrecisionParts, 0),
+                    'price': self.safe_number(pricePrecisionParts, 0),
                 },
                 'limits': {
                     'leverage': {

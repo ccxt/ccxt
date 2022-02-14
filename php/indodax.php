@@ -42,6 +42,7 @@ class indodax extends Exchange {
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
+                'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => null,
@@ -199,8 +200,8 @@ class indodax extends Exchange {
                 'type' => 'spot',
                 'spot' => true,
                 'margin' => false,
-                'future' => false,
                 'swap' => false,
+                'future' => false,
                 'option' => false,
                 'active' => $isMaintenance ? false : true,
                 'contract' => false,
@@ -214,7 +215,7 @@ class indodax extends Exchange {
                 'optionType' => null,
                 'percentage' => true,
                 'precision' => array(
-                    'amount' => 8,
+                    'amount' => intval('8'),
                     'price' => $this->safe_integer($market, 'price_round'),
                 ),
                 'limits' => array(

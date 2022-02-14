@@ -53,6 +53,7 @@ class kucoinfutures extends kucoin {
                 'fetchIndexOHLCV' => false,
                 'fetchL3OrderBook' => true,
                 'fetchLedger' => true,
+                'fetchLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -103,6 +104,7 @@ class kucoinfutures extends kucoin {
                     'get' => array(
                         'contracts/active' => 1,
                         'contracts/{symbol}' => 1,
+                        'contracts/risk-limit/{symbol}' => 1,
                         'ticker' => 1,
                         'level2/snapshot' => 1.33,
                         'level2/depth{limit}' => 1,
@@ -439,14 +441,13 @@ class kucoinfutures extends kucoin {
                 'taker' => $this->safe_number($market, 'takerFeeRate'),
                 'maker' => $this->safe_number($market, 'makerFeeRate'),
                 'contractSize' => $this->parse_number(Precise::string_abs($multiplier)),
-                'maintenanceMarginRate' => null,
                 'expiry' => $expiry,
                 'expiryDatetime' => $this->iso8601($expiry),
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_number($market, 'tickSize'),
                     'amount' => $this->safe_number($market, 'lotSize'),
+                    'price' => $this->safe_number($market, 'tickSize'),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -1597,5 +1598,57 @@ class kucoinfutures extends kucoin {
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
         throw new BadRequest($this->id . ' has no method fetchLedger');
+    }
+
+    public function fetch_leverage_tiers($symbol = null, $params = array ()) {
+        $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchLeverageTiers() requires a $symbol argument');
+        }
+        $market = $this->market($symbol);
+        if (!$market['contract']) {
+            throw new BadRequest($this->id . ' fetchLeverageTiers() supports contract markets only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->futuresPublicGetContractsRiskLimitSymbol (array_merge($request, $params));
+        //
+        //    {
+        //        "code" => "200000",
+        //        "data" => array(
+        //            array(
+        //                "symbol" => "ETHUSDTM",
+        //                "level" => 1,
+        //                "maxRiskLimit" => 300000,
+        //                "minRiskLimit" => 0,
+        //                "maxLeverage" => 100,
+        //                "initialMargin" => 0.0100000000,
+        //                "maintainMargin" => 0.0050000000
+        //            ),
+        //            ...
+        //        )
+        //    }
+        //
+        $data = $this->safe_value($response, 'data');
+        $tiers = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $tier = $data[$i];
+            $symbol = $this->safe_symbol($this->safe_string($tier, 'symbol'));
+            if (!(is_array($tiers) && array_key_exists($symbol, $tiers))) {
+                $tiers[$symbol] = array();
+            }
+            $market = $this->market($symbol);
+            $tiers[$symbol][] = array(
+                'tier' => $this->safe_number($tier, 'level'),
+                'notionalCurrency' => $market['base'],
+                'notionalFloor' => $this->safe_number($tier, 'minRiskLimit'),
+                'notionalCap' => $this->safe_number($tier, 'maxRiskLimit'),
+                'maintenanceMarginRate' => $this->safe_number($tier, 'maintainMargin'),
+                'maxLeverage' => $this->safe_number($tier, 'maxLeverage'),
+                'info' => $tier,
+            );
+        }
+        return $tiers;
     }
 }

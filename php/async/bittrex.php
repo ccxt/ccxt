@@ -58,6 +58,7 @@ class bittrex extends Exchange {
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
+                'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => 'emulated',
@@ -329,8 +330,8 @@ class bittrex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($market, 'precision', 8),
                     'amount' => intval('8'),
+                    'price' => $this->safe_integer($market, 'precision', 8),
                 ),
                 'limits' => array(
                     'leverage' => array(

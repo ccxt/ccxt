@@ -50,6 +50,7 @@ module.exports = class bittrex extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': 'emulated',
@@ -321,8 +322,8 @@ module.exports = class bittrex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeInteger (market, 'precision', 8),
                     'amount': parseInt ('8'),
+                    'price': this.safeInteger (market, 'precision', 8),
                 },
                 'limits': {
                     'leverage': {

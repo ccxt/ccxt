@@ -51,6 +51,7 @@ class coinone(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -196,8 +197,8 @@ class coinone(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': None,
                     'amount': None,
+                    'price': None,
                 },
                 'limits': {
                     'leverage': {

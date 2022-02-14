@@ -56,6 +56,7 @@ class coinbase extends Exchange {
                 'fetchL2OrderBook' => false,
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
+                'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyBuys' => true,
@@ -601,8 +602,8 @@ class coinbase extends Exchange {
                         'strike' => null,
                         'optionType' => null,
                         'precision' => array(
-                            'price' => null,
                             'amount' => null,
+                            'price' => null,
                         ),
                         'limits' => array(
                             'leverage' => array(

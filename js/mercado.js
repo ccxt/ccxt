@@ -40,6 +40,7 @@ module.exports = class mercado extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': 'emulated',
@@ -197,8 +198,8 @@ module.exports = class mercado extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': 8,
-                    'price': 5,
+                    'amount': parseInt ('8'),
+                    'price': parseInt ('5'),
                 },
                 'limits': {
                     'leverage': {

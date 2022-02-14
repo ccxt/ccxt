@@ -63,6 +63,7 @@ class hitbtc(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -336,15 +337,14 @@ class hitbtc(Exchange):
                 'taker': self.safe_number(market, 'takeLiquidityRate'),
                 'maker': self.safe_number(market, 'provideLiquidityRate'),
                 'contractSize': None,
-                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'feeCurrency': self.safe_currency_code(feeCurrencyId),
                 'precision': {
-                    'price': step,
                     'amount': lot,
+                    'price': step,
                 },
                 'limits': {
                     'leverage': {

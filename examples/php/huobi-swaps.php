@@ -16,12 +16,11 @@ try {
 
     $markets = $exchange->load_markets ();
 
-    // Example: Creating a linear swap (limit) order 
+    // creating a linear swap (limit) order
     $symbol = 'ADA/USDT:USDT';
     $order_type = 'limit';
     $side = 'buy';
     $offset = 'open';
-    $cli_order_id = random_int (0,100);
     $leverage = 1;
     $amount = 1;
     $price = 1;
@@ -29,7 +28,6 @@ try {
     $params = array (
         'offset' => $offset,
         'lever_rate' => $leverage,
-        'client_order_id' => $cli_order_id
     );
 
     $order = $exchange->create_order ($symbol, $order_type, $side, $amount, $price, $params);

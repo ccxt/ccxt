@@ -47,6 +47,7 @@ module.exports = class latoken1 extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
@@ -223,8 +224,8 @@ module.exports = class latoken1 extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': parseInt (pricePrecisionString),
                     'amount': this.safeInteger (market, 'amountPrecision'),
+                    'price': parseInt (pricePrecisionString),
                 },
                 'limits': {
                     'leverage': {

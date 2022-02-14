@@ -48,6 +48,7 @@ class indodax(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': None,
@@ -202,8 +203,8 @@ class indodax(Exchange):
                 'type': 'spot',
                 'spot': True,
                 'margin': False,
-                'future': False,
                 'swap': False,
+                'future': False,
                 'option': False,
                 'active': False if isMaintenance else True,
                 'contract': False,
@@ -217,7 +218,7 @@ class indodax(Exchange):
                 'optionType': None,
                 'percentage': True,
                 'precision': {
-                    'amount': 8,
+                    'amount': int('8'),
                     'price': self.safe_integer(market, 'price_round'),
                 },
                 'limits': {

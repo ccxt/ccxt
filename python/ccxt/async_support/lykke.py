@@ -33,6 +33,8 @@ class lykke(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -383,8 +385,8 @@ class lykke(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': int(pricePrecision),
                     'amount': self.safe_integer(market, 'InvertedAccuracy'),
+                    'price': int(pricePrecision),
                 },
                 'limits': {
                     'leverage': {

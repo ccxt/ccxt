@@ -49,6 +49,7 @@ module.exports = class idex extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -228,15 +229,14 @@ module.exports = class idex extends Exchange {
                 'inverse': undefined,
                 'taker': taker,
                 'maker': maker,
-                'maintenanceMarginRate': undefined,
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': parseInt (quotePrecisionString),
                     'amount': parseInt (basePrecisionString),
+                    'price': parseInt (quotePrecisionString),
                 },
                 'limits': {
                     'leverage': {

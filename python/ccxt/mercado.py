@@ -44,6 +44,7 @@ class mercado(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': 'emulated',
@@ -200,8 +201,8 @@ class mercado(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': 8,
-                    'price': 5,
+                    'amount': int('8'),
+                    'price': int('5'),
                 },
                 'limits': {
                     'leverage': {

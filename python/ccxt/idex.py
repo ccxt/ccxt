@@ -59,6 +59,7 @@ class idex(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -236,15 +237,14 @@ class idex(Exchange):
                 'inverse': None,
                 'taker': taker,
                 'maker': maker,
-                'maintenanceMarginRate': None,
                 'contractSize': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': int(quotePrecisionString),
                     'amount': int(basePrecisionString),
+                    'price': int(quotePrecisionString),
                 },
                 'limits': {
                     'leverage': {

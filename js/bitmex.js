@@ -35,6 +35,7 @@ module.exports = class bitmex extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
+                'fetchLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -383,8 +384,8 @@ module.exports = class bitmex extends Exchange {
                 'strike': this.safeNumber (market, 'optionStrikePrice'),
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeNumber (market, 'tickSize'),
                     'amount': this.safeNumber (market, 'lotSize'),
+                    'price': this.safeNumber (market, 'tickSize'),
                 },
                 'limits': {
                     'leverage': {

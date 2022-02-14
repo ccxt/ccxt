@@ -55,6 +55,7 @@ class qtrade extends Exchange {
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
+                'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -230,8 +231,8 @@ class qtrade extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($market, 'base_precision'),
                     'amount' => $this->safe_integer($market, 'market_precision'),
+                    'price' => $this->safe_integer($market, 'base_precision'),
                 ),
                 'limits' => array(
                     'leverage' => array(

@@ -47,6 +47,7 @@ module.exports = class kraken extends Exchange {
                 'fetchIsolatedPositions': false,
                 'fetchLedger': true,
                 'fetchLedgerEntry': true,
+                'fetchLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -478,17 +479,16 @@ module.exports = class kraken extends Exchange {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'maker': maker,
                 'taker': taker,
+                'maker': maker,
                 'contractSize': undefined,
-                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeInteger (market, 'pair_decimals'),
                     'amount': this.safeInteger (market, 'lot_decimals'),
+                    'price': this.safeInteger (market, 'pair_decimals'),
                 },
                 'limits': {
                     'leverage': {

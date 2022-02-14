@@ -52,6 +52,7 @@ class stex extends Exchange {
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
+                'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -437,8 +438,8 @@ class stex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_integer($market, 'market_precision'),
                     'amount' => $this->safe_integer($market, 'currency_precision'),
+                    'price' => $this->safe_integer($market, 'market_precision'),
                 ),
                 'limits' => array(
                     'leverage' => array(

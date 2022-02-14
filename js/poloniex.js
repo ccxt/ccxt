@@ -223,7 +223,7 @@ module.exports = class poloniex extends Exchange {
                 },
                 'broad': {
                     'Total must be at least': InvalidOrder, // {"error":"Total must be at least 0.0001."}
-                    'This account is frozen.': AccountSuspended,
+                    'This account is frozen': AccountSuspended, // {"error":"This account is frozen for trading."} || {"error":"This account is frozen."}
                     'This account is locked.': AccountSuspended, // {"error":"This account is locked."}
                     'Not enough': InsufficientFunds,
                     'Nonce must be greater': InvalidNonce,
@@ -339,8 +339,8 @@ module.exports = class poloniex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': 8,
-                    'amount': 8,
+                    'amount': parseInt ('8'),
+                    'price': parseInt ('8'),
                 },
                 'limits': this.extend (this.limits, {
                     'leverage': {

@@ -55,6 +55,7 @@ class latoken1(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
@@ -228,8 +229,8 @@ class latoken1(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': int(pricePrecisionString),
                     'amount': self.safe_integer(market, 'amountPrecision'),
+                    'price': int(pricePrecisionString),
                 },
                 'limits': {
                     'leverage': {

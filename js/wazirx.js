@@ -194,16 +194,16 @@ module.exports = class wazirx extends Exchange {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'maker': this.parseNumber (makerString),
                 'taker': this.parseNumber (takerString),
+                'maker': this.parseNumber (makerString),
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.safeInteger (entry, 'quoteAssetPrecision'),
                     'amount': this.safeInteger (entry, 'baseAssetPrecision'),
+                    'price': this.safeInteger (entry, 'quoteAssetPrecision'),
                 },
                 'limits': {
                     'leverage': {

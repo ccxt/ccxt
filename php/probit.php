@@ -50,6 +50,7 @@ class probit extends Exchange {
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
+                'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -290,8 +291,8 @@ class probit extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_number($market, 'price_increment'),
                     'amount' => $this->parse_number($amountTickSize),
+                    'price' => $this->safe_number($market, 'price_increment'),
                     'cost' => $this->parse_number($costTickSize),
                 ),
                 'limits' => array(

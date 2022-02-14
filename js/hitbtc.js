@@ -51,6 +51,7 @@ module.exports = class hitbtc extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -327,15 +328,14 @@ module.exports = class hitbtc extends Exchange {
                 'taker': this.safeNumber (market, 'takeLiquidityRate'),
                 'maker': this.safeNumber (market, 'provideLiquidityRate'),
                 'contractSize': undefined,
-                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'feeCurrency': this.safeCurrencyCode (feeCurrencyId),
                 'precision': {
-                    'price': step,
                     'amount': lot,
+                    'price': step,
                 },
                 'limits': {
                     'leverage': {

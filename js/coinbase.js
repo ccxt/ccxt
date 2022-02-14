@@ -54,6 +54,7 @@ module.exports = class coinbase extends Exchange {
                 'fetchL2OrderBook': false,
                 'fetchLedger': true,
                 'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyBuys': true,
@@ -599,8 +600,8 @@ module.exports = class coinbase extends Exchange {
                         'strike': undefined,
                         'optionType': undefined,
                         'precision': {
-                            'price': undefined,
                             'amount': undefined,
+                            'price': undefined,
                         },
                         'limits': {
                             'leverage': {

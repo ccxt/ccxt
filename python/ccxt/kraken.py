@@ -73,6 +73,7 @@ class kraken(Exchange):
                 'fetchIsolatedPositions': False,
                 'fetchLedger': True,
                 'fetchLedgerEntry': True,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -499,17 +500,16 @@ class kraken(Exchange):
                 'contract': False,
                 'linear': None,
                 'inverse': None,
-                'maker': maker,
                 'taker': taker,
+                'maker': maker,
                 'contractSize': None,
-                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.safe_integer(market, 'pair_decimals'),
                     'amount': self.safe_integer(market, 'lot_decimals'),
+                    'price': self.safe_integer(market, 'pair_decimals'),
                 },
                 'limits': {
                     'leverage': {

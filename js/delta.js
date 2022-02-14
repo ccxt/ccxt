@@ -453,8 +453,8 @@ module.exports = class delta extends Exchange {
                 'strike': this.parseNumber (strike),
                 'optionType': optionType,
                 'precision': {
-                    'price': this.safeNumber (market, 'tick_size'),
                     'amount': this.parseNumber ('1'), // number of contracts
+                    'price': this.safeNumber (market, 'tick_size'),
                 },
                 'limits': {
                     'leverage': {
@@ -855,7 +855,7 @@ module.exports = class delta extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchPosition (symbol, params = undefined) {
+    async fetchPosition (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {

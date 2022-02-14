@@ -593,6 +593,7 @@ class bybit(Exchange):
                     # '30084': BadRequest,  # Isolated not modified, see handleErrors below
                     '33004': AuthenticationError,  # apikey already expired
                     '34026': ExchangeError,  # the limit is no change
+                    '130021': InsufficientFunds,  # {"ret_code":130021,"ret_msg":"orderfix price failed for CannotAffordOrderCost.","ext_code":"","ext_info":"","result":null,"time_now":"1644588250.204878","rate_limit_status":98,"rate_limit_reset_ms":1644588250200,"rate_limit":100}
                 },
                 'broad': {
                     'unknown orderInfo': OrderNotFound,  # {"ret_code":-1,"ret_msg":"unknown orderInfo","ext_code":"","ext_info":"","result":null,"time_now":"1584030414.005545","rate_limit_status":99,"rate_limit_reset_ms":1584030414003,"rate_limit":100}
@@ -911,7 +912,6 @@ class bybit(Exchange):
                 'option': option,
                 'linear': linear,
                 'inverse': inverse,
-                'maintenanceMarginRate': None,
                 'limits': {
                     'amount': {
                         'min': self.safe_number(lotSizeFilter, 'min_trading_qty'),

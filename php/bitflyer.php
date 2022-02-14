@@ -31,6 +31,7 @@ class bitflyer extends Exchange {
                 'createOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => 'emulated',
+                'fetchDeposits' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => 'emulated',
@@ -40,6 +41,7 @@ class bitflyer extends Exchange {
                 'fetchPositions' => true,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
+                'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -127,39 +129,34 @@ class bitflyer extends Exchange {
 
     public function fetch_markets($params = array ()) {
         $jp_markets = $this->publicGetGetmarkets ($params);
-        // //
+        //
         //     array(
         //         // $spot
-        //         array(
-        //             "product_code" => "BTC_JPY",
-        //             "market_type" => "Spot"
-        //         ),
-        //         array(
-        //             "product_code" => "BCH_BTC",
-        //             "market_type" => "Spot"
-        //         ),
+        //         array( "product_code" => "BTC_JPY", "market_type" => "Spot" ),
+        //         array( "product_code" => "BCH_BTC", "market_type" => "Spot" ),
         //         // forex $swap
-        //         array(
-        //             "product_code" => "FX_BTC_JPY",
-        //             "market_type" => "FX"
-        //         ),
+        //         array( "product_code" => "FX_BTC_JPY", "market_type" => "FX" ),
         //         // $future
         //         array(
         //             "product_code" => "BTCJPY11FEB2022",
         //             "alias" => "BTCJPY_MAT1WK",
-        //             "market_type" => "Futures"
+        //             "market_type" => "Futures",
         //         ),
-        //     )
+        //     );
         //
         $us_markets = $this->publicGetGetmarketsUsa ($params);
         //
-        //    array("product_code" => "BTC_USD", "market_type" => "Spot"),
-        //    array("product_code" => "BTC_JPY", "market_type" => "Spot")
+        //     array(
+        //         array( "product_code" => "BTC_USD", "market_type" => "Spot" ),
+        //         array( "product_code" => "BTC_JPY", "market_type" => "Spot" ),
+        //     );
         //
         $eu_markets = $this->publicGetGetmarketsEu ($params);
         //
-        //    array("product_code" => "BTC_EUR", "market_type" => "Spot"),
-        //    array("product_code" => "BTC_JPY", "market_type" => "Spot")
+        //     array(
+        //         array( "product_code" => "BTC_EUR", "market_type" => "Spot" ),
+        //         array( "product_code" => "BTC_JPY", "market_type" => "Spot" ),
+        //     );
         //
         $markets = $this->array_concat($jp_markets, $us_markets);
         $markets = $this->array_concat($markets, $eu_markets);
@@ -237,8 +234,8 @@ class bitflyer extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'price' => null,
                     'amount' => null,
+                    'price' => null,
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -620,6 +617,152 @@ class bitflyer extends Exchange {
         return array(
             'info' => $response,
             'id' => $id,
+        );
+    }
+
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $currency = null;
+        $request = array();
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        if ($limit !== null) {
+            $request['count'] = $limit; // default 100
+        }
+        $response = $this->privateGetGetcoinins (array_merge($request, $params));
+        // array(
+        //   {
+        //     "id" => 100,
+        //     "order_id" => "CDP20151227-024141-055555",
+        //     "currency_code" => "BTC",
+        //     "amount" => 0.00002,
+        //     "address" => "1WriteySQufKZ2pVuM1oMhPrTtTVFq35j",
+        //     "tx_hash" => "9f92ee65a176bb9545f7becb8706c50d07d4cee5ffca34d8be3ef11d411405ae",
+        //     "status" => "COMPLETED",
+        //     "event_date" => "2015-11-27T08:59:20.301"
+        //   }
+        // )
+        return $this->parse_transactions($response, $currency, $since, $limit);
+    }
+
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $currency = null;
+        $request = array();
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        if ($limit !== null) {
+            $request['count'] = $limit; // default 100
+        }
+        $response = $this->privateGetGetcoinouts (array_merge($request, $params));
+        //
+        // array(
+        //   {
+        //     "id" => 500,
+        //     "order_id" => "CWD20151224-014040-077777",
+        //     "currency_code" => "BTC",
+        //     "amount" => 0.1234,
+        //     "address" => "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+        //     "tx_hash" => "724c07dfd4044abcb390b0412c3e707dd5c4f373f0a52b3bd295ce32b478c60a",
+        //     "fee" => 0.0005,
+        //     "additional_fee" => 0.0001,
+        //     "status" => "COMPLETED",
+        //     "event_date" => "2015-12-24T01:40:40.397"
+        //   }
+        // )
+        //
+        return $this->parse_transactions($response, $currency, $since, $limit);
+    }
+
+    public function parse_deposit_status($status) {
+        $statuses = array(
+            'PENDING' => 'pending',
+            'COMPLETED' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_withdrawal_status($status) {
+        $statuses = array(
+            'PENDING' => 'pending',
+            'COMPLETED' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        // fetchDeposits
+        //
+        //   {
+        //     "id" => 100,
+        //     "order_id" => "CDP20151227-024141-055555",
+        //     "currency_code" => "BTC",
+        //     "amount" => 0.00002,
+        //     "address" => "1WriteySQufKZ2pVuM1oMhPrTtTVFq35j",
+        //     "tx_hash" => "9f92ee65a176bb9545f7becb8706c50d07d4cee5ffca34d8be3ef11d411405ae",
+        //     "status" => "COMPLETED",
+        //     "event_date" => "2015-11-27T08:59:20.301"
+        //   }
+        //
+        // fetchWithdrawals
+        //
+        //   {
+        //     "id" => 500,
+        //     "order_id" => "CWD20151224-014040-077777",
+        //     "currency_code" => "BTC",
+        //     "amount" => 0.1234,
+        //     "address" => "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+        //     "tx_hash" => "724c07dfd4044abcb390b0412c3e707dd5c4f373f0a52b3bd295ce32b478c60a",
+        //     "fee" => 0.0005,
+        //     "additional_fee" => 0.0001,
+        //     "status" => "COMPLETED",
+        //     "event_date" => "2015-12-24T01:40:40.397"
+        //   }
+        //
+        $id = $this->safe_string($transaction, 'id');
+        $address = $this->safe_string($transaction, 'address');
+        $currencyId = $this->safe_string($transaction, 'currency_code');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $timestamp = $this->parse8601($this->safe_string($transaction, 'event_date'));
+        $amount = $this->safe_number($transaction, 'amount');
+        $txId = $this->safe_string($transaction, 'tx_hash');
+        $rawStatus = $this->safe_string($transaction, 'status');
+        $type = null;
+        $status = null;
+        $fee = null;
+        if (is_array($transaction) && array_key_exists('fee', $transaction)) {
+            $type = 'withdrawal';
+            $status = $this->parse_withdrawal_status($rawStatus);
+            $feeCost = $this->safe_number($transaction, 'fee');
+            $additionalFee = $this->safe_number($transaction, 'additional_fee');
+            $fee = array( 'currency' => $code, 'cost' => $feeCost . $additionalFee );
+        } else {
+            $type = 'deposit';
+            $status = $this->parse_deposit_status($rawStatus);
+        }
+        return array(
+            'info' => $transaction,
+            'id' => $id,
+            'txid' => $txId,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'network' => null,
+            'address' => $address,
+            'addressTo' => $address,
+            'addressFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'tagFrom' => null,
+            'type' => $type,
+            'amount' => $amount,
+            'currency' => $code,
+            'status' => $status,
+            'updated' => null,
+            'internal' => null,
+            'fee' => $fee,
         );
     }
 
