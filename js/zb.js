@@ -1268,51 +1268,26 @@ module.exports = class zb extends Exchange {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
-        } else if (section === 'spot') {
-            if (access === 'public') {
-                url += '/' + version + '/' + path;
-                if (Object.keys (params).length) {
-                    url += '?' + this.urlencode (params);
-                }
-            } else {
-                let query = this.keysort (this.extend ({
-                    'method': path,
-                    'accesskey': this.apiKey,
-                }, params));
-                const nonce = this.nonce ();
-                query = this.keysort (query);
-                const auth = this.rawencode (query);
-                const secret = this.hash (this.encode (this.secret), 'sha1');
-                const signature = this.hmac (this.encode (auth), this.encode (secret), 'md5');
-                const suffix = 'sign=' + signature + '&reqTime=' + nonce.toString ();
-                url += '/' + path + '?' + auth + '&' + suffix;
+        } else if (access === 'public') {
+            url += '/' + version + '/' + path;
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
             }
-        } else if (section === 'contract') {
-            if (version === 'v1') {
-                url += '/' + version + '/' + path;
-                if (Object.keys (params).length) {
-                    url += '?' + this.urlencode (params);
-                }
-            } else {
-                if (access === 'public') {
-                    url += '/' + version + '/' + path;
-                    if (Object.keys (params).length) {
-                        url += '?' + this.urlencode (params);
-                    }
-                } else {
-                    let query = this.keysort (this.extend ({
-                        'method': path,
-                        'accesskey': this.apiKey,
-                    }, params));
-                    const nonce = this.nonce ();
-                    query = this.keysort (query);
-                    const auth = this.rawencode (query);
-                    const secret = this.hash (this.encode (this.secret), 'sha1');
-                    const signature = this.hmac (this.encode (auth), this.encode (secret), 'md5');
-                    const suffix = 'sign=' + signature + '&reqTime=' + nonce.toString ();
-                    url += '/' + version + '/' + path + '?' + auth + '&' + suffix;
-                }
+        } else {
+            let query = this.keysort (this.extend ({
+                'method': path,
+                'accesskey': this.apiKey,
+            }, params));
+            const nonce = this.nonce ();
+            query = this.keysort (query);
+            const auth = this.rawencode (query);
+            const secret = this.hash (this.encode (this.secret), 'sha1');
+            const signature = this.hmac (this.encode (auth), this.encode (secret), 'md5');
+            const suffix = 'sign=' + signature + '&reqTime=' + nonce.toString ();
+            if (section === 'contract') {
+                url += '/' + version;
             }
+            url += '/' + path + '?' + auth + '&' + suffix;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
