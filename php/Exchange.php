@@ -375,6 +375,8 @@ class Exchange {
         'fetchBorrowRate' => 'fetch_borrow_rate',
         'handleMarketTypeAndParams' => 'handle_market_type_and_params',
         'loadTimeDifference' => 'load_time_difference',
+        'fetchLeverageTiers' => 'fetch_leverage_tiers',
+        'fetchFundingRateHistory' => 'fetch_funding_rate_history',
     );
 
     public static function split($string, $delimiters = array(' ')) {
