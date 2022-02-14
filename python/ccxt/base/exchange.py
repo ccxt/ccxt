@@ -298,6 +298,7 @@ class Exchange(object):
         'fetchL2OrderBook': True,
         'fetchLedger': None,
         'fetchLedgerEntry': None,
+        'fetchLeverageTiers': None,
         'fetchMarkets': True,
         'fetchMarkOHLCV': None,
         'fetchMyTrades': None,
