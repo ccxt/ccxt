@@ -286,6 +286,10 @@ module.exports = class kucoinfutures extends kucoin {
                     'ERC20': 'eth',
                     'TRC20': 'trx',
                 },
+                'code': 'BTC',
+                'fetchBalance': {
+                    'code': 'BTC',
+                },
             },
         });
     }
@@ -1250,10 +1254,16 @@ module.exports = class kucoinfutures extends kucoin {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         // only fetches one balance at a time
-        // by default it will only fetch the BTC balance of the futures account
-        // you can send 'currency' in params to fetch other currencies
-        // fetchBalance ({ 'type': 'future', 'currency': 'USDT' })
-        const response = await this.futuresPrivateGetAccountOverview (params);
+        const request = {};
+        const coin = this.safeString (params, 'coin');
+        const code = this.safeString (params, 'code', this.options['code']);
+        if (coin !== undefined) {
+            request['currency'] = coin;
+        } else if (code !== undefined) {
+            const currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        const response = await this.futuresPrivateGetAccountOverview (this.extend (request, params));
         //
         //     {
         //         code: '200000',
