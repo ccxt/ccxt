@@ -109,6 +109,7 @@ class bitforex extends Exchange {
                 'CAPP' => 'Crypto Application Token',
                 'CREDIT' => 'TerraCredit',
                 'CTC' => 'Culture Ticket Chain',
+                'EWT' => 'EcoWatt Token',
                 'IQ' => 'IQ.Cash',
                 'MIR' => 'MIR COIN',
                 'NOIA' => 'METANOIA',
