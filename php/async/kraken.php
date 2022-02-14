@@ -57,6 +57,7 @@ class kraken extends Exchange {
                 'fetchIsolatedPositions' => false,
                 'fetchLedger' => true,
                 'fetchLedgerEntry' => true,
+                'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,

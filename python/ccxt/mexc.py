@@ -59,6 +59,7 @@ class mexc(Exchange):
                 'fetchIndexOHLCV': True,
                 'fetchIsolatedPositions': None,
                 'fetchLeverage': None,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
                 'fetchMyTrades': True,

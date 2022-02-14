@@ -54,6 +54,7 @@ class bitfinex(Exchange):
                 'fetchDeposits': None,
                 'fetchFundingFees': True,
                 'fetchIndexOHLCV': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,

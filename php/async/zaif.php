@@ -123,7 +123,7 @@ class zaif extends Exchange {
             'options' => array(
                 // zaif schedule defines several market-specific fees
                 'fees' => array(
-                    'BTC/JPY' => array( 'maker' => 0, 'taker' => 0 ),
+                    'BTC/JPY' => array( 'maker' => 0, 'taker' => 0.1 / 100 ),
                     'BCH/JPY' => array( 'maker' => 0, 'taker' => 0.3 / 100 ),
                     'BCH/BTC' => array( 'maker' => 0, 'taker' => 0.3 / 100 ),
                     'PEPECASH/JPY' => array( 'maker' => 0, 'taker' => 0.01 / 100 ),

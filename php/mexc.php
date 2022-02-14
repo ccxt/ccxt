@@ -50,6 +50,7 @@ class mexc extends Exchange {
                 'fetchIndexOHLCV' => true,
                 'fetchIsolatedPositions' => null,
                 'fetchLeverage' => null,
+                'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,

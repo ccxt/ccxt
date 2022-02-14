@@ -46,6 +46,7 @@ class bitmex(Exchange):
                 'fetchClosedOrders': True,
                 'fetchIndexOHLCV': False,
                 'fetchLedger': True,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,

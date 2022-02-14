@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.72.84'
+__version__ = '1.72.98'
 
 # -----------------------------------------------------------------------------
 
@@ -298,6 +298,7 @@ class Exchange(object):
         'fetchL2OrderBook': True,
         'fetchLedger': None,
         'fetchLedgerEntry': None,
+        'fetchLeverageTiers': None,
         'fetchMarkets': True,
         'fetchMarkOHLCV': None,
         'fetchMyTrades': None,

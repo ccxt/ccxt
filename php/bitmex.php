@@ -40,6 +40,7 @@ class bitmex extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
+                'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,

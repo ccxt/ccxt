@@ -84,6 +84,7 @@ class binance(Exchange):
                 'fetchL3OrderBook': None,
                 'fetchLedger': None,
                 'fetchLeverage': None,
+                'fetchLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
                 'fetchMyBuys': None,
@@ -2588,20 +2589,20 @@ class binance(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         defaultType = self.safe_string_2(self.options, 'createOrder', 'defaultType', 'spot')
-        orderType = self.safe_string(params, 'type', defaultType)
+        marketType = self.safe_string(params, 'type', defaultType)
         clientOrderId = self.safe_string_2(params, 'newClientOrderId', 'clientOrderId')
         postOnly = self.safe_value(params, 'postOnly', False)
         params = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly'])
         reduceOnly = self.safe_value(params, 'reduceOnly')
         if reduceOnly is not None:
-            if (orderType != 'future') and (orderType != 'delivery'):
-                raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + orderType + ' orders, reduceOnly orders are supported for futures and perpetuals only')
+            if (marketType != 'future') and (marketType != 'delivery'):
+                raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for future and delivery markets only')
         method = 'privatePostOrder'
-        if orderType == 'future':
+        if marketType == 'future':
             method = 'fapiPrivatePostOrder'
-        elif orderType == 'delivery':
+        elif marketType == 'delivery':
             method = 'dapiPrivatePostOrder'
-        elif orderType == 'margin':
+        elif marketType == 'margin':
             method = 'sapiPostMarginOrder'
         # the next 5 lines are added to support for testing orders
         if market['spot']:
@@ -2624,12 +2625,12 @@ class binance(Exchange):
         if clientOrderId is None:
             broker = self.safe_value(self.options, 'broker')
             if broker is not None:
-                brokerId = self.safe_string(broker, orderType)
+                brokerId = self.safe_string(broker, marketType)
                 if brokerId is not None:
                     request['newClientOrderId'] = brokerId + self.uuid22()
         else:
             request['newClientOrderId'] = clientOrderId
-        if (orderType == 'spot') or (orderType == 'margin'):
+        if (marketType == 'spot') or (marketType == 'margin'):
             request['newOrderRespType'] = self.safe_value(self.options['newOrderRespType'], type, 'RESULT')  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         else:
             # delivery and future
@@ -4544,6 +4545,62 @@ class binance(Exchange):
                     result.append([floorValue, maintenanceMarginPercentage])
                 self.options['leverageBrackets'][symbol] = result
         return self.options['leverageBrackets']
+
+    async def fetch_leverage_tiers(self, symbol=None, params={}):
+        await self.load_markets()
+        type, query = self.handle_market_type_and_params('fetchLeverageTiers', None, params)
+        method = None
+        if type == 'future':
+            method = 'fapiPrivateGetLeverageBracket'
+        elif type == 'delivery':
+            method = 'dapiPrivateV2GetLeverageBracket'
+        else:
+            raise NotSupported(self.id + ' fetchLeverageTiers() supports linear and inverse contracts only')
+        response = await getattr(self, method)(query)
+        #
+        #    [
+        #        {
+        #            "symbol": "SUSHIUSDT",
+        #            "brackets": [
+        #                {
+        #                    "bracket": 1,
+        #                    "initialLeverage": 50,
+        #                    "notionalCap": 50000,
+        #                    "notionalFloor": 0,
+        #                    "maintMarginRatio": 0.01,
+        #                    "cum": 0.0
+        #                },
+        #                ...
+        #            ]
+        #        }
+        #    ]
+        #
+        leverageBrackets = {}
+        for i in range(0, len(response)):
+            entry = response[i]
+            marketId = self.safe_string(entry, 'symbol')
+            safeSymbol = self.safe_symbol(marketId)
+            market = {'base': None}
+            if safeSymbol in self.markets:
+                market = self.market(safeSymbol)
+            brackets = self.safe_value(entry, 'brackets')
+            result = []
+            for j in range(0, len(brackets)):
+                bracket = brackets[j]
+                result.append({
+                    'tier': self.safe_number(bracket, 'bracket'),
+                    'notionalCurrency': market['quote'],
+                    'notionalFloor': self.safe_float_2(bracket, 'notionalFloor', 'qtyFloor'),
+                    'notionalCap': self.safe_number(bracket, 'notionalCap'),
+                    'maintenanceMarginRate': self.safe_number(bracket, 'maintMarginRatio'),
+                    'maxLeverage': self.safe_number(bracket, 'initialLeverage'),
+                    'info': bracket,
+                })
+            leverageBrackets[safeSymbol] = result
+        if symbol is not None:
+            return self.safe_value(leverageBrackets, symbol)
+        else:
+            return leverageBrackets
 
     async def fetch_positions(self, symbols=None, params={}):
         defaultMethod = self.safe_string(self.options, 'fetchPositions', 'positionRisk')

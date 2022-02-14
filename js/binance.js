@@ -63,6 +63,7 @@ module.exports = class binance extends Exchange {
                 'fetchL3OrderBook': undefined,
                 'fetchLedger': undefined,
                 'fetchLeverage': undefined,
+                'fetchLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyBuys': undefined,
@@ -2648,22 +2649,22 @@ module.exports = class binance extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const defaultType = this.safeString2 (this.options, 'createOrder', 'defaultType', 'spot');
-        const orderType = this.safeString (params, 'type', defaultType);
+        const marketType = this.safeString (params, 'type', defaultType);
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
         const postOnly = this.safeValue (params, 'postOnly', false);
         params = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId', 'postOnly' ]);
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         if (reduceOnly !== undefined) {
-            if ((orderType !== 'future') && (orderType !== 'delivery')) {
-                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + orderType + ' orders, reduceOnly orders are supported for futures and perpetuals only');
+            if ((marketType !== 'future') && (marketType !== 'delivery')) {
+                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for future and delivery markets only');
             }
         }
         let method = 'privatePostOrder';
-        if (orderType === 'future') {
+        if (marketType === 'future') {
             method = 'fapiPrivatePostOrder';
-        } else if (orderType === 'delivery') {
+        } else if (marketType === 'delivery') {
             method = 'dapiPrivatePostOrder';
-        } else if (orderType === 'margin') {
+        } else if (marketType === 'margin') {
             method = 'sapiPostMarginOrder';
         }
         // the next 5 lines are added to support for testing orders
@@ -2691,7 +2692,7 @@ module.exports = class binance extends Exchange {
         if (clientOrderId === undefined) {
             const broker = this.safeValue (this.options, 'broker');
             if (broker !== undefined) {
-                const brokerId = this.safeString (broker, orderType);
+                const brokerId = this.safeString (broker, marketType);
                 if (brokerId !== undefined) {
                     request['newClientOrderId'] = brokerId + this.uuid22 ();
                 }
@@ -2699,7 +2700,7 @@ module.exports = class binance extends Exchange {
         } else {
             request['newClientOrderId'] = clientOrderId;
         }
-        if ((orderType === 'spot') || (orderType === 'margin')) {
+        if ((marketType === 'spot') || (marketType === 'margin')) {
             request['newOrderRespType'] = this.safeValue (this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         } else {
             // delivery and future
@@ -4775,6 +4776,68 @@ module.exports = class binance extends Exchange {
             }
         }
         return this.options['leverageBrackets'];
+    }
+
+    async fetchLeverageTiers (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchLeverageTiers', undefined, params);
+        let method = undefined;
+        if (type === 'future') {
+            method = 'fapiPrivateGetLeverageBracket';
+        } else if (type === 'delivery') {
+            method = 'dapiPrivateV2GetLeverageBracket';
+        } else {
+            throw new NotSupported (this.id + ' fetchLeverageTiers() supports linear and inverse contracts only');
+        }
+        const response = await this[method] (query);
+        //
+        //    [
+        //        {
+        //            "symbol": "SUSHIUSDT",
+        //            "brackets": [
+        //                {
+        //                    "bracket": 1,
+        //                    "initialLeverage": 50,
+        //                    "notionalCap": 50000,
+        //                    "notionalFloor": 0,
+        //                    "maintMarginRatio": 0.01,
+        //                    "cum": 0.0
+        //                },
+        //                ...
+        //            ]
+        //        }
+        //    ]
+        //
+        const leverageBrackets = {};
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const marketId = this.safeString (entry, 'symbol');
+            const safeSymbol = this.safeSymbol (marketId);
+            let market = { 'base': undefined };
+            if (safeSymbol in this.markets) {
+                market = this.market (safeSymbol);
+            }
+            const brackets = this.safeValue (entry, 'brackets');
+            const result = [];
+            for (let j = 0; j < brackets.length; j++) {
+                const bracket = brackets[j];
+                result.push ({
+                    'tier': this.safeNumber (bracket, 'bracket'),
+                    'notionalCurrency': market['quote'],
+                    'notionalFloor': this.safeFloat2 (bracket, 'notionalFloor', 'qtyFloor'),
+                    'notionalCap': this.safeNumber (bracket, 'notionalCap'),
+                    'maintenanceMarginRate': this.safeNumber (bracket, 'maintMarginRatio'),
+                    'maxLeverage': this.safeNumber (bracket, 'initialLeverage'),
+                    'info': bracket,
+                });
+            }
+            leverageBrackets[safeSymbol] = result;
+        }
+        if (symbol !== undefined) {
+            return this.safeValue (leverageBrackets, symbol);
+        } else {
+            return leverageBrackets;
+        }
     }
 
     async fetchPositions (symbols = undefined, params = {}) {

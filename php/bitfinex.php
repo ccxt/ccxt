@@ -40,6 +40,7 @@ class bitfinex extends Exchange {
                 'fetchDeposits' => null,
                 'fetchFundingFees' => true,
                 'fetchIndexOHLCV' => false,
+                'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
