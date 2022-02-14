@@ -1741,6 +1741,27 @@ class kraken extends Exchange {
         //         time =>  1529223212,
         //       $status => "Success"                                                       }
         //
+        //
+        // there can be an additional 'status-prop' field present
+        // deposit pending review by exchange => 'on-hold'
+        // the deposit is initiated by the exchange => 'return'
+        //
+        //      {
+        //          $type => 'deposit',
+        //          method => 'Fidor Bank AG (Wire Transfer)',
+        //          aclass => 'currency',
+        //          asset => 'ZEUR',
+        //          refid => 'xxx-xxx-xxx',
+        //          $txid => '12341234',
+        //          info => 'BANKCODEXXX',
+        //          $amount => '38769.08',
+        //          fee => '0.0000',
+        //          time => 1644306552,
+        //          $status => 'Success',
+        //          $status-prop => 'on-hold'
+        //      }
+        //
+        //
         // fetchWithdrawals
         //
         //     { method => "Ether",
@@ -1754,6 +1775,9 @@ class kraken extends Exchange {
         //         time =>  1530481750,
         //       $status => "Success"                                                             }
         //
+        // withdrawals may also have an additional 'status-prop' field present
+        //
+        //
         $id = $this->safe_string($transaction, 'refid');
         $txid = $this->safe_string($transaction, 'txid');
         $timestamp = $this->safe_timestamp($transaction, 'time');
@@ -1762,6 +1786,13 @@ class kraken extends Exchange {
         $address = $this->safe_string($transaction, 'info');
         $amount = $this->safe_number($transaction, 'amount');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
+        $statusProp = $this->safe_string($transaction, 'status-prop');
+        $isOnHoldDeposit = $statusProp === 'on-hold';
+        $isCancellationRequest = $statusProp === 'cancel-pending';
+        $isOnHoldWithdrawal = $statusProp === 'onhold';
+        if ($isOnHoldDeposit || $isCancellationRequest || $isOnHoldWithdrawal) {
+            $status = 'pending';
+        }
         $type = $this->safe_string($transaction, 'type'); // injected from the outside
         $feeCost = $this->safe_number($transaction, 'fee');
         if ($feeCost === null) {
