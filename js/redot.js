@@ -10,7 +10,7 @@ module.exports = class redot extends Exchange {
             'name': 'Redot',
             'countries': [ 'EE' ], // Estonia
             'version': 'v1',
-            'rateLimit': 300,
+            'rateLimit': 1000 / 3,
             'has': {
                 'CORS': false,
                 'spot': true,
