@@ -2270,146 +2270,69 @@ module.exports = class ascendex extends Exchange {
 
     async fetchLeverageTiers (symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let symbols = undefined;
-        if (symbol) {
-            const market = this.market (symbol);
+        const tiers = {};
+        const symbolDefined = (symbol !== undefined);
+        let market = undefined;
+        if (symbolDefined) {
+            market = this.market (symbol);
             if (!market['contract']) {
                 throw new BadRequest (this.id + ' fetchLeverageTiers symbol supports contract markets only');
             }
-            symbols = [ symbol ];
-        } else {
-            symbols = this.symbols;
         }
-        const tiers = {};
-        for (let i = 0; i < symbols.length; i++) {
-            const market = this.market (symbols[i]);
-            //
-            //    {
-            //        limits: {
-            //          leverage: { min: undefined, max: undefined },
-            //          amount: { min: 0.0001, max: 1000000000 },
-            //          price: { min: 1, max: 1000000 },
-            //          cost: { min: 0, max: 1000000 }
-            //        },
-            //        precision: { price: 1, amount: 0.0001 },
-            //        tierBased: true,
-            //        percentage: true,
-            //        taker: 0.001,
-            //        maker: 0.001,
-            //        feeSide: 'get',
-            //        id: 'BTC-PERP',
-            //        symbol: 'BTC/USDT:USDT',
-            //        base: 'BTC',
-            //        quote: 'USDT',
-            //        settle: 'USDT',
-            //        baseId: 'BTC',
-            //        quoteId: 'USDT',
-            //        settleId: 'USDT',
-            //        type: 'swap',
-            //        spot: false,
-            //        margin: undefined,
-            //        swap: true,
-            //        future: false,
-            //        option: false,
-            //        active: true,
-            //        contract: true,
-            //        linear: true,
-            //        inverse: false,
-            //        contractSize: 1,
-            //        expiry: undefined,
-            //        expiryDatetime: undefined,
-            //        strike: undefined,
-            //        optionType: undefined,
-            //        info: {
-            //            symbol: 'BTC-PERP',
-            //            displayName: 'BTCUSDT',
-            //            baseAsset: 'BTCUSDT',
-            //            quoteAsset: 'USDT',
-            //            status: 'Normal',
-            //            minNotional: '0',
-            //            maxNotional: '1000000',
-            //            marginTradable: false,
-            //            commissionType: 'Quote',
-            //            commissionReserveRate: '0.001',
-            //            tickSize: '1',
-            //            lotSize: '0.0001',
-            //            settlementAsset: 'USDT',
-            //            underlying: 'BTC/USDT',
-            //            tradingStartTime: '1579701600000',
-            //            priceFilter: {
-            //                minPrice: '1',
-            //                maxPrice: '1000000',
-            //                tickSize: '1'
-            //            },
-            //            lotSizeFilter: {
-            //                minQty: '0.0001',
-            //                maxQty: '1000000000',
-            //                lotSize: '0.0001'
-            //            },
-            //            marketOrderPriceMarkup: '0.03',
-            //            marginRequirements: [
-            //                {
-            //                    positionNotionalLowerBound: '0',
-            //                    positionNotionalUpperBound: '50000',
-            //                    initialMarginRate: '0.01',
-            //                    maintenanceMarginRate: '0.006'
-            //                },
-            //                {
-            //                    positionNotionalLowerBound: '50000',
-            //                    positionNotionalUpperBound: '200000',
-            //                    initialMarginRate: '0.02',
-            //                    maintenanceMarginRate: '0.012'
-            //                },
-            //                {
-            //                    positionNotionalLowerBound: '200000',
-            //                    positionNotionalUpperBound: '2000000',
-            //                    initialMarginRate: '0.04',
-            //                    maintenanceMarginRate: '0.024'
-            //                },
-            //                {
-            //                    positionNotionalLowerBound: '2000000',
-            //                    positionNotionalUpperBound: '20000000',
-            //                    initialMarginRate: '0.1',
-            //                    maintenanceMarginRate: '0.06'
-            //                },
-            //                {
-            //                    positionNotionalLowerBound: '20000000',
-            //                    positionNotionalUpperBound: '40000000',
-            //                    initialMarginRate: '0.2',
-            //                    maintenanceMarginRate: '0.12'
-            //                },
-            //                {
-            //                    positionNotionalLowerBound: '40000000',
-            //                    positionNotionalUpperBound: '1000000000',
-            //                    initialMarginRate: '0.333333',
-            //                    maintenanceMarginRate: '0.2'
-            //                }
-            //            ]
-            //        }
-            //    }
-            //
-            if (market['contract']) {
-                const marginRequirements = this.safeValue (market['info'], 'marginRequirements');
-                if (marginRequirements) {
-                    const brackets = [];
-                    for (let j = 0; j < marginRequirements.length; j++) {
-                        const bracket = marginRequirements[j];
-                        const initialMarginRate = this.safeString (bracket, 'initialMarginRate');
-                        brackets.push ({
-                            'tier': j + 1,
-                            'notionalCurrency': market['quote'],
-                            'notionalFloor': this.safeNumber (bracket, 'positionNotionalLowerBound'),
-                            'notionalCap': this.safeNumber (bracket, 'positionNotionalUpperBound'),
-                            'maintenanceMarginRatio': this.safeNumber (bracket, 'maintenanceMarginRate'),
-                            'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRate)),
-                            'info': bracket,
-                        });
-                    }
-                    tiers[market['symbol']] = brackets;
+        const response = await this.v2PublicGetFuturesContract ();
+        //
+        //     {
+        //         "code":0,
+        //         "data":[
+        //             {
+        //                 "symbol":"BTC-PERP",
+        //                 "status":"Normal",
+        //                 "displayName":"BTCUSDT",
+        //                 "settlementAsset":"USDT",
+        //                 "underlying":"BTC/USDT",
+        //                 "tradingStartTime":1579701600000,
+        //                 "priceFilter":{"minPrice":"1","maxPrice":"1000000","tickSize":"1"},
+        //                 "lotSizeFilter":{"minQty":"0.0001","maxQty":"1000000000","lotSize":"0.0001"},
+        //                 "commissionType":"Quote",
+        //                 "commissionReserveRate":"0.001",
+        //                 "marketOrderPriceMarkup":"0.03",
+        //                 "marginRequirements":[
+        //                     {"positionNotionalLowerBound":"0","positionNotionalUpperBound":"50000","initialMarginRate":"0.01","maintenanceMarginRate":"0.006"},
+        //                     {"positionNotionalLowerBound":"50000","positionNotionalUpperBound":"200000","initialMarginRate":"0.02","maintenanceMarginRate":"0.012"},
+        //                     {"positionNotionalLowerBound":"200000","positionNotionalUpperBound":"2000000","initialMarginRate":"0.04","maintenanceMarginRate":"0.024"},
+        //                     {"positionNotionalLowerBound":"2000000","positionNotionalUpperBound":"20000000","initialMarginRate":"0.1","maintenanceMarginRate":"0.06"},
+        //                     {"positionNotionalLowerBound":"20000000","positionNotionalUpperBound":"40000000","initialMarginRate":"0.2","maintenanceMarginRate":"0.12"},
+        //                     {"positionNotionalLowerBound":"40000000","positionNotionalUpperBound":"1000000000","initialMarginRate":"0.333333","maintenanceMarginRate":"0.2"}
+        //                 ]
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        for (let i = 0; i < data.length; i++) {
+            const market = data[i];
+            const marginRequirements = this.safeValue (market, 'marginRequirements');
+            if (marginRequirements) {
+                const brackets = [];
+                for (let j = 0; j < marginRequirements.length; j++) {
+                    const bracket = marginRequirements[j];
+                    const initialMarginRate = this.safeString (bracket, 'initialMarginRate');
+                    brackets.push ({
+                        'tier': j + 1,
+                        'notionalCurrency': market['quote'],
+                        'notionalFloor': this.safeNumber (bracket, 'positionNotionalLowerBound'),
+                        'notionalCap': this.safeNumber (bracket, 'positionNotionalUpperBound'),
+                        'maintenanceMarginRatio': this.safeNumber (bracket, 'maintenanceMarginRate'),
+                        'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRate)),
+                        'info': bracket,
+                    });
                 }
+                const id = this.safeString (market, 'symbol');
+                const ccxtSymbol = this.safeSymbol (id);
+                tiers[ccxtSymbol] = brackets;
             }
         }
-        return tiers;
+        return symbolDefined ? this.safeValue (tiers, symbol) : tiers;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
