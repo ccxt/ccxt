@@ -43,7 +43,7 @@ module.exports = class ascendex extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
-                'fetchLeverageTiers': 'emulated',
+                'fetchLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchOHLCV': true,
@@ -2272,9 +2272,8 @@ module.exports = class ascendex extends Exchange {
         await this.loadMarkets ();
         const tiers = {};
         const symbolDefined = (symbol !== undefined);
-        let market = undefined;
         if (symbolDefined) {
-            market = this.market (symbol);
+            const market = this.market (symbol);
             if (!market['contract']) {
                 throw new BadRequest (this.id + ' fetchLeverageTiers symbol supports contract markets only');
             }
@@ -2310,27 +2309,25 @@ module.exports = class ascendex extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         for (let i = 0; i < data.length; i++) {
-            const market = data[i];
-            const marginRequirements = this.safeValue (market, 'marginRequirements');
-            if (marginRequirements) {
-                const brackets = [];
-                for (let j = 0; j < marginRequirements.length; j++) {
-                    const bracket = marginRequirements[j];
-                    const initialMarginRate = this.safeString (bracket, 'initialMarginRate');
-                    brackets.push ({
-                        'tier': j + 1,
-                        'notionalCurrency': market['quote'],
-                        'notionalFloor': this.safeNumber (bracket, 'positionNotionalLowerBound'),
-                        'notionalCap': this.safeNumber (bracket, 'positionNotionalUpperBound'),
-                        'maintenanceMarginRatio': this.safeNumber (bracket, 'maintenanceMarginRate'),
-                        'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRate)),
-                        'info': bracket,
-                    });
-                }
-                const id = this.safeString (market, 'symbol');
-                const ccxtSymbol = this.safeSymbol (id);
-                tiers[ccxtSymbol] = brackets;
+            const item = data[i];
+            const marginRequirements = this.safeValue (item, 'marginRequirements');
+            const id = this.safeString (item, 'symbol');
+            const market = this.market (id);
+            const brackets = [];
+            for (let j = 0; j < marginRequirements.length; j++) {
+                const bracket = marginRequirements[j];
+                const initialMarginRate = this.safeString (bracket, 'initialMarginRate');
+                brackets.push ({
+                    'tier': j + 1,
+                    'notionalCurrency': market['quote'],
+                    'notionalFloor': this.safeNumber (bracket, 'positionNotionalLowerBound'),
+                    'notionalCap': this.safeNumber (bracket, 'positionNotionalUpperBound'),
+                    'maintenanceMarginRatio': this.safeNumber (bracket, 'maintenanceMarginRate'),
+                    'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRate)),
+                    'info': bracket,
+                });
             }
+            tiers[market['symbol']] = brackets;
         }
         return symbolDefined ? this.safeValue (tiers, symbol) : tiers;
     }
