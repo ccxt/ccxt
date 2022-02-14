@@ -297,6 +297,10 @@ class kucoinfutures(kucoin):
                     'ERC20': 'eth',
                     'TRC20': 'trx',
                 },
+                # 'code': 'BTC',
+                # 'fetchBalance': {
+                #    'code': 'BTC',
+                # },
             },
         })
 
@@ -1204,10 +1208,18 @@ class kucoinfutures(kucoin):
     async def fetch_balance(self, params={}):
         await self.load_markets()
         # only fetches one balance at a time
-        # by default it will only fetch the BTC balance of the futures account
-        # you can send 'currency' in params to fetch other currencies
-        # fetchBalance({'type': 'future', 'currency': 'USDT'})
-        response = await self.futuresPrivateGetAccountOverview(params)
+        request = {}
+        coin = self.safe_string(params, 'coin')
+        defaultCode = self.safe_string(self.options, 'code')
+        fetchBalanceOptions = self.safe_value(self.options, 'fetchBalance', {})
+        defaultCode = self.safe_string(fetchBalanceOptions, 'code', defaultCode)
+        code = self.safe_string(params, 'code', defaultCode)
+        if coin is not None:
+            request['currency'] = coin
+        elif code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        response = await self.futuresPrivateGetAccountOverview(self.extend(request, params))
         #
         #     {
         #         code: '200000',

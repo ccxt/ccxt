@@ -288,6 +288,10 @@ class kucoinfutures extends kucoin {
                     'ERC20' => 'eth',
                     'TRC20' => 'trx',
                 ),
+                // 'code' => 'BTC',
+                // 'fetchBalance' => array(
+                //    'code' => 'BTC',
+                // ),
             ),
         ));
     }
@@ -1252,13 +1256,22 @@ class kucoinfutures extends kucoin {
     public function fetch_balance($params = array ()) {
         $this->load_markets();
         // only fetches one balance at a time
-        // by default it will only fetch the BTC balance of the futures account
-        // you can send 'currency' in $params to fetch other currencies
-        // fetchBalance (array( 'type' => 'future', 'currency' => 'USDT' ))
-        $response = $this->futuresPrivateGetAccountOverview ($params);
+        $request = array();
+        $coin = $this->safe_string($params, 'coin');
+        $defaultCode = $this->safe_string($this->options, 'code');
+        $fetchBalanceOptions = $this->safe_value($this->options, 'fetchBalance', array());
+        $defaultCode = $this->safe_string($fetchBalanceOptions, 'code', $defaultCode);
+        $code = $this->safe_string($params, 'code', $defaultCode);
+        if ($coin !== null) {
+            $request['currency'] = $coin;
+        } else if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        $response = $this->futuresPrivateGetAccountOverview (array_merge($request, $params));
         //
         //     {
-        //         code => '200000',
+        //         $code => '200000',
         //         data => {
         //             accountEquity => 0.00005,
         //             unrealisedPNL => 0,
@@ -1267,7 +1280,7 @@ class kucoinfutures extends kucoin {
         //             orderMargin => 0,
         //             frozenFunds => 0,
         //             availableBalance => 0.00005,
-        //             currency => 'XBT'
+        //             $currency => 'XBT'
         //         }
         //     }
         //
