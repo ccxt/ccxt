@@ -1567,29 +1567,25 @@ class kucoin(Exchange):
                 timestamp = timestamp * 1000
         priceString = self.safe_string_2(trade, 'price', 'dealPrice')
         amountString = self.safe_string_2(trade, 'size', 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
         side = self.safe_string(trade, 'side')
         fee = None
-        feeCost = self.safe_number(trade, 'fee')
-        if feeCost is not None:
+        feeCostString = self.safe_string(trade, 'fee')
+        if feeCostString is not None:
             feeCurrencyId = self.safe_string(trade, 'feeCurrency')
             feeCurrency = self.safe_currency_code(feeCurrencyId)
             if feeCurrency is None:
                 if market is not None:
                     feeCurrency = market['quote'] if (side == 'sell') else market['base']
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrency,
-                'rate': self.safe_number(trade, 'feeRate'),
+                'rate': self.safe_string(trade, 'feeRate'),
             }
         type = self.safe_string(trade, 'type')
         if type == 'match':
             type = None
-        cost = self.safe_number_2(trade, 'funds', 'dealValue')
-        if cost is None:
-            cost = self.parse_number(Precise.string_mul(priceString, amountString))
-        return {
+        costString = self.safe_string_2(trade, 'funds', 'dealValue')
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'order': orderId,
@@ -1599,11 +1595,11 @@ class kucoin(Exchange):
             'type': type,
             'takerOrMaker': takerOrMaker,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        }
+        }, market)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)

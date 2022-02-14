@@ -1539,7 +1539,7 @@ class kucoin extends Exchange {
         //         $symbol => 'BTC-USDT',
         //         $side => 'buy',
         //         size => '0.00536577',
-        //         $price => '9345',
+        //         price => '9345',
         //         takerOrderId => '5e356c4a9f1a790008f8d921',
         //         time => '1580559434436443257',
         //         $type => 'match',
@@ -1581,7 +1581,7 @@ class kucoin extends Exchange {
         //         createdAt => 1558417615000,
         //         size => "12.8206",
         //         stop => "",
-        //         $price => "0",
+        //         price => "0",
         //         funds => "0",
         //         tradeId => "5ce390cf6e0db23b861c6e80"
         //     }
@@ -1616,12 +1616,10 @@ class kucoin extends Exchange {
         }
         $priceString = $this->safe_string_2($trade, 'price', 'dealPrice');
         $amountString = $this->safe_string_2($trade, 'size', 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
         $side = $this->safe_string($trade, 'side');
         $fee = null;
-        $feeCost = $this->safe_number($trade, 'fee');
-        if ($feeCost !== null) {
+        $feeCostString = $this->safe_string($trade, 'fee');
+        if ($feeCostString !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'feeCurrency');
             $feeCurrency = $this->safe_currency_code($feeCurrencyId);
             if ($feeCurrency === null) {
@@ -1630,20 +1628,17 @@ class kucoin extends Exchange {
                 }
             }
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrency,
-                'rate' => $this->safe_number($trade, 'feeRate'),
+                'rate' => $this->safe_string($trade, 'feeRate'),
             );
         }
         $type = $this->safe_string($trade, 'type');
         if ($type === 'match') {
             $type = null;
         }
-        $cost = $this->safe_number_2($trade, 'funds', 'dealValue');
-        if ($cost === null) {
-            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        }
-        return array(
+        $costString = $this->safe_string_2($trade, 'funds', 'dealValue');
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'order' => $orderId,
@@ -1653,11 +1648,11 @@ class kucoin extends Exchange {
             'type' => $type,
             'takerOrMaker' => $takerOrMaker,
             'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => $costString,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
