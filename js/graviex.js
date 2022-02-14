@@ -104,8 +104,8 @@ module.exports = class graviex extends Exchange {
                         'trades/history', // Requires market XXXYYY, access_key, tonce, signature and api secret . Optional: limit, timestamp, from, to, order_by
                         'orders/history', // Requires market XXXYYY, access_key, tonce, signature and api secret . Optional: limit, timestamp, from, to, order_by
                         'gen_deposit_address', // Requires access_key, tonce, signature, currency and api secret.
-                        'account/settings', // Not Using Currently In Unified Methods.
-                        'fund_sources', // Not Using Currently In Unified Methods.
+                        'account/settings', // Requires access_key, tonce, signature . Not Using Currently In Unified Methods.
+                        'fund_sources', // Requires access_key, tonce, signature . Not Using Currently In Unified Methods.
                         'strategies/list', // Not Using Currently In Unified Methods.
                         'strategies/my', // Not Using Currently In Unified Methods.
                     ],
