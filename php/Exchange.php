@@ -1225,7 +1225,7 @@ class Exchange {
             'fetchL2OrderBook' => true,
             'fetchLedger' => null,
             'fetchLedgerEntry' => null,
-            'fetchLeverageTiers': null,
+            'fetchLeverageTiers' => null,
             'fetchMarkets' => true,
             'fetchMarkOHLCV' => null,
             'fetchMyTrades' => null,
