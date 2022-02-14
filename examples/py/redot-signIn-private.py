@@ -8,7 +8,7 @@ sys.path.append(root + '/python')
 
 import ccxt  # noqa: E402
 
-exchange = ccxt.bittrex({
+exchange = ccxt.redot({
     "apiKey": "YOUR_API_KEY",
     "secret": "YOUR_API_SECRET",
     "enableRateLimit": True,
