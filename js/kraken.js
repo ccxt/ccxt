@@ -1732,6 +1732,27 @@ module.exports = class kraken extends Exchange {
         //         time:  1529223212,
         //       status: "Success"                                                       }
         //
+        //
+        // there can be an additional 'status-prop' field present
+        // deposit pending review by exchange => 'on-hold'
+        // the deposit is initiated by the exchange => 'return'
+        //
+        //      {
+        //          type: 'deposit',
+        //          method: 'Fidor Bank AG (Wire Transfer)',
+        //          aclass: 'currency',
+        //          asset: 'ZEUR',
+        //          refid: 'xxx-xxx-xxx',
+        //          txid: '12341234',
+        //          info: 'BANKCODEXXX',
+        //          amount: '38769.08',
+        //          fee: '0.0000',
+        //          time: 1644306552,
+        //          status: 'Success',
+        //          status-prop: 'on-hold'
+        //      }
+        //
+        //
         // fetchWithdrawals
         //
         //     { method: "Ether",
@@ -1752,7 +1773,11 @@ module.exports = class kraken extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         const address = this.safeString (transaction, 'info');
         const amount = this.safeNumber (transaction, 'amount');
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        let status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const onHold = this.safeString (transaction, 'status-prop');
+        if (onHold === 'on-hold') {
+            status = 'pending';
+        }
         const type = this.safeString (transaction, 'type'); // injected from the outside
         let feeCost = this.safeNumber (transaction, 'fee');
         if (feeCost === undefined) {
