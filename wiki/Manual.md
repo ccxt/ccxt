@@ -2572,6 +2572,13 @@ In the example above:
 - a stake amount of 150     = a max leverage of (10000 / 150)   = 66.66
 - stakes between 133.33-200 = a max leverage of (10000 / stake) = 50.01 -> 74.99
 
+***Note for huobi users***
+
+[Huobi uses both leverage and amount to determine their maintenance margin rates](https://www.huobi.com/support/en-us/detail/900000089903)
+
+![](https://camo.githubusercontent.com/6a57af8600d48bc1ab752d309f744e0c0c76c430a0bf58dad3c8eded16f0f0c3/68747470733a2f2f692e696d6775722e636f6d2f576174784b70732e706e67)
+
+
 # Private API
 
 - [Authentication](#authentication)
