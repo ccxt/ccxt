@@ -1,10 +1,6 @@
-'use strict'
-
-// ----------------------------------------------------------------------------
+'use strict';
 
 const assert = require ('assert');
-
-// ----------------------------------------------------------------------------
 
 module.exports = async (exchange, symbol) => {
     const method = 'fetchLeverageTiers';
@@ -14,7 +10,7 @@ module.exports = async (exchange, symbol) => {
     //     ],
     // };
     if (exchange.has[method]) {
-        const tiers = await exchange [ method ] (symbol);
+        const tiers = await exchange [method] (symbol);
         const tierKeys = Object.keys (tiers);
         const numTierKeys = tierKeys.length;
         assert (numTierKeys >= 1);
