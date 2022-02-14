@@ -1267,7 +1267,7 @@ module.exports = class zb extends Exchange {
             if (path === 'getFeeInfo') {
                 url = this.urls['api'][section][version]['private'] + '/' + path;
             } else {
-                url += '/' + version; + '/' + path;
+                url += '/' + version + '/' + path;
             }
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
