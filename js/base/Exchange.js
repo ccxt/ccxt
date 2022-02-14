@@ -106,6 +106,7 @@ module.exports = class Exchange {
                 'fetchL2OrderBook': true,
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
+                'fetchLeverageTiers': undefined,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': undefined,
                 'fetchMyTrades': undefined,
