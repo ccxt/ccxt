@@ -67,7 +67,7 @@ setup(
     data_files=[('', ['LICENSE.txt'])],
 
     install_requires=[
-        'setuptools>=38.5.1',
+        'setuptools>=60.9.0',
         'certifi>=2018.1.18',
         'requests>=2.18.4',
         'cryptography>=2.6.1'
