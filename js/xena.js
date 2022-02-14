@@ -1786,7 +1786,7 @@ module.exports = class xena extends Exchange {
                         const cap = this.safeNumber (tier, 'maxVolume');
                         const initialRate = this.safeString (tier, 'initialRate');
                         tiers.push ({
-                            'tier': j + 1,
+                            'tier': this.sum (j, 1),
                             'notionalCurrency': market['base'],
                             'notionalFloor': floor,
                             'notionalCap': cap,
