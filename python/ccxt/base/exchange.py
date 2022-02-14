@@ -639,7 +639,6 @@ class Exchange(object):
         response.raise_for_status()
         return json_response
 
-
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
         request_headers = self.prepare_request_headers(headers)
