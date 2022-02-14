@@ -5469,22 +5469,22 @@ module.exports = class huobi extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const tiers = {};
+        const result = {};
         for (let i = 0; i < data.length; i++) {
-            const market = data[i];
-            const leverages = {};
-            const list = this.safeValue (market, 'list', []);
+            const item = data[i];
+            const list = this.safeValue (item, 'list', []);
+            const tiers = [];
+            const notionalCurrency = this.safeString (item, 'trade_partition');
             for (let j = 0; j < list.length; j++) {
                 const obj = list[j];
                 const leverage = this.safeString (obj, 'lever_rate');
-                const brackets = [];
                 const ladders = this.safeValue (obj, 'ladders', []);
                 for (let k = 0; k < ladders.length; k++) {
                     const bracket = ladders[k];
                     const adjustFactor = this.safeString (bracket, 'adjust_factor');
-                    brackets.push ({
+                    tiers.push ({
                         'tier': this.safeInteger (bracket, 'ladder'),
-                        'notionalCurrency': market['base'],
+                        'notionalCurrency': this.safeCurrencyCode (notionalCurrency),
                         'notionalFloor': this.safeNumber (bracket, 'min_size'),
                         'notionalCap': this.safeNumber (bracket, 'max_size'),
                         'maintenanceMarginRate': this.parseNumber (Precise.stringDiv (adjustFactor, leverage)),
@@ -5492,10 +5492,11 @@ module.exports = class huobi extends Exchange {
                         'info': bracket,
                     });
                 }
-                leverages[leverage] = brackets;
             }
-            tiers[market['contract_code']] = leverages;
+            const id = this.safeString (item, 'contract_code');
+            const symbol = this.safeSymbol (id);
+            result[symbol] = tiers;
         }
-        return tiers;
+        return result;
     }
 };
