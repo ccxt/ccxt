@@ -2329,7 +2329,13 @@ module.exports = class ascendex extends Exchange {
             }
             tiers[market['symbol']] = brackets;
         }
-        return symbolDefined ? this.safeValue (tiers, symbol) : tiers;
+        if (symbolDefined) {
+            const result = {};
+            result[symbol] = this.safeValue (tiers, symbol);
+            return result;
+        } else {
+            return tiers;
+        }
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
