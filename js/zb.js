@@ -1294,7 +1294,8 @@ module.exports = class zb extends Exchange {
                     signedString += query;
                 }
             }
-            const signature = this.hmac (this.encode (signedString), this.encode (this.secret), 'sha256', 'base64');
+            const secret = this.hash (this.encode (this.secret), 'sha1');
+            const signature = this.hmac (this.encode (signedString), this.encode (secret), 'sha256', 'base64');
             headers['ZB-SIGN'] = signature;
         } else {
             let query = this.keysort (this.extend ({
