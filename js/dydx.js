@@ -180,6 +180,7 @@ module.exports = class dydx extends Exchange {
                     'Unauthorized': AuthenticationError,
                     'passphrase must be a valid base64url string in headers that is 20 characters long': AuthenticationError,
                     'timestamp must be a valid ISO string in headers': BadRequest,
+                    'ethereum address must be a valid string in headers': AuthenticationError,
                     // old
                     'See /corsdemo for more info': AuthenticationError,
                     'Invalid signature for onboarding request': AuthenticationError,
