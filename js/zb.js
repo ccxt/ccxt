@@ -1288,7 +1288,7 @@ module.exports = class zb extends Exchange {
                 headers['Content-Type'] = 'application/json';
                 body = this.json (params);
                 signedString += this.urlencode (params);
-            } else { // get or delete
+            } else {
                 if (Object.keys (params).length) {
                     const query = this.urlencode (params);
                     url += '?' + query;
