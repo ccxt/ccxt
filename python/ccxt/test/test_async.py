@@ -303,7 +303,7 @@ async def test_positions(exchange, symbol):
         dump(green(exchange.id), 'fetching positions...')
         positions = await exchange.fetch_positions()
         for position in positions:
-            test_position(exchange, position, symbol, int(time.time() * 1000))
+            test_position(exchange, position, None, int(time.time() * 1000))
         dump(green(exchange.id), 'fetched', green(len(positions)), 'positions')
 
         # with symbol
