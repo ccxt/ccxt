@@ -182,7 +182,6 @@ module.exports = class dydx extends Exchange {
                     'timestamp must be a valid ISO string in headers': BadRequest,
                     'ethereum address must be a valid string in headers': AuthenticationError,
                     // old
-                    'See /corsdemo for more info': AuthenticationError,
                     'Invalid signature for onboarding request': AuthenticationError,
                     'Invalid signature for ApiKey request': AuthenticationError,
                     'Not Found': ExchangeNotAvailable,
@@ -190,7 +189,7 @@ module.exports = class dydx extends Exchange {
                     'AccountNotFoundError': AuthenticationError,
                     'market must be a valid market': BadSymbol,
                     'Invalid market': BadSymbol,
-                    'Order is below minimum size of 20000000000000000000': InvalidOrder,
+                    'Order is below minimum size of': InvalidOrder,
                     'Order would put account under the collateralization threshold': InsufficientFunds,
                     'insufficient funds for gas * price + value': InsufficientFunds,
                 },
