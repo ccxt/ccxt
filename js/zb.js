@@ -397,7 +397,7 @@ module.exports = class zb extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const response = await this.spotV1PrivateGetGetFeeInfo (params);
+        const response = await this.spotV1PublicGetGetFeeInfo (params);
         //
         //     {
         //         "code":1000,
