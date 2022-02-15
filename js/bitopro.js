@@ -186,8 +186,8 @@ module.exports = class bitopro extends Exchange {
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
-            const id = this.safeString (currency, 'currency');
-            const code = this.safeString (currency, 'currency');
+            const currencyId = this.safeString (currency, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
             const deposit = this.safeValue (currency, 'deposit');
             const withdraw = this.safeValue (currency, 'withdraw');
             const fee = this.safeNumber (currency, 'withdrawFee');
@@ -204,7 +204,7 @@ module.exports = class bitopro extends Exchange {
                 },
             };
             result[code] = {
-                'id': id,
+                'id': currencyId,
                 'code': code,
                 'info': currency,
                 'type': undefined,
