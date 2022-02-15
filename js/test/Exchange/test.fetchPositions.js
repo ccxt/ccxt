@@ -15,22 +15,28 @@ module.exports = async (exchange, symbol) => {
     ]
 
     if (skippedExchanges.includes (exchange.id)) {
-        console.log (exchange.id, 'found in ignored exchanges, skipping fetchMyTrades...')
+        console.log (exchange.id, 'found in ignored exchanges, skipping fetchPositions...')
         return
     }
 
     if (exchange.has['fetchPositions']) {
-
-        const positions = await exchange.fetchPositions ()
-
-        console.log ('fetched', positions.length, 'positions, asserting each...')
-
-        assert (positions instanceof Array)
-
         const now = Date.now ()
 
+        //without symbol
+        const positions = await exchange.fetchPositions ()
+        console.log ('fetched', positions.length, 'positions, asserting each...')
+        assert (positions instanceof Array)
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i]
+            testPosition (exchange, position, undefined, now)
+        }
+        
+        //with symbol
+        const positionsForSymbol = await exchange.fetchPositions ([symbol])
+        console.log ('fetched', positions.length, 'positions, asserting each...')
+        assert (positionsForSymbol instanceof Array)
+        for (let i = 0; i < positionsForSymbol.length; i++) {
+            const position = positionsForSymbol[i]
             testPosition (exchange, position, symbol, now)
         }
 
