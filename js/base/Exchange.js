@@ -414,7 +414,7 @@ module.exports = class Exchange {
         if (this.api) {
             this.defineRestApi (this.api, 'request')
         }
-        
+
         this.initRestRateLimiter ()
 
         if (this.markets) {
