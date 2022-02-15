@@ -30,8 +30,8 @@ module.exports = async (exchange, symbol) => {
         const now = Date.now ()
 
         for (let i = 0; i < positions.length; i++) {
-            const order = positions[i]
-            testPosition (positions, order, symbol, now)
+            const position = positions[i]
+            testPosition (exchange, position, symbol, now)
         }
 
     } else {
