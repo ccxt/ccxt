@@ -134,6 +134,7 @@ module.exports = class zb extends Exchange {
                     '3012': InvalidOrder, // Duplicate custom customerOrderId
                     '4001': ExchangeNotAvailable, // 'API interface is locked or not enabled',
                     '4002': RateLimitExceeded, // 'Request too often',
+                    '10017': PermissionDenied, // {"code":10017,"desc":"没有权限"} when contract trading is not enabled on the api key
                 },
                 'broad': {
                     '提币地址有误，请先添加提币地址。': InvalidAddress, // {"code":1001,"message":"提币地址有误，请先添加提币地址。"}
