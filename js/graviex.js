@@ -27,7 +27,6 @@ module.exports = class graviex extends Exchange {
                 'createDepositAddress': true,
                 'createOcoOrder': false,
                 'createOrder': true,
-                'createOrders': false,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': false,
@@ -506,7 +505,7 @@ module.exports = class graviex extends Exchange {
         // },
         const timestamp = this.safeInteger (response, 'timestamp');
         const orderbook = this.parseOrderBook (response, symbol, timestamp);
-        orderbook['nonce'] = this.milliseconds ();
+        orderbook['nonce'] = undefined;
         return orderbook;
     }
 
@@ -948,20 +947,6 @@ module.exports = class graviex extends Exchange {
     }
 
     encodeParams (params) {
-        if ('orders' in params) {
-            const orders = params['orders'];
-            let query = this.urlencode (this.keysort (this.omit (params, 'orders')));
-            for (let i = 0; i < orders.length; i++) {
-                const order = orders[i];
-                const keys = Object.keys (order);
-                for (let k = 0; k < keys.length; k++) {
-                    const key = keys[k];
-                    const value = order[key];
-                    query += '&orders%5B%5D%5B' + key + '%5D=' + value.toString ();
-                }
-            }
-            return query;
-        }
         return this.urlencode (this.keysort (params));
     }
 
@@ -993,11 +978,6 @@ module.exports = class graviex extends Exchange {
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
-        const response = await this.fetch2 (path, api, method, params, headers, body, config, context);
-        return response;
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
