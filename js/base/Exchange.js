@@ -13,7 +13,7 @@ const {
     , clone
     , flatten
     , unique
-    , changeKeyValue
+    , changeMappingKeyValue
     , indexBy
     , sortBy
     , sortBy2
@@ -2225,7 +2225,7 @@ module.exports = class Exchange {
                 const typeObject = mainObject[typeKey]
                 const lowercaseType = typeKey.toLowerCase ()
                 const camelcaseType = this.capitalize (typeKey)
-                const typeObjectReversed = changeKeyValue (typeObject)
+                const typeObjectReversed = changeMappingKeyValue (typeObject)
                 // define parser
                 const parseMethodCamelcase = prefixParse + camelcaseMain + camelcaseType;
                 const parseMethodUnderscored = prefixParse + '_' + lowercaseMain + '_' + lowercaseType;
