@@ -299,8 +299,16 @@ async def test_positions(exchange, symbol):
             return
         delay = int(exchange.rateLimit / 1000)
         await asyncio.sleep(delay)
-        # dump(green(exchange.id), green(symbol), 'fetching positions...')
+        # without symbol
+        dump(green(exchange.id), 'fetching positions...')
         positions = await exchange.fetch_positions()
+        for position in positions:
+            test_position(exchange, position, None, int(time.time() * 1000))
+        dump(green(exchange.id), 'fetched', green(len(positions)), 'positions')
+
+        # with symbol
+        dump(green(exchange.id), green(symbol), 'fetching positions...')
+        positions = await exchange.fetch_positions([symbol])
         for position in positions:
             test_position(exchange, position, symbol, int(time.time() * 1000))
         dump(green(exchange.id), green(symbol), 'fetched', green(len(positions)), 'positions')
