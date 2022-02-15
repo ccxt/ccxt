@@ -144,6 +144,7 @@ class zb extends Exchange {
                 'broad' => array(
                     '提币地址有误，请先添加提币地址。' => '\\ccxt\\InvalidAddress', // array("code":1001,"message":"提币地址有误，请先添加提币地址。")
                     '资金不足,无法划账' => '\\ccxt\\InsufficientFunds', // array("code":1001,"message":"资金不足,无法划账")
+                    '响应超时' => '\\ccxt\\RequestTimeout', // array("code":1001,"message":"响应超时")
                 ),
             ),
             'urls' => array(
