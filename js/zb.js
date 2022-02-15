@@ -1272,6 +1272,30 @@ module.exports = class zb extends Exchange {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
+        } else if (section === 'contract') {
+            const timestamp = this.milliseconds ();
+            const iso8601 = this.iso8601 (timestamp);
+            let signedString = iso8601 + method + '/Server/api/' + version + '/' + path;
+            params = this.keysort (params);
+            headers = {
+                'ZB-APIKEY': this.apiKey,
+                'ZB-TIMESTAMP': iso8601,
+                // 'ZB-LAN': 'cn', // cn, en, kr
+            };
+            if (method === 'POST') {
+                headers['Content-Type'] = 'application/json';
+                body = this.json (params);
+                signedString += body;
+            } else { // get or delete
+                url += '/' + version + '/' + path;
+                if (Object.keys (params).length) {
+                    const query = this.urlencode (params);
+                    url += '?' + query;
+                    signedString += query;
+                }
+            }
+            const signature = this.hmac (this.encode (signedString), this.encode (this.secret), 'sha256', 'base64');
+            headers['ZB-SIGN'] = signature;
         } else {
             let query = this.keysort (this.extend ({
                 'method': path,
@@ -1283,9 +1307,6 @@ module.exports = class zb extends Exchange {
             const secret = this.hash (this.encode (this.secret), 'sha1');
             const signature = this.hmac (this.encode (auth), this.encode (secret), 'md5');
             const suffix = 'sign=' + signature + '&reqTime=' + nonce.toString ();
-            if (section === 'contract') {
-                url += '/' + version;
-            }
             url += '/' + path + '?' + auth + '&' + suffix;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
