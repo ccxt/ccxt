@@ -161,6 +161,9 @@ module.exports = class dydx extends Exchange {
                     '404': ExchangeNotAvailable,
                     '403': AuthenticationError,
                     '400': ExchangeError,
+                    'dydx-api-key': AuthenticationError,
+                    'dydx-passphrase': AuthenticationError,
+                    'dydx-timestamp': BadRequest,
                 },
                 'broad': {
                     'must be a valid string that is less than length:': BadRequest,
@@ -172,6 +175,11 @@ module.exports = class dydx extends Exchange {
                     'Invalid signature for order': InvalidOrder,
                     'No order for market: ': InvalidOrder,
                     'status must be a valid array of subset': BadRequest,
+                    'API key not found': AuthenticationError,
+                    'api-key must be a valid UUID in headers': AuthenticationError,
+                    'Unauthorized': AuthenticationError,
+                    'passphrase must be a valid base64url string in headers that is 20 characters long': AuthenticationError,
+                    'timestamp must be a valid ISO string in headers': BadRequest,
                     // old
                     'See /corsdemo for more info': AuthenticationError,
                     'Invalid signature for onboarding request': AuthenticationError,
@@ -1222,7 +1230,9 @@ module.exports = class dydx extends Exchange {
             // }
             for (let i = 0; i < errors.length; i++) {
                 const message = this.safeString (response, 'msg');
+                const paramHint = this.safeString (response, 'param');
                 this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+                this.throwExactlyMatchedException (this.exceptions['exact'], message, paramHint);
                 this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             }
         }
