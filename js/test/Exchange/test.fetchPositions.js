@@ -22,7 +22,7 @@ module.exports = async (exchange, symbol) => {
     if (exchange.has['fetchPositions']) {
         const now = Date.now ()
 
-        //without symbol
+        // without symbol
         const positions = await exchange.fetchPositions ()
         console.log ('fetched', positions.length, 'positions, asserting each...')
         assert (positions instanceof Array)
@@ -31,8 +31,8 @@ module.exports = async (exchange, symbol) => {
             testPosition (exchange, position, undefined, now)
         }
         
-        //with symbol
-        const positionsForSymbol = await exchange.fetchPositions ([symbol])
+        // with symbol
+        const positionsForSymbol = await exchange.fetchPositions ([ symbol ])
         console.log ('fetched', positions.length, 'positions, asserting each...')
         assert (positionsForSymbol instanceof Array)
         for (let i = 0; i < positionsForSymbol.length; i++) {
