@@ -75,9 +75,6 @@ module.exports = class bitget3 extends Exchange {
                     'https://bitgetlimited.github.io/apidoc/en/spot',
                 ],
                 'fees': 'https://www.bitget.com/en/rate',
-                // 'test': {
-                //     'rest': 'https://testnet.bitget.com', // No Relavant test URL found so commenting this.
-                // },
                 'referral': 'https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j',
             },
             'api': {
@@ -1214,6 +1211,7 @@ module.exports = class bitget3 extends Exchange {
     }
 
     async fetchTickersByType (type, symbols = undefined, params = {}) {
+        console.log (symbols);
         await this.loadMarkets ();
         let method = undefined;
         if (type === 'spot') {
@@ -1396,7 +1394,6 @@ module.exports = class bitget3 extends Exchange {
             side = this.parseOrderSide (side);
         } else {
             side = this.safeString2 (trade, 'side', 'direction');
-            // type = this.parseOrderType (side);
             side = this.parseOrderSide (side);
         }
         let feeCostString = this.safeString (trade, 'fee');
@@ -1531,8 +1528,6 @@ module.exports = class bitget3 extends Exchange {
                 this.safeNumber (ohlcv, 2),           // High
                 this.safeNumber (ohlcv, 3),           // Low
                 this.safeNumber (ohlcv, 4),           // Close
-                // this.safeNumber (ohlcv, 5),        // Quote Volume
-                // this.safeNumber (ohlcv, 6),        // Base Volume
                 this.safeNumber (ohlcv, volumeIndex), // Volume, bitget will return base volume in the 7th element for future markets
             ];
         } else {
@@ -1936,16 +1931,6 @@ module.exports = class bitget3 extends Exchange {
         let type = this.safeString (order, 'type');
         const side = this.parseOrderSide (type);
         type = this.parseOrderType (type);
-        // if ((side !== 'buy') && (side !== 'sell')) {
-        //     side = this.parseOrderSide (type);
-        // }
-        // if ((type !== 'limit') && (type !== 'market')) {
-        //     if ('pnl' in order) {
-        //         type = 'futures';
-        //     } else {
-        //         type = 'swap';
-        //     }
-        // }
         let symbol = undefined;
         const marketId = this.safeString (order, 'symbol');
         if (marketId !== undefined) {
