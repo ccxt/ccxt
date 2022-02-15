@@ -609,7 +609,7 @@ class Exchange(object):
         else:
             return json.loads(response_body)
 
-    def handleRestResponse(self, response, url, method, request_headers, request_body):
+    def handle_rest_response(self, response, url, method, request_headers, request_body):
         # does not try to detect encoding
         response.encoding = 'utf-8'
         headers = response.headers
@@ -668,7 +668,7 @@ class Exchange(object):
                 proxies=self.proxies,
                 verify=self.verify
             )
-            json_response = self.handleRestResponse(response, url, method, request_headers, request_body)
+            json_response = self.handle_rest_response(response, url, method, request_headers, request_body)
 
         except Timeout as e:
             details = ' '.join([self.id, method, url])
@@ -689,7 +689,7 @@ class Exchange(object):
                 self.handle_http_status_code(http_status_code, http_status_text, url, method, http_response)
                 raise ExchangeError(details) from e
             response = response['text'] if response and 'text' in response else None
-            return self.handleRestResponse(response, url, method, request_headers, request_body)
+            return self.handle_rest_response(response, url, method, request_headers, request_body)
 
         except requestsConnectionError as e:
             error_string = str(e)
