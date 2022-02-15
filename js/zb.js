@@ -1282,15 +1282,12 @@ module.exports = class zb extends Exchange {
                 'ZB-TIMESTAMP': iso8601,
                 // 'ZB-LAN': 'cn', // cn, en, kr
             };
+            url += '/' + version + '/' + path;
             if (method === 'POST') {
-                url += '/' + version + '/' + path;
                 headers['Content-Type'] = 'application/json';
                 body = this.json (params);
-                const query = this.urlencode (params);
-                url += '?' + query;
-                signedString += query;
+                signedString += this.urlencode (params);
             } else { // get or delete
-                url += '/' + version + '/' + path;
                 if (Object.keys (params).length) {
                     const query = this.urlencode (params);
                     url += '?' + query;
@@ -1326,7 +1323,7 @@ module.exports = class zb extends Exchange {
             if ('code' in response) {
                 const code = this.safeString (response, 'code');
                 this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
-                if (code !== '1000') {
+                if ((code !== '1000') && (code !== '10000')) {
                     throw new ExchangeError (feedback);
                 }
             }
