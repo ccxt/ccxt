@@ -689,7 +689,7 @@ class Exchange(object):
                 self.handle_http_status_code(http_status_code, http_status_text, url, method, http_response)
                 raise ExchangeError(details) from e
             response = response['text'] if response and 'text' in response else None
-            return self.handleRestRespone(response, url, method, request_headers, request_body)
+            return self.handleRestResponse(response, url, method, request_headers, request_body)
 
         except requestsConnectionError as e:
             error_string = str(e)
