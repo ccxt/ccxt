@@ -462,7 +462,7 @@ module.exports = class bitopro extends Exchange {
         const id = this.safeString (trade, 'id');
         let timestamp = this.safeInteger (trade, 'timestamp');
         if (id === undefined) {
-            timestamp = timestamp * 1000;
+            timestamp = this.safeTimestamp (trade, 'timestamp');
         }
         const marketId = this.safeString (trade, 'pair');
         market = this.safeMarket (marketId, market);
