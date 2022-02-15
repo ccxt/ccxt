@@ -33,7 +33,7 @@ module.exports = async (exchange, symbol) => {
         
         // with symbol
         const positionsForSymbol = await exchange.fetchPositions ([ symbol ])
-        console.log ('fetched', positions.length, 'positions, asserting each...')
+        console.log ('fetched', positions.length, 'positions (' + symbol + '), asserting each...')
         assert (positionsForSymbol instanceof Array)
         for (let i = 0; i < positionsForSymbol.length; i++) {
             const position = positionsForSymbol[i]
