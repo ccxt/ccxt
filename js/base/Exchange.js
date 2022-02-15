@@ -13,6 +13,7 @@ const {
     , clone
     , flatten
     , unique
+    , changeKeyValue
     , indexBy
     , sortBy
     , sortBy2
@@ -227,6 +228,67 @@ module.exports = class Exchange {
                 'price': { 'min': undefined, 'max': undefined },
                 'cost': { 'min': undefined, 'max': undefined },
             },
+            'parseCollection': {
+                'order': {
+                    'type': {
+                        'limit': undefined,
+                        'market': undefined,
+                        'stop': undefined, // i think we can name it 'stop-market'
+                        'stop-limit': undefined,
+                        'stop-loss': undefined,
+                        'take-profit': undefined,
+                    },
+                    'status': {
+                        'pending': undefined, // pending status is only used on specific exchanges (DEX-like) where the submitted orders need a while to sit into orderbook
+                        'open': undefined, // TODO: imho, 'open' is not the accurate status as a combined reply. we should be more specific, and there is nothing wrong. having 'pending order' and 99% 'partially-filled' order with 'open' status is not accurate, so I suggest to depart 'partially-filled' type from its meaning
+                        'partially-filled': undefined,
+                        'closed': undefined, // TODO: likewise, I suggest we separate 'canceled' and 'filled' from 'closed' status, as 'closed' status doesn't give a meaningful info to user, whether the order was successfully filled or canceled. So, with 'closed' key, we should only mean 'filled' ones, and depart 'canceled', 'rejected' and 'expired' (the 'rejected' and 'expired' can be merged into cancelled, however, in long run, I suggest we kept different keys to give accurate info to users, and let them decide to code their algos accordingly)
+                        'canceled': undefined,
+                        'rejected': undefined,
+                        'expired': undefined,
+                    },
+                    'side': {
+                        'buy': undefined,
+                        'sell': undefined,
+                    },
+                    'timeInForce': {
+                        'gtc': undefined,   // good till cancelled
+                        'gtd': undefined,   // good till day
+                        'gtt': undefined,   // good till time
+                        'gtx': undefined,   // good till crossing
+                        'fok': undefined,   // fill or kill
+                        'ioc': undefined,   // immediate or cancel
+                        'po': undefined,    // post only
+                    },
+                    'takerMaker': {
+                        'taker': undefined,
+                        'maker': undefined,
+                    },
+                },
+                'position': {
+                    'status': {
+                        'open': undefined,
+                        'closed': undefined,
+                    },
+                    'side': {
+                        'long': undefined,
+                        'short': undefined,
+                        'flat': undefined,
+                    },
+                },
+                'transaction': {
+                    'status': {
+                        'fail': undefined,
+                        'pending': undefined,
+                        'ok': undefined,
+                    },
+                    'type': {
+                        'deposit': undefined,
+                        'withdraw': undefined,
+                        'transfer': undefined,
+                    },
+                },
+            },
         } // return
     } // describe ()
 
@@ -352,12 +414,14 @@ module.exports = class Exchange {
         if (this.api) {
             this.defineRestApi (this.api, 'request')
         }
-
+        
         this.initRestRateLimiter ()
 
         if (this.markets) {
             this.setMarkets (this.markets)
         }
+
+        this.defineParseMappings();
     }
 
     defaults () {
@@ -2144,4 +2208,41 @@ module.exports = class Exchange {
         this.options['timeDifference'] = after - serverTime;
         return this.options['timeDifference'];
     }
+
+    defineParseMappings () {
+        const prefixParse = 'parse';
+        const prefixConvert = 'to';
+        const allMappings = this.parseColletion;
+        const allMappingsKeys = Object.keys (allMappings);
+        for (let i = 0; i < allMappingsKeys.length; i++) {
+            const mainKey = allMappingsKeys[i] // i.e. 'order', 'transaction'...
+            const mainObject = allMappings[mainKey]
+            const lowercaseMain = mainKey.toLowerCase ()
+            const camelcaseMain = this.capitalize (mainKey)
+            const mainObjectKeys = Object.keys (mainObject)
+            for (let j = 0; j < mainObjectKeys.length; j++) {
+                const typeKey = mainObjectKeys[j] // i.e. 'side', 'status'...
+                const typeObject = mainObject[typeKey]
+                const lowercaseType = typeKey.toLowerCase ()
+                const camelcaseType = this.capitalize (typeKey)
+                const typeObjectReversed = changeKeyValue (typeObject)
+                // define parser
+                const parseMethodCamelcase = prefixParse + camelcaseMain + camelcaseType;
+                const parseMethodUnderscored = prefixParse + '_' + lowercaseMain + '_' + lowercaseType;
+                const parseFunc = function (value) {
+                    return this.safeString (typeObjectReversed, value, value);
+                };
+                this[parseMethodCamelcase]  = parseFunc;
+                this[parseMethodUnderscored] = parseFunc;
+                // define convert 
+                const convertMethodCamelcase = prefixConvert + camelcaseMain + camelcaseType;
+                const convertMethodUnderscored = prefixConvert + '_' + lowercaseMain + '_' + lowercaseType;
+                const convertFunc = function (value) {
+                    return this.safeString (typeObject, value, value);
+                };
+                this[convertMethodCamelcase]  = convertFunc;
+                this[convertMethodUnderscored] = convertFunc;
+            }
+        }
+    }   
 }

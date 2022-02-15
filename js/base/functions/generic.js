@@ -56,6 +56,27 @@ module.exports = {
 
     // ------------------------------------------------------------------------
 
+    , changeKeyValue (obj) {
+        const result = {};
+        const keys = Object.keys (obj);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const value = obj[key];
+            if (value !== undefined) {
+                if (Array.isArray (value)){
+                    for (let i = 0; i < value.length; i++) {
+                        const itemValue = value[i];
+                        result[itemValue] = key;
+                    }
+                } else {
+                    result[value] = key;
+                }
+            }
+        }
+        return result;
+    }
+
+    // ------------------------------------------------------------------------
     /*
         Accepts a map/array of objects and a key name to be used as an index:
         array = [
