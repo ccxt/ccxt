@@ -34,7 +34,6 @@ module.exports = class graviex extends Exchange {
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
-                'fetchDepth': true,
                 'fetchL2OrderBook': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -191,12 +190,12 @@ module.exports = class graviex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': this.precision,
-                'limits': this.extend ({
+                'limits': {
                     'leverage': {
                         'min': undefined,
                         'max': undefined,
                     },
-                }, this.limits),
+                },
                 'info': market,
             });
         }
@@ -233,14 +232,14 @@ module.exports = class graviex extends Exchange {
         const timestamp = this.milliseconds ();
         const marketId = this.safeString (ticker, 'name');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeFloat (ticker, 'last');
+        const last = this.safeNumber (ticker, 'last');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'buy'),
             'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
@@ -356,21 +355,18 @@ module.exports = class graviex extends Exchange {
         const marketId = this.safeString (trade, 'market');
         const symbol = this.safeSymbol (marketId, market);
         const datetime = this.safeValue (trade, 'created_at');
-        let timestamp = this.parse_date (datetime);
+        const timestamp = this.parseDate (datetime);
         let id = this.safeString2 (trade, 't', 'a');
         id = this.safeString2 (trade, 'id', 'tid', id);
         const side = this.safeValue (trade, 'side');
         let takerOrMaker = undefined;
         const orderId = this.safeString (trade, 'id');
         if ('side' in trade) {
-            if (trade['side'] === 'buy') {
+            if (side === 'buy') {
                 takerOrMaker = 'maker';
             } else {
                 takerOrMaker = 'taker';
             }
-        }
-        if ('date' in trade) {
-            timestamp = this.safeInteger2 (trade, 'T', 'date');
         }
         return this.safeTrade ({
             'info': trade,
@@ -396,7 +392,7 @@ module.exports = class graviex extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const defaultType = this.safeString2 (this.options, 'fetchTrades', 'defaultType', 'trades');
+        const defaultType = 'spot';
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
         let defaultMethod = undefined;
@@ -478,7 +474,7 @@ module.exports = class graviex extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async fetchDepth (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -551,51 +547,6 @@ module.exports = class graviex extends Exchange {
         //     ]
         // }
         return this.parseBalance (response);
-    }
-
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'market': this.marketId (symbol),
-        };
-        const response = await this.privateGetOrderBook (this.extend (request, params));
-        // {
-        //   "asks": [
-        //     {
-        //       "id": 288323066,
-        //       "at": 1644211934,
-        //       "side": "sell",
-        //       "ord_type": "limit",
-        //       "price": "0.003074559",
-        //       "avg_price": "0.0",
-        //       "state": "wait",
-        //       "market": "ltcbtc",
-        //       "created_at": "2022-02-07T08:32:14+03:00",
-        //       "volume": "10.2778",
-        //       "remaining_volume": "10.2778",
-        //       "executed_volume": "0.0",
-        //       "trades_count": 0,
-        //       "strategy": null
-        //     },
-        //     {
-        //       "id": 288322948,
-        //       "at": 1644211864,
-        //       "side": "sell",
-        //       "ord_type": "limit",
-        //       "price": "0.00307456",
-        //       "avg_price": "0.0",
-        //       "state": "wait",
-        //       "market": "ltcbtc",
-        //       "created_at": "2022-02-07T08:31:04+03:00",
-        //       "volume": "1.0",
-        //       "remaining_volume": "1.0",
-        //       "executed_volume": "0.0",
-        //       "trades_count": 0,
-        //       "strategy": null
-        //     },
-        //   ]
-        // }
-        return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'price', 'avg_price');
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
@@ -943,19 +894,6 @@ module.exports = class graviex extends Exchange {
             throw new OrderNotFound (this.id + ' ' + this.json (order));
         }
         return order;
-    }
-
-    async createOrders (symbol, orders, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'market': market['id'],
-            'orders': orders,
-        };
-        // orders: [{"side":"buy", "volume":.2, "price":1001}, {"side":"sell", "volume":0.2, "price":1002}]
-        const response = await this.privatePostOrdersMulti (this.extend (request, params));
-        const data = response['data'];
-        return this.parseOrders (data);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
