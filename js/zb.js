@@ -1283,9 +1283,12 @@ module.exports = class zb extends Exchange {
                 // 'ZB-LAN': 'cn', // cn, en, kr
             };
             if (method === 'POST') {
+                url += '/' + version + '/' + path;
                 headers['Content-Type'] = 'application/json';
                 body = this.json (params);
-                signedString += body;
+                const query = this.urlencode (params);
+                url += '?' + query;
+                signedString += query;
             } else { // get or delete
                 url += '/' + version + '/' + path;
                 if (Object.keys (params).length) {
