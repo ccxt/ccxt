@@ -17,6 +17,9 @@ class indodax extends Exchange {
             'id' => 'indodax',
             'name' => 'INDODAX',
             'countries' => array( 'ID' ), // Indonesia
+            // 10 requests per second for making trades => 1000ms / 10 = 100ms
+            // 180 requests per minute (public endpoints) = 2 requests per second => cost = (1000ms / rateLimit) / 2 = 5
+            'rateLimit' => 100,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -79,24 +82,31 @@ class indodax extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'server_time',
-                        'pairs',
-                        '{pair}/ticker',
-                        '{pair}/trades',
-                        '{pair}/depth',
+                        'server_time' => 5,
+                        'pairs' => 5,
+                        'price_increments' => 5,
+                        'summaries' => 5,
+                        'ticker_all' => 5,
+                        '{pair}/ticker' => 5,
+                        '{pair}/trades' => 5,
+                        '{pair}/depth' => 5,
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'getInfo',
-                        'transHistory',
-                        'trade',
-                        'tradeHistory',
-                        'getOrder',
-                        'openOrders',
-                        'cancelOrder',
-                        'orderHistory',
-                        'withdrawCoin',
+                        'getInfo' => 4,
+                        'transHistory' => 4, // TODO add fetchDeposits, fetchWithdrawals, fetchTransactionsbyType
+                        'trade' => 1,
+                        'tradeHistory' => 4, // TODO add fetchMyTrades
+                        'openOrders' => 4,
+                        'orderHistory' => 4,
+                        'getOrder' => 4,
+                        'cancelOrder' => 4,
+                        'withdrawFee' => 4,
+                        'withdrawCoin' => 4,
+                        'listDownline' => 4,
+                        'checkDownline' => 4,
+                        'createVoucher' => 4, // partner only
                     ),
                 ),
             ),
