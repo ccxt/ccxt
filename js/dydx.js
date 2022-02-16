@@ -209,7 +209,7 @@ module.exports = class dydx extends Exchange {
                 'gtcDate': '2099-12-31T23:59:59.999Z',
                 'fetchOpenOrdersMethod': 'privateGetOrders',  // 'privateGetActiveOrders' (higher rate-limits, less informational) or 'privateGetOrders' (lower rate-limit, more informational)
             },
-            'parseColletion': {
+            'parseCollection': {
                 'order': {
                     'type': {
                         'limit': 'LIMIT',
