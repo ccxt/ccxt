@@ -627,7 +627,6 @@ class ftx(Exchange):
                 'linear': True,
                 'inverse': False,
                 'contractSize': self.parse_number('1'),
-                'maintenanceMarginRate': None,
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
                 'strike': None,

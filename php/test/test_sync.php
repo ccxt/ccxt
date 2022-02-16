@@ -151,8 +151,18 @@ function test_positions($exchange, $symbol) {
             dump(green($symbol), 'fetch_positions() skipped');
             return;
         }
-        dump(green($symbol), 'fetching positions...');
+
+        // without symbol
+        dump('fetching positions...');
         $positions = $exchange->fetch_positions();
+        foreach ($positions as $position) {
+            test_position($exchange, $position, null, time() * 1000);
+        }
+        dump(green($symbol), 'fetched', green(count($positions)), 'positions');
+        
+        // with symbol
+        dump(green($symbol), 'fetching positions...');
+        $positions = $exchange->fetch_positions(array($symbol));
         foreach ($positions as $position) {
             test_position($exchange, $position, $symbol, time() * 1000);
         }

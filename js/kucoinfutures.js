@@ -51,6 +51,7 @@ module.exports = class kucoinfutures extends kucoin {
                 'fetchIndexOHLCV': false,
                 'fetchL3OrderBook': true,
                 'fetchLedger': true,
+                'fetchLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -101,6 +102,7 @@ module.exports = class kucoinfutures extends kucoin {
                     'get': {
                         'contracts/active': 1,
                         'contracts/{symbol}': 1,
+                        'contracts/risk-limit/{symbol}': 1,
                         'ticker': 1,
                         'level2/snapshot': 1.33,
                         'level2/depth{limit}': 1,
@@ -284,6 +286,10 @@ module.exports = class kucoinfutures extends kucoin {
                     'ERC20': 'eth',
                     'TRC20': 'trx',
                 },
+                // 'code': 'BTC',
+                // 'fetchBalance': {
+                //    'code': 'BTC',
+                // },
             },
         });
     }
@@ -437,7 +443,6 @@ module.exports = class kucoinfutures extends kucoin {
                 'taker': this.safeNumber (market, 'takerFeeRate'),
                 'maker': this.safeNumber (market, 'makerFeeRate'),
                 'contractSize': this.parseNumber (Precise.stringAbs (multiplier)),
-                'maintenanceMarginRate': undefined,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
                 'strike': undefined,
@@ -1249,10 +1254,19 @@ module.exports = class kucoinfutures extends kucoin {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         // only fetches one balance at a time
-        // by default it will only fetch the BTC balance of the futures account
-        // you can send 'currency' in params to fetch other currencies
-        // fetchBalance ({ 'type': 'future', 'currency': 'USDT' })
-        const response = await this.futuresPrivateGetAccountOverview (params);
+        const request = {};
+        const coin = this.safeString (params, 'coin');
+        let defaultCode = this.safeString (this.options, 'code');
+        const fetchBalanceOptions = this.safeValue (this.options, 'fetchBalance', {});
+        defaultCode = this.safeString (fetchBalanceOptions, 'code', defaultCode);
+        const code = this.safeString (params, 'code', defaultCode);
+        if (coin !== undefined) {
+            request['currency'] = coin;
+        } else if (code !== undefined) {
+            const currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        const response = await this.futuresPrivateGetAccountOverview (this.extend (request, params));
         //
         //     {
         //         code: '200000',
@@ -1595,5 +1609,57 @@ module.exports = class kucoinfutures extends kucoin {
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
         throw new BadRequest (this.id + ' has no method fetchLedger');
+    }
+
+    async fetchLeverageTiers (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchLeverageTiers() requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' fetchLeverageTiers() supports contract markets only');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.futuresPublicGetContractsRiskLimitSymbol (this.extend (request, params));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": [
+        //            {
+        //                "symbol": "ETHUSDTM",
+        //                "level": 1,
+        //                "maxRiskLimit": 300000,
+        //                "minRiskLimit": 0,
+        //                "maxLeverage": 100,
+        //                "initialMargin": 0.0100000000,
+        //                "maintainMargin": 0.0050000000
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        const tiers = {};
+        for (let i = 0; i < data.length; i++) {
+            const tier = data[i];
+            const symbol = this.safeSymbol (this.safeString (tier, 'symbol'));
+            if (!(symbol in tiers)) {
+                tiers[symbol] = [];
+            }
+            const market = this.market (symbol);
+            tiers[symbol].push ({
+                'tier': this.safeNumber (tier, 'level'),
+                'notionalCurrency': market['base'],
+                'notionalFloor': this.safeNumber (tier, 'minRiskLimit'),
+                'notionalCap': this.safeNumber (tier, 'maxRiskLimit'),
+                'maintenanceMarginRate': this.safeNumber (tier, 'maintainMargin'),
+                'maxLeverage': this.safeNumber (tier, 'maxLeverage'),
+                'info': tier,
+            });
+        }
+        return tiers;
     }
 };

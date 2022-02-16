@@ -62,6 +62,7 @@ class kucoinfutures(kucoin):
                 'fetchIndexOHLCV': False,
                 'fetchL3OrderBook': True,
                 'fetchLedger': True,
+                'fetchLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -112,6 +113,7 @@ class kucoinfutures(kucoin):
                     'get': {
                         'contracts/active': 1,
                         'contracts/{symbol}': 1,
+                        'contracts/risk-limit/{symbol}': 1,
                         'ticker': 1,
                         'level2/snapshot': 1.33,
                         'level2/depth{limit}': 1,
@@ -295,6 +297,10 @@ class kucoinfutures(kucoin):
                     'ERC20': 'eth',
                     'TRC20': 'trx',
                 },
+                # 'code': 'BTC',
+                # 'fetchBalance': {
+                #    'code': 'BTC',
+                # },
             },
         })
 
@@ -443,7 +449,6 @@ class kucoinfutures(kucoin):
                 'taker': self.safe_number(market, 'takerFeeRate'),
                 'maker': self.safe_number(market, 'makerFeeRate'),
                 'contractSize': self.parse_number(Precise.string_abs(multiplier)),
-                'maintenanceMarginRate': None,
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
                 'strike': None,
@@ -1203,10 +1208,18 @@ class kucoinfutures(kucoin):
     async def fetch_balance(self, params={}):
         await self.load_markets()
         # only fetches one balance at a time
-        # by default it will only fetch the BTC balance of the futures account
-        # you can send 'currency' in params to fetch other currencies
-        # fetchBalance({'type': 'future', 'currency': 'USDT'})
-        response = await self.futuresPrivateGetAccountOverview(params)
+        request = {}
+        coin = self.safe_string(params, 'coin')
+        defaultCode = self.safe_string(self.options, 'code')
+        fetchBalanceOptions = self.safe_value(self.options, 'fetchBalance', {})
+        defaultCode = self.safe_string(fetchBalanceOptions, 'code', defaultCode)
+        code = self.safe_string(params, 'code', defaultCode)
+        if coin is not None:
+            request['currency'] = coin
+        elif code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        response = await self.futuresPrivateGetAccountOverview(self.extend(request, params))
         #
         #     {
         #         code: '200000',
@@ -1523,3 +1536,50 @@ class kucoinfutures(kucoin):
 
     async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         raise BadRequest(self.id + ' has no method fetchLedger')
+
+    async def fetch_leverage_tiers(self, symbol=None, params={}):
+        await self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchLeverageTiers() requires a symbol argument')
+        market = self.market(symbol)
+        if not market['contract']:
+            raise BadRequest(self.id + ' fetchLeverageTiers() supports contract markets only')
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.futuresPublicGetContractsRiskLimitSymbol(self.extend(request, params))
+        #
+        #    {
+        #        "code": "200000",
+        #        "data": [
+        #            {
+        #                "symbol": "ETHUSDTM",
+        #                "level": 1,
+        #                "maxRiskLimit": 300000,
+        #                "minRiskLimit": 0,
+        #                "maxLeverage": 100,
+        #                "initialMargin": 0.0100000000,
+        #                "maintainMargin": 0.0050000000
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        tiers = {}
+        for i in range(0, len(data)):
+            tier = data[i]
+            symbol = self.safe_symbol(self.safe_string(tier, 'symbol'))
+            if not (symbol in tiers):
+                tiers[symbol] = []
+            market = self.market(symbol)
+            tiers[symbol].append({
+                'tier': self.safe_number(tier, 'level'),
+                'notionalCurrency': market['base'],
+                'notionalFloor': self.safe_number(tier, 'minRiskLimit'),
+                'notionalCap': self.safe_number(tier, 'maxRiskLimit'),
+                'maintenanceMarginRate': self.safe_number(tier, 'maintainMargin'),
+                'maxLeverage': self.safe_number(tier, 'maxLeverage'),
+                'info': tier,
+            })
+        return tiers

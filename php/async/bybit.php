@@ -575,9 +575,11 @@ class bybit extends Exchange {
                     '30068' => '\\ccxt\\ExchangeError', // exit value must be positive
                     '30074' => '\\ccxt\\InvalidOrder', // can't create the stop order, because you expect the order will be triggered when the LastPrice(or IndexPrice、 MarkPrice, determined by trigger_by) is raising to stop_px, but the LastPrice(or IndexPrice、 MarkPrice) is already equal to or greater than stop_px, please adjust base_price or stop_px
                     '30075' => '\\ccxt\\InvalidOrder', // can't create the stop order, because you expect the order will be triggered when the LastPrice(or IndexPrice、 MarkPrice, determined by trigger_by) is falling to stop_px, but the LastPrice(or IndexPrice、 MarkPrice) is already equal to or less than stop_px, please adjust base_price or stop_px
+                    '30078' => '\\ccxt\\ExchangeError', // array("ret_code":30078,"ret_msg":"","ext_code":"","ext_info":"","result":null,"time_now":"1644853040.916000","rate_limit_status":73,"rate_limit_reset_ms":1644853040912,"rate_limit":75)
                     // '30084' => '\\ccxt\\BadRequest', // Isolated not modified, see handleErrors below
                     '33004' => '\\ccxt\\AuthenticationError', // apikey already expired
                     '34026' => '\\ccxt\\ExchangeError', // the limit is no change
+                    '130021' => '\\ccxt\\InsufficientFunds', // array("ret_code":130021,"ret_msg":"orderfix price failed for CannotAffordOrderCost.","ext_code":"","ext_info":"","result":null,"time_now":"1644588250.204878","rate_limit_status":98,"rate_limit_reset_ms":1644588250200,"rate_limit":100)
                 ),
                 'broad' => array(
                     'unknown orderInfo' => '\\ccxt\\OrderNotFound', // array("ret_code":-1,"ret_msg":"unknown orderInfo","ext_code":"","ext_info":"","result":null,"time_now":"1584030414.005545","rate_limit_status":99,"rate_limit_reset_ms":1584030414003,"rate_limit":100)
@@ -902,7 +904,6 @@ class bybit extends Exchange {
                 'option' => $option,
                 'linear' => $linear,
                 'inverse' => $inverse,
-                'maintenanceMarginRate' => null,
                 'limits' => array(
                     'amount' => array(
                         'min' => $this->safe_number($lotSizeFilter, 'min_trading_qty'),

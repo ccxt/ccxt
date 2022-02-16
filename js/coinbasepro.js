@@ -282,27 +282,30 @@ module.exports = class coinbasepro extends Exchange {
     async fetchMarkets (params = {}) {
         const response = await this.publicGetProducts (params);
         //
-        //     [
-        //         {
-        //             "id":"ZEC-BTC",
-        //             "base_currency":"ZEC",
-        //             "quote_currency":"BTC",
-        //             "base_min_size":"0.01000000",
-        //             "base_max_size":"1500.00000000",
-        //             "quote_increment":"0.00000100",
-        //             "base_increment":"0.00010000",
-        //             "display_name":"ZEC/BTC",
-        //             "min_market_funds":"0.001",
-        //             "max_market_funds":"30",
-        //             "margin_enabled":false,
-        //             "post_only":false,
-        //             "limit_only":false,
-        //             "cancel_only":false,
-        //             "trading_disabled":false,
-        //             "status":"online",
-        //             "status_message":""
-        //         }
-        //     ]
+        //    [
+        //        {
+        //            "id": "ZEC-BTC",
+        //            "base_currency": "ZEC",
+        //            "quote_currency": "BTC",
+        //            "base_min_size": "0.0056",
+        //            "base_max_size": "3600",
+        //            "quote_increment": "0.000001",
+        //            "base_increment": "0.0001",
+        //            "display_name": "ZEC/BTC",
+        //            "min_market_funds": "0.000016",
+        //            "max_market_funds": "12",
+        //            "margin_enabled": false,
+        //            "fx_stablecoin": false,
+        //            "max_slippage_percentage": "0.03000000",
+        //            "post_only": false,
+        //            "limit_only": false,
+        //            "cancel_only": false,
+        //            "trading_disabled": false,
+        //            "status": "online",
+        //            "status_message": "",
+        //            "auction_mode": false
+        //          },
+        //    ]
         //
         const result = [];
         for (let i = 0; i < response.length; i++) {

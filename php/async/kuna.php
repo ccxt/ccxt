@@ -304,6 +304,22 @@ class kuna extends Exchange {
         $quotes = array( 'btc', 'rub', 'uah', 'usd', 'usdt', 'usdc' );
         $markets = array();
         $response = yield $this->publicGetTickers ($params);
+        //
+        //    {
+        //        shibuah => {
+        //            at => '1644463685',
+        //            ticker => {
+        //                buy => '0.000911',
+        //                sell => '0.00092',
+        //                low => '0.000872',
+        //                high => '0.000963',
+        //                last => '0.000911',
+        //                vol => '1539278096.0',
+        //                price => '1434244.211249'
+        //            }
+        //        }
+        //    }
+        //
         $ids = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];

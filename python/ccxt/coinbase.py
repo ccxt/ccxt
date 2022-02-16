@@ -66,6 +66,7 @@ class coinbase(Exchange):
                 'fetchL2OrderBook': False,
                 'fetchLedger': True,
                 'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyBuys': True,

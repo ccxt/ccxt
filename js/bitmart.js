@@ -467,7 +467,6 @@ module.exports = class bitmart extends Exchange {
                 'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
-                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
@@ -538,35 +537,59 @@ module.exports = class bitmart extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
+            //
+            // https://github.com/bitmartexchange/bitmart-official-api-docs/blob/master/rest/public/symbols_details.md#response-details
+            // from the above API doc:
+            // quote_increment Minimum order price as well as the price increment
+            // price_min_precision Minimum price precision (digit) used to query price and kline
+            // price_max_precision Maximum price precision (digit) used to query price and kline
+            //
+            // the docs are wrong: https://github.com/ccxt/ccxt/issues/5612
+            //
+            const contractType = this.safeValue (market, 'contract_type');
+            const future = contractType === 2;
+            const swap = contractType === 1;
+            let type = 'contract';
+            let symbol = base + '/' + quote;
+            const expiry = this.parse8601 (this.safeString (market, 'delive_at'));
+            if (swap) {
+                type = 'swap';
+                symbol = symbol + ':' + settle;
+            } else if (future) {
+                type = 'future';
+                symbol = symbol + ':' + settle + '-' + this.yymmdd (expiry, '');
+            }
+            const feeConfig = this.safeValue (market, 'fee_config', {});
             result.push ({
                 'id': id,
                 'numericId': undefined,
-                'symbol': base + '/' + quote + ':' + settle,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': 'swap',
+                'type': type,
                 'spot': false,
                 'margin': false,
-                'swap': true,
-                'future': false,
+                'swap': swap,
+                'future': future,
                 'option': false,
                 'active': undefined,
                 'contract': true,
-                'linear': true,
-                'inverse': false,
-                'contractSize': undefined,
-                'maintenanceMarginRate': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
+                'linear': quote === settle,
+                'inverse': base === settle,
+                'taker': this.safeNumber (feeConfig, 'taker_fee'),
+                'maker': this.safeNumber (feeConfig, 'maker_fee'),
+                'contractSize': this.safeNumber (market, 'contract_size'),
+                'expiry': expiry,
+                'expiryDatetime': this.iso8601 (expiry),
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': undefined,
-                    'price': undefined,
+                    'amount': this.safeNumber (market, 'vol_unit'),
+                    'price': this.safeNumber (market, 'price_unit'),
                 },
                 'limits': {
                     'leverage': {

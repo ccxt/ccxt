@@ -300,6 +300,22 @@ module.exports = class kuna extends Exchange {
         const quotes = [ 'btc', 'rub', 'uah', 'usd', 'usdt', 'usdc' ];
         const markets = [];
         const response = await this.publicGetTickers (params);
+        //
+        //    {
+        //        shibuah: {
+        //            at: '1644463685',
+        //            ticker: {
+        //                buy: '0.000911',
+        //                sell: '0.00092',
+        //                low: '0.000872',
+        //                high: '0.000963',
+        //                last: '0.000911',
+        //                vol: '1539278096.0',
+        //                price: '1434244.211249'
+        //            }
+        //        }
+        //    }
+        //
         const ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];

@@ -1,7 +1,7 @@
 language: python
-dist: bionic
+dist: focal
 python:
-  - "3.7"
+  - "3.8"
 cache:
  directories:
    # - $HOME/.cache/pip
@@ -27,7 +27,7 @@ before_install:
 - sudo -H pip install --upgrade tox twine
 - pip install --upgrade setuptools
 - pip install --upgrade aiohttp requests cryptography pyopenssl
-- phpenv global 7.4.2
+# - phpenv global 7.4.6
 - composer install
 - composer require --ignore-platform-reqs react/http:"^1.4.0" recoil/react:"1.0.2"
 script:

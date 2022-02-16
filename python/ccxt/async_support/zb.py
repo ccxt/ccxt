@@ -149,18 +149,32 @@ class zb(Exchange):
                     '3012': InvalidOrder,  # Duplicate custom customerOrderId
                     '4001': ExchangeNotAvailable,  # 'API interface is locked or not enabled',
                     '4002': RateLimitExceeded,  # 'Request too often',
+                    '10017': PermissionDenied,  # {"code":10017,"desc":"没有权限"} when contract trading is not enabled on the api key
                 },
                 'broad': {
                     '提币地址有误，请先添加提币地址。': InvalidAddress,  # {"code":1001,"message":"提币地址有误，请先添加提币地址。"}
                     '资金不足,无法划账': InsufficientFunds,  # {"code":1001,"message":"资金不足,无法划账"}
+                    '响应超时': RequestTimeout,  # {"code":1001,"message":"响应超时"}
                 },
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
                 'api': {
-                    'public': 'https://api.zb.work/data',
-                    'private': 'https://trade.zb.work/api',
-                    'trade': 'https://trade.zb.work/api',
+                    'spot': {
+                        'v1': {
+                            'public': 'https://api.zb.work/data',
+                            'private': 'https://trade.zb.work/api',
+                        },
+                    },
+                    'contract': {
+                        'v1': {
+                            'public': 'https://fapi.zb.com/api/public',
+                        },
+                        'v2': {
+                            'public': 'https://fapi.zb.com/Server/api',
+                            'private': 'https://fapi.zb.com/Server/api',
+                        },
+                    },
                 },
                 'www': 'https://www.zb.com',
                 'doc': 'https://www.zb.com/i/developer',
@@ -171,74 +185,138 @@ class zb(Exchange):
                 },
             },
             'api': {
-                'trade': {
-                    'get': [
-                        'getFeeInfo',  # withdrawal fees
-                    ],
+                'spot': {
+                    'v1': {
+                        'public': {
+                            'get': [
+                                'markets',
+                                'ticker',
+                                'allTicker',
+                                'depth',
+                                'trades',
+                                'kline',
+                                'getGroupMarkets',
+                                'getFeeInfo',
+                            ],
+                        },
+                        'private': {
+                            'get': [
+                                # spot API
+                                'order',
+                                'orderMoreV2',
+                                'cancelOrder',
+                                'getOrder',
+                                'getOrders',
+                                'getOrdersNew',
+                                'getOrdersIgnoreTradeType',
+                                'getUnfinishedOrdersIgnoreTradeType',
+                                'getFinishedAndPartialOrders',
+                                'getAccountInfo',
+                                'getUserAddress',
+                                'getPayinAddress',
+                                'getWithdrawAddress',
+                                'getWithdrawRecord',
+                                'getChargeRecord',
+                                'getCnyWithdrawRecord',
+                                'getCnyChargeRecord',
+                                'withdraw',
+                                # sub accounts
+                                'addSubUser',
+                                'getSubUserList',
+                                'doTransferFunds',
+                                'createSubUserKey',  # removed on 2021-03-16 according to the update log in the API doc
+                                # leverage API
+                                'getLeverAssetsInfo',
+                                'getLeverBills',
+                                'transferInLever',
+                                'transferOutLever',
+                                'loan',
+                                'cancelLoan',
+                                'getLoans',
+                                'getLoanRecords',
+                                'borrow',
+                                'autoBorrow',
+                                'repay',
+                                'doAllRepay',
+                                'getRepayments',
+                                'getFinanceRecords',
+                                'changeInvestMark',
+                                'changeLoop',
+                                # cross API
+                                'getCrossAssets',
+                                'getCrossBills',
+                                'transferInCross',
+                                'transferOutCross',
+                                'doCrossLoan',
+                                'doCrossRepay',
+                                'getCrossRepayRecords',
+                            ],
+                        },
+                    },
                 },
-                'public': {
-                    'get': [
-                        'markets',
-                        'ticker',
-                        'allTicker',
-                        'depth',
-                        'trades',
-                        'kline',
-                        'getGroupMarkets',
-                    ],
-                },
-                'private': {
-                    'get': [
-                        # spot API
-                        'order',
-                        'orderMoreV2',
-                        'cancelOrder',
-                        'getOrder',
-                        'getOrders',
-                        'getOrdersNew',
-                        'getOrdersIgnoreTradeType',
-                        'getUnfinishedOrdersIgnoreTradeType',
-                        'getFinishedAndPartialOrders',
-                        'getAccountInfo',
-                        'getUserAddress',
-                        'getPayinAddress',
-                        'getWithdrawAddress',
-                        'getWithdrawRecord',
-                        'getChargeRecord',
-                        'getCnyWithdrawRecord',
-                        'getCnyChargeRecord',
-                        'withdraw',
-                        # sub accounts
-                        'addSubUser',
-                        'getSubUserList',
-                        'doTransferFunds',
-                        'createSubUserKey',  # removed on 2021-03-16 according to the update log in the API doc
-                        # leverage API
-                        'getLeverAssetsInfo',
-                        'getLeverBills',
-                        'transferInLever',
-                        'transferOutLever',
-                        'loan',
-                        'cancelLoan',
-                        'getLoans',
-                        'getLoanRecords',
-                        'borrow',
-                        'autoBorrow',
-                        'repay',
-                        'doAllRepay',
-                        'getRepayments',
-                        'getFinanceRecords',
-                        'changeInvestMark',
-                        'changeLoop',
-                        # cross API
-                        'getCrossAssets',
-                        'getCrossBills',
-                        'transferInCross',
-                        'transferOutCross',
-                        'doCrossLoan',
-                        'doCrossRepay',
-                        'getCrossRepayRecords',
-                    ],
+                'contract': {
+                    'v1': {
+                        'public': {
+                            'get': [
+                                'depth',
+                                'fundingRate',
+                                'indexKline',
+                                'indexPrice',
+                                'kCline',
+                                'markKline',
+                                'markPrice',
+                                'ticker',
+                                'trade',
+                            ],
+                        },
+                    },
+                    'v2': {
+                        'public': {
+                            'get': [
+                                'allForceOrders',
+                                'config/marketList',
+                                'topLongShortAccountRatio',
+                                'topLongShortPositionRatio',
+                                'fundingRate',
+                                'premiumIndex',
+                            ],
+                        },
+                        'private': {
+                            'get': [
+                                'Fund/balance',
+                                'Fund/getAccount',
+                                'Fund/getBill',
+                                'Fund/getBillTypeList',
+                                'Fund/marginHistory',
+                                'Positions/getPositions',
+                                'Positions/getNominalValue',
+                                'Positions/marginInfo',
+                                'setting/get',
+                                'trade/getAllOrders',
+                                'trade/getOrder',
+                                'trade/getOrderAlgos',
+                                'trade/getTradeList',
+                                'trade/getUndoneOrders',
+                                'trade/tradeHistory',
+                            ],
+                            'post': [
+                                'activity/buyTicket',
+                                'Fund/transferFund',
+                                'Positions/setMarginCoins',
+                                'Positions/updateAppendUSDValue',
+                                'Positions/updateMargin',
+                                'setting/setLeverage',
+                                'trade/batchOrder',
+                                'trade/batchCancelOrder',
+                                'trade/cancelAlgos',
+                                'trade/cancelAllOrders',
+                                'trade/cancelOrder',
+                                'trade/order',
+                                'trade/orderAlgo',
+                                'trade/updateOrderAlgo',
+                            ],
+                        },
+                    },
                 },
             },
             'fees': {
@@ -259,7 +337,7 @@ class zb(Exchange):
         })
 
     async def fetch_markets(self, params={}):
-        markets = await self.publicGetMarkets(params)
+        markets = await self.spotV1PublicGetMarkets(params)
         #
         #     {
         #         "zb_qc":{
@@ -302,7 +380,6 @@ class zb(Exchange):
                 'linear': None,
                 'inverse': None,
                 'contractSize': None,
-                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
@@ -334,7 +411,7 @@ class zb(Exchange):
         return result
 
     async def fetch_currencies(self, params={}):
-        response = await self.tradeGetGetFeeInfo(params)
+        response = await self.spotV1PublicGetGetFeeInfo(params)
         #
         #     {
         #         "code":1000,
@@ -431,7 +508,7 @@ class zb(Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privateGetGetAccountInfo(params)
+        response = await self.spotV1PrivateGetGetAccountInfo(params)
         # todo: use self somehow
         # permissions = response['result']['base']
         return self.parse_balance(response)
@@ -483,7 +560,7 @@ class zb(Exchange):
 
     async def fetch_deposit_addresses(self, codes=None, params={}):
         await self.load_markets()
-        response = await self.privateGetGetPayinAddress(params)
+        response = await self.spotV1PrivateGetGetPayinAddress(params)
         #
         #     {
         #         "code": 1000,
@@ -520,7 +597,7 @@ class zb(Exchange):
         request = {
             'currency': currency['id'],
         }
-        response = await self.privateGetGetUserAddress(self.extend(request, params))
+        response = await self.spotV1PrivateGetGetUserAddress(self.extend(request, params))
         #
         #     {
         #         "code": 1000,
@@ -545,7 +622,7 @@ class zb(Exchange):
         }
         if limit is not None:
             request['size'] = limit
-        response = await self.publicGetDepth(self.extend(request, params))
+        response = await self.spotV1PublicGetDepth(self.extend(request, params))
         #
         #     {
         #         "asks":[
@@ -565,7 +642,7 @@ class zb(Exchange):
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        response = await self.publicGetAllTicker(params)
+        response = await self.spotV1PublicGetAllTicker(params)
         result = {}
         marketsByIdWithoutUnderscore = {}
         marketIds = list(self.markets_by_id.keys())
@@ -584,7 +661,7 @@ class zb(Exchange):
         request = {
             'market': market['id'],
         }
-        response = await self.publicGetTicker(self.extend(request, params))
+        response = await self.spotV1PublicGetTicker(self.extend(request, params))
         #
         #     {
         #         "date":"1624399623587",
@@ -667,7 +744,7 @@ class zb(Exchange):
         }
         if since is not None:
             request['since'] = since
-        response = await self.publicGetKline(self.extend(request, params))
+        response = await self.spotV1PublicGetKline(self.extend(request, params))
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
@@ -717,7 +794,7 @@ class zb(Exchange):
         request = {
             'market': market['id'],
         }
-        response = await self.publicGetTrades(self.extend(request, params))
+        response = await self.spotV1PublicGetTrades(self.extend(request, params))
         #
         #     [
         #         {"date":1624537391,"amount":"0.0142","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869018},
@@ -737,7 +814,7 @@ class zb(Exchange):
             'tradeType': '1' if (side == 'buy') else '0',
             'currency': self.market_id(symbol),
         }
-        response = await self.privateGetOrder(self.extend(request, params))
+        response = await self.spotV1PrivateGetOrder(self.extend(request, params))
         return {
             'info': response,
             'id': response['id'],
@@ -749,7 +826,7 @@ class zb(Exchange):
             'id': str(id),
             'currency': self.market_id(symbol),
         }
-        return await self.privateGetCancelOrder(self.extend(request, params))
+        return await self.spotV1PrivateGetCancelOrder(self.extend(request, params))
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
@@ -759,7 +836,7 @@ class zb(Exchange):
             'id': str(id),
             'currency': self.market_id(symbol),
         }
-        response = await self.privateGetGetOrder(self.extend(request, params))
+        response = await self.spotV1PrivateGetGetOrder(self.extend(request, params))
         #
         #     {
         #         'total_amount': 0.01,
@@ -785,10 +862,10 @@ class zb(Exchange):
             'pageIndex': 1,  # default pageIndex is 1
             'pageSize': limit,  # default pageSize is 50
         }
-        method = 'privateGetGetOrdersIgnoreTradeType'
+        method = 'spotV1PrivateGetGetOrdersIgnoreTradeType'
         # tradeType 交易类型1/0[buy/sell]
         if 'tradeType' in params:
-            method = 'privateGetGetOrdersNew'
+            method = 'spotV1PrivateGetGetOrdersNew'
         response = None
         try:
             response = await getattr(self, method)(self.extend(request, params))
@@ -808,7 +885,7 @@ class zb(Exchange):
             'pageIndex': 1,  # default pageIndex is 1
             'pageSize': limit,  # default pageSize is 10, doesn't work with other values now
         }
-        response = await self.privateGetGetFinishedAndPartialOrders(self.extend(request, params))
+        response = await self.spotV1PrivateGetGetFinishedAndPartialOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=10, params={}):
@@ -821,10 +898,10 @@ class zb(Exchange):
             'pageIndex': 1,  # default pageIndex is 1
             'pageSize': limit,  # default pageSize is 10
         }
-        method = 'privateGetGetUnfinishedOrdersIgnoreTradeType'
+        method = 'spotV1PrivateGetGetUnfinishedOrdersIgnoreTradeType'
         # tradeType 交易类型1/0[buy/sell]
         if 'tradeType' in params:
-            method = 'privateGetGetOrdersNew'
+            method = 'spotV1PrivateGetGetOrdersNew'
         response = None
         try:
             response = await getattr(self, method)(self.extend(request, params))
@@ -1025,7 +1102,7 @@ class zb(Exchange):
             'receiveAddr': address,
             'safePwd': password,
         }
-        response = await self.privateGetWithdraw(self.extend(request, params))
+        response = await self.spotV1PrivateGetWithdraw(self.extend(request, params))
         #
         #     {
         #         "code": 1000,
@@ -1054,7 +1131,7 @@ class zb(Exchange):
             request['currency'] = currency['id']
         if limit is not None:
             request['pageSize'] = limit
-        response = await self.privateGetGetWithdrawRecord(self.extend(request, params))
+        response = await self.spotV1PrivateGetGetWithdrawRecord(self.extend(request, params))
         #
         #     {
         #         "code": 1000,
@@ -1099,7 +1176,7 @@ class zb(Exchange):
             request['currency'] = currency['id']
         if limit is not None:
             request['pageSize'] = limit
-        response = await self.privateGetGetChargeRecord(self.extend(request, params))
+        response = await self.spotV1PrivateGetGetChargeRecord(self.extend(request, params))
         #
         #     {
         #         "code": 1000,
@@ -1137,15 +1214,38 @@ class zb(Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'][api]
-        if api == 'public':
-            url += '/' + self.version + '/' + path
+        section, version, access = api
+        url = self.urls['api'][section][version][access]
+        if access == 'public':
+            if path == 'getFeeInfo':
+                url = self.urls['api'][section][version]['private'] + '/' + path
+            else:
+                url += '/' + version + '/' + path
             if params:
                 url += '?' + self.urlencode(params)
-        elif api == 'trade':
-            url += '/' + path
-            if params:
-                url += '?' + self.urlencode(params)
+        elif section == 'contract':
+            timestamp = self.milliseconds()
+            iso8601 = self.iso8601(timestamp)
+            signedString = iso8601 + method + '/Server/api/' + version + '/' + path
+            params = self.keysort(params)
+            headers = {
+                'ZB-APIKEY': self.apiKey,
+                'ZB-TIMESTAMP': iso8601,
+                # 'ZB-LAN': 'cn',  # cn, en, kr
+            }
+            url += '/' + version + '/' + path
+            if method == 'POST':
+                headers['Content-Type'] = 'application/json'
+                body = self.json(params)
+                signedString += self.urlencode(params)
+            else:
+                if params:
+                    query = self.urlencode(params)
+                    url += '?' + query
+                    signedString += query
+            secret = self.hash(self.encode(self.secret), 'sha1')
+            signature = self.hmac(self.encode(signedString), self.encode(secret), hashlib.sha256, 'base64')
+            headers['ZB-SIGN'] = signature
         else:
             query = self.keysort(self.extend({
                 'method': path,
@@ -1169,7 +1269,7 @@ class zb(Exchange):
             if 'code' in response:
                 code = self.safe_string(response, 'code')
                 self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
-                if code != '1000':
+                if (code != '1000') and (code != '10000'):
                     raise ExchangeError(feedback)
             # special case for {"result":false,"message":"服务端忙碌"}(a "Busy Server" reply)
             result = self.safe_value(response, 'result')

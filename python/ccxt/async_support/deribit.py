@@ -64,6 +64,7 @@ class deribit(Exchange):
                 'fetchDeposits': True,
                 'fetchHistoricalVolatility': True,
                 'fetchIndexOHLCV': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,

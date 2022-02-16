@@ -277,31 +277,29 @@ class cryptocom(Exchange):
         })
 
     async def fetch_markets(self, params={}):
-        # {
-        #     "id": 11,
-        #     "method": "public/get-instruments",
-        #     "code": 0,
-        #     "result": {
-        #       "instruments": [
-        #         {
-        #           "instrument_name": "BTC_USDT",
-        #           "quote_currency": "BTC",
-        #           "base_currency": "USDT",
-        #           "price_decimals": 2,
-        #           "quantity_decimals": 6,
-        #           "margin_trading_enabled": True
-        #         },
-        #         {
-        #           "instrument_name": "CRO_BTC",
-        #           "quote_currency": "BTC",
-        #           "base_currency": "CRO",
-        #           "price_decimals": 8,
-        #           "quantity_decimals": 2,
-        #           "margin_trading_enabled": False
-        #         }
-        #       ]
-        #     }
-        #  }
+        #
+        #    {
+        #        id: 11,
+        #        method: 'public/get-instruments',
+        #        code: 0,
+        #        result: {
+        #            'instruments': [
+        #                {
+        #                    instrument_name: 'NEAR_BTC',
+        #                    quote_currency: 'BTC',
+        #                    base_currency: 'NEAR',
+        #                    price_decimals: '8',
+        #                    quantity_decimals: '2',
+        #                    margin_trading_enabled: True,
+        #                    margin_trading_enabled_5x: True,
+        #                    margin_trading_enabled_10x: True,
+        #                    max_quantity: '100000000',
+        #                    min_quantity: '0.01'
+        #               },
+        #            ]
+        #        }
+        #    }
+        #
         response = await self.spotPublicGetPublicGetInstruments(params)
         resultResponse = self.safe_value(response, 'result', {})
         markets = self.safe_value(resultResponse, 'instruments', [])
@@ -316,6 +314,13 @@ class cryptocom(Exchange):
             priceDecimals = self.safe_string(market, 'price_decimals')
             minPrice = self.parse_precision(priceDecimals)
             minQuantity = self.safe_string(market, 'min_quantity')
+            maxLeverage = self.parse_number('1')
+            margin_trading_enabled_5x = self.safe_value(market, 'margin_trading_enabled_5x')
+            if margin_trading_enabled_5x:
+                maxLeverage = self.parse_number('5')
+            margin_trading_enabled_10x = self.safe_value(market, 'margin_trading_enabled_10x')
+            if margin_trading_enabled_10x:
+                maxLeverage = self.parse_number('10')
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -346,8 +351,8 @@ class cryptocom(Exchange):
                 },
                 'limits': {
                     'leverage': {
-                        'min': None,
-                        'max': None,
+                        'min': self.parse_number('1'),
+                        'max': maxLeverage,
                     },
                     'amount': {
                         'min': self.parse_number(minQuantity),

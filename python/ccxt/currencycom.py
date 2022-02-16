@@ -175,6 +175,7 @@ class currencycom(Exchange):
                 'FOX': 'Fox Corporation',
                 'GM': 'General Motors Co',
                 'IQ': 'iQIYI',
+                'OSK': 'Oshkosh',
                 'PLAY': "Dave & Buster's Entertainment",
             },
         })
@@ -351,7 +352,6 @@ class currencycom(Exchange):
                 'taker': taker,
                 'maker': maker,
                 'contractSize': None,
-                'maintenanceMarginRate': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,

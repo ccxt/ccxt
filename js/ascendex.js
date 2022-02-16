@@ -81,7 +81,7 @@ module.exports = class ascendex extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/112027508-47984600-8b48-11eb-9e17-d26459cc36c6.jpg',
                 'api': 'https://ascendex.com',
-                'test': 'https://bitmax-test.io',
+                'test': 'https://api-test.ascendex-sandbox.com',
                 'www': 'https://ascendex.com',
                 'doc': [
                     'https://bitmax-exchange.github.io/bitmax-pro-api/#bitmax-pro-api-documentation',
@@ -555,7 +555,6 @@ module.exports = class ascendex extends Exchange {
                 'taker': fee,
                 'maker': fee,
                 'contractSize': swap ? this.parseNumber ('1') : undefined,
-                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,

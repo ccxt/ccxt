@@ -733,7 +733,6 @@ class gateio extends Exchange {
                         'taker' => $this->parse_number(Precise::string_div($takerPercent, '100')), // Fee is in %, so divide by 100
                         'maker' => $this->parse_number(Precise::string_div($makerPercent, '100')),
                         'contractSize' => $this->safe_number($market, 'quanto_multiplier'),
-                        'maintenanceMarginRate' => $this->safe_number($market, 'maintenance_rate'),
                         'expiry' => $expiry,
                         'expiryDatetime' => $this->iso8601($expiry),
                         'strike' => null,
@@ -830,7 +829,6 @@ class gateio extends Exchange {
                     'taker' => $this->parse_number(Precise::string_div($takerPercent, '100')),
                     'maker' => $this->parse_number(Precise::string_div($makerPercent, '100')),
                     'contractSize' => null,
-                    'maintenanceMarginRate' => null,
                     'expiry' => null,
                     'expiryDatetime' => null,
                     'strike' => null,
@@ -2108,6 +2106,7 @@ class gateio extends Exchange {
             'DMOVE' => 'pending',
             'CANCEL' => 'failed',
             'DONE' => 'ok',
+            'BCODE' => 'ok', // GateCode withdrawal
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -2138,12 +2137,16 @@ class gateio extends Exchange {
         // withdrawals
         $id = $this->safe_string($transaction, 'id');
         $type = null;
-        if ($id !== null) {
+        $amount = $this->safe_string($transaction, 'amount');
+        if ($id[0] === 'b') {
+            // GateCode handling
+            $type = Precise::string_gt($amount, '0') ? 'deposit' : 'withdrawal';
+            $amount = Precise::string_abs($amount);
+        } else if ($id !== null) {
             $type = $this->parse_transaction_type($id[0]);
         }
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId);
-        $amount = $this->safe_number($transaction, 'amount');
         $txid = $this->safe_string($transaction, 'txid');
         $rawStatus = $this->safe_string($transaction, 'status');
         $status = $this->parse_transaction_status($rawStatus);
@@ -2159,7 +2162,7 @@ class gateio extends Exchange {
             'id' => $id,
             'txid' => $txid,
             'currency' => $code,
-            'amount' => $amount,
+            'amount' => $this->parse_number($amount),
             'network' => null,
             'address' => $address,
             'addressTo' => null,

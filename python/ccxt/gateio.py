@@ -740,7 +740,6 @@ class gateio(Exchange):
                         'taker': self.parse_number(Precise.string_div(takerPercent, '100')),  # Fee is in %, so divide by 100
                         'maker': self.parse_number(Precise.string_div(makerPercent, '100')),
                         'contractSize': self.safe_number(market, 'quanto_multiplier'),
-                        'maintenanceMarginRate': self.safe_number(market, 'maintenance_rate'),
                         'expiry': expiry,
                         'expiryDatetime': self.iso8601(expiry),
                         'strike': None,
@@ -835,7 +834,6 @@ class gateio(Exchange):
                     'taker': self.parse_number(Precise.string_div(takerPercent, '100')),
                     'maker': self.parse_number(Precise.string_div(makerPercent, '100')),
                     'contractSize': None,
-                    'maintenanceMarginRate': None,
                     'expiry': None,
                     'expiryDatetime': None,
                     'strike': None,
@@ -2037,6 +2035,7 @@ class gateio(Exchange):
             'DMOVE': 'pending',
             'CANCEL': 'failed',
             'DONE': 'ok',
+            'BCODE': 'ok',  # GateCode withdrawal
         }
         return self.safe_string(statuses, status, status)
 
@@ -2065,11 +2064,15 @@ class gateio(Exchange):
         # withdrawals
         id = self.safe_string(transaction, 'id')
         type = None
-        if id is not None:
+        amount = self.safe_string(transaction, 'amount')
+        if id[0] == 'b':
+            # GateCode handling
+            type = 'deposit' if Precise.string_gt(amount, '0') else 'withdrawal'
+            amount = Precise.string_abs(amount)
+        elif id is not None:
             type = self.parse_transaction_type(id[0])
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId)
-        amount = self.safe_number(transaction, 'amount')
         txid = self.safe_string(transaction, 'txid')
         rawStatus = self.safe_string(transaction, 'status')
         status = self.parse_transaction_status(rawStatus)
@@ -2084,7 +2087,7 @@ class gateio(Exchange):
             'id': id,
             'txid': txid,
             'currency': code,
-            'amount': amount,
+            'amount': self.parse_number(amount),
             'network': None,
             'address': address,
             'addressTo': None,

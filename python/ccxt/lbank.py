@@ -45,6 +45,7 @@ class lbank(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchOHLCV': True,
@@ -132,6 +133,17 @@ class lbank(Exchange):
 
     def fetch_markets(self, params={}):
         response = self.publicGetAccuracy(params)
+        #
+        #    [
+        #        {
+        #            "symbol": "btc_usdt",
+        #            "quantityAccuracy": "4",
+        #            "minTranQua": "0.0001",
+        #            "priceAccuracy": "2"
+        #        },
+        #        ...
+        #    ]
+        #
         result = []
         for i in range(0, len(response)):
             market = response[i]

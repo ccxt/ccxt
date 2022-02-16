@@ -149,6 +149,19 @@ class oceanex(Exchange):
     async def fetch_markets(self, params={}):
         request = {'show_details': True}
         response = await self.publicGetMarkets(self.extend(request, params))
+        #
+        #    {
+        #        id: 'xtzusdt',
+        #        name: 'XTZ/USDT',
+        #        ask_precision: '8',
+        #        bid_precision: '8',
+        #        enabled: True,
+        #        price_precision: '4',
+        #        amount_precision: '3',
+        #        usd_precision: '4',
+        #        minimum_trading_amount: '1.0'
+        #    },
+        #
         result = []
         markets = self.safe_value(response, 'data')
         for i in range(0, len(markets)):

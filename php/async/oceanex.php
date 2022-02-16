@@ -146,6 +146,19 @@ class oceanex extends Exchange {
     public function fetch_markets($params = array ()) {
         $request = array( 'show_details' => true );
         $response = yield $this->publicGetMarkets (array_merge($request, $params));
+        //
+        //    array(
+        //        $id => 'xtzusdt',
+        //        $name => 'XTZ/USDT',
+        //        ask_precision => '8',
+        //        bid_precision => '8',
+        //        enabled => true,
+        //        price_precision => '4',
+        //        amount_precision => '3',
+        //        usd_precision => '4',
+        //        minimum_trading_amount => '1.0'
+        //    ),
+        //
         $result = array();
         $markets = $this->safe_value($response, 'data');
         for ($i = 0; $i < count($markets); $i++) {

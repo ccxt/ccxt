@@ -142,6 +142,19 @@ module.exports = class oceanex extends Exchange {
     async fetchMarkets (params = {}) {
         const request = { 'show_details': true };
         const response = await this.publicGetMarkets (this.extend (request, params));
+        //
+        //    {
+        //        id: 'xtzusdt',
+        //        name: 'XTZ/USDT',
+        //        ask_precision: '8',
+        //        bid_precision: '8',
+        //        enabled: true,
+        //        price_precision: '4',
+        //        amount_precision: '3',
+        //        usd_precision: '4',
+        //        minimum_trading_amount: '1.0'
+        //    },
+        //
         const result = [];
         const markets = this.safeValue (response, 'data');
         for (let i = 0; i < markets.length; i++) {

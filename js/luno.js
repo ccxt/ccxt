@@ -42,6 +42,7 @@ module.exports = class luno extends Exchange {
                 'fetchIsolatedPositions': false,
                 'fetchLedger': true,
                 'fetchLeverage': false,
+                'fetchLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -131,6 +132,14 @@ module.exports = class luno extends Exchange {
                         'quotes/{id}',
                         'withdrawals/{id}',
                     ],
+                },
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': true, // based on volume from your primary currency (not the same for everyone)
+                    'percentage': true,
+                    'taker': this.parseNumber ('0.001'),
+                    'maker': this.parseNumber ('0'),
                 },
             },
         });

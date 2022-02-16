@@ -168,6 +168,7 @@ class currencycom extends Exchange {
                 'FOX' => 'Fox Corporation',
                 'GM' => 'General Motors Co',
                 'IQ' => 'iQIYI',
+                'OSK' => 'Oshkosh',
                 'PLAY' => "Dave & Buster's Entertainment",
             ),
         ));
@@ -357,7 +358,6 @@ class currencycom extends Exchange {
                 'taker' => $taker,
                 'maker' => $maker,
                 'contractSize' => null,
-                'maintenanceMarginRate' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,

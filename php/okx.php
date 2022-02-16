@@ -69,6 +69,7 @@ class okx extends Exchange {
                 'fetchLedger' => true,
                 'fetchLedgerEntry' => null,
                 'fetchLeverage' => true,
+                'fetchLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMyBuys' => null,
@@ -871,7 +872,6 @@ class okx extends Exchange {
             'linear' => $contract ? ($quoteId === $settleId) : null,
             'inverse' => $contract ? ($baseId === $settleId) : null,
             'contractSize' => $contract ? $this->safe_number($market, 'ctVal') : null,
-            'maintenanceMarginRate' => null,
             'expiry' => $expiry,
             'expiryDatetime' => $this->iso8601($expiry),
             'strike' => $strikePrice,
@@ -3111,7 +3111,7 @@ class okx extends Exchange {
         $marginMode = $this->safe_string_lower($params, 'mgnMode');
         $params = $this->omit($params, array( 'mgnMode' ));
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
-            throw new BadRequest($this->id . ' fetchLeverage $params["mgnMode"] must be either cross or isolated');
+            throw new BadRequest($this->id . ' fetchLeverage() requires a mgnMode parameter that must be either cross or isolated');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -3339,10 +3339,12 @@ class okx extends Exchange {
                 }
             }
         }
+        $contractSize = $this->safe_value($market, 'contractSize');
+        $contractSizeString = $this->number_to_string($contractSize);
         $markPriceString = $this->safe_string($position, 'markPx');
         $notionalString = $this->safe_string($position, 'notionalUsd');
         if ($market['inverse']) {
-            $notionalString = Precise::string_div($notionalString, $markPriceString);
+            $notionalString = Precise::string_div(Precise::string_mul($contractsAbs, $contractSizeString), $markPriceString);
         }
         $notional = $this->parse_number($notionalString);
         $marginType = $this->safe_string($position, 'mgnMode');
@@ -3384,7 +3386,7 @@ class okx extends Exchange {
             'unrealizedPnl' => $this->parse_number($unrealizedPnlString),
             'percentage' => $percentage,
             'contracts' => $contracts,
-            'contractSize' => $this->safe_value($market, 'contractSize'),
+            'contractSize' => $contractSize,
             'markPrice' => $this->parse_number($markPriceString),
             'side' => $side,
             'hedged' => $hedged,
@@ -3990,6 +3992,66 @@ class okx extends Exchange {
 
     public function add_margin($symbol, $amount, $params = array ()) {
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
+    }
+
+    public function fetch_leverage_tiers($symbol = null, $params = array ()) {
+        $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchLeverageTiers() requires a $symbol argument');
+        }
+        $market = $this->market($symbol);
+        $type = $market['spot'] ? 'MARGIN' : strtoupper($market['type']);
+        $uly = $this->safe_string($market['info'], 'uly');
+        if (!$uly) {
+            throw new BadRequest($this->id . ' fetchLeverageTiers() cannot fetch leverage tiers for ' . $symbol);
+        }
+        $request = array(
+            'instType' => $type,
+            'tdMode' => $this->safe_string($params, 'tdMode', 'isolated'),
+            'uly' => $uly,
+        );
+        if ($type === 'MARGIN') {
+            $request['instId'] = $market['id'];
+        }
+        $response = $this->publicGetPublicPositionTiers (array_merge($request, $params));
+        //
+        //    {
+        //        "code" => "0",
+        //        "data" => array(
+        //            array(
+        //                "baseMaxLoan" => "500",
+        //                "imr" => "0.1",
+        //                "instId" => "ETH-USDT",
+        //                "maxLever" => "10",
+        //                "maxSz" => "500",
+        //                "minSz" => "0",
+        //                "mmr" => "0.03",
+        //                "optMgnFactor" => "0",
+        //                "quoteMaxLoan" => "200000",
+        //                "tier" => "1",
+        //                "uly" => ""
+        //            ),
+        //            ...
+        //        )
+        //    }
+        //
+        $data = $this->safe_value($response, 'data');
+        $brackets = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $tier = $data[$i];
+            $brackets[] = array(
+                'tier' => $this->safe_integer($tier, 'tier'),
+                'notionalCurrency' => $market['quote'],
+                'notionalFloor' => $this->safe_number($tier, 'minSz'),
+                'notionalCap' => $this->safe_number($tier, 'maxSz'),
+                'maintenanceMarginRatio' => $this->safe_number($tier, 'mmr'),
+                'maxLeverage' => $this->safe_number($tier, 'maxLever'),
+                'info' => $tier,
+            );
+        }
+        $result = array();
+        $result[$symbol] = $brackets;
+        return $result;
     }
 
     public function set_sandbox_mode($enable) {
