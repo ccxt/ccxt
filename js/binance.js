@@ -4834,7 +4834,9 @@ module.exports = class binance extends Exchange {
             leverageBrackets[safeSymbol] = result;
         }
         if (symbol !== undefined) {
-            return this.safeValue (leverageBrackets, symbol);
+            const result = {};
+            result[symbol] = this.safeValue (leverageBrackets, symbol);
+            return result;
         } else {
             return leverageBrackets;
         }
