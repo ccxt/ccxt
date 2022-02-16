@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, DDoSProtection, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -14,7 +14,7 @@ module.exports = class bitopro extends Exchange {
             'name': 'BitoPro',
             'countries': [ 'TW' ], // Taiwan
             'version': 'v3',
-            'rateLimit': 600,
+            'rateLimit': 100,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -34,7 +34,7 @@ module.exports = class bitopro extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
-                'fetchDeposits': false,
+                'fetchDeposits': true,
                 'fetchFundingFees': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -58,7 +58,8 @@ module.exports = class bitopro extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFees': true,
                 'fetchTransactions': false,
-                'fetchWithdrawals': false,
+                'fetchWithdrawal': true,
+                'fetchWithdrawals': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'withdraw': true,
@@ -111,6 +112,8 @@ module.exports = class bitopro extends Exchange {
                         'orders/{pair}/{orderId}',
                         'wallet/withdraw/{currency}/{serial}',
                         'wallet/withdraw/{currency}/id/{id}',
+                        'wallet/depositHistory/{currency}',
+                        'wallet/withdrawHistory/{currency}',
                     ],
                     'post': [
                         'orders/{pair}',
@@ -468,7 +471,10 @@ module.exports = class bitopro extends Exchange {
         market = this.safeMarket (marketId, market);
         const symbol = this.safeString (market, 'symbol');
         const price = this.safeString (trade, 'price');
-        const type = this.safeString (trade, 'type');
+        let type = this.safeString (trade, 'type');
+        if (type !== undefined) {
+            type = type.toLowerCase ();
+        }
         let side = this.safeString (trade, 'action');
         if (side === undefined) {
             const isBuyer = this.safeValue (trade, 'isBuyer');
@@ -477,6 +483,8 @@ module.exports = class bitopro extends Exchange {
             } else {
                 side = 'sell';
             }
+        } else {
+            side = side.toLowerCase ();
         }
         let amount = this.safeString (trade, 'amount');
         if (amount === undefined) {
@@ -484,7 +492,7 @@ module.exports = class bitopro extends Exchange {
         }
         let fee = undefined;
         const feeAmount = this.safeString (trade, 'fee');
-        const feeSymbol = this.safeString (trade, 'feeSymbol');
+        const feeSymbol = this.safeCurrencyCode (this.safeString (trade, 'feeSymbol'));
         if (feeAmount !== undefined) {
             fee = {
                 'cost': feeAmount,
@@ -670,13 +678,14 @@ module.exports = class bitopro extends Exchange {
             const balance = response[i];
             let currencyId = this.safeString (balance, 'currency');
             currencyId = currencyId.toUpperCase ();
+            const code = this.safeCurrencyCode (currencyId);
             const amount = this.safeString (balance, 'amount');
             const available = this.safeString (balance, 'available');
             const account = {
                 'free': available,
                 'total': amount,
             };
-            result[currencyId] = account;
+            result[code] = account;
         }
         return this.safeBalance (result);
     }
@@ -748,29 +757,28 @@ module.exports = class bitopro extends Exchange {
         //             "updatedTimestamp":1644899002598
         //         }
         //
-        let id = this.safeString (order, 'orderId');
-        if (id === undefined) {
-            id = this.safeString (order, 'id');
-        }
+        const id = this.safeString2 (order, 'id', 'orderId');
         const timestamp = this.safeInteger (order, 'timestamp');
-        const side = this.safeString (order, 'action');
+        let side = this.safeString (order, 'action');
+        side = side.toLowerCase ();
         const amount = this.safeString (order, 'amount');
         const price = this.safeString (order, 'price');
         const marketId = this.safeString (order, 'pair');
-        if (marketId !== undefined) {
-            market = this.market (marketId);
-        }
+        market = this.safeMarket (marketId, market, '_');
         const symbol = this.safeString (market, 'symbol');
         const orderStatus = this.safeString (order, 'status');
         const status = this.parseOrderStatus (orderStatus);
-        const type = this.safeString (order, 'type');
+        let type = this.safeString (order, 'type');
+        if (type !== undefined) {
+            type = type.toLowerCase ();
+        }
         const average = this.safeString (order, 'avgExecutionPrice');
         const filled = this.safeString (order, 'executedAmount');
         const remaining = this.safeString (order, 'remainingAmount');
         const timeInForce = this.safeString (order, 'timeInForce');
         let fee = undefined;
         const feeAmount = this.safeString (order, 'fee');
-        const feeSymbol = this.safeString (order, 'feeSymbol');
+        const feeSymbol = this.safeCurrencyCode (this.safeString (order, 'feeSymbol'));
         if (feeAmount !== undefined) {
             fee = {
                 'currency': feeSymbol,
@@ -782,7 +790,7 @@ module.exports = class bitopro extends Exchange {
             'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': this.safeInteger (order, 'updatedTimestamp'),
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
@@ -812,8 +820,23 @@ module.exports = class bitopro extends Exchange {
             'amount': this.numberToString (amount),
             'timestamp': this.milliseconds (),
         };
-        if (type === 'LIMIT') {
+        const orderType = type.toUpperCase ();
+        if ((orderType === 'LIMIT') || (orderType === 'STOP_LIMIT')) {
             request['price'] = this.numberToString (price);
+        }
+        if (orderType === 'STOP_LIMIT') {
+            const stopPrice = this.safeNumber (params, 'stopPrice');
+            if (stopPrice === undefined) {
+                throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice parameter for ' + orderType + ' orders');
+            } else {
+                request['stopPrice'] = this.numberToString (stopPrice);
+            }
+            const condition = this.safeString (params, 'condition');
+            if (condition === undefined) {
+                throw new InvalidOrder (this.id + ' createOrder() requires a condition parameter for ' + orderType + ' orders');
+            } else {
+                request['condition'] = condition;
+            }
         }
         const response = await this.privatePostOrdersPair (this.extend (request, params), params);
         //
@@ -1019,40 +1042,93 @@ module.exports = class bitopro extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
+    parseTransactionState (state) {
+        const states = {
+            'COMPLETE': 'ok',
+            'INVALID': 'failed',
+            'PROCESSING': 'pending',
+            'WAIT_PROCESS': 'pending',
+            'FAILED': 'failed',
+            'EXPIRED': 'failed',
+            'CANCELLED': 'failed',
+            'EMAIL_VERIFICATION': 'pending',
+            'WAIT_CONFIRMATION': 'pending',
+        };
+        return this.safeString (states, state, state);
+    }
+
     parseTransaction (transaction, currency = undefined) {
         //
-        //     {
-        //         "serial":"20220215BW14069838",
-        //         "currency":"USDT",
-        //         "protocol":"TRX",
-        //         "address":"TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
-        //         "amount":"8",
-        //         "fee":"2",
-        //         "total":"10"
-        //     }
+        // fetchDeposits
+        //             {
+        //                 "serial":"20220214X766799",
+        //                 "timestamp":"1644833015053",
+        //                 "address":"bnb1xml62k5a9dcewgc542fha75fyxdcp0zv8eqfsh",
+        //                 "amount":"0.20000000",
+        //                 "fee":"0.00000000",
+        //                 "total":"0.20000000",
+        //                 "status":"COMPLETE",
+        //                 "txid":"A3CC4F6828CC752B9F3737F48B5826B9EC2857040CB5141D0CC955F7E53DB6D9",
+        //                 "message":"778553959",
+        //                 "protocol":"MAIN",
+        //                 "id":"2905906537"
+        //             }
         //
-        const code = this.safeCurrencyCode (this.safeString (transaction, 'coin'));
+        // fetchWithdrawals
+        //             {
+        //                 "serial":"20220215BW14069838",
+        //                 "timestamp":"1644907716044",
+        //                 "address":"TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
+        //                 "amount":"8.00000000",
+        //                 "fee":"2.00000000",
+        //                 "total":"10.00000000",
+        //                 "status":"COMPLETE",
+        //                 "txid":"50bf250c71a582f40cf699fb58bab978437ea9bdf7259ff8072e669aab30c32b",
+        //                 "protocol":"TRX",
+        //                 "id":"9925310345"
+        //             }
+        //
+        // withdraw
+        //             {
+        //                 "serial":"20220215BW14069838",
+        //                 "currency":"USDT",
+        //                 "protocol":"TRX",
+        //                 "address":"TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
+        //                 "amount":"8",
+        //                 "fee":"2",
+        //                 "total":"10"
+        //             }
+        //
+        let currencyId = this.safeString (transaction, 'coin');
+        if (currencyId === undefined) {
+            currencyId = this.safeString (currency, 'code');
+        }
+        const code = this.safeCurrencyCode (currencyId);
         const id = this.safeString (transaction, 'serial');
+        const txId = this.safeString (transaction, 'txid');
+        const timestamp = this.safeInteger (transaction, 'timestamp');
         const amount = this.safeNumber (transaction, 'total');
         const address = this.safeString (transaction, 'address');
+        const tag = this.safeString (transaction, 'message');
+        const status = this.safeString (transaction, 'status');
         const fee = this.safeNumber (transaction, 'fee');
         return {
             'info': transaction,
             'id': id,
-            'txid': undefined,
-            'timestamp': undefined,
+            'txid': txId,
+            'timestamp': timestamp,
             'datetime': undefined,
             'network': undefined,
             'addressFrom': undefined,
             'address': address,
             'addressTo': address,
             'tagFrom': undefined,
-            'tag': undefined,
+            'tag': tag,
             'tagTo': undefined,
             'type': undefined,
             'amount': amount,
             'currency': code,
-            'status': undefined,
+            'status': this.parseTransactionState (status),
             'updated': undefined,
             'fee': {
                 'currency': code,
@@ -1060,6 +1136,122 @@ module.exports = class bitopro extends Exchange {
                 'rate': undefined,
             },
         };
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (code === undefined) {
+            throw new ArgumentsRequired ('fetchDeposits requires the code parameter');
+        }
+        const currency = this.safeCurrency (code);
+        code = currency['code'];
+        const request = {
+            'currency': code,
+            // 'endTimestamp': 0,
+            // 'id': '',
+            // 'statuses': '',
+        };
+        if (since !== undefined) {
+            request['startTimestamp'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetWalletDepositHistoryCurrency (this.extend (request, params));
+        const result = this.safeValue (response, 'data', []);
+        //
+        //     {
+        //         "data":[
+        //             {
+        //                 "serial":"20220214X766799",
+        //                 "timestamp":"1644833015053",
+        //                 "address":"bnb1xml62k5a9dcewgc542fha75fyxdcp0zv8eqfsh",
+        //                 "amount":"0.20000000",
+        //                 "fee":"0.00000000",
+        //                 "total":"0.20000000",
+        //                 "status":"COMPLETE",
+        //                 "txid":"A3CC4F6828CC752B9F3737F48B5826B9EC2857040CB5141D0CC955F7E53DB6D9",
+        //                 "message":"778553959",
+        //                 "protocol":"MAIN",
+        //                 "id":"2905906537"
+        //             }
+        //         ]
+        //     }
+        //
+        return this.parseTransactions (result, currency, since, limit, { 'type': 'deposit' });
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (code === undefined) {
+            throw new ArgumentsRequired ('fetchWithdrawals requires the code parameter');
+        }
+        const currency = this.safeCurrency (code);
+        code = currency['code'];
+        const request = {
+            'currency': code,
+            // 'endTimestamp': 0,
+            // 'id': '',
+            // 'statuses': '',
+        };
+        if (since !== undefined) {
+            request['startTimestamp'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetWalletWithdrawHistoryCurrency (this.extend (request, params));
+        const result = this.safeValue (response, 'data', []);
+        //
+        //     {
+        //         "data":[
+        //             {
+        //                 "serial":"20220215BW14069838",
+        //                 "timestamp":"1644907716044",
+        //                 "address":"TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
+        //                 "amount":"8.00000000",
+        //                 "fee":"2.00000000",
+        //                 "total":"10.00000000",
+        //                 "status":"COMPLETE",
+        //                 "txid":"50bf250c71a582f40cf699fb58bab978437ea9bdf7259ff8072e669aab30c32b",
+        //                 "protocol":"TRX",
+        //                 "id":"9925310345"
+        //             }
+        //         ]
+        //     }
+        //
+        return this.parseTransactions (result, currency, since, limit, { 'type': 'withdrawal' });
+    }
+
+    async fetchWithdrawal (id, code = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (code === undefined) {
+            throw new ArgumentsRequired ('fetchWithdrawal requires the code parameter');
+        }
+        const currency = this.safeCurrency (code);
+        const request = {
+            'serial': id,
+            'currency': code,
+        };
+        const response = await this.privateGetWalletWithdrawCurrencySerial (this.extend (request, params));
+        const result = this.safeValue (response, 'data', {});
+        //
+        //     {
+        //         "data":{
+        //             "serial":"20220215BW14069838",
+        //             "address":"TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
+        //             "amount":"8.00000000",
+        //             "fee":"2.00000000",
+        //             "total":"10.00000000",
+        //             "status":"COMPLETE",
+        //             "txid":"50bf250c71a582f40cf699fb58bab978437ea9bdf7259ff8072e669aab30c32b",
+        //             "protocol":"TRX",
+        //             "id":"9925310345",
+        //             "timestamp":"1644907716044"
+        //         }
+        //     }
+        //
+        return this.parseTransaction (result, currency);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -1071,7 +1263,7 @@ module.exports = class bitopro extends Exchange {
             'currency': currency['id'],
             'amount': this.numberToString (amount),
             'address': address,
-            'protocol': '',
+            // 'protocol': '',
         };
         if (tag !== undefined) {
             request['message'] = tag;
@@ -1106,7 +1298,7 @@ module.exports = class bitopro extends Exchange {
             if (method === 'POST') {
                 body = this.json (params);
                 const payload = this.stringToBase64 (body);
-                const signature = this.hmac (payload, this.secret, 'sha384', 'hex');
+                const signature = this.hmac (payload, this.secret, 'sha384');
                 headers['X-BITOPRO-APIKEY'] = this.apiKey;
                 headers['X-BITOPRO-PAYLOAD'] = payload;
                 headers['X-BITOPRO-SIGNATURE'] = signature;
@@ -1116,12 +1308,11 @@ module.exports = class bitopro extends Exchange {
                 }
                 const nonce = this.milliseconds ();
                 let rawData = {
-                    'identity': this.email,
                     'nonce': nonce,
                 };
                 rawData = this.json (rawData);
                 const payload = this.stringToBase64 (rawData);
-                const signature = this.hmac (payload, this.secret, 'sha384', 'hex');
+                const signature = this.hmac (payload, this.secret, 'sha384');
                 headers['X-BITOPRO-APIKEY'] = this.apiKey;
                 headers['X-BITOPRO-PAYLOAD'] = payload;
                 headers['X-BITOPRO-SIGNATURE'] = signature;
