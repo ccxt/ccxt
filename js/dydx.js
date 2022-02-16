@@ -23,20 +23,20 @@ module.exports = class dydx extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
-                'cancelOrder': true,
                 'cancelAllOrders': undefined, // TODO, needs stark sign
+                'cancelOrder': true,
                 'createDepositAddress': false,
                 'createOrder': undefined, // TODO, needs stark sign
                 'fetchBalance': true,
+                'fetchCanceledOrders': true,
+                'fetchClosedOrders': false,
                 'fetchDepositAddress': false,
                 'fetchDeposits': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOrder': true,
                 'fetchOpenOrders': true,
-                'fetchCanceledOrders': true,
-                'fetchClosedOrders': false,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
@@ -235,13 +235,13 @@ module.exports = class dydx extends Exchange {
                         'sell': 'SELL',
                     },
                     'timeInForce': {
-                        'gtc': undefined,   // good till cancelled
-                        'gtd': undefined,   // good till day
-                        'gtt': 'GTT',   // good till time
-                        'gtx': undefined,   // good till crossing
-                        'fok': 'FOK',   // fill or kill
-                        'ioc': 'IOC',   // immediate or cancel
-                        'po': undefined,    // post only
+                        'gtc': undefined,
+                        'gtd': undefined,
+                        'gtt': 'GTT',
+                        'gtx': undefined,
+                        'fok': 'FOK',
+                        'ioc': 'IOC',
+                        'po': undefined,
                     },
                     'takerMaker': {
                         'taker': 'MAKER',
