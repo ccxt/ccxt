@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, DDoSProtection, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, InvalidOrder, InsufficientFunds, BadRequest } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -159,8 +159,15 @@ module.exports = class bitopro extends Exchange {
                 },
             },
             'exceptions': {
-                'exact': {},
-                'broad': {},
+                'exact': {
+                    'Unsupported currency.': BadRequest,
+                    'Invalid Signature': AuthenticationError,
+                },
+                'broad': {
+                    'Invalid amount': InvalidOrder,
+                    'Balance for ': InsufficientFunds,
+                    'Invalid ': BadRequest,
+                },
             },
             'commonCurrencies': {
             },
@@ -1327,16 +1334,16 @@ module.exports = class bitopro extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return; // fallback to the default error handler
+        }
         if (code >= 200 && code < 300) {
             return;
         }
-        if (code === 401) {
-            throw new AuthenticationError (body);
-        }
-        if (code === 429) {
-            throw new DDoSProtection (body);
-        }
-        const feedback = body;
-        throw new ExchangeError (feedback);
+        const feedback = this.id + ' ' + body;
+        const error = this.safeString (response, 'error');
+        this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
+        this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
+        throw new ExchangeError (feedback); // unknown message
     }
 };
