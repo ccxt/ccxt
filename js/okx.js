@@ -4039,7 +4039,7 @@ module.exports = class okx extends Exchange {
                 'notionalCurrency': market['quote'],
                 'notionalFloor': this.safeNumber (tier, 'minSz'),
                 'notionalCap': this.safeNumber (tier, 'maxSz'),
-                'maintenanceMarginRatio': this.safeNumber (tier, 'mmr'),
+                'maintenanceMarginRate': this.safeNumber (tier, 'mmr'),
                 'maxLeverage': this.safeNumber (tier, 'maxLever'),
                 'info': tier,
             });
