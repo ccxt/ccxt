@@ -213,6 +213,7 @@ module.exports = class liquid extends Exchange {
                 'MIOTA': 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
                 'TON': 'Tokamak Network',
                 'BIFI': 'Bifrost Finance',
+                'P-BTC': 'BTC',
             },
             'options': {
                 'cancelOrderException': true,
@@ -221,6 +222,11 @@ module.exports = class liquid extends Exchange {
                     'TRX': 'TRC20',
                     'XLM': 'Stellar',
                     'ALGO': 'Algorand',
+                },
+                'swap': {
+                    'fetchMarkets': {
+                        'settlementCurrencies': [ 'BTC', 'ETH', 'XRP', 'QASH', 'USD', 'JPY', 'EUR', 'SGD', 'AUD' ],
+                    },
                 },
             },
         });
@@ -388,20 +394,11 @@ module.exports = class liquid extends Exchange {
             const baseId = this.safeString (market, 'base_currency');
             const quoteId = this.safeString (market, 'quoted_currency');
             const productType = this.safeString (market, 'product_type');
-            let type = 'spot';
             const swap = (productType === 'Perpetual');
+            const type = swap ? 'swap' : 'spot';
             const spot = !swap;
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            let symbol = base + '/' + quote;
-            let maker = this.fees['trading']['maker'];
-            let taker = this.fees['trading']['taker'];
-            if (swap) {
-                type = 'swap';
-                symbol += quote;
-                taker = this.safeNumber (market, 'taker_fee', this.fees['trading']['taker']);
-                maker = this.safeNumber (market, 'maker_fee', this.fees['trading']['maker']);
-            }
             const disabled = this.safeValue (market, 'disabled', false);
             const baseCurrency = this.safeValue (currenciesByCode, base);
             let minAmount = undefined;
@@ -422,15 +419,18 @@ module.exports = class liquid extends Exchange {
                 }
             }
             const margin = this.safeValue (market, 'margin_enabled');
-            result.push ({
+            const symbol = base + '/' + quote;
+            const maker = this.fees['trading']['maker'];
+            const taker = this.fees['trading']['taker'];
+            const parsedMarket = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': quoteId,
+                'settleId': undefined,
                 'type': type,
                 'spot': spot,
                 'margin': spot && margin,
@@ -439,12 +439,11 @@ module.exports = class liquid extends Exchange {
                 'option': false,
                 'active': !disabled,
                 'contract': swap,
-                'linear': true,
-                'inverse': false,
+                'linear': undefined,
+                'inverse': undefined,
                 'taker': taker,
                 'maker': maker,
-                'contractSize': this.parseNumber ('1'),
-                'maintenanceMarginRate': undefined,
+                'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
@@ -472,7 +471,23 @@ module.exports = class liquid extends Exchange {
                     },
                 },
                 'info': market,
-            });
+            };
+            if (swap) {
+                const settlementCurrencies = this.options['fetchMarkets']['settlementCurrencies'];
+                for (let i = 0; i < settlementCurrencies.length; i++) {
+                    const settle = settlementCurrencies[i];
+                    parsedMarket['settle'] = settle;
+                    parsedMarket['symbol'] = symbol + ':' + settle;
+                    parsedMarket['linear'] = quote === settle;
+                    parsedMarket['inverse'] = base === settle;
+                    parsedMarket['taker'] = this.safeNumber (market, 'taker_fee', taker);
+                    parsedMarket['maker'] = this.safeNumber (market, 'maker_fee', maker);
+                    parsedMarket['contractSize'] = this.parseNumber ('1');
+                    result.push (parsedMarket);
+                }
+            } else {
+                result.push (parsedMarket);
+            }
         }
         return result;
     }
