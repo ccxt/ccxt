@@ -1074,7 +1074,7 @@ module.exports = class bitopro extends Exchange {
         //                 "id":"2905906537"
         //             }
         //
-        // fetchWithdrawals
+        // fetchWithdrawals || fetchWithdraw
         //             {
         //                 "serial":"20220215BW14069838",
         //                 "timestamp":"1644907716044",
