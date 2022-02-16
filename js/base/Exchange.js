@@ -236,6 +236,7 @@ module.exports = class Exchange {
                         'stop': undefined, // i think we can name it 'stop-market'
                         'stop-limit': undefined,
                         'stop-loss': undefined,
+                        'trailing-stop-loss': undefined,
                         'take-profit': undefined,
                     },
                     'status': {
