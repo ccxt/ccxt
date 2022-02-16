@@ -374,6 +374,69 @@ class Exchange(object):
     }
     synchronous = True
 
+    parseCollection = {
+        'order': {
+            'type': {
+                'limit': None,
+                'market': None,
+                'stop': None,
+                'stop-limit': None,
+                'stop-market': None,
+                'stop-loss': None,
+                'take-profit': None,
+                'trailing-stop-loss': None,
+            },
+            'status': {
+                'pending': None,
+                'open': None,
+                'partially-filled': None,
+                'closed': None,
+                'canceled': None,
+                'rejected': None,
+                'expired': None,
+            },
+            'side': {
+                'buy': None,
+                'sell': None,
+            },
+            'timeInForce': {
+                'gtc': None,
+                'gtd': None,
+                'gtt': None,
+                'gtx': None,
+                'fok': None,
+                'ioc': None,
+                'po': None,
+            },
+            'takerMaker': {
+                'taker': None,
+                'maker': None,
+            },
+        },
+        'position': {
+            'status': {
+                'open': None,
+                'closed': None,
+            },
+            'side': {
+                'long': None,
+                'short': None,
+                'flat': None,
+            },
+        },
+        'transaction': {
+            'status': {
+                'fail': None,
+                'pending': None,
+                'ok': None,
+            },
+            'type': {
+                'deposit': None,
+                'withdraw': None,
+            },
+        },
+    }
+
     def __init__(self, config={}):
 
         self.precision = dict() if self.precision is None else self.precision
@@ -413,6 +476,8 @@ class Exchange(object):
 
         if self.markets:
             self.set_markets(self.markets)
+
+        self.define_parse_mappings()
 
         # convert all properties from underscore notation foo_bar to camelcase notation fooBar
         cls = type(self)
@@ -525,6 +590,43 @@ class Exchange(object):
                         raise NotSupported(self.id + ' define_rest_api() API format not supported, API leafs must strings, objects or numbers')
             else:
                 self.define_rest_api(value, method_name, paths + [key])
+
+    def define_parse_mappings(self):
+        prefixParse = 'parse'
+        prefixConvert = 'to'
+        for mainKey, mainObject in self.parseCollection.items():  # key i.e. 'order', 'transaction'...
+            lowercaseMain = mainKey.lower()
+            camelcaseMain = mainKey.capitalize()
+            for typeKey, typeObject in mainObject.items():  # key i.e. 'side', 'status'...
+                lowercaseType = typeKey.lower()
+                camelcaseType = typeKey.capitalize()
+                typeObjectReversed = self.transpose_parse_mappings(typeObject)
+                # define parser
+                parseMethodCamelcase = prefixParse + camelcaseMain + camelcaseType
+                parseMethodUnderscored = prefixParse + '_' + lowercaseMain + '_' + lowercaseType
+                self.define_parse_func(parseMethodCamelcase, typeObjectReversed)
+                self.define_parse_func(parseMethodUnderscored, typeObjectReversed)
+                # define convert
+                convertMethodCamelcase = prefixConvert + camelcaseMain + camelcaseType
+                convertMethodUnderscored = prefixConvert + '_' + lowercaseMain + '_' + lowercaseType
+                self.define_parse_func(convertMethodCamelcase, typeObject)
+                self.define_parse_func(convertMethodUnderscored, typeObject)
+
+    def define_parse_func(self, method_name, valuesObject):
+        def parseFunc(self, some_other_argument):
+            return self.safe_string(valuesObject, some_other_argument, some_other_argument)
+        setattr(self.__class__, method_name, classmethod(parseFunc))
+
+    def transpose_parse_mappings(self, array):
+        result = {}
+        for key, value in array.items():
+            if value is not None:
+                if isinstance(value, list):
+                    for itemValue in value:
+                        result[itemValue] = key
+                else:
+                    result[value] = key
+        return result
 
     def throttle(self, cost=None):
         now = float(self.milliseconds())
