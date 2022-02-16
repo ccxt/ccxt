@@ -119,6 +119,7 @@ class Exchange {
         'delta',
         'deribit',
         'digifinex',
+        'dydx',
         'eqonex',
         'equos',
         'exmo',
@@ -188,7 +189,7 @@ class Exchange {
         'inArray' => 'in_array',
         'toArray' => 'to_array',
         'isEmpty' => 'is_empty',
-        'change_mapping_key_value' => 'change_mapping_key_value',
+        'transposeParseMappings' => 'transpose_parse_mappings',
         'indexBy' => 'index_by',
         'groupBy' => 'group_by',
         'filterBy' => 'filter_by',
@@ -675,7 +676,7 @@ class Exchange {
         return $result;
     }
 
-    public static function change_mapping_key_value ($array) {
+    public static function transpose_parse_mappings ($array) {
         $result = [];
         foreach ($array as $key => $value) {
             if ($value !== null) {
@@ -3756,7 +3757,7 @@ class Exchange {
             foreach ($mainObject as $typeKey => $typeObject) { // key: i.e. 'side', 'status'...
                 $lowercaseType = strToLower($typeKey);
                 $camelcaseType = $this->capitalize($typeKey);
-                $typeObjectReversed = self::change_mapping_key_value($typeObject);
+                $typeObjectReversed = self::transpose_parse_mappings($typeObject);
                 // define parser
                 $parseMethodCamelcase = $prefixParse . $camelcaseMain . $camelcaseType;
                 $parseMethodUnderscored = $prefixParse . '_' . $lowercaseMain . '_' . $lowercaseType;
