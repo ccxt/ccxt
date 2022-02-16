@@ -533,32 +533,51 @@ module.exports = class bitmart extends Exchange {
             const id = this.safeString (market, 'contract_symbol');
             const baseId = id.slice (0, -4);
             const quoteId = id.slice (-4);
-            const settleId = quoteId;
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const settle = this.safeCurrencyCode (settleId);
+            const splitId = id.split (id, '_');
+            const splitIdEnd = this.safeString (splitId, 1);
+            let settle = 'USDT';
+            let symbol = base + '/' + quote + ':' + settle;
+            let type = 'swap';
+            let swap = true;
+            let future = false;
+            if (splitIdEnd !== undefined) {
+                settle = 'BTC';
+                symbol = base + '/' + quote + ':' + settle;
+                if (splitIdEnd !== 'PERP') {
+                    const date = this.iso8601 (this.milliseconds ());
+                    const splitDate = this.split (date, '-');
+                    const year = splitDate[0];
+                    const shortYear = year.slice (0, 2);
+                    const expiry = shortYear + splitIdEnd;
+                    symbol = symbol + '-' + expiry;
+                    type = 'future';
+                    swap = false;
+                    future = true;
+                }
+            }
             result.push ({
                 'id': id,
                 'numericId': undefined,
-                'symbol': base + '/' + quote + ':' + settle,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': settleId,
-                'type': 'swap',
+                'settleId': undefined,
+                'type': type,
                 'spot': false,
                 'margin': false,
-                'swap': true,
-                'future': false,
+                'swap': swap,
+                'future': future,
                 'option': false,
-                'active': undefined,
+                'active': true,
                 'contract': true,
                 'linear': true,
                 'inverse': false,
                 'contractSize': undefined,
-                'maintenanceMarginRate': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
