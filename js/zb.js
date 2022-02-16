@@ -401,10 +401,10 @@ module.exports = class zb extends Exchange {
             const [ baseId, quoteId ] = id.split ('_');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const settleId = this.safeValue (market, 'buyerCurrencyName');
+            const settleId = this.safeValue (market, 'marginCurrencyName');
             const settle = this.safeCurrencyCode (settleId);
             const spot = settle === undefined;
-            const swap = !spot;
+            const swap = this.safeValue (market, 'futures', false);
             const linear = swap ? true : undefined;
             let status = '1';
             let symbol = base + '/' + quote;
