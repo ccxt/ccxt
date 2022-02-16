@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, OrderNotFound, ExchangeError, InvalidOrder, AuthenticationError } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeError, InvalidOrder, AuthenticationError } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -228,7 +228,7 @@ module.exports = class graviex extends Exchange {
         //     "buy": "0.00000055",
         //     "at": 1643628427,
         // },
-        const timestamp = this.milliseconds ();
+        const timestamp = this.safeTimestamp (ticker, 'at');
         const marketId = this.safeString (ticker, 'name');
         const symbol = this.safeSymbol (marketId, market);
         const last = this.safeNumber (ticker, 'last');
@@ -350,11 +350,9 @@ module.exports = class graviex extends Exchange {
         // },
         const price = this.safeString2 (trade, 'p', 'price');
         const amount = this.safeString2 (trade, 'volume', 'amount');
-        const funds = this.safeString (trade, 'funds');
         const marketId = this.safeString (trade, 'market');
         const symbol = this.safeSymbol (marketId, market);
-        const datetime = this.safeValue (trade, 'created_at');
-        const timestamp = this.parseDate (datetime);
+        const timestamp = this.safeTimestamp (trade, 'at');
         let id = this.safeString2 (trade, 't', 'a');
         id = this.safeString2 (trade, 'id', 'tid', id);
         const side = this.safeValue (trade, 'side');
@@ -378,7 +376,6 @@ module.exports = class graviex extends Exchange {
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
-            'funds': funds,
             'amount': amount,
             'cost': undefined,
             'fee': undefined,
@@ -444,13 +441,12 @@ module.exports = class graviex extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const defaultLimit = 50;
-        const maxLimit = 1500;
-        limit = (limit === undefined) ? defaultLimit : Math.min (limit, maxLimit);
         const request = {
             'market': market['id'],
-            'limit': limit,
         };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         const response = await this.publicGetK (this.extend (request));
         // [
         //     [
@@ -505,7 +501,6 @@ module.exports = class graviex extends Exchange {
         // },
         const timestamp = this.safeInteger (response, 'timestamp');
         const orderbook = this.parseOrderBook (response, symbol, timestamp);
-        orderbook['nonce'] = undefined;
         return orderbook;
     }
 
@@ -595,10 +590,14 @@ module.exports = class graviex extends Exchange {
         const type = (cancelRequested === undefined) ? 'deposit' : 'withdrawal';
         const amount = this.safeNumber (transaction, 'amount');
         const currencyId = this.safeString (transaction, 'currency');
-        const confirmations = this.safeString (transaction, 'confirmations');
         const code = this.safeCurrencyCode (currencyId);
         let status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
         const statusCode = this.safeString (transaction, 'code');
+        const feeCost = this.safeNumber (transaction, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = { 'currency': code, 'cost': feeCost };
+        }
         if (cancelRequested) {
             status = 'canceled';
         } else if (status === undefined) {
@@ -610,11 +609,20 @@ module.exports = class graviex extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'confirmations': confirmations,
+            'network': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'type': type,
             'amount': amount,
             'currency': code,
             'status': status,
+            'updated': undefined,
+            'internal': undefined,
+            'fee': fee,
         };
     }
 
@@ -709,7 +717,7 @@ module.exports = class graviex extends Exchange {
         //     "strategy": null
         //   }
         const id = this.safeString (order, 'id');
-        const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
+        const timestamp = this.safeTimestamp (order, 'at');
         const sideType = this.safeString (order, 'ord_type');
         const side = this.safeString (order, 'side');
         const price = this.safeString (order, 'price');
@@ -737,15 +745,10 @@ module.exports = class graviex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        if (id === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a order id argument');
-        }
         await this.loadMarkets ();
         const request = {
+            'id': id,
         };
-        if (id !== undefined) {
-            request['id'] = id;
-        }
         const response = await this.privateGetOrder (this.extend (request, params));
         // {
         //   "id": 288336422,
@@ -773,8 +776,8 @@ module.exports = class graviex extends Exchange {
         };
         let market = undefined;
         if (symbol !== undefined) {
-            request['market'] = this.marketId (symbol);
             market = this.market (symbol);
+            request['market'] = market['id'];
         }
         const response = await this.privateGetOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
@@ -805,7 +808,7 @@ module.exports = class graviex extends Exchange {
         };
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['market'] = this.marketId (symbol);
+            request['market'] = market['id'];
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default: 500
@@ -816,14 +819,15 @@ module.exports = class graviex extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'market': this.marketId (symbol),
+            'market': market['id'],
             'side': side,
-            'volume': amount.toString (),
+            'volume': this.amountToPrecision (symbol, amount),
             'ord_type': type,
         };
         if (price !== undefined) {
-            request['price'] = price.toString ();
+            request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this.privatePostOrders (this.extend (request));
         // {
@@ -872,10 +876,6 @@ module.exports = class graviex extends Exchange {
         //   "strategy": null
         // }
         const order = this.parseOrder (response);
-        const status = order['status'];
-        if (status === 'closed' || status === 'canceled') {
-            throw new OrderNotFound (this.id + ' ' + this.json (order));
-        }
         return order;
     }
 
@@ -888,10 +888,6 @@ module.exports = class graviex extends Exchange {
         }
         const response = await this.privatePostOrdersClear (this.extend (request, params));
         const order = this.parseOrder (response);
-        const status = order['status'];
-        if (status === 'closed' || status === 'canceled') {
-            throw new OrderNotFound (this.id + ' ' + this.json (order));
-        }
         return order;
     }
 
@@ -902,8 +898,8 @@ module.exports = class graviex extends Exchange {
         };
         let market = undefined;
         if (symbol !== undefined) {
-            request['market'] = this.marketId (symbol);
             market = this.market (symbol);
+            request['market'] = market['id'];
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default: 500
