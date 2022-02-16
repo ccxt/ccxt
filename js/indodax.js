@@ -78,6 +78,9 @@ module.exports = class indodax extends Exchange {
                     'get': [
                         'server_time',
                         'pairs',
+                        'price_increments',
+                        'summaries',
+                        'ticker_all',
                         '{pair}/ticker',
                         '{pair}/trades',
                         '{pair}/depth',
