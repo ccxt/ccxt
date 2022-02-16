@@ -56,7 +56,7 @@ module.exports = class bitopro extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': false,
                 'fetchTrades': true,
-                'fetchTradingFees': false,
+                'fetchTradingFees': true,
                 'fetchTransactions': false,
                 'fetchWithdrawals': false,
                 'setLeverage': false,
@@ -533,6 +533,79 @@ module.exports = class bitopro extends Exchange {
         //     }
         //
         return this.parseTrades (trades, market, since, limit);
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetProvisioningLimitationsAndFees (params);
+        const tradingFeeRate = this.safeValue (response, 'tradingFeeRate', {});
+        const result = this.safeValue (tradingFeeRate, 0);
+        //
+        //     {
+        //         "tradingFeeRate":[
+        //             {
+        //                 "rank":0,
+        //                 "twdVolumeSymbol":"\u003c",
+        //                 "twdVolume":"3000000",
+        //                 "bitoAmountSymbol":"\u003c",
+        //                 "bitoAmount":"7500",
+        //                 "makerFee":"0.001",
+        //                 "takerFee":"0.002",
+        //                 "makerBitoFee":"0.0008",
+        //                 "takerBitoFee":"0.0016"
+        //             }
+        //         ],
+        //         "orderFeesAndLimitations":[
+        //             {
+        //                 "pair":"BTC/TWD",
+        //                 "minimumOrderAmount":"0.0001",
+        //                 "minimumOrderAmountBase":"BTC",
+        //                 "minimumOrderNumberOfDigits":"0"
+        //             }
+        //         ],
+        //         "restrictionsOfWithdrawalFees":[
+        //             {
+        //                 "currency":"TWD",
+        //                 "fee":"15",
+        //                 "minimumTradingAmount":"100",
+        //                 "maximumTradingAmount":"1000000",
+        //                 "dailyCumulativeMaximumAmount":"2000000",
+        //                 "remarks":"",
+        //                 "protocol":""
+        //             }
+        //         ],
+        //         "cryptocurrencyDepositFeeAndConfirmation":[
+        //             {
+        //                 "currency":"TWD",
+        //                 "generalDepositFees":"0",
+        //                 "blockchainConfirmationRequired":""
+        //             }
+        //         ],
+        //         "ttCheckFeesAndLimitationsLevel1":[
+        //             {
+        //                 "currency":"TWD",
+        //                 "redeemDailyCumulativeMaximumAmount":"",
+        //                 "generateMinimumTradingAmount":"",
+        //                 "generateMaximumTradingAmount":"",
+        //                 "generateDailyCumulativeMaximumAmount":""
+        //             }
+        //         ],
+        //         "ttCheckFeesAndLimitationsLevel2":[
+        //             {
+        //                 "currency":"TWD",
+        //                 "redeemDailyCumulativeMaximumAmount":"20000000",
+        //                 "generateMinimumTradingAmount":"30",
+        //                 "generateMaximumTradingAmount":"10000000",
+        //                 "generateDailyCumulativeMaximumAmount":"10000000"
+        //             }
+        //         ]
+        //     }
+        //
+        return {
+            'info': response,
+            'maker': this.safeNumber (result, 'makerFee'),
+            'taker': this.safeNumber (result, 'takerFee'),
+        };
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
