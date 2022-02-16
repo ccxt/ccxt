@@ -1365,6 +1365,8 @@ class Exchange {
         if ($this->markets) {
             $this->set_markets($this->markets);
         }
+
+        $this->define_parse_mappings();
     }
 
     public function set_sandbox_mode($enabled) {
