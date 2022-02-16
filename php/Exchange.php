@@ -188,6 +188,7 @@ class Exchange {
         'inArray' => 'in_array',
         'toArray' => 'to_array',
         'isEmpty' => 'is_empty',
+        'change_mapping_key_value' => 'change_mapping_key_value',
         'indexBy' => 'index_by',
         'groupBy' => 'group_by',
         'filterBy' => 'filter_by',
@@ -252,6 +253,24 @@ class Exchange {
         'extractParams' => 'extract_params',
         'fetchImplementation' => 'fetch_implementation',
         'executeRestRequest' => 'execute_rest_request',
+        'parseOrderType' => 'parse_order_type',
+        'toOrderType' => 'to_order_type',
+        'parseOrderStatus' => 'parse_order_status',
+        'toOrderStatus' => 'to_order_status',
+        'parseOrderSide' => 'parse_order_side',
+        'toOrderSide' => 'to_order_side',
+        'parseOrderTimeInForce' => 'parse_order_time_in_force',
+        'toOrderTimeInForce' => 'to_order_time_in_force',
+        'parseOrderTakerMaker' => 'parse_order_taker_maker',
+        'toOrderTakerMaker' => 'to_order_taker_maker',
+        'parsePositionStatus' => 'parse_position_status',
+        'toPositionStatus' => 'to_position_status',
+        'parsePositionSide' => 'parse_position_side',
+        'toPositionSide' => 'to_position_side',
+        'parseTransactionStatus' => 'parse_transaction_status',
+        'toTransactionStatus' => 'to_transaction_status',
+        'parseTransactionType' => 'parse_transaction_type',
+        'toTransactionType' => 'to_transaction_type',
         'encodeURIComponent' => 'encode_uri_component',
         'checkRequiredVersion' => 'check_required_version',
         'checkRequiredCredentials' => 'check_required_credentials',
@@ -375,6 +394,7 @@ class Exchange {
         'fetchBorrowRate' => 'fetch_borrow_rate',
         'handleMarketTypeAndParams' => 'handle_market_type_and_params',
         'loadTimeDifference' => 'load_time_difference',
+        'defineParseMappings' => 'define_parse_mappings',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -650,6 +670,22 @@ class Exchange {
                     $result[$element[$key]] = array();
                 }
                 $result[$element[$key]][] = $element;
+            }
+        }
+        return $result;
+    }
+
+    public static function change_mapping_key_value ($array) {
+        $result = [];
+        foreach ($array as $key => $value) {
+            if ($value !== null) {
+                if (is_array($value)){
+                    foreach ($value as $itemKey => $itemValue) {
+                        $result[$itemValue] = $key;
+                    }
+                } else {
+                    $result[$value] = $key;
+                }
             }
         }
         return $result;
@@ -3638,5 +3674,37 @@ class Exchange {
         $after = $this->milliseconds();
         $this->options['timeDifference'] = $after - $server_time;
         return $this->options['timeDifference'];
+    }
+
+    public function define_parse_mappings() {
+        $prefixParse = 'parse';
+        $prefixConvert = 'to';
+        $allMappings = $this->parseCollection;
+        foreach ($allMappings as $mainKey => $mainObject) { // key: i.e. 'order', 'transaction'...
+            $mainObject = $allMappings[$mainKey];
+            $lowercaseMain = strtolower($mainKey);
+            $camelcaseMain = $this->capitalize($mainKey);
+            foreach ($mainObject as $typeKey => $typeObject) { // key: i.e. 'side', 'status'...
+                $lowercaseType = strToLower($typeKey);
+                $camelcaseType = $this->capitalize($typeKey);
+                $typeObjectReversed = self::change_mapping_key_value($typeObject);
+                // define parser
+                $parseMethodCamelcase = $prefixParse . $camelcaseMain . $camelcaseType;
+                $parseMethodUnderscored = $prefixParse . '_' . $lowercaseMain . '_' . $lowercaseType;
+                $parseFunc = function ($value) use ($typeObjectReversed) {
+                    return $this->safeString($typeObjectReversed, $value, $value);
+                };
+                $this->$parseMethodCamelcase  = $parseFunc;
+                $this->$parseMethodUnderscored = $parseFunc;
+                // define convert 
+                $convertMethodCamelcase = $prefixConvert . $camelcaseMain . $camelcaseType;
+                $convertMethodUnderscored = $prefixConvert . '_' . $lowercaseMain . '_' . $lowercaseType;
+                $convertFunc = function ($value) use ($typeObject) {
+                    return $this->safeString($typeObject, $value, $value);
+                };
+                $this->$convertMethodCamelcase = $convertFunc;
+                $this->$convertMethodUnderscored = $convertFunc;
+            }
+        }
     }
 }
