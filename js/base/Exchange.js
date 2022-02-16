@@ -2212,7 +2212,7 @@ module.exports = class Exchange {
     defineParseMappings () {
         const prefixParse = 'parse';
         const prefixConvert = 'to';
-        const allMappings = this.parseColletion;
+        const allMappings = this.parseCollection;
         const allMappingsKeys = Object.keys (allMappings);
         for (let i = 0; i < allMappingsKeys.length; i++) {
             const mainKey = allMappingsKeys[i] // i.e. 'order', 'transaction'...
