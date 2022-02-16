@@ -1330,6 +1330,69 @@ class Exchange {
         $this->urlencode_glue = ini_get('arg_separator.output'); // can be overrided by exchange constructor params
         $this->urlencode_glue_warning = true;
 
+        $this->parseCollection = array(
+            'order' => array(
+                'type' => array(
+                    'limit' => null,
+                    'market' => null,
+                    'stop' => null,
+                    'stop-limit' => null,
+                    'stop-loss' => null,
+                    'take-profit' => null,
+                    'trailing-stop-loss' => null,
+                ),
+                'status' => array(
+                    'pending' => null,
+                    'open' => null,
+                    'partially-filled' => null,
+                    'closed' => null,
+                    'canceled' => null,
+                    'rejected' => null,
+                    'expired' => null,
+                ),
+                'side' => array(
+                    'buy' => null,
+                    'sell' => null,
+                ),
+                'timeInForce' => array(
+                    'gtc' => null,
+                    'gtd' => null,
+                    'gtt' => null,
+                    'gtx' => null,
+                    'fok' => null,
+                    'ioc' => null,
+                    'po' => null,
+                ),
+                'takerMaker' => array(
+                    'taker' => null,
+                    'maker' => null,
+                ),
+            ),
+            'position' => array(
+                'status' => array(
+                    'open' => null,
+                    'closed' => null,
+                ),
+                'side' => array(
+                    'long' => null,
+                    'short' => null,
+                    'flat' => null,
+                ),
+            ),
+            'transaction' => array(
+                'status' => array(
+                    'fail' => null,
+                    'pending' => null,
+                    'ok' => null,
+                ),
+                'type' => array(
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'transfer' => null,
+                ),
+            ),
+        );
+
         $options = array_replace_recursive($this->describe(), $options);
         if ($options) {
             foreach ($options as $key => $value) {
@@ -2771,6 +2834,9 @@ class Exchange {
             $partial[6] = $config;
             $partial[7] = ($params && (count($params) > 1)) ? $params[1] : array();
             return call_user_func_array(array($this, $entry), $partial);
+        } else if (array_key_exists($function, $this->defined_parse_functions)) {
+            $functionBody = $this->defined_parse_functions[$function];
+            return call_user_func($functionBody, $params[0]);
         } else if (array_key_exists($function, static::$camelcase_methods)) {
             $underscore = static::$camelcase_methods[$function];
             return call_user_func_array(array($this, $underscore), $params);
@@ -3679,6 +3745,7 @@ class Exchange {
     }
 
     public function define_parse_mappings() {
+        $this->defined_parse_functions = array(); 
         $prefixParse = 'parse';
         $prefixConvert = 'to';
         $allMappings = $this->parseCollection;
@@ -3696,16 +3763,16 @@ class Exchange {
                 $parseFunc = function ($value) use ($typeObjectReversed) {
                     return $this->safeString($typeObjectReversed, $value, $value);
                 };
-                $this->$parseMethodCamelcase  = $parseFunc;
-                $this->$parseMethodUnderscored = $parseFunc;
-                // define convert 
+                $this->defined_parse_functions[$parseMethodCamelcase]  = $parseFunc;
+                $this->defined_parse_functions[$parseMethodUnderscored] = $parseFunc;
+                // define convert
                 $convertMethodCamelcase = $prefixConvert . $camelcaseMain . $camelcaseType;
                 $convertMethodUnderscored = $prefixConvert . '_' . $lowercaseMain . '_' . $lowercaseType;
                 $convertFunc = function ($value) use ($typeObject) {
                     return $this->safeString($typeObject, $value, $value);
                 };
-                $this->$convertMethodCamelcase = $convertFunc;
-                $this->$convertMethodUnderscored = $convertFunc;
+                $this->defined_parse_functions[$convertMethodCamelcase] = $convertFunc;
+                $this->defined_parse_functions[$convertMethodUnderscored] = $convertFunc;
             }
         }
     }
