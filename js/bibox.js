@@ -975,21 +975,13 @@ module.exports = class bibox extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let symbol = undefined;
-        if (market === undefined) {
-            let marketId = undefined;
-            const baseId = this.safeString (order, 'coin_symbol');
-            const quoteId = this.safeString (order, 'currency_symbol');
-            if ((baseId !== undefined) && (quoteId !== undefined)) {
-                marketId = baseId + '_' + quoteId;
-            }
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
+        let marketId = undefined;
+        const baseId = this.safeString (order, 'coin_symbol');
+        const quoteId = this.safeString (order, 'currency_symbol');
+        if ((baseId !== undefined) && (quoteId !== undefined)) {
+            marketId = baseId + '_' + quoteId;
         }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (marketId, market);
         const rawType = this.safeString (order, 'order_type');
         const type = (rawType === '1') ? 'market' : 'limit';
         const timestamp = this.safeInteger (order, 'createdAt');
@@ -1017,7 +1009,7 @@ module.exports = class bibox extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
