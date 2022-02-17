@@ -1445,6 +1445,30 @@ module.exports = class kucoinfutures extends kucoin {
         //         "createdAt":1547026472000
         //     }
         //
+        // fetchMyTrades (private) v1
+        //
+        //      {
+        //          "symbol":"DOGEUSDTM",
+        //          "tradeId":"620ec41a96bab27b5f4ced56",
+        //          "orderId":"620ec41a0d1d8a0001560bd0",
+        //          "side":"sell",
+        //          "liquidity":"taker",
+        //          "forceTaker":true,
+        //          "price":"0.13969",
+        //          "size":1,
+        //          "value":"13.969",
+        //          "feeRate":"0.0006",
+        //          "fixFee":"0",
+        //          "feeCurrency":"USDT",
+        //          "stop":"",
+        //          "tradeTime":1645134874858018058,
+        //          "fee":"0.0083814",
+        //          "settleCurrency":"USDT",
+        //          "orderType":"market",
+        //          "tradeType":"trade",
+        //          "createdAt":1645134874858
+        //      }
+        //
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '-');
         const id = this.safeString2 (trade, 'tradeId', 'id');
@@ -1462,12 +1486,10 @@ module.exports = class kucoinfutures extends kucoin {
         }
         const priceString = this.safeString2 (trade, 'price', 'dealPrice');
         const amountString = this.safeString2 (trade, 'size', 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
         const side = this.safeString (trade, 'side');
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'fee');
-        if (feeCost !== undefined) {
+        const feeCostString = this.safeString (trade, 'fee');
+        if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'feeCurrency');
             let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
             if (feeCurrency === undefined) {
@@ -1476,25 +1498,25 @@ module.exports = class kucoinfutures extends kucoin {
                 }
             }
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrency,
-                'rate': this.safeNumber (trade, 'feeRate'),
+                'rate': this.safeString (trade, 'feeRate'),
             };
         }
         let type = this.safeString2 (trade, 'type', 'orderType');
         if (type === 'match') {
             type = undefined;
         }
-        let cost = this.safeNumber2 (trade, 'funds', 'dealValue');
-        if (cost === undefined) {
+        let costString = this.safeString2 (trade, 'funds', 'value');
+        if (costString === undefined) {
             market = this.market (symbol);
             const contractSize = this.safeString (market, 'contractSize');
             const contractCost = Precise.stringMul (priceString, amountString);
             if (contractSize && contractCost) {
-                cost = this.parseNumber (Precise.stringMul (contractCost, contractSize));
+                costString = Precise.stringMul (contractCost, contractSize);
             }
         }
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'order': orderId,
@@ -1504,11 +1526,11 @@ module.exports = class kucoinfutures extends kucoin {
             'type': type,
             'takerOrMaker': takerOrMaker,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
