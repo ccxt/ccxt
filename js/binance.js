@@ -5609,20 +5609,21 @@ module.exports = class binance extends Exchange {
         //      ...
         //  ]
         //
-        const openInterest = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const timestamp = this.safeInteger (entry, 'timestamp');
-            openInterest.push ({
-                'info': entry,
-                'symbol': this.safeSymbol (this.safeString (entry, 'symbol')),
-                'sumOpenInterest': this.safeNumber (entry, 'sumOpenInterest'),
-                'sumOpenInterestValue': this.safeNumber (entry, 'sumOpenInterestValue'),
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-            });
-        }
-        const sorted = this.sortBy (openInterest, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+        return this.parseOpenInterests (response, symbol, since, limit);
+    }
+
+    parseOpenInterest (interest) {
+        const timestamp = this.safeInteger (interest, 'timestamp');
+        const id = this.safeString (interest, 'symbol');
+        const market = this.market (id);
+        return {
+            'symbol': this.safeSymbol (id),
+            'numContracts': this.safeNumber (interest, 'sumOpenInterest'),
+            'totalValue': this.safeNumber (interest, 'sumOpenInterestValue'),
+            'valueCurrency': market['quote'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
+        };
     }
 };
