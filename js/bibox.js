@@ -342,41 +342,25 @@ module.exports = class bibox extends Exchange {
         const timestamp = this.safeInteger2 (trade, 'time', 'createdAt');
         let side = this.safeInteger2 (trade, 'side', 'order_side');
         side = (side === 1) ? 'buy' : 'sell';
-        let symbol = undefined;
-        if (market === undefined) {
-            let marketId = this.safeString (trade, 'pair');
-            if (marketId === undefined) {
-                const baseId = this.safeString (trade, 'coin_symbol');
-                const quoteId = this.safeString (trade, 'currency_symbol');
-                if ((baseId !== undefined) && (quoteId !== undefined)) {
-                    marketId = baseId + '_' + quoteId;
-                }
-            }
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
+        let marketId = this.safeString (trade, 'pair');
+        if (marketId === undefined) {
+            const baseId = this.safeString (trade, 'coin_symbol');
+            const quoteId = this.safeString (trade, 'currency_symbol');
+            if ((baseId !== undefined) && (quoteId !== undefined)) {
+                marketId = baseId + '_' + quoteId;
             }
         }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        let fee = undefined;
-        const feeCostString = this.safeString (trade, 'fee');
-        let feeCurrency = this.safeString (trade, 'fee_symbol');
-        if (feeCurrency !== undefined) {
-            if (feeCurrency in this.currencies_by_id) {
-                feeCurrency = this.currencies_by_id[feeCurrency]['code'];
-            } else {
-                feeCurrency = this.safeCurrencyCode (feeCurrency);
-            }
-        }
-        const feeRate = undefined; // todo: deduce from market if market is defined
+        market = this.safeMarket (marketId, market);
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
+        let fee = undefined;
+        const feeCostString = this.safeString (trade, 'fee');
         if (feeCostString !== undefined) {
+            const feeCurrecyId = this.safeString (trade, 'fee_symbol');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
                 'cost': Precise.stringNeg (feeCostString),
-                'currency': feeCurrency,
-                'rate': feeRate,
+                'currency': feeCurrencyCode,
             };
         }
         const id = this.safeString (trade, 'id');
@@ -386,7 +370,7 @@ module.exports = class bibox extends Exchange {
             'order': undefined, // Bibox does not have it (documented) yet
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': 'limit',
             'takerOrMaker': undefined,
             'side': side,
