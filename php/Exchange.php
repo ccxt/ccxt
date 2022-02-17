@@ -4037,4 +4037,14 @@ class Exchange {
         $symbol = ($market === null) ? null : $market['symbol'];
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
+
+    public function parse_open_interests($response, $symbol, $since, $limit) {
+        $interests = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = &$response[$i];
+            $interest = $this->parseOpenInterest($entry);
+            array_push($interests, $interest);
+        }
+        return $this->filterBySymbolSinceLimit ($sorted, $symbol, $since, $limit);
+    }
 }
