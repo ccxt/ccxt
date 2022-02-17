@@ -14,7 +14,7 @@ module.exports = class graviex extends Exchange {
             'name': 'Graviex',
             'version': 'v3',
             'countries': [ 'MT', 'RU' ],
-            'rateLimit': 1000,
+            'rateLimit': 300,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -170,8 +170,8 @@ module.exports = class graviex extends Exchange {
                 'base': this.safeCurrencyCode (baseId),
                 'quote': this.safeCurrencyCode (quoteId),
                 'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
+                'baseId': baseId.toLowerCase (),
+                'quoteId': quoteId.toLowerCase (),
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
@@ -240,7 +240,7 @@ module.exports = class graviex extends Exchange {
             'low': this.safeString (ticker, 'low'),
             'bid': this.safeString (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
+            'ask': this.safeNumber (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -388,16 +388,11 @@ module.exports = class graviex extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const defaultType = 'spot';
-        const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
-        let defaultMethod = undefined;
-        if (type === 'simple') {
-            defaultMethod = 'publicGetTradesSimple';
-        } else {
-            defaultMethod = 'publicGetTrades';
-        }
-        const method = this.safeString (this.options, 'fetchTradesMethod', defaultMethod);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTrades', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'publicGetTrades',
+            'simple': 'publicGetTradesSimple',
+        });
         if (limit !== undefined) {
             request['limit'] = limit; // default: 500
         }
@@ -560,7 +555,7 @@ module.exports = class graviex extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'currency': currency['id'].toLowerCase (),
+            'currency': currency['id'],
         };
         const response = await this.privateGetDepositAddress (this.extend (request, params));
         // "\"MJhWAUptMUrMo8Jb9G7xsPfSQjeWSWJh2q\""
@@ -930,7 +925,7 @@ module.exports = class graviex extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'currency': currency['id'].toLowerCase (),
+            'currency': currency['id'],
         };
         const response = await this.privateGetGenDepositAddress (this.extend (request, params));
         // "\"request_accepted\""
