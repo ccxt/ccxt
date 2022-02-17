@@ -89,7 +89,7 @@ module.exports = class dydx extends Exchange {
                         'stats/{market}': 60,
                         'historical-funding/{market}': 60,
                         'candles/{market}': 60,
-                        'config': 60, // Get default maker and taker fees.
+                        'config': 60, // Get default maker and taker fees. // TO_DO: fetchTradingFees
                         'users/exists': 60,
                         'usernames': 60,
                         'time': 60,
@@ -695,7 +695,7 @@ module.exports = class dydx extends Exchange {
             'CLOSED': 'closed',
         };
         if (reversed) {
-            statuses = this.changeKeyValue (statuses);
+            statuses = this.parseArrayTranspose (statuses);
         }
         return this.safeString (statuses, status, status);
     }
@@ -706,7 +706,7 @@ module.exports = class dydx extends Exchange {
             'SHORT': 'short',
         };
         if (reversed) {
-            statuses = this.changeKeyValue (statuses);
+            statuses = this.parseArrayTranspose (statuses);
         }
         return this.safeString (statuses, status, status);
     }
@@ -727,6 +727,7 @@ module.exports = class dydx extends Exchange {
         const status = this.safeString (position, 'status') === 'OPEN' ? 'open' : 'closed';
         const timestamp = this.parse8601 (this.safeString (position, 'createdAt'));
         return {
+            'id': undefined,
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -794,7 +795,7 @@ module.exports = class dydx extends Exchange {
             'CONFIRMED': 'ok',
         };
         if (reversed) {
-            statuses = this.changeKeyValue (statuses);
+            statuses = this.parseArrayTranspose (statuses);
         }
         return this.safeString (statuses, status, status);
     }
@@ -806,7 +807,7 @@ module.exports = class dydx extends Exchange {
             'FAST_WITHDRAWAL': 'withdraw',
         };
         if (reversed) {
-            statuses = this.changeKeyValue (statuses);
+            statuses = this.parseArrayTranspose (statuses);
         }
         return this.safeString (statuses, status, status);
     }
@@ -1017,7 +1018,7 @@ module.exports = class dydx extends Exchange {
             'CANCELED': 'canceled',
         };
         if (reversed) {
-            statuses = this.changeKeyValue (statuses);
+            statuses = this.parseArrayTranspose (statuses);
         }
         return this.safeString (statuses, status, status);
     }
@@ -1031,7 +1032,7 @@ module.exports = class dydx extends Exchange {
             'TAKE_PROFIT': 'take-profit',
         };
         if (reversed) {
-            statuses = this.changeKeyValue (statuses);
+            statuses = this.parseArrayTranspose (statuses);
         }
         return this.safeString (statuses, status, status);
     }
@@ -1043,7 +1044,7 @@ module.exports = class dydx extends Exchange {
             'IOC': 'ioc',
         };
         if (reversed) {
-            statuses = this.changeKeyValue (status);
+            statuses = this.parseArrayTranspose (status);
         }
         return this.safeString (statuses, status, status);
     }
@@ -1054,7 +1055,7 @@ module.exports = class dydx extends Exchange {
             'SELL': 'sell',
         };
         if (reversed) {
-            statuses = this.changeKeyValue (statuses);
+            statuses = this.parseArrayTranspose (statuses);
         }
         return this.safeString (statuses, status, status);
     }
@@ -1065,7 +1066,7 @@ module.exports = class dydx extends Exchange {
             'TAKER': 'taker',
         };
         if (reversed) {
-            statuses = this.changeKeyValue (statuses);
+            statuses = this.parseArrayTranspose (statuses);
         }
         return this.safeString (statuses, status, status);
     }
@@ -1238,7 +1239,7 @@ module.exports = class dydx extends Exchange {
         }
     }
 
-    changeKeyValue (obj) { // TODO: this method might live in base. this is being used for reverse-parsing or associated key-values
+    parseArrayTranspose (obj) {
         const result = {};
         const keys = Object.keys (obj);
         for (let i = 0; i < keys.length; i++) {
