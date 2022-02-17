@@ -818,14 +818,14 @@ module.exports = class bitopro extends Exchange {
         };
         const orderType = type.toUpperCase ();
         if ((orderType === 'LIMIT') || (orderType === 'STOP_LIMIT')) {
-            request['price'] = this.priceToPrecision (price);
+            request['price'] = this.priceToPrecision (symbol, price);
         }
         if (orderType === 'STOP_LIMIT') {
             const stopPrice = this.safeNumber (params, 'stopPrice');
             if (stopPrice === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice parameter for ' + orderType + ' orders');
             } else {
-                request['stopPrice'] = this.priceToPrecision (stopPrice);
+                request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             }
             const condition = this.safeString (params, 'condition');
             if (condition === undefined) {
