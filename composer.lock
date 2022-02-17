@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f955b2fbdb0d5dec62600728694ef932",
+    "content-hash": "b7330c56d99881b228de8b1f496fd167",
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.73.1",
+            "version": "1.73.20",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "cc7423b981d882e7b3f0e4a0da417c5cadd5ffe7"
+                "reference": "0f7040405aa54f44bd24a2403f456baa1cc4dbe5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/cc7423b981d882e7b3f0e4a0da417c5cadd5ffe7",
-                "reference": "cc7423b981d882e7b3f0e4a0da417c5cadd5ffe7",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/0f7040405aa54f44bd24a2403f456baa1cc4dbe5",
+                "reference": "0f7040405aa54f44bd24a2403f456baa1cc4dbe5",
                 "shasum": ""
             },
             "require": {
@@ -280,7 +280,7 @@
             ],
             "support": {
                 "issues": "https://github.com/ccxt/ccxt/issues",
-                "source": "https://github.com/ccxt/ccxt/tree/1.73.1"
+                "source": "https://github.com/ccxt/ccxt/tree/1.73.20"
             },
             "funding": [
                 {
@@ -288,7 +288,7 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2022-02-14T13:37:51+00:00"
+            "time": "2022-02-17T17:01:38+00:00"
         },
         {
             "name": "evenement/evenement",
@@ -1259,12 +1259,12 @@
             },
             "type": "library",
             "autoload": {
-                "psr-4": {
-                    "React\\Promise\\Stream\\": "src/"
-                },
                 "files": [
                     "src/functions_include.php"
-                ]
+                ],
+                "psr-4": {
+                    "React\\Promise\\Stream\\": "src/"
+                }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
