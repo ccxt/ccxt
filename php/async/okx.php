@@ -45,8 +45,8 @@ class okx extends Exchange {
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
                 'fetchBorrowRate' => true,
-                'fetchBorrowRateHistories' => null,
-                'fetchBorrowRateHistory' => null,
+                'fetchBorrowRateHistories' => true,
+                'fetchBorrowRateHistory' => true,
                 'fetchBorrowRates' => true,
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchCanceledOrders' => true,
@@ -3879,52 +3879,6 @@ class okx extends Exchange {
         return $response;
     }
 
-    public function modify_margin_helper($symbol, $amount, $type, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $posSide = $this->safe_string($params, 'posSide', 'net');
-        $params = $this->omit($params, array( 'posSide' ));
-        $request = array(
-            'instId' => $market['id'],
-            'amt' => $amount,
-            'type' => $type,
-            'posSide' => $posSide,
-        );
-        $response = yield $this->privatePostAccountPositionMarginBalance (array_merge($request, $params));
-        //
-        //     {
-        //       "code" => "0",
-        //       "data" => array(
-        //         {
-        //           "amt" => "0.01",
-        //           "instId" => "ETH-USD-SWAP",
-        //           "posSide" => "net",
-        //           "type" => "reduce"
-        //         }
-        //       ),
-        //       "msg" => ""
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        $entry = $this->safe_value($data, 0, array());
-        $errorCode = $this->safe_string($response, 'code');
-        $status = ($errorCode === '0') ? 'ok' : 'failed';
-        $responseAmount = $this->safe_number($entry, 'amt');
-        $responseType = $this->safe_string($entry, 'type');
-        $marketId = $this->safe_string($entry, 'instId');
-        $responseMarket = $this->safe_market($marketId, $market);
-        $code = $responseMarket['inverse'] ? $responseMarket['base'] : $responseMarket['quote'];
-        $symbol = $responseMarket['symbol'];
-        return array(
-            'info' => $response,
-            'type' => $responseType,
-            'amount' => $responseAmount,
-            'code' => $code,
-            'symbol' => $symbol,
-            'status' => $status,
-        );
-    }
-
     public function fetch_borrow_rates($params = array ()) {
         yield $this->load_markets();
         $response = yield $this->privateGetAccountInterestRate ($params);
@@ -3984,6 +3938,117 @@ class okx extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $rate,
+        );
+    }
+
+    public function fetch_borrow_rate_histories($since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $request = array(
+            // 'ccy' => $currency['id'],
+            // 'after' => $this->milliseconds(), // Pagination of $data to return records earlier than the requested ts,
+            // 'before' => $since, // Pagination of $data to return records newer than the requested ts,
+            // 'limit' => $limit, // default is 100 and maximum is 100
+        );
+        if ($since !== null) {
+            $request['before'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = yield $this->publicGetAssetLendingRateHistory (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             array(
+        //                 "amt" => "992.10341195",
+        //                 "ccy" => "BTC",
+        //                 "rate" => "0.01",
+        //                 "ts" => "1643954400000"
+        //             ),
+        //         ),
+        //         "msg" => ""
+        //     }
+        //
+        $data = $this->safe_value($response, 'data');
+        $borrowRateHistories = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $item = $data[$i];
+            $currency = $this->safe_currency_code($this->safe_string($item, 'ccy'));
+            if (!(is_array($borrowRateHistories) && array_key_exists($currency, $borrowRateHistories))) {
+                $borrowRateHistories[$currency] = array();
+            }
+            $rate = $this->safe_string($item, 'rate');
+            $timestamp = $this->safe_string($item, 'ts');
+            $borrowRateHistories[$currency][] = array(
+                'info' => $item,
+                'currency' => $currency,
+                'rate' => $rate,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+            );
+        }
+        $keys = is_array($borrowRateHistories) ? array_keys($borrowRateHistories) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            $borrowRateHistories[$key] = $this->filter_by_currency_since_limit($borrowRateHistories[$key], $key, $since, $limit);
+        }
+        return $borrowRateHistories;
+    }
+
+    public function fetch_borrow_rate_history($code, $since = null, $limit = null, $params = array ()) {
+        $codeObject = json_decode('array("ccy" => "' . $code . '", $as_associative_array = true)');
+        $histories = yield $this->fetch_borrow_rate_histories($since, $limit, $codeObject, $params);
+        if ($histories === null) {
+            throw new BadRequest($this->id . '.fetchBorrowRateHistory returned no data for ' . $code);
+        } else {
+            return $histories;
+        }
+    }
+
+    public function modify_margin_helper($symbol, $amount, $type, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $posSide = $this->safe_string($params, 'posSide', 'net');
+        $params = $this->omit($params, array( 'posSide' ));
+        $request = array(
+            'instId' => $market['id'],
+            'amt' => $amount,
+            'type' => $type,
+            'posSide' => $posSide,
+        );
+        $response = yield $this->privatePostAccountPositionMarginBalance (array_merge($request, $params));
+        //
+        //     {
+        //       "code" => "0",
+        //       "data" => array(
+        //         {
+        //           "amt" => "0.01",
+        //           "instId" => "ETH-USD-SWAP",
+        //           "posSide" => "net",
+        //           "type" => "reduce"
+        //         }
+        //       ),
+        //       "msg" => ""
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $entry = $this->safe_value($data, 0, array());
+        $errorCode = $this->safe_string($response, 'code');
+        $status = ($errorCode === '0') ? 'ok' : 'failed';
+        $responseAmount = $this->safe_number($entry, 'amt');
+        $responseType = $this->safe_string($entry, 'type');
+        $marketId = $this->safe_string($entry, 'instId');
+        $responseMarket = $this->safe_market($marketId, $market);
+        $code = $responseMarket['inverse'] ? $responseMarket['base'] : $responseMarket['quote'];
+        $symbol = $responseMarket['symbol'];
+        return array(
+            'info' => $response,
+            'type' => $responseType,
+            'amount' => $responseAmount,
+            'code' => $code,
+            'symbol' => $symbol,
+            'status' => $status,
         );
     }
 
