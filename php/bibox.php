@@ -979,21 +979,13 @@ class bibox extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
-        $symbol = null;
-        if ($market === null) {
-            $marketId = null;
-            $baseId = $this->safe_string($order, 'coin_symbol');
-            $quoteId = $this->safe_string($order, 'currency_symbol');
-            if (($baseId !== null) && ($quoteId !== null)) {
-                $marketId = $baseId . '_' . $quoteId;
-            }
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            }
+        $marketId = null;
+        $baseId = $this->safe_string($order, 'coin_symbol');
+        $quoteId = $this->safe_string($order, 'currency_symbol');
+        if (($baseId !== null) && ($quoteId !== null)) {
+            $marketId = $baseId . '_' . $quoteId;
         }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market($marketId, $market);
         $rawType = $this->safe_string($order, 'order_type');
         $type = ($rawType === '1') ? 'market' : 'limit';
         $timestamp = $this->safe_integer($order, 'createdAt');
@@ -1006,7 +998,7 @@ class bibox extends Exchange {
         $side = ($rawSide === '1') ? 'buy' : 'sell';
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $id = $this->safe_string($order, 'id');
-        $feeCost = $this->safe_number($order, 'fee');
+        $feeCost = $this->safe_string($order, 'fee');
         $fee = null;
         if ($feeCost !== null) {
             $fee = array(
@@ -1021,7 +1013,7 @@ class bibox extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => $type,
             'timeInForce' => null,
             'postOnly' => null,

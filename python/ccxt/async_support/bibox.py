@@ -946,17 +946,12 @@ class bibox(Exchange):
         return self.parse_order(order)
 
     def parse_order(self, order, market=None):
-        symbol = None
-        if market is None:
-            marketId = None
-            baseId = self.safe_string(order, 'coin_symbol')
-            quoteId = self.safe_string(order, 'currency_symbol')
-            if (baseId is not None) and (quoteId is not None):
-                marketId = baseId + '_' + quoteId
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        marketId = None
+        baseId = self.safe_string(order, 'coin_symbol')
+        quoteId = self.safe_string(order, 'currency_symbol')
+        if (baseId is not None) and (quoteId is not None):
+            marketId = baseId + '_' + quoteId
+        market = self.safe_market(marketId, market)
         rawType = self.safe_string(order, 'order_type')
         type = 'market' if (rawType == '1') else 'limit'
         timestamp = self.safe_integer(order, 'createdAt')
@@ -969,7 +964,7 @@ class bibox(Exchange):
         side = 'buy' if (rawSide == '1') else 'sell'
         status = self.parse_order_status(self.safe_string(order, 'status'))
         id = self.safe_string(order, 'id')
-        feeCost = self.safe_number(order, 'fee')
+        feeCost = self.safe_string(order, 'fee')
         fee = None
         if feeCost is not None:
             fee = {
@@ -983,7 +978,7 @@ class bibox(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': None,
             'postOnly': None,
