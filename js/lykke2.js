@@ -139,18 +139,8 @@ module.exports = class lykke2 extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.0, // as of 7 Feb 2018, see https://github.com/ccxt/ccxt/issues/1863
-                    'taker': 0.0, // https://support.lykke.com/hc/en-us/articles/115002141125-What-are-the-fees-and-charges-
-                },
-                'funding': {
-                    'tierBased': false,
-                    'percentage': false,
-                    'withdraw': {
-                        'BTC': 0.001,
-                    },
-                    'deposit': {
-                        'BTC': 0,
-                    },
+                    'maker': 0, // https://support.lykke.com/hc/en-us/articles/115002141125-What-are-the-fees-and-min-amounts-
+                    'taker': 0,
                 },
             },
             'exceptions': {
@@ -285,6 +275,8 @@ module.exports = class lykke2 extends Exchange {
             const market = markets[i];
             const id = this.safeString (market, 'assetPairId');
             const name = this.safeString (market, 'name');
+            const baseAssetId = this.safeString (market, 'baseAssetId');
+            const quoteAssetId = this.safeString (market, 'quoteAssetId');
             const [ baseId, quoteId ] = name.split ('/');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
@@ -300,8 +292,8 @@ module.exports = class lykke2 extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
+                'baseId': baseAssetId,
+                'quoteId': quoteAssetId,
                 'settle': undefined,
                 'settleId': undefined,
                 'type': 'spot',
@@ -310,7 +302,6 @@ module.exports = class lykke2 extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'derivative': false,
                 'contract': false,
                 'active': true,
                 'info': market,
@@ -417,9 +408,8 @@ module.exports = class lykke2 extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const info = this.safeValue (market, 'info');
         const request = {
-            'assetPairIds': this.safeString (info, 'assetPairId'),
+            'assetPairIds': market['id'],
         };
         // publicGetTickers or publicGetPrices
         const method = this.safeString (this.options, 'fetchTickerMethod', 'publicGetTickers');
@@ -588,9 +578,6 @@ module.exports = class lykke2 extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (limit === undefined) {
-            limit = 100;
-        }
         const request = {
             'AssetPairId': market['id'],
             // 'offset': 0,
@@ -698,11 +685,11 @@ module.exports = class lykke2 extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'assetPairId');
         const symbol = this.safeSymbol (marketId, market);
-        const type = this.safeString (order, 'type');
+        const type = this.safeStringLower (order, 'type');
         const lastTradeTimestamp = this.safeInteger (order, 'lastTradeTimestamp');
         const timestamp = this.safeInteger (order, 'timestamp');
         const price = this.safeString (order, 'price');
-        const side = this.safeString (order, 'side');
+        const side = this.safeStringLower (order, 'side');
         const amount = this.safeString (order, 'volume');
         const remaining = this.safeString (order, 'remainingVolume');
         const filled = this.safeString (order, 'filledVolume');
