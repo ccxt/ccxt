@@ -11,7 +11,6 @@ try:
     basestring  # Python 3
 except NameError:
     basestring = str  # Python 2
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -27,7 +26,6 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
-from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -461,10 +459,10 @@ class bitmart(Exchange):
             #
             # the docs are wrong: https://github.com/ccxt/ccxt/issues/5612
             #
-            pricePrecision = self.safe_integer(market, 'price_max_precision')
-            minBuyCost = self.safe_number(market, 'min_buy_amount')
-            minSellCost = self.safe_number(market, 'min_sell_amount')
-            minCost = max(minBuyCost, minSellCost)
+            minBuyCost = self.safe_string(market, 'min_buy_amount')
+            minSellCost = self.safe_string(market, 'min_sell_amount')
+            minCost = Precise.string_max(minBuyCost, minSellCost)
+            pricePrecision = self.parse_precision(self.safe_string(market, 'price_max_precision'))
             result.append({
                 'id': id,
                 'numericId': numericId,
@@ -491,12 +489,12 @@ class bitmart(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.parse_number(self.decimal_to_precision(math.pow(10, -pricePrecision), ROUND, 14)),
                     'amount': self.safe_number(market, 'base_min_size'),
+                    'price': self.parse_number(pricePrecision),
                 },
                 'limits': {
                     'leverage': {
-                        'min': self.parse_number('1'),
+                        'min': None,
                         'max': None,
                     },
                     'amount': {
@@ -508,7 +506,7 @@ class bitmart(Exchange):
                         'max': None,
                     },
                     'cost': {
-                        'min': minCost,
+                        'min': self.parse_number(minCost),
                         'max': None,
                     },
                 },
@@ -517,140 +515,101 @@ class bitmart(Exchange):
         return result
 
     def fetch_contract_markets(self, params={}):
-        response = self.publicContractGetContracts(params)
+        response = self.publicContractGetTickers(params)
         #
-        #     {
-        #         "errno":"OK",
-        #         "message":"OK",
-        #         "code":1000,
-        #         "trace":"7fcedfb5-a660-4780-8a7a-b36a9e2159f7",
-        #         "data":{
-        #             "contracts":[
-        #                 {
-        #                     "contract":{
-        #                         "contract_id":1,
-        #                         "index_id":1,
-        #                         "name":"BTCUSDT",
-        #                         "display_name":"BTCUSDT永续合约",
-        #                         "display_name_en":"BTCUSDT_SWAP",
-        #                         "contract_type":1,
-        #                         "base_coin":"BTC",
-        #                         "quote_coin":"USDT",
-        #                         "price_coin":"BTC",
-        #                         "exchange":"*",
-        #                         "contract_size":"0.0001",
-        #                         "begin_at":"2018-08-17T04:00:00Z",
-        #                         "delive_at":"2020-08-15T12:00:00Z",
-        #                         "delivery_cycle":28800,
-        #                         "min_leverage":"1",
-        #                         "max_leverage":"100",
-        #                         "price_unit":"0.1",
-        #                         "vol_unit":"1",
-        #                         "value_unit":"0.0001",
-        #                         "min_vol":"1",
-        #                         "max_vol":"300000",
-        #                         "liquidation_warn_ratio":"0.85",
-        #                         "fast_liquidation_ratio":"0.8",
-        #                         "settgle_type":1,
-        #                         "open_type":3,
-        #                         "compensate_type":1,
-        #                         "status":3,
-        #                         "block":1,
-        #                         "rank":1,
-        #                         "created_at":"2018-07-12T19:16:57Z",
-        #                         "depth_bord":"1.001",
-        #                         "base_coin_zh":"比特币",
-        #                         "base_coin_en":"Bitcoin",
-        #                         "max_rate":"0.00375",
-        #                         "min_rate":"-0.00375"
-        #                     },
-        #                     "risk_limit":{"contract_id":1,"base_limit":"1000000","step":"500000","maintenance_margin":"0.005","initial_margin":"0.01"},
-        #                     "fee_config":{"contract_id":1,"maker_fee":"-0.0003","taker_fee":"0.001","settlement_fee":"0","created_at":"2018-07-12T20:47:22Z"},
-        #                     "plan_order_config":{"contract_id":0,"min_scope":"0.001","max_scope":"2","max_count":10,"min_life_cycle":24,"max_life_cycle":168}
-        #                 },
-        #             ]
-        #         }
-        #     }
+        #    {
+        #        "message": "OK",
+        #        "code": 1000,
+        #        "trace": "045d13a8-4bc7-4974-9748-97d0ea183ef0",
+        #        "data": {
+        #            "tickers": [
+        #                {
+        #                    "contract_symbol": "RAYUSDT",
+        #                    "last_price": "3.893",
+        #                    "index_price": "3.90248043",
+        #                    "last_funding_rate": "-0.00054285",
+        #                    "price_change_percent_24h": "-6.955",
+        #                    "volume_24h": "10450969.34602996",
+        #                    "url": "https://futures.bitmart.com/en?symbol=RAYUSDT",
+        #                    "high_price": "4.299",
+        #                    "low_price": "3.887",
+        #                    "legal_coin_price": "3.893056"
+        #                },
+        #                ...
+        #            ]
+        #        }
+        #    }
         #
         data = self.safe_value(response, 'data', {})
-        contracts = self.safe_value(data, 'contracts', [])
+        tickers = self.safe_value(data, 'tickers', [])
         result = []
-        for i in range(0, len(contracts)):
-            market = contracts[i]
-            contract = self.safe_value(market, 'contract', {})
-            id = self.safe_string(contract, 'contract_id')
-            numericId = self.safe_integer(contract, 'contract_id')
-            baseId = self.safe_string(contract, 'base_coin')
-            quoteId = self.safe_string(contract, 'quote_coin')
-            settleId = self.safe_string(contract, 'price_coin')
+        for i in range(0, len(tickers)):
+            market = tickers[i]
+            id = self.safe_string(market, 'contract_symbol')
+            baseId = id[0:-4]
+            quoteId = id[-4:]
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            settle = self.safe_currency_code(settleId)
-            #
-            # https://github.com/bitmartexchange/bitmart-official-api-docs/blob/master/rest/public/symbols_details.md#response-details
-            # from the above API doc:
-            # quote_increment Minimum order price as well as the price increment
-            # price_min_precision Minimum price precision(digit) used to query price and kline
-            # price_max_precision Maximum price precision(digit) used to query price and kline
-            #
-            # the docs are wrong: https://github.com/ccxt/ccxt/issues/5612
-            #
-            amountPrecision = self.safe_number(contract, 'vol_unit')
-            pricePrecision = self.safe_number(contract, 'price_unit')
-            contractType = self.safe_value(contract, 'contract_type')
+            splitId = id.split(id, '_')
+            splitIdEnding = self.safe_string(splitId, 1)
+            settle = 'USDT'
+            symbol = base + '/' + quote + ':' + settle
+            type = 'swap'
+            swap = True
             future = False
-            swap = False
-            type = 'contract'
-            symbol = base + '/' + quote
-            expiry = self.parse8601(self.safe_string(contract, 'delive_at'))
-            if contractType == 1:
-                type = 'swap'
-                swap = True
-                symbol = symbol + ':' + settle
-            elif contractType == 2:
-                type = 'future'
-                future = True
-                symbol = symbol + ':' + settle + '-' + self.yymmdd(expiry, '')
-            feeConfig = self.safe_value(market, 'fee_config', {})
+            expiry = None
+            if splitIdEnding is not None:
+                settle = 'BTC'
+                symbol = base + '/' + quote + ':' + settle
+                if splitIdEnding != 'PERP':
+                    date = self.iso8601(self.milliseconds())
+                    splitDate = date.split('-')
+                    year = splitDate[0]
+                    shortYear = year[0:2]
+                    expiryMonth = splitIdEnding[0:2]
+                    expiryDay = splitIdEnding[2:4]
+                    expiry = self.parse8601(year + '-' + expiryMonth + '-' + expiryDay + 'T00:00:00Z')
+                    symbol = symbol + '-' + shortYear + splitIdEnding
+                    type = 'future'
+                    swap = False
+                    future = True
             result.append({
                 'id': id,
-                'numericId': numericId,
+                'numericId': None,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': settleId,
+                'settleId': None,
                 'type': type,
                 'spot': False,
                 'margin': False,
                 'swap': swap,
                 'future': future,
                 'option': False,
-                'active': None,
+                'active': True,
                 'contract': True,
-                'linear': None,
-                'inverse': None,
-                'taker': self.safe_number(feeConfig, 'taker_fee'),
-                'maker': self.safe_number(feeConfig, 'maker_fee'),
-                'contractSize': self.safe_number(market, 'contract_size'),
+                'linear': True,
+                'inverse': False,
+                'contractSize': None,
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': pricePrecision,
-                    'amount': amountPrecision,
+                    'amount': None,
+                    'price': None,
                 },
                 'limits': {
                     'leverage': {
-                        'min': self.safe_number(contract, 'min_leverage'),
-                        'max': self.safe_number(contract, 'max_leverage'),
+                        'min': None,
+                        'max': None,
                     },
                     'amount': {
-                        'min': self.safe_number(contract, 'min_vol'),
-                        'max': self.safe_number(contract, 'max_vol'),
+                        'min': None,
+                        'max': None,
                     },
                     'price': {
                         'min': None,
@@ -666,7 +625,9 @@ class bitmart(Exchange):
         return result
 
     def fetch_markets(self, params={}):
-        return self.fetch_spot_markets()
+        spot = self.fetch_spot_markets(params)
+        contract = self.fetch_contract_markets(params)
+        return self.array_concat(spot, contract)
 
     def fetch_funding_fee(self, code, params={}):
         self.load_markets()
