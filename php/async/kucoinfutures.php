@@ -1448,6 +1448,30 @@ class kucoinfutures extends kucoin {
         //         "createdAt":1547026472000
         //     }
         //
+        // fetchMyTrades (private) v1
+        //
+        //      {
+        //          "symbol":"DOGEUSDTM",
+        //          "tradeId":"620ec41a96bab27b5f4ced56",
+        //          "orderId":"620ec41a0d1d8a0001560bd0",
+        //          "side":"sell",
+        //          "liquidity":"taker",
+        //          "forceTaker":true,
+        //          "price":"0.13969",
+        //          "size":1,
+        //          "value":"13.969",
+        //          "feeRate":"0.0006",
+        //          "fixFee":"0",
+        //          "feeCurrency":"USDT",
+        //          "stop":"",
+        //          "tradeTime":1645134874858018058,
+        //          "fee":"0.0083814",
+        //          "settleCurrency":"USDT",
+        //          "orderType":"market",
+        //          "tradeType":"trade",
+        //          "createdAt":1645134874858
+        //      }
+        //
         $marketId = $this->safe_string($trade, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $id = $this->safe_string_2($trade, 'tradeId', 'id');
@@ -1465,12 +1489,10 @@ class kucoinfutures extends kucoin {
         }
         $priceString = $this->safe_string_2($trade, 'price', 'dealPrice');
         $amountString = $this->safe_string_2($trade, 'size', 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
         $side = $this->safe_string($trade, 'side');
         $fee = null;
-        $feeCost = $this->safe_number($trade, 'fee');
-        if ($feeCost !== null) {
+        $feeCostString = $this->safe_string($trade, 'fee');
+        if ($feeCostString !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'feeCurrency');
             $feeCurrency = $this->safe_currency_code($feeCurrencyId);
             if ($feeCurrency === null) {
@@ -1479,25 +1501,25 @@ class kucoinfutures extends kucoin {
                 }
             }
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrency,
-                'rate' => $this->safe_number($trade, 'feeRate'),
+                'rate' => $this->safe_string($trade, 'feeRate'),
             );
         }
         $type = $this->safe_string_2($trade, 'type', 'orderType');
         if ($type === 'match') {
             $type = null;
         }
-        $cost = $this->safe_number_2($trade, 'funds', 'dealValue');
-        if ($cost === null) {
+        $costString = $this->safe_string_2($trade, 'funds', 'value');
+        if ($costString === null) {
             $market = $this->market($symbol);
             $contractSize = $this->safe_string($market, 'contractSize');
             $contractCost = Precise::string_mul($priceString, $amountString);
             if ($contractSize && $contractCost) {
-                $cost = $this->parse_number(Precise::string_mul($contractCost, $contractSize));
+                $costString = Precise::string_mul($contractCost, $contractSize);
             }
         }
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'order' => $orderId,
@@ -1507,11 +1529,11 @@ class kucoinfutures extends kucoin {
             'type' => $type,
             'takerOrMaker' => $takerOrMaker,
             'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => $costString,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {

@@ -31,10 +31,10 @@ class liquid(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,
-                'swap': None,
-                'future': None,
-                'option': None,
+                'margin': None,  # has but not fully implemented
+                'swap': None,  # has but not fully implemented
+                'future': False,
+                'option': False,
                 'cancelOrder': True,
                 'createOrder': True,
                 'editOrder': True,
@@ -224,6 +224,7 @@ class liquid(Exchange):
                 'MIOTA': 'IOTA',  # https://github.com/ccxt/ccxt/issues/7487
                 'TON': 'Tokamak Network',
                 'BIFI': 'Bifrost Finance',
+                'P-BTC': 'BTC',
             },
             'options': {
                 'cancelOrderException': True,
@@ -232,6 +233,11 @@ class liquid(Exchange):
                     'TRX': 'TRC20',
                     'XLM': 'Stellar',
                     'ALGO': 'Algorand',
+                },
+                'swap': {
+                    'fetchMarkets': {
+                        'settlementCurrencies': ['BTC', 'ETH', 'XRP', 'QASH', 'USD', 'JPY', 'EUR', 'SGD', 'AUD'],
+                    },
                 },
             },
         })
@@ -396,32 +402,13 @@ class liquid(Exchange):
             baseId = self.safe_string(market, 'base_currency')
             quoteId = self.safe_string(market, 'quoted_currency')
             productType = self.safe_string(market, 'product_type')
-            type = 'spot'
-            spot = True
-            swap = False
-            if productType == 'Perpetual':
-                spot = False
-                swap = True
-                type = 'swap'
+            swap = (productType == 'Perpetual')
+            type = 'swap' if swap else 'spot'
+            spot = not swap
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = None
-            if swap:
-                symbol = self.safe_string(market, 'currency_pair_code')
-            else:
-                symbol = base + '/' + quote
-            maker = self.fees['trading']['maker']
-            taker = self.fees['trading']['taker']
-            if type == 'swap':
-                maker = self.safe_number(market, 'maker_fee', self.fees['trading']['maker'])
-                taker = self.safe_number(market, 'taker_fee', self.fees['trading']['taker'])
             disabled = self.safe_value(market, 'disabled', False)
-            active = not disabled
             baseCurrency = self.safe_value(currenciesByCode, base)
-            precision = {
-                'amount': 0.00000001,
-                'price': self.safe_number(market, 'tick_size'),
-            }
             minAmount = None
             if baseCurrency is not None:
                 minAmount = self.safe_number(baseCurrency['info'], 'minimum_order_quantity')
@@ -435,37 +422,74 @@ class liquid(Exchange):
                     minPrice = lastPrice * multiplierDown
                 if multiplierUp is not None:
                     maxPrice = lastPrice * multiplierUp
-            limits = {
-                'amount': {
-                    'min': minAmount,
-                    'max': None,
-                },
-                'price': {
-                    'min': minPrice,
-                    'max': maxPrice,
-                },
-                'cost': {
-                    'min': None,
-                    'max': None,
-                },
-            }
-            result.append({
+            margin = self.safe_value(market, 'margin_enabled')
+            symbol = base + '/' + quote
+            maker = self.fees['trading']['maker']
+            taker = self.fees['trading']['taker']
+            parsedMarket = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
                 'type': type,
                 'spot': spot,
+                'margin': spot and margin,
                 'swap': swap,
-                'maker': maker,
+                'future': False,
+                'option': False,
+                'active': not disabled,
+                'contract': swap,
+                'linear': None,
+                'inverse': None,
                 'taker': taker,
-                'limits': limits,
-                'precision': precision,
-                'active': active,
+                'maker': maker,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.parse_number('0.00000001'),
+                    'price': self.safe_number(market, 'tick_size'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': minAmount,
+                        'max': None,
+                    },
+                    'price': {
+                        'min': minPrice,
+                        'max': maxPrice,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
                 'info': market,
-            })
+            }
+            if swap:
+                settlementCurrencies = self.options['fetchMarkets']['settlementCurrencies']
+                for i in range(0, len(settlementCurrencies)):
+                    settle = settlementCurrencies[i]
+                    parsedMarket['settle'] = settle
+                    parsedMarket['symbol'] = symbol + ':' + settle
+                    parsedMarket['linear'] = quote == settle
+                    parsedMarket['inverse'] = base == settle
+                    parsedMarket['taker'] = self.safe_number(market, 'taker_fee', taker)
+                    parsedMarket['maker'] = self.safe_number(market, 'maker_fee', maker)
+                    parsedMarket['contractSize'] = self.parse_number('1')
+                    result.append(parsedMarket)
+            else:
+                result.append(parsedMarket)
         return result
 
     def parse_balance(self, response):

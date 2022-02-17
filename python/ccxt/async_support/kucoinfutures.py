@@ -1390,6 +1390,30 @@ class kucoinfutures(kucoin):
         #         "createdAt":1547026472000
         #     }
         #
+        # fetchMyTrades(private) v1
+        #
+        #      {
+        #          "symbol":"DOGEUSDTM",
+        #          "tradeId":"620ec41a96bab27b5f4ced56",
+        #          "orderId":"620ec41a0d1d8a0001560bd0",
+        #          "side":"sell",
+        #          "liquidity":"taker",
+        #          "forceTaker":true,
+        #          "price":"0.13969",
+        #          "size":1,
+        #          "value":"13.969",
+        #          "feeRate":"0.0006",
+        #          "fixFee":"0",
+        #          "feeCurrency":"USDT",
+        #          "stop":"",
+        #          "tradeTime":1645134874858018058,
+        #          "fee":"0.0083814",
+        #          "settleCurrency":"USDT",
+        #          "orderType":"market",
+        #          "tradeType":"trade",
+        #          "createdAt":1645134874858
+        #      }
+        #
         marketId = self.safe_string(trade, 'symbol')
         symbol = self.safe_symbol(marketId, market, '-')
         id = self.safe_string_2(trade, 'tradeId', 'id')
@@ -1405,33 +1429,31 @@ class kucoinfutures(kucoin):
                 timestamp = timestamp * 1000
         priceString = self.safe_string_2(trade, 'price', 'dealPrice')
         amountString = self.safe_string_2(trade, 'size', 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
         side = self.safe_string(trade, 'side')
         fee = None
-        feeCost = self.safe_number(trade, 'fee')
-        if feeCost is not None:
+        feeCostString = self.safe_string(trade, 'fee')
+        if feeCostString is not None:
             feeCurrencyId = self.safe_string(trade, 'feeCurrency')
             feeCurrency = self.safe_currency_code(feeCurrencyId)
             if feeCurrency is None:
                 if market is not None:
                     feeCurrency = market['quote'] if (side == 'sell') else market['base']
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrency,
-                'rate': self.safe_number(trade, 'feeRate'),
+                'rate': self.safe_string(trade, 'feeRate'),
             }
         type = self.safe_string_2(trade, 'type', 'orderType')
         if type == 'match':
             type = None
-        cost = self.safe_number_2(trade, 'funds', 'dealValue')
-        if cost is None:
+        costString = self.safe_string_2(trade, 'funds', 'value')
+        if costString is None:
             market = self.market(symbol)
             contractSize = self.safe_string(market, 'contractSize')
             contractCost = Precise.string_mul(priceString, amountString)
             if contractSize and contractCost:
-                cost = self.parse_number(Precise.string_mul(contractCost, contractSize))
-        return {
+                costString = Precise.string_mul(contractCost, contractSize)
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'order': orderId,
@@ -1441,11 +1463,11 @@ class kucoinfutures(kucoin):
             'type': type,
             'takerOrMaker': takerOrMaker,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        }
+        }, market)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
