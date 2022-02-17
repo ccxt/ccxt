@@ -1790,7 +1790,7 @@ module.exports = class xena extends Exchange {
                             'notionalCurrency': market['base'],
                             'notionalFloor': floor,
                             'notionalCap': cap,
-                            'maintenanceMarginRatio': this.safeNumber (tier, 'maintenanceRate'),
+                            'maintenanceMarginRate': this.safeNumber (tier, 'maintenanceRate'),
                             'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialRate)),
                             'info': tier,
                         });
