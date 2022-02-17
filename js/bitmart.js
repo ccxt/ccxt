@@ -536,25 +536,25 @@ module.exports = class bitmart extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const splitId = id.split (id, '_');
-            const splitIdEnd = this.safeString (splitId, 1);
+            const splitIdEnding = this.safeString (splitId, 1);
             let settle = 'USDT';
             let symbol = base + '/' + quote + ':' + settle;
             let type = 'swap';
             let swap = true;
             let future = false;
             let expiry = undefined;
-            if (splitIdEnd !== undefined) {
+            if (splitIdEnding !== undefined) {
                 settle = 'BTC';
                 symbol = base + '/' + quote + ':' + settle;
-                if (splitIdEnd !== 'PERP') {
+                if (splitIdEnding !== 'PERP') {
                     const date = this.iso8601 (this.milliseconds ());
                     const splitDate = date.split ('-');
                     const year = splitDate[0];
                     const shortYear = year.slice (0, 2);
-                    const expiryMonth = splitEnd.slice (0, 2);
-                    const expiryDay = splitEnd.slice (2, 4);
+                    const expiryMonth = splitIdEnding.slice (0, 2);
+                    const expiryDay = splitIdEnding.slice (2, 4);
                     expiry = this.parse8601 (year + '-' + expiryMonth + '-' + expiryDay + 'T00:00:00Z');
-                    symbol = symbol + '-' + shortYear + splitIdEnd;
+                    symbol = symbol + '-' + shortYear + splitIdEnding;
                     type = 'future';
                     swap = false;
                     future = true;
