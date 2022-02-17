@@ -408,21 +408,11 @@ module.exports = class zb extends Exchange {
             const linear = swap ? true : undefined;
             let active = true;
             let symbol = base + '/' + quote;
-            let amountPrecisionString = this.safeString (market, 'amountScale');
-            let pricePrecisionString = this.safeString (market, 'priceScale');
-            let minQty = this.safeNumber (market, 'minAmount');
-            let maxQty = undefined;
-            let minPrice = this.safeNumber (market, 'minSize');
-            let maxPrice = undefined;
+            const amountPrecisionString = this.safeString2 (market, 'amountScale', 'amountDecimal');
+            const pricePrecisionString = this.safeString2 (market, 'priceScale', 'priceDecimal');
             if (swap) {
                 const status = this.safeString (market, 'status');
                 active = (status === '1');
-                minQty = this.safeNumber (market, 'minAmount');
-                maxQty = this.safeNumber (market, 'maxAmount');
-                minPrice = this.safeNumber (market, 'minTradeMoney');
-                maxPrice = this.safeNumber (market, 'maxTradeMoney');
-                amountPrecisionString = this.safeString (market, 'amountDecimal');
-                pricePrecisionString = this.safeString (market, 'priceDecimal');
                 symbol = base + '/' + quote + ':' + settle;
             }
             result.push ({
@@ -459,16 +449,16 @@ module.exports = class zb extends Exchange {
                         'max': this.safeNumber (market, 'maxLeverage'),
                     },
                     'amount': {
-                        'min': minQty,
-                        'max': maxQty,
+                        'min': this.safeNumber (market, 'minAmount'),
+                        'max': this.safeNumber (market, 'maxAmount'),
                     },
                     'price': {
                         'min': minPrice,
                         'max': maxPrice,
                     },
                     'cost': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': this.safeNumber2 (market, 'minSize', 'minTradeMoney'),
+                        'max': this.safeNumber (market, 'maxTradeMoney'),
                     },
                 },
                 'info': market,
