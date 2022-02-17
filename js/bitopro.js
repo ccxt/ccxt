@@ -167,6 +167,7 @@ module.exports = class bitopro extends Exchange {
                     'Invalid amount': InvalidOrder,
                     'Balance for ': InsufficientFunds,
                     'Invalid ': BadRequest,
+                    'Wrong parameter': BadRequest,
                 },
             },
             'commonCurrencies': {
@@ -261,10 +262,8 @@ module.exports = class bitopro extends Exchange {
             const baseId = this.safeString (market, 'base');
             const quoteId = this.safeString (market, 'quote');
             const id = pair;
-            let base = this.safeCurrencyCode (baseId);
-            base = base.toUpperCase ();
-            let quote = this.safeCurrencyCode (quoteId);
-            quote = quote.toUpperCase ();
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
                 'price': this.safeInteger (market, 'quotePrecision'),
@@ -333,14 +332,13 @@ module.exports = class bitopro extends Exchange {
         //         "low24hr":"1181000.00000000"
         //     }
         //
-        const timestamp = this.milliseconds ();
         const marketId = this.safeString (ticker, 'pair');
         market = this.safeMarket (marketId, market);
         const symbol = this.safeString (market, 'symbol');
         return this.safeTicker ({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': this.safeString (ticker, 'high24hr'),
             'low': this.safeString (ticker, 'low24hr'),
             'bid': undefined,
@@ -362,6 +360,7 @@ module.exports = class bitopro extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'pair': market['id'],
@@ -385,6 +384,7 @@ module.exports = class bitopro extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
         const response = await this.publicGetTickers ();
         const tickers = this.safeValue (response, 'data', []);
         //
@@ -406,7 +406,6 @@ module.exports = class bitopro extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        const timestamp = this.milliseconds ();
         await this.loadMarkets ();
         const request = {
             'pair': this.marketId (symbol),
@@ -435,7 +434,7 @@ module.exports = class bitopro extends Exchange {
         //         ]
         //     }
         //
-        return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (response, symbol, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
     parseTrade (trade, market) {
@@ -470,19 +469,18 @@ module.exports = class bitopro extends Exchange {
         //         }
         //
         const id = this.safeString (trade, 'id');
-        let timestamp = this.safeInteger (trade, 'timestamp');
+        let timestamp = undefined;
         if (id === undefined) {
             timestamp = this.safeTimestamp (trade, 'timestamp');
+        } else {
+            timestamp = this.safeInteger (trade, 'timestamp');
         }
         const marketId = this.safeString (trade, 'pair');
         market = this.safeMarket (marketId, market);
         const symbol = this.safeString (market, 'symbol');
         const price = this.safeString (trade, 'price');
-        let type = this.safeString (trade, 'type');
-        if (type !== undefined) {
-            type = type.toLowerCase ();
-        }
-        let side = this.safeString (trade, 'action');
+        const type = this.safeStringLower (trade, 'type');
+        let side = this.safeStringLower (trade, 'action');
         if (side === undefined) {
             const isBuyer = this.safeValue (trade, 'isBuyer');
             if (isBuyer) {
@@ -490,12 +488,10 @@ module.exports = class bitopro extends Exchange {
             } else {
                 side = 'sell';
             }
-        } else {
-            side = side.toLowerCase ();
         }
         let amount = this.safeString (trade, 'amount');
         if (amount === undefined) {
-            amount = this.safeFloat (trade, 'executedAmount');
+            amount = this.safeString (trade, 'executedAmount');
         }
         let fee = undefined;
         const feeAmount = this.safeString (trade, 'fee');
@@ -526,9 +522,6 @@ module.exports = class bitopro extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired ('fetchTrades requires the symbol parameter');
-        }
         const market = this.market (symbol);
         const request = {
             'pair': market['id'],
@@ -626,11 +619,11 @@ module.exports = class bitopro extends Exchange {
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
             this.safeInteger (ohlcv, 'timestamp'),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'volume'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
         ];
     }
 
@@ -683,8 +676,7 @@ module.exports = class bitopro extends Exchange {
         };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
-            let currencyId = this.safeString (balance, 'currency');
-            currencyId = currencyId.toUpperCase ();
+            const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const amount = this.safeString (balance, 'amount');
             const available = this.safeString (balance, 'available');
@@ -775,10 +767,7 @@ module.exports = class bitopro extends Exchange {
         const symbol = this.safeString (market, 'symbol');
         const orderStatus = this.safeString (order, 'status');
         const status = this.parseOrderStatus (orderStatus);
-        let type = this.safeString (order, 'type');
-        if (type !== undefined) {
-            type = type.toLowerCase ();
-        }
+        const type = this.safeStringLower (order, 'type');
         const average = this.safeString (order, 'avgExecutionPrice');
         const filled = this.safeString (order, 'executedAmount');
         const remaining = this.safeString (order, 'remainingAmount');
@@ -829,14 +818,14 @@ module.exports = class bitopro extends Exchange {
         };
         const orderType = type.toUpperCase ();
         if ((orderType === 'LIMIT') || (orderType === 'STOP_LIMIT')) {
-            request['price'] = this.numberToString (price);
+            request['price'] = this.priceToPrecision (price);
         }
         if (orderType === 'STOP_LIMIT') {
             const stopPrice = this.safeNumber (params, 'stopPrice');
             if (stopPrice === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice parameter for ' + orderType + ' orders');
             } else {
-                request['stopPrice'] = this.numberToString (stopPrice);
+                request['stopPrice'] = this.priceToPrecision (stopPrice);
             }
             const condition = this.safeString (params, 'condition');
             if (condition === undefined) {
@@ -860,10 +849,10 @@ module.exports = class bitopro extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
         if (symbol === undefined) {
-            throw new ArgumentsRequired ('cancelOrder requires the symbol parameter');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires the symbol argument');
         }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'id': id,
@@ -879,7 +868,7 @@ module.exports = class bitopro extends Exchange {
         //         "amount":"0.01"
         //     }
         //
-        return this.parseOrder (response);
+        return this.parseOrder (response, market);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -910,10 +899,10 @@ module.exports = class bitopro extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
         if (symbol === undefined) {
-            throw new ArgumentsRequired ('fetchOrder requires the symbol parameter');
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires the symbol argument');
         }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'orderId': id,
@@ -943,14 +932,14 @@ module.exports = class bitopro extends Exchange {
         //         "updatedTimestamp":1644899002598
         //     }
         //
-        return this.parseOrder (response);
+        return this.parseOrder (response, market);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
         if (symbol === undefined) {
-            throw new ArgumentsRequired ('fetchOrders requires the symbol parameter');
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires the symbol argument');
         }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'pair': market['id'],
@@ -1011,10 +1000,10 @@ module.exports = class bitopro extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
         if (symbol === undefined) {
-            throw new ArgumentsRequired ('fetchMyTrades requires the symbol parameter');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires the symbol argument');
         }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'pair': market['id'],
@@ -1049,7 +1038,7 @@ module.exports = class bitopro extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseTransactionState (state) {
+    parseTransactionStatus (status) {
         const states = {
             'COMPLETE': 'ok',
             'INVALID': 'failed',
@@ -1061,7 +1050,7 @@ module.exports = class bitopro extends Exchange {
             'EMAIL_VERIFICATION': 'pending',
             'WAIT_CONFIRMATION': 'pending',
         };
-        return this.safeString (states, state, state);
+        return this.safeString (states, status, status);
     }
 
     parseTransaction (transaction, currency = undefined) {
@@ -1106,11 +1095,8 @@ module.exports = class bitopro extends Exchange {
         //                 "total":"10"
         //             }
         //
-        let currencyId = this.safeString (transaction, 'coin');
-        if (currencyId === undefined) {
-            currencyId = this.safeString (currency, 'code');
-        }
-        const code = this.safeCurrencyCode (currencyId);
+        const currencyId = this.safeString (transaction, 'coin');
+        const code = this.safeCurrencyCode (currencyId, currency);
         const id = this.safeString (transaction, 'serial');
         const txId = this.safeString (transaction, 'txid');
         const timestamp = this.safeInteger (transaction, 'timestamp');
@@ -1131,11 +1117,11 @@ module.exports = class bitopro extends Exchange {
             'addressTo': address,
             'tagFrom': undefined,
             'tag': tag,
-            'tagTo': undefined,
+            'tagTo': tag,
             'type': undefined,
             'amount': amount,
             'currency': code,
-            'status': this.parseTransactionState (status),
+            'status': this.parseTransactionStatus (status),
             'updated': undefined,
             'fee': {
                 'currency': code,
@@ -1146,17 +1132,16 @@ module.exports = class bitopro extends Exchange {
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
         if (code === undefined) {
-            throw new ArgumentsRequired ('fetchDeposits requires the code parameter');
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires the code argument');
         }
+        await this.loadMarkets ();
         const currency = this.safeCurrency (code);
-        code = currency['code'];
         const request = {
-            'currency': code,
+            'currency': currency['id'],
             // 'endTimestamp': 0,
             // 'id': '',
-            // 'statuses': '',
+            // 'statuses': '', // 'ROCESSING,COMPLETE,INVALID,WAIT_PROCESS,CANCELLED,FAILED'
         };
         if (since !== undefined) {
             request['startTimestamp'] = since;
@@ -1189,17 +1174,16 @@ module.exports = class bitopro extends Exchange {
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
         if (code === undefined) {
-            throw new ArgumentsRequired ('fetchWithdrawals requires the code parameter');
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires the code argument');
         }
+        await this.loadMarkets ();
         const currency = this.safeCurrency (code);
-        code = currency['code'];
         const request = {
-            'currency': code,
+            'currency': currency['id'],
             // 'endTimestamp': 0,
             // 'id': '',
-            // 'statuses': '',
+            // 'statuses': '', // 'PROCESSING,COMPLETE,EXPIRED,INVALID,WAIT_PROCESS,WAIT_CONFIRMATION,EMAIL_VERIFICATION,CANCELLED'
         };
         if (since !== undefined) {
             request['startTimestamp'] = since;
@@ -1231,14 +1215,14 @@ module.exports = class bitopro extends Exchange {
     }
 
     async fetchWithdrawal (id, code = undefined, params = {}) {
-        await this.loadMarkets ();
         if (code === undefined) {
-            throw new ArgumentsRequired ('fetchWithdrawal requires the code parameter');
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawal() requires the code argument');
         }
+        await this.loadMarkets ();
         const currency = this.safeCurrency (code);
         const request = {
             'serial': id,
-            'currency': code,
+            'currency': currency['id'],
         };
         const response = await this.privateGetWalletWithdrawCurrencySerial (this.extend (request, params));
         const result = this.safeValue (response, 'data', {});
