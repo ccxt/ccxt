@@ -348,37 +348,105 @@ class zb(Exchange):
         #         },
         #     }
         #
-        keys = list(markets.keys())
+        contracts = await self.contractV2PublicGetConfigMarketList(params)
+        #
+        #     {
+        #         BTC_USDT: {
+        #             symbol: 'BTC_USDT',
+        #             buyerCurrencyId: '6',
+        #             contractType: '1',
+        #             defaultMarginMode: '1',
+        #             marketType: '2',
+        #             historyDBName: 'trade_history_readonly.dbc',
+        #             defaultLeverage: '20',
+        #             id: '100',
+        #             canCancelOrder: True,
+        #             area: '1',
+        #             mixMarginCoinName: 'usdt',
+        #             fundingRateRatio: '0.25',
+        #             marginCurrencyName: 'usdt',
+        #             minTradeMoney: '0.0001',
+        #             enableTime: '1638954000000',
+        #             maxTradeMoney: '10000000',
+        #             canTrade: True,
+        #             maxLeverage: '125',
+        #             defaultPositionsMode: '2',
+        #             onlyWhitelistVisible: False,
+        #             riskWarnRatio: '0.8',
+        #             marginDecimal: '8',
+        #             spot: False,
+        #             status: '1',
+        #             amountDecimal: '3',
+        #             leverage: False,
+        #             minAmount: '0.001',
+        #             canOrder: True,
+        #             duration: '1',
+        #             feeDecimal: '8',
+        #             sellerCurrencyId: '1',
+        #             maxAmount: '1000',
+        #             canOpenPosition: True,
+        #             isSupportMixMargin: False,
+        #             markPriceLimitRate: '0.05',
+        #             marginCurrencyId: '6',
+        #             stopFundingFee: False,
+        #             priceDecimal: '2',
+        #             lightenUpFeeRate: '0',
+        #             futures: True,
+        #             sellerCurrencyName: 'btc',
+        #             marketPriceLimitRate: '0.05',
+        #             canRebate: True,
+        #             marketName: 'BTC_USDT',
+        #             depth: [0.01, 0.1, 1],
+        #             createTime: '1607590430094',
+        #             mixMarginCoinIds: [6],
+        #             buyerCurrencyName: 'usdt',
+        #             stopService: False
+        #         },
+        #     }
+        #
+        contractsData = self.safe_value(contracts, 'data', [])
+        contractsById = self.index_by(contractsData, 'marketName')
+        dataById = self.deep_extend(contractsById, markets)
+        keys = list(dataById.keys())
         result = []
         for i in range(0, len(keys)):
             id = keys[i]
-            market = markets[id]
+            market = dataById[id]
             baseId, quoteId = id.split('_')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            settleId = self.safe_value(market, 'marginCurrencyName')
+            settle = self.safe_currency_code(settleId)
+            spot = settle is None
+            swap = self.safe_value(market, 'futures', False)
+            linear = True if swap else None
+            active = True
             symbol = base + '/' + quote
-            amountPrecisionString = self.safe_string(market, 'amountScale')
-            pricePrecisionString = self.safe_string(market, 'priceScale')
-            priceLimit = self.parse_precision(pricePrecisionString)
+            amountPrecisionString = self.safe_string_2(market, 'amountScale', 'amountDecimal')
+            pricePrecisionString = self.safe_string_2(market, 'priceScale', 'priceDecimal')
+            if swap:
+                status = self.safe_string(market, 'status')
+                active = (status == '1')
+                symbol = base + '/' + quote + ':' + settle
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': None,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
+                'settleId': settleId,
+                'type': 'swap' if swap else 'spot',
+                'spot': spot,
                 'margin': False,
-                'swap': False,
+                'swap': swap,
                 'future': False,
                 'option': False,
-                'active': True,
-                'contract': False,
-                'linear': None,
-                'inverse': None,
+                'active': active,
+                'contract': swap,
+                'linear': linear,
+                'inverse': not linear if swap else None,
                 'contractSize': None,
                 'expiry': None,
                 'expiryDatetime': None,
@@ -391,19 +459,19 @@ class zb(Exchange):
                 'limits': {
                     'leverage': {
                         'min': None,
-                        'max': None,
+                        'max': self.safe_number(market, 'maxLeverage'),
                     },
                     'amount': {
                         'min': self.safe_number(market, 'minAmount'),
-                        'max': None,
+                        'max': self.safe_number(market, 'maxAmount'),
                     },
                     'price': {
-                        'min': self.parse_number(priceLimit),
+                        'min': None,
                         'max': None,
                     },
                     'cost': {
-                        'min': self.safe_number(market, 'minSize'),
-                        'max': None,
+                        'min': self.safe_number_2(market, 'minSize', 'minTradeMoney'),
+                        'max': self.safe_number(market, 'maxTradeMoney'),
                     },
                 },
                 'info': market,

@@ -340,37 +340,106 @@ class zb extends Exchange {
         //         ),
         //     }
         //
-        $keys = is_array($markets) ? array_keys($markets) : array();
+        $contracts = yield $this->contractV2PublicGetConfigMarketList ($params);
+        //
+        //     {
+        //         BTC_USDT => array(
+        //             $symbol => 'BTC_USDT',
+        //             buyerCurrencyId => '6',
+        //             contractType => '1',
+        //             defaultMarginMode => '1',
+        //             marketType => '2',
+        //             historyDBName => 'trade_history_readonly.dbc',
+        //             defaultLeverage => '20',
+        //             $id => '100',
+        //             canCancelOrder => true,
+        //             area => '1',
+        //             mixMarginCoinName => 'usdt',
+        //             fundingRateRatio => '0.25',
+        //             marginCurrencyName => 'usdt',
+        //             minTradeMoney => '0.0001',
+        //             enableTime => '1638954000000',
+        //             maxTradeMoney => '10000000',
+        //             canTrade => true,
+        //             maxLeverage => '125',
+        //             defaultPositionsMode => '2',
+        //             onlyWhitelistVisible => false,
+        //             riskWarnRatio => '0.8',
+        //             marginDecimal => '8',
+        //             $spot => false,
+        //             $status => '1',
+        //             amountDecimal => '3',
+        //             leverage => false,
+        //             minAmount => '0.001',
+        //             canOrder => true,
+        //             duration => '1',
+        //             feeDecimal => '8',
+        //             sellerCurrencyId => '1',
+        //             maxAmount => '1000',
+        //             canOpenPosition => true,
+        //             isSupportMixMargin => false,
+        //             markPriceLimitRate => '0.05',
+        //             marginCurrencyId => '6',
+        //             stopFundingFee => false,
+        //             priceDecimal => '2',
+        //             lightenUpFeeRate => '0',
+        //             futures => true,
+        //             sellerCurrencyName => 'btc',
+        //             marketPriceLimitRate => '0.05',
+        //             canRebate => true,
+        //             marketName => 'BTC_USDT',
+        //             depth => array( 0.01, 0.1, 1 ),
+        //             createTime => '1607590430094',
+        //             mixMarginCoinIds => array( 6 ),
+        //             buyerCurrencyName => 'usdt',
+        //             stopService => false
+        //         ),
+        //     }
+        //
+        $contractsData = $this->safe_value($contracts, 'data', array());
+        $contractsById = $this->index_by($contractsData, 'marketName');
+        $dataById = $this->deep_extend($contractsById, $markets);
+        $keys = is_array($dataById) ? array_keys($dataById) : array();
         $result = array();
         for ($i = 0; $i < count($keys); $i++) {
             $id = $keys[$i];
-            $market = $markets[$id];
+            $market = $dataById[$id];
             list($baseId, $quoteId) = explode('_', $id);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            $settleId = $this->safe_value($market, 'marginCurrencyName');
+            $settle = $this->safe_currency_code($settleId);
+            $spot = $settle === null;
+            $swap = $this->safe_value($market, 'futures', false);
+            $linear = $swap ? true : null;
+            $active = true;
             $symbol = $base . '/' . $quote;
-            $amountPrecisionString = $this->safe_string($market, 'amountScale');
-            $pricePrecisionString = $this->safe_string($market, 'priceScale');
-            $priceLimit = $this->parse_precision($pricePrecisionString);
+            $amountPrecisionString = $this->safe_string_2($market, 'amountScale', 'amountDecimal');
+            $pricePrecisionString = $this->safe_string_2($market, 'priceScale', 'priceDecimal');
+            if ($swap) {
+                $status = $this->safe_string($market, 'status');
+                $active = ($status === '1');
+                $symbol = $base . '/' . $quote . ':' . $settle;
+            }
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
-                'settle' => null,
+                'settle' => $settle,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
+                'settleId' => $settleId,
+                'type' => $swap ? 'swap' : 'spot',
+                'spot' => $spot,
                 'margin' => false,
-                'swap' => false,
+                'swap' => $swap,
                 'future' => false,
                 'option' => false,
-                'active' => true,
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
+                'active' => $active,
+                'contract' => $swap,
+                'linear' => $linear,
+                'inverse' => $swap ? !$linear : null,
                 'contractSize' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
@@ -383,19 +452,19 @@ class zb extends Exchange {
                 'limits' => array(
                     'leverage' => array(
                         'min' => null,
-                        'max' => null,
+                        'max' => $this->safe_number($market, 'maxLeverage'),
                     ),
                     'amount' => array(
                         'min' => $this->safe_number($market, 'minAmount'),
-                        'max' => null,
+                        'max' => $this->safe_number($market, 'maxAmount'),
                     ),
                     'price' => array(
-                        'min' => $this->parse_number($priceLimit),
+                        'min' => null,
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => $this->safe_number($market, 'minSize'),
-                        'max' => null,
+                        'min' => $this->safe_number_2($market, 'minSize', 'minTradeMoney'),
+                        'max' => $this->safe_number($market, 'maxTradeMoney'),
                     ),
                 ),
                 'info' => $market,
