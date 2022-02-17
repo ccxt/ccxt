@@ -3867,7 +3867,7 @@ class okx(Exchange):
                 'notionalCurrency': market['quote'],
                 'notionalFloor': self.safe_number(tier, 'minSz'),
                 'notionalCap': self.safe_number(tier, 'maxSz'),
-                'maintenanceMarginRatio': self.safe_number(tier, 'mmr'),
+                'maintenanceMarginRate': self.safe_number(tier, 'mmr'),
                 'maxLeverage': self.safe_number(tier, 'maxLever'),
                 'info': tier,
             })

@@ -10,7 +10,7 @@ def test_leverage_tier(exchange, method, tier):
         'tier': 1,
         'notionalFloor': 0,
         'notionalCap': 5000,
-        'maintenanceMarginRatio': 0.01,
+        'maintenanceMarginRate': 0.01,
         'maxLeverage': 25,
         'info': {},
     }

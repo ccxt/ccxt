@@ -4044,7 +4044,7 @@ class okx extends Exchange {
                 'notionalCurrency' => $market['quote'],
                 'notionalFloor' => $this->safe_number($tier, 'minSz'),
                 'notionalCap' => $this->safe_number($tier, 'maxSz'),
-                'maintenanceMarginRatio' => $this->safe_number($tier, 'mmr'),
+                'maintenanceMarginRate' => $this->safe_number($tier, 'mmr'),
                 'maxLeverage' => $this->safe_number($tier, 'maxLever'),
                 'info' => $tier,
             );
