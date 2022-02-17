@@ -99,6 +99,7 @@ class wazirx(Exchange):
                         'historicalTrades': 1,
                         'openOrders': 1,
                         'order': 1,
+                        'myTrades': 1,
                     },
                     'post': {
                         'order': 1,
