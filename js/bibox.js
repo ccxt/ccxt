@@ -356,7 +356,7 @@ module.exports = class bibox extends Exchange {
         let fee = undefined;
         const feeCostString = this.safeString (trade, 'fee');
         if (feeCostString !== undefined) {
-            const feeCurrecyId = this.safeString (trade, 'fee_symbol');
+            const feeCurrencyId = this.safeString (trade, 'fee_symbol');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
                 'cost': Precise.stringNeg (feeCostString),
