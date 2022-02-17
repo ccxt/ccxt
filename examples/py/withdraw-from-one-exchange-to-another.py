@@ -27,14 +27,15 @@ kucoin.load_markets()
 code = 'USDT'
 amount = 40
 
-deposit = binance.fetchDepositAddress(code, {'network': 'TRC20'})
+params = {'network': 'TRC20'}
+
+deposit = binance.fetchDepositAddress(code, params)
 
 print('-----------------------------------------------------------')
 print(deposit)
 print('-----------------------------------------------------------')
 
-withdrawal = kucoin.withdraw(
-    code, amount, deposit['address'], deposit['tag'], {'network': 'TRC20'})
+withdrawal = kucoin.withdraw(code, amount, deposit['address'], deposit['tag'], params)
 
 print('-----------------------------------------------------------')
 
