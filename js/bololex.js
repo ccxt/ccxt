@@ -7,7 +7,7 @@ const { ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder } = requir
 
 // ---------------------------------------------------------------------------
 
-module.exports = class ataix extends Exchange {
+module.exports = class bololex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bololex',
