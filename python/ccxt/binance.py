@@ -4598,7 +4598,9 @@ class binance(Exchange):
                 })
             leverageBrackets[safeSymbol] = result
         if symbol is not None:
-            return self.safe_value(leverageBrackets, symbol)
+            result = {}
+            result[symbol] = self.safe_value(leverageBrackets, symbol)
+            return result
         else:
             return leverageBrackets
 

@@ -4840,7 +4840,9 @@ class binance extends Exchange {
             $leverageBrackets[$safeSymbol] = $result;
         }
         if ($symbol !== null) {
-            return $this->safe_value($leverageBrackets, $symbol);
+            $result = array();
+            $result[$symbol] = $this->safe_value($leverageBrackets, $symbol);
+            return $result;
         } else {
             return $leverageBrackets;
         }
