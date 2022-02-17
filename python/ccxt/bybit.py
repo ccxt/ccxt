@@ -25,6 +25,10 @@ from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
+import inspect
+import traceback
+from pprint import pprint
+
 
 class bybit(Exchange):
 
@@ -36,7 +40,7 @@ class bybit(Exchange):
             'version': 'v2',
             'userAgent': None,
             'rateLimit': 100,
-            'hostname': 'bybit.com',  # bybit.com, bytick.com
+            'hostname': 'bytick.com',  # bybit.com, bytick.com
             'has': {
                 'cancelAllOrders': True,
                 'cancelOrder': True,
@@ -1523,7 +1527,20 @@ class bybit(Exchange):
                 params = self.omit(params, ['stop_px', 'stopPrice', 'base_price'])
         elif basePrice is not None:
             raise ArgumentsRequired(self.id + ' createOrder() requires both the stop_px and base_price params for a conditional ' + type + ' order')
-        response = getattr(self, method)(self.extend(request, params))
+        try:
+            response = getattr(self, method)(self.extend(request, params))
+        except BadRequest:
+            traceback.print_exc()
+            print("{} Line: {}: request:".format(
+                inspect.getframeinfo(inspect.currentframe()).function,
+                inspect.getframeinfo(inspect.currentframe()).lineno,
+            ))
+            pprint(request)
+            print("{} Line: {}: params:".format(
+                inspect.getframeinfo(inspect.currentframe()).function,
+                inspect.getframeinfo(inspect.currentframe()).lineno,
+            ))
+            pprint(params)
         #
         #     {
         #         "ret_code": 0,
@@ -1649,6 +1666,20 @@ class bybit(Exchange):
             request['p_r_qty'] = qty
         if price is not None:
             request['p_r_price'] = float(self.price_to_precision(symbol, price))
+
+        dump = self.safe_string(params, 'dump')
+        if dump:
+            print("{} Line: {}: request:".format(
+                inspect.getframeinfo(inspect.currentframe()).function,
+                inspect.getframeinfo(inspect.currentframe()).lineno,
+            ))
+            pprint(request)
+            print("{} Line: {}: params:".format(
+                inspect.getframeinfo(inspect.currentframe()).function,
+                inspect.getframeinfo(inspect.currentframe()).lineno,
+            ))
+            pprint(params)
+
         response = getattr(self, method)(self.extend(request, params))
         #
         #     {
