@@ -167,7 +167,7 @@ module.exports = class bololex extends Exchange {
                 'id': id,
                 'code': code,
                 'name': this.safeString (currency, 'name'),
-                'active': currency['isActive'],
+                'active': this.safeValue (currency, 'isActive'),
                 'fee': undefined,
                 'precision': this.safeInteger (currency, 'amountPrecision'),
                 'limits': {
