@@ -406,7 +406,7 @@ module.exports = class zb extends Exchange {
             const spot = settle === undefined;
             const swap = this.safeValue (market, 'futures', false);
             const linear = swap ? true : undefined;
-            let status = '1';
+            let active = true;
             let symbol = base + '/' + quote;
             let amountPrecisionString = this.safeString (market, 'amountScale');
             let pricePrecisionString = this.safeString (market, 'priceScale');
@@ -415,7 +415,8 @@ module.exports = class zb extends Exchange {
             let minPrice = this.safeNumber (market, 'minSize');
             let maxPrice = undefined;
             if (swap) {
-                status = this.safeString (market, 'status');
+                const status = this.safeString (market, 'status');
+                active = (status === '1');
                 minQty = this.safeNumber (market, 'minAmount');
                 maxQty = this.safeNumber (market, 'maxAmount');
                 minPrice = this.safeNumber (market, 'minTradeMoney');
@@ -439,7 +440,7 @@ module.exports = class zb extends Exchange {
                 'swap': swap,
                 'future': false,
                 'option': false,
-                'active': (status === '1'),
+                'active': active,
                 'contract': swap,
                 'linear': linear,
                 'inverse': swap ? !linear : undefined,
