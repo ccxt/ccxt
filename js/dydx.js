@@ -46,7 +46,7 @@ module.exports = class dydx extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFees': undefined,
+                'fetchTradingFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': false,
                 'privateAPI': true,
@@ -89,7 +89,7 @@ module.exports = class dydx extends Exchange {
                         'stats/{market}': 60,
                         'historical-funding/{market}': 60,
                         'candles/{market}': 60,
-                        'config': 60, // Get default maker and taker fees. // TO_DO: fetchTradingFees
+                        'config': 60, // Get default maker and taker fees.
                         'users/exists': 60,
                         'usernames': 60,
                         'time': 60,
@@ -224,33 +224,6 @@ module.exports = class dydx extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        // const configResponse = await this.publicGetConfig ();
-        //
-        // {
-        //     collateralAssetId: '0x02893294412a4c8f915f75892b395ebbf6859ec246ec365c3b1f56f47c3a0a5d',
-        //     collateralTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-        //     defaultMakerFee: '0.0005',
-        //     defaultTakerFee: '0.001',
-        //     exchangeAddress: '0xD54f502e184B6B739d7D27a6410a67dc462D69c8',
-        //     maxExpectedBatchLengthMinutes: '720',
-        //     maxFastWithdrawalAmount: '200000',
-        //     cancelOrderRateLimiting: {
-        //       maxPointsMulti: '3',
-        //       maxPointsSingle: '8500',
-        //       windowSecMulti: '10',
-        //       windowSecSingle: '10'
-        //     },
-        //     placeOrderRateLimiting: {
-        //       maxPoints: '1000',
-        //       windowSec: '10',
-        //       targetNotional: '40000',
-        //       minLimitConsumption: '4',
-        //       minMarketConsumption: '20',
-        //       minTriggerableConsumption: '100',
-        //       maxOrderConsumption: '100'
-        //     }
-        // }
-        //
         const marketsResponse = await this.publicGetMarkets (params);
         //
         // {
@@ -360,6 +333,40 @@ module.exports = class dydx extends Exchange {
             result.push (entry);
         }
         return result;
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetConfig (params);
+        // {
+        //     collateralAssetId: "0x02893294412a4c8f915f75892b395ebbf6859ec246ec365c3b1f56f47c3a0a5d",
+        //     collateralTokenAddress: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        //     defaultMakerFee: "0.0002",
+        //     defaultTakerFee: "0.0005",
+        //     exchangeAddress: "0xD54f502e184B6B739d7D27a6410a67dc462D69c8",
+        //     maxExpectedBatchLengthMinutes: "720",
+        //     maxFastWithdrawalAmount: "200000",
+        //     cancelOrderRateLimiting: {
+        //       maxPointsMulti: "3",
+        //       maxPointsSingle: "8500",
+        //       windowSecMulti: "10",
+        //       windowSecSingle: "10",
+        //     },
+        //     placeOrderRateLimiting: {
+        //       maxPoints: "1000",
+        //       windowSec: "10",
+        //       targetNotional: "40000",
+        //       minLimitConsumption: "4",
+        //       minMarketConsumption: "20",
+        //       minTriggerableConsumption: "100",
+        //       maxOrderConsumption: "100",
+        //     },
+        // }
+        return {
+            'maker': this.safeNumber (response, 'defaultMakerFee'),
+            'taker': this.safeNumber (response, 'defaultTakerFee'),
+            'info': response,
+        };
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
