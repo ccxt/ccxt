@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ExchangeNotAvailable, AccountSuspended, PermissionDenied, RateLimitExceeded, InvalidNonce, InvalidAddress, ArgumentsRequired, ExchangeError, InvalidOrder, InsufficientFunds, BadRequest, OrderNotFound, BadSymbol, NotSupported } = require ('./base/errors');
-const { ROUND, TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
+const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -442,10 +442,10 @@ module.exports = class bitmart extends Exchange {
             //
             // the docs are wrong: https://github.com/ccxt/ccxt/issues/5612
             //
-            const pricePrecision = this.safeInteger (market, 'price_max_precision');
-            const minBuyCost = this.safeNumber (market, 'min_buy_amount');
-            const minSellCost = this.safeNumber (market, 'min_sell_amount');
-            const minCost = Math.max (minBuyCost, minSellCost);
+            const minBuyCost = this.safeString (market, 'min_buy_amount');
+            const minSellCost = this.safeString (market, 'min_sell_amount');
+            const minCost = Precise.stringMax (minBuyCost, minSellCost);
+            const pricePrecision = this.parsePrecision (this.safeString (market, 'price_max_precision'));
             result.push ({
                 'id': id,
                 'numericId': numericId,
@@ -472,12 +472,12 @@ module.exports = class bitmart extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.parseNumber (this.decimalToPrecision (Math.pow (10, -pricePrecision), ROUND, 14)),
                     'amount': this.safeNumber (market, 'base_min_size'),
+                    'price': this.parseNumber (pricePrecision),
                 },
                 'limits': {
                     'leverage': {
-                        'min': this.parseNumber ('1'),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'amount': {
@@ -489,7 +489,7 @@ module.exports = class bitmart extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': minCost,
+                        'min': this.parseNumber (minCost),
                         'max': undefined,
                     },
                 },
@@ -500,141 +500,103 @@ module.exports = class bitmart extends Exchange {
     }
 
     async fetchContractMarkets (params = {}) {
-        const response = await this.publicContractGetContracts (params);
+        const response = await this.publicContractGetTickers (params);
         //
-        //     {
-        //         "errno":"OK",
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"7fcedfb5-a660-4780-8a7a-b36a9e2159f7",
-        //         "data":{
-        //             "contracts":[
-        //                 {
-        //                     "contract":{
-        //                         "contract_id":1,
-        //                         "index_id":1,
-        //                         "name":"BTCUSDT",
-        //                         "display_name":"BTCUSDT永续合约",
-        //                         "display_name_en":"BTCUSDT_SWAP",
-        //                         "contract_type":1,
-        //                         "base_coin":"BTC",
-        //                         "quote_coin":"USDT",
-        //                         "price_coin":"BTC",
-        //                         "exchange":"*",
-        //                         "contract_size":"0.0001",
-        //                         "begin_at":"2018-08-17T04:00:00Z",
-        //                         "delive_at":"2020-08-15T12:00:00Z",
-        //                         "delivery_cycle":28800,
-        //                         "min_leverage":"1",
-        //                         "max_leverage":"100",
-        //                         "price_unit":"0.1",
-        //                         "vol_unit":"1",
-        //                         "value_unit":"0.0001",
-        //                         "min_vol":"1",
-        //                         "max_vol":"300000",
-        //                         "liquidation_warn_ratio":"0.85",
-        //                         "fast_liquidation_ratio":"0.8",
-        //                         "settgle_type":1,
-        //                         "open_type":3,
-        //                         "compensate_type":1,
-        //                         "status":3,
-        //                         "block":1,
-        //                         "rank":1,
-        //                         "created_at":"2018-07-12T19:16:57Z",
-        //                         "depth_bord":"1.001",
-        //                         "base_coin_zh":"比特币",
-        //                         "base_coin_en":"Bitcoin",
-        //                         "max_rate":"0.00375",
-        //                         "min_rate":"-0.00375"
-        //                     },
-        //                     "risk_limit":{"contract_id":1,"base_limit":"1000000","step":"500000","maintenance_margin":"0.005","initial_margin":"0.01"},
-        //                     "fee_config":{"contract_id":1,"maker_fee":"-0.0003","taker_fee":"0.001","settlement_fee":"0","created_at":"2018-07-12T20:47:22Z"},
-        //                     "plan_order_config":{"contract_id":0,"min_scope":"0.001","max_scope":"2","max_count":10,"min_life_cycle":24,"max_life_cycle":168}
-        //                 },
-        //             ]
-        //         }
-        //     }
+        //    {
+        //        "message": "OK",
+        //        "code": 1000,
+        //        "trace": "045d13a8-4bc7-4974-9748-97d0ea183ef0",
+        //        "data": {
+        //            "tickers": [
+        //                {
+        //                    "contract_symbol": "RAYUSDT",
+        //                    "last_price": "3.893",
+        //                    "index_price": "3.90248043",
+        //                    "last_funding_rate": "-0.00054285",
+        //                    "price_change_percent_24h": "-6.955",
+        //                    "volume_24h": "10450969.34602996",
+        //                    "url": "https://futures.bitmart.com/en?symbol=RAYUSDT",
+        //                    "high_price": "4.299",
+        //                    "low_price": "3.887",
+        //                    "legal_coin_price": "3.893056"
+        //                },
+        //                ...
+        //            ]
+        //        }
+        //    }
         //
         const data = this.safeValue (response, 'data', {});
-        const contracts = this.safeValue (data, 'contracts', []);
+        const tickers = this.safeValue (data, 'tickers', []);
         const result = [];
-        for (let i = 0; i < contracts.length; i++) {
-            const market = contracts[i];
-            const contract = this.safeValue (market, 'contract', {});
-            const id = this.safeString (contract, 'contract_id');
-            const numericId = this.safeInteger (contract, 'contract_id');
-            const baseId = this.safeString (contract, 'base_coin');
-            const quoteId = this.safeString (contract, 'quote_coin');
-            const settleId = this.safeString (contract, 'price_coin');
+        for (let i = 0; i < tickers.length; i++) {
+            const market = tickers[i];
+            const id = this.safeString (market, 'contract_symbol');
+            const baseId = id.slice (0, -4);
+            const quoteId = id.slice (-4);
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const settle = this.safeCurrencyCode (settleId);
-            //
-            // https://github.com/bitmartexchange/bitmart-official-api-docs/blob/master/rest/public/symbols_details.md#response-details
-            // from the above API doc:
-            // quote_increment Minimum order price as well as the price increment
-            // price_min_precision Minimum price precision (digit) used to query price and kline
-            // price_max_precision Maximum price precision (digit) used to query price and kline
-            //
-            // the docs are wrong: https://github.com/ccxt/ccxt/issues/5612
-            //
-            const amountPrecision = this.safeNumber (contract, 'vol_unit');
-            const pricePrecision = this.safeNumber (contract, 'price_unit');
-            const contractType = this.safeValue (contract, 'contract_type');
+            const splitId = id.split (id, '_');
+            const splitIdEnding = this.safeString (splitId, 1);
+            let settle = 'USDT';
+            let symbol = base + '/' + quote + ':' + settle;
+            let type = 'swap';
+            let swap = true;
             let future = false;
-            let swap = false;
-            let type = 'contract';
-            let symbol = base + '/' + quote;
-            const expiry = this.parse8601 (this.safeString (contract, 'delive_at'));
-            if (contractType === 1) {
-                type = 'swap';
-                swap = true;
-                symbol = symbol + ':' + settle;
-            } else if (contractType === 2) {
-                type = 'future';
-                future = true;
-                symbol = symbol + ':' + settle + '-' + this.yymmdd (expiry, '');
+            let expiry = undefined;
+            if (splitIdEnding !== undefined) {
+                settle = 'BTC';
+                symbol = base + '/' + quote + ':' + settle;
+                if (splitIdEnding !== 'PERP') {
+                    const date = this.iso8601 (this.milliseconds ());
+                    const splitDate = date.split ('-');
+                    const year = splitDate[0];
+                    const shortYear = year.slice (0, 2);
+                    const expiryMonth = splitIdEnding.slice (0, 2);
+                    const expiryDay = splitIdEnding.slice (2, 4);
+                    expiry = this.parse8601 (year + '-' + expiryMonth + '-' + expiryDay + 'T00:00:00Z');
+                    symbol = symbol + '-' + shortYear + splitIdEnding;
+                    type = 'future';
+                    swap = false;
+                    future = true;
+                }
             }
-            const feeConfig = this.safeValue (market, 'fee_config', {});
             result.push ({
                 'id': id,
-                'numericId': numericId,
+                'numericId': undefined,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': settleId,
+                'settleId': undefined,
                 'type': type,
                 'spot': false,
                 'margin': false,
                 'swap': swap,
                 'future': future,
                 'option': false,
-                'active': undefined,
+                'active': true,
                 'contract': true,
-                'linear': undefined,
-                'inverse': undefined,
-                'taker': this.safeNumber (feeConfig, 'taker_fee'),
-                'maker': this.safeNumber (feeConfig, 'maker_fee'),
-                'contractSize': this.safeNumber (market, 'contract_size'),
+                'linear': true,
+                'inverse': false,
+                'contractSize': undefined,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': pricePrecision,
-                    'amount': amountPrecision,
+                    'amount': undefined,
+                    'price': undefined,
                 },
                 'limits': {
                     'leverage': {
-                        'min': this.safeNumber (contract, 'min_leverage'),
-                        'max': this.safeNumber (contract, 'max_leverage'),
+                        'min': undefined,
+                        'max': undefined,
                     },
                     'amount': {
-                        'min': this.safeNumber (contract, 'min_vol'),
-                        'max': this.safeNumber (contract, 'max_vol'),
+                        'min': undefined,
+                        'max': undefined,
                     },
                     'price': {
                         'min': undefined,
@@ -652,7 +614,9 @@ module.exports = class bitmart extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        return await this.fetchSpotMarkets ();
+        const spot = await this.fetchSpotMarkets (params);
+        const contract = await this.fetchContractMarkets (params);
+        return this.arrayConcat (spot, contract);
     }
 
     async fetchFundingFee (code, params = {}) {
