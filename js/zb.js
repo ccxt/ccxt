@@ -334,37 +334,106 @@ module.exports = class zb extends Exchange {
         //         },
         //     }
         //
-        const keys = Object.keys (markets);
+        const contracts = await this.contractV2PublicGetConfigMarketList (params);
+        //
+        //     {
+        //         BTC_USDT: {
+        //             symbol: 'BTC_USDT',
+        //             buyerCurrencyId: '6',
+        //             contractType: '1',
+        //             defaultMarginMode: '1',
+        //             marketType: '2',
+        //             historyDBName: 'trade_history_readonly.dbc',
+        //             defaultLeverage: '20',
+        //             id: '100',
+        //             canCancelOrder: true,
+        //             area: '1',
+        //             mixMarginCoinName: 'usdt',
+        //             fundingRateRatio: '0.25',
+        //             marginCurrencyName: 'usdt',
+        //             minTradeMoney: '0.0001',
+        //             enableTime: '1638954000000',
+        //             maxTradeMoney: '10000000',
+        //             canTrade: true,
+        //             maxLeverage: '125',
+        //             defaultPositionsMode: '2',
+        //             onlyWhitelistVisible: false,
+        //             riskWarnRatio: '0.8',
+        //             marginDecimal: '8',
+        //             spot: false,
+        //             status: '1',
+        //             amountDecimal: '3',
+        //             leverage: false,
+        //             minAmount: '0.001',
+        //             canOrder: true,
+        //             duration: '1',
+        //             feeDecimal: '8',
+        //             sellerCurrencyId: '1',
+        //             maxAmount: '1000',
+        //             canOpenPosition: true,
+        //             isSupportMixMargin: false,
+        //             markPriceLimitRate: '0.05',
+        //             marginCurrencyId: '6',
+        //             stopFundingFee: false,
+        //             priceDecimal: '2',
+        //             lightenUpFeeRate: '0',
+        //             futures: true,
+        //             sellerCurrencyName: 'btc',
+        //             marketPriceLimitRate: '0.05',
+        //             canRebate: true,
+        //             marketName: 'BTC_USDT',
+        //             depth: [ 0.01, 0.1, 1 ],
+        //             createTime: '1607590430094',
+        //             mixMarginCoinIds: [ 6 ],
+        //             buyerCurrencyName: 'usdt',
+        //             stopService: false
+        //         },
+        //     }
+        //
+        const contractsData = this.safeValue (contracts, 'data', []);
+        const contractsById = this.indexBy (contractsData, 'marketName');
+        const dataById = this.deepExtend (contractsById, markets);
+        const keys = Object.keys (dataById);
         const result = [];
         for (let i = 0; i < keys.length; i++) {
             const id = keys[i];
-            const market = markets[id];
+            const market = dataById[id];
             const [ baseId, quoteId ] = id.split ('_');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const amountPrecisionString = this.safeString (market, 'amountScale');
-            const pricePrecisionString = this.safeString (market, 'priceScale');
-            const priceLimit = this.parsePrecision (pricePrecisionString);
+            const settleId = this.safeValue (market, 'marginCurrencyName');
+            const settle = this.safeCurrencyCode (settleId);
+            const spot = settle === undefined;
+            const swap = this.safeValue (market, 'futures', false);
+            const linear = swap ? true : undefined;
+            let active = true;
+            let symbol = base + '/' + quote;
+            const amountPrecisionString = this.safeString2 (market, 'amountScale', 'amountDecimal');
+            const pricePrecisionString = this.safeString2 (market, 'priceScale', 'priceDecimal');
+            if (swap) {
+                const status = this.safeString (market, 'status');
+                active = (status === '1');
+                symbol = base + '/' + quote + ':' + settle;
+            }
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': undefined,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
+                'settleId': settleId,
+                'type': swap ? 'swap' : 'spot',
+                'spot': spot,
                 'margin': false,
-                'swap': false,
+                'swap': swap,
                 'future': false,
                 'option': false,
-                'active': true,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
+                'active': active,
+                'contract': swap,
+                'linear': linear,
+                'inverse': swap ? !linear : undefined,
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -377,19 +446,19 @@ module.exports = class zb extends Exchange {
                 'limits': {
                     'leverage': {
                         'min': undefined,
-                        'max': undefined,
+                        'max': this.safeNumber (market, 'maxLeverage'),
                     },
                     'amount': {
                         'min': this.safeNumber (market, 'minAmount'),
-                        'max': undefined,
+                        'max': this.safeNumber (market, 'maxAmount'),
                     },
                     'price': {
-                        'min': this.parseNumber (priceLimit),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
-                        'min': this.safeNumber (market, 'minSize'),
-                        'max': undefined,
+                        'min': this.safeNumber2 (market, 'minSize', 'minTradeMoney'),
+                        'max': this.safeNumber (market, 'maxTradeMoney'),
                     },
                 },
                 'info': market,
