@@ -686,11 +686,18 @@ module.exports = class zb extends Exchange {
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
+            'symbol': market['id'],
         };
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'spotV1PublicGetDepth',
+            'swap': 'contractV1PublicGetDepth',
+        });
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await this.spotV1PublicGetDepth (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
+        //
+        // Spot
         //
         //     {
         //         "asks":[
@@ -706,7 +713,36 @@ module.exports = class zb extends Exchange {
         //         "timestamp":1624536510
         //     }
         //
-        return this.parseOrderBook (response, symbol);
+        // Swap
+        //
+        //     {
+        //         "code": 10000,
+        //         "desc": "操作成功",
+        //         "data": {
+        //             "asks": [
+        //                 [43416.6,0.02],
+        //                 [43418.25,0.04],
+        //                 [43425.82,0.02]
+        //             ],
+        //             "bids": [
+        //                 [43414.61,0.1],
+        //                 [43414.18,0.04],
+        //                 [43413.03,0.05]
+        //             ],
+        //             "time": 1645087743071
+        //         }
+        //     }
+        //
+        let result = undefined;
+        let timestamp = undefined;
+        if (market['type'] === 'swap') {
+            result = this.safeValue (response, 'data');
+            timestamp = this.safeInteger (result, 'time');
+        } else {
+            result = response;
+            timestamp = this.safeTimestamp (response, 'timestamp');
+        }
+        return this.parseOrderBook (result, symbol, timestamp);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
