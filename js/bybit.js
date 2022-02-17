@@ -993,7 +993,7 @@ module.exports = class bybit extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.v2PublicGetTickers (this.extend (request, params));
+        const response = await this.publicGetV2PublicTickers (this.extend (request, params));
         //
         //     {
         //         ret_code: 0,
@@ -1041,7 +1041,7 @@ module.exports = class bybit extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.v2PublicGetTickers (params);
+        const response = await this.publicGetV2PublicTickers (params);
         //
         //     {
         //         ret_code: 0,
@@ -1151,15 +1151,15 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 200, default 200
         }
-        let method = 'v2PublicGetKlineList';
+        let method = 'publicGetV2PublicKlineList';
         if (price === 'mark') {
-            method = 'v2PublicGetMarkPriceKline';
+            method = 'publicGetV2PublicMarkPriceKline';
         } else if (price === 'index') {
-            method = 'v2PublicGetIndexPriceKline';
+            method = 'publicGetV2PublicIndexPriceKline';
         } else if (price === 'premiumIndex') {
-            method = 'v2PublicGetPremiumIndexKline';
+            method = 'publicGetV2PublicPremiumIndexKline';
         } else if (market['linear']) {
-            method = 'publicLinearGetKline';
+            method = 'publicGetPublicLinearKline';
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -1220,6 +1220,7 @@ module.exports = class bybit extends Exchange {
             'symbol': market['id'],
         };
         const method = market['linear'] ? 'publicLinearGetFundingPrevFundingRate' : 'v2PublicGetFundingPrevFundingRate';
+        // TODO const method = market['linear'] ? 'publicGetPublicLinearFundingPrevFundingRate' : 'publicGetV2PublicFundingRate ???? throws ExchangeError';
         const response = await this[method] (this.extend (request, params));
         //
         // {
@@ -1445,7 +1446,7 @@ module.exports = class bybit extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.v2PublicGetOrderBookL2 (this.extend (request, params));
+        const response = await this.publicGetV2PublicOrderBookL2 (this.extend (request, params));
         //
         //     {
         //         ret_code: 0,
