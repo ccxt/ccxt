@@ -54,6 +54,7 @@ module.exports = class bybit extends Exchange {
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterestHistory': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -4503,6 +4504,58 @@ module.exports = class bybit extends Exchange {
             throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 100');
         }
         return await this[method] (this.extend (request, params));
+    }
+
+    async fetchOpenInterestHistory (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+        if (timeframe === '1m') {
+            throw new BadRequest (this.id + 'fetchOpenInterestHistory cannot use the 1m timeframe');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'period': timeframe,
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.v2PublicGetOpenInterest (this.extend (request, params));
+        //
+        //    {
+        //        "ret_code": 0,
+        //        "ret_msg": "OK",
+        //        "ext_code": "",
+        //        "ext_info": "",
+        //        "result": [
+        //            {
+        //                "open_interest": 805604444,
+        //                "timestamp": 1645056000,
+        //                "symbol": "BTCUSD"
+        //            },
+        //            ...
+        //        ],
+        //        "time_now": "1645085118.727358"
+        //    }
+        //
+        const result = this.safeValue (response, 'result');
+        return this.parseOpenInterests (result);
+    }
+
+    parseOpenInterest (interest, market = undefined) {
+        const id = this.safeString (interest, 'symbol');
+        market = this.safeMarket (id, market);
+        const timestamp = this.safeTimestamp (interest, 'timestamp');
+        const numContracts = this.safeString (interest, 'open_interest');
+        const contractSize = market['contractSize'];
+        return {
+            'symbol': this.safeSymbol (id),
+            'volume': this.parseNumber (numContracts),
+            'value': Precise.stringMul (numContracts, contractSize),
+            'valueCurrency': market['base'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
