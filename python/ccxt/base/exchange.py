@@ -2804,3 +2804,12 @@ class Exchange(object):
             return self.safe_value(tiers, symbol)
         else:
             raise NotSupported(self.id + 'fetch_market_leverage_tiers() is not supported yet')
+
+    def parse_open_interests(self, response, symbol, since, limit):
+        interests = []
+        for i in range(len(response)):
+            entry = response[i]
+            interest = self.parseOpenInterest(entry)
+            interests.append(interest)
+        sorted = self.sortBy(interests, 'timestamp')
+        return self.filterBySymbolSinceLimit(sorted, symbol, since, limit)

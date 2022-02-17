@@ -3737,4 +3737,15 @@ class Exchange {
     public function sleep($milliseconds) {
         sleep($milliseconds / 1000);
     }
+
+    public function parse_open_interests($response, $symbol, $since, $limit) {
+        $interests = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = &$response[$i];
+            $interest = $this->parseOpenInterest($entry);
+            array_push($interests, $interest);
+        }
+        $sorted = $this->sortBy ($interests, 'timestamp');
+        return $this->filterBySymbolSinceLimit ($sorted, $symbol, $since, $limit);
+    }
 }

@@ -3026,17 +3026,6 @@ module.exports = class bybit extends Exchange {
         return this.parseOpenInterests (result);
     }
 
-    parseOpenInterests (response, symbol, since, limit) {
-        const interests = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const interest = this.parseOpenInterest (entry);
-            interests.push (interest);
-        }
-        const sorted = this.sortBy (interests, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
-    }
-
     parseOpenInterest (interest) {
         const id = this.safeString (interest, 'symbol');
         const market = this.market (id);

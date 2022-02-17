@@ -2226,6 +2226,16 @@ module.exports = class Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchMarketLeverageTiers() is not supported yet');
         }
+    }
 
+    parseOpenInterests (response, symbol, since, limit) {
+        const interests = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const interest = this.parseOpenInterest (entry);
+            interests.push (interest);
+        }
+        const sorted = this.sortBy (interests, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 }
