@@ -2470,7 +2470,6 @@ module.exports = class mexc extends Exchange {
                 throw new BadRequest (this.id + ' fetchLeverageTiers() supports contract markets only');
             }
         }
-        const result = {};
         const response = await this.contractPublicGetDetail (params);
         //
         //     {
@@ -2517,6 +2516,7 @@ module.exports = class mexc extends Exchange {
         //         ]
         //     }
         //
+        const result = {};
         const data = this.safeValue (response, 'data');
         for (let i = 0; i < data.length; i++) {
             const item = data[i];
