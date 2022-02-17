@@ -20,10 +20,10 @@ module.exports = class liquid extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
-                'swap': undefined,
-                'future': undefined,
-                'option': undefined,
+                'margin': undefined, // has but not fully implemented
+                'swap': undefined, // has but not fully implemented
+                'future': false,
+                'option': false,
                 'cancelOrder': true,
                 'createOrder': true,
                 'editOrder': true,
@@ -213,6 +213,7 @@ module.exports = class liquid extends Exchange {
                 'MIOTA': 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
                 'TON': 'Tokamak Network',
                 'BIFI': 'Bifrost Finance',
+                'P-BTC': 'BTC',
             },
             'options': {
                 'cancelOrderException': true,
@@ -221,6 +222,11 @@ module.exports = class liquid extends Exchange {
                     'TRX': 'TRC20',
                     'XLM': 'Stellar',
                     'ALGO': 'Algorand',
+                },
+                'swap': {
+                    'fetchMarkets': {
+                        'settlementCurrencies': [ 'BTC', 'ETH', 'XRP', 'QASH', 'USD', 'JPY', 'EUR', 'SGD', 'AUD' ],
+                    },
                 },
             },
         });
@@ -388,35 +394,13 @@ module.exports = class liquid extends Exchange {
             const baseId = this.safeString (market, 'base_currency');
             const quoteId = this.safeString (market, 'quoted_currency');
             const productType = this.safeString (market, 'product_type');
-            let type = 'spot';
-            let spot = true;
-            let swap = false;
-            if (productType === 'Perpetual') {
-                spot = false;
-                swap = true;
-                type = 'swap';
-            }
+            const swap = (productType === 'Perpetual');
+            const type = swap ? 'swap' : 'spot';
+            const spot = !swap;
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            let symbol = undefined;
-            if (swap) {
-                symbol = this.safeString (market, 'currency_pair_code');
-            } else {
-                symbol = base + '/' + quote;
-            }
-            let maker = this.fees['trading']['maker'];
-            let taker = this.fees['trading']['taker'];
-            if (type === 'swap') {
-                maker = this.safeNumber (market, 'maker_fee', this.fees['trading']['maker']);
-                taker = this.safeNumber (market, 'taker_fee', this.fees['trading']['taker']);
-            }
             const disabled = this.safeValue (market, 'disabled', false);
-            const active = !disabled;
             const baseCurrency = this.safeValue (currenciesByCode, base);
-            const precision = {
-                'amount': 0.00000001,
-                'price': this.safeNumber (market, 'tick_size'),
-            };
             let minAmount = undefined;
             if (baseCurrency !== undefined) {
                 minAmount = this.safeNumber (baseCurrency['info'], 'minimum_order_quantity');
@@ -434,37 +418,76 @@ module.exports = class liquid extends Exchange {
                     maxPrice = lastPrice * multiplierUp;
                 }
             }
-            const limits = {
-                'amount': {
-                    'min': minAmount,
-                    'max': undefined,
-                },
-                'price': {
-                    'min': minPrice,
-                    'max': maxPrice,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            };
-            result.push ({
+            const margin = this.safeValue (market, 'margin_enabled');
+            const symbol = base + '/' + quote;
+            const maker = this.fees['trading']['maker'];
+            const taker = this.fees['trading']['taker'];
+            const parsedMarket = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': type,
                 'spot': spot,
+                'margin': spot && margin,
                 'swap': swap,
-                'maker': maker,
+                'future': false,
+                'option': false,
+                'active': !disabled,
+                'contract': swap,
+                'linear': undefined,
+                'inverse': undefined,
                 'taker': taker,
-                'limits': limits,
-                'precision': precision,
-                'active': active,
+                'maker': maker,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.parseNumber ('0.00000001'),
+                    'price': this.safeNumber (market, 'tick_size'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': minAmount,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': minPrice,
+                        'max': maxPrice,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
                 'info': market,
-            });
+            };
+            if (swap) {
+                const settlementCurrencies = this.options['fetchMarkets']['settlementCurrencies'];
+                for (let i = 0; i < settlementCurrencies.length; i++) {
+                    const settle = settlementCurrencies[i];
+                    parsedMarket['settle'] = settle;
+                    parsedMarket['symbol'] = symbol + ':' + settle;
+                    parsedMarket['linear'] = quote === settle;
+                    parsedMarket['inverse'] = base === settle;
+                    parsedMarket['taker'] = this.safeNumber (market, 'taker_fee', taker);
+                    parsedMarket['maker'] = this.safeNumber (market, 'maker_fee', maker);
+                    parsedMarket['contractSize'] = this.parseNumber ('1');
+                    result.push (parsedMarket);
+                }
+            } else {
+                result.push (parsedMarket);
+            }
         }
         return result;
     }
