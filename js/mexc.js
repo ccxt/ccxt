@@ -2467,11 +2467,11 @@ module.exports = class mexc extends Exchange {
         if (symbolDefined) {
             market = this.market (symbol);
             if (!market['contract']) {
-                throw new BadRequest (this.id + ' fetchLeverageTiers symbol supports contract markets only');
+                throw new BadRequest (this.id + ' fetchLeverageTiers() supports contract markets only');
             }
         }
         const result = {};
-        const response = await this.contractPublicGetDetail ();
+        const response = await this.contractPublicGetDetail (params);
         //
         //     {
         //         "success":true,
