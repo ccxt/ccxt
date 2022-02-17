@@ -25,6 +25,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import NetworkError
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import RequestTimeout
@@ -817,6 +818,7 @@ class huobi(Exchange):
                     'base-symbol-trade-disabled': BadSymbol,  # {"status":"error","err-code":"base-symbol-trade-disabled","err-msg":"Trading is disabled for self symbol","data":null}
                     'base-symbol-error': BadSymbol,  # {"status":"error","err-code":"base-symbol-error","err-msg":"The symbol is invalid","data":null}
                     'system-maintenance': OnMaintenance,  # {"status": "error", "err-code": "system-maintenance", "err-msg": "System is in maintenance!", "data": null}
+                    'base-request-exceed-frequency-limit': RateLimitExceeded,  # {"status":"error","err-code":"base-request-exceed-frequency-limit","err-msg":"Frequency of requests has exceeded the limit, please try again later","data":null}
                     # err-msg
                     'invalid symbol': BadSymbol,  # {"ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol"}
                     'symbol trade not open now': BadSymbol,  # {"ts":1576210479343,"status":"error","err-code":"invalid-parameter","err-msg":"symbol trade not open now"}
