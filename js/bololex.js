@@ -235,7 +235,7 @@ module.exports = class bololex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': symbol,
+            'symbol': this.marketId (symbol),
             'period': this.timeframes[timeframe],
             'limit': limit || 1000,
         };
@@ -382,7 +382,7 @@ module.exports = class bololex extends Exchange {
         // const market = this.market (symbol);
         amount = this.asFloat (amount);
         const request = {
-            'symbol': symbol,
+            'symbol': this.marketId (symbol),
             'side': side,
             'quantity': amount,
             'type': type,
@@ -619,7 +619,7 @@ module.exports = class bololex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
         const response = await this.fetch2 (path, api, method, params, headers, body);
         if ('code' in response) {
             if ('ExecutionReport' in response) {
