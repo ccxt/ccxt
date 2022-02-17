@@ -235,6 +235,8 @@ class bitstamp extends Exchange {
                         'shib_address/',
                         'amp_withdrawal/',
                         'amp_address/',
+                        'sgb_withdrawal/',
+                        'sgb_address/',
                         'transfer-to-main/',
                         'transfer-from-main/',
                         'withdrawal-requests/',
