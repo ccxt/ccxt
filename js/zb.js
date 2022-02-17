@@ -453,8 +453,8 @@ module.exports = class zb extends Exchange {
                         'max': this.safeNumber (market, 'maxAmount'),
                     },
                     'price': {
-                        'min': minPrice,
-                        'max': maxPrice,
+                        'min': undefined,
+                        'max': undefined,
                     },
                     'cost': {
                         'min': this.safeNumber2 (market, 'minSize', 'minTradeMoney'),
