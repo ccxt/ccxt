@@ -2275,10 +2275,10 @@ module.exports = class ascendex extends Exchange {
         if (symbolDefined) {
             const market = this.market (symbol);
             if (!market['contract']) {
-                throw new BadRequest (this.id + ' fetchLeverageTiers symbol supports contract markets only');
+                throw new BadRequest (this.id + ' fetchLeverageTiers() supports contract markets only');
             }
         }
-        const response = await this.v2PublicGetFuturesContract ();
+        const response = await this.v2PublicGetFuturesContract (params);
         //
         //     {
         //         "code":0,
