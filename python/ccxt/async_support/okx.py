@@ -12,6 +12,7 @@ try:
 except NameError:
     basestring = str  # Python 2
 import hashlib
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -67,8 +68,8 @@ class okx(Exchange):
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
                 'fetchBorrowRate': True,
-                'fetchBorrowRateHistories': None,
-                'fetchBorrowRateHistory': None,
+                'fetchBorrowRateHistories': True,
+                'fetchBorrowRateHistory': True,
                 'fetchBorrowRates': True,
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchCanceledOrders': True,
@@ -3710,51 +3711,6 @@ class okx(Exchange):
         #
         return response
 
-    async def modify_margin_helper(self, symbol, amount, type, params={}):
-        await self.load_markets()
-        market = self.market(symbol)
-        posSide = self.safe_string(params, 'posSide', 'net')
-        params = self.omit(params, ['posSide'])
-        request = {
-            'instId': market['id'],
-            'amt': amount,
-            'type': type,
-            'posSide': posSide,
-        }
-        response = await self.privatePostAccountPositionMarginBalance(self.extend(request, params))
-        #
-        #     {
-        #       "code": "0",
-        #       "data": [
-        #         {
-        #           "amt": "0.01",
-        #           "instId": "ETH-USD-SWAP",
-        #           "posSide": "net",
-        #           "type": "reduce"
-        #         }
-        #       ],
-        #       "msg": ""
-        #     }
-        #
-        data = self.safe_value(response, 'data', [])
-        entry = self.safe_value(data, 0, {})
-        errorCode = self.safe_string(response, 'code')
-        status = 'ok' if (errorCode == '0') else 'failed'
-        responseAmount = self.safe_number(entry, 'amt')
-        responseType = self.safe_string(entry, 'type')
-        marketId = self.safe_string(entry, 'instId')
-        responseMarket = self.safe_market(marketId, market)
-        code = responseMarket['base'] if responseMarket['inverse'] else responseMarket['quote']
-        symbol = responseMarket['symbol']
-        return {
-            'info': response,
-            'type': responseType,
-            'amount': responseAmount,
-            'code': code,
-            'symbol': symbol,
-            'status': status,
-        }
-
     async def fetch_borrow_rates(self, params={}):
         await self.load_markets()
         response = await self.privateGetAccountInterestRate(params)
@@ -3812,6 +3768,108 @@ class okx(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': rate,
+        }
+
+    async def fetch_borrow_rate_histories(self, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {
+            # 'ccy': currency['id'],
+            # 'after': self.milliseconds(),  # Pagination of data to return records earlier than the requested ts,
+            # 'before': since,  # Pagination of data to return records newer than the requested ts,
+            # 'limit': limit,  # default is 100 and maximum is 100
+        }
+        if since is not None:
+            request['before'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.publicGetAssetLendingRateHistory(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "amt": "992.10341195",
+        #                 "ccy": "BTC",
+        #                 "rate": "0.01",
+        #                 "ts": "1643954400000"
+        #             },
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        borrowRateHistories = {}
+        for i in range(0, len(data)):
+            item = data[i]
+            currency = self.safe_currency_code(self.safe_string(item, 'ccy'))
+            if not (currency in borrowRateHistories):
+                borrowRateHistories[currency] = []
+            rate = self.safe_string(item, 'rate')
+            timestamp = self.safe_string(item, 'ts')
+            borrowRateHistories[currency].append({
+                'info': item,
+                'currency': currency,
+                'rate': rate,
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+            })
+        keys = list(borrowRateHistories.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            borrowRateHistories[key] = self.filter_by_currency_since_limit(borrowRateHistories[key], key, since, limit)
+        return borrowRateHistories
+
+    async def fetch_borrow_rate_history(self, code, since=None, limit=None, params={}):
+        codeObject = json.loads('{"ccy": "' + code + '"}')
+        histories = await self.fetch_borrow_rate_histories(since, limit, codeObject, params)
+        if histories is None:
+            raise BadRequest(self.id + '.fetchBorrowRateHistory returned no data for ' + code)
+        else:
+            return histories
+
+    async def modify_margin_helper(self, symbol, amount, type, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        posSide = self.safe_string(params, 'posSide', 'net')
+        params = self.omit(params, ['posSide'])
+        request = {
+            'instId': market['id'],
+            'amt': amount,
+            'type': type,
+            'posSide': posSide,
+        }
+        response = await self.privatePostAccountPositionMarginBalance(self.extend(request, params))
+        #
+        #     {
+        #       "code": "0",
+        #       "data": [
+        #         {
+        #           "amt": "0.01",
+        #           "instId": "ETH-USD-SWAP",
+        #           "posSide": "net",
+        #           "type": "reduce"
+        #         }
+        #       ],
+        #       "msg": ""
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        entry = self.safe_value(data, 0, {})
+        errorCode = self.safe_string(response, 'code')
+        status = 'ok' if (errorCode == '0') else 'failed'
+        responseAmount = self.safe_number(entry, 'amt')
+        responseType = self.safe_string(entry, 'type')
+        marketId = self.safe_string(entry, 'instId')
+        responseMarket = self.safe_market(marketId, market)
+        code = responseMarket['base'] if responseMarket['inverse'] else responseMarket['quote']
+        symbol = responseMarket['symbol']
+        return {
+            'info': response,
+            'type': responseType,
+            'amount': responseAmount,
+            'code': code,
+            'symbol': symbol,
+            'status': status,
         }
 
     async def reduce_margin(self, symbol, amount, params={}):
