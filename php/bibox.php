@@ -346,41 +346,25 @@ class bibox extends Exchange {
         $timestamp = $this->safe_integer_2($trade, 'time', 'createdAt');
         $side = $this->safe_integer_2($trade, 'side', 'order_side');
         $side = ($side === 1) ? 'buy' : 'sell';
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($trade, 'pair');
-            if ($marketId === null) {
-                $baseId = $this->safe_string($trade, 'coin_symbol');
-                $quoteId = $this->safe_string($trade, 'currency_symbol');
-                if (($baseId !== null) && ($quoteId !== null)) {
-                    $marketId = $baseId . '_' . $quoteId;
-                }
-            }
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
+        $marketId = $this->safe_string($trade, 'pair');
+        if ($marketId === null) {
+            $baseId = $this->safe_string($trade, 'coin_symbol');
+            $quoteId = $this->safe_string($trade, 'currency_symbol');
+            if (($baseId !== null) && ($quoteId !== null)) {
+                $marketId = $baseId . '_' . $quoteId;
             }
         }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        $fee = null;
-        $feeCostString = $this->safe_string($trade, 'fee');
-        $feeCurrency = $this->safe_string($trade, 'fee_symbol');
-        if ($feeCurrency !== null) {
-            if (is_array($this->currencies_by_id) && array_key_exists($feeCurrency, $this->currencies_by_id)) {
-                $feeCurrency = $this->currencies_by_id[$feeCurrency]['code'];
-            } else {
-                $feeCurrency = $this->safe_currency_code($feeCurrency);
-            }
-        }
-        $feeRate = null; // todo => deduce from $market if $market is defined
+        $market = $this->safe_market($marketId, $market);
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
+        $fee = null;
+        $feeCostString = $this->safe_string($trade, 'fee');
         if ($feeCostString !== null) {
+            $feeCurrencyId = $this->safe_string($trade, 'fee_symbol');
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
                 'cost' => Precise::string_neg($feeCostString),
-                'currency' => $feeCurrency,
-                'rate' => $feeRate,
+                'currency' => $feeCurrencyCode,
             );
         }
         $id = $this->safe_string($trade, 'id');
@@ -390,7 +374,7 @@ class bibox extends Exchange {
             'order' => null, // Bibox does not have it (documented) yet
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => 'limit',
             'takerOrMaker' => null,
             'side' => $side,
