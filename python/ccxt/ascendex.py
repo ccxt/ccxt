@@ -14,6 +14,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class ascendex(Exchange):
@@ -51,6 +52,7 @@ class ascendex(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
+                'fetchLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchOHLCV': True,
@@ -2176,6 +2178,70 @@ class ascendex(Exchange):
         if market['type'] != 'future':
             raise BadSymbol(self.id + ' setMarginMode() supports futures contracts only')
         return self.v2PrivateAccountGroupPostFuturesMarginType(self.extend(request, params))
+
+    def fetch_leverage_tiers(self, symbol=None, params={}):
+        self.load_markets()
+        tiers = {}
+        symbolDefined = (symbol is not None)
+        if symbolDefined:
+            market = self.market(symbol)
+            if not market['contract']:
+                raise BadRequest(self.id + ' fetchLeverageTiers() supports contract markets only')
+        response = self.v2PublicGetFuturesContract(params)
+        #
+        #     {
+        #         "code":0,
+        #         "data":[
+        #             {
+        #                 "symbol":"BTC-PERP",
+        #                 "status":"Normal",
+        #                 "displayName":"BTCUSDT",
+        #                 "settlementAsset":"USDT",
+        #                 "underlying":"BTC/USDT",
+        #                 "tradingStartTime":1579701600000,
+        #                 "priceFilter":{"minPrice":"1","maxPrice":"1000000","tickSize":"1"},
+        #                 "lotSizeFilter":{"minQty":"0.0001","maxQty":"1000000000","lotSize":"0.0001"},
+        #                 "commissionType":"Quote",
+        #                 "commissionReserveRate":"0.001",
+        #                 "marketOrderPriceMarkup":"0.03",
+        #                 "marginRequirements":[
+        #                     {"positionNotionalLowerBound":"0","positionNotionalUpperBound":"50000","initialMarginRate":"0.01","maintenanceMarginRate":"0.006"},
+        #                     {"positionNotionalLowerBound":"50000","positionNotionalUpperBound":"200000","initialMarginRate":"0.02","maintenanceMarginRate":"0.012"},
+        #                     {"positionNotionalLowerBound":"200000","positionNotionalUpperBound":"2000000","initialMarginRate":"0.04","maintenanceMarginRate":"0.024"},
+        #                     {"positionNotionalLowerBound":"2000000","positionNotionalUpperBound":"20000000","initialMarginRate":"0.1","maintenanceMarginRate":"0.06"},
+        #                     {"positionNotionalLowerBound":"20000000","positionNotionalUpperBound":"40000000","initialMarginRate":"0.2","maintenanceMarginRate":"0.12"},
+        #                     {"positionNotionalLowerBound":"40000000","positionNotionalUpperBound":"1000000000","initialMarginRate":"0.333333","maintenanceMarginRate":"0.2"}
+        #                 ]
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        for i in range(0, len(data)):
+            item = data[i]
+            marginRequirements = self.safe_value(item, 'marginRequirements')
+            id = self.safe_string(item, 'symbol')
+            market = self.market(id)
+            brackets = []
+            for j in range(0, len(marginRequirements)):
+                bracket = marginRequirements[j]
+                initialMarginRate = self.safe_string(bracket, 'initialMarginRate')
+                brackets.append({
+                    'tier': self.sum(j, 1),
+                    'notionalCurrency': market['quote'],
+                    'notionalFloor': self.safe_number(bracket, 'positionNotionalLowerBound'),
+                    'notionalCap': self.safe_number(bracket, 'positionNotionalUpperBound'),
+                    'maintenanceMarginRatio': self.safe_number(bracket, 'maintenanceMarginRate'),
+                    'maxLeverage': self.parse_number(Precise.string_div('1', initialMarginRate)),
+                    'info': bracket,
+                })
+            tiers[market['symbol']] = brackets
+        if symbolDefined:
+            result = {}
+            result[symbol] = self.safe_value(tiers, symbol)
+            return result
+        else:
+            return tiers
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         version = api[0]
