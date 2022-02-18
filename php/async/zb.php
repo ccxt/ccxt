@@ -41,6 +41,7 @@ class zb extends Exchange {
                 'fetchDepositAddresses' => true,
                 'fetchDeposits' => true,
                 'fetchFundingRate' => true,
+                'fetchFundingRateHistory' => true,
                 'fetchMarkets' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -1273,6 +1274,65 @@ class zb extends Exchange {
             'updated' => $updated,
             'fee' => $fee,
         );
+    }
+
+    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $request = array(
+            // 'symbol' => $market['id'],
+            // 'startTime' => $since,
+            // 'endTime' => $endTime, // current time by default
+            // 'limit' => $limit, // default 100, max 1000
+        );
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        $till = $this->safe_integer($params, 'till');
+        $endTime = $this->safe_string($params, 'endTime');
+        $params = $this->omit($params, array( 'endTime', 'till' ));
+        if ($till !== null) {
+            $request['endTime'] = $till;
+        } else if ($endTime !== null) {
+            $request['endTime'] = $endTime;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = yield $this->contractV2PublicGetFundingRate (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 10000,
+        //         "data" => array(
+        //             array(
+        //                 "symbol" => "BTC_USDT",
+        //                 "fundingRate" => "0.0001",
+        //                 "fundingTime" => "1645171200000"
+        //             ),
+        //         ),
+        //         "desc" => "操作成功"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data');
+        $rates = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $marketId = $this->safe_string($entry, 'symbol');
+            $symbol = $this->safe_symbol($marketId);
+            $timestamp = $this->safe_string($entry, 'fundingTime');
+            $rates[] = array(
+                'info' => $entry,
+                'symbol' => $symbol,
+                'fundingRate' => $this->safe_number($entry, 'fundingRate'),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+            );
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
     public function fetch_funding_rate($symbol, $params = array ()) {
