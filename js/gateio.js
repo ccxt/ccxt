@@ -2669,7 +2669,7 @@ module.exports = class gateio extends Exchange {
             'cost': cost,
             'filled': this.parseNumber (filled),
             'remaining': this.parseNumber (Precise.stringAbs (remaining)),
-            'fee': multipleFeeCurrencies ? undefined : fees,
+            'fee': multipleFeeCurrencies ? undefined : this.safeValue (fees, 0),
             'fees': multipleFeeCurrencies ? fees : [],
             'trades': undefined,
             'info': order,
