@@ -736,9 +736,18 @@ class zb extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'market' => $market['id'],
+            // 'market' => $market['id'], // only applicable to SPOT
+            // 'symbol' => $market['id'], // only applicable to SWAP
         );
-        $response = $this->spotV1PublicGetTicker (array_merge($request, $params));
+        $marketIdField = $market['swap'] ? 'symbol' : 'market';
+        $request[$marketIdField] = $market['id'];
+        $method = $this->get_supported_mapping($market['type'], array(
+            'spot' => 'spotV1PublicGetTicker',
+            'swap' => 'contractV1PublicGetTicker',
+        ));
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // Spot
         //
         //     {
         //         "date":"1624399623587",
@@ -755,12 +764,39 @@ class zb extends Exchange {
         //         }
         //     }
         //
-        $ticker = $this->safe_value($response, 'ticker', array());
-        $ticker['date'] = $this->safe_value($response, 'date');
+        // Swap
+        //
+        //     {
+        //         "code" => 10000,
+        //         "desc" => "操作成功",
+        //         "data" => {
+        //             "BTC_USDT" => [44053.47,44357.77,42911.54,43297.79,53471.264,-1.72,1645093002,302201.255084]
+        //         }
+        //     }
+        //
+        $ticker = null;
+        if ($market['type'] === 'swap') {
+            $ticker = array();
+            $data = $this->safe_value($response, 'data');
+            $values = $this->safe_value($data, $market['id']);
+            for ($i = 0; $i < count($values); $i++) {
+                $ticker['open'] = $this->safe_value($values, 0);
+                $ticker['high'] = $this->safe_value($values, 1);
+                $ticker['low'] = $this->safe_value($values, 2);
+                $ticker['last'] = $this->safe_value($values, 3);
+                $ticker['vol'] = $this->safe_value($values, 4);
+                $ticker['riseRate'] = $this->safe_value($values, 5);
+            }
+        } else {
+            $ticker = $this->safe_value($response, 'ticker', array());
+            $ticker['date'] = $this->safe_value($response, 'date');
+        }
         return $this->parse_ticker($ticker, $market);
     }
 
     public function parse_ticker($ticker, $market = null) {
+        //
+        // Spot
         //
         //     {
         //         "date":"1624399623587", // injected from outside
@@ -773,6 +809,17 @@ class zb extends Exchange {
         //         "turnover":"1764201303.6100",
         //         "open":"31664.85",
         //         "riseRate":"2.89"
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         open => 44083.82,
+        //         high => 44357.77,
+        //         low => 42911.54,
+        //         $last => 43097.87,
+        //         vol => 53451.641,
+        //         riseRate => -2.24
         //     }
         //
         $timestamp = $this->safe_integer($ticker, 'date', $this->milliseconds());

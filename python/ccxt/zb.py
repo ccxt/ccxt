@@ -726,9 +726,18 @@ class zb(Exchange):
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'market': market['id'],
+            # 'market': market['id'],  # only applicable to SPOT
+            # 'symbol': market['id'],  # only applicable to SWAP
         }
-        response = self.spotV1PublicGetTicker(self.extend(request, params))
+        marketIdField = 'symbol' if market['swap'] else 'market'
+        request[marketIdField] = market['id']
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'spotV1PublicGetTicker',
+            'swap': 'contractV1PublicGetTicker',
+        })
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # Spot
         #
         #     {
         #         "date":"1624399623587",
@@ -745,11 +754,36 @@ class zb(Exchange):
         #         }
         #     }
         #
-        ticker = self.safe_value(response, 'ticker', {})
-        ticker['date'] = self.safe_value(response, 'date')
+        # Swap
+        #
+        #     {
+        #         "code": 10000,
+        #         "desc": "操作成功",
+        #         "data": {
+        #             "BTC_USDT": [44053.47,44357.77,42911.54,43297.79,53471.264,-1.72,1645093002,302201.255084]
+        #         }
+        #     }
+        #
+        ticker = None
+        if market['type'] == 'swap':
+            ticker = {}
+            data = self.safe_value(response, 'data')
+            values = self.safe_value(data, market['id'])
+            for i in range(0, len(values)):
+                ticker['open'] = self.safe_value(values, 0)
+                ticker['high'] = self.safe_value(values, 1)
+                ticker['low'] = self.safe_value(values, 2)
+                ticker['last'] = self.safe_value(values, 3)
+                ticker['vol'] = self.safe_value(values, 4)
+                ticker['riseRate'] = self.safe_value(values, 5)
+        else:
+            ticker = self.safe_value(response, 'ticker', {})
+            ticker['date'] = self.safe_value(response, 'date')
         return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market=None):
+        #
+        # Spot
         #
         #     {
         #         "date":"1624399623587",  # injected from outside
@@ -762,6 +796,17 @@ class zb(Exchange):
         #         "turnover":"1764201303.6100",
         #         "open":"31664.85",
         #         "riseRate":"2.89"
+        #     }
+        #
+        # Swap
+        #
+        #     {
+        #         open: 44083.82,
+        #         high: 44357.77,
+        #         low: 42911.54,
+        #         last: 43097.87,
+        #         vol: 53451.641,
+        #         riseRate: -2.24
         #     }
         #
         timestamp = self.safe_integer(ticker, 'date', self.milliseconds())
