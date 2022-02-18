@@ -33,6 +33,7 @@ module.exports = class zb extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
                 'fetchDeposits': true,
+                'fetchFundingRateHistory': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -1265,6 +1266,65 @@ module.exports = class zb extends Exchange {
             'updated': updated,
             'fee': fee,
         };
+    }
+
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'symbol': market['id'],
+            // 'startTime': since,
+            // 'endTime': endTime, // current time by default
+            // 'limit': limit, // default 100, max 1000
+        };
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const till = this.safeInteger (params, 'till');
+        const endTime = this.safeString (params, 'endTime');
+        params = this.omit (params, [ 'endTime', 'till' ]);
+        if (till !== undefined) {
+            request['endTime'] = till;
+        } else if (endTime !== undefined) {
+            request['endTime'] = endTime;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.contractV2PublicGetFundingRate (this.extend (request, params));
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": [
+        //             {
+        //                 "symbol": "BTC_USDT",
+        //                 "fundingRate": "0.0001",
+        //                 "fundingTime": "1645171200000"
+        //             },
+        //         ],
+        //         "desc": "操作成功"
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        const rates = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const marketId = this.safeString (entry, 'symbol');
+            const symbol = this.safeSymbol (marketId);
+            const timestamp = this.safeString (entry, 'fundingTime');
+            rates.push ({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': this.safeNumber (entry, 'fundingRate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            });
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
