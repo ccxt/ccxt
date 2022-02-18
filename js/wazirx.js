@@ -370,7 +370,7 @@ module.exports = class wazirx extends Exchange {
             'amount': amount,
             'cost': cost,
             'fee': undefined,
-        });
+        }, market);
     }
 
     async fetchStatus (params = {}) {
