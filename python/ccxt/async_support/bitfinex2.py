@@ -414,46 +414,58 @@ class bitfinex2(bitfinex):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            id = 't' + id
             baseId = self.get_currency_id(baseId)
             quoteId = self.get_currency_id(quoteId)
-            precision = {
-                'price': self.safe_integer(market, 'price_precision'),
-                'amount': 8,  # https://github.com/ccxt/ccxt/issues/7310
-            }
             minOrderSizeString = self.safe_string(market, 'minimum_order_size')
             maxOrderSizeString = self.safe_string(market, 'maximum_order_size')
-            limits = {
-                'amount': {
-                    'min': self.parse_number(minOrderSizeString),
-                    'max': self.parse_number(maxOrderSizeString),
-                },
-                'price': {
-                    'min': self.parse_number('1e-8'),
-                    'max': None,
-                },
-            }
-            limits['cost'] = {
-                'min': None,
-                'max': None,
-            }
-            margin = self.safe_value(market, 'margin')
             result.append({
-                'id': id,
+                'id': 't' + id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': None,  # TODO
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': True,
-                'precision': precision,
-                'limits': limits,
-                'info': market,
+                'settleId': None,  # TODO
                 'type': type,
-                'swap': swap,
                 'spot': spot,
-                'margin': margin,
+                'margin': self.safe_value(market, 'margin'),
+                'swap': swap,
                 'future': False,
+                'option': False,
+                'active': True,
+                'contract': swap,
+                'linear': None if spot else True,  # TODO
+                'inverse': None if spot else False,  # TODO
+                'contractSize': None,  # TODO
+                'maintenanceMarginRate': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': int('8'),  # https://github.com/ccxt/ccxt/issues/7310
+                    'price': self.safe_integer(market, 'price_precision'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': self.parse_number(minOrderSizeString),
+                        'max': self.parse_number(maxOrderSizeString),
+                    },
+                    'price': {
+                        'min': self.parse_number('1e-8'),
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+                'info': market,
             })
         return result
 

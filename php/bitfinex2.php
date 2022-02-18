@@ -384,7 +384,7 @@ class bitfinex2 extends bitfinex {
 
     public function fetch_markets($params = array ()) {
         // todo drop v1 in favor of v2 configs  ( temp-reference for v2update => https://pastebin.com/raw/S8CmqSHQ )
-        // pub:list:pair:exchange,pub:list:pair:$margin,pub:list:pair:futures,pub:info:pair
+        // pub:list:pair:exchange,pub:list:pair:margin,pub:list:pair:futures,pub:info:pair
         $v2response = $this->publicGetConfPubListPairFutures ($params);
         $v1response = $this->v1GetSymbolsDetails ($params);
         $swapMarketIds = $this->safe_value($v2response, 0, array());
@@ -411,46 +411,58 @@ class bitfinex2 extends bitfinex {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $id = 't' . $id;
             $baseId = $this->get_currency_id($baseId);
             $quoteId = $this->get_currency_id($quoteId);
-            $precision = array(
-                'price' => $this->safe_integer($market, 'price_precision'),
-                'amount' => 8, // https://github.com/ccxt/ccxt/issues/7310
-            );
             $minOrderSizeString = $this->safe_string($market, 'minimum_order_size');
             $maxOrderSizeString = $this->safe_string($market, 'maximum_order_size');
-            $limits = array(
-                'amount' => array(
-                    'min' => $this->parse_number($minOrderSizeString),
-                    'max' => $this->parse_number($maxOrderSizeString),
-                ),
-                'price' => array(
-                    'min' => $this->parse_number('1e-8'),
-                    'max' => null,
-                ),
-            );
-            $limits['cost'] = array(
-                'min' => null,
-                'max' => null,
-            );
-            $margin = $this->safe_value($market, 'margin');
             $result[] = array(
-                'id' => $id,
+                'id' => 't' . $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null, // TODO
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'active' => true,
-                'precision' => $precision,
-                'limits' => $limits,
-                'info' => $market,
+                'settleId' => null, // TODO
                 'type' => $type,
-                'swap' => $swap,
                 'spot' => $spot,
-                'margin' => $margin,
+                'margin' => $this->safe_value($market, 'margin'),
+                'swap' => $swap,
                 'future' => false,
+                'option' => false,
+                'active' => true,
+                'contract' => $swap,
+                'linear' => $spot ? null : true, // TODO
+                'inverse' => $spot ? null : false, // TODO
+                'contractSize' => null, // TODO
+                'maintenanceMarginRate' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => intval('8'), // https://github.com/ccxt/ccxt/issues/7310
+                    'price' => $this->safe_integer($market, 'price_precision'),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => $this->parse_number($minOrderSizeString),
+                        'max' => $this->parse_number($maxOrderSizeString),
+                    ),
+                    'price' => array(
+                        'min' => $this->parse_number('1e-8'),
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+                'info' => $market,
             );
         }
         return $result;
