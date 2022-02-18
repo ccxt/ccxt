@@ -841,31 +841,24 @@ module.exports = class zb extends Exchange {
         let side = this.safeString (trade, 'trade_type');
         side = (side === 'bid') ? 'buy' : 'sell';
         const id = this.safeString (trade, 'tid');
-        const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString (trade, 'amount');
-        const costString = Precise.stringMul (priceString, amountString);
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (costString);
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        return {
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString (trade, 'amount');
+        market = this.safeMarket (undefined, market);
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': undefined,
             'side': side,
             'order': undefined,
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'fee': undefined,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
