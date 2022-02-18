@@ -466,15 +466,12 @@ module.exports = class whitebit extends Exchange {
         //          "change":"2.12" // in percent
         //      },
         //
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (undefined, market);
         const last = this.safeString (ticker, 'last_price');
         const change = this.safeString (ticker, 'change');
         const percentage = Precise.stringMul (change, '0.01');
         return this.safeTicker ({
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'timestamp': undefined,
             'datetime': undefined,
             'high': this.safeString (ticker, 'high'),
@@ -987,13 +984,9 @@ module.exports = class whitebit extends Exchange {
         const dealFee = this.safeString (order, 'dealFee');
         let fee = undefined;
         if (dealFee !== undefined) {
-            let feeCurrencyCode = undefined;
-            if (market !== undefined) {
-                feeCurrencyCode = market['quote'];
-            }
             fee = {
                 'cost': this.parseNumber (dealFee),
-                'currency': feeCurrencyCode,
+                'currency': market['quote'],
             };
         }
         const timestamp = this.safeTimestamp2 (order, 'ctime', 'timestamp');
