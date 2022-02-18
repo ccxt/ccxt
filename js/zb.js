@@ -33,6 +33,7 @@ module.exports = class zb extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
                 'fetchDeposits': true,
+                'fetchFundingRate': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -1264,6 +1265,62 @@ module.exports = class zb extends Exchange {
             'status': status,
             'updated': updated,
             'fee': fee,
+        };
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadRequest ('Funding rates only exist for swap contracts');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.contractV1PublicGetFundingRate (this.extend (request, params));
+        //
+        //     {
+        //         "code": 10000,
+        //         "desc": "操作成功",
+        //         "data": {
+        //             "fundingRate": "0.0001",
+        //             "nextCalculateTime": "2022-02-19 00:00:00"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseFundingRate (data, market);
+    }
+
+    parseFundingRate (contract, market = undefined) {
+        //
+        //     {
+        //         "fundingRate": "0.0001",
+        //         "nextCalculateTime": "2022-02-19 00:00:00"
+        //     }
+        //
+        const marketId = this.safeString (contract, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const fundingRate = this.safeNumber (contract, 'fundingRate');
+        const nextFundingDatetime = this.safeString (contract, 'nextCalculateTime');
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': fundingRate,
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': this.parse8601 (nextFundingDatetime),
+            'nextFundingDatetime': nextFundingDatetime,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
         };
     }
 
