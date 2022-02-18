@@ -2176,19 +2176,8 @@ module.exports = class okcoin extends Exchange {
         if ((side !== 'buy') && (side !== 'sell')) {
             side = this.parseOrderSide (type);
         }
-        let symbol = undefined;
         const marketId = this.safeString (order, 'instrument_id');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        } else {
-            symbol = marketId;
-        }
-        if (market !== undefined) {
-            if (symbol === undefined) {
-                symbol = market['symbol'];
-            }
-        }
+        market = this.safeMarket (marketId, market);
         let amount = this.safeString (order, 'size');
         const filled = this.safeString2 (order, 'filled_size', 'filled_qty');
         let remaining = undefined;
@@ -2235,7 +2224,7 @@ module.exports = class okcoin extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -2879,11 +2868,8 @@ module.exports = class okcoin extends Exchange {
                 result.push (trade);
             }
         }
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
+        market = this.safeMarkt (undefined, market);
+        return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
