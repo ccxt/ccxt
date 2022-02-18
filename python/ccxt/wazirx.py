@@ -349,7 +349,7 @@ class wazirx(Exchange):
         #     }
         #
         id = self.safe_string(trade, 'id')
-        timestamp = self.parse8601(self.safe_string(trade, 'time'))
+        timestamp = self.safe_integer(trade, 'time')
         datetime = self.iso8601(timestamp)
         symbol = None
         if market is not None:
