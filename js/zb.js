@@ -684,16 +684,15 @@ module.exports = class zb extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let request = {};
-        if (market['type'] === 'swap') {
-            request = {
-                'symbol': market['id'],
-            };
-        } else {
-            request = {
-                'market': market['id'],
-            };
-        }
+        const request = {
+            // 'market': market['id'], // only applicable to SPOT
+            // 'symbol': market['id'], // only applicable to SWAP
+            // 'size': limit, // 1-50 applicable to SPOT and SWAP
+            // 'merge': 5.0, // float default depth only applicable to SPOT
+            // 'scale': 5, // int accuracy, only applicable to SWAP
+        };
+        const marketIdField = market['swap'] ? 'symbol' : 'market';
+        request[marketIdField] = market['id'];
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'spotV1PublicGetDepth',
             'swap': 'contractV1PublicGetDepth',
