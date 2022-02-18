@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
 const { AuthenticationError, BadRequest, BadSymbol, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, NotSupported, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -301,65 +302,81 @@ module.exports = class krakenfu extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.publicGetTickers (params);
-        const tickers = response['tickers'];
-        const result = {};
-        for (let i = 0; i < tickers.length; i++) {
-            const ticker = this.parseTicker (tickers[i]);
-            const symbol = this.safeString (ticker, 'symbol');
-            if (symbol !== undefined) {
-                result[symbol] = ticker;
-            }
-        }
-        return result;
+        //
+        //    {
+        //        result: 'success',
+        //        tickers: [
+        //          {
+        //            tag: 'semiannual',  // 'month', 'quarter', 'perpetual', 'semiannual',
+        //            pair: 'ETH:USD',
+        //            symbol: 'fi_ethusd_220624',
+        //            markPrice: '2925.72',
+        //            bid: '2923.8',
+        //            bidSize: '16804',
+        //            ask: '2928.65',
+        //            askSize: '1339',
+        //            vol24h: '860493',
+        //            openInterest: '3023363.00000000',
+        //            open24h: '3021.25',
+        //            indexPrice: '2893.71',
+        //            last: '2942.25',
+        //            lastTime: '2022-02-18T14:08:15.578Z',
+        //            lastSize: '151',
+        //            suspended: false
+        //          },
+        //          {
+        //            symbol: 'in_xbtusd', // 'rr_xbtusd',
+        //            last: '40411',
+        //            lastTime: '2022-02-18T14:16:28.000Z'
+        //          },
+        //          ...
+        //        ],
+        //        serverTime: '2022-02-18T14:16:29.440Z'
+        //    }
+        //
+        const tickers = this.safeValue (response, 'tickers');
+        return this.parseTickers (tickers, symbols);
     }
 
     parseTicker (ticker, market = undefined) {
-        // {
-        //    "tag":"quarter",
-        //    "pair":"XRP:USD",
-        //    "symbol":"fi_xrpusd_180615",
-        //    "markPrice":0.8036,
-        //    "bid":0.8154,
-        //    "bidSize":15000,
-        //    "ask":0.8166,
-        //    "askSize":45000,
-        //    "vol24h":5314577,
-        //    "openInterest":3807948,
-        //    "open24h":0.82890000,
-        //    "last":0.814,
-        //    "lastTime":"2018-05-10T17:14:29.301Z",
-        //    "lastSize":1000,
-        //    "suspended":false
-        // }
-        let symbol = undefined;
+        //
+        //    {
+        //        tag: 'semiannual',  // 'month', 'quarter', 'perpetual', 'semiannual',
+        //        pair: 'ETH:USD',
+        //        symbol: 'fi_ethusd_220624',
+        //        markPrice: '2925.72',
+        //        bid: '2923.8',
+        //        bidSize: '16804',
+        //        ask: '2928.65',
+        //        askSize: '1339',
+        //        vol24h: '860493',
+        //        openInterest: '3023363.00000000',
+        //        open24h: '3021.25',
+        //        indexPrice: '2893.71',
+        //        last: '2942.25',
+        //        lastTime: '2022-02-18T14:08:15.578Z',
+        //        lastSize: '151',
+        //        suspended: false
+        //    }
+        //
+        //    {
+        //        symbol: 'in_xbtusd', // 'rr_xbtusd',
+        //        last: '40411',
+        //        lastTime: '2022-02-18T14:16:28.000Z'
+        //    }
+        //
         const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeValue (this.markets_by_id, marketId, market);
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const timestamp = this.parse8601 (this.safeString (ticker, 'lastTime'));
-        const open = this.safeFloat (ticker, 'open24h');
-        const last = this.safeFloat (ticker, 'last');
-        let change = undefined;
-        let percentage = undefined;
-        let average = undefined;
-        if (last !== undefined && open !== undefined) {
-            change = last - open;
-            if (open > 0) {
-                percentage = change / open * 100;
-                average = (open + last) / 2;
-            }
-        }
+        const open = this.safeString (ticker, 'open24h');
+        const last = this.safeString (ticker, 'last');
+        let change = Precise.stringSub (last, open);
+        let percentage = Precise.stringMul (Precise.stringDiv (change, open), '100');
+        let average = Precise.stringDiv (Precise.stringAdd (open, last), '2');
         const volume = this.safeFloat (ticker, 'vol24h');
-        let baseVolume = undefined;
-        let quoteVolume = undefined;
-        if ((market !== undefined) && (market['type'] !== 'index')) {
-            if (market['linear']) {
-                baseVolume = volume; // pv_xrpxbt volume given in XRP
-            } else {
-                quoteVolume = volume; // pi_xbtusd volume given in USD
-            }
-        }
+        let baseVolume = (!market['index'] && market['linear']) ? volume : undefined;
+        let quoteVolume = (!market['index'] && market['inverse']) ? volume : undefined;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -371,15 +388,15 @@ module.exports = class krakenfu extends Exchange {
             'ask': this.safeFloat (ticker, 'ask'),
             'askVolume': this.safeFloat (ticker, 'askSize'),
             'vwap': undefined,
-            'open': open,
-            'close': last,
-            'last': last,
+            'open': this.parseNumber (open),
+            'close': this.parseNumber (last),
+            'last': this.parseNumber (last),
             'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'change': this.parseNumber (change),
+            'percentage': this.parseNumber (percentage),
+            'average': this.parseNumber (average),
+            'baseVolume': this.parseNumber (baseVolume),
+            'quoteVolume': this.parseNumber (quoteVolume),
             'info': ticker,
         };
     }
