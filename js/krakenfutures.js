@@ -267,36 +267,38 @@ module.exports = class krakenfu extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.publicGetOrderbook (this.extend (request, params));
-        // {
-        //    "result":"success",
-        //    "serverTime":"2016-02-25T09:45:53.818Z",
-        //    "orderBook":{
-        //       "bids":[
-        //          [
-        //             4213,
-        //             2000,
-        //          ],
-        //          [
-        //             4210,
-        //             4000,
-        //          ],
-        //          ...,
-        //       ],
-        //       "asks":[
-        //          [
-        //             4218,
-        //             4000,
-        //          ],
-        //          [
-        //             4220,
-        //             5000,
-        //          ],
-        //          ...,
-        //       ],
-        //    },
-        // }
+        //
+        //    {
+        //       "result": "success",
+        //       "serverTime": "2016-02-25T09:45:53.818Z",
+        //       "orderBook": {
+        //          "bids": [
+        //                [
+        //                    4213,
+        //                    2000,
+        //                ],
+        //                [
+        //                    4210,
+        //                    4000,
+        //                ],
+        //                ...
+        //            ],
+        //            "asks": [
+        //                [
+        //                    4218,
+        //                    4000,
+        //                ],
+        //                [
+        //                    4220,
+        //                    5000,
+        //                ],
+        //                ...
+        //            ],
+        //        },
+        //    }
+        //
         const timestamp = this.parse8601 (response['serverTime']);
-        return this.parseOrderBook (response['orderBook'], timestamp);
+        return this.parseOrderBook (response['orderBook'], symbol, timestamp);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
