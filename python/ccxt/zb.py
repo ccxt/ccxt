@@ -19,7 +19,6 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import RequestTimeout
-from ccxt.base.precise import Precise
 
 
 class zb(Exchange):
@@ -831,30 +830,24 @@ class zb(Exchange):
         side = self.safe_string(trade, 'trade_type')
         side = 'buy' if (side == 'bid') else 'sell'
         id = self.safe_string(trade, 'tid')
-        priceString = self.safe_string(trade, 'price')
-        amountString = self.safe_string(trade, 'amount')
-        costString = Precise.string_mul(priceString, amountString)
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(costString)
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        return {
+        price = self.safe_string(trade, 'price')
+        amount = self.safe_string(trade, 'amount')
+        market = self.safe_market(None, market)
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': None,
             'side': side,
             'order': None,
             'takerOrMaker': None,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'fee': None,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
@@ -1001,7 +994,7 @@ class zb(Exchange):
         type = 'limit'  # market order is not availalbe in ZB
         timestamp = self.safe_integer(order, 'trade_date')
         marketId = self.safe_string(order, 'currency')
-        symbol = self.safe_symbol(marketId, market, '_')
+        market = self.safe_market(marketId, market, '_')
         price = self.safe_string(order, 'price')
         filled = self.safe_string(order, 'trade_amount')
         amount = self.safe_string(order, 'total_amount')
@@ -1015,7 +1008,7 @@ class zb(Exchange):
             zbFees = self.safe_value(order, 'useZbFee')
             if zbFees is True:
                 feeCurrency = 'ZB'
-            elif market is not None:
+            else:
                 feeCurrency = market['quote'] if (side == 'sell') else market['base']
             fee = {
                 'cost': feeCost,
@@ -1028,7 +1021,7 @@ class zb(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': None,
             'postOnly': None,

@@ -287,15 +287,12 @@ class bibox(Exchange):
     def parse_ticker(self, ticker, market=None):
         # we don't set values that are not defined by the exchange
         timestamp = self.safe_integer(ticker, 'timestamp')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        else:
-            baseId = self.safe_string(ticker, 'coin_symbol')
-            quoteId = self.safe_string(ticker, 'currency_symbol')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
+        marketId = None
+        baseId = self.safe_string(ticker, 'coin_symbol')
+        quoteId = self.safe_string(ticker, 'currency_symbol')
+        if (baseId is not None) and (quoteId is not None):
+            marketId = baseId + '_' + quoteId
+        market = self.safe_market(marketId, market)
         last = self.safe_string(ticker, 'last')
         change = self.safe_string(ticker, 'change')
         baseVolume = self.safe_string_2(ticker, 'vol', 'vol24H')
@@ -303,7 +300,7 @@ class bibox(Exchange):
         if percentage is not None:
             percentage = percentage.replace('%', '')
         return self.safe_ticker({
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_string(ticker, 'high'),

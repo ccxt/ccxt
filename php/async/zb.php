@@ -11,7 +11,6 @@ use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
 use \ccxt\ExchangeNotAvailable;
-use \ccxt\Precise;
 
 class zb extends Exchange {
 
@@ -847,31 +846,24 @@ class zb extends Exchange {
         $side = $this->safe_string($trade, 'trade_type');
         $side = ($side === 'bid') ? 'buy' : 'sell';
         $id = $this->safe_string($trade, 'tid');
-        $priceString = $this->safe_string($trade, 'price');
-        $amountString = $this->safe_string($trade, 'amount');
-        $costString = Precise::string_mul($priceString, $amountString);
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number($costString);
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        return array(
+        $price = $this->safe_string($trade, 'price');
+        $amount = $this->safe_string($trade, 'amount');
+        $market = $this->safe_market(null, $market);
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => null,
             'side' => $side,
             'order' => null,
             'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'fee' => null,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -1037,7 +1029,7 @@ class zb extends Exchange {
         $type = 'limit'; // $market $order is not availalbe in ZB
         $timestamp = $this->safe_integer($order, 'trade_date');
         $marketId = $this->safe_string($order, 'currency');
-        $symbol = $this->safe_symbol($marketId, $market, '_');
+        $market = $this->safe_market($marketId, $market, '_');
         $price = $this->safe_string($order, 'price');
         $filled = $this->safe_string($order, 'trade_amount');
         $amount = $this->safe_string($order, 'total_amount');
@@ -1051,7 +1043,7 @@ class zb extends Exchange {
             $zbFees = $this->safe_value($order, 'useZbFee');
             if ($zbFees === true) {
                 $feeCurrency = 'ZB';
-            } else if ($market !== null) {
+            } else {
                 $feeCurrency = ($side === 'sell') ? $market['quote'] : $market['base'];
             }
             $fee = array(
@@ -1066,7 +1058,7 @@ class zb extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => $type,
             'timeInForce' => null,
             'postOnly' => null,
