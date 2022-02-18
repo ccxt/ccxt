@@ -2326,7 +2326,7 @@ class ascendex extends Exchange {
                     'notionalCurrency' => $market['quote'],
                     'notionalFloor' => $this->safe_number($bracket, 'positionNotionalLowerBound'),
                     'notionalCap' => $this->safe_number($bracket, 'positionNotionalUpperBound'),
-                    'maintenanceMarginRatio' => $this->safe_number($bracket, 'maintenanceMarginRate'),
+                    'maintenanceMarginRate' => $this->safe_number($bracket, 'maintenanceMarginRate'),
                     'maxLeverage' => $this->parse_number(Precise::string_div('1', $initialMarginRate)),
                     'info' => $bracket,
                 );

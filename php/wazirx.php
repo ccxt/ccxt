@@ -354,7 +354,7 @@ class wazirx extends Exchange {
         //     }
         //
         $id = $this->safe_string($trade, 'id');
-        $timestamp = $this->parse8601($this->safe_string($trade, 'time'));
+        $timestamp = $this->safe_integer($trade, 'time');
         $datetime = $this->iso8601($timestamp);
         $symbol = null;
         if ($market !== null) {

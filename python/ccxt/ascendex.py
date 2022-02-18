@@ -2231,7 +2231,7 @@ class ascendex(Exchange):
                     'notionalCurrency': market['quote'],
                     'notionalFloor': self.safe_number(bracket, 'positionNotionalLowerBound'),
                     'notionalCap': self.safe_number(bracket, 'positionNotionalUpperBound'),
-                    'maintenanceMarginRatio': self.safe_number(bracket, 'maintenanceMarginRate'),
+                    'maintenanceMarginRate': self.safe_number(bracket, 'maintenanceMarginRate'),
                     'maxLeverage': self.parse_number(Precise.string_div('1', initialMarginRate)),
                     'info': bracket,
                 })

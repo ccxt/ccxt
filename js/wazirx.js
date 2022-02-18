@@ -348,7 +348,7 @@ module.exports = class wazirx extends Exchange {
         //     }
         //
         const id = this.safeString (trade, 'id');
-        const timestamp = this.parse8601 (this.safeString (trade, 'time'));
+        const timestamp = this.safeInteger (trade, 'time');
         const datetime = this.iso8601 (timestamp);
         market = this.safeMarket (undefined, market);
         const isBuyerMaker = this.safeValue (trade, 'isBuyerMaker');
