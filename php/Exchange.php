@@ -1590,7 +1590,7 @@ class Exchange {
 
     public function emulate_single_market_method($emulated_method, $multi_market_method=null) {
         if ($multi_market_method === null) {
-            $multi_market_method = $emulated_method + 's';
+            $multi_market_method = $emulated_method . 's';
         }
         if ($this->has[$multi_market_method] && $this->has[$emulated_method] === null) {
             $this->has[$emulated_method] = 'emulated';
