@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { BadRequest, ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, OrderNotFound, ExchangeNotAvailable, RateLimitExceeded, PermissionDenied, InvalidOrder, InvalidAddress, OnMaintenance, RequestTimeout, AccountSuspended } = require ('./base/errors');
-const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
