@@ -690,12 +690,24 @@ class zb extends Exchange {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'market' => $market['id'],
+            // 'market' => $market['id'], // only applicable to SPOT
+            // 'symbol' => $market['id'], // only applicable to SWAP
+            // 'size' => $limit, // 1-50 applicable to SPOT and SWAP
+            // 'merge' => 5.0, // float default depth only applicable to SPOT
+            // 'scale' => 5, // int accuracy, only applicable to SWAP
         );
+        $marketIdField = $market['swap'] ? 'symbol' : 'market';
+        $request[$marketIdField] = $market['id'];
+        $method = $this->get_supported_mapping($market['type'], array(
+            'spot' => 'spotV1PublicGetDepth',
+            'swap' => 'contractV1PublicGetDepth',
+        ));
         if ($limit !== null) {
             $request['size'] = $limit;
         }
-        $response = yield $this->spotV1PublicGetDepth (array_merge($request, $params));
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        // Spot
         //
         //     {
         //         "asks":[
@@ -711,7 +723,36 @@ class zb extends Exchange {
         //         "timestamp":1624536510
         //     }
         //
-        return $this->parse_order_book($response, $symbol);
+        // Swap
+        //
+        //     {
+        //         "code" => 10000,
+        //         "desc" => "操作成功",
+        //         "data" => {
+        //             "asks" => [
+        //                 [43416.6,0.02],
+        //                 [43418.25,0.04],
+        //                 [43425.82,0.02]
+        //             ],
+        //             "bids" => [
+        //                 [43414.61,0.1],
+        //                 [43414.18,0.04],
+        //                 [43413.03,0.05]
+        //             ],
+        //             "time" => 1645087743071
+        //         }
+        //     }
+        //
+        $result = null;
+        $timestamp = null;
+        if ($market['type'] === 'swap') {
+            $result = $this->safe_value($response, 'data');
+            $timestamp = $this->safe_integer($result, 'time');
+        } else {
+            $result = $response;
+            $timestamp = $this->safe_timestamp($response, 'timestamp');
+        }
+        return $this->parse_order_book($result, $symbol, $timestamp);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

@@ -685,11 +685,23 @@ class zb(Exchange):
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'market': market['id'],
+            # 'market': market['id'],  # only applicable to SPOT
+            # 'symbol': market['id'],  # only applicable to SWAP
+            # 'size': limit,  # 1-50 applicable to SPOT and SWAP
+            # 'merge': 5.0,  # float default depth only applicable to SPOT
+            # 'scale': 5,  # int accuracy, only applicable to SWAP
         }
+        marketIdField = 'symbol' if market['swap'] else 'market'
+        request[marketIdField] = market['id']
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'spotV1PublicGetDepth',
+            'swap': 'contractV1PublicGetDepth',
+        })
         if limit is not None:
             request['size'] = limit
-        response = self.spotV1PublicGetDepth(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # Spot
         #
         #     {
         #         "asks":[
@@ -705,7 +717,35 @@ class zb(Exchange):
         #         "timestamp":1624536510
         #     }
         #
-        return self.parse_order_book(response, symbol)
+        # Swap
+        #
+        #     {
+        #         "code": 10000,
+        #         "desc": "操作成功",
+        #         "data": {
+        #             "asks": [
+        #                 [43416.6,0.02],
+        #                 [43418.25,0.04],
+        #                 [43425.82,0.02]
+        #             ],
+        #             "bids": [
+        #                 [43414.61,0.1],
+        #                 [43414.18,0.04],
+        #                 [43413.03,0.05]
+        #             ],
+        #             "time": 1645087743071
+        #         }
+        #     }
+        #
+        result = None
+        timestamp = None
+        if market['type'] == 'swap':
+            result = self.safe_value(response, 'data')
+            timestamp = self.safe_integer(result, 'time')
+        else:
+            result = response
+            timestamp = self.safe_timestamp(response, 'timestamp')
+        return self.parse_order_book(result, symbol, timestamp)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
