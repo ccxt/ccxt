@@ -276,16 +276,13 @@ module.exports = class bibox extends Exchange {
     parseTicker (ticker, market = undefined) {
         // we don't set values that are not defined by the exchange
         const timestamp = this.safeInteger (ticker, 'timestamp');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        } else {
-            const baseId = this.safeString (ticker, 'coin_symbol');
-            const quoteId = this.safeString (ticker, 'currency_symbol');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            symbol = base + '/' + quote;
+        let marketId = undefined;
+        const baseId = this.safeString (ticker, 'coin_symbol');
+        const quoteId = this.safeString (ticker, 'currency_symbol');
+        if ((baseId !== undefined) && (quoteId !== undefined)) {
+            marketId = baseId + '_' + quoteId;
         }
+        market = this.safeMarket (marketId, market);
         const last = this.safeString (ticker, 'last');
         const change = this.safeString (ticker, 'change');
         const baseVolume = this.safeString2 (ticker, 'vol', 'vol24H');
