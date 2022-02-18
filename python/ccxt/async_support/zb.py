@@ -15,6 +15,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
@@ -48,6 +49,7 @@ class zb(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': True,
                 'fetchDeposits': True,
+                'fetchFundingRate': True,
                 'fetchMarkets': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -1224,6 +1226,59 @@ class zb(Exchange):
             'status': status,
             'updated': updated,
             'fee': fee,
+        }
+
+    async def fetch_funding_rate(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise NotSupported(self.id + ' fetchFundingRate() does not supports contracts only')
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.contractV1PublicGetFundingRate(self.extend(request, params))
+        #
+        #     {
+        #         "code": 10000,
+        #         "desc": "操作成功",
+        #         "data": {
+        #             "fundingRate": "0.0001",
+        #             "nextCalculateTime": "2022-02-19 00:00:00"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_funding_rate(data, market)
+
+    def parse_funding_rate(self, contract, market=None):
+        #
+        #     {
+        #         "fundingRate": "0.0001",
+        #         "nextCalculateTime": "2022-02-19 00:00:00"
+        #     }
+        #
+        marketId = self.safe_string(contract, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
+        fundingRate = self.safe_number(contract, 'fundingRate')
+        nextFundingDatetime = self.safe_string(contract, 'nextCalculateTime')
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'markPrice': None,
+            'indexPrice': None,
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': None,
+            'datetime': None,
+            'fundingRate': fundingRate,
+            'fundingTimestamp': None,
+            'fundingDatetime': None,
+            'nextFundingRate': None,
+            'nextFundingTimestamp': self.parse8601(nextFundingDatetime),
+            'nextFundingDatetime': nextFundingDatetime,
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
