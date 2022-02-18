@@ -469,14 +469,12 @@ class whitebit(Exchange):
         #          "change":"2.12"  # in percent
         #      },
         #
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        market = self.safe_market(None, market)
         last = self.safe_string(ticker, 'last_price')
         change = self.safe_string(ticker, 'change')
         percentage = Precise.string_mul(change, '0.01')
         return self.safe_ticker({
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'timestamp': None,
             'datetime': None,
             'high': self.safe_string(ticker, 'high'),
@@ -943,12 +941,9 @@ class whitebit(Exchange):
         dealFee = self.safe_string(order, 'dealFee')
         fee = None
         if dealFee is not None:
-            feeCurrencyCode = None
-            if market is not None:
-                feeCurrencyCode = market['quote']
             fee = {
                 'cost': self.parse_number(dealFee),
-                'currency': feeCurrencyCode,
+                'currency': market['quote'],
             }
         timestamp = self.safe_timestamp_2(order, 'ctime', 'timestamp')
         lastTradeTimestamp = self.safe_timestamp(order, 'ftime')

@@ -470,15 +470,12 @@ class whitebit extends Exchange {
         //          "change":"2.12" // in percent
         //      ),
         //
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market(null, $market);
         $last = $this->safe_string($ticker, 'last_price');
         $change = $this->safe_string($ticker, 'change');
         $percentage = Precise::string_mul($change, '0.01');
         return $this->safe_ticker(array(
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'timestamp' => null,
             'datetime' => null,
             'high' => $this->safe_string($ticker, 'high'),
@@ -991,13 +988,9 @@ class whitebit extends Exchange {
         $dealFee = $this->safe_string($order, 'dealFee');
         $fee = null;
         if ($dealFee !== null) {
-            $feeCurrencyCode = null;
-            if ($market !== null) {
-                $feeCurrencyCode = $market['quote'];
-            }
             $fee = array(
                 'cost' => $this->parse_number($dealFee),
-                'currency' => $feeCurrencyCode,
+                'currency' => $market['quote'],
             );
         }
         $timestamp = $this->safe_timestamp_2($order, 'ctime', 'timestamp');
