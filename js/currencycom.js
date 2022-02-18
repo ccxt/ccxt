@@ -439,6 +439,9 @@ module.exports = class currencycom extends Exchange {
             const futures = false;
             const swap = (type === 'LEVERAGE');
             const margin = (type === 'LEVERAGE'); // as we decided to set
+            if (swap) {
+                symbol += ':' + quote;
+            }
             const active = this.safeString (market, 'status') === 'TRADING';
             // to set taker & maker fees, we use one from the below data - pairs either have 'exchangeFee' or 'tradingFee', if none of them (rare cases), then they should have 'takerFee & makerFee'
             const exchangeFee = this.safeString2 (market, 'exchangeFee', 'tradingFee');
