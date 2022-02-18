@@ -350,6 +350,57 @@ module.exports = class bitfinex2 extends bitfinex {
                     'Invalid order': InvalidOrder,
                 },
             },
+            'commonCurrencies': {
+                'AAVEF0': 'AAVE',
+                'ADAF0': 'ADA',
+                'ALGF0': 'ALG',
+                'AMPF0': 'AMP',
+                'ATOF0': 'ATO',
+                'AVAXF0': 'AVAX',
+                'AXSF0': 'AXS',
+                'BTCDOMF0': 'BTCDOM',
+                'BTCF0': 'BTC',
+                'COMPF0': 'COMP',
+                'CRVF0': 'CRV',
+                'DOGEF0': 'DOGE',
+                'DOTF0': 'DOT',
+                'EGLDF0': 'EGLD',
+                'EOSF0': 'EOS',
+                'ETHF0': 'ETH',
+                'EURF0': 'EUR',
+                'EUROPE50IXF0': 'EUROPE50IX',
+                'EUTF0': 'EUT',
+                'FILF0': 'FIL',
+                'FTMF0': 'FTM',
+                'GBPF0': 'GBP',
+                'GERMANY30IXF0': 'GERMANY30IX',
+                'GERMANY40IXF0': 'GERMANY40IX',
+                'ICPF0': 'ICP',
+                'IOTF0': 'IOT',
+                'JPYF0': 'JPY',
+                'LINKF0': 'LINK',
+                'LTCF0': 'LTC',
+                'LUNAF0': 'LUNA',
+                'MATICF0': 'MATIC',
+                'NEARF0': 'NEAR',
+                'NEOF0': 'NEO',
+                'OMGF0': 'OMG',
+                'SHIBF0': 'SHIB',
+                'SOLF0': 'SOL',
+                'SUSHIF0': 'SUSHI',
+                'TESTBTCF0': 'TESTBTC',
+                'TESTUSDTF0': 'TESTUSDT',
+                'TRXF0': 'TRX',
+                'UNIF0': 'UNI',
+                'USTF0': 'USDT',
+                'XAGF0': 'XAG',
+                'XAUTF0': 'XAUT',
+                'XLMF0': 'XLM',
+                'XMRF0': 'XMR',
+                'XRPF0': 'XRP',
+                'XTZF0': 'XTZ',
+                'ZECF0': 'ZEC',
+            },
         });
     }
 
@@ -442,7 +493,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'optionType': undefined,
                 'precision': {
                     'amount': this.parsePrecision ('8'), // https://github.com/ccxt/ccxt/issues/7310
-                    'price': this.parsePrecision (this.safeInteger (market, 'price_precision')),
+                    'price': this.parsePrecision (this.safeString (market, 'price_precision')),
                 },
                 'limits': {
                     'leverage': {
@@ -465,7 +516,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'info': market,
             };
             if (swap) {
-                const settlementCurrencies = this.options['fetchMarkets']['settlementCurrencies'];
+                const settlementCurrencies = this.options['swap']['fetchMarkets']['settlementCurrencies'];
                 for (let i = 0; i < settlementCurrencies.length; i++) {
                     const settle = settlementCurrencies[i];
                     parsedMarket['settle'] = settle;
