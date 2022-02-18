@@ -974,9 +974,11 @@ class okx(Exchange):
         # and fallback to generating the currencies from the markets
         if not self.check_required_credentials(False):
             return None
-        # has['fetchCurrencies'] is currently set to False
-        # it will reply with {"msg":"Request header “OK_ACCESS_KEY“ can't be empty.","code":"50103"}
-        # if you attempt to access it without authentication
+        #
+        # has['fetchCurrencies'] is currently set to True, but an unauthorized request returns
+        #
+        #     {"msg":"Request header “OK_ACCESS_KEY“ can't be empty.","code":"50103"}
+        #
         response = self.privateGetAssetCurrencies(params)
         #
         #     {

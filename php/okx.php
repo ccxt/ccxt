@@ -971,9 +971,11 @@ class okx extends Exchange {
         if (!$this->check_required_credentials(false)) {
             return null;
         }
-        // has['fetchCurrencies'] is currently set to false
-        // it will reply with array("msg":"Request header “OK_ACCESS_KEY“ can't be empty.","code":"50103")
-        // if you attempt to access it without authentication
+        //
+        // has['fetchCurrencies'] is currently set to true, but an unauthorized request returns
+        //
+        //     array("msg":"Request header “OK_ACCESS_KEY“ can't be empty.","code":"50103")
+        //
         $response = $this->privateGetAssetCurrencies ($params);
         //
         //     {
