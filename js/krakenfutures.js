@@ -28,6 +28,9 @@ module.exports = class krakenfu extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchTickers': true,
+                'fetchIndexOHLCV': false,
+                'fetchOHLCV': true,
+                'fetchMarkOHLCV': true,
             },
             'urls': {
                 'test': {
@@ -130,6 +133,17 @@ module.exports = class krakenfu extends Exchange {
                         },
                     },
                 },
+            },
+            'timeframes': {
+                '1m': '1m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '4h': '4h',
+                '12h': '12h',
+                '1d': '1d',
+                '1w': '1w',
             },
         });
     }
@@ -387,12 +401,12 @@ module.exports = class krakenfu extends Exchange {
         const timestamp = this.parse8601 (this.safeString (ticker, 'lastTime'));
         const open = this.safeString (ticker, 'open24h');
         const last = this.safeString (ticker, 'last');
-        let change = Precise.stringSub (last, open);
-        let percentage = Precise.stringMul (Precise.stringDiv (change, open), '100');
-        let average = Precise.stringDiv (Precise.stringAdd (open, last), '2');
+        const change = Precise.stringSub (last, open);
+        const percentage = Precise.stringMul (Precise.stringDiv (change, open), '100');
+        const average = Precise.stringDiv (Precise.stringAdd (open, last), '2');
         const volume = this.safeFloat (ticker, 'vol24h');
-        let baseVolume = (!market['index'] && market['linear']) ? volume : undefined;
-        let quoteVolume = (!market['index'] && market['inverse']) ? volume : undefined;
+        const baseVolume = (!market['index'] && market['linear']) ? volume : undefined;
+        const quoteVolume = (!market['index'] && market['inverse']) ? volume : undefined;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -415,6 +429,82 @@ module.exports = class krakenfu extends Exchange {
             'quoteVolume': this.parseNumber (quoteVolume),
             'info': ticker,
         };
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'price_type': this.safeString (params, 'price', 'trade'),
+            'interval': this.timeframes[timeframe],
+        };
+        params = this.omit (params, 'price');
+        if (since !== undefined) {
+            const duration = this.parseTimeframe (timeframe);
+            request['from'] = parseInt (since / 1000);
+            if (limit === undefined) {
+                limit = 5000;
+            } else if (limit > 5000) {
+                throw new BadRequest (this.id + ' fetchOHLCV() limit cannot exceed 5000');
+            }
+            const toTimestamp = this.sum (request['from'], limit * duration - 1);
+            const currentTimestamp = this.seconds ();
+            request['to'] = Math.min (toTimestamp, currentTimestamp);
+        } else if (limit !== undefined) {
+            if (limit > 5000) {
+                throw new BadRequest (this.id + ' fetchOHLCV() limit cannot exceed 5000');
+            }
+            const duration = this.parseTimeframe (timeframe);
+            request['to'] = this.seconds ();
+            request['from'] = parseInt (request['to'] - (duration * limit));
+        }
+        const response = await this.chartsGetPriceTypeSymbolInterval (this.extend (request, params));
+        //
+        //    {
+        //        "candles": [
+        //            {
+        //                "time": 1645198500000,
+        //                "open": "309.15000000000",
+        //                "high": "309.15000000000",
+        //                "low": "308.70000000000",
+        //                "close": "308.85000000000",
+        //                "volume": 0
+        //            }
+        //        ],
+        //        "more_candles": true
+        //    }
+        //
+        const candles = this.safeValue (response, 'candles');
+        return this.parseOHLCVs (candles, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //    {
+        //        "time": 1645198500000,
+        //        "open": "309.15000000000",
+        //        "high": "309.15000000000",
+        //        "low": "308.70000000000",
+        //        "close": "308.85000000000",
+        //        "volume": 0
+        //    }
+        //
+        return [
+            this.safeInteger (ohlcv, 'time'),       // unix timestamp in milliseconds
+            this.safeNumber (ohlcv, 'open'),        // open price
+            this.safeNumber (ohlcv, 'high'),        // highest price
+            this.safeNumber (ohlcv, 'low'),         // lowest price
+            this.safeNumber (ohlcv, 'close'),       // close price
+            this.safeNumber (ohlcv, 'volume'),      // trading volume, undefined for mark or index price
+        ];
+    }
+
+    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'price': 'mark',
+        };
+        return await this.fetchOHLCV (symbol, timeframe, since, limit, this.extend (request, params));
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -1232,7 +1322,8 @@ module.exports = class krakenfu extends Exchange {
         const defaultVersion = this.safeString (methodVersions, path, this.version);
         const version = this.safeString (params, 'version', defaultVersion);
         params = this.omit (params, 'version');
-        const endpoint = version + '/' + path;
+        const endpoint = version + '/' + this.implodeParams (path, params);
+        params = this.omit (params, this.extractParams (path));
         let query = endpoint;
         let postData = '';
         if (Object.keys (params).length) {
