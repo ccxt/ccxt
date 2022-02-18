@@ -22,10 +22,11 @@ module.exports = class krakenfu extends Exchange {
                 'cancelAllOrders': true,
                 'createMarketOrder': false,
                 'editOrder': true,
+                'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
+                'fetchOrderBook': true,
                 'fetchOrders': false,
-                'fetchTicker': false,
                 'fetchTickers': true,
             },
             'urls': {
@@ -36,8 +37,9 @@ module.exports = class krakenfu extends Exchange {
                 },
                 'logo': 'https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg',
                 'api': {
-                    'public': 'https://futures.kraken.com/derivatives',
-                    'private': 'https://futures.kraken.com/derivatives',
+                    'charts': 'https://futures.kraken.com/api/charts/',
+                    'public': 'https://futures.kraken.com/derivatives/api/',
+                    'private': 'https://futures.kraken.com/derivatives/api/',
                 },
                 'www': 'https://futures.kraken.com/',
                 'doc': [
@@ -74,6 +76,11 @@ module.exports = class krakenfu extends Exchange {
                         'cancelallorders',
                         'cancelallordersafter',
                         'withdrawal',                              // for futures wallet -> kraken spot wallet
+                    ],
+                },
+                'charts': {
+                    'get': [
+                        '{price_type}/{symbol}/{interval}',
                     ],
                 },
             },
@@ -115,6 +122,13 @@ module.exports = class krakenfu extends Exchange {
                     'limit': 'lmt',
                     'stop': 'stp',
                     'IOC': 'ioc',
+                },
+                'versions': {
+                    'charts': {
+                        'GET': {
+                            '{price_type}/{symbol}/{interval}': 'v1',
+                        },
+                    },
                 },
             },
         });
@@ -1212,7 +1226,13 @@ module.exports = class krakenfu extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const endpoint = '/api/' + this.version + '/' + path;
+        const versions = this.safeValue (this.options, 'versions', {});
+        const apiVersions = this.safeValue (versions, api, {});
+        const methodVersions = this.safeValue (apiVersions, method, {});
+        const defaultVersion = this.safeString (methodVersions, path, this.version);
+        const version = this.safeString (params, 'version', defaultVersion);
+        params = this.omit (params, 'version');
+        const endpoint = version + '/' + path;
         let query = endpoint;
         let postData = '';
         if (Object.keys (params).length) {
