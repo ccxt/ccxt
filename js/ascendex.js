@@ -2322,7 +2322,7 @@ module.exports = class ascendex extends Exchange {
                     'notionalCurrency': market['quote'],
                     'notionalFloor': this.safeNumber (bracket, 'positionNotionalLowerBound'),
                     'notionalCap': this.safeNumber (bracket, 'positionNotionalUpperBound'),
-                    'maintenanceMarginRatio': this.safeNumber (bracket, 'maintenanceMarginRate'),
+                    'maintenanceMarginRate': this.safeNumber (bracket, 'maintenanceMarginRate'),
                     'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRate)),
                     'info': bracket,
                 });
