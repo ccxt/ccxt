@@ -966,8 +966,11 @@ module.exports = class okx extends Exchange {
         if (!this.checkRequiredCredentials (false)) {
             return undefined;
         }
-        // has['fetchCurrencies'] is currently set to true, but unauthorized request returns:
-        //    {"msg":"Request header “OK_ACCESS_KEY“ can't be empty.","code":"50103"}
+        //
+        // has['fetchCurrencies'] is currently set to true, but an unauthorized request returns
+        //
+        //     {"msg":"Request header “OK_ACCESS_KEY“ can't be empty.","code":"50103"}
+        //
         const response = await this.privateGetAssetCurrencies (params);
         //
         //     {
