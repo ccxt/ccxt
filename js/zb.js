@@ -731,9 +731,11 @@ module.exports = class zb extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'market': market['id'],
-            'symbol': market['id'],
+            // 'market': market['id'], // only applicable to SPOT
+            // 'symbol': market['id'], // only applicable to SWAP
         };
+        const marketIdField = market['swap'] ? 'symbol' : 'market';
+        request[marketIdField] = market['id'];
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'spotV1PublicGetTicker',
             'swap': 'contractV1PublicGetTicker',
