@@ -281,16 +281,13 @@ class bibox extends Exchange {
     public function parse_ticker($ticker, $market = null) {
         // we don't set values that are not defined by the exchange
         $timestamp = $this->safe_integer($ticker, 'timestamp');
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        } else {
-            $baseId = $this->safe_string($ticker, 'coin_symbol');
-            $quoteId = $this->safe_string($ticker, 'currency_symbol');
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
+        $marketId = null;
+        $baseId = $this->safe_string($ticker, 'coin_symbol');
+        $quoteId = $this->safe_string($ticker, 'currency_symbol');
+        if (($baseId !== null) && ($quoteId !== null)) {
+            $marketId = $baseId . '_' . $quoteId;
         }
+        $market = $this->safe_market($marketId, $market);
         $last = $this->safe_string($ticker, 'last');
         $change = $this->safe_string($ticker, 'change');
         $baseVolume = $this->safe_string_2($ticker, 'vol', 'vol24H');
@@ -299,7 +296,7 @@ class bibox extends Exchange {
             $percentage = str_replace('%', '', $percentage);
         }
         return $this->safe_ticker(array(
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_string($ticker, 'high'),

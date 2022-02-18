@@ -684,12 +684,24 @@ module.exports = class zb extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'market': market['id'],
+            // 'market': market['id'], // only applicable to SPOT
+            // 'symbol': market['id'], // only applicable to SWAP
+            // 'size': limit, // 1-50 applicable to SPOT and SWAP
+            // 'merge': 5.0, // float default depth only applicable to SPOT
+            // 'scale': 5, // int accuracy, only applicable to SWAP
         };
+        const marketIdField = market['swap'] ? 'symbol' : 'market';
+        request[marketIdField] = market['id'];
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'spotV1PublicGetDepth',
+            'swap': 'contractV1PublicGetDepth',
+        });
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await this.spotV1PublicGetDepth (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
+        //
+        // Spot
         //
         //     {
         //         "asks":[
@@ -705,7 +717,36 @@ module.exports = class zb extends Exchange {
         //         "timestamp":1624536510
         //     }
         //
-        return this.parseOrderBook (response, symbol);
+        // Swap
+        //
+        //     {
+        //         "code": 10000,
+        //         "desc": "操作成功",
+        //         "data": {
+        //             "asks": [
+        //                 [43416.6,0.02],
+        //                 [43418.25,0.04],
+        //                 [43425.82,0.02]
+        //             ],
+        //             "bids": [
+        //                 [43414.61,0.1],
+        //                 [43414.18,0.04],
+        //                 [43413.03,0.05]
+        //             ],
+        //             "time": 1645087743071
+        //         }
+        //     }
+        //
+        let result = undefined;
+        let timestamp = undefined;
+        if (market['type'] === 'swap') {
+            result = this.safeValue (response, 'data');
+            timestamp = this.safeInteger (result, 'time');
+        } else {
+            result = response;
+            timestamp = this.safeTimestamp (response, 'timestamp');
+        }
+        return this.parseOrderBook (result, symbol, timestamp);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -730,9 +771,18 @@ module.exports = class zb extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'market': market['id'],
+            // 'market': market['id'], // only applicable to SPOT
+            // 'symbol': market['id'], // only applicable to SWAP
         };
-        const response = await this.spotV1PublicGetTicker (this.extend (request, params));
+        const marketIdField = market['swap'] ? 'symbol' : 'market';
+        request[marketIdField] = market['id'];
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'spotV1PublicGetTicker',
+            'swap': 'contractV1PublicGetTicker',
+        });
+        const response = await this[method] (this.extend (request, params));
+        //
+        // Spot
         //
         //     {
         //         "date":"1624399623587",
@@ -749,12 +799,39 @@ module.exports = class zb extends Exchange {
         //         }
         //     }
         //
-        const ticker = this.safeValue (response, 'ticker', {});
-        ticker['date'] = this.safeValue (response, 'date');
+        // Swap
+        //
+        //     {
+        //         "code": 10000,
+        //         "desc": "操作成功",
+        //         "data": {
+        //             "BTC_USDT": [44053.47,44357.77,42911.54,43297.79,53471.264,-1.72,1645093002,302201.255084]
+        //         }
+        //     }
+        //
+        let ticker = undefined;
+        if (market['type'] === 'swap') {
+            ticker = {};
+            const data = this.safeValue (response, 'data');
+            const values = this.safeValue (data, market['id']);
+            for (let i = 0; i < values.length; i++) {
+                ticker['open'] = this.safeValue (values, 0);
+                ticker['high'] = this.safeValue (values, 1);
+                ticker['low'] = this.safeValue (values, 2);
+                ticker['last'] = this.safeValue (values, 3);
+                ticker['vol'] = this.safeValue (values, 4);
+                ticker['riseRate'] = this.safeValue (values, 5);
+            }
+        } else {
+            ticker = this.safeValue (response, 'ticker', {});
+            ticker['date'] = this.safeValue (response, 'date');
+        }
         return this.parseTicker (ticker, market);
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        // Spot
         //
         //     {
         //         "date":"1624399623587", // injected from outside
@@ -767,6 +844,17 @@ module.exports = class zb extends Exchange {
         //         "turnover":"1764201303.6100",
         //         "open":"31664.85",
         //         "riseRate":"2.89"
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         open: 44083.82,
+        //         high: 44357.77,
+        //         low: 42911.54,
+        //         last: 43097.87,
+        //         vol: 53451.641,
+        //         riseRate: -2.24
         //     }
         //
         const timestamp = this.safeInteger (ticker, 'date', this.milliseconds ());

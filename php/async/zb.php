@@ -11,7 +11,6 @@ use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
 use \ccxt\ExchangeNotAvailable;
-use \ccxt\Precise;
 
 class zb extends Exchange {
 
@@ -691,12 +690,24 @@ class zb extends Exchange {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'market' => $market['id'],
+            // 'market' => $market['id'], // only applicable to SPOT
+            // 'symbol' => $market['id'], // only applicable to SWAP
+            // 'size' => $limit, // 1-50 applicable to SPOT and SWAP
+            // 'merge' => 5.0, // float default depth only applicable to SPOT
+            // 'scale' => 5, // int accuracy, only applicable to SWAP
         );
+        $marketIdField = $market['swap'] ? 'symbol' : 'market';
+        $request[$marketIdField] = $market['id'];
+        $method = $this->get_supported_mapping($market['type'], array(
+            'spot' => 'spotV1PublicGetDepth',
+            'swap' => 'contractV1PublicGetDepth',
+        ));
         if ($limit !== null) {
             $request['size'] = $limit;
         }
-        $response = yield $this->spotV1PublicGetDepth (array_merge($request, $params));
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        // Spot
         //
         //     {
         //         "asks":[
@@ -712,7 +723,36 @@ class zb extends Exchange {
         //         "timestamp":1624536510
         //     }
         //
-        return $this->parse_order_book($response, $symbol);
+        // Swap
+        //
+        //     {
+        //         "code" => 10000,
+        //         "desc" => "操作成功",
+        //         "data" => {
+        //             "asks" => [
+        //                 [43416.6,0.02],
+        //                 [43418.25,0.04],
+        //                 [43425.82,0.02]
+        //             ],
+        //             "bids" => [
+        //                 [43414.61,0.1],
+        //                 [43414.18,0.04],
+        //                 [43413.03,0.05]
+        //             ],
+        //             "time" => 1645087743071
+        //         }
+        //     }
+        //
+        $result = null;
+        $timestamp = null;
+        if ($market['type'] === 'swap') {
+            $result = $this->safe_value($response, 'data');
+            $timestamp = $this->safe_integer($result, 'time');
+        } else {
+            $result = $response;
+            $timestamp = $this->safe_timestamp($response, 'timestamp');
+        }
+        return $this->parse_order_book($result, $symbol, $timestamp);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
@@ -737,9 +777,18 @@ class zb extends Exchange {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'market' => $market['id'],
+            // 'market' => $market['id'], // only applicable to SPOT
+            // 'symbol' => $market['id'], // only applicable to SWAP
         );
-        $response = yield $this->spotV1PublicGetTicker (array_merge($request, $params));
+        $marketIdField = $market['swap'] ? 'symbol' : 'market';
+        $request[$marketIdField] = $market['id'];
+        $method = $this->get_supported_mapping($market['type'], array(
+            'spot' => 'spotV1PublicGetTicker',
+            'swap' => 'contractV1PublicGetTicker',
+        ));
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        // Spot
         //
         //     {
         //         "date":"1624399623587",
@@ -756,12 +805,39 @@ class zb extends Exchange {
         //         }
         //     }
         //
-        $ticker = $this->safe_value($response, 'ticker', array());
-        $ticker['date'] = $this->safe_value($response, 'date');
+        // Swap
+        //
+        //     {
+        //         "code" => 10000,
+        //         "desc" => "操作成功",
+        //         "data" => {
+        //             "BTC_USDT" => [44053.47,44357.77,42911.54,43297.79,53471.264,-1.72,1645093002,302201.255084]
+        //         }
+        //     }
+        //
+        $ticker = null;
+        if ($market['type'] === 'swap') {
+            $ticker = array();
+            $data = $this->safe_value($response, 'data');
+            $values = $this->safe_value($data, $market['id']);
+            for ($i = 0; $i < count($values); $i++) {
+                $ticker['open'] = $this->safe_value($values, 0);
+                $ticker['high'] = $this->safe_value($values, 1);
+                $ticker['low'] = $this->safe_value($values, 2);
+                $ticker['last'] = $this->safe_value($values, 3);
+                $ticker['vol'] = $this->safe_value($values, 4);
+                $ticker['riseRate'] = $this->safe_value($values, 5);
+            }
+        } else {
+            $ticker = $this->safe_value($response, 'ticker', array());
+            $ticker['date'] = $this->safe_value($response, 'date');
+        }
         return $this->parse_ticker($ticker, $market);
     }
 
     public function parse_ticker($ticker, $market = null) {
+        //
+        // Spot
         //
         //     {
         //         "date":"1624399623587", // injected from outside
@@ -774,6 +850,17 @@ class zb extends Exchange {
         //         "turnover":"1764201303.6100",
         //         "open":"31664.85",
         //         "riseRate":"2.89"
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         open => 44083.82,
+        //         high => 44357.77,
+        //         low => 42911.54,
+        //         $last => 43097.87,
+        //         vol => 53451.641,
+        //         riseRate => -2.24
         //     }
         //
         $timestamp = $this->safe_integer($ticker, 'date', $this->milliseconds());
@@ -847,31 +934,24 @@ class zb extends Exchange {
         $side = $this->safe_string($trade, 'trade_type');
         $side = ($side === 'bid') ? 'buy' : 'sell';
         $id = $this->safe_string($trade, 'tid');
-        $priceString = $this->safe_string($trade, 'price');
-        $amountString = $this->safe_string($trade, 'amount');
-        $costString = Precise::string_mul($priceString, $amountString);
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number($costString);
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        return array(
+        $price = $this->safe_string($trade, 'price');
+        $amount = $this->safe_string($trade, 'amount');
+        $market = $this->safe_market(null, $market);
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => null,
             'side' => $side,
             'order' => null,
             'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'fee' => null,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -1037,7 +1117,7 @@ class zb extends Exchange {
         $type = 'limit'; // $market $order is not availalbe in ZB
         $timestamp = $this->safe_integer($order, 'trade_date');
         $marketId = $this->safe_string($order, 'currency');
-        $symbol = $this->safe_symbol($marketId, $market, '_');
+        $market = $this->safe_market($marketId, $market, '_');
         $price = $this->safe_string($order, 'price');
         $filled = $this->safe_string($order, 'trade_amount');
         $amount = $this->safe_string($order, 'total_amount');
@@ -1051,7 +1131,7 @@ class zb extends Exchange {
             $zbFees = $this->safe_value($order, 'useZbFee');
             if ($zbFees === true) {
                 $feeCurrency = 'ZB';
-            } else if ($market !== null) {
+            } else {
                 $feeCurrency = ($side === 'sell') ? $market['quote'] : $market['base'];
             }
             $fee = array(
@@ -1066,7 +1146,7 @@ class zb extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => $type,
             'timeInForce' => null,
             'postOnly' => null,

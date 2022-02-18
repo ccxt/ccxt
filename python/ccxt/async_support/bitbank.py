@@ -281,11 +281,7 @@ class bitbank(Exchange):
 
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_integer(trade, 'executed_at')
-        symbol = None
-        feeCurrency = None
-        if market is not None:
-            symbol = market['symbol']
-            feeCurrency = market['quote']
+        market = self.safe_market(None, market)
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
         id = self.safe_string_2(trade, 'transaction_id', 'trade_id')
@@ -294,7 +290,7 @@ class bitbank(Exchange):
         feeCostString = self.safe_string(trade, 'fee_amount_quote')
         if feeCostString is not None:
             fee = {
-                'currency': feeCurrency,
+                'currency': market['quote'],
                 'cost': feeCostString,
             }
         orderId = self.safe_string(trade, 'order_id')
@@ -303,7 +299,7 @@ class bitbank(Exchange):
         return self.safe_trade({
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'id': id,
             'order': orderId,
             'type': type,
@@ -452,11 +448,7 @@ class bitbank(Exchange):
     def parse_order(self, order, market=None):
         id = self.safe_string(order, 'order_id')
         marketId = self.safe_string(order, 'pair')
-        symbol = None
-        if marketId and not market and (marketId in self.markets_by_id):
-            market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(order, 'ordered_at')
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'start_amount')
@@ -473,7 +465,7 @@ class bitbank(Exchange):
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
             'status': status,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': None,
             'postOnly': None,
@@ -544,12 +536,11 @@ class bitbank(Exchange):
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
+        request = {}
         market = None
         if symbol is not None:
-            market = self.market(symbol)
-        request = {}
-        if market is not None:
             request['pair'] = market['id']
+            market = self.market(symbol)
         if limit is not None:
             request['count'] = limit
         if since is not None:

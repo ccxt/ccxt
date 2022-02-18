@@ -19,7 +19,6 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import RequestTimeout
-from ccxt.base.precise import Precise
 
 
 class zb(Exchange):
@@ -686,11 +685,23 @@ class zb(Exchange):
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'market': market['id'],
+            # 'market': market['id'],  # only applicable to SPOT
+            # 'symbol': market['id'],  # only applicable to SWAP
+            # 'size': limit,  # 1-50 applicable to SPOT and SWAP
+            # 'merge': 5.0,  # float default depth only applicable to SPOT
+            # 'scale': 5,  # int accuracy, only applicable to SWAP
         }
+        marketIdField = 'symbol' if market['swap'] else 'market'
+        request[marketIdField] = market['id']
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'spotV1PublicGetDepth',
+            'swap': 'contractV1PublicGetDepth',
+        })
         if limit is not None:
             request['size'] = limit
-        response = self.spotV1PublicGetDepth(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # Spot
         #
         #     {
         #         "asks":[
@@ -706,7 +717,35 @@ class zb(Exchange):
         #         "timestamp":1624536510
         #     }
         #
-        return self.parse_order_book(response, symbol)
+        # Swap
+        #
+        #     {
+        #         "code": 10000,
+        #         "desc": "操作成功",
+        #         "data": {
+        #             "asks": [
+        #                 [43416.6,0.02],
+        #                 [43418.25,0.04],
+        #                 [43425.82,0.02]
+        #             ],
+        #             "bids": [
+        #                 [43414.61,0.1],
+        #                 [43414.18,0.04],
+        #                 [43413.03,0.05]
+        #             ],
+        #             "time": 1645087743071
+        #         }
+        #     }
+        #
+        result = None
+        timestamp = None
+        if market['type'] == 'swap':
+            result = self.safe_value(response, 'data')
+            timestamp = self.safe_integer(result, 'time')
+        else:
+            result = response
+            timestamp = self.safe_timestamp(response, 'timestamp')
+        return self.parse_order_book(result, symbol, timestamp)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
@@ -727,9 +766,18 @@ class zb(Exchange):
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'market': market['id'],
+            # 'market': market['id'],  # only applicable to SPOT
+            # 'symbol': market['id'],  # only applicable to SWAP
         }
-        response = self.spotV1PublicGetTicker(self.extend(request, params))
+        marketIdField = 'symbol' if market['swap'] else 'market'
+        request[marketIdField] = market['id']
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'spotV1PublicGetTicker',
+            'swap': 'contractV1PublicGetTicker',
+        })
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # Spot
         #
         #     {
         #         "date":"1624399623587",
@@ -746,11 +794,36 @@ class zb(Exchange):
         #         }
         #     }
         #
-        ticker = self.safe_value(response, 'ticker', {})
-        ticker['date'] = self.safe_value(response, 'date')
+        # Swap
+        #
+        #     {
+        #         "code": 10000,
+        #         "desc": "操作成功",
+        #         "data": {
+        #             "BTC_USDT": [44053.47,44357.77,42911.54,43297.79,53471.264,-1.72,1645093002,302201.255084]
+        #         }
+        #     }
+        #
+        ticker = None
+        if market['type'] == 'swap':
+            ticker = {}
+            data = self.safe_value(response, 'data')
+            values = self.safe_value(data, market['id'])
+            for i in range(0, len(values)):
+                ticker['open'] = self.safe_value(values, 0)
+                ticker['high'] = self.safe_value(values, 1)
+                ticker['low'] = self.safe_value(values, 2)
+                ticker['last'] = self.safe_value(values, 3)
+                ticker['vol'] = self.safe_value(values, 4)
+                ticker['riseRate'] = self.safe_value(values, 5)
+        else:
+            ticker = self.safe_value(response, 'ticker', {})
+            ticker['date'] = self.safe_value(response, 'date')
         return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market=None):
+        #
+        # Spot
         #
         #     {
         #         "date":"1624399623587",  # injected from outside
@@ -763,6 +836,17 @@ class zb(Exchange):
         #         "turnover":"1764201303.6100",
         #         "open":"31664.85",
         #         "riseRate":"2.89"
+        #     }
+        #
+        # Swap
+        #
+        #     {
+        #         open: 44083.82,
+        #         high: 44357.77,
+        #         low: 42911.54,
+        #         last: 43097.87,
+        #         vol: 53451.641,
+        #         riseRate: -2.24
         #     }
         #
         timestamp = self.safe_integer(ticker, 'date', self.milliseconds())
@@ -831,30 +915,24 @@ class zb(Exchange):
         side = self.safe_string(trade, 'trade_type')
         side = 'buy' if (side == 'bid') else 'sell'
         id = self.safe_string(trade, 'tid')
-        priceString = self.safe_string(trade, 'price')
-        amountString = self.safe_string(trade, 'amount')
-        costString = Precise.string_mul(priceString, amountString)
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(costString)
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        return {
+        price = self.safe_string(trade, 'price')
+        amount = self.safe_string(trade, 'amount')
+        market = self.safe_market(None, market)
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': None,
             'side': side,
             'order': None,
             'takerOrMaker': None,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'fee': None,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
@@ -1001,7 +1079,7 @@ class zb(Exchange):
         type = 'limit'  # market order is not availalbe in ZB
         timestamp = self.safe_integer(order, 'trade_date')
         marketId = self.safe_string(order, 'currency')
-        symbol = self.safe_symbol(marketId, market, '_')
+        market = self.safe_market(marketId, market, '_')
         price = self.safe_string(order, 'price')
         filled = self.safe_string(order, 'trade_amount')
         amount = self.safe_string(order, 'total_amount')
@@ -1015,7 +1093,7 @@ class zb(Exchange):
             zbFees = self.safe_value(order, 'useZbFee')
             if zbFees is True:
                 feeCurrency = 'ZB'
-            elif market is not None:
+            else:
                 feeCurrency = market['quote'] if (side == 'sell') else market['base']
             fee = {
                 'cost': feeCost,
@@ -1028,7 +1106,7 @@ class zb(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': None,
             'postOnly': None,
