@@ -350,10 +350,7 @@ module.exports = class wazirx extends Exchange {
         const id = this.safeString (trade, 'id');
         const timestamp = this.parse8601 (this.safeString (trade, 'time'));
         const datetime = this.iso8601 (timestamp);
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (undefined, market);
         const isBuyerMaker = this.safeValue (trade, 'isBuyerMaker');
         const side = isBuyerMaker ? 'sell' : 'buy';
         const price = this.safeNumber (trade, 'price');
@@ -364,7 +361,7 @@ module.exports = class wazirx extends Exchange {
             'id': id,
             'timestamp': timestamp,
             'datetime': datetime,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': id,
             'type': undefined,
             'side': side,
