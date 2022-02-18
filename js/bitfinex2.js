@@ -325,6 +325,11 @@ module.exports = class bitfinex2 extends bitfinex {
                     'derivatives': 'margin',
                     'future': 'margin',
                 },
+                'swap': {
+                    'fetchMarkets': {
+                        'settlementCurrencies': [ 'BTC', 'USDT' ],
+                    },
+                },
             },
             'exceptions': {
                 'exact': {
@@ -394,7 +399,6 @@ module.exports = class bitfinex2 extends bitfinex {
                 spot = false;
             }
             const swap = !spot;
-            const type = spot ? 'spot' : 'swap';
             let baseId = undefined;
             let quoteId = undefined;
             if (id.indexOf (':') >= 0) {
@@ -412,34 +416,33 @@ module.exports = class bitfinex2 extends bitfinex {
             quoteId = this.getCurrencyId (quoteId);
             const minOrderSizeString = this.safeString (market, 'minimum_order_size');
             const maxOrderSizeString = this.safeString (market, 'maximum_order_size');
-            result.push ({
+            const parsedMarket = {
                 'id': 't' + id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': undefined, // TODO
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': undefined, // TODO
-                'type': type,
+                'settleId': undefined,
+                'type': spot ? 'spot' : 'swap',
                 'spot': spot,
-                'margin': this.safeValue (market, 'margin'),
+                'margin': this.safeValue (market, 'margin', false),
                 'swap': swap,
                 'future': false,
                 'option': false,
                 'active': true,
                 'contract': swap,
-                'linear': spot ? undefined : true, // TODO
-                'inverse': spot ? undefined : false, // TODO
-                'contractSize': undefined, // TODO
-                'maintenanceMarginRate': undefined,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': parseInt ('8'), // https://github.com/ccxt/ccxt/issues/7310
-                    'price': this.safeInteger (market, 'price_precision'),
+                    'amount': this.parsePrecision ('8'), // https://github.com/ccxt/ccxt/issues/7310
+                    'price': this.parsePrecision (this.safeInteger (market, 'price_precision')),
                 },
                 'limits': {
                     'leverage': {
@@ -460,7 +463,21 @@ module.exports = class bitfinex2 extends bitfinex {
                     },
                 },
                 'info': market,
-            });
+            };
+            if (swap) {
+                const settlementCurrencies = this.options['fetchMarkets']['settlementCurrencies'];
+                for (let i = 0; i < settlementCurrencies.length; i++) {
+                    const settle = settlementCurrencies[i];
+                    parsedMarket['settle'] = settle;
+                    parsedMarket['symbol'] = symbol + ':' + settle;
+                    parsedMarket['linear'] = quote === settle;
+                    parsedMarket['inverse'] = base === settle;
+                    parsedMarket['contractSize'] = this.parseNumber ('1');
+                    result.push (parsedMarket);
+                }
+            } else {
+                result.push (parsedMarket);
+            }
         }
         return result;
     }
