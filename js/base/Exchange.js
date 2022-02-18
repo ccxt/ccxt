@@ -320,6 +320,8 @@ module.exports = class Exchange {
                 this[property] = value
             }
         }
+        this.emulateSingleMarketMethod ('fetchPosition');
+        
         // http client options
         const agentOptions = {
             'keepAlive': true,
@@ -609,6 +611,15 @@ module.exports = class Exchange {
 
     onJsonResponse (responseBody) {
         return this.quoteJsonNumbers ? responseBody.replace (/":([+.0-9eE-]+)([,}])/g, '":"$1"$2') : responseBody;
+    }
+
+    emulateSingleMarketMethod (emulatedMethod, multiMarketMethod = undefined) {
+        if (multiMarketMethod === undefined) {
+            multiMarketMethod = emulatedMethod + 's';
+        }
+        if (this.has[multiMarketMethod] && this.has[emulatedMethod] === undefined) {
+            this.has[emulatedMethod] = 'emulated';
+        }
     }
 
     async loadMarketsHelper (reload = false, params = {}) {
