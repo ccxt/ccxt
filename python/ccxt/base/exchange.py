@@ -404,6 +404,7 @@ class Exchange(object):
         self.userAgent = default_user_agent()
 
         settings = self.deep_extend(self.describe(), config)
+        self.emulate_single_market_method('fetchPosition')
 
         for key in settings:
             if hasattr(self, key) and isinstance(getattr(self, key), dict):
@@ -613,6 +614,12 @@ class Exchange(object):
             return json.loads(response_body, parse_float=str, parse_int=str)
         else:
             return json.loads(response_body)
+
+    def emulate_single_market_method(self, emulated_method, multi_market_method=None):
+        if multi_market_method is None:
+            multi_market_method = emulated_method + 's'
+        if self.has[multi_market_method] and self.has[multi_market_method] is None:
+            self.has[emulated_method] = 'emulated'
 
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
