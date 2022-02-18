@@ -19,18 +19,24 @@ module.exports = class krakenfu extends Exchange {
             'userAgent': undefined,
             'rateLimit': 600,
             'has': {
+                'spot': false,
+                'margin': false,
+                'swap': true,
+                'future': true,
+                'option': false,
                 'cancelAllOrders': true,
                 'createMarketOrder': false,
                 'editOrder': true,
+                'fetchFundingRateHistory': true,
+                'fetchIndexOHLCV': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
+                'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchTickers': true,
-                'fetchIndexOHLCV': false,
-                'fetchOHLCV': true,
-                'fetchMarkOHLCV': true,
             },
             'urls': {
                 'test': {
@@ -58,6 +64,7 @@ module.exports = class krakenfu extends Exchange {
                         'orderbook',
                         'tickers',
                         'history',
+                        'historicalfundingrates',
                     ],
                 },
                 'private': {
@@ -127,6 +134,11 @@ module.exports = class krakenfu extends Exchange {
                     'IOC': 'ioc',
                 },
                 'versions': {
+                    'public': {
+                        'GET': {
+                            'historicalfundingrates': 'v4',
+                        },
+                    },
                     'charts': {
                         'GET': {
                             '{price_type}/{symbol}/{interval}': 'v1',
@@ -1237,6 +1249,45 @@ module.exports = class krakenfu extends Exchange {
             result[code] = account;
         }
         return this.parseBalance (result);
+    }
+
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadRequest (this.id + ' fetchFundingRateHistory() supports swap contracts only');
+        }
+        const request = {
+            'symbol': market['id'].toUpperCase (),
+        };
+        const response = await this.publicGetHistoricalfundingrates (this.extend (request, params));
+        //
+        //    {
+        //        rates: [
+        //          {
+        //            timestamp: '2018-08-31T16:00:00.000Z',
+        //            fundingRate: '2.18900669884E-7',
+        //            relativeFundingRate: '0.000060779960000000'
+        //          },
+        //          ...
+        //        ]
+        //    }
+        //
+        const rates = this.safeValue (response, 'rates');
+        const result = [];
+        for (let i = 0; i < rates.length; i++) {
+            const item = rates[i];
+            const datetime = this.safeString (item, 'timestamp');
+            result.push ({
+                'info': item,
+                'symbol': symbol,
+                'fundingRate': this.safeNumber (item, 'fundingRate'),
+                'timestamp': this.parse8601 (datetime),
+                'datetime': datetime,
+            });
+        }
+        const sorted = this.sortBy (result, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
