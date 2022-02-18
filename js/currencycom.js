@@ -512,8 +512,8 @@ module.exports = class currencycom extends Exchange {
                 'contract': swap || futures,
                 'linear': undefined,    // TO_DO
                 'inverse': undefined,   // TO_DO
-                'taker': takerFee,
-                'maker': makerFee,
+                'taker': this.parseNumber (takerFee),
+                'maker': this.parseNumber (makerFee),
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -546,7 +546,7 @@ module.exports = class currencycom extends Exchange {
     }
 
     async fetchAccounts (params = {}) {
-        const response = await this.privateGetAccount (params);
+        const response = await this.privateGetV1Account (params);
         //
         //     {
         //         "makerCommission":0.20,
@@ -588,7 +588,7 @@ module.exports = class currencycom extends Exchange {
 
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetAccount (params);
+        const response = await this.privateGetV1Account (params);
         return {
             'info': response,
             'maker': this.safeNumber (response, 'makerCommission'),
@@ -635,7 +635,7 @@ module.exports = class currencycom extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetAccount (params);
+        const response = await this.privateGetV1Account (params);
         //
         //     {
         //         "makerCommission":0.20,
@@ -1064,7 +1064,7 @@ module.exports = class currencycom extends Exchange {
         } else if (uppercaseType === 'STOP') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await this.privatePostOrder (this.extend (request, params));
+        const response = await this.privatePostV1Order (this.extend (request, params));
         //
         //     {
         //         "symbol": "BTC/USD",
@@ -1104,7 +1104,7 @@ module.exports = class currencycom extends Exchange {
             const fetchOpenOrdersRateLimit = parseInt (numSymbols / 2);
             throw new ExchangeError (this.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.toString () + ' seconds. Do not call this method frequently to avoid ban. Set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         }
-        const response = await this.privateGetOpenOrders (this.extend (request, params));
+        const response = await this.privateGetV1OpenOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -1125,7 +1125,7 @@ module.exports = class currencycom extends Exchange {
         } else {
             request['origClientOrderId'] = origClientOrderId;
         }
-        const response = await this.privateDeleteOrder (this.extend (request, params));
+        const response = await this.privateDeleteV1Order (this.extend (request, params));
         //
         //     {
         //         "symbol":"ETH/USD",
@@ -1155,7 +1155,7 @@ module.exports = class currencycom extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetMyTrades (this.extend (request, params));
+        const response = await this.privateGetV1MyTrades (this.extend (request, params));
         //
         //     [
         //         {
