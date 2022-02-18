@@ -1024,7 +1024,7 @@ module.exports = class zb extends Exchange {
         const type = 'limit'; // market order is not availalbe in ZB
         const timestamp = this.safeInteger (order, 'trade_date');
         const marketId = this.safeString (order, 'currency');
-        const symbol = this.safeSymbol (marketId, market, '_');
+        market = this.safeMarket (marketId, market, '_');
         const price = this.safeString (order, 'price');
         const filled = this.safeString (order, 'trade_amount');
         const amount = this.safeString (order, 'total_amount');
@@ -1038,7 +1038,7 @@ module.exports = class zb extends Exchange {
             const zbFees = this.safeValue (order, 'useZbFee');
             if (zbFees === true) {
                 feeCurrency = 'ZB';
-            } else if (market !== undefined) {
+            } else {
                 feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
             }
             fee = {
@@ -1053,7 +1053,7 @@ module.exports = class zb extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
