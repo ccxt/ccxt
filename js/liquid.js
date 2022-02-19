@@ -209,6 +209,7 @@ module.exports = class liquid extends Exchange {
                 'product_disabled': BadSymbol, // {"errors":{"order":["product_disabled"]}}
             },
             'commonCurrencies': {
+                'BIFI': 'BIFIF',
                 'HOT': 'HOT Token',
                 'MIOTA': 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
                 'TON': 'Tokamak Network',
