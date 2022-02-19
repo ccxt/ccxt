@@ -79,7 +79,7 @@ module.exports = class currencycom extends Exchange {
                 'fetchPositions': undefined,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': false,
-                // 'fetchStatus': 'emulated',
+                'fetchStatus': 'emulated',
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,

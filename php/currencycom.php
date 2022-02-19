@@ -26,36 +26,86 @@ class currencycom extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
-                'margin' => null, // has but not fully implemented
-                'swap' => false,
+                'margin' => true,
+                'swap' => true,
                 'future' => false,
                 'option' => false,
+                'addMargin' => null,
+                'cancelAllOrders' => null,
                 'cancelOrder' => true,
+                'cancelOrders' => null,
+                'createDepositAddress' => null,
+                'createLimitOrder' => true,
+                'createMarketOrder' => true,
                 'createOrder' => true,
+                'deposit' => null,
+                'editOrder' => 'emulated',
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
+                'fetchBidsAsks' => null,
+                'fetchBorrowRate' => null,
+                'fetchBorrowRateHistory' => null,
+                'fetchBorrowRates' => null,
+                'fetchBorrowRatesPerSymbol' => null,
+                'fetchCanceledOrders' => null,
+                'fetchClosedOrder' => null,
+                'fetchClosedOrders' => null,
+                'fetchCurrencies' => null,
+                'fetchDeposit' => null,
+                'fetchDepositAddress' => null,
+                'fetchDepositAddresses' => null,
+                'fetchDepositAddressesByNetwork' => null,
+                'fetchDeposits' => null,
+                'fetchFundingFee' => null,
+                'fetchFundingFees' => null,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchL2OrderBook' => true,
+                'fetchLedger' => null,
+                'fetchLedgerEntry' => null,
+                'fetchLeverageTiers' => null,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
+                'fetchOrder' => null,
                 'fetchOrderBook' => true,
+                'fetchOrderBooks' => null,
+                'fetchOrders' => null,
+                'fetchOrderTrades' => null,
+                'fetchPosition' => null,
+                'fetchPositions' => null,
+                'fetchPositionsRisk' => null,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchStatus' => 'emulated',
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => null,
                 'fetchTradingFees' => true,
+                'fetchTradingLimits' => null,
+                'fetchTransactions' => null,
+                'fetchTransfers' => null,
+                'fetchWithdrawal' => null,
+                'fetchWithdrawals' => null,
+                'reduceMargin' => null,
+                'setLeverage' => null,
+                'setMarginMode' => null,
+                'setPositionMode' => null,
+                'signIn' => null,
+                'transfer' => null,
+                'withdraw' => null,
             ),
             'timeframes' => array(
                 '1m' => '1m',
-                '3m' => '3m',
                 '5m' => '5m',
+                '10m' => '10m',
                 '15m' => '15m',
                 '30m' => '30m',
                 '1h' => '1h',
@@ -83,30 +133,60 @@ class currencycom extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'time',
-                        'exchangeInfo',
-                        'depth',
-                        'aggTrades',
-                        'klines',
-                        'ticker/24hr',
+                        'v1/time',
+                        'v2/time',
+                        'v1/exchangeInfo',
+                        'v2/exchangeInfo',
+                        'v1/depth',
+                        'v2/depth',
+                        'v1/aggTrades',
+                        'v2/aggTrades',
+                        'v1/klines',
+                        'v2/klines',
+                        'v1/ticker/24hr',
+                        'v2/ticker/24hr',
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'leverageSettings',
-                        'openOrders',
-                        'tradingPositions',
-                        'account',
-                        'myTrades',
+                        'v1/account',
+                        'v2/account',
+                        'v1/currencies',
+                        'v2/currencies',
+                        'v1/deposits',
+                        'v2/deposits',
+                        'v1/depositAddress',
+                        'v2/depositAddress',
+                        'v1/ledger',
+                        'v2/ledger',
+                        'v1/leverageSettings',
+                        'v2/leverageSettings',
+                        'v1/myTrades',
+                        'v2/myTrades',
+                        'v1/openOrders',
+                        'v2/openOrders',
+                        'v1/tradingPositions',
+                        'v2/tradingPositions',
+                        'v1/tradingPositionsHistory',
+                        'v2/tradingPositionsHistory',
+                        'v1/transactions',
+                        'v2/transactions',
+                        'v1/withdrawals',
+                        'v2/withdrawals',
                     ),
                     'post' => array(
-                        'order',
-                        'updateTradingPosition',
-                        'updateTradingOrder',
-                        'closeTradingPosition',
+                        'v1/order',
+                        'v2/order',
+                        'v1/updateTradingPosition',
+                        'v2/updateTradingPosition',
+                        'v1/updateTradingOrder',
+                        'v2/updateTradingOrder',
+                        'v1/closeTradingPosition',
+                        'v2/closeTradingPosition',
                     ),
                     'delete' => array(
-                        'order',
+                        'v1/order',
+                        'v2/order',
                     ),
                 ),
             ),
@@ -179,7 +259,7 @@ class currencycom extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
-        $response = $this->publicGetTime ($params);
+        $response = $this->publicGetV2Time ($params);
         //
         //     {
         //         "serverTime" => 1590998366609
@@ -189,7 +269,7 @@ class currencycom extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        $response = $this->publicGetExchangeInfo ($params);
+        $response = $this->publicGetV1ExchangeInfo ($params);
         //
         //     {
         //         "timezone":"UTC",
@@ -280,17 +360,9 @@ class currencycom extends Exchange {
             }
             $spot = ($type === 'spot');
             $margin = ($type === 'margin');
-            $exchangeFee = $this->safe_number_2($market, 'exchangeFee', 'tradingFee');
-            $makerFee = $this->safe_number($market, 'makerFee', $exchangeFee);
-            $takerFee = $this->safe_number($market, 'takerFee', $exchangeFee);
-            $maker = null;
-            $taker = null;
-            if ($makerFee !== null) {
-                $maker = $makerFee / 100;
-            }
-            if ($takerFee !== null) {
-                $taker = $takerFee / 100;
-            }
+            $exchangeFee = $this->safe_string_2($market, 'exchangeFee', 'tradingFee');
+            $maker = Precise::string_div($this->safe_string($market, 'makerFee', $exchangeFee), '100');
+            $taker = Precise::string_div($this->safe_string($market, 'takerFee', $exchangeFee), '100');
             $limitPriceMin = null;
             $limitPriceMax = null;
             $precisionPrice = $this->safe_number($market, 'tickSize');
@@ -355,8 +427,8 @@ class currencycom extends Exchange {
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                'taker' => $taker,
-                'maker' => $maker,
+                'taker' => $this->parse_number($taker),
+                'maker' => $this->parse_number($maker),
                 'contractSize' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
@@ -389,7 +461,7 @@ class currencycom extends Exchange {
     }
 
     public function fetch_accounts($params = array ()) {
-        $response = $this->privateGetAccount ($params);
+        $response = $this->privateGetV1Account ($params);
         //
         //     {
         //         "makerCommission":0.20,
@@ -431,7 +503,7 @@ class currencycom extends Exchange {
 
     public function fetch_trading_fees($params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetAccount ($params);
+        $response = $this->privateGetV1Account ($params);
         return array(
             'info' => $response,
             'maker' => $this->safe_number($response, 'makerCommission'),
@@ -478,7 +550,7 @@ class currencycom extends Exchange {
 
     public function fetch_balance($params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetAccount ($params);
+        $response = $this->privateGetV1Account ($params);
         //
         //     {
         //         "makerCommission":0.20,
@@ -513,19 +585,19 @@ class currencycom extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000, 5000
         }
-        $response = $this->publicGetDepth (array_merge($request, $params));
+        $response = $this->publicGetV2Depth (array_merge($request, $params));
         //
         //     {
         //         "lastUpdateId":1590999849037,
         //         "asks":[
-        //             [0.02495,60.0000],
-        //             [0.02496,120.0000],
-        //             [0.02497,240.0000],
+        //             [0.02495,60.0345],
+        //             [0.02496,34.1],
+        //             ...
         //         ],
         //         "bids":[
-        //             [0.02487,60.0000],
-        //             [0.02486,120.0000],
-        //             [0.02485,240.0000],
+        //             [0.02487,72.4144854],
+        //             [0.02486,24.043],
+        //             ...
         //         ]
         //     }
         //
@@ -573,7 +645,6 @@ class currencycom extends Exchange {
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market, '/');
         $last = $this->safe_string($ticker, 'lastPrice');
-        $open = $this->safe_string($ticker, 'openPrice');
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
@@ -585,7 +656,7 @@ class currencycom extends Exchange {
             'ask' => $this->safe_string($ticker, 'askPrice'),
             'askVolume' => $this->safe_string($ticker, 'askQty'),
             'vwap' => $this->safe_string($ticker, 'weightedAvgPrice'),
-            'open' => $open,
+            'open' => $this->safe_string($ticker, 'openPrice'),
             'close' => $last,
             'last' => $last,
             'previousClose' => $this->safe_string($ticker, 'prevClosePrice'), // previous day close
@@ -604,7 +675,7 @@ class currencycom extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetTicker24hr (array_merge($request, $params));
+        $response = $this->publicGetV2Ticker24hr (array_merge($request, $params));
         //
         //     {
         //         "symbol":"ETH/BTC",
@@ -630,7 +701,7 @@ class currencycom extends Exchange {
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->publicGetTicker24hr ($params);
+        $response = $this->publicGetV1Ticker24hr ($params);
         //
         //     array(
         //         {
@@ -681,7 +752,7 @@ class currencycom extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 500, max 1000
         }
-        $response = $this->publicGetKlines (array_merge($request, $params));
+        $response = $this->publicGetV2Klines (array_merge($request, $params));
         //
         //     [
         //         [1590971040000,"0.02454","0.02456","0.02452","0.02456",249],
@@ -784,7 +855,10 @@ class currencycom extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 500, max 1000
         }
-        $response = $this->publicGetAggTrades (array_merge($request, $params));
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        $response = $this->publicGetV2AggTrades (array_merge($request, $params));
         //
         //     array(
         //         {
@@ -907,7 +981,7 @@ class currencycom extends Exchange {
         } else if ($uppercaseType === 'STOP') {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $response = $this->privatePostOrder (array_merge($request, $params));
+        $response = $this->privatePostV1Order (array_merge($request, $params));
         //
         //     {
         //         "symbol" => "BTC/USD",
@@ -947,7 +1021,7 @@ class currencycom extends Exchange {
             $fetchOpenOrdersRateLimit = intval($numSymbols / 2);
             throw new ExchangeError($this->id . ' fetchOpenOrders() WARNING => fetching open orders without specifying a $symbol is rate-limited to one call per ' . (string) $fetchOpenOrdersRateLimit . ' seconds. Do not call this method frequently to avoid ban. Set ' . $this->id . '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         }
-        $response = $this->privateGetOpenOrders (array_merge($request, $params));
+        $response = $this->privateGetV1OpenOrders (array_merge($request, $params));
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
@@ -968,7 +1042,7 @@ class currencycom extends Exchange {
         } else {
             $request['origClientOrderId'] = $origClientOrderId;
         }
-        $response = $this->privateDeleteOrder (array_merge($request, $params));
+        $response = $this->privateDeleteV1Order (array_merge($request, $params));
         //
         //     {
         //         "symbol":"ETH/USD",
@@ -998,7 +1072,7 @@ class currencycom extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetMyTrades (array_merge($request, $params));
+        $response = $this->privateGetV1MyTrades (array_merge($request, $params));
         //
         //     array(
         //         {
@@ -1020,7 +1094,7 @@ class currencycom extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $path;
+        $url = $this->urls['api'][$api] . '/' . $path;
         if ($path === 'historicalTrades') {
             $headers = array(
                 'X-MBX-APIKEY' => $this->apiKey,

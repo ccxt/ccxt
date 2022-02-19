@@ -33,36 +33,86 @@ class currencycom(Exchange):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': None,  # has but not fully implemented
-                'swap': False,
+                'margin': True,
+                'swap': True,
                 'future': False,
                 'option': False,
+                'addMargin': None,
+                'cancelAllOrders': None,
                 'cancelOrder': True,
+                'cancelOrders': None,
+                'createDepositAddress': None,
+                'createLimitOrder': True,
+                'createMarketOrder': True,
                 'createOrder': True,
+                'deposit': None,
+                'editOrder': 'emulated',
                 'fetchAccounts': True,
                 'fetchBalance': True,
+                'fetchBidsAsks': None,
+                'fetchBorrowRate': None,
+                'fetchBorrowRateHistory': None,
+                'fetchBorrowRates': None,
+                'fetchBorrowRatesPerSymbol': None,
+                'fetchCanceledOrders': None,
+                'fetchClosedOrder': None,
+                'fetchClosedOrders': None,
+                'fetchCurrencies': None,
+                'fetchDeposit': None,
+                'fetchDepositAddress': None,
+                'fetchDepositAddresses': None,
+                'fetchDepositAddressesByNetwork': None,
+                'fetchDeposits': None,
+                'fetchFundingFee': None,
+                'fetchFundingFees': None,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchL2OrderBook': True,
+                'fetchLedger': None,
+                'fetchLedgerEntry': None,
+                'fetchLeverageTiers': None,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenOrder': None,
                 'fetchOpenOrders': True,
+                'fetchOrder': None,
                 'fetchOrderBook': True,
+                'fetchOrderBooks': None,
+                'fetchOrders': None,
+                'fetchOrderTrades': None,
+                'fetchPosition': None,
+                'fetchPositions': None,
+                'fetchPositionsRisk': None,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchStatus': 'emulated',
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': None,
                 'fetchTradingFees': True,
+                'fetchTradingLimits': None,
+                'fetchTransactions': None,
+                'fetchTransfers': None,
+                'fetchWithdrawal': None,
+                'fetchWithdrawals': None,
+                'reduceMargin': None,
+                'setLeverage': None,
+                'setMarginMode': None,
+                'setPositionMode': None,
+                'signIn': None,
+                'transfer': None,
+                'withdraw': None,
             },
             'timeframes': {
                 '1m': '1m',
-                '3m': '3m',
                 '5m': '5m',
+                '10m': '10m',
                 '15m': '15m',
                 '30m': '30m',
                 '1h': '1h',
@@ -90,30 +140,60 @@ class currencycom(Exchange):
             'api': {
                 'public': {
                     'get': [
-                        'time',
-                        'exchangeInfo',
-                        'depth',
-                        'aggTrades',
-                        'klines',
-                        'ticker/24hr',
+                        'v1/time',
+                        'v2/time',
+                        'v1/exchangeInfo',
+                        'v2/exchangeInfo',
+                        'v1/depth',
+                        'v2/depth',
+                        'v1/aggTrades',
+                        'v2/aggTrades',
+                        'v1/klines',
+                        'v2/klines',
+                        'v1/ticker/24hr',
+                        'v2/ticker/24hr',
                     ],
                 },
                 'private': {
                     'get': [
-                        'leverageSettings',
-                        'openOrders',
-                        'tradingPositions',
-                        'account',
-                        'myTrades',
+                        'v1/account',
+                        'v2/account',
+                        'v1/currencies',
+                        'v2/currencies',
+                        'v1/deposits',
+                        'v2/deposits',
+                        'v1/depositAddress',
+                        'v2/depositAddress',
+                        'v1/ledger',
+                        'v2/ledger',
+                        'v1/leverageSettings',
+                        'v2/leverageSettings',
+                        'v1/myTrades',
+                        'v2/myTrades',
+                        'v1/openOrders',
+                        'v2/openOrders',
+                        'v1/tradingPositions',
+                        'v2/tradingPositions',
+                        'v1/tradingPositionsHistory',
+                        'v2/tradingPositionsHistory',
+                        'v1/transactions',
+                        'v2/transactions',
+                        'v1/withdrawals',
+                        'v2/withdrawals',
                     ],
                     'post': [
-                        'order',
-                        'updateTradingPosition',
-                        'updateTradingOrder',
-                        'closeTradingPosition',
+                        'v1/order',
+                        'v2/order',
+                        'v1/updateTradingPosition',
+                        'v2/updateTradingPosition',
+                        'v1/updateTradingOrder',
+                        'v2/updateTradingOrder',
+                        'v1/closeTradingPosition',
+                        'v2/closeTradingPosition',
                     ],
                     'delete': [
-                        'order',
+                        'v1/order',
+                        'v2/order',
                     ],
                 },
             },
@@ -184,7 +264,7 @@ class currencycom(Exchange):
         return self.milliseconds() - self.options['timeDifference']
 
     async def fetch_time(self, params={}):
-        response = await self.publicGetTime(params)
+        response = await self.publicGetV2Time(params)
         #
         #     {
         #         "serverTime": 1590998366609
@@ -193,7 +273,7 @@ class currencycom(Exchange):
         return self.safe_integer(response, 'serverTime')
 
     async def fetch_markets(self, params={}):
-        response = await self.publicGetExchangeInfo(params)
+        response = await self.publicGetV1ExchangeInfo(params)
         #
         #     {
         #         "timezone":"UTC",
@@ -281,15 +361,9 @@ class currencycom(Exchange):
                 type = 'margin'
             spot = (type == 'spot')
             margin = (type == 'margin')
-            exchangeFee = self.safe_number_2(market, 'exchangeFee', 'tradingFee')
-            makerFee = self.safe_number(market, 'makerFee', exchangeFee)
-            takerFee = self.safe_number(market, 'takerFee', exchangeFee)
-            maker = None
-            taker = None
-            if makerFee is not None:
-                maker = makerFee / 100
-            if takerFee is not None:
-                taker = takerFee / 100
+            exchangeFee = self.safe_string_2(market, 'exchangeFee', 'tradingFee')
+            maker = Precise.string_div(self.safe_string(market, 'makerFee', exchangeFee), '100')
+            taker = Precise.string_div(self.safe_string(market, 'takerFee', exchangeFee), '100')
             limitPriceMin = None
             limitPriceMax = None
             precisionPrice = self.safe_number(market, 'tickSize')
@@ -349,8 +423,8 @@ class currencycom(Exchange):
                 'contract': False,
                 'linear': None,
                 'inverse': None,
-                'taker': taker,
-                'maker': maker,
+                'taker': self.parse_number(taker),
+                'maker': self.parse_number(maker),
                 'contractSize': None,
                 'expiry': None,
                 'expiryDatetime': None,
@@ -381,7 +455,7 @@ class currencycom(Exchange):
         return result
 
     async def fetch_accounts(self, params={}):
-        response = await self.privateGetAccount(params)
+        response = await self.privateGetV1Account(params)
         #
         #     {
         #         "makerCommission":0.20,
@@ -421,7 +495,7 @@ class currencycom(Exchange):
 
     async def fetch_trading_fees(self, params={}):
         await self.load_markets()
-        response = await self.privateGetAccount(params)
+        response = await self.privateGetV1Account(params)
         return {
             'info': response,
             'maker': self.safe_number(response, 'makerCommission'),
@@ -465,7 +539,7 @@ class currencycom(Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privateGetAccount(params)
+        response = await self.privateGetV1Account(params)
         #
         #     {
         #         "makerCommission":0.20,
@@ -498,19 +572,19 @@ class currencycom(Exchange):
         }
         if limit is not None:
             request['limit'] = limit  # default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000, 5000
-        response = await self.publicGetDepth(self.extend(request, params))
+        response = await self.publicGetV2Depth(self.extend(request, params))
         #
         #     {
         #         "lastUpdateId":1590999849037,
         #         "asks":[
-        #             [0.02495,60.0000],
-        #             [0.02496,120.0000],
-        #             [0.02497,240.0000],
+        #             [0.02495,60.0345],
+        #             [0.02496,34.1],
+        #             ...
         #         ],
         #         "bids":[
-        #             [0.02487,60.0000],
-        #             [0.02486,120.0000],
-        #             [0.02485,240.0000],
+        #             [0.02487,72.4144854],
+        #             [0.02486,24.043],
+        #             ...
         #         ]
         #     }
         #
@@ -557,7 +631,6 @@ class currencycom(Exchange):
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market, '/')
         last = self.safe_string(ticker, 'lastPrice')
-        open = self.safe_string(ticker, 'openPrice')
         return self.safe_ticker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -569,7 +642,7 @@ class currencycom(Exchange):
             'ask': self.safe_string(ticker, 'askPrice'),
             'askVolume': self.safe_string(ticker, 'askQty'),
             'vwap': self.safe_string(ticker, 'weightedAvgPrice'),
-            'open': open,
+            'open': self.safe_string(ticker, 'openPrice'),
             'close': last,
             'last': last,
             'previousClose': self.safe_string(ticker, 'prevClosePrice'),  # previous day close
@@ -587,7 +660,7 @@ class currencycom(Exchange):
         request = {
             'symbol': market['id'],
         }
-        response = await self.publicGetTicker24hr(self.extend(request, params))
+        response = await self.publicGetV2Ticker24hr(self.extend(request, params))
         #
         #     {
         #         "symbol":"ETH/BTC",
@@ -612,7 +685,7 @@ class currencycom(Exchange):
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        response = await self.publicGetTicker24hr(params)
+        response = await self.publicGetV1Ticker24hr(params)
         #
         #     [
         #         {
@@ -659,7 +732,7 @@ class currencycom(Exchange):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit  # default 500, max 1000
-        response = await self.publicGetKlines(self.extend(request, params))
+        response = await self.publicGetV2Klines(self.extend(request, params))
         #
         #     [
         #         [1590971040000,"0.02454","0.02456","0.02452","0.02456",249],
@@ -755,7 +828,9 @@ class currencycom(Exchange):
         }
         if limit is not None:
             request['limit'] = limit  # default 500, max 1000
-        response = await self.publicGetAggTrades(self.extend(request, params))
+        if since is not None:
+            request['startTime'] = since
+        response = await self.publicGetV2AggTrades(self.extend(request, params))
         #
         #     [
         #         {
@@ -871,7 +946,7 @@ class currencycom(Exchange):
             request['timeInForce'] = self.options['defaultTimeInForce']  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel, 'FOK' = Fill Or Kill
         elif uppercaseType == 'STOP':
             request['price'] = self.price_to_precision(symbol, price)
-        response = await self.privatePostOrder(self.extend(request, params))
+        response = await self.privatePostV1Order(self.extend(request, params))
         #
         #     {
         #         "symbol": "BTC/USD",
@@ -909,7 +984,7 @@ class currencycom(Exchange):
             numSymbols = len(symbols)
             fetchOpenOrdersRateLimit = int(numSymbols / 2)
             raise ExchangeError(self.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + str(fetchOpenOrdersRateLimit) + ' seconds. Do not call self method frequently to avoid ban. Set ' + self.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = False to suppress self warning message.')
-        response = await self.privateGetOpenOrders(self.extend(request, params))
+        response = await self.privateGetV1OpenOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
     async def cancel_order(self, id, symbol=None, params={}):
@@ -927,7 +1002,7 @@ class currencycom(Exchange):
             request['orderId'] = id
         else:
             request['origClientOrderId'] = origClientOrderId
-        response = await self.privateDeleteOrder(self.extend(request, params))
+        response = await self.privateDeleteV1Order(self.extend(request, params))
         #
         #     {
         #         "symbol":"ETH/USD",
@@ -954,7 +1029,7 @@ class currencycom(Exchange):
         }
         if limit is not None:
             request['limit'] = limit
-        response = await self.privateGetMyTrades(self.extend(request, params))
+        response = await self.privateGetV1MyTrades(self.extend(request, params))
         #
         #     [
         #         {
@@ -975,7 +1050,7 @@ class currencycom(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'][api] + '/' + self.version + '/' + path
+        url = self.urls['api'][api] + '/' + path
         if path == 'historicalTrades':
             headers = {
                 'X-MBX-APIKEY': self.apiKey,
