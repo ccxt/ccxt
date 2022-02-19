@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, InvalidOrder } = require ('./base/errors');
-const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -302,19 +301,13 @@ module.exports = class mercado extends Exchange {
 
     parseTrade (trade, market = undefined) {
         const timestamp = this.safeTimestamp2 (trade, 'date', 'executed_timestamp');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (undefined, market);
         const id = this.safeString2 (trade, 'tid', 'operation_id');
         const type = undefined;
         const side = this.safeString (trade, 'type');
-        const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString2 (trade, 'amount', 'quantity');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        const feeCost = this.safeNumber (trade, 'fee_rate');
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString2 (trade, 'amount', 'quantity');
+        const feeCost = this.safeString (trade, 'fee_rate');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
@@ -322,21 +315,21 @@ module.exports = class mercado extends Exchange {
                 'currency': undefined,
             };
         }
-        return {
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': undefined,
             'type': type,
             'side': side,
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
