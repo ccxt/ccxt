@@ -487,16 +487,10 @@ module.exports = class latoken1 extends Exchange {
                 timestamp *= 1000;
             }
         }
-        const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString (trade, 'amount');
         const side = this.safeString (trade, 'side');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (undefined, market);
         const id = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'orderId');
         const feeCost = this.safeNumber (trade, 'commission');
@@ -507,11 +501,11 @@ module.exports = class latoken1 extends Exchange {
                 'currency': undefined,
             };
         }
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'id': id,
             'order': orderId,
             'type': type,
@@ -519,9 +513,9 @@ module.exports = class latoken1 extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
