@@ -1066,8 +1066,8 @@ module.exports = class currencycom extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    // eslint-disable-next-line no-unused-vars
-    parseOrderTimeInForce (status, inverted = false) {
+    parseOrderTimeInForce (status) {
+        // we dont have 'inverted' for this specific exchange, because all values match, so no need to invert
         const statuses = {
             'GTC': 'GTC',
             'FOK': 'FOK',
@@ -1116,7 +1116,7 @@ module.exports = class currencycom extends Exchange {
         };
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
-            request['timeInForce'] = this.parseOrderTimeInForce (this.options['defaultTimeInForce'], true);
+            request['timeInForce'] = this.parseOrderTimeInForce (this.options['defaultTimeInForce']);
         } else if (type === 'stop') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
