@@ -2120,16 +2120,8 @@ class okcoin(Exchange):
         type = self.safe_string(order, 'type')
         if (side != 'buy') and (side != 'sell'):
             side = self.parse_order_side(type)
-        symbol = None
         marketId = self.safe_string(order, 'instrument_id')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-        else:
-            symbol = marketId
-        if market is not None:
-            if symbol is None:
-                symbol = market['symbol']
+        market = self.safe_market(marketId, market)
         amount = self.safe_string(order, 'size')
         filled = self.safe_string_2(order, 'filled_size', 'filled_qty')
         remaining = None
@@ -2168,7 +2160,7 @@ class okcoin(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': None,
             'postOnly': None,
@@ -2769,10 +2761,8 @@ class okcoin(Exchange):
             if numTradesInPair == 2:
                 trade = self.parse_my_trade(pair)
                 result.append(trade)
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
+        market = self.safeMarkt(None, market)
+        return self.filter_by_symbol_since_limit(result, market['symbol'], since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         # okex actually returns ledger entries instead of fills here, so each fill in the order

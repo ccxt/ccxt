@@ -11,11 +11,11 @@ from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
@@ -1286,7 +1286,7 @@ class zb(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
-            raise NotSupported(self.id + ' fetchFundingRate() does not supports contracts only')
+            raise BadSymbol(self.id + ' fetchFundingRate() does not supports contracts only')
         request = {
             'symbol': market['id'],
         }

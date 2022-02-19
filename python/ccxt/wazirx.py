@@ -351,9 +351,7 @@ class wazirx(Exchange):
         id = self.safe_string(trade, 'id')
         timestamp = self.safe_integer(trade, 'time')
         datetime = self.iso8601(timestamp)
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        market = self.safe_market(None, market)
         isBuyerMaker = self.safe_value(trade, 'isBuyerMaker')
         side = 'sell' if isBuyerMaker else 'buy'
         price = self.safe_number(trade, 'price')
@@ -364,7 +362,7 @@ class wazirx(Exchange):
             'id': id,
             'timestamp': timestamp,
             'datetime': datetime,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': id,
             'type': None,
             'side': side,
@@ -373,7 +371,7 @@ class wazirx(Exchange):
             'amount': amount,
             'cost': cost,
             'fee': None,
-        })
+        }, market)
 
     def fetch_status(self, params={}):
         response = self.publicGetSystemStatus(params)

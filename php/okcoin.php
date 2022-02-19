@@ -2181,19 +2181,8 @@ class okcoin extends Exchange {
         if (($side !== 'buy') && ($side !== 'sell')) {
             $side = $this->parse_order_side($type);
         }
-        $symbol = null;
         $marketId = $this->safe_string($order, 'instrument_id');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-        } else {
-            $symbol = $marketId;
-        }
-        if ($market !== null) {
-            if ($symbol === null) {
-                $symbol = $market['symbol'];
-            }
-        }
+        $market = $this->safe_market($marketId, $market);
         $amount = $this->safe_string($order, 'size');
         $filled = $this->safe_string_2($order, 'filled_size', 'filled_qty');
         $remaining = null;
@@ -2240,7 +2229,7 @@ class okcoin extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => $type,
             'timeInForce' => null,
             'postOnly' => null,
@@ -2884,11 +2873,8 @@ class okcoin extends Exchange {
                 $result[] = $trade;
             }
         }
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
+        $market = $this->safeMarkt (null, $market);
+        return $this->filter_by_symbol_since_limit($result, $market['symbol'], $since, $limit);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
