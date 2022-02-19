@@ -458,36 +458,37 @@ module.exports = class currencycom extends Exchange {
 
     async fetchAccounts (params = {}) {
         const response = await this.privateGetV2Account (params);
-        // {
-        //     "makerCommission": "0.20",
-        //     "takerCommission": "0.20",
-        //     "buyerCommission": "0.20",
-        //     "sellerCommission": "0.20",
-        //     "canTrade": true,
-        //     "canWithdraw": true,
-        //     "canDeposit": true,
-        //     "updateTime": "1645266330",
-        //     "userId": "644722",
-        //     "balances": [
-        //       {
-        //          "accountId": "120702016179403605",
-        //          "collateralCurrency": false,
-        //          "asset": "CAKE",
-        //          "free": "1.784",
-        //          "locked": "0.0",
-        //          "default": false,
-        //       },
-        //       {
-        //          "accountId": "109698017713125316",
-        //          "collateralCurrency": true,
-        //          "asset": "USD",
-        //          "free": "7.58632",
-        //          "locked": "0.0",
-        //          "default": true,
-        //       }
-        //       ...
-        //     ]
-        // }
+        //
+        //     {
+        //         "makerCommission": "0.20",
+        //         "takerCommission": "0.20",
+        //         "buyerCommission": "0.20",
+        //         "sellerCommission": "0.20",
+        //         "canTrade": true,
+        //         "canWithdraw": true,
+        //         "canDeposit": true,
+        //         "updateTime": "1645266330",
+        //         "userId": "644722",
+        //         "balances": [
+        //             {
+        //                 "accountId": "120702016179403605",
+        //                 "collateralCurrency": false,
+        //                 "asset": "CAKE",
+        //                 "free": "1.784",
+        //                 "locked": "0.0",
+        //                 "default": false,
+        //             },
+        //             {
+        //                 "accountId": "109698017713125316",
+        //                 "collateralCurrency": true,
+        //                 "asset": "USD",
+        //                 "free": "7.58632",
+        //                 "locked": "0.0",
+        //                 "default": true,
+        //             }
+        //         ]
+        //     }
+        //
         const accounts = this.safeValue (response, 'balances', []);
         const result = [];
         for (let i = 0; i < accounts.length; i++) {
@@ -555,36 +556,37 @@ module.exports = class currencycom extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetV2Account (params);
-        // {
-        //     "makerCommission": "0.20",
-        //     "takerCommission": "0.20",
-        //     "buyerCommission": "0.20",
-        //     "sellerCommission": "0.20",
-        //     "canTrade": true,
-        //     "canWithdraw": true,
-        //     "canDeposit": true,
-        //     "updateTime": "1645266330",
-        //     "userId": "644722",
-        //     "balances": [
-        //       {
-        //          "accountId": "120702016179403605",
-        //          "collateralCurrency": false,
-        //          "asset": "CAKE",
-        //          "free": "1.784",
-        //          "locked": "0.0",
-        //          "default": false,
-        //       },
-        //       {
-        //          "accountId": "109698017413175316",
-        //          "collateralCurrency": true,
-        //          "asset": "USD",
-        //          "free": "7.58632",
-        //          "locked": "0.0",
-        //          "default": true,
-        //       }
-        //       ...
-        //     ]
-        // }
+        //
+        //     {
+        //         "makerCommission": "0.20",
+        //         "takerCommission": "0.20",
+        //         "buyerCommission": "0.20",
+        //         "sellerCommission": "0.20",
+        //         "canTrade": true,
+        //         "canWithdraw": true,
+        //         "canDeposit": true,
+        //         "updateTime": "1645266330",
+        //         "userId": "644722",
+        //         "balances": [
+        //             {
+        //                 "accountId": "120702016179403605",
+        //                 "collateralCurrency": false,
+        //                 "asset": "CAKE",
+        //                 "free": "1.784",
+        //                 "locked": "0.0",
+        //                 "default": false,
+        //             },
+        //             {
+        //                 "accountId": "109698017413175316",
+        //                 "collateralCurrency": true,
+        //                 "asset": "USD",
+        //                 "free": "7.58632",
+        //                 "locked": "0.0",
+        //                 "default": true,
+        //             }
+        //         ]
+        //     }
+        //
         return this.parseBalance (response);
     }
 
@@ -1017,41 +1019,44 @@ module.exports = class currencycom extends Exchange {
         }
         const response = await this.privatePostV2Order (this.extend (request, params));
         //
-        // for LIMIT order
-        //   {
-        //       "symbol": "BTC/USD",
-        //       "orderId": "00000000-0000-0000-0000-000006eaaaa0",
-        //       "transactTime": "1645281669295",
-        //       "price": "30000.00000000",
-        //       "origQty": "0.0002",
-        //       "executedQty": "0.0",  //positive for BUY, negative for SELL
-        //       "status": "NEW",
-        //       "timeInForce": "GTC",
-        //       "type": "LIMIT",
-        //       "side": "BUY",
-        //   }
+        // limit
         //
-        // for MARKET order
-        //   {
-        //       "symbol": "DOGE/USD",
-        //       "orderId": "00000000-0000-0000-0000-000006eab8ad",
-        //       "transactTime": "1645283022252",
-        //       "price": "0.14066000",
-        //       "origQty": "40",
-        //       "executedQty": "40.0",  //positive for BUY, negative for SELL
-        //       "status": "FILLED",
-        //       "timeInForce": "FOK",
-        //       "type": "MARKET",
-        //       "side": "SELL",
-        //       "fills": [
-        //          {
-        //            "price": "0.14094",
-        //            "qty": "40.0",
-        //            "commission": "0",
-        //            "commissionAsset": "dUSD",
-        //          },
-        //       ],
-        //   }
+        //     {
+        //         "symbol": "BTC/USD",
+        //         "orderId": "00000000-0000-0000-0000-000006eaaaa0",
+        //         "transactTime": "1645281669295",
+        //         "price": "30000.00000000",
+        //         "origQty": "0.0002",
+        //         "executedQty": "0.0",  //positive for BUY, negative for SELL
+        //         "status": "NEW",
+        //         "timeInForce": "GTC",
+        //         "type": "LIMIT",
+        //         "side": "BUY",
+        //     }
+        //
+        // market
+        //
+        //     {
+        //         "symbol": "DOGE/USD",
+        //         "orderId": "00000000-0000-0000-0000-000006eab8ad",
+        //         "transactTime": "1645283022252",
+        //         "price": "0.14066000",
+        //         "origQty": "40",
+        //         "executedQty": "40.0",  //positive for BUY, negative for SELL
+        //         "status": "FILLED",
+        //         "timeInForce": "FOK",
+        //         "type": "MARKET",
+        //         "side": "SELL",
+        //         "fills": [
+        //             {
+        //                 "price": "0.14094",
+        //                 "qty": "40.0",
+        //                 "commission": "0",
+        //                 "commissionAsset": "dUSD",
+        //             },
+        //         ],
+        //     }
+        //
         return this.parseOrder (response, market);
     }
 
@@ -1069,24 +1074,25 @@ module.exports = class currencycom extends Exchange {
             throw new ExchangeError (this.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.toString () + ' seconds. Do not call this method frequently to avoid ban. Set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         }
         const response = await this.privateGetV2OpenOrders (this.extend (request, params));
-        // [
-        //     {
-        //       "symbol": "DOGE/USD",
-        //       "orderId": "00000000-0000-0003-0000-000004bac57a",
-        //       "price": "0.13",
-        //       "origQty": "39.0",
-        //       "executedQty": "0.0",
-        //       "status": "NEW",
-        //       "timeInForce": "GTC",
-        //       "type": "LIMIT",
-        //       "side": "BUY",
-        //       "time": "1645284216240",
-        //       "updateTime": "1645284216240",
-        //       "leverage": false,
-        //       "working": true
-        //     },
-        //     ...
-        // ]
+        //
+        //     [
+        //         {
+        //             "symbol": "DOGE/USD",
+        //             "orderId": "00000000-0000-0003-0000-000004bac57a",
+        //             "price": "0.13",
+        //             "origQty": "39.0",
+        //             "executedQty": "0.0",
+        //             "status": "NEW",
+        //             "timeInForce": "GTC",
+        //             "type": "LIMIT",
+        //             "side": "BUY",
+        //             "time": "1645284216240",
+        //             "updateTime": "1645284216240",
+        //             "leverage": false,
+        //             "working": true
+        //         },
+        //     ]
+        //
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -1139,23 +1145,22 @@ module.exports = class currencycom extends Exchange {
         }
         const response = await this.privateGetV2MyTrades (this.extend (request, params));
         //
-        //  [
-        //     {
-        //         "symbol": "DOGE/USD",
-        //         "id": "116046000",
-        //         "orderId": "00000000-0000-0000-0000-000006dbb8ad",
-        //         "price": "0.14094",
-        //         "qty": "40.0",
-        //         "commission": "0.01",
-        //         "commissionAsset": "USD",
-        //         "time": "1645283022351",
-        //         "buyer": false,
-        //         "maker": false,
-        //         "isBuyer": false,
-        //         "isMaker": false
-        //     },
-        //     ..
-        //  ]
+        //     [
+        //         {
+        //             "symbol": "DOGE/USD",
+        //             "id": "116046000",
+        //             "orderId": "00000000-0000-0000-0000-000006dbb8ad",
+        //             "price": "0.14094",
+        //             "qty": "40.0",
+        //             "commission": "0.01",
+        //             "commissionAsset": "USD",
+        //             "time": "1645283022351",
+        //             "buyer": false,
+        //             "maker": false,
+        //             "isBuyer": false,
+        //             "isMaker": false
+        //         },
+        //     ]
         //
         return this.parseTrades (response, market, since, limit);
     }
