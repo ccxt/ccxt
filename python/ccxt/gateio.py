@@ -336,6 +336,7 @@ class gateio(Exchange):
             # copied from gateiov2
             'commonCurrencies': {
                 '88MPH': 'MPH',
+                'AXIS': 'Axis DeFi',
                 'BIFI': 'Bitcoin File',
                 'BOX': 'DefiBox',
                 'BTCBEAR': 'BEAR',
