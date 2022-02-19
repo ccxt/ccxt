@@ -116,6 +116,7 @@ module.exports = class yobit extends Exchange {
                 'ASN': 'Ascension',
                 'AST': 'Astral',
                 'ATM': 'Autumncoin',
+                'AUR': 'AuroraCoin',
                 'BAB': 'Babel',
                 'BAN': 'BANcoin',
                 'BCC': 'BCH',
