@@ -212,9 +212,8 @@ module.exports = class liquid extends Exchange {
                 'BIFI': 'BIFIF',
                 'HOT': 'HOT Token',
                 'MIOTA': 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
-                'TON': 'Tokamak Network',
-                'BIFI': 'Bifrost Finance',
                 'P-BTC': 'BTC',
+                'TON': 'Tokamak Network',
             },
             'options': {
                 'cancelOrderException': true,
