@@ -79,7 +79,7 @@ module.exports = class currencycom extends Exchange {
                 'fetchPositions': undefined,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': false,
-                'fetchStatus': undefined,
+                // 'fetchStatus': 'emulated',
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -147,14 +147,24 @@ module.exports = class currencycom extends Exchange {
                         'v2/aggTrades',
                         'v2/klines',
                         'v2/ticker/24hr',
-                        //
-                        'v1/depositAddress',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'v1/account',
+                        'v1/currencies',
                         'v1/deposits',
+                        'v1/depositAddress',
                         'v1/ledger',
+                        'v1/leverageSettings',
+                        'v1/myTrades',
+                        'v1/openOrders',
+                        'v1/tradingPositions',
                         'v1/tradingPositionsHistory',
                         'v1/transactions',
                         'v1/withdrawals',
                         'v2/account',
+                        'v2/currencies',
                         'v2/depositAddress',
                         'v2/deposits',
                         'v2/ledger',
@@ -166,27 +176,15 @@ module.exports = class currencycom extends Exchange {
                         'v2/transactions',
                         'v2/withdrawals',
                     ],
-                },
-                'private': {
-                    'get': [
-                        'v1/currencies',
-                        'v2/currencies',
-                        'v1/leverageSettings',
-                        'v1/openOrders',
-                        'v1/tradingPositions',
-                        'v1/account',
-                        'v1/myTrades',
-                    ],
                     'post': [
                         'v1/order',
                         'v1/updateTradingPosition',
                         'v1/updateTradingOrder',
                         'v1/closeTradingPosition',
-                        //
-                        'v2/closeTradingPosition',
                         'v2/order',
-                        'v2/updateTradingOrder',
                         'v2/updateTradingPosition',
+                        'v2/updateTradingOrder',
+                        'v2/closeTradingPosition',
                     ],
                     'delete': [
                         'v1/order',
@@ -269,7 +267,7 @@ module.exports = class currencycom extends Exchange {
         //         "serverTime": 1590998366609
         //     }
         //
-        return this.safeTimestamp (response, 'serverTime');
+        return this.safeInteger (response, 'serverTime');
     }
 
     async fetchCurrencies (params = {}) {
@@ -830,7 +828,7 @@ module.exports = class currencycom extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'interval': timeframe,
+            'interval': this.timeframes[timeframe],
         };
         if (since !== undefined) {
             request['startTime'] = since;
