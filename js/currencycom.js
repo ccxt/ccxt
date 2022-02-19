@@ -991,7 +991,7 @@ module.exports = class currencycom extends Exchange {
         //         "transactTime": "1645281669295",
         //         "price": "30000.00000000",
         //         "origQty": "0.0002",
-        //         "executedQty": "0.0",  //positive for BUY, negative for SELL
+        //         "executedQty": "0.0",  // positive for BUY, negative for SELL
         //         "status": "NEW",
         //         "timeInForce": "GTC",
         //         "type": "LIMIT",
@@ -1006,7 +1006,7 @@ module.exports = class currencycom extends Exchange {
         //         "transactTime": "1645283022252",
         //         "price": "0.14066000",
         //         "origQty": "40",
-        //         "executedQty": "40.0",  //positive for BUY, negative for SELL
+        //         "executedQty": "40.0",  // positive for BUY, negative for SELL
         //         "status": "FILLED",
         //         "timeInForce": "FOK",
         //         "type": "MARKET",
@@ -1130,7 +1130,7 @@ module.exports = class currencycom extends Exchange {
         //         "transactTime": "1645281669295",
         //         "price": "30000.00000000",
         //         "origQty": "0.0002",
-        //         "executedQty": "0.0",  //positive for BUY, negative for SELL
+        //         "executedQty": "0.0",  // positive for BUY, negative for SELL
         //         "status": "NEW",
         //         "timeInForce": "GTC",
         //         "type": "LIMIT",
@@ -1145,11 +1145,11 @@ module.exports = class currencycom extends Exchange {
         //         "transactTime": "1645283022252",
         //         "price": "0.14066000",
         //         "origQty": "40",
-        //         "executedQty": "40.0",  //positive for BUY, negative for SELL
+        //         "executedQty": "40.0",  // positive for BUY, negative for SELL
         //         "status": "FILLED",
         //         "timeInForce": "FOK",
         //         "type": "MARKET",
-        //         "side": "SELL",
+        //         "side": "BUY",
         //         "fills": [
         //             {
         //                 "price": "0.14094",
@@ -1184,7 +1184,7 @@ module.exports = class currencycom extends Exchange {
         //             "orderId": "00000000-0000-0003-0000-000004bac57a",
         //             "price": "0.13",
         //             "origQty": "39.0",
-        //             "executedQty": "0.0",
+        //             "executedQty": "0.0",  // positive for BUY, negative for SELL
         //             "status": "NEW",
         //             "timeInForce": "GTC",
         //             "type": "LIMIT",
@@ -1223,7 +1223,7 @@ module.exports = class currencycom extends Exchange {
         //         "orderId": "00000000-0000-0003-0000-000006db764c",
         //         "price": "0.13",
         //         "origQty": "30.0",
-        //         "executedQty": "0.0",
+        //         "executedQty": "0.0",  // positive for BUY, negative for SELL
         //         "status": "CANCELED",
         //         "timeInForce": "GTC",
         //         "type": "LIMIT",
