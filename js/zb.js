@@ -1278,7 +1278,7 @@ module.exports = class zb extends Exchange {
         }
         const market = this.market (symbol);
         let accountType = undefined;
-        if (market['type'] !== 'swap') {
+        if (!market['swap']) {
             throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
         } else {
             accountType = 1;
