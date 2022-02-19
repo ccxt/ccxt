@@ -50,6 +50,7 @@ class zb(Exchange):
                 'fetchDepositAddresses': True,
                 'fetchDeposits': True,
                 'fetchFundingRate': True,
+                'fetchFundingRateHistory': True,
                 'fetchMarkets': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -1227,6 +1228,59 @@ class zb(Exchange):
             'updated': updated,
             'fee': fee,
         }
+
+    def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {
+            # 'symbol': market['id'],
+            # 'startTime': since,
+            # 'endTime': endTime,  # current time by default
+            # 'limit': limit,  # default 100, max 1000
+        }
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if since is not None:
+            request['startTime'] = since
+        till = self.safe_integer(params, 'till')
+        endTime = self.safe_string(params, 'endTime')
+        params = self.omit(params, ['endTime', 'till'])
+        if till is not None:
+            request['endTime'] = till
+        elif endTime is not None:
+            request['endTime'] = endTime
+        if limit is not None:
+            request['limit'] = limit
+        response = self.contractV2PublicGetFundingRate(self.extend(request, params))
+        #
+        #     {
+        #         "code": 10000,
+        #         "data": [
+        #             {
+        #                 "symbol": "BTC_USDT",
+        #                 "fundingRate": "0.0001",
+        #                 "fundingTime": "1645171200000"
+        #             },
+        #         ],
+        #         "desc": "操作成功"
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        rates = []
+        for i in range(0, len(data)):
+            entry = data[i]
+            marketId = self.safe_string(entry, 'symbol')
+            symbol = self.safe_symbol(marketId)
+            timestamp = self.safe_string(entry, 'fundingTime')
+            rates.append({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': self.safe_number(entry, 'fundingRate'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+            })
+        sorted = self.sort_by(rates, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     def fetch_funding_rate(self, symbol, params={}):
         self.load_markets()
