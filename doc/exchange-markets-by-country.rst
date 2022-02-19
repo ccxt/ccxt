@@ -129,9 +129,9 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
      - currencycom
      - `Currency.com <https://currency.com/trading/signup?c=362jaimv&pid=referral>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
+     - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://currency.com/api
-          :alt: API Version 1
+          :alt: API Version 2
      
    * - Brazil
      - .. image:: https://user-images.githubusercontent.com/51840849/87443317-01c0d080-c5fe-11ea-95c2-9ebe1a8fafd9.jpg
