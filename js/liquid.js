@@ -581,23 +581,13 @@ module.exports = class liquid extends Exchange {
                 }
             }
         }
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (ticker, 'id');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const baseId = this.safeString (ticker, 'base_currency');
-                const quoteId = this.safeString (ticker, 'quoted_currency');
-                if (symbol in this.markets) {
-                    market = this.markets[symbol];
-                } else {
-                    symbol = this.safeCurrencyCode (baseId) + '/' + this.safeCurrencyCode (quoteId);
-                }
-            }
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
+        const marketId = this.safeString (ticker, 'id');
+        market = this.safeMarket (marketId, market);
+        let symbol = market['symbol'];
+        const baseId = this.safeString (ticker, 'base_currency');
+        const quoteId = this.safeString (ticker, 'quoted_currency');
+        if ((baseId !== undefined) && (quoteId !== undefined)) {
+            symbol = this.safeCurrencyCode (baseId) + '/' + this.safeCurrencyCode (quoteId);
         }
         const open = this.safeString (ticker, 'last_price_24h');
         return this.safeTicker ({
@@ -664,31 +654,25 @@ module.exports = class liquid extends Exchange {
         if (mySide !== undefined) {
             takerOrMaker = (takerSide === mySide) ? 'taker' : 'maker';
         }
-        const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString (trade, 'quantity');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString (trade, 'quantity');
         const id = this.safeString (trade, 'id');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        return {
+        market = this.safeMarket (undefined, market);
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'fee': undefined,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
