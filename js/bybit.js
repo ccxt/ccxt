@@ -855,10 +855,12 @@ module.exports = class bybit extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString2 (market, 'name', 'symbol');
-            const baseId = this.safeString (market, 'base_currency');
-            const quoteId = this.safeString (market, 'quote_currency');
+            const baseId = this.safeString2 (market, 'base_currency', 'baseCoin');
+            const quoteId = this.safeString2 (market, 'quote_currency', 'quoteCoin');
+            const settleId = this.safeString (market, 'settleCoin');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            const settle = this.safeCurrencyCode (settleId);
             const linear = (quote in linearQuoteCurrencies);
             const inverse = !linear;
             let symbol = base + '/' + quote;
@@ -884,23 +886,35 @@ module.exports = class bybit extends Exchange {
             const swap = (type === 'swap');
             const future = (type === 'future');
             const option = (type === 'option');
+            const contract = swap || future || option;
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
                 'active': active,
                 'precision': precision,
                 'taker': this.safeNumber (market, 'taker_fee'),
                 'maker': this.safeNumber (market, 'maker_fee'),
                 'type': type,
                 'spot': spot,
+                'margin': undefined, // todo
+                'contract': contract,
+                'contractSize': undefined, // todo
                 'swap': swap,
                 'future': future,
-                'futures': future, // * Deprecated, use future
+                'futures': future, // Deprecated, use future
                 'option': option,
                 'linear': linear,
                 'inverse': inverse,
+                'expiry': undefined, // todo
+                'expiryDatetime': undefined, // todo
+                'optionType': undefined,
+                'strike': undefined,
                 'limits': {
                     'amount': {
                         'min': this.safeNumber (lotSizeFilter, 'min_trading_qty'),
