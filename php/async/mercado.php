@@ -9,7 +9,6 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\InvalidOrder;
-use \ccxt\Precise;
 
 class mercado extends Exchange {
 
@@ -306,19 +305,13 @@ class mercado extends Exchange {
 
     public function parse_trade($trade, $market = null) {
         $timestamp = $this->safe_timestamp_2($trade, 'date', 'executed_timestamp');
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market(null, $market);
         $id = $this->safe_string_2($trade, 'tid', 'operation_id');
         $type = null;
         $side = $this->safe_string($trade, 'type');
-        $priceString = $this->safe_string($trade, 'price');
-        $amountString = $this->safe_string_2($trade, 'amount', 'quantity');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        $feeCost = $this->safe_number($trade, 'fee_rate');
+        $price = $this->safe_string($trade, 'price');
+        $amount = $this->safe_string_2($trade, 'amount', 'quantity');
+        $feeCost = $this->safe_string($trade, 'fee_rate');
         $fee = null;
         if ($feeCost !== null) {
             $fee = array(
@@ -326,21 +319,21 @@ class mercado extends Exchange {
                 'currency' => null,
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'order' => null,
             'type' => $type,
             'side' => $side,
             'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {

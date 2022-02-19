@@ -8,7 +8,6 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
-from ccxt.base.precise import Precise
 
 
 class mercado(Exchange):
@@ -300,39 +299,34 @@ class mercado(Exchange):
 
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_timestamp_2(trade, 'date', 'executed_timestamp')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        market = self.safe_market(None, market)
         id = self.safe_string_2(trade, 'tid', 'operation_id')
         type = None
         side = self.safe_string(trade, 'type')
-        priceString = self.safe_string(trade, 'price')
-        amountString = self.safe_string_2(trade, 'amount', 'quantity')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
-        feeCost = self.safe_number(trade, 'fee_rate')
+        price = self.safe_string(trade, 'price')
+        amount = self.safe_string_2(trade, 'amount', 'quantity')
+        feeCost = self.safe_string(trade, 'fee_rate')
         fee = None
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
                 'currency': None,
             }
-        return {
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': None,
             'type': type,
             'side': side,
             'takerOrMaker': None,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
