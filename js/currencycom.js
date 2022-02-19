@@ -1155,9 +1155,9 @@ module.exports = class currencycom extends Exchange {
         //                 "price": "0.14094",
         //                 "qty": "40.0",
         //                 "commission": "0",
-        //                 "commissionAsset": "dUSD",
-        //             },
-        //         ],
+        //                 "commissionAsset": "dUSD"
+        //             }
+        //         ]
         //     }
         //
         return this.parseOrder (response, market);
