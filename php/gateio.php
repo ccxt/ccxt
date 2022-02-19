@@ -326,6 +326,7 @@ class gateio extends Exchange {
             // copied from gateiov2
             'commonCurrencies' => array(
                 '88MPH' => 'MPH',
+                'AXIS' => 'Axis DeFi',
                 'BIFI' => 'Bitcoin File',
                 'BOX' => 'DefiBox',
                 'BTCBEAR' => 'BEAR',

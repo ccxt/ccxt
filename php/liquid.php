@@ -213,11 +213,11 @@ class liquid extends Exchange {
                 'product_disabled' => '\\ccxt\\BadSymbol', // array("errors":array("order":["product_disabled"]))
             ),
             'commonCurrencies' => array(
+                'BIFI' => 'BIFIF',
                 'HOT' => 'HOT Token',
                 'MIOTA' => 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
-                'TON' => 'Tokamak Network',
-                'BIFI' => 'Bifrost Finance',
                 'P-BTC' => 'BTC',
+                'TON' => 'Tokamak Network',
             ),
             'options' => array(
                 'cancelOrderException' => true,

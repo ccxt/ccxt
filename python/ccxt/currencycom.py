@@ -28,7 +28,7 @@ class currencycom(Exchange):
             'rateLimit': 500,
             'certified': True,
             'pro': True,
-            'version': 'v1',
+            'version': 'v2',
             # new metainfo interface
             'has': {
                 'CORS': None,
@@ -89,7 +89,6 @@ class currencycom(Exchange):
                 'fetchPositions': None,
                 'fetchPositionsRisk': None,
                 'fetchPremiumIndexOHLCV': False,
-                'fetchStatus': 'emulated',
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -273,7 +272,7 @@ class currencycom(Exchange):
         return self.safe_integer(response, 'serverTime')
 
     def fetch_markets(self, params={}):
-        response = self.publicGetV1ExchangeInfo(params)
+        response = self.publicGetV2ExchangeInfo(params)
         #
         #     {
         #         "timezone":"UTC",
@@ -455,26 +454,35 @@ class currencycom(Exchange):
         return result
 
     def fetch_accounts(self, params={}):
-        response = self.privateGetV1Account(params)
+        response = self.privateGetV2Account(params)
         #
         #     {
-        #         "makerCommission":0.20,
-        #         "takerCommission":0.20,
-        #         "buyerCommission":0.20,
-        #         "sellerCommission":0.20,
-        #         "canTrade":true,
-        #         "canWithdraw":true,
-        #         "canDeposit":true,
-        #         "updateTime":1591056268,
-        #         "balances":[
+        #         "makerCommission": "0.20",
+        #         "takerCommission": "0.20",
+        #         "buyerCommission": "0.20",
+        #         "sellerCommission": "0.20",
+        #         "canTrade": True,
+        #         "canWithdraw": True,
+        #         "canDeposit": True,
+        #         "updateTime": "1645266330",
+        #         "userId": "644722",
+        #         "balances": [
         #             {
-        #                 "accountId":5470306579272968,
-        #                 "collateralCurrency":true,
-        #                 "asset":"ETH",
-        #                 "free":0.0,
-        #                 "locked":0.0,
-        #                 "default":false,
+        #                 "accountId": "120702016179403605",
+        #                 "collateralCurrency": False,
+        #                 "asset": "CAKE",
+        #                 "free": "1.784",
+        #                 "locked": "0.0",
+        #                 "default": False,
         #             },
+        #             {
+        #                 "accountId": "109698017713125316",
+        #                 "collateralCurrency": True,
+        #                 "asset": "USD",
+        #                 "free": "7.58632",
+        #                 "locked": "0.0",
+        #                 "default": True,
+        #             }
         #         ]
         #     }
         #
@@ -495,7 +503,7 @@ class currencycom(Exchange):
 
     def fetch_trading_fees(self, params={}):
         self.load_markets()
-        response = self.privateGetV1Account(params)
+        response = self.privateGetV2Account(params)
         return {
             'info': response,
             'maker': self.safe_number(response, 'makerCommission'),
@@ -515,7 +523,7 @@ class currencycom(Exchange):
         #         "updateTime":1591056268,
         #         "balances":[
         #             {
-        #                 "accountId":5470306579272968,
+        #                 "accountId":5470306579272368,
         #                 "collateralCurrency":true,
         #                 "asset":"ETH",
         #                 "free":0.0,
@@ -539,26 +547,35 @@ class currencycom(Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privateGetV1Account(params)
+        response = self.privateGetV2Account(params)
         #
         #     {
-        #         "makerCommission":0.20,
-        #         "takerCommission":0.20,
-        #         "buyerCommission":0.20,
-        #         "sellerCommission":0.20,
-        #         "canTrade":true,
-        #         "canWithdraw":true,
-        #         "canDeposit":true,
-        #         "updateTime":1591056268,
-        #         "balances":[
+        #         "makerCommission": "0.20",
+        #         "takerCommission": "0.20",
+        #         "buyerCommission": "0.20",
+        #         "sellerCommission": "0.20",
+        #         "canTrade": True,
+        #         "canWithdraw": True,
+        #         "canDeposit": True,
+        #         "updateTime": "1645266330",
+        #         "userId": "644722",
+        #         "balances": [
         #             {
-        #                 "accountId":5470306579272968,
-        #                 "collateralCurrency":true,
-        #                 "asset":"ETH",
-        #                 "free":0.0,
-        #                 "locked":0.0,
-        #                 "default":false,
+        #                 "accountId": "120702016179403605",
+        #                 "collateralCurrency": False,
+        #                 "asset": "CAKE",
+        #                 "free": "1.784",
+        #                 "locked": "0.0",
+        #                 "default": False,
         #             },
+        #             {
+        #                 "accountId": "109698017413175316",
+        #                 "collateralCurrency": True,
+        #                 "asset": "USD",
+        #                 "free": "7.58632",
+        #                 "locked": "0.0",
+        #                 "default": True,
+        #             }
         #         ]
         #     }
         #
@@ -618,17 +635,33 @@ class currencycom(Exchange):
         # fetchTickers
         #
         #     {
-        #         "symbol":"EVK",
-        #         "highPrice":"22.57",
-        #         "lowPrice":"22.16",
-        #         "volume":"1",
-        #         "quoteVolume":"22.2",
-        #         "openTime":1590699364000,
-        #         "closeTime":1590785764000
+        #          "symbol": "SHIB/USD_LEVERAGE",
+        #          "weightedAvgPrice": "0.000027595",
+        #          "lastPrice": "0.00002737",
+        #          "lastQty": "1.11111111E8",
+        #          "bidPrice": "0.00002737",
+        #          "askPrice": "0.00002782",
+        #          "highPrice": "0.00002896",
+        #          "lowPrice": "0.00002738",
+        #          "volume": "16472160000",
+        #          "quoteVolume": "454796.3376",
+        #          "openTime": "1645187472000",
+        #          "closeTime": "1645273872000",
         #     }
         #
-        timestamp = self.safe_integer(ticker, 'closeTime')
-        marketId = self.safe_string(ticker, 'symbol')
+        # ws:marketData.subscribe
+        #
+        #     {
+        #          "symbolName":"TXN",
+        #          "bid":139.85,
+        #          "bidQty":2500,
+        #          "ofr":139.92000000000002,
+        #          "ofrQty":2500,
+        #          "timestamp":1597850971558
+        #      }
+        #
+        timestamp = self.safe_integer_2(ticker, 'closeTime', 'timestamp')
+        marketId = self.safe_string_2(ticker, 'symbol', 'symbolName')
         market = self.safe_market(marketId, market, '/')
         last = self.safe_string(ticker, 'lastPrice')
         return self.safe_ticker({
@@ -637,10 +670,10 @@ class currencycom(Exchange):
             'datetime': self.iso8601(timestamp),
             'high': self.safe_string(ticker, 'highPrice'),
             'low': self.safe_string(ticker, 'lowPrice'),
-            'bid': self.safe_string(ticker, 'bidPrice'),
+            'bid': self.safe_string_2(ticker, 'bidPrice', 'bid'),
             'bidVolume': self.safe_string(ticker, 'bidQty'),
-            'ask': self.safe_string(ticker, 'askPrice'),
-            'askVolume': self.safe_string(ticker, 'askQty'),
+            'ask': self.safe_string_2(ticker, 'askPrice', 'ofr'),
+            'askVolume': self.safe_string(ticker, 'ofrQty'),
             'vwap': self.safe_string(ticker, 'weightedAvgPrice'),
             'open': self.safe_string(ticker, 'openPrice'),
             'close': last,
@@ -685,17 +718,22 @@ class currencycom(Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        response = self.publicGetV1Ticker24hr(params)
+        response = self.publicGetV2Ticker24hr(params)
         #
         #     [
         #         {
-        #             "symbol":"EVK",
-        #             "highPrice":"22.57",
-        #             "lowPrice":"22.16",
-        #             "volume":"1",
-        #             "quoteVolume":"22.2",
-        #             "openTime":1590699364000,
-        #             "closeTime":1590785764000
+        #              "symbol": "SHIB/USD_LEVERAGE",
+        #              "weightedAvgPrice": "0.000027595",
+        #              "lastPrice": "0.00002737",
+        #              "lastQty": "1.11111111E8",
+        #              "bidPrice": "0.00002737",
+        #              "askPrice": "0.00002782",
+        #              "highPrice": "0.00002896",
+        #              "lowPrice": "0.00002738",
+        #              "volume": "16472160000",
+        #              "quoteVolume": "454796.3376",
+        #              "openTime": "1645187472000",
+        #              "closeTime": "1645273872000",
         #         }
         #     ]
         #
@@ -766,17 +804,18 @@ class currencycom(Exchange):
         # fetchMyTrades
         #
         #     {
-        #         "symbol": "BNBBTC",
-        #         "id": 28457,
-        #         "orderId": 100234,
-        #         "price": "4.00000100",
-        #         "qty": "12.00000000",
-        #         "commission": "10.10000000",
-        #         "commissionAsset": "BNB",
-        #         "time": 1499865549590,
-        #         "isBuyer": True,
-        #         "isMaker": False,
-        #         "isBestMatch": True
+        #         "symbol": "DOGE/USD",
+        #         "id": "116046000",
+        #         "orderId": "00000000-0000-0000-0000-000006dbb8ad",
+        #         "price": "0.14094",
+        #         "qty": "40.0",
+        #         "commission": "0.01",
+        #         "commissionAsset": "USD",
+        #         "time": "1645283022351",
+        #         "buyer": False,
+        #         "maker": False,
+        #         "isBuyer": False,
+        #         "isMaker": False
         #     }
         #
         timestamp = self.safe_integer_2(trade, 'T', 'time')
@@ -941,33 +980,49 @@ class currencycom(Exchange):
             # 'stopLoss': '54.321'
             # 'guaranteedStopLoss': '54.321',
         }
-        if uppercaseType == 'LIMIT':
+        if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
             request['timeInForce'] = self.options['defaultTimeInForce']  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel, 'FOK' = Fill Or Kill
-        elif uppercaseType == 'STOP':
+        elif type == 'stop':
             request['price'] = self.price_to_precision(symbol, price)
-        response = self.privatePostV1Order(self.extend(request, params))
+        response = self.privatePostV2Order(self.extend(request, params))
+        #
+        # limit
         #
         #     {
         #         "symbol": "BTC/USD",
-        #         "orderId": "00000000-0000-0000-0000-0000000c0263",
-        #         "clientOrderId": "00000000-0000-0000-0000-0000000c0263",
-        #         "transactTime": 1589878206426,
-        #         "price": "9825.66210000",
-        #         "origQty": "0.01",
-        #         "executedQty": "0.01",
+        #         "orderId": "00000000-0000-0000-0000-000006eaaaa0",
+        #         "transactTime": "1645281669295",
+        #         "price": "30000.00000000",
+        #         "origQty": "0.0002",
+        #         "executedQty": "0.0",  #positive for BUY, negative for SELL
+        #         "status": "NEW",
+        #         "timeInForce": "GTC",
+        #         "type": "LIMIT",
+        #         "side": "BUY",
+        #     }
+        #
+        # market
+        #
+        #     {
+        #         "symbol": "DOGE/USD",
+        #         "orderId": "00000000-0000-0000-0000-000006eab8ad",
+        #         "transactTime": "1645283022252",
+        #         "price": "0.14066000",
+        #         "origQty": "40",
+        #         "executedQty": "40.0",  #positive for BUY, negative for SELL
         #         "status": "FILLED",
         #         "timeInForce": "FOK",
         #         "type": "MARKET",
-        #         "side": "BUY",
+        #         "side": "SELL",
         #         "fills": [
         #             {
-        #                 "price": "9807.05",
-        #                 "qty": "0.01",
+        #                 "price": "0.14094",
+        #                 "qty": "40.0",
         #                 "commission": "0",
-        #                 "commissionAsset": "dUSD"
-        #             }
-        #         ]
+        #                 "commissionAsset": "dUSD",
+        #             },
+        #         ],
         #     }
         #
         return self.parse_order(response, market)
@@ -984,7 +1039,26 @@ class currencycom(Exchange):
             numSymbols = len(symbols)
             fetchOpenOrdersRateLimit = int(numSymbols / 2)
             raise ExchangeError(self.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + str(fetchOpenOrdersRateLimit) + ' seconds. Do not call self method frequently to avoid ban. Set ' + self.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = False to suppress self warning message.')
-        response = self.privateGetV1OpenOrders(self.extend(request, params))
+        response = self.privateGetV2OpenOrders(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "symbol": "DOGE/USD",
+        #             "orderId": "00000000-0000-0003-0000-000004bac57a",
+        #             "price": "0.13",
+        #             "origQty": "39.0",
+        #             "executedQty": "0.0",
+        #             "status": "NEW",
+        #             "timeInForce": "GTC",
+        #             "type": "LIMIT",
+        #             "side": "BUY",
+        #             "time": "1645284216240",
+        #             "updateTime": "1645284216240",
+        #             "leverage": False,
+        #             "working": True
+        #         },
+        #     ]
+        #
         return self.parse_orders(response, market, since, limit)
 
     def cancel_order(self, id, symbol=None, params={}):
@@ -1002,12 +1076,12 @@ class currencycom(Exchange):
             request['orderId'] = id
         else:
             request['origClientOrderId'] = origClientOrderId
-        response = self.privateDeleteV1Order(self.extend(request, params))
+        response = self.privateDeleteV2Order(self.extend(request, params))
         #
         #     {
         #         "symbol":"ETH/USD",
         #         "orderId":"00000000-0000-0000-0000-00000024383b",
-        #         "clientOrderId":"00000000-0000-0000-0000-00000024383b",
+        #         "clientOrderId":"00000000-0000-0000-0000-00000024383b",  # self might not be present
         #         "price":"150",
         #         "origQty":"0.1",
         #         "executedQty":"0.0",
@@ -1029,22 +1103,23 @@ class currencycom(Exchange):
         }
         if limit is not None:
             request['limit'] = limit
-        response = self.privateGetV1MyTrades(self.extend(request, params))
+        response = self.privateGetV2MyTrades(self.extend(request, params))
         #
         #     [
         #         {
-        #             "symbol": "BNBBTC",
-        #             "id": 28457,
-        #             "orderId": 100234,
-        #             "price": "4.00000100",
-        #             "qty": "12.00000000",
-        #             "commission": "10.10000000",
-        #             "commissionAsset": "BNB",
-        #             "time": 1499865549590,
-        #             "isBuyer": True,
-        #             "isMaker": False,
-        #             "isBestMatch": True
-        #         }
+        #             "symbol": "DOGE/USD",
+        #             "id": "116046000",
+        #             "orderId": "00000000-0000-0000-0000-000006dbb8ad",
+        #             "price": "0.14094",
+        #             "qty": "40.0",
+        #             "commission": "0.01",
+        #             "commissionAsset": "USD",
+        #             "time": "1645283022351",
+        #             "buyer": False,
+        #             "maker": False,
+        #             "isBuyer": False,
+        #             "isMaker": False
+        #         },
         #     ]
         #
         return self.parse_trades(response, market, since, limit)
