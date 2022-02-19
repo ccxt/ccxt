@@ -291,6 +291,7 @@ module.exports = class bitmart extends Exchange {
                 '$GM': 'GOLDMINER',
                 '$HERO': 'Step Hero',
                 '$PAC': 'PAC',
+                'BP': 'BEYOND',
                 'COT': 'Community Coin',
                 'CPC': 'CPCoin',
                 'DMS': 'DimSum', // conflict with Dragon Mainland Shards
