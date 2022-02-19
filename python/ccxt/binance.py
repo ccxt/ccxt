@@ -1565,6 +1565,7 @@ class binance(Exchange):
                 'type': type,
                 'spot': spot,
                 'margin': spot and isMarginTradingAllowed,
+                'swap': future,
                 'future': future,
                 'delivery': delivery,
                 'option': False,

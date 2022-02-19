@@ -1569,6 +1569,7 @@ class binance extends Exchange {
                 'type' => $type,
                 'spot' => $spot,
                 'margin' => $spot && $isMarginTradingAllowed,
+                'swap' => $future,
                 'future' => $future,
                 'delivery' => $delivery,
                 'option' => false,
