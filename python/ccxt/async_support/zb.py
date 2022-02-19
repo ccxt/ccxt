@@ -15,6 +15,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
@@ -48,6 +49,8 @@ class zb(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': True,
                 'fetchDeposits': True,
+                'fetchFundingRate': True,
+                'fetchFundingRateHistory': True,
                 'fetchMarkets': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -1224,6 +1227,112 @@ class zb(Exchange):
             'status': status,
             'updated': updated,
             'fee': fee,
+        }
+
+    async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {
+            # 'symbol': market['id'],
+            # 'startTime': since,
+            # 'endTime': endTime,  # current time by default
+            # 'limit': limit,  # default 100, max 1000
+        }
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if since is not None:
+            request['startTime'] = since
+        till = self.safe_integer(params, 'till')
+        endTime = self.safe_string(params, 'endTime')
+        params = self.omit(params, ['endTime', 'till'])
+        if till is not None:
+            request['endTime'] = till
+        elif endTime is not None:
+            request['endTime'] = endTime
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.contractV2PublicGetFundingRate(self.extend(request, params))
+        #
+        #     {
+        #         "code": 10000,
+        #         "data": [
+        #             {
+        #                 "symbol": "BTC_USDT",
+        #                 "fundingRate": "0.0001",
+        #                 "fundingTime": "1645171200000"
+        #             },
+        #         ],
+        #         "desc": "操作成功"
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        rates = []
+        for i in range(0, len(data)):
+            entry = data[i]
+            marketId = self.safe_string(entry, 'symbol')
+            symbol = self.safe_symbol(marketId)
+            timestamp = self.safe_string(entry, 'fundingTime')
+            rates.append({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': self.safe_number(entry, 'fundingRate'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+            })
+        sorted = self.sort_by(rates, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
+    async def fetch_funding_rate(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise NotSupported(self.id + ' fetchFundingRate() does not supports contracts only')
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.contractV1PublicGetFundingRate(self.extend(request, params))
+        #
+        #     {
+        #         "code": 10000,
+        #         "desc": "操作成功",
+        #         "data": {
+        #             "fundingRate": "0.0001",
+        #             "nextCalculateTime": "2022-02-19 00:00:00"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_funding_rate(data, market)
+
+    def parse_funding_rate(self, contract, market=None):
+        #
+        #     {
+        #         "fundingRate": "0.0001",
+        #         "nextCalculateTime": "2022-02-19 00:00:00"
+        #     }
+        #
+        marketId = self.safe_string(contract, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
+        fundingRate = self.safe_number(contract, 'fundingRate')
+        nextFundingDatetime = self.safe_string(contract, 'nextCalculateTime')
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'markPrice': None,
+            'indexPrice': None,
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': None,
+            'datetime': None,
+            'fundingRate': fundingRate,
+            'fundingTimestamp': None,
+            'fundingDatetime': None,
+            'nextFundingRate': None,
+            'nextFundingTimestamp': self.parse8601(nextFundingDatetime),
+            'nextFundingDatetime': nextFundingDatetime,
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):

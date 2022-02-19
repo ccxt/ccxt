@@ -9,6 +9,7 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
+use \ccxt\BadResponse;
 use \ccxt\InvalidOrder;
 
 class ftx extends Exchange {
@@ -578,6 +579,9 @@ class ftx extends Exchange {
             } else if ($isFuture) {
                 $type = 'future';
                 $expiry = $this->parse8601($expiryDatetime);
+                if ($expiry === null) {
+                    throw new BadResponse($this->id . " $symbol '" . $id . "' is a $future $contract but with invalid $expiry datetime => " . $expiryDatetime);
+                }
                 $parsedId = explode('-', $id);
                 $length = is_array($parsedId) ? count($parsedId) : 0;
                 if ($length > 2) {

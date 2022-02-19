@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.73.35'
+__version__ = '1.73.41'
 
 # -----------------------------------------------------------------------------
 
@@ -1800,10 +1800,12 @@ class Exchange(object):
             trade = trades[i]
             if (since is not None) and (trade['timestamp'] < since):
                 continue
-            opening_time = int(math.floor(trade['timestamp'] / ms) * ms)  # Shift the edge of the m/h/d (but not M)
+            opening_time = None
+            if trade['timestamp']:
+                opening_time = int(math.floor(trade['timestamp'] / ms) * ms)  # Shift the edge of the m/h/d (but not M)
             j = len(ohlcvs)
             candle = j - 1
-            if (j == 0) or opening_time >= ohlcvs[candle][timestamp] + ms:
+            if (j == 0) or (opening_time and opening_time >= ohlcvs[candle][timestamp] + ms):
                 # moved to a new timeframe -> create a new candle from opening trade
                 ohlcvs.append([
                     opening_time,
