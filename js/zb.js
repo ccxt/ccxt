@@ -969,20 +969,49 @@ module.exports = class zb extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type !== 'limit') {
-            throw new InvalidOrder (this.id + ' allows limit orders only');
-        }
         await this.loadMarkets ();
-        const request = {
-            'price': this.priceToPrecision (symbol, price),
-            'amount': this.amountToPrecision (symbol, amount),
-            'tradeType': (side === 'buy') ? '1' : '0',
-            'currency': this.marketId (symbol),
-        };
-        const response = await this.spotV1PrivateGetOrder (this.extend (request, params));
+        const market = this.market (symbol);
+        if (market['spot']) {
+            if (type !== 'limit') {
+                throw new InvalidOrder (this.id + ' allows limit orders only');
+            }
+        }
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'spotV1PrivateGetOrder',
+            'swap': 'contractV2PrivatePostTradeOrder',
+        });
+        const request = {};
+        if (market['spot']) {
+            request['price'] = this.priceToPrecision (symbol, price);
+            request['amount'] = this.amountToPrecision (symbol, amount);
+            request['tradeType'] = (side === 'buy') ? '1' : '0';
+            request['currency'] = this.marketId (symbol);
+        } else {
+            // if (params['extend'] !== undefined) {
+            //     const orderType = this.safeValue (params['extend'], 'bizType');
+            //     const priceType = this.safeValue (params['extend'], 'priceType');
+            //     const triggerPrice = this.safeValue (params['extend'], 'triggerPrice');
+            //     const stopPrice = this.safeNumber2 (params, 'stopPrice', triggerPrice);
+            //     params = this.omit (params, [ 'stopPrice', 'extend' ]);
+            //     if (stopPrice) {
+            //         // "extend": {"orderAlgos":[{"bizType":1,"priceType":1,"triggerPrice":"70000"}]}
+            //         request['extend'] = JSON.parse ('{"orderAlgos": [{"bizType": "' + orderType + ',"priceType": "' + priceType + ',"triggerType": "' + triggerPrice + '"}]}');
+            //     }
+            // }
+            request['symbol'] = this.marketId (symbol);
+            request['side'] = side; // 1: Open long, 2: Open short, 3: Close long, 4: Close short
+            request['amount'] = this.amountToPrecision (symbol, amount); // number of orders
+            request['action'] = type; // OPTIONAL default 1: limit, 11: Best Bid Offer, 3: IOC, 4: Post only, 5: FOK, 51: Best Bid Offer FOK
+            request['clientOrderId'] = params['clientOrderId']; // OPTIONAL '^[a-zA-Z0-9-_]{1,36}$', // The user-defined order number
+            request['extend'] = params['extend']; // OPTIONAL {"orderAlgos":[{"bizType":1,"priceType":1,"triggerPrice":"70000"},{"bizType":2,"priceType":1,"triggerPrice":"40000"}]}
+            request['price'] = price; // The commission price, when it is BBO or the best 5 price (action 11, 12, 31, 32, 51 or 52) can be empty, all others are required
+        }
+        const response = await this[method] (this.extend (request, params));
+        const data = this.safeValue (response, 'data');
+        const orderIdField = market['swap'] ? data['orderId'] : response['id'];
         return {
             'info': response,
-            'id': response['id'],
+            'id': orderIdField,
         };
     }
 
