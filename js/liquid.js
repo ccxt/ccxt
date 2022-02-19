@@ -858,12 +858,6 @@ module.exports = class liquid extends Exchange {
         const amount = this.safeNumber (order, 'quantity');
         let filled = this.safeNumber (order, 'filled_quantity');
         const price = this.safeNumber (order, 'price');
-        let symbol = undefined;
-        let feeCurrency = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-            feeCurrency = market['quote'];
-        }
         const type = this.safeString (order, 'order_type');
         let tradeCost = 0;
         let tradeFilled = 0;
@@ -912,7 +906,7 @@ module.exports = class liquid extends Exchange {
             'timeInForce': undefined,
             'postOnly': undefined,
             'status': status,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'side': side,
             'price': price,
             'stopPrice': undefined,
@@ -923,7 +917,7 @@ module.exports = class liquid extends Exchange {
             'average': average,
             'trades': trades,
             'fee': {
-                'currency': feeCurrency,
+                'currency': market['quote'],
                 'cost': this.safeNumber (order, 'order_fee'),
             },
             'info': order,
