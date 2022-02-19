@@ -18,8 +18,6 @@ async function log (exchange, symbol, timeframe) {
     console.log (exchange.iso8601 (exchange.milliseconds ()), 'Trades started arriving, waiting till', exchange.iso8601 (start))
     await exchange.sleep (start - now)
     console.log (exchange.iso8601 (exchange.milliseconds ()), 'Done warming up')
-    // console.log (ohlcvs);
-    // process.exit ();
     for (let i = 0;; i++) {
         now = exchange.milliseconds ()
         let candle = Object.values (ohlcvs)[0]
