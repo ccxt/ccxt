@@ -8,6 +8,7 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\BadRequest;
 use \ccxt\BadSymbol;
 use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
@@ -52,6 +53,7 @@ class zb extends Exchange {
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchWithdrawals' => true,
+                'setLeverage' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -1274,6 +1276,29 @@ class zb extends Exchange {
             'updated' => $updated,
             'fee' => $fee,
         );
+    }
+
+    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+        }
+        if (($leverage < 1) || ($leverage > 125)) {
+            throw new BadRequest($this->id . ' $leverage should be between 1 and 125');
+        }
+        $market = $this->market($symbol);
+        $accountType = null;
+        if (!$market['swap']) {
+            throw new BadSymbol($this->id . ' setLeverage() supports swap contracts only');
+        } else {
+            $accountType = 1;
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'leverage' => $leverage,
+            'futuresAccountType' => $accountType, // 1 => USDT perpetual swaps
+        );
+        return $this->contractV2PrivatePostSettingSetLeverage (array_merge($request, $params));
     }
 
     public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {

@@ -61,6 +61,7 @@ class zb(Exchange):
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchWithdrawals': True,
+                'setLeverage': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -1228,6 +1229,25 @@ class zb(Exchange):
             'updated': updated,
             'fee': fee,
         }
+
+    async def set_leverage(self, leverage, symbol=None, params={}):
+        await self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        if (leverage < 1) or (leverage > 125):
+            raise BadRequest(self.id + ' leverage should be between 1 and 125')
+        market = self.market(symbol)
+        accountType = None
+        if not market['swap']:
+            raise BadSymbol(self.id + ' setLeverage() supports swap contracts only')
+        else:
+            accountType = 1
+        request = {
+            'symbol': market['id'],
+            'leverage': leverage,
+            'futuresAccountType': accountType,  # 1: USDT perpetual swaps
+        }
+        return await self.contractV2PrivatePostSettingSetLeverage(self.extend(request, params))
 
     async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
