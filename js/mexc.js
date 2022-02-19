@@ -243,6 +243,7 @@ module.exports = class mexc extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'BIFI': 'BIFIF',
                 'BYN': 'BeyondFi',
                 'COFI': 'COFIX', // conflict with CoinFi
                 'DFI': 'DfiStarter',
