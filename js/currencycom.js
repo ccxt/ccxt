@@ -1084,7 +1084,8 @@ module.exports = class currencycom extends Exchange {
         //       "updateTime": "1645284216240",
         //       "leverage": false,
         //       "working": true
-        //     }
+        //     },
+        //     ...
         // ]
         return this.parseOrders (response, market, since, limit);
     }
