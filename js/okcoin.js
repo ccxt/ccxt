@@ -871,7 +871,8 @@ module.exports = class okcoin extends Exchange {
             'spot': spot,
             'margin': spot && (Precise.stringGt (maxLeverageString, '1')),
             'swap': swap,
-            'futures': future,
+            'future': future,
+            'futures': future, // deprecated
             'option': option,
             'active': true,
             'contract': contract,
