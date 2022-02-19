@@ -909,77 +909,6 @@ module.exports = class currencycom extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseOrderStatus (status, inverted = false) {
-        let statuses = {
-            'NEW': 'open',
-            'PARTIALLY_FILLED': 'open',
-            'FILLED': 'closed',
-            'CANCELED': 'canceled',
-            'PENDING_CANCEL': 'canceling',
-            'REJECTED': 'rejected',
-            'EXPIRED': 'expired',
-        };
-        if (inverted) {
-            statuses = {
-                'open': 'NEW',
-                'closed': 'FILLED',
-                'canceled': 'CANCELED',
-                'canceling': 'PENDING_CANCEL',
-                'rejected': 'REJECTED',
-                'expired': 'EXPIRED',
-            };
-        }
-        return this.safeString (statuses, status, status);
-    }
-
-    parseOrderType (status, inverted = false) {
-        let statuses = {
-            'MARKET': 'market',
-            'LIMIT': 'limit', // TO_DO: what is LIMIT_MAKER ?
-            'STOP': 'stop',
-            'STOP_LOSS': 'stop-loss',
-            'STOP_LOSS_LIMIT': 'stop-limit',
-            'TAKE_PROFIT': 'take-profit',
-            'TAKE_PROFIT_LIMIT': 'take-profit',
-        };
-        if (inverted) {
-            statuses = {
-                'market': 'MARKET',
-                'limit': 'LIMIT',
-                'stop': 'STOP',
-                'stop-loss': 'STOP_LOSS',
-                'stop-limit': 'STOP_LOSS_LIMIT',
-                'take-profit': 'TAKE_PROFIT',
-            };
-        }
-        return this.safeString (statuses, status, status);
-    }
-
-    // eslint-disable-next-line no-unused-vars
-    parseOrderTimeInForce (status, inverted = false) {
-        const statuses = {
-            'GTC': 'GTC',
-            'FOK': 'FOK',
-            'IOC': 'IOC',
-        };
-        // inverted will not have any change, so ignoring it
-        return this.safeString (statuses, status, status);
-    }
-
-    parseOrderSide (status, inverted = false) {
-        let statuses = {
-            'BUY': 'buy',
-            'SELL': 'sell',
-        };
-        if (inverted) {
-            statuses = {
-                'buy': 'BUY',
-                'sell': 'SELL',
-            };
-        }
-        return this.safeString (statuses, status, status);
-    }
-
     parseOrder (order, market = undefined) {
         // # createOrder #
         //
@@ -1089,6 +1018,77 @@ module.exports = class currencycom extends Exchange {
             'fee': undefined,
             'trades': fills,
         }, market);
+    }
+
+    parseOrderStatus (status, inverted = false) {
+        let statuses = {
+            'NEW': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'FILLED': 'closed',
+            'CANCELED': 'canceled',
+            'PENDING_CANCEL': 'canceling',
+            'REJECTED': 'rejected',
+            'EXPIRED': 'expired',
+        };
+        if (inverted) {
+            statuses = {
+                'open': 'NEW',
+                'closed': 'FILLED',
+                'canceled': 'CANCELED',
+                'canceling': 'PENDING_CANCEL',
+                'rejected': 'REJECTED',
+                'expired': 'EXPIRED',
+            };
+        }
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderType (status, inverted = false) {
+        let statuses = {
+            'MARKET': 'market',
+            'LIMIT': 'limit', // TO_DO: what is LIMIT_MAKER ?
+            'STOP': 'stop',
+            'STOP_LOSS': 'stop-loss',
+            'STOP_LOSS_LIMIT': 'stop-limit',
+            'TAKE_PROFIT': 'take-profit',
+            'TAKE_PROFIT_LIMIT': 'take-profit',
+        };
+        if (inverted) {
+            statuses = {
+                'market': 'MARKET',
+                'limit': 'LIMIT',
+                'stop': 'STOP',
+                'stop-loss': 'STOP_LOSS',
+                'stop-limit': 'STOP_LOSS_LIMIT',
+                'take-profit': 'TAKE_PROFIT',
+            };
+        }
+        return this.safeString (statuses, status, status);
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    parseOrderTimeInForce (status, inverted = false) {
+        const statuses = {
+            'GTC': 'GTC',
+            'FOK': 'FOK',
+            'IOC': 'IOC',
+        };
+        // inverted will not have any change, so ignoring it
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderSide (status, inverted = false) {
+        let statuses = {
+            'BUY': 'buy',
+            'SELL': 'sell',
+        };
+        if (inverted) {
+            statuses = {
+                'buy': 'BUY',
+                'sell': 'SELL',
+            };
+        }
+        return this.safeString (statuses, status, status);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
