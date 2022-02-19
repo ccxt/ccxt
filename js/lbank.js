@@ -309,10 +309,7 @@ module.exports = class lbank extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (undefined, market);
         const timestamp = this.safeInteger (trade, 'date_ms');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
@@ -328,7 +325,7 @@ module.exports = class lbank extends Exchange {
             'info': this.safeValue (trade, 'info', trade),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': undefined,
             'type': type,
             'side': side,
