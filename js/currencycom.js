@@ -361,7 +361,7 @@ module.exports = class currencycom extends Exchange {
             }
             const spot = (type === 'spot');
             const margin = (type === 'margin');
-            const exchangeFee = this.safeNumber2 (market, 'exchangeFee', 'tradingFee');
+            const exchangeFee = this.safeString2 (market, 'exchangeFee', 'tradingFee');
             const maker = Precise.stringDiv (this.safeString (market, 'makerFee', exchangeFee), '100');
             const taker = Precise.stringDiv (this.safeString (market, 'takerFee', exchangeFee), '100');
             let limitPriceMin = undefined;
