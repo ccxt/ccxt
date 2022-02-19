@@ -291,6 +291,7 @@ module.exports = class bitmart extends Exchange {
                 '$GM': 'GOLDMINER',
                 '$HERO': 'Step Hero',
                 '$PAC': 'PAC',
+                'AUR': 'Aurum',
                 'BP': 'BEYOND',
                 'COT': 'Community Coin',
                 'CPC': 'CPCoin',
