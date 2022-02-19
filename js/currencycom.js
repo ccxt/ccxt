@@ -23,36 +23,86 @@ module.exports = class currencycom extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined, // has but not fully implemented
-                'swap': false,
+                'margin': true,
+                'swap': true,
                 'future': false,
                 'option': false,
+                'addMargin': undefined,
+                'cancelAllOrders': undefined,
                 'cancelOrder': true,
+                'cancelOrders': undefined,
+                'createDepositAddress': undefined,
+                'createLimitOrder': true,
+                'createMarketOrder': true,
                 'createOrder': true,
+                'deposit': undefined,
+                'editOrder': 'emulated',
                 'fetchAccounts': true,
                 'fetchBalance': true,
+                'fetchBidsAsks': undefined,
+                'fetchBorrowRate': undefined,
+                'fetchBorrowRateHistory': undefined,
+                'fetchBorrowRates': undefined,
+                'fetchBorrowRatesPerSymbol': undefined,
+                'fetchCanceledOrders': undefined,
+                'fetchClosedOrder': undefined,
+                'fetchClosedOrders': undefined,
+                'fetchCurrencies': undefined,
+                'fetchDeposit': undefined,
+                'fetchDepositAddress': undefined,
+                'fetchDepositAddresses': undefined,
+                'fetchDepositAddressesByNetwork': undefined,
+                'fetchDeposits': undefined,
+                'fetchFundingFee': undefined,
+                'fetchFundingFees': undefined,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchL2OrderBook': true,
+                'fetchLedger': undefined,
+                'fetchLedgerEntry': undefined,
+                'fetchLeverageTiers': undefined,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
+                'fetchOrder': undefined,
                 'fetchOrderBook': true,
+                'fetchOrderBooks': undefined,
+                'fetchOrders': undefined,
+                'fetchOrderTrades': undefined,
+                'fetchPosition': undefined,
+                'fetchPositions': undefined,
+                'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': false,
+                // 'fetchStatus': 'emulated',
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': undefined,
                 'fetchTradingFees': true,
+                'fetchTradingLimits': undefined,
+                'fetchTransactions': undefined,
+                'fetchTransfers': undefined,
+                'fetchWithdrawal': undefined,
+                'fetchWithdrawals': undefined,
+                'reduceMargin': undefined,
+                'setLeverage': undefined,
+                'setMarginMode': undefined,
+                'setPositionMode': undefined,
+                'signIn': undefined,
+                'transfer': undefined,
+                'withdraw': undefined,
             },
             'timeframes': {
                 '1m': '1m',
-                '3m': '3m',
                 '5m': '5m',
+                '10m': '10m',
                 '15m': '15m',
                 '30m': '30m',
                 '1h': '1h',
@@ -80,30 +130,60 @@ module.exports = class currencycom extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'time',
-                        'exchangeInfo',
-                        'depth',
-                        'aggTrades',
-                        'klines',
-                        'ticker/24hr',
+                        'v1/time',
+                        'v2/time',
+                        'v1/exchangeInfo',
+                        'v2/exchangeInfo',
+                        'v1/depth',
+                        'v2/depth',
+                        'v1/aggTrades',
+                        'v2/aggTrades',
+                        'v1/klines',
+                        'v2/klines',
+                        'v1/ticker/24hr',
+                        'v2/ticker/24hr',
                     ],
                 },
                 'private': {
                     'get': [
-                        'leverageSettings',
-                        'openOrders',
-                        'tradingPositions',
-                        'account',
-                        'myTrades',
+                        'v1/account',
+                        'v2/account',
+                        'v1/currencies',
+                        'v2/currencies',
+                        'v1/deposits',
+                        'v2/deposits',
+                        'v1/depositAddress',
+                        'v2/depositAddress',
+                        'v1/ledger',
+                        'v2/ledger',
+                        'v1/leverageSettings',
+                        'v2/leverageSettings',
+                        'v1/myTrades',
+                        'v2/myTrades',
+                        'v1/openOrders',
+                        'v2/openOrders',
+                        'v1/tradingPositions',
+                        'v2/tradingPositions',
+                        'v1/tradingPositionsHistory',
+                        'v2/tradingPositionsHistory',
+                        'v1/transactions',
+                        'v2/transactions',
+                        'v1/withdrawals',
+                        'v2/withdrawals',
                     ],
                     'post': [
-                        'order',
-                        'updateTradingPosition',
-                        'updateTradingOrder',
-                        'closeTradingPosition',
+                        'v1/order',
+                        'v2/order',
+                        'v1/updateTradingPosition',
+                        'v2/updateTradingPosition',
+                        'v1/updateTradingOrder',
+                        'v2/updateTradingOrder',
+                        'v1/closeTradingPosition',
+                        'v2/closeTradingPosition',
                     ],
                     'delete': [
-                        'order',
+                        'v1/order',
+                        'v2/order',
                     ],
                 },
             },
@@ -176,7 +256,7 @@ module.exports = class currencycom extends Exchange {
     }
 
     async fetchTime (params = {}) {
-        const response = await this.publicGetTime (params);
+        const response = await this.publicGetV2Time (params);
         //
         //     {
         //         "serverTime": 1590998366609
@@ -186,7 +266,7 @@ module.exports = class currencycom extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetExchangeInfo (params);
+        const response = await this.publicGetV1ExchangeInfo (params);
         //
         //     {
         //         "timezone":"UTC",
@@ -277,17 +357,9 @@ module.exports = class currencycom extends Exchange {
             }
             const spot = (type === 'spot');
             const margin = (type === 'margin');
-            const exchangeFee = this.safeNumber2 (market, 'exchangeFee', 'tradingFee');
-            const makerFee = this.safeNumber (market, 'makerFee', exchangeFee);
-            const takerFee = this.safeNumber (market, 'takerFee', exchangeFee);
-            let maker = undefined;
-            let taker = undefined;
-            if (makerFee !== undefined) {
-                maker = makerFee / 100;
-            }
-            if (takerFee !== undefined) {
-                taker = takerFee / 100;
-            }
+            const exchangeFee = this.safeString2 (market, 'exchangeFee', 'tradingFee');
+            const maker = Precise.stringDiv (this.safeString (market, 'makerFee', exchangeFee), '100');
+            const taker = Precise.stringDiv (this.safeString (market, 'takerFee', exchangeFee), '100');
             let limitPriceMin = undefined;
             let limitPriceMax = undefined;
             let precisionPrice = this.safeNumber (market, 'tickSize');
@@ -352,8 +424,8 @@ module.exports = class currencycom extends Exchange {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'taker': taker,
-                'maker': maker,
+                'taker': this.parseNumber (taker),
+                'maker': this.parseNumber (maker),
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -386,7 +458,7 @@ module.exports = class currencycom extends Exchange {
     }
 
     async fetchAccounts (params = {}) {
-        const response = await this.privateGetAccount (params);
+        const response = await this.privateGetV1Account (params);
         //
         //     {
         //         "makerCommission":0.20,
@@ -428,7 +500,7 @@ module.exports = class currencycom extends Exchange {
 
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetAccount (params);
+        const response = await this.privateGetV1Account (params);
         return {
             'info': response,
             'maker': this.safeNumber (response, 'makerCommission'),
@@ -475,7 +547,7 @@ module.exports = class currencycom extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetAccount (params);
+        const response = await this.privateGetV1Account (params);
         //
         //     {
         //         "makerCommission":0.20,
@@ -510,19 +582,19 @@ module.exports = class currencycom extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000, 5000
         }
-        const response = await this.publicGetDepth (this.extend (request, params));
+        const response = await this.publicGetV2Depth (this.extend (request, params));
         //
         //     {
         //         "lastUpdateId":1590999849037,
         //         "asks":[
-        //             [0.02495,60.0000],
-        //             [0.02496,120.0000],
-        //             [0.02497,240.0000],
+        //             [0.02495,60.0345],
+        //             [0.02496,34.1],
+        //             ...
         //         ],
         //         "bids":[
-        //             [0.02487,60.0000],
-        //             [0.02486,120.0000],
-        //             [0.02485,240.0000],
+        //             [0.02487,72.4144854],
+        //             [0.02486,24.043],
+        //             ...
         //         ]
         //     }
         //
@@ -570,7 +642,6 @@ module.exports = class currencycom extends Exchange {
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market, '/');
         const last = this.safeString (ticker, 'lastPrice');
-        const open = this.safeString (ticker, 'openPrice');
         return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -582,7 +653,7 @@ module.exports = class currencycom extends Exchange {
             'ask': this.safeString (ticker, 'askPrice'),
             'askVolume': this.safeString (ticker, 'askQty'),
             'vwap': this.safeString (ticker, 'weightedAvgPrice'),
-            'open': open,
+            'open': this.safeString (ticker, 'openPrice'),
             'close': last,
             'last': last,
             'previousClose': this.safeString (ticker, 'prevClosePrice'), // previous day close
@@ -601,7 +672,7 @@ module.exports = class currencycom extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetTicker24hr (this.extend (request, params));
+        const response = await this.publicGetV2Ticker24hr (this.extend (request, params));
         //
         //     {
         //         "symbol":"ETH/BTC",
@@ -627,7 +698,7 @@ module.exports = class currencycom extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.publicGetTicker24hr (params);
+        const response = await this.publicGetV1Ticker24hr (params);
         //
         //     [
         //         {
@@ -678,7 +749,7 @@ module.exports = class currencycom extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 500, max 1000
         }
-        const response = await this.publicGetKlines (this.extend (request, params));
+        const response = await this.publicGetV2Klines (this.extend (request, params));
         //
         //     [
         //         [1590971040000,"0.02454","0.02456","0.02452","0.02456",249],
@@ -781,7 +852,10 @@ module.exports = class currencycom extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 500, max 1000
         }
-        const response = await this.publicGetAggTrades (this.extend (request, params));
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const response = await this.publicGetV2AggTrades (this.extend (request, params));
         //
         //     [
         //         {
@@ -904,7 +978,7 @@ module.exports = class currencycom extends Exchange {
         } else if (uppercaseType === 'STOP') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await this.privatePostOrder (this.extend (request, params));
+        const response = await this.privatePostV1Order (this.extend (request, params));
         //
         //     {
         //         "symbol": "BTC/USD",
@@ -944,7 +1018,7 @@ module.exports = class currencycom extends Exchange {
             const fetchOpenOrdersRateLimit = parseInt (numSymbols / 2);
             throw new ExchangeError (this.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.toString () + ' seconds. Do not call this method frequently to avoid ban. Set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         }
-        const response = await this.privateGetOpenOrders (this.extend (request, params));
+        const response = await this.privateGetV1OpenOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -965,7 +1039,7 @@ module.exports = class currencycom extends Exchange {
         } else {
             request['origClientOrderId'] = origClientOrderId;
         }
-        const response = await this.privateDeleteOrder (this.extend (request, params));
+        const response = await this.privateDeleteV1Order (this.extend (request, params));
         //
         //     {
         //         "symbol":"ETH/USD",
@@ -995,7 +1069,7 @@ module.exports = class currencycom extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetMyTrades (this.extend (request, params));
+        const response = await this.privateGetV1MyTrades (this.extend (request, params));
         //
         //     [
         //         {
@@ -1017,7 +1091,7 @@ module.exports = class currencycom extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + this.version + '/' + path;
+        let url = this.urls['api'][api] + '/' + path;
         if (path === 'historicalTrades') {
             headers = {
                 'X-MBX-APIKEY': this.apiKey,
