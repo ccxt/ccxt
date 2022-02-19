@@ -8,9 +8,9 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
+use \ccxt\BadSymbol;
 use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
-use \ccxt\NotSupported;
 use \ccxt\ExchangeNotAvailable;
 
 class zb extends Exchange {
@@ -1339,7 +1339,7 @@ class zb extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         if (!$market['swap']) {
-            throw new NotSupported($this->id . ' fetchFundingRate() does not supports contracts only');
+            throw new BadSymbol($this->id . ' fetchFundingRate() does not supports contracts only');
         }
         $request = array(
             'symbol' => $market['id'],

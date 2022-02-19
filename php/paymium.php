@@ -212,32 +212,26 @@ class paymium extends Exchange {
     public function parse_trade($trade, $market) {
         $timestamp = $this->safe_timestamp($trade, 'created_at_int');
         $id = $this->safe_string($trade, 'uuid');
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market(null, $market);
         $side = $this->safe_string($trade, 'side');
-        $priceString = $this->safe_string($trade, 'price');
+        $price = $this->safe_string($trade, 'price');
         $amountField = 'traded_' . strtolower($market['base']);
-        $amountString = $this->safe_string($trade, $amountField);
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        return array(
+        $amount = $this->safe_string($trade, $amountField);
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'order' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'fee' => null,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {

@@ -356,10 +356,7 @@ class wazirx extends Exchange {
         $id = $this->safe_string($trade, 'id');
         $timestamp = $this->safe_integer($trade, 'time');
         $datetime = $this->iso8601($timestamp);
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market(null, $market);
         $isBuyerMaker = $this->safe_value($trade, 'isBuyerMaker');
         $side = $isBuyerMaker ? 'sell' : 'buy';
         $price = $this->safe_number($trade, 'price');
@@ -370,7 +367,7 @@ class wazirx extends Exchange {
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $datetime,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'order' => $id,
             'type' => null,
             'side' => $side,
@@ -379,7 +376,7 @@ class wazirx extends Exchange {
             'amount' => $amount,
             'cost' => $cost,
             'fee' => null,
-        ));
+        ), $market);
     }
 
     public function fetch_status($params = array ()) {

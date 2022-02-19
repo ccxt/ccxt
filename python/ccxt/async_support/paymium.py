@@ -204,31 +204,26 @@ class paymium(Exchange):
     def parse_trade(self, trade, market):
         timestamp = self.safe_timestamp(trade, 'created_at_int')
         id = self.safe_string(trade, 'uuid')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        market = self.safe_market(None, market)
         side = self.safe_string(trade, 'side')
-        priceString = self.safe_string(trade, 'price')
+        price = self.safe_string(trade, 'price')
         amountField = 'traded_' + market['base'].lower()
-        amountString = self.safe_string(trade, amountField)
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
-        return {
+        amount = self.safe_string(trade, amountField)
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'order': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': None,
             'side': side,
             'takerOrMaker': None,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'fee': None,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()

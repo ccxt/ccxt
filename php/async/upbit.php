@@ -9,7 +9,6 @@ use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\AddressPending;
 use \ccxt\InvalidOrder;
-use \ccxt\Precise;
 
 class upbit extends Exchange {
 
@@ -720,43 +719,26 @@ class upbit extends Exchange {
         } else if ($askOrBid === 'bid') {
             $side = 'buy';
         }
-        $cost = $this->safe_number($trade, 'funds');
-        $priceString = $this->safe_string_2($trade, 'trade_price', 'price');
-        $amountString = $this->safe_string_2($trade, 'trade_volume', 'volume');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        if ($cost === null) {
-            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        }
+        $cost = $this->safe_string($trade, 'funds');
+        $price = $this->safe_string_2($trade, 'trade_price', 'price');
+        $amount = $this->safe_string_2($trade, 'trade_volume', 'volume');
         $marketId = $this->safe_string_2($trade, 'market', 'code');
-        $market = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market, '-');
         $fee = null;
-        $feeCurrency = null;
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-            $feeCurrency = $market['quote'];
-        } else {
-            list($baseId, $quoteId) = explode('-', $marketId);
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $feeCurrency = $quote;
-        }
         $feeCost = $this->safe_string($trade, $askOrBid . '_fee');
         if ($feeCost !== null) {
             $fee = array(
-                'currency' => $feeCurrency,
+                'currency' => $market['quote'],
                 'cost' => $feeCost,
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'order' => $orderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
@@ -764,7 +746,7 @@ class upbit extends Exchange {
             'amount' => $amount,
             'cost' => $cost,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
