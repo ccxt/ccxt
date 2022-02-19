@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadRequest, ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, OrderNotFound, ExchangeNotAvailable, RateLimitExceeded, PermissionDenied, InvalidOrder, InvalidAddress, OnMaintenance, RequestTimeout, AccountSuspended, BadSymbol } = require ('./base/errors');
+const { BadRequest, BadSymbol, ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, OrderNotFound, ExchangeNotAvailable, RateLimitExceeded, PermissionDenied, InvalidOrder, InvalidAddress, OnMaintenance, RequestTimeout, AccountSuspended } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -45,6 +45,7 @@ module.exports = class zb extends Exchange {
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
+                'setLeverage': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -1267,6 +1268,29 @@ module.exports = class zb extends Exchange {
             'updated': updated,
             'fee': fee,
         };
+    }
+
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        if ((leverage < 1) || (leverage > 125)) {
+            throw new BadRequest (this.id + ' leverage should be between 1 and 125');
+        }
+        const market = this.market (symbol);
+        let accountType = undefined;
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
+        } else {
+            accountType = 1;
+        }
+        const request = {
+            'symbol': market['id'],
+            'leverage': leverage,
+            'futuresAccountType': accountType, // 1: USDT perpetual swaps
+        };
+        return await this.contractV2PrivatePostSettingSetLeverage (this.extend (request, params));
     }
 
     async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
