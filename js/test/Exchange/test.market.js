@@ -92,8 +92,10 @@ module.exports = (exchange, market, method) => {
     const types = Object.keys (validTypes);
     for (let i = 0; i < types.length; i++) {
         const entry = types[i];
-        const value = market[entry];
-        assert ((value === false) || (value === true));
+        if (entry in market) {
+            const value = market[entry];
+            assert ((value === false) || (value === true));
+        }
     }
     if (market['future']) {
         assert ((market['swap'] === false) && (market['option'] === false));
