@@ -909,61 +909,165 @@ module.exports = class currencycom extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status, inverted = false) {
+        let statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
-            'PENDING_CANCEL': 'canceling', // currently unused
+            'PENDING_CANCEL': 'canceling',
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
         };
+        if (inverted) {
+            statuses = {
+                'open': 'NEW',
+                'closed': 'FILLED',
+                'canceled': 'CANCELED',
+                'canceling': 'PENDING_CANCEL',
+                'rejected': 'REJECTED',
+                'expired': 'EXPIRED',
+            };
+        }
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderType (status, inverted = false) {
+        let statuses = {
+            'MARKET': 'market',
+            'LIMIT': 'limit', // TO_DO: what is LIMIT_MAKER ?
+            'STOP': 'stop',
+            'STOP_LOSS': 'stop-loss',
+            'STOP_LOSS_LIMIT': 'stop-limit',
+            'TAKE_PROFIT': 'take-profit',
+            'TAKE_PROFIT_LIMIT': 'take-profit',
+        };
+        if (inverted) {
+            statuses = {
+                'market': 'MARKET',
+                'limit': 'LIMIT',
+                'stop': 'STOP',
+                'stop-loss': 'STOP_LOSS',
+                'stop-limit': 'STOP_LOSS_LIMIT',
+                'take-profit': 'TAKE_PROFIT',
+            };
+        }
+        return this.safeString (statuses, status, status);
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    parseOrderTimeInForce (status, inverted = false) {
+        const statuses = {
+            'GTC': 'GTC',
+            'FOK': 'FOK',
+            'IOC': 'IOC',
+        };
+        // inverted will not have any change, so ignoring it
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderSide (status, inverted = false) {
+        let statuses = {
+            'BUY': 'buy',
+            'SELL': 'sell',
+        };
+        if (inverted) {
+            statuses = {
+                'buy': 'BUY',
+                'sell': 'SELL',
+            };
+        }
         return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
+        // # createOrder #
+        //
+        // limit
         //
         //     {
         //         "symbol": "BTC/USD",
-        //         "orderId": "00000000-0000-0000-0000-0000000c0263",
-        //         "clientOrderId": "00000000-0000-0000-0000-0000000c0263",
-        //         "transactTime": 1589878206426,
-        //         "price": "9825.66210000",
-        //         "origQty": "0.01",
-        //         "executedQty": "0.01",
+        //         "orderId": "00000000-0000-0000-0000-000006eacaa0",
+        //         "transactTime": "1645281669295",
+        //         "price": "30000.00000000",
+        //         "origQty": "0.0002",
+        //         "executedQty": "0.0",  //positive for BUY, negative for SELL
+        //         "status": "NEW",
+        //         "timeInForce": "GTC",
+        //         "type": "LIMIT",
+        //         "side": "BUY",
+        //     }
+        //
+        // market
+        //
+        //     {
+        //         "symbol": "DOGE/USD",
+        //         "orderId": "00000000-0000-0000-0000-000006eab2ad",
+        //         "transactTime": "1645283022252",
+        //         "price": "0.14066000",
+        //         "origQty": "40",
+        //         "executedQty": "40.0",  //positive for BUY, negative for SELL
         //         "status": "FILLED",
         //         "timeInForce": "FOK",
         //         "type": "MARKET",
-        //         "side": "BUY",
+        //         "side": "SELL",
         //         "fills": [
         //             {
-        //                 "price": "9807.05",
-        //                 "qty": "0.01",
+        //                 "price": "0.14094",
+        //                 "qty": "40.0",
         //                 "commission": "0",
-        //                 "commissionAsset": "dUSD"
-        //             }
-        //         ]
+        //                 "commissionAsset": "dUSD",
+        //             },
+        //         ],
         //     }
         //
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        //
+        // # cancelOrder #
+        //
+        //     {
+        //         "symbol": "DOGE/USD",
+        //         "orderId": "00000000-0000-0003-0000-000006db714c",
+        //         "price": "0.13",
+        //         "origQty": "30.0",
+        //         "executedQty": "0.0",
+        //         "status": "CANCELED",
+        //         "timeInForce": "GTC",
+        //         "type": "LIMIT",
+        //         "side": "BUY",
+        //     }
+        //
+        //
+        // # fetchOpenOrders entry #
+        //
+        //   {
+        //       "symbol": "DOGE/USD",
+        //       "orderId": "00000000-0000-0003-0000-000004bcc27a",
+        //       "price": "0.13",
+        //       "origQty": "39.0",
+        //       "executedQty": "0.0",
+        //       "status": "NEW",
+        //       "timeInForce": "GTC",
+        //       "type": "LIMIT",
+        //       "side": "BUY",
+        //       "time": "1645284216240",
+        //       "updateTime": "1645284216240", // ?
+        //       "leverage": false, // whether it's swap or not
+        //       "working": true // ?
+        //   }
+        //
         const marketId = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '/');
-        let timestamp = undefined;
-        if ('time' in order) {
-            timestamp = this.safeInteger (order, 'time');
-        } else if ('transactTime' in order) {
-            timestamp = this.safeInteger (order, 'transactTime');
-        }
+        const id = this.safeString (order, 'orderId');
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'origQty');
-        const filled = Precise.stringAbs (this.safeString (order, 'executedQty'));
-        const cost = this.safeString (order, 'cummulativeQuoteQty');
-        const id = this.safeString (order, 'orderId');
-        const type = this.safeStringLower (order, 'type');
-        const side = this.safeStringLower (order, 'side');
+        const filledRaw = this.safeString (order, 'executedQty');
+        const filled = Precise.stringAbs (filledRaw);
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const timeInForce = this.parseOrderTimeInForce (this.safeString (order, 'timeInForce'));
+        const type = this.parseOrderType (this.safeString (order, 'type'));
+        const side = this.parseOrderSide (this.safeString (order, 'side'));
+        const timestamp = this.safeInteger2 (order, 'time', 'transactTime');
         const fills = this.safeValue (order, 'fills');
-        const timeInForce = this.safeString (order, 'timeInForce');
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -977,7 +1081,7 @@ module.exports = class currencycom extends Exchange {
             'price': price,
             'stopPrice': undefined,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'average': undefined,
             'filled': filled,
             'remaining': undefined,
@@ -997,23 +1101,22 @@ module.exports = class currencycom extends Exchange {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires an accountId parameter for ' + market['type'] + ' market ' + symbol);
             }
         }
-        const uppercaseType = type.toUpperCase ();
         const newOrderRespType = this.safeValue (this.options['newOrderRespType'], type, 'RESULT');
         const request = {
             'symbol': market['id'],
             'quantity': this.amountToPrecision (symbol, amount),
-            'type': uppercaseType,
-            'side': side.toUpperCase (),
+            'type': this.parseOrderType (type, true),
+            'side': this.parseOrderSide (side, true),
             'newOrderRespType': newOrderRespType, // 'RESULT' for full order or 'FULL' for order with fills
             // 'leverage': 1,
             // 'accountId': 5470306579272968, // required for leverage markets
             // 'takeProfit': '123.45',
-            // 'stopLoss': '54.321'
+            // 'stopLoss': '54.321',
             // 'guaranteedStopLoss': '54.321',
         };
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
-            request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel, 'FOK' = Fill Or Kill
+            request['timeInForce'] = this.parseOrderTimeInForce (this.options['defaultTimeInForce'], true);
         } else if (type === 'stop') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
@@ -1093,7 +1196,7 @@ module.exports = class currencycom extends Exchange {
         //         },
         //     ]
         //
-        return this.parseOrders (response, market, since, limit);
+        return this.parseOrders (response, market, since, limit, params);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -1116,16 +1219,15 @@ module.exports = class currencycom extends Exchange {
         const response = await this.privateDeleteV2Order (this.extend (request, params));
         //
         //     {
-        //         "symbol":"ETH/USD",
-        //         "orderId":"00000000-0000-0000-0000-00000024383b",
-        //         "clientOrderId":"00000000-0000-0000-0000-00000024383b", // this might not be present
-        //         "price":"150",
-        //         "origQty":"0.1",
-        //         "executedQty":"0.0",
-        //         "status":"CANCELED",
-        //         "timeInForce":"GTC",
-        //         "type":"LIMIT",
-        //         "side":"BUY"
+        //         "symbol": "DOGE/USD",
+        //         "orderId": "00000000-0000-0003-0000-000006db764c",
+        //         "price": "0.13",
+        //         "origQty": "30.0",
+        //         "executedQty": "0.0",
+        //         "status": "CANCELED",
+        //         "timeInForce": "GTC",
+        //         "type": "LIMIT",
+        //         "side": "BUY",
         //     }
         //
         return this.parseOrder (response, market);
