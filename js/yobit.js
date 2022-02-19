@@ -206,6 +206,7 @@ module.exports = class yobit extends Exchange {
                 'SOLO': 'SoloCoin',
                 'STAR': 'StarCoin',
                 'SUPER': 'SuperCoin',
+                'TNS': 'Transcodium',
                 'TTC': 'TittieCoin',
                 'UNI': 'Universe',
                 'UST': 'Uservice',
