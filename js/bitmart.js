@@ -305,6 +305,7 @@ module.exports = class bitmart extends Exchange {
                 'PLA': 'Plair',
                 'TCT': 'TacoCat Token',
                 'TRU': 'Truebit', // conflict with TrueFi
+                'ULT': 'Ultiledger',
             },
             'options': {
                 'networks': {
