@@ -876,7 +876,8 @@ class okcoin extends Exchange {
             'spot' => $spot,
             'margin' => $spot && (Precise::string_gt($maxLeverageString, '1')),
             'swap' => $swap,
-            'futures' => $future,
+            'future' => $future,
+            'futures' => $future, // deprecated
             'option' => $option,
             'active' => true,
             'contract' => $contract,
