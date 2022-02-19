@@ -887,7 +887,8 @@ class okcoin(Exchange):
             'spot': spot,
             'margin': spot and (Precise.string_gt(maxLeverageString, '1')),
             'swap': swap,
-            'futures': future,
+            'future': future,
+            'futures': future,  # deprecated
             'option': option,
             'active': True,
             'contract': contract,

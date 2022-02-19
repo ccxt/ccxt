@@ -874,7 +874,8 @@ class okx(Exchange):
             'spot': spot,
             'margin': spot and (Precise.string_gt(maxLeverage, '1')),
             'swap': swap,
-            'futures': futures,
+            'future': futures,
+            'futures': futures,  # deprecated
             'option': option,
             'active': True,
             'contract': contract,
