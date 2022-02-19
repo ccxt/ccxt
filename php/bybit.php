@@ -857,10 +857,12 @@ class bybit extends Exchange {
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
             $id = $this->safe_string_2($market, 'name', 'symbol');
-            $baseId = $this->safe_string($market, 'base_currency');
-            $quoteId = $this->safe_string($market, 'quote_currency');
+            $baseId = $this->safe_string_2($market, 'base_currency', 'baseCoin');
+            $quoteId = $this->safe_string_2($market, 'quote_currency', 'quoteCoin');
+            $settleId = $this->safe_string($market, 'settleCoin');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            $settle = $this->safe_currency_code($settleId);
             $linear = (is_array($linearQuoteCurrencies) && array_key_exists($quote, $linearQuoteCurrencies));
             $inverse = !$linear;
             $symbol = $base . '/' . $quote;
@@ -886,23 +888,35 @@ class bybit extends Exchange {
             $swap = ($type === 'swap');
             $future = ($type === 'future');
             $option = ($type === 'option');
+            $contract = $swap || $future || $option;
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => $settle,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'settleId' => $settleId,
                 'active' => $active,
                 'precision' => $precision,
                 'taker' => $this->safe_number($market, 'taker_fee'),
                 'maker' => $this->safe_number($market, 'maker_fee'),
                 'type' => $type,
                 'spot' => $spot,
+                'margin' => null, // todo
+                'contract' => $contract,
+                'contractSize' => null, // todo
                 'swap' => $swap,
                 'future' => $future,
-                'futures' => $future, // * Deprecated, use $future
+                'futures' => $future, // Deprecated, use $future
                 'option' => $option,
                 'linear' => $linear,
                 'inverse' => $inverse,
+                'expiry' => null, // todo
+                'expiryDatetime' => null, // todo
+                'optionType' => null,
+                'strike' => null,
                 'limits' => array(
                     'amount' => array(
                         'min' => $this->safe_number($lotSizeFilter, 'min_trading_qty'),

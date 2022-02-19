@@ -869,10 +869,12 @@ class bybit(Exchange):
         for i in range(0, len(markets)):
             market = markets[i]
             id = self.safe_string_2(market, 'name', 'symbol')
-            baseId = self.safe_string(market, 'base_currency')
-            quoteId = self.safe_string(market, 'quote_currency')
+            baseId = self.safe_string_2(market, 'base_currency', 'baseCoin')
+            quoteId = self.safe_string_2(market, 'quote_currency', 'quoteCoin')
+            settleId = self.safe_string(market, 'settleCoin')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            settle = self.safe_currency_code(settleId)
             linear = (quote in linearQuoteCurrencies)
             inverse = not linear
             symbol = base + '/' + quote
@@ -896,23 +898,35 @@ class bybit(Exchange):
             swap = (type == 'swap')
             future = (type == 'future')
             option = (type == 'option')
+            contract = swap or future or option
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
                 'active': active,
                 'precision': precision,
                 'taker': self.safe_number(market, 'taker_fee'),
                 'maker': self.safe_number(market, 'maker_fee'),
                 'type': type,
                 'spot': spot,
+                'margin': None,  # todo
+                'contract': contract,
+                'contractSize': None,  # todo
                 'swap': swap,
                 'future': future,
-                'futures': future,  # * Deprecated, use future
+                'futures': future,  # Deprecated, use future
                 'option': option,
                 'linear': linear,
                 'inverse': inverse,
+                'expiry': None,  # todo
+                'expiryDatetime': None,  # todo
+                'optionType': None,
+                'strike': None,
                 'limits': {
                     'amount': {
                         'min': self.safe_number(lotSizeFilter, 'min_trading_qty'),
