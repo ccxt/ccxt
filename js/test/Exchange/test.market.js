@@ -94,7 +94,7 @@ module.exports = (exchange, market, method) => {
         const entry = types[i];
         if (entry in market) {
             const value = market[entry];
-            assert ((value === false) || (value === true));
+            assert ((value === undefined) || (value === false) || (value === true));
         }
     }
     if (market['future']) {
