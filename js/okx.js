@@ -860,7 +860,8 @@ module.exports = class okx extends Exchange {
             'spot': spot,
             'margin': spot && (Precise.stringGt (maxLeverage, '1')),
             'swap': swap,
-            'futures': futures,
+            'future': futures,
+            'futures': futures, // deprecated
             'option': option,
             'active': true,
             'contract': contract,
