@@ -358,16 +358,14 @@ class lykke(Exchange):
             baseId, quoteId = name.split('/')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            pricePrecision = self.safe_string(market, 'Accuracy')
-            priceLimit = self.parse_precision(pricePrecision)
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
                 'settle': None,
-                'baseId': None,
-                'quoteId': None,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'settleId': None,
                 'type': 'spot',
                 'spot': True,
@@ -386,7 +384,7 @@ class lykke(Exchange):
                 'optionType': None,
                 'precision': {
                     'amount': self.safe_integer(market, 'InvertedAccuracy'),
-                    'price': int(pricePrecision),
+                    'price': self.safe_integer(market, 'Accuracy'),
                 },
                 'limits': {
                     'leverage': {
@@ -398,7 +396,7 @@ class lykke(Exchange):
                         'max': None,
                     },
                     'price': {
-                        'min': self.parse_number(priceLimit),
+                        'min': None,
                         'max': None,
                     },
                     'cost': {
