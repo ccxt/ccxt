@@ -1036,12 +1036,14 @@ module.exports = class currencycom extends Exchange {
     parseOrderType (status) {
         const statuses = {
             'MARKET': 'market',
-            'LIMIT': 'limit', // TO_DO: what is LIMIT_MAKER ?
+            'LIMIT': 'limit',
             'STOP': 'stop',
-            'STOP_LOSS': 'stop-loss',
-            'STOP_LOSS_LIMIT': 'stop-limit',
-            'TAKE_PROFIT': 'take-profit',
-            'TAKE_PROFIT_LIMIT': 'take-profit',
+            // temporarily we remove custom mappings
+            // 'LIMIT_MAKER': '',
+            // 'STOP_LOSS': 'stop-loss',
+            // 'STOP_LOSS_LIMIT': 'stop-limit',
+            // 'TAKE_PROFIT': 'take-profit',
+            // 'TAKE_PROFIT_LIMIT': 'take-profit',
         };
         return this.safeString (statuses, status, status);
     }
