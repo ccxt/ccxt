@@ -1473,7 +1473,7 @@ class kucoinfutures extends kucoin {
         //      }
         //
         $marketId = $this->safe_string($trade, 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market, '-');
+        $market = $this->safe_market($marketId, $market, '-');
         $id = $this->safe_string_2($trade, 'tradeId', 'id');
         $orderId = $this->safe_string($trade, 'orderId');
         $takerOrMaker = $this->safe_string($trade, 'liquidity');
@@ -1496,9 +1496,7 @@ class kucoinfutures extends kucoin {
             $feeCurrencyId = $this->safe_string($trade, 'feeCurrency');
             $feeCurrency = $this->safe_currency_code($feeCurrencyId);
             if ($feeCurrency === null) {
-                if ($market !== null) {
-                    $feeCurrency = ($side === 'sell') ? $market['quote'] : $market['base'];
-                }
+                $feeCurrency = ($side === 'sell') ? $market['quote'] : $market['base'];
             }
             $fee = array(
                 'cost' => $feeCostString,
@@ -1512,12 +1510,9 @@ class kucoinfutures extends kucoin {
         }
         $costString = $this->safe_string_2($trade, 'funds', 'value');
         if ($costString === null) {
-            $market = $this->market($symbol);
             $contractSize = $this->safe_string($market, 'contractSize');
             $contractCost = Precise::string_mul($priceString, $amountString);
-            if ($contractSize && $contractCost) {
-                $costString = Precise::string_mul($contractCost, $contractSize);
-            }
+            $costString = Precise::string_mul($contractCost, $contractSize);
         }
         return $this->safe_trade(array(
             'info' => $trade,
@@ -1525,7 +1520,7 @@ class kucoinfutures extends kucoin {
             'order' => $orderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => $type,
             'takerOrMaker' => $takerOrMaker,
             'side' => $side,

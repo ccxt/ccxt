@@ -1415,7 +1415,7 @@ class kucoinfutures(kucoin):
         #      }
         #
         marketId = self.safe_string(trade, 'symbol')
-        symbol = self.safe_symbol(marketId, market, '-')
+        market = self.safe_market(marketId, market, '-')
         id = self.safe_string_2(trade, 'tradeId', 'id')
         orderId = self.safe_string(trade, 'orderId')
         takerOrMaker = self.safe_string(trade, 'liquidity')
@@ -1436,8 +1436,7 @@ class kucoinfutures(kucoin):
             feeCurrencyId = self.safe_string(trade, 'feeCurrency')
             feeCurrency = self.safe_currency_code(feeCurrencyId)
             if feeCurrency is None:
-                if market is not None:
-                    feeCurrency = market['quote'] if (side == 'sell') else market['base']
+                feeCurrency = market['quote'] if (side == 'sell') else market['base']
             fee = {
                 'cost': feeCostString,
                 'currency': feeCurrency,
@@ -1448,18 +1447,16 @@ class kucoinfutures(kucoin):
             type = None
         costString = self.safe_string_2(trade, 'funds', 'value')
         if costString is None:
-            market = self.market(symbol)
             contractSize = self.safe_string(market, 'contractSize')
             contractCost = Precise.string_mul(priceString, amountString)
-            if contractSize and contractCost:
-                costString = Precise.string_mul(contractCost, contractSize)
+            costString = Precise.string_mul(contractCost, contractSize)
         return self.safe_trade({
             'info': trade,
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'takerOrMaker': takerOrMaker,
             'side': side,
