@@ -477,15 +477,10 @@ class latoken1(Exchange):
             # 03 Jan 2009 - first block
             if timestamp < 1230940800000:
                 timestamp *= 1000
-        priceString = self.safe_string(trade, 'price')
-        amountString = self.safe_string(trade, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
+        price = self.safe_string(trade, 'price')
+        amount = self.safe_string(trade, 'amount')
         side = self.safe_string(trade, 'side')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        market = self.safe_market(None, market)
         id = self.safe_string(trade, 'id')
         orderId = self.safe_string(trade, 'orderId')
         feeCost = self.safe_number(trade, 'commission')
@@ -495,11 +490,11 @@ class latoken1(Exchange):
                 'cost': feeCost,
                 'currency': None,
             }
-        return {
+        return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'id': id,
             'order': orderId,
             'type': type,
@@ -507,9 +502,9 @@ class latoken1(Exchange):
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()

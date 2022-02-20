@@ -333,22 +333,24 @@ class luno(Exchange):
         elif (orderType == 'BID') or (orderType == 'BUY'):
             side = 'buy'
         marketId = self.safe_string(order, 'pair')
-        symbol = self.safe_symbol(marketId, market)
+        market = self.safe_market(marketId, market)
         price = self.safe_string(order, 'limit_price')
         amount = self.safe_string(order, 'limit_volume')
         quoteFee = self.safe_number(order, 'fee_counter')
         baseFee = self.safe_number(order, 'fee_base')
         filled = self.safe_string(order, 'base')
         cost = self.safe_string(order, 'counter')
-        fee = {'currency': None}
-        if quoteFee:
-            fee['cost'] = quoteFee
-            if market is not None:
-                fee['currency'] = market['quote']
-        else:
-            fee['cost'] = baseFee
-            if market is not None:
-                fee['currency'] = market['base']
+        fee = None
+        if quoteFee is not None:
+            fee = {
+                'cost': quoteFee,
+                'currency': market['quote'],
+            }
+        elif baseFee is not None:
+            fee = {
+                'cost': baseFee,
+                'currency': market['base'],
+            }
         id = self.safe_string(order, 'order_id')
         return self.safe_order({
             'id': id,
@@ -357,7 +359,7 @@ class luno(Exchange):
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
             'status': status,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': None,
             'timeInForce': None,
             'postOnly': None,

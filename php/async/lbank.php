@@ -311,10 +311,7 @@ class lbank extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market(null, $market);
         $timestamp = $this->safe_integer($trade, 'date_ms');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
@@ -330,7 +327,7 @@ class lbank extends Exchange {
             'info' => $this->safe_value($trade, 'info', $trade),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'order' => null,
             'type' => $type,
             'side' => $side,

@@ -573,20 +573,13 @@ class liquid(Exchange):
                 length = len(ticker['last_traded_price'])
                 if length > 0:
                     last = self.safe_string(ticker, 'last_traded_price')
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(ticker, 'id')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId = self.safe_string(ticker, 'base_currency')
-                quoteId = self.safe_string(ticker, 'quoted_currency')
-                if symbol in self.markets:
-                    market = self.markets[symbol]
-                else:
-                    symbol = self.safe_currency_code(baseId) + '/' + self.safe_currency_code(quoteId)
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(ticker, 'id')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        baseId = self.safe_string(ticker, 'base_currency')
+        quoteId = self.safe_string(ticker, 'quoted_currency')
+        if (baseId is not None) and (quoteId is not None):
+            symbol = self.safe_currency_code(baseId) + '/' + self.safe_currency_code(quoteId)
         open = self.safe_string(ticker, 'last_price_24h')
         return self.safe_ticker({
             'symbol': symbol,
@@ -647,30 +640,25 @@ class liquid(Exchange):
         takerOrMaker = None
         if mySide is not None:
             takerOrMaker = 'taker' if (takerSide == mySide) else 'maker'
-        priceString = self.safe_string(trade, 'price')
-        amountString = self.safe_string(trade, 'quantity')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
+        price = self.safe_string(trade, 'price')
+        amount = self.safe_string(trade, 'quantity')
         id = self.safe_string(trade, 'id')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        return {
+        market = self.safe_market(None, market)
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': None,
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'fee': None,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -841,11 +829,6 @@ class liquid(Exchange):
         amount = self.safe_number(order, 'quantity')
         filled = self.safe_number(order, 'filled_quantity')
         price = self.safe_number(order, 'price')
-        symbol = None
-        feeCurrency = None
-        if market is not None:
-            symbol = market['symbol']
-            feeCurrency = market['quote']
         type = self.safe_string(order, 'order_type')
         tradeCost = 0
         tradeFilled = 0
@@ -888,7 +871,7 @@ class liquid(Exchange):
             'timeInForce': None,
             'postOnly': None,
             'status': status,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'side': side,
             'price': price,
             'stopPrice': None,
@@ -899,7 +882,7 @@ class liquid(Exchange):
             'average': average,
             'trades': trades,
             'fee': {
-                'currency': feeCurrency,
+                'currency': market['quote'],
                 'cost': self.safe_number(order, 'order_fee'),
             },
             'info': order,
