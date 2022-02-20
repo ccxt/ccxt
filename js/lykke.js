@@ -373,16 +373,14 @@ module.exports = class lykke extends Exchange {
             const [ baseId, quoteId ] = name.split ('/');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const pricePrecision = this.safeString (market, 'Accuracy');
-            const priceLimit = this.parsePrecision (pricePrecision);
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
                 'settle': undefined,
-                'baseId': undefined,
-                'quoteId': undefined,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
@@ -401,7 +399,7 @@ module.exports = class lykke extends Exchange {
                 'optionType': undefined,
                 'precision': {
                     'amount': this.safeInteger (market, 'InvertedAccuracy'),
-                    'price': parseInt (pricePrecision),
+                    'price': this.safeInteger (market, 'Accuracy'),
                 },
                 'limits': {
                     'leverage': {
@@ -413,7 +411,7 @@ module.exports = class lykke extends Exchange {
                         'max': undefined,
                     },
                     'price': {
-                        'min': this.parseNumber (priceLimit),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
