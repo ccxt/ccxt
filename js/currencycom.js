@@ -1020,8 +1020,8 @@ module.exports = class currencycom extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status, inverted = false) {
-        let statuses = {
+    parseOrderStatus (status) {
+        const statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
@@ -1030,21 +1030,11 @@ module.exports = class currencycom extends Exchange {
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
         };
-        if (inverted) {
-            statuses = {
-                'open': 'NEW',
-                'closed': 'FILLED',
-                'canceled': 'CANCELED',
-                'canceling': 'PENDING_CANCEL',
-                'rejected': 'REJECTED',
-                'expired': 'EXPIRED',
-            };
-        }
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (status, inverted = false) {
-        let statuses = {
+    parseOrderType (status) {
+        const statuses = {
             'MARKET': 'market',
             'LIMIT': 'limit', // TO_DO: what is LIMIT_MAKER ?
             'STOP': 'stop',
@@ -1053,41 +1043,23 @@ module.exports = class currencycom extends Exchange {
             'TAKE_PROFIT': 'take-profit',
             'TAKE_PROFIT_LIMIT': 'take-profit',
         };
-        if (inverted) {
-            statuses = {
-                'market': 'MARKET',
-                'limit': 'LIMIT',
-                'stop': 'STOP',
-                'stop-loss': 'STOP_LOSS',
-                'stop-limit': 'STOP_LOSS_LIMIT',
-                'take-profit': 'TAKE_PROFIT',
-            };
-        }
         return this.safeString (statuses, status, status);
     }
 
     parseOrderTimeInForce (status) {
-        // we dont have 'inverted' for this specific exchange, because all values match, so no need to invert
         const statuses = {
             'GTC': 'GTC',
             'FOK': 'FOK',
             'IOC': 'IOC',
         };
-        // inverted will not have any change, so ignoring it
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderSide (status, inverted = false) {
-        let statuses = {
+    parseOrderSide (status) {
+        const statuses = {
             'BUY': 'buy',
             'SELL': 'sell',
         };
-        if (inverted) {
-            statuses = {
-                'buy': 'BUY',
-                'sell': 'SELL',
-            };
-        }
         return this.safeString (statuses, status, status);
     }
 
@@ -1105,8 +1077,8 @@ module.exports = class currencycom extends Exchange {
         const request = {
             'symbol': market['id'],
             'quantity': this.amountToPrecision (symbol, amount),
-            'type': this.parseOrderType (type, true),
-            'side': this.parseOrderSide (side, true),
+            'type': type.toUpperCase (),
+            'side': side.toUpperCase (),
             'newOrderRespType': newOrderRespType, // 'RESULT' for full order or 'FULL' for order with fills
             // 'leverage': 1,
             // 'accountId': 5470306579272968, // required for leverage markets
@@ -1116,7 +1088,7 @@ module.exports = class currencycom extends Exchange {
         };
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
-            request['timeInForce'] = this.parseOrderTimeInForce (this.options['defaultTimeInForce']);
+            request['timeInForce'] = this.options['defaultTimeInForce'];
         } else if (type === 'stop') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
