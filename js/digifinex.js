@@ -670,7 +670,11 @@ module.exports = class digifinex extends Exchange {
         const orderId = this.safeString (trade, 'order_id');
         const timestamp = this.safeTimestamp2 (trade, 'date', 'timestamp');
         let side = this.safeString2 (trade, 'type', 'side');
-        side = side.replace ('_market', '');
+        let type = undefined;
+        if (side.indexOf ('_market') >= 0) {
+            side = side.replace ('_market', '');
+            type = 'market';
+        }
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
         const marketId = this.safeString (trade, 'symbol');
@@ -692,7 +696,7 @@ module.exports = class digifinex extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'type': undefined,
+            'type': type,
             'order': orderId,
             'side': side,
             'price': priceString,
