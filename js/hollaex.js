@@ -575,11 +575,9 @@ module.exports = class hollaex extends Exchange {
         const feeCostString = this.safeString (trade, 'fee');
         let fee = undefined;
         if (feeCostString !== undefined) {
-            const quote = market['quote'];
-            const feeCurrencyCode = (market !== undefined) ? market['quote'] : quote;
             fee = {
                 'cost': feeCostString,
-                'currency': feeCurrencyCode,
+                'currency': market['quote'],
             };
         }
         return this.safeTrade ({
