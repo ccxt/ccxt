@@ -1436,8 +1436,35 @@ class Exchange(object):
         values = list(markets.values()) if type(markets) is dict else markets
         for i in range(0, len(values)):
             values[i] = self.extend(
+                {
+                    'id': None,
+                    'symbol': None,
+                    'base': None,
+                    'quote': None,
+                    'baseId': None,
+                    'quoteId': None,
+                    'active': None,
+                    'type': None,
+                    'linear': None,
+                    'inverse': None,
+                    'spot': False,
+                    'swap': False,
+                    'future': False,
+                    'option': False,
+                    'margin': False,
+                    'contract': False,
+                    'contractSize': None,
+                    'expiry': None,
+                    'expiryDatetime': None,
+                    'optionType': None,
+                    'strike': None,
+                    'settle': None,
+                    'settleId': None,
+                    'precision': self.precision,
+                    'limits': self.limits,
+                    'info': None,
+                },
                 self.fees['trading'],
-                {'precision': self.precision, 'limits': self.limits},
                 values[i]
             )
         self.markets = self.index_by(values, 'symbol')
