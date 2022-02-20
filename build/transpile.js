@@ -1544,6 +1544,11 @@ class Transpiler {
     transpileExchangeTests () {
         const tests = [
             {
+                'jsFile': './js/test/Exchange/test.market.js',
+                'pyFile': './python/ccxt/test/test_market.py',
+                'phpFile': './php/test/test_market.php',
+            },
+            {
                 'jsFile': './js/test/Exchange/test.trade.js',
                 'pyFile': './python/ccxt/test/test_trade.py',
                 'phpFile': './php/test/test_trade.php',
