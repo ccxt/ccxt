@@ -371,9 +371,7 @@ module.exports = class coincheck extends Exchange {
             }
         }
         if (symbol === undefined) {
-            if (market !== undefined) {
-                symbol = market['symbol'];
-            }
+            symbol = this.safeSymbol (undefined, market);
         }
         let takerOrMaker = undefined;
         let amountString = undefined;
