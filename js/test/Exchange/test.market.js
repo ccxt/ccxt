@@ -55,7 +55,8 @@ function testMarket (exchange, market, method) {
     let keys = Object.keys (format);
     for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
-        assert (key in market);
+        const keyPresent = (key in market);
+        assert (keyPresent, key + ' missing ' + exchange.json (market));
     }
     keys = [
         'id',
@@ -69,7 +70,7 @@ function testMarket (exchange, market, method) {
     ];
     for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
-        assert (market[key] !== undefined);
+        assert (market[key] !== undefined, key + ' undefined ' + exchange.json (market));
     }
     assert ((market['taker'] === undefined) || (typeof market['taker'] === 'number'));
     assert ((market['maker'] === undefined) || (typeof market['maker'] === 'number'));
