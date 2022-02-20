@@ -44,7 +44,7 @@ module.exports = class bitopro extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
-                'fetchOHLCV': 'emulated',
+                'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -160,14 +160,17 @@ module.exports = class bitopro extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    'Unsupported currency.': BadRequest,
-                    'Invalid Signature': AuthenticationError,
+                    'Unsupported currency.': BadRequest, // {"error":"Unsupported currency."}
+                    'Unsupported order type': BadRequest, // {"error":"Unsupported order type"}
+                    'Invalid body': BadRequest, // {"error":"Invalid body"}
+                    'Invalid Signature': AuthenticationError, // {"error":"Invalid Signature"}
+                    'Address not in whitelist.': BadRequest,
                 },
                 'broad': {
-                    'Invalid amount': InvalidOrder,
-                    'Balance for ': InsufficientFunds,
-                    'Invalid ': BadRequest,
-                    'Wrong parameter': BadRequest,
+                    'Invalid amount': InvalidOrder, // {"error":"Invalid amount 0.0000000001, decimal limit is 8."}
+                    'Balance for ': InsufficientFunds, // {"error":"Balance for eth not enough, only has 0, but ordered 0.01."}
+                    'Invalid ': BadRequest, // {"error":"Invalid price -1."}
+                    'Wrong parameter': BadRequest, // {"error":"Wrong parameter: from"}
                 },
             },
             'commonCurrencies': {
