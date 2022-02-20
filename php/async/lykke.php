@@ -375,16 +375,14 @@ class lykke extends Exchange {
             list($baseId, $quoteId) = explode('/', $name);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $pricePrecision = $this->safe_string($market, 'Accuracy');
-            $priceLimit = $this->parse_precision($pricePrecision);
             $result[] = array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
                 'settle' => null,
-                'baseId' => null,
-                'quoteId' => null,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'settleId' => null,
                 'type' => 'spot',
                 'spot' => true,
@@ -403,7 +401,7 @@ class lykke extends Exchange {
                 'optionType' => null,
                 'precision' => array(
                     'amount' => $this->safe_integer($market, 'InvertedAccuracy'),
-                    'price' => intval($pricePrecision),
+                    'price' => $this->safe_integer($market, 'Accuracy'),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -415,7 +413,7 @@ class lykke extends Exchange {
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => $this->parse_number($priceLimit),
+                        'min' => null,
                         'max' => null,
                     ),
                     'cost' => array(
