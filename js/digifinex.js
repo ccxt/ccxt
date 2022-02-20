@@ -662,7 +662,7 @@ module.exports = class digifinex extends Exchange {
         //         "fee": 0.096,
         //         "fee_currency": "USDT",
         //         "timestamp": 1499865549,
-        //         "side": "buy", // or "side":"sell_market"
+        //         "side": "buy", // or "side": "sell_market"
         //         "is_maker": true
         //     }
         //
