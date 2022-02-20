@@ -175,6 +175,7 @@ module.exports = class bithumb extends Exchange {
         const quotes = Object.keys (quoteCurrencies);
         for (let i = 0; i < quotes.length; i++) {
             const quote = quotes[i];
+            const quoteId = quote;
             const extension = this.safeValue (quoteCurrencies, quote, {});
             const method = 'publicGetTickerALL' + quote;
             const response = await this[method] (params);
@@ -201,7 +202,7 @@ module.exports = class bithumb extends Exchange {
                     'quote': quote,
                     'settle': undefined,
                     'baseId': currencyId,
-                    'quoteId': undefined,
+                    'quoteId': quoteId,
                     'settleId': undefined,
                     'type': 'spot',
                     'spot': true,
