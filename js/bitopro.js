@@ -109,6 +109,7 @@ module.exports = class bitopro extends Exchange {
                         'accounts/balance',
                         'orders/history',
                         'orders/all/{pair}',
+                        'orders/trades/{pair}',
                         'orders/{pair}/{orderId}',
                         'wallet/withdraw/{currency}/{serial}',
                         'wallet/withdraw/{currency}/id/{id}',
@@ -444,34 +445,29 @@ module.exports = class bitopro extends Exchange {
         //
         // fetchTrades
         //         {
-        //             "timestamp":1644651458,
-        //             "price":"1180785.00000000",
-        //             "amount":"0.00020000",
-        //             "isBuyer":false
+        //                 "timestamp":1644651458,
+        //                 "price":"1180785.00000000",
+        //                 "amount":"0.00020000",
+        //                 "isBuyer":false
         //         }
         //
         // fetchMyTrades
         //         {
-        //             "id":"8384438099",
-        //             "pair":"bnb_twd",
-        //             "price":"16000",
-        //             "avgExecutionPrice":"0",
-        //             "action":"SELL",
-        //             "type":"LIMIT",
-        //             "timestamp":1644902118265,
-        //             "status":4,
-        //             "originalAmount":"0.01",
-        //             "remainingAmount":"0.01",
-        //             "executedAmount":"0",
-        //             "fee":"0",
-        //             "feeSymbol":"twd",
-        //             "bitoFee":"0",
-        //             "total":"0",
-        //             "seq":"BNBTWD8984230567",
-        //             "updatedTimestamp":1644902118265
+        //                 "tradeId":"5685030251",
+        //                 "orderId":"9669168142",
+        //                 "price":"11821.8",
+        //                 "action":"SELL",
+        //                 "baseAmount":"0.01",
+        //                 "quoteAmount":"118.218",
+        //                 "fee":"0.236436",
+        //                 "feeSymbol":"BNB",
+        //                 "isTaker":true,
+        //                 "timestamp":1644905714862,
+        //                 "createdTimestamp":1644905714862
         //         }
         //
-        const id = this.safeString (trade, 'id');
+        const id = this.safeString (trade, 'tradeId');
+        const orderId = this.safeString (trade, 'orderId');
         let timestamp = undefined;
         if (id === undefined) {
             timestamp = this.safeTimestamp (trade, 'timestamp');
@@ -494,7 +490,7 @@ module.exports = class bitopro extends Exchange {
         }
         let amount = this.safeString (trade, 'amount');
         if (amount === undefined) {
-            amount = this.safeString (trade, 'executedAmount');
+            amount = this.safeString (trade, 'baseAmount');
         }
         let fee = undefined;
         const feeAmount = this.safeString (trade, 'fee');
@@ -506,14 +502,23 @@ module.exports = class bitopro extends Exchange {
                 'rate': undefined,
             };
         }
+        const isTaker = this.safeValue (trade, 'isTaker');
+        let takerOrMaker = undefined;
+        if (isTaker !== undefined) {
+            if (isTaker) {
+                takerOrMaker = 'taker';
+            } else {
+                takerOrMaker = 'maker';
+            }
+        }
         return this.safeTrade ({
             'id': id,
             'info': trade,
-            'order': undefined,
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'type': type,
             'side': side,
             'price': price,
@@ -1011,29 +1016,23 @@ module.exports = class bitopro extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const response = await this.privateGetOrdersHistory (this.extend (request, params));
+        const response = await this.privateGetOrdersTradesPair (this.extend (request, params));
         const trades = this.safeValue (response, 'data', []);
         //
         //     {
         //         "data":[
         //             {
-        //                 "id":"8384438099",
-        //                 "pair":"bnb_twd",
-        //                 "price":"16000",
-        //                 "avgExecutionPrice":"0",
+        //                 "tradeId":"5685030251",
+        //                 "orderId":"9669168142",
+        //                 "price":"11821.8",
         //                 "action":"SELL",
-        //                 "type":"LIMIT",
-        //                 "timestamp":1644902118265,
-        //                 "status":4,
-        //                 "originalAmount":"0.01",
-        //                 "remainingAmount":"0.01",
-        //                 "executedAmount":"0",
-        //                 "fee":"0",
-        //                 "feeSymbol":"twd",
-        //                 "bitoFee":"0",
-        //                 "total":"0",
-        //                 "seq":"BNBTWD8984230567",
-        //                 "updatedTimestamp":1644902118265
+        //                 "baseAmount":"0.01",
+        //                 "quoteAmount":"118.218",
+        //                 "fee":"0.236436",
+        //                 "feeSymbol":"BNB",
+        //                 "isTaker":true,
+        //                 "timestamp":1644905714862,
+        //                 "createdTimestamp":1644905714862
         //             }
         //         ]
         //     }
