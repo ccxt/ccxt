@@ -177,6 +177,7 @@ class bithumb extends Exchange {
         $quotes = is_array($quoteCurrencies) ? array_keys($quoteCurrencies) : array();
         for ($i = 0; $i < count($quotes); $i++) {
             $quote = $quotes[$i];
+            $quoteId = $quote;
             $extension = $this->safe_value($quoteCurrencies, $quote, array());
             $method = 'publicGetTickerALL' . $quote;
             $response = $this->$method ($params);
@@ -203,7 +204,7 @@ class bithumb extends Exchange {
                     'quote' => $quote,
                     'settle' => null,
                     'baseId' => $currencyId,
-                    'quoteId' => null,
+                    'quoteId' => $quoteId,
                     'settleId' => null,
                     'type' => 'spot',
                     'spot' => true,

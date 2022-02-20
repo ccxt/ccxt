@@ -184,6 +184,7 @@ class bithumb(Exchange):
         quotes = list(quoteCurrencies.keys())
         for i in range(0, len(quotes)):
             quote = quotes[i]
+            quoteId = quote
             extension = self.safe_value(quoteCurrencies, quote, {})
             method = 'publicGetTickerALL' + quote
             response = await getattr(self, method)(params)
@@ -207,7 +208,7 @@ class bithumb(Exchange):
                     'quote': quote,
                     'settle': None,
                     'baseId': currencyId,
-                    'quoteId': None,
+                    'quoteId': quoteId,
                     'settleId': None,
                     'type': 'spot',
                     'spot': True,
