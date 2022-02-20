@@ -1470,7 +1470,7 @@ module.exports = class kucoinfutures extends kucoin {
         //      }
         //
         const marketId = this.safeString (trade, 'symbol');
-        const symbol = this.safeSymbol (marketId, market, '-');
+        market = this.safeMarket (marketId, market, '-');
         const id = this.safeString2 (trade, 'tradeId', 'id');
         const orderId = this.safeString (trade, 'orderId');
         const takerOrMaker = this.safeString (trade, 'liquidity');
@@ -1493,9 +1493,7 @@ module.exports = class kucoinfutures extends kucoin {
             const feeCurrencyId = this.safeString (trade, 'feeCurrency');
             let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
             if (feeCurrency === undefined) {
-                if (market !== undefined) {
-                    feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
-                }
+                feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
             }
             fee = {
                 'cost': feeCostString,
@@ -1509,12 +1507,9 @@ module.exports = class kucoinfutures extends kucoin {
         }
         let costString = this.safeString2 (trade, 'funds', 'value');
         if (costString === undefined) {
-            market = this.market (symbol);
             const contractSize = this.safeString (market, 'contractSize');
             const contractCost = Precise.stringMul (priceString, amountString);
-            if (contractSize && contractCost) {
-                costString = Precise.stringMul (contractCost, contractSize);
-            }
+            costString = Precise.stringMul (contractCost, contractSize);
         }
         return this.safeTrade ({
             'info': trade,
@@ -1522,7 +1517,7 @@ module.exports = class kucoinfutures extends kucoin {
             'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'takerOrMaker': takerOrMaker,
             'side': side,
