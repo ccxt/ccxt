@@ -233,17 +233,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 2
      
    * - Cayman Islands
-     - .. image:: https://user-images.githubusercontent.com/1294454/61511972-24c39f00-aa01-11e9-9f7c-471f1d6e5214.jpg
-          :target: https://latoken.com/invite?r=mvgp2djk
-          :alt: latoken1
-     
-     - latoken1
-     - `Latoken <https://latoken.com/invite?r=mvgp2djk>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://api.latoken.com
-          :alt: API Version 1
-     
-   * - Cayman Islands
      - .. image:: https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg
           :target: https://referral.woo.org/BAJS6oNmZb3vi3RGA
           :alt: woo
