@@ -4,13 +4,13 @@ const assert = require ('assert')
 
 function testMarket (exchange, market, method) {
     const format = {
-        'id':      'btcusd', // string literal for referencing within an exchange
-        'symbol':  'BTC/USD', // uppercase string literal of a pair of currencies
-        'base':    'BTC', // unified uppercase string, base currency, 3 or more letters
-        'quote':   'USD', // unified uppercase string, quote currency, 3 or more letters
-        'taker':   0.0011, // taker fee, for example, 0.0011 = 0.11%
-        'maker':   0.0009, // maker fee, for example, 0.0009 = 0.09%
-        'baseId':  'btc', // exchange-specific base currency id
+        'id': 'btcusd', // string literal for referencing within an exchange
+        'symbol': 'BTC/USD', // uppercase string literal of a pair of currencies
+        'base': 'BTC', // unified uppercase string, base currency, 3 or more letters
+        'quote': 'USD', // unified uppercase string, quote currency, 3 or more letters
+        'taker': 0.0011, // taker fee, for example, 0.0011 = 0.11%
+        'maker': 0.0009, // maker fee, for example, 0.0009 = 0.09%
+        'baseId': 'btc', // exchange-specific base currency id
         'quoteId': 'usd', // exchange-specific quote currency id
         'active': true, // boolean, market status
         'type': 'spot',
@@ -45,19 +45,19 @@ function testMarket (exchange, market, method) {
                 'max': 1000, // order price should be < max
             },
             // order cost = price * amount
-            'cost':  {
+            'cost': {
                 'min': 0.01, // order cost should be > min
                 'max': 1000, // order cost should be < max
             },
         },
         'info': {}, // the original unparsed market info from the exchange
     };
-    const keys = Object.keys (format);
+    let keys = Object.keys (format);
     for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
-        assert (key in market, key + ' not found in ' + JSON.stringify (market));
+        assert (key in market);
     }
-    const requiredKeys = [
+    keys = [
         'id',
         'symbol',
         'baseId',
@@ -67,14 +67,14 @@ function testMarket (exchange, market, method) {
         'precision',
         'limits',
     ];
-    for (let i = 0; i < requiredKeys.length; i++) {
-        const key = requiredKeys[i];
+    for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
         assert (market[key] !== undefined);
     }
     assert ((market['taker'] === undefined) || (typeof market['taker'] === 'number'));
     assert ((market['maker'] === undefined) || (typeof market['maker'] === 'number'));
     if (market['contract']) {
-        assert (market['linear'] === !market['inverse']);
+        assert (market['linear'] !== market['inverse']);
     } else {
         assert ((market['linear'] === undefined) && (market['inverse'] === undefined));
     }
@@ -101,11 +101,11 @@ function testMarket (exchange, market, method) {
         const entry = types[i];
         if (entry in market) {
             const value = market[entry];
-            assert ((value === undefined) || (value === false) || (value === true));
+            assert ((value === undefined) || value || !value);
         }
     }
     //
-    // todo: fix binance
+    // todo fix binance
     //
     // if (market['future']) {
     //     assert ((market['swap'] === false) && (market['option'] === false));
