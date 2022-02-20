@@ -374,9 +374,7 @@ class coincheck extends Exchange {
             }
         }
         if ($symbol === null) {
-            if ($market !== null) {
-                $symbol = $market['symbol'];
-            }
+            $symbol = $this->safe_symbol(null, $market);
         }
         $takerOrMaker = null;
         $amountString = null;

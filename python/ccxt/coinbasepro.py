@@ -639,27 +639,24 @@ class coinbasepro(Exchange):
         #
         timestamp = self.parse8601(self.safe_string_2(trade, 'time', 'created_at'))
         marketId = self.safe_string(trade, 'product_id')
-        symbol = self.safe_symbol(marketId, market, '-')
+        market = self.safe_market(marketId, market, '-')
         feeRate = None
-        feeCurrency = None
         takerOrMaker = None
         cost = None
-        if market is not None:
-            feeCurrencyId = self.safe_string_lower(market, 'quoteId')
+        feeCurrencyId = self.safe_string_lower(market, 'quoteId')
+        if feeCurrencyId is not None:
             costField = feeCurrencyId + '_value'
-            cost = self.safe_number(trade, costField)
-            feeCurrency = market['quote']
+            cost = self.safe_string(trade, costField)
             liquidity = self.safe_string(trade, 'liquidity')
             if liquidity is not None:
                 takerOrMaker = 'taker' if (liquidity == 'T') else 'maker'
-                feeRate = market[takerOrMaker]
-        feeCost = self.safe_number_2(trade, 'fill_fees', 'fee')
+                feeRate = self.safe_string(market, takerOrMaker)
+        feeCost = self.safe_string_2(trade, 'fill_fees', 'fee')
         fee = {
             'cost': feeCost,
-            'currency': feeCurrency,
+            'currency': market['quote'],
             'rate': feeRate,
         }
-        type = None
         id = self.safe_string(trade, 'trade_id')
         side = 'sell' if (trade['side'] == 'buy') else 'buy'
         orderId = self.safe_string(trade, 'order_id')
@@ -668,27 +665,23 @@ class coinbasepro(Exchange):
         takerOrderId = self.safe_string(trade, 'taker_order_id')
         if (orderId is not None) or ((makerOrderId is not None) and (takerOrderId is not None)):
             side = 'buy' if (trade['side'] == 'buy') else 'sell'
-        priceString = self.safe_string(trade, 'price')
-        amountString = self.safe_string(trade, 'size')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        if cost is None:
-            cost = self.parse_number(Precise.string_mul(priceString, amountString))
-        return {
+        price = self.safe_string(trade, 'price')
+        amount = self.safe_string(trade, 'size')
+        return self.safe_trade({
             'id': id,
             'order': orderId,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
-            'type': type,
+            'symbol': market['symbol'],
+            'type': None,
             'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
             'amount': amount,
             'fee': fee,
             'cost': cost,
-        }
+        }, market)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         # as of 2018-08-23
@@ -818,12 +811,9 @@ class coinbasepro(Exchange):
         feeCost = self.safe_number(order, 'fill_fees')
         fee = None
         if feeCost is not None:
-            feeCurrencyCode = None
-            if market is not None:
-                feeCurrencyCode = market['quote']
             fee = {
                 'cost': feeCost,
-                'currency': feeCurrencyCode,
+                'currency': market['quote'],
                 'rate': None,
             }
         id = self.safe_string(order, 'id')

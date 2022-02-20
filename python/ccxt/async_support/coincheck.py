@@ -359,8 +359,7 @@ class coincheck(Exchange):
                 quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
         if symbol is None:
-            if market is not None:
-                symbol = market['symbol']
+            symbol = self.safe_symbol(None, market)
         takerOrMaker = None
         amountString = None
         costString = None
