@@ -634,7 +634,7 @@ module.exports = class bitvavo extends Exchange {
         const timestamp = this.safeInteger (trade, 'timestamp');
         const side = this.safeString (trade, 'side');
         const id = this.safeString2 (trade, 'id', 'fillId');
-        const marketId = this.safeInteger (trade, 'market');
+        const marketId = this.safeString (trade, 'market');
         const symbol = this.safeSymbol (marketId, market, '-');
         const taker = this.safeValue (trade, 'taker');
         let takerOrMaker = undefined;
@@ -1346,7 +1346,7 @@ module.exports = class bitvavo extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactions (response, currency, since, limit);
+        return this.parseTransactions (response, currency, since, limit, { 'type': 'withdrawal' });
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1381,7 +1381,7 @@ module.exports = class bitvavo extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactions (response, currency, since, limit);
+        return this.parseTransactions (response, currency, since, limit, { 'type': 'deposit' });
     }
 
     parseTransactionStatus (status) {
@@ -1450,10 +1450,10 @@ module.exports = class bitvavo extends Exchange {
             };
         }
         let type = undefined;
-        if ('success' in transaction) {
+        if ('success' in transaction || 'address' in transaction) {
             type = 'withdrawal';
         } else {
-            type = (status === undefined) ? 'deposit' : 'withdrawal';
+            type = 'deposit';
         }
         const tag = this.safeString (transaction, 'paymentId');
         return {
