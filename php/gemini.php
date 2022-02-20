@@ -542,33 +542,28 @@ class gemini extends Exchange {
         $timestamp = $this->safe_integer($volume, 'timestamp');
         $symbol = null;
         $marketId = $this->safe_string_lower($ticker, 'pair');
+        $market = $this->safe_market($marketId, $market);
         $baseId = null;
         $quoteId = null;
         $base = null;
         $quote = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
+        if (($marketId !== null) && ($market === null)) {
+            $idLength = strlen($marketId) - 0;
+            if ($idLength === 7) {
+                $baseId = mb_substr($marketId, 0, 4 - 0);
+                $quoteId = mb_substr($marketId, 4, 7 - 4);
             } else {
-                $idLength = strlen($marketId) - 0;
-                if ($idLength === 7) {
-                    $baseId = mb_substr($marketId, 0, 4 - 0);
-                    $quoteId = mb_substr($marketId, 4, 7 - 4);
-                } else {
-                    $baseId = mb_substr($marketId, 0, 3 - 0);
-                    $quoteId = mb_substr($marketId, 3, 6 - 3);
-                }
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
+                $baseId = mb_substr($marketId, 0, 3 - 0);
+                $quoteId = mb_substr($marketId, 3, 6 - 3);
             }
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
+            $symbol = $base . '/' . $quote;
         }
         if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
-            $baseId = strtoupper($market['baseId']);
-            $quoteId = strtoupper($market['quoteId']);
-            $base = $market['base'];
-            $quote = $market['quote'];
+            $baseId = $this->safe_string_upper($market, 'baseId');
+            $quoteId = $this->safe_string_upper($market, 'quoteId');
         }
         $price = $this->safe_string($ticker, 'price');
         $last = $this->safe_string_2($ticker, 'last', 'close', $price);

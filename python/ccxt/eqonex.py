@@ -564,7 +564,7 @@ class eqonex(Exchange):
         priceString = None
         amountString = None
         fee = None
-        symbol = None
+        marketId = None
         if isinstance(trade, list):
             id = self.safe_string(trade, 3)
             priceString = self.convert_from_scale(self.safe_string(trade, 0), market['precision']['price'])
@@ -579,7 +579,6 @@ class eqonex(Exchange):
             id = self.safe_string(trade, 'execId')
             timestamp = self.safe_integer(trade, 'time')
             marketId = self.safe_string(trade, 'symbol')
-            symbol = self.safe_symbol(marketId, market)
             orderId = self.safe_string(trade, 'orderId')
             side = self.safe_string_lower(trade, 'side')
             type = self.parse_order_type(self.safe_string(trade, 'ordType'))
@@ -594,14 +593,13 @@ class eqonex(Exchange):
                     'cost': feeCostString,
                     'currency': feeCurrencyCode,
                 }
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        market = self.safe_market(marketId, market)
         return self.safe_trade({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': orderId,
             'type': type,
             'side': side,

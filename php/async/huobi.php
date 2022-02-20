@@ -3140,7 +3140,7 @@ class huobi extends Exchange {
         //
         //     {
         //         $id =>  13997833014,
-        //         $symbol => "ethbtc",
+        //         symbol => "ethbtc",
         //         'account-id' =>  3398321,
         //         $amount => "0.045000000000000000",
         //         $price => "0.034014000000000000",
@@ -3157,7 +3157,7 @@ class huobi extends Exchange {
         //
         //     {
         //         $id =>  20395337822,
-        //         $symbol => "ethbtc",
+        //         symbol => "ethbtc",
         //         'account-id' =>  5685075,
         //         $amount => "0.001000000000000000",
         //         $price => "0.0",
@@ -3286,7 +3286,6 @@ class huobi extends Exchange {
         $status = $this->parse_order_status($this->safe_string_2($order, 'state', 'status'));
         $marketId = $this->safe_string_2($order, 'contract_code', 'symbol');
         $market = $this->safe_market($marketId, $market);
-        $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_integer_2($order, 'created_at', 'created-at');
         $clientOrderId = $this->safe_string_2($order, 'client_order_id', 'client-$order-id');
         $amount = $this->safe_string_2($order, 'volume', 'amount');
@@ -3304,9 +3303,7 @@ class huobi extends Exchange {
             if ($feeCurrencyId !== null) {
                 $feeCurrency = $this->safe_currency_code($feeCurrencyId);
             } else {
-                if ($market !== null) {
-                    $feeCurrency = ($side === 'sell') ? $market['quote'] : $market['base'];
-                }
+                $feeCurrency = ($side === 'sell') ? $market['quote'] : $market['base'];
             }
             $fee = array(
                 'cost' => $feeCost,
@@ -3323,7 +3320,7 @@ class huobi extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => $type,
             'timeInForce' => null,
             'postOnly' => null,

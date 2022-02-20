@@ -1537,7 +1537,7 @@ class kucoin extends Exchange {
         //
         //     {
         //         sequence => '1568787654360',
-        //         $symbol => 'BTC-USDT',
+        //         symbol => 'BTC-USDT',
         //         $side => 'buy',
         //         size => '0.00536577',
         //         price => '9345',
@@ -1572,7 +1572,7 @@ class kucoin extends Exchange {
         // fetchMyTrades v2 alternative format since 2019-05-21 https://github.com/ccxt/ccxt/pull/5162
         //
         //     {
-        //         $symbol => "OPEN-BTC",
+        //         symbol => "OPEN-BTC",
         //         forceTaker =>  false,
         //         $orderId => "5ce36420054b4663b1fff2c9",
         //         $fee => "0",
@@ -1601,7 +1601,7 @@ class kucoin extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($trade, 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market, '-');
+        $market = $this->safe_market($marketId, $market, '-');
         $id = $this->safe_string_2($trade, 'tradeId', 'id');
         $orderId = $this->safe_string($trade, 'orderId');
         $takerOrMaker = $this->safe_string($trade, 'liquidity');
@@ -1624,9 +1624,7 @@ class kucoin extends Exchange {
             $feeCurrencyId = $this->safe_string($trade, 'feeCurrency');
             $feeCurrency = $this->safe_currency_code($feeCurrencyId);
             if ($feeCurrency === null) {
-                if ($market !== null) {
-                    $feeCurrency = ($side === 'sell') ? $market['quote'] : $market['base'];
-                }
+                $feeCurrency = ($side === 'sell') ? $market['quote'] : $market['base'];
             }
             $fee = array(
                 'cost' => $feeCostString,
@@ -1645,7 +1643,7 @@ class kucoin extends Exchange {
             'order' => $orderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => $type,
             'takerOrMaker' => $takerOrMaker,
             'side' => $side,

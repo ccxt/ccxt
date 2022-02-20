@@ -567,11 +567,9 @@ class hollaex(Exchange):
         feeCostString = self.safe_string(trade, 'fee')
         fee = None
         if feeCostString is not None:
-            quote = market['quote']
-            feeCurrencyCode = market['quote'] if (market is not None) else quote
             fee = {
                 'cost': feeCostString,
-                'currency': feeCurrencyCode,
+                'currency': market['quote'],
             }
         return self.safe_trade({
             'info': trade,
