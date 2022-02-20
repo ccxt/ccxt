@@ -1450,7 +1450,7 @@ module.exports = class bitvavo extends Exchange {
             };
         }
         let type = undefined;
-        if ('success' in transaction || 'address' in transaction) {
+        if (('success' in transaction) || ('address' in transaction)) {
             type = 'withdrawal';
         } else {
             type = 'deposit';
