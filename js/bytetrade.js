@@ -610,14 +610,8 @@ module.exports = class bytetrade extends Exchange {
         const side = this.safeString (trade, 'side');
         const datetime = this.iso8601 (timestamp); // this.safeString (trade, 'datetime');
         const order = this.safeString (trade, 'order');
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (trade, 'symbol');
-            market = this.safeValue (this.markets_by_id, marketId);
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
         const feeData = this.safeValue (trade, 'fee');
         const feeCostString = this.safeString (feeData, 'cost');
         const feeRateString = this.safeString (feeData, 'rate');
@@ -632,7 +626,7 @@ module.exports = class bytetrade extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': datetime,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'id': id,
             'order': order,
             'type': type,
