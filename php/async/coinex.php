@@ -703,16 +703,12 @@ class coinex extends Exchange {
         $filledString = $this->safe_string($order, 'deal_amount');
         $averageString = $this->safe_string($order, 'avg_price');
         $remainingString = $this->safe_string($order, 'left');
-        $symbol = null;
         $marketId = $this->safe_string($order, 'market');
         $market = $this->safe_market($marketId, $market);
         $feeCurrencyId = $this->safe_string($order, 'fee_asset');
         $feeCurrency = $this->safe_currency_code($feeCurrencyId);
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-            if ($feeCurrency === null) {
-                $feeCurrency = $market['quote'];
-            }
+        if ($feeCurrency === null) {
+            $feeCurrency = $market['quote'];
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $type = $this->safe_string($order, 'order_type');
@@ -724,7 +720,7 @@ class coinex extends Exchange {
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
             'status' => $status,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => $type,
             'timeInForce' => null,
             'postOnly' => null,

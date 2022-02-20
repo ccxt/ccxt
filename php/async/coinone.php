@@ -365,7 +365,7 @@ class coinone extends Exchange {
         //     }
         //
         $timestamp = $this->safe_timestamp($trade, 'timestamp');
-        $symbol = ($market !== null) ? $market['symbol'] : null;
+        $market = $this->safe_market(null, $market);
         $is_ask = $this->safe_string($trade, 'is_ask');
         $side = $this->safe_string($trade, 'type');
         if ($is_ask !== null) {
@@ -390,10 +390,7 @@ class coinone extends Exchange {
             $feeCostString = Precise::string_abs($feeCostString);
             $feeRateString = $this->safe_string($trade, 'feeRate');
             $feeRateString = Precise::string_abs($feeRateString);
-            $feeCurrencyCode = null;
-            if ($market !== null) {
-                $feeCurrencyCode = ($side === 'sell') ? $market['quote'] : $market['base'];
-            }
+            $feeCurrencyCode = ($side === 'sell') ? $market['quote'] : $market['base'];
             $fee = array(
                 'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
@@ -406,7 +403,7 @@ class coinone extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'order' => $orderId,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,

@@ -685,15 +685,12 @@ class coinex(Exchange):
         filledString = self.safe_string(order, 'deal_amount')
         averageString = self.safe_string(order, 'avg_price')
         remainingString = self.safe_string(order, 'left')
-        symbol = None
         marketId = self.safe_string(order, 'market')
         market = self.safe_market(marketId, market)
         feeCurrencyId = self.safe_string(order, 'fee_asset')
         feeCurrency = self.safe_currency_code(feeCurrencyId)
-        if market is not None:
-            symbol = market['symbol']
-            if feeCurrency is None:
-                feeCurrency = market['quote']
+        if feeCurrency is None:
+            feeCurrency = market['quote']
         status = self.parse_order_status(self.safe_string(order, 'status'))
         type = self.safe_string(order, 'order_type')
         side = self.safe_string(order, 'type')
@@ -704,7 +701,7 @@ class coinex(Exchange):
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
             'status': status,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': None,
             'postOnly': None,
