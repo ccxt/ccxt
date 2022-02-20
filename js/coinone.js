@@ -362,7 +362,7 @@ module.exports = class coinone extends Exchange {
         //     }
         //
         const timestamp = this.safeTimestamp (trade, 'timestamp');
-        const symbol = (market !== undefined) ? market['symbol'] : undefined;
+        market = this.safeMarket (undefined, market);
         const is_ask = this.safeString (trade, 'is_ask');
         let side = this.safeString (trade, 'type');
         if (is_ask !== undefined) {
@@ -387,10 +387,7 @@ module.exports = class coinone extends Exchange {
             feeCostString = Precise.stringAbs (feeCostString);
             let feeRateString = this.safeString (trade, 'feeRate');
             feeRateString = Precise.stringAbs (feeRateString);
-            let feeCurrencyCode = undefined;
-            if (market !== undefined) {
-                feeCurrencyCode = (side === 'sell') ? market['quote'] : market['base'];
-            }
+            const feeCurrencyCode = (side === 'sell') ? market['quote'] : market['base'];
             fee = {
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,
@@ -403,7 +400,7 @@ module.exports = class coinone extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'order': orderId,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
