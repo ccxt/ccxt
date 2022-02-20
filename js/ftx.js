@@ -1359,20 +1359,13 @@ module.exports = class ftx extends Exchange {
                 status = 'canceled';
             }
         }
-        let symbol = undefined;
         const marketId = this.safeString (order, 'market');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                // support for delisted market ids
-                // https://github.com/ccxt/ccxt/issues/7113
-                symbol = marketId;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
+        market = this.safeMarket (marketId, market);
+        let symbol = market['symbol'];
+        if (symbol === undefined) {
+            // support for delisted market ids
+            // https://github.com/ccxt/ccxt/issues/7113
+            symbol = marketId;
         }
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'type');
