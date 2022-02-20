@@ -1363,20 +1363,13 @@ class ftx extends Exchange {
                 $status = 'canceled';
             }
         }
-        $symbol = null;
         $marketId = $this->safe_string($order, 'market');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                // support for delisted $market ids
-                // https://github.com/ccxt/ccxt/issues/7113
-                $symbol = $marketId;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
+        if ($symbol === null) {
+            // support for delisted $market ids
+            // https://github.com/ccxt/ccxt/issues/7113
+            $symbol = $marketId;
         }
         $side = $this->safe_string($order, 'side');
         $type = $this->safe_string($order, 'type');

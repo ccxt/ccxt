@@ -582,7 +582,7 @@ class eqonex extends Exchange {
         $priceString = null;
         $amountString = null;
         $fee = null;
-        $symbol = null;
+        $marketId = null;
         if (gettype($trade) === 'array' && count(array_filter(array_keys($trade), 'is_string')) == 0) {
             $id = $this->safe_string($trade, 3);
             $priceString = $this->convert_from_scale($this->safe_string($trade, 0), $market['precision']['price']);
@@ -598,7 +598,6 @@ class eqonex extends Exchange {
             $id = $this->safe_string($trade, 'execId');
             $timestamp = $this->safe_integer($trade, 'time');
             $marketId = $this->safe_string($trade, 'symbol');
-            $symbol = $this->safe_symbol($marketId, $market);
             $orderId = $this->safe_string($trade, 'orderId');
             $side = $this->safe_string_lower($trade, 'side');
             $type = $this->parse_order_type($this->safe_string($trade, 'ordType'));
@@ -615,15 +614,13 @@ class eqonex extends Exchange {
                 );
             }
         }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market($marketId, $market);
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'order' => $orderId,
             'type' => $type,
             'side' => $side,

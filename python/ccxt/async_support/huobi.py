@@ -3147,7 +3147,6 @@ class huobi(Exchange):
         status = self.parse_order_status(self.safe_string_2(order, 'state', 'status'))
         marketId = self.safe_string_2(order, 'contract_code', 'symbol')
         market = self.safe_market(marketId, market)
-        symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer_2(order, 'created_at', 'created-at')
         clientOrderId = self.safe_string_2(order, 'client_order_id', 'client-order-id')
         amount = self.safe_string_2(order, 'volume', 'amount')
@@ -3165,8 +3164,7 @@ class huobi(Exchange):
             if feeCurrencyId is not None:
                 feeCurrency = self.safe_currency_code(feeCurrencyId)
             else:
-                if market is not None:
-                    feeCurrency = market['quote'] if (side == 'sell') else market['base']
+                feeCurrency = market['quote'] if (side == 'sell') else market['base']
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
@@ -3181,7 +3179,7 @@ class huobi(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': None,
             'postOnly': None,
