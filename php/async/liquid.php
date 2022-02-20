@@ -586,23 +586,13 @@ class liquid extends Exchange {
                 }
             }
         }
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($ticker, 'id');
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                $baseId = $this->safe_string($ticker, 'base_currency');
-                $quoteId = $this->safe_string($ticker, 'quoted_currency');
-                if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
-                    $market = $this->markets[$symbol];
-                } else {
-                    $symbol = $this->safe_currency_code($baseId) . '/' . $this->safe_currency_code($quoteId);
-                }
-            }
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
+        $marketId = $this->safe_string($ticker, 'id');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
+        $baseId = $this->safe_string($ticker, 'base_currency');
+        $quoteId = $this->safe_string($ticker, 'quoted_currency');
+        if (($baseId !== null) && ($quoteId !== null)) {
+            $symbol = $this->safe_currency_code($baseId) . '/' . $this->safe_currency_code($quoteId);
         }
         $open = $this->safe_string($ticker, 'last_price_24h');
         return $this->safe_ticker(array(
@@ -669,31 +659,25 @@ class liquid extends Exchange {
         if ($mySide !== null) {
             $takerOrMaker = ($takerSide === $mySide) ? 'taker' : 'maker';
         }
-        $priceString = $this->safe_string($trade, 'price');
-        $amountString = $this->safe_string($trade, 'quantity');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
+        $price = $this->safe_string($trade, 'price');
+        $amount = $this->safe_string($trade, 'quantity');
         $id = $this->safe_string($trade, 'id');
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        return array(
+        $market = $this->safe_market(null, $market);
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'order' => $orderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => null,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'fee' => null,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -879,12 +863,6 @@ class liquid extends Exchange {
         $amount = $this->safe_number($order, 'quantity');
         $filled = $this->safe_number($order, 'filled_quantity');
         $price = $this->safe_number($order, 'price');
-        $symbol = null;
-        $feeCurrency = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-            $feeCurrency = $market['quote'];
-        }
         $type = $this->safe_string($order, 'order_type');
         $tradeCost = 0;
         $tradeFilled = 0;
@@ -933,7 +911,7 @@ class liquid extends Exchange {
             'timeInForce' => null,
             'postOnly' => null,
             'status' => $status,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
@@ -944,7 +922,7 @@ class liquid extends Exchange {
             'average' => $average,
             'trades' => $trades,
             'fee' => array(
-                'currency' => $feeCurrency,
+                'currency' => $market['quote'],
                 'cost' => $this->safe_number($order, 'order_fee'),
             ),
             'info' => $order,

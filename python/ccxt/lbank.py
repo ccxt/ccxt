@@ -304,9 +304,7 @@ class lbank(Exchange):
         return self.parse_order_book(response, symbol)
 
     def parse_trade(self, trade, market=None):
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        market = self.safe_market(None, market)
         timestamp = self.safe_integer(trade, 'date_ms')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
@@ -322,7 +320,7 @@ class lbank(Exchange):
             'info': self.safe_value(trade, 'info', trade),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': None,
             'type': type,
             'side': side,
