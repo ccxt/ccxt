@@ -636,29 +636,26 @@ module.exports = class coinbasepro extends Exchange {
         //
         const timestamp = this.parse8601 (this.safeString2 (trade, 'time', 'created_at'));
         const marketId = this.safeString (trade, 'product_id');
-        const symbol = this.safeSymbol (marketId, market, '-');
+        market = this.safeMarket (marketId, market, '-');
         let feeRate = undefined;
-        let feeCurrency = undefined;
         let takerOrMaker = undefined;
         let cost = undefined;
-        if (market !== undefined) {
-            const feeCurrencyId = this.safeStringLower (market, 'quoteId');
+        const feeCurrencyId = this.safeStringLower (market, 'quoteId');
+        if (feeCurrencyId !== undefined) {
             const costField = feeCurrencyId + '_value';
-            cost = this.safeNumber (trade, costField);
-            feeCurrency = market['quote'];
+            cost = this.safeString (trade, costField);
             const liquidity = this.safeString (trade, 'liquidity');
             if (liquidity !== undefined) {
                 takerOrMaker = (liquidity === 'T') ? 'taker' : 'maker';
-                feeRate = market[takerOrMaker];
+                feeRate = this.safeString (market, takerOrMaker);
             }
         }
-        const feeCost = this.safeNumber2 (trade, 'fill_fees', 'fee');
+        const feeCost = this.safeString2 (trade, 'fill_fees', 'fee');
         const fee = {
             'cost': feeCost,
-            'currency': feeCurrency,
+            'currency': market['quote'],
             'rate': feeRate,
         };
-        const type = undefined;
         const id = this.safeString (trade, 'trade_id');
         let side = (trade['side'] === 'buy') ? 'sell' : 'buy';
         const orderId = this.safeString (trade, 'order_id');
@@ -668,28 +665,23 @@ module.exports = class coinbasepro extends Exchange {
         if ((orderId !== undefined) || ((makerOrderId !== undefined) && (takerOrderId !== undefined))) {
             side = (trade['side'] === 'buy') ? 'buy' : 'sell';
         }
-        const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString (trade, 'size');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        if (cost === undefined) {
-            cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        }
-        return {
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString (trade, 'size');
+        return this.safeTrade ({
             'id': id,
             'order': orderId,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'type': type,
+            'symbol': market['symbol'],
+            'type': undefined,
             'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
             'amount': amount,
             'fee': fee,
             'cost': cost,
-        };
+        }, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -832,13 +824,9 @@ module.exports = class coinbasepro extends Exchange {
         const feeCost = this.safeNumber (order, 'fill_fees');
         let fee = undefined;
         if (feeCost !== undefined) {
-            let feeCurrencyCode = undefined;
-            if (market !== undefined) {
-                feeCurrencyCode = market['quote'];
-            }
             fee = {
                 'cost': feeCost,
-                'currency': feeCurrencyCode,
+                'currency': market['quote'],
                 'rate': undefined,
             };
         }
