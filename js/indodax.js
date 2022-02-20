@@ -386,33 +386,21 @@ module.exports = class indodax extends Exchange {
 
     parseTrade (trade, market = undefined) {
         const timestamp = this.safeTimestamp (trade, 'date');
-        const id = this.safeString (trade, 'tid');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        const type = undefined;
-        const side = this.safeString (trade, 'type');
-        const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        return {
-            'id': id,
+        return this.safeTrade ({
+            'id': this.safeString (trade, 'tid'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'type': type,
-            'side': side,
+            'symbol': this.safeSymbol (undefined, market),
+            'type': undefined,
+            'side': this.safeString (trade, 'type'),
             'order': undefined,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': this.safeString (trade, 'price'),
+            'amount': this.safeString (trade, 'amount'),
+            'cost': undefined,
             'fee': undefined,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
