@@ -538,33 +538,28 @@ module.exports = class gemini extends Exchange {
         const timestamp = this.safeInteger (volume, 'timestamp');
         let symbol = undefined;
         const marketId = this.safeStringLower (ticker, 'pair');
+        market = this.safeMarket (marketId, market);
         let baseId = undefined;
         let quoteId = undefined;
         let base = undefined;
         let quote = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
+        if ((marketId !== undefined) && (market === undefined)) {
+            const idLength = marketId.length - 0;
+            if (idLength === 7) {
+                baseId = marketId.slice (0, 4);
+                quoteId = marketId.slice (4, 7);
             } else {
-                const idLength = marketId.length - 0;
-                if (idLength === 7) {
-                    baseId = marketId.slice (0, 4);
-                    quoteId = marketId.slice (4, 7);
-                } else {
-                    baseId = marketId.slice (0, 3);
-                    quoteId = marketId.slice (3, 6);
-                }
-                base = this.safeCurrencyCode (baseId);
-                quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
+                baseId = marketId.slice (0, 3);
+                quoteId = marketId.slice (3, 6);
             }
+            base = this.safeCurrencyCode (baseId);
+            quote = this.safeCurrencyCode (quoteId);
+            symbol = base + '/' + quote;
         }
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
-            baseId = market['baseId'].toUpperCase ();
-            quoteId = market['quoteId'].toUpperCase ();
-            base = market['base'];
-            quote = market['quote'];
+            baseId = this.safeStringUpper (market, 'baseId');
+            quoteId = this.safeStringUpper (market, 'quoteId');
         }
         const price = this.safeString (ticker, 'price');
         const last = this.safeString2 (ticker, 'last', 'close', price);
