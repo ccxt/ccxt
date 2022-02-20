@@ -1,13 +1,8 @@
 'use strict'
 
-// ----------------------------------------------------------------------------
-
 const assert = require ('assert')
 
-// ----------------------------------------------------------------------------
-
-module.exports = (exchange, market, method) => {
-
+function testMarket (exchange, market, method) {
     const format = {
         'id':      'btcusd',   // string literal for referencing within an exchange
         'symbol':  'BTC/USD',  // uppercase string literal of a pair of currencies
@@ -55,14 +50,12 @@ module.exports = (exchange, market, method) => {
             },
         },
         'info': {},            // the original unparsed market info from the exchange
-    }
-
-    const keys = Object.keys (format)
+    };
+    const keys = Object.keys (format);
     for (let i = 0; i < keys.length; i++) {
-        const key = keys[i]
+        const key = keys[i];
         assert (key in market, key + ' not found in ' + JSON.stringify (market));
     }
-
     const requiredKeys = [
         'id',
         'symbol',
@@ -72,20 +65,17 @@ module.exports = (exchange, market, method) => {
         'quote',
         'precision',
         'limits',
-    ]
-
+    ];
     for (let i = 0; i < requiredKeys.length; i++) {
-        const key = requiredKeys[i]
-        assert (market[key] !== undefined)
+        const key = requiredKeys[i];
+        assert (market[key] !== undefined);
     }
-
-    assert ((market['taker'] === undefined) || (typeof market['taker'] === 'number'))
-    assert ((market['maker'] === undefined) || (typeof market['maker'] === 'number'))
-
+    assert ((market['taker'] === undefined) || (typeof market['taker'] === 'number'));
+    assert ((market['maker'] === undefined) || (typeof market['maker'] === 'number'));
     if (market['contract']) {
         assert (market['linear'] === !market['inverse']);
     } else {
-        assert ((market['linear'] === undefined) && (market['inverse'] === undefined))
+        assert ((market['linear'] === undefined) && (market['inverse'] === undefined));
     }
     if (market['option']) {
         assert (market['strike'] !== undefined);
@@ -133,3 +123,5 @@ module.exports = (exchange, market, method) => {
     //     assert (market['expiryDatetime'] !== undefined);
     // }
 }
+
+module.exports = testMarket;
