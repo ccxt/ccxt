@@ -666,7 +666,7 @@ class digifinex extends Exchange {
         //         "fee" => 0.096,
         //         "fee_currency" => "USDT",
         //         "timestamp" => 1499865549,
-        //         "side" => "buy",
+        //         "side" => "buy", // or "side" => "sell_market"
         //         "is_maker" => true
         //     }
         //
@@ -674,6 +674,9 @@ class digifinex extends Exchange {
         $orderId = $this->safe_string($trade, 'order_id');
         $timestamp = $this->safe_timestamp_2($trade, 'date', 'timestamp');
         $side = $this->safe_string_2($trade, 'type', 'side');
+        $parts = explode('_', $side);
+        $side = $this->safe_string($parts, 0);
+        $type = $this->safe_string($parts, 1);
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
         $marketId = $this->safe_string($trade, 'symbol');
@@ -695,7 +698,7 @@ class digifinex extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
-            'type' => null,
+            'type' => $type,
             'order' => $orderId,
             'side' => $side,
             'price' => $priceString,
