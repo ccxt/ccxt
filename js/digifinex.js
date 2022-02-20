@@ -671,7 +671,7 @@ module.exports = class digifinex extends Exchange {
         const timestamp = this.safeTimestamp2 (trade, 'date', 'timestamp');
         let side = this.safeString2 (trade, 'type', 'side');
         if (side.includes ('_market')) {
-            side = side.replace (/_market/, '');
+            side = side.replace ('_market', '');
         }
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
