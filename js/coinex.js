@@ -700,16 +700,12 @@ module.exports = class coinex extends Exchange {
         const filledString = this.safeString (order, 'deal_amount');
         const averageString = this.safeString (order, 'avg_price');
         const remainingString = this.safeString (order, 'left');
-        let symbol = undefined;
         const marketId = this.safeString (order, 'market');
         market = this.safeMarket (marketId, market);
         const feeCurrencyId = this.safeString (order, 'fee_asset');
         let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
-        if (market !== undefined) {
-            symbol = market['symbol'];
-            if (feeCurrency === undefined) {
-                feeCurrency = market['quote'];
-            }
+        if (feeCurrency === undefined) {
+            feeCurrency = market['quote'];
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const type = this.safeString (order, 'order_type');
@@ -721,7 +717,7 @@ module.exports = class coinex extends Exchange {
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
             'status': status,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
