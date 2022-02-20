@@ -1598,7 +1598,7 @@ module.exports = class kucoin extends Exchange {
         //     }
         //
         const marketId = this.safeString (trade, 'symbol');
-        const symbol = this.safeSymbol (marketId, market, '-');
+        market = this.safeMarket (marketId, market, '-');
         const id = this.safeString2 (trade, 'tradeId', 'id');
         const orderId = this.safeString (trade, 'orderId');
         const takerOrMaker = this.safeString (trade, 'liquidity');
@@ -1621,9 +1621,7 @@ module.exports = class kucoin extends Exchange {
             const feeCurrencyId = this.safeString (trade, 'feeCurrency');
             let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
             if (feeCurrency === undefined) {
-                if (market !== undefined) {
-                    feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
-                }
+                feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
             }
             fee = {
                 'cost': feeCostString,
@@ -1642,7 +1640,7 @@ module.exports = class kucoin extends Exchange {
             'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'takerOrMaker': takerOrMaker,
             'side': side,
