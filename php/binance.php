@@ -5034,6 +5034,9 @@ class binance extends Exchange {
     }
 
     public function set_margin_mode($marginType, $symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+        }
         //
         // array( "code" => -4048 , "msg" => "Margin type cannot be changed if there exists position." )
         //

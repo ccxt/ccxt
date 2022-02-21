@@ -4769,6 +4769,8 @@ class binance(Exchange):
         return await getattr(self, method)(self.extend(request, params))
 
     async def set_margin_mode(self, marginType, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
         #
         # {"code": -4048 , "msg": "Margin type cannot be changed if there exists position."}
         #
