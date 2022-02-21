@@ -49,10 +49,17 @@ module.exports = class currencycom extends Exchange {
                 'fetchClosedOrders': undefined,
                 'fetchCurrencies': true,
                 'fetchDeposit': undefined,
+<<<<<<< HEAD
                 'fetchDepositAddress': undefined,
                 'fetchDepositAddresses': undefined,
                 'fetchDepositAddressesByNetwork': undefined,
                 'fetchDeposits': true,
+=======
+                'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
+                'fetchDeposits': undefined,
+>>>>>>> 2d2ac7d934 (fetchDepositAddress)
                 'fetchFundingFee': undefined,
                 'fetchFundingFees': undefined,
                 'fetchFundingHistory': false,
@@ -1231,6 +1238,7 @@ module.exports = class currencycom extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+<<<<<<< HEAD
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         return this.fetchTransactionsByMethod ('privateGetV2Deposits', code, since, limit, params);
     }
@@ -1328,6 +1336,24 @@ module.exports = class currencycom extends Exchange {
             'withdrawal': 'withdrawal',
         };
         return this.safeString (types, type, type);
+=======
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'coin': currency['id'],
+        };
+        const response = await this.privateGetV2DepositAddress (this.extend (request, params));
+        const address = this.safeString (response, 'address');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': undefined,
+            'network': undefined,
+            'info': response,
+        };
+>>>>>>> 2d2ac7d934 (fetchDepositAddress)
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
