@@ -502,29 +502,22 @@ module.exports = class bw extends Exchange {
         const timestamp = this.safeTimestamp (trade, 2);
         const priceString = this.safeString (trade, 5);
         const amountString = this.safeString (trade, 6);
-        const marketId = this.safeString (trade, 1);
-        let symbol = undefined;
+        let marketId = this.safeString (trade, 1);
+        let delimiter = undefined;
         if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const marketName = this.safeString (trade, 3);
-                const [ baseId, quoteId ] = marketName.split ('_');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
+            if (!(marketId in this.markets_by_id)) {
+                delimiter = '_';
+                marketId = this.safeString (trade, 3);
             }
         }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (marketId, market, delimiter);
         const sideString = this.safeString (trade, 4);
         const side = (sideString === 'ask') ? 'sell' : 'buy';
         return this.safeTrade ({
             'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': undefined,
             'type': 'limit',
             'side': side,
