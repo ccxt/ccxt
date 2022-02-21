@@ -1960,6 +1960,7 @@ module.exports = class bitget extends Exchange {
                 'type': market['type'],
             });
             method = 'apiPostOrderOrdersPlace';
+            request['client_oid'] = clientOrderId;
             request['account_id'] = accountId;
             request['method'] = 'place';
             request['type'] = side + '-' + type;
