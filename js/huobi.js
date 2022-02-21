@@ -5216,9 +5216,12 @@ module.exports = class huobi extends Exchange {
             //     }
             //
         }
-        const request = {
-            'contract_code': market['id'],
-        };
+        const request = {};
+        if (marketType === 'future') {
+            request['symbol'] = market['baseId'];
+        } else {
+            request['contract_code'] = market['id'];
+        }
         const response = await this[method] (this.extend (request, query));
         const data = this.safeValue (response, 'data');
         const account = this.safeValue (data, 0);
