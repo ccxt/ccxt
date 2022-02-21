@@ -1918,7 +1918,6 @@ module.exports = class bitget extends Exchange {
             'stopPrice': undefined,
             'average': average,
             'cost': cost,
-            'quantity': amount,
             'amount': amount,
             'filled': filled,
             'remaining': undefined,
