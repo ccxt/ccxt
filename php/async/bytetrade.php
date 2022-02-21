@@ -615,14 +615,8 @@ class bytetrade extends Exchange {
         $side = $this->safe_string($trade, 'side');
         $datetime = $this->iso8601($timestamp); // $this->safe_string($trade, 'datetime');
         $order = $this->safe_string($trade, 'order');
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($trade, 'symbol');
-            $market = $this->safe_value($this->markets_by_id, $marketId);
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($trade, 'symbol');
+        $market = $this->safe_market($marketId, $market);
         $feeData = $this->safe_value($trade, 'fee');
         $feeCostString = $this->safe_string($feeData, 'cost');
         $feeRateString = $this->safe_string($feeData, 'rate');
@@ -637,7 +631,7 @@ class bytetrade extends Exchange {
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $datetime,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'id' => $id,
             'order' => $order,
             'type' => $type,
