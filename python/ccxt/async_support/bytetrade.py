@@ -588,12 +588,8 @@ class bytetrade(Exchange):
         side = self.safe_string(trade, 'side')
         datetime = self.iso8601(timestamp)  # self.safe_string(trade, 'datetime')
         order = self.safe_string(trade, 'order')
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(trade, 'symbol')
-            market = self.safe_value(self.markets_by_id, marketId)
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(trade, 'symbol')
+        market = self.safe_market(marketId, market)
         feeData = self.safe_value(trade, 'fee')
         feeCostString = self.safe_string(feeData, 'cost')
         feeRateString = self.safe_string(feeData, 'rate')
@@ -608,7 +604,7 @@ class bytetrade(Exchange):
             'info': trade,
             'timestamp': timestamp,
             'datetime': datetime,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'id': id,
             'order': order,
             'type': type,
