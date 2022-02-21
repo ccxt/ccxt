@@ -5227,7 +5227,18 @@ module.exports = class huobi extends Exchange {
         const account = this.safeValue (data, 0);
         const omitted = this.omit (account, [ 'positions' ]);
         const positions = this.safeValue (account, 'positions');
-        const position = this.safeValue (positions, 0);
+        let position = undefined;
+        if (marketType === 'future') {
+            for (let i = 0; i < positions.length; i++) {
+                const pos = positions[i];
+                if (pos['contract_code'] === market['id']) {
+                    position = pos;
+                    break;
+                }
+            }
+        } else {
+            position = this.safeValue (positions, 0);
+        }
         const timestamp = this.safeInteger (response, 'ts');
         const parsed = this.parsePosition (this.extend (position, omitted));
         return this.extend (parsed, {
