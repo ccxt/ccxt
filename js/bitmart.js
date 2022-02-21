@@ -1005,13 +1005,13 @@ module.exports = class bitmart extends Exchange {
         const costString = this.safeString2 (trade, 'amount', 'notional');
         const orderId = this.safeInteger (trade, 'order_id');
         const marketId = this.safeString2 (trade, 'contract_id', 'symbol');
-        const symbol = this.safeSymbol (marketId, market, '_');
+        market = this.safeMarket (marketId, market, '_');
         const feeCostString = this.safeString (trade, 'fees');
         let fee = undefined;
         if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_coin_name');
             let feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
-            if ((feeCurrencyCode === undefined) && (market !== undefined)) {
+            if (feeCurrencyCode === undefined) {
                 feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
             }
             fee = {
@@ -1025,7 +1025,7 @@ module.exports = class bitmart extends Exchange {
             'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
             'price': priceString,
