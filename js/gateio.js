@@ -1897,36 +1897,45 @@ module.exports = class gateio extends Exchange {
             'swap': 'privateFuturesGetSettleMyTrades',
             'future': 'privateDeliveryGetSettleMyTrades',
         });
-        console.log (method);
-        // const response = await this[method] (this.extend (request, params));
+        // console.log (method);
+        const response = await this[method] (this.extend (request, params));
         // SPOT
-        // [{
-        //     id: "1851927191",
-        //     create_time: "1634333360",
-        //     create_time_ms: "1634333360359.901000",
-        //     currency_pair: "BTC_USDT",
-        //     side: "buy",
-        //     role: "taker",
-        //     amount: "0.0001",
-        //     price: "62547.51",
-        //     order_id: "93475897349",
-        //     fee: "2e-07",
-        //     fee_currency: "BTC",
-        //     point_fee: "0",
-        //     gt_fee: "0",
-        //   }]
+        //  [{
+        //      "id":"2876130500",
+        //      "create_time":"1645464610",
+        //      "create_time_ms":"1645464610777.399200",
+        //      "currency_pair":"DOGE_USDT",
+        //      "side":"sell",
+        //      "role":"taker",
+        //      "amount":"10.97",
+        //      "price":"0.137384",
+        //      "order_id":"125924049993",
+        //      "fee":"0.00301420496",
+        //      "fee_currency":"USDT",
+        //      "point_fee":"0","gt_fee":"0"
+        //  }]
         // Perpetual Swap
-        // [{
-        //   size: "-13",
-        //   order_id: "79723658958",
-        //   id: "47612669",
-        //   role: "taker",
-        //   create_time: "1634600263.326",
-        //   contract: "BTC_USDT",
-        //   price: "61987.8",
-        // }]
-        // const response = [{ 'size': -1, 'order_id': '129732827504', 'id': 68446315, 'role': 'maker', 'create_time': 1645299625.7406, 'contract': 'ETH_USDT', 'price': '2749.65' }, { 'size': -1, 'order_id': '129732432603', 'id': 68446177, 'role': 'maker', 'create_time': 1645299512.1703, 'contract': 'ETH_USDT', 'price': '2749.05' }];
-        const response = [ { 'size': -1, 'order_id': '129732827504', 'id': 68446315, 'role': 'maker', 'create_time': 1645299625.7406, 'contract': 'ETH_USDT', 'price': '2749.65' }, { 'size': -1, 'order_id': '129732432603', 'id': 68446177, 'role': 'maker', 'create_time': 1645299512.1703, 'contract': 'ETH_USDT', 'price': '2749.05' } ];
+        //  [{
+        //      "size":-5,
+        //      "order_id":"130264979823",
+        //      "id":26884791,
+        //      "role":"taker",
+        //      "create_time":1645465199.5472,
+        //      "contract":"DOGE_USDT",
+        //      "price":"0.136888"
+        //  }]
+        // Future
+        //  [{
+        //     "id": 121234231,
+        //     "create_time": 1514764800.123,
+        //     "contract": "BTC_USDT",
+        //     "order_id": "21893289839",
+        //     "size": 100,
+        //     "price": "100.123",
+        //     "role": "taker"
+        //  }]
+        // const response = [ { 'size': -1, 'order_id': '129732827504', 'id': 68446315, 'role': 'maker', 'create_time': 1645464610, 'contract': 'ETH_USDT', 'price': '2749.65' }, { 'size': -1, 'order_id': '129732432603', 'id': 68446177, 'role': 'maker', 'create_time': 1645464610, 'contract': 'ETH_USDT', 'price': '2749.05' } ];
+        // const response = [ { 'size': -1, 'order_id': '129732827504', 'id': 68446315, 'role': 'maker', 'create_time': 1645299625.7406, 'contract': 'ETH_USDT', 'price': '2749.65' }, { 'size': -1, 'order_id': '129732432603', 'id': 68446177, 'role': 'maker', 'create_time': 1645299512.1703, 'contract': 'ETH_USDT', 'price': '2749.05' } ];
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -1954,29 +1963,55 @@ module.exports = class gateio extends Exchange {
         //         type: 'sell'
         //     }
         //
-        // private
+        // SPOT rest
+        //  {
+        //      "id":"2876130500",
+        //      "create_time":"1645464610",
+        //      "create_time_ms":"1645464610777.399200",
+        //      "currency_pair":"DOGE_USDT",
+        //      "side":"sell",
+        //      "role":"taker",
+        //      "amount":"10.97",
+        //      "price":"0.137384",
+        //      "order_id":"125924049993",
+        //      "fee":"0.00301420496",
+        //      "fee_currency":"USDT",
+        //      "point_fee":"0","gt_fee":"0"
+        //  }
         //
-        //     {
-        //         "id": "218087755",
-        //         "create_time": "1578958740",
-        //         "create_time_ms": "1578958740122.710000",
-        //         "currency_pair": "BTC_USDT",
-        //         "side": "sell",
-        //         "role": "taker",
-        //         "amount": "0.0004",
-        //         "price": "8112.77",
-        //         "order_id": "8445563839",
-        //         "fee": "0.006490216",
-        //         "fee_currency": "USDT",
-        //         "point_fee": "0",
-        //         "gt_fee": "0"
-        //     }
+        // Perpetual Swap rest
+        //  {
+        //      "size":-5,
+        //      "order_id":"130264979823",
+        //      "id":26884791,
+        //      "role":"taker",
+        //      "create_time":1645465199.5472,
+        //      "contract":"DOGE_USDT",
+        //      "price":"0.136888"
+        //  }
+        //
+        // Future rest
+        //  {
+        //     "id": 121234231,
+        //     "create_time": 1514764800.123,
+        //     "contract": "BTC_USDT",
+        //     "order_id": "21893289839",
+        //     "size": 100,
+        //     "price": "100.123",
+        //     "role": "taker"
+        //  }]
         //
         const id = this.safeString (trade, 'id');
-        //
         let timestamp = this.safeTimestamp (trade, 'time');
-        timestamp = this.safeInteger (trade, 'create_time', timestamp);
-        //
+        if (timestamp === undefined) {
+            timestamp = this.safeTimestamp (trade, 'create_time_ms');
+            if (timestamp === undefined) {
+                const timestampSecondsString = this.safeString (trade, 'create_time');
+                const timestampMillisecondsString = Precise.stringMul ('1000', timestampSecondsString);
+                timestamp = this.safeInteger ({ 'k': timestampMillisecondsString }, 'k');
+            }
+        }
+        console.log (timestamp);
         const marketId = this.safeString2 (trade, 'currency_pair', 'contract');
         const symbol = this.safeSymbol (marketId, market);
         let amountString = this.safeString2 (trade, 'amount', 'size');
