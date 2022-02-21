@@ -194,10 +194,7 @@ module.exports = class btcbox extends Exchange {
         //      }
         //
         const timestamp = this.safeTimestamp (trade, 'date');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (undefined, market);
         const id = this.safeString (trade, 'tid');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
@@ -209,7 +206,7 @@ module.exports = class btcbox extends Exchange {
             'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
             'takerOrMaker': undefined,
@@ -323,10 +320,7 @@ module.exports = class btcbox extends Exchange {
             }
         }
         const trades = undefined; // todo: this.parseTrades (order['trades']);
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (undefined, market);
         const side = this.safeString (order, 'type');
         return this.safeOrder ({
             'id': id,
@@ -342,7 +336,7 @@ module.exports = class btcbox extends Exchange {
             'timeInForce': undefined,
             'postOnly': undefined,
             'status': status,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'price': price,
             'stopPrice': undefined,
             'cost': undefined,
