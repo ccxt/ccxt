@@ -190,33 +190,26 @@ class bitstamp1(Exchange):
         timestamp = self.safe_timestamp_2(trade, 'date', 'datetime')
         side = 'buy' if (trade['type'] == 0) else 'sell'
         orderId = self.safe_string(trade, 'order_id')
-        if 'currency_pair' in trade:
-            if trade['currency_pair'] in self.markets_by_id:
-                market = self.markets_by_id[trade['currency_pair']]
         id = self.safe_string(trade, 'tid')
-        priceString = self.safe_string(trade, 'price')
-        amountString = self.safe_string(trade, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        return {
+        price = self.safe_string(trade, 'price')
+        amount = self.safe_string(trade, 'amount')
+        marketId = self.safe_string(trade, 'currency_pair')
+        market = self.safe_market(marketId, market)
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': orderId,
             'type': None,
             'side': side,
             'takerOrMaker': None,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'fee': None,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         if symbol != 'BTC/USD':

@@ -539,10 +539,7 @@ class bithumb extends Exchange {
         $side = $this->safe_string($trade, 'type');
         $side = ($side === 'ask') ? 'sell' : 'buy';
         $id = $this->safe_string($trade, 'cont_no');
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market(null, $market);
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string_2($trade, 'units_traded', 'units');
         $costString = $this->safe_string($trade, 'total');
@@ -561,7 +558,7 @@ class bithumb extends Exchange {
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'order' => null,
             'type' => $type,
             'side' => $side,
@@ -772,7 +769,8 @@ class bithumb extends Exchange {
         if (($base !== null) && ($quote !== null)) {
             $symbol = $base . '/' . $quote;
         }
-        if (($symbol === null) && ($market !== null)) {
+        if ($symbol === null) {
+            $market = $this->safe_market(null, $market);
             $symbol = $market['symbol'];
         }
         $id = $this->safe_string($order, 'order_id');

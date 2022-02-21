@@ -213,32 +213,24 @@ class bl3p extends Exchange {
     public function parse_trade($trade, $market = null) {
         $id = $this->safe_string($trade, 'trade_id');
         $timestamp = $this->safe_integer($trade, 'date');
-        $priceString = $this->safe_string($trade, 'price_int');
-        $priceString = Precise::string_div($priceString, '100000');
-        $amountString = $this->safe_string($trade, 'amount_int');
-        $amountString = Precise::string_div($amountString, '100000000');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        return array(
+        $price = $this->safe_string($trade, 'price_int');
+        $amount = $this->safe_string($trade, 'amount_int');
+        $market = $this->safe_market(null, $market);
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => null,
             'side' => null,
             'order' => null,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => Precise::string_div($price, '100000'),
+            'amount' => Precise::string_div($amount, '100000000'),
+            'cost' => null,
             'fee' => null,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
