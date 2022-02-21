@@ -17,7 +17,7 @@ module.exports = class lykke2 extends Exchange {
             'version': '2',
             // 300 requests per minute per method => 60000ms / 300 = 200 (/api/orders/*)
             // 120 requests per minute per method => ( 60000ms / rateLimit ) / 120 = cost = 2.5 (/api/*)
-            'rateLimit': 200, // TODO: optimize https://lykkecity.github.io/Trading-API/#request-rate-limits
+            'rateLimit': 200, // TODO: optim\ize https://lykkecity.github.io/Trading-API/#request-rate-limits
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -209,7 +209,8 @@ module.exports = class lykke2 extends Exchange {
             const type = this.safeString (currency, 'type');
             const deposit = this.safeValue (currency, 'blockchainDepositEnabled');
             const withdraw = this.safeValue (currency, 'blockchainWithdrawal');
-            const active = this.safeValue (currency, 'isDisabled');
+            const isDisabled = this.safeValue (currency, 'isDisabled');
+            const active = !isDisabled;
             result[code] = {
                 'id': id,
                 'code': code,
@@ -364,7 +365,7 @@ module.exports = class lykke2 extends Exchange {
         //         "timestamp":1643305510990
         //     }
         //
-        const timestamp = this.parse8601 (this.safeValue (ticker, 'timestamp'));
+        const timestamp = this.safeInteger (ticker, 'timestamp');
         const marketId = this.safeString (ticker, 'assetPairId');
         market = this.safeMarket (marketId, market);
         const close = this.safeString (ticker, 'lastPrice');
