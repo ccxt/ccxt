@@ -205,31 +205,24 @@ class bl3p(Exchange):
     def parse_trade(self, trade, market=None):
         id = self.safe_string(trade, 'trade_id')
         timestamp = self.safe_integer(trade, 'date')
-        priceString = self.safe_string(trade, 'price_int')
-        priceString = Precise.string_div(priceString, '100000')
-        amountString = self.safe_string(trade, 'amount_int')
-        amountString = Precise.string_div(amountString, '100000000')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        return {
+        price = self.safe_string(trade, 'price_int')
+        amount = self.safe_string(trade, 'amount_int')
+        market = self.safe_market(None, market)
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': None,
             'side': None,
             'order': None,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': Precise.string_div(price, '100000'),
+            'amount': Precise.string_div(amount, '100000000'),
+            'cost': None,
             'fee': None,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         market = self.market(symbol)

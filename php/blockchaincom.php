@@ -578,14 +578,10 @@ class blockchaincom extends Exchange {
         $feeCost = $this->safe_number($trade, 'fee');
         if ($feeCost !== null) {
             $feeCurrency = null;
-            if ($market !== null) {
-                if ($side === 'buy') {
-                    $base = $market['base'];
-                    $feeCurrency = $this->safe_currency_code($base);
-                } else if ($side === 'sell') {
-                    $quote = $market['quote'];
-                    $feeCurrency = $this->safe_currency_code($quote);
-                }
+            if ($side === 'buy') {
+                $feeCurrency = $market['base'];
+            } else if ($side === 'sell') {
+                $feeCurrency = $market['quote'];
             }
             $fee = array( 'cost' => $feeCost, 'currency' => $feeCurrency );
         }

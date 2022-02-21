@@ -554,13 +554,10 @@ class blockchaincom(Exchange):
         feeCost = self.safe_number(trade, 'fee')
         if feeCost is not None:
             feeCurrency = None
-            if market is not None:
-                if side == 'buy':
-                    base = market['base']
-                    feeCurrency = self.safe_currency_code(base)
-                elif side == 'sell':
-                    quote = market['quote']
-                    feeCurrency = self.safe_currency_code(quote)
+            if side == 'buy':
+                feeCurrency = market['base']
+            elif side == 'sell':
+                feeCurrency = market['quote']
             fee = {'cost': feeCost, 'currency': feeCurrency}
         return {
             'id': id,

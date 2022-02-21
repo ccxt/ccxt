@@ -522,9 +522,7 @@ class bithumb(Exchange):
         side = self.safe_string(trade, 'type')
         side = 'sell' if (side == 'ask') else 'buy'
         id = self.safe_string(trade, 'cont_no')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        market = self.safe_market(None, market)
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string_2(trade, 'units_traded', 'units')
         costString = self.safe_string(trade, 'total')
@@ -542,7 +540,7 @@ class bithumb(Exchange):
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': None,
             'type': type,
             'side': side,
@@ -740,7 +738,8 @@ class bithumb(Exchange):
         quote = self.safe_currency_code(quoteId)
         if (base is not None) and (quote is not None):
             symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
+        if symbol is None:
+            market = self.safe_market(None, market)
             symbol = market['symbol']
         id = self.safe_string(order, 'order_id')
         rawTrades = self.safe_value(order, 'contract', [])

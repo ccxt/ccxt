@@ -737,7 +737,7 @@ class bitstamp(Exchange):
         feeCostString = self.safe_string(trade, 'fee')
         feeCurrency = None
         if market is not None:
-            priceString = self.safe_string(trade, market['marketId'], priceString)
+            priceString = self.safe_string(trade, market['id'], priceString)
             amountString = self.safe_string(trade, market['baseId'], amountString)
             costString = self.safe_string(trade, market['quoteId'], costString)
             feeCurrency = market['quote']
