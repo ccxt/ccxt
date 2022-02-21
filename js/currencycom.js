@@ -164,7 +164,7 @@ module.exports = class currencycom extends Exchange {
                         'v1/tradingPositions',
                         'v2/tradingPositions',
                         'v1/tradingPositionsHistory',
-                        'v2/tradingPositionsHistory',
+                        'v2/tradingPositionsHistory', // TO_DO : fetchClosedPositions
                         'v1/transactions',
                         'v2/transactions',
                         'v1/withdrawals',
@@ -174,11 +174,11 @@ module.exports = class currencycom extends Exchange {
                         'v1/order',
                         'v2/order',
                         'v1/updateTradingPosition',
-                        'v2/updateTradingPosition',
+                        'v2/updateTradingPosition', // TO_DO : this is for leverage-type positions
                         'v1/updateTradingOrder',
-                        'v2/updateTradingOrder',
+                        'v2/updateTradingOrder', // TO_DO : this is editOrder but only for leverage-type orders
                         'v1/closeTradingPosition',
-                        'v2/closeTradingPosition',
+                        'v2/closeTradingPosition', // TO_DO : closePosition
                     ],
                     'delete': [
                         'v1/order',
