@@ -252,7 +252,7 @@ module.exports = class btcalpha extends Exchange {
         //      }
         //
         const marketId = this.safeString (trade, 'pair');
-        market = this.safeMarket (marketId, market, '_';)
+        market = this.safeMarket (marketId, market, '_');
         const timestamp = this.safeTimestamp (trade, 'timestamp');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
