@@ -768,7 +768,6 @@ class aax extends Exchange {
         $id = $this->safe_string($trade, 'i', $id);
         $marketId = $this->safe_string($trade, 'symbol');
         $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
         $priceString = $this->safe_string_2($trade, 'p', 'filledPrice');
         $amountString = $this->safe_string_2($trade, 'q', 'filledQty');
         $orderId = $this->safe_string($trade, 'orderID');
@@ -792,12 +791,10 @@ class aax extends Exchange {
         $feeCost = $this->safe_string($trade, 'commission');
         if ($feeCost !== null) {
             $feeCurrency = null;
-            if ($market !== null) {
-                if ($side === 'buy') {
-                    $feeCurrency = $market['base'];
-                } else if ($side === 'sell') {
-                    $feeCurrency = $market['quote'];
-                }
+            if ($side === 'buy') {
+                $feeCurrency = $market['base'];
+            } else if ($side === 'sell') {
+                $feeCurrency = $market['quote'];
             }
             $fee = array(
                 'currency' => $feeCurrency,
@@ -809,7 +806,7 @@ class aax extends Exchange {
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => $orderType,
             'side' => $side,
             'order' => $orderId,
@@ -1742,7 +1739,6 @@ class aax extends Exchange {
         $clientOrderId = $this->safe_string($order, 'clOrdID');
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
         $price = $this->safe_string($order, 'price');
         $stopPrice = $this->safe_number($order, 'stopPrice');
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
@@ -1763,12 +1759,10 @@ class aax extends Exchange {
         $feeCost = $this->safe_number($order, 'commission');
         if ($feeCost !== null) {
             $feeCurrency = null;
-            if ($market !== null) {
-                if ($side === 'buy') {
-                    $feeCurrency = $market['base'];
-                } else if ($side === 'sell') {
-                    $feeCurrency = $market['quote'];
-                }
+            if ($side === 'buy') {
+                $feeCurrency = $market['base'];
+            } else if ($side === 'sell') {
+                $feeCurrency = $market['quote'];
             }
             $fee = array(
                 'currency' => $feeCurrency,
@@ -1783,7 +1777,7 @@ class aax extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'status' => $status,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => $type,
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,

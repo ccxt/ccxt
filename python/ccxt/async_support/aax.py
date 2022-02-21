@@ -766,7 +766,6 @@ class aax(Exchange):
         id = self.safe_string(trade, 'i', id)
         marketId = self.safe_string(trade, 'symbol')
         market = self.safe_market(marketId, market)
-        symbol = market['symbol']
         priceString = self.safe_string_2(trade, 'p', 'filledPrice')
         amountString = self.safe_string_2(trade, 'q', 'filledQty')
         orderId = self.safe_string(trade, 'orderID')
@@ -787,11 +786,10 @@ class aax(Exchange):
         feeCost = self.safe_string(trade, 'commission')
         if feeCost is not None:
             feeCurrency = None
-            if market is not None:
-                if side == 'buy':
-                    feeCurrency = market['base']
-                elif side == 'sell':
-                    feeCurrency = market['quote']
+            if side == 'buy':
+                feeCurrency = market['base']
+            elif side == 'sell':
+                feeCurrency = market['quote']
             fee = {
                 'currency': feeCurrency,
                 'cost': feeCost,
@@ -801,7 +799,7 @@ class aax(Exchange):
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': orderType,
             'side': side,
             'order': orderId,
@@ -1685,7 +1683,6 @@ class aax(Exchange):
         clientOrderId = self.safe_string(order, 'clOrdID')
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
-        symbol = market['symbol']
         price = self.safe_string(order, 'price')
         stopPrice = self.safe_number(order, 'stopPrice')
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
@@ -1704,11 +1701,10 @@ class aax(Exchange):
         feeCost = self.safe_number(order, 'commission')
         if feeCost is not None:
             feeCurrency = None
-            if market is not None:
-                if side == 'buy':
-                    feeCurrency = market['base']
-                elif side == 'sell':
-                    feeCurrency = market['quote']
+            if side == 'buy':
+                feeCurrency = market['base']
+            elif side == 'sell':
+                feeCurrency = market['quote']
             fee = {
                 'currency': feeCurrency,
                 'cost': feeCost,
@@ -1721,7 +1717,7 @@ class aax(Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
