@@ -803,11 +803,11 @@ module.exports = class currencycom extends Exchange {
         // fetchTrades (public aggregate trades)
         //
         //     {
-        //         "a":1658318071,
-        //         "p":"0.02476",
-        //         "q":"0.0",
-        //         "T":1591001423382,
-        //         "m":false
+        //         "a":1658318071,    // Aggregate tradeId
+        //         "p":"0.02476",     // Price
+        //         "q":"0.0",         // Official doc says: "Quantity (should be ignored)"
+        //         "T":1591001423382, // Epoch timestamp
+        //         "m":false          // Was the buyer the maker
         //     }
         //
         // createOrder fills (private)
@@ -898,11 +898,11 @@ module.exports = class currencycom extends Exchange {
         //
         //     [
         //         {
-        //             "a":1658318071,
-        //             "p":"0.02476",
-        //             "q":"0.0",
-        //             "T":1591001423382,
-        //             "m":false
+        //             "a":1658318071,    // Aggregate tradeId
+        //             "p":"0.02476",     // Price
+        //             "q":"0.0",         // Official doc says: "Quantity (should be ignored)"
+        //             "T":1591001423382, // Epoch timestamp
+        //             "m":false          // Was the buyer the maker
         //         }
         //     ]
         //
