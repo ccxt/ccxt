@@ -536,10 +536,7 @@ module.exports = class bithumb extends Exchange {
         let side = this.safeString (trade, 'type');
         side = (side === 'ask') ? 'sell' : 'buy';
         const id = this.safeString (trade, 'cont_no');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (undefined, market);
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString2 (trade, 'units_traded', 'units');
         const costString = this.safeString (trade, 'total');
@@ -558,7 +555,7 @@ module.exports = class bithumb extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': undefined,
             'type': type,
             'side': side,
@@ -769,7 +766,8 @@ module.exports = class bithumb extends Exchange {
         if ((base !== undefined) && (quote !== undefined)) {
             symbol = base + '/' + quote;
         }
-        if ((symbol === undefined) && (market !== undefined)) {
+        if (symbol === undefined) {
+            market = this.safeMarket (undefined, market);
             symbol = market['symbol'];
         }
         const id = this.safeString (order, 'order_id');
