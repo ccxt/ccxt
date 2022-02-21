@@ -622,12 +622,7 @@ module.exports = class bololex extends Exchange {
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
         const response = await this.fetch2 (path, api, method, params, headers, body);
         if ('code' in response) {
-            if ('ExecutionReport' in response) {
-                if (response['ExecutionReport']['orderRejectReason'] === 'orderExceedsLimit') {
-                    throw new InsufficientFunds (this.id + ' ' + this.json (response));
-                }
-            }
-            throw new ExchangeError (this.id + ' ' + this.json (response));
+            this.handleErrors ('', '', '', '', '', '', response);
         }
         return response;
     }
@@ -644,5 +639,11 @@ module.exports = class bololex extends Exchange {
             // this.throwBroadlyMatchedException (this.exceptions['broad'], response, feedback);
             throw new ExchangeError (feedback); // unknown error
         }
+        if ('ExecutionReport' in response) {
+            if (response['ExecutionReport']['orderRejectReason'] === 'orderExceedsLimit') {
+                throw new InsufficientFunds (this.id + ' ' + this.json (response));
+            }
+        }
+        throw new ExchangeError (this.id + ' ' + this.json (response));
     }
 };
