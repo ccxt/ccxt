@@ -17,7 +17,9 @@ module.exports = class bybit extends Exchange {
             'countries': [ 'VG' ], // British Virgin Islands
             'version': 'v2',
             'userAgent': undefined,
-            'rateLimit': 100,
+            // 50 requests per second for GET requests, 1000ms / 50 = 20ms between requests
+            // 20 requests per second for POST requests, cost = 50 / 20
+            'rateLimit': 20,
             'hostname': 'bybit.com', // bybit.com, bytick.com
             'has': {
                 'CORS': true,
@@ -236,13 +238,13 @@ module.exports = class bybit extends Exchange {
                     'get': {
                         // inverse swap
                         'v2/public/orderBook/L2': 1,
-                        'v2/public/kline/list': 1,
+                        'v2/public/kline/list': 3,
                         'v2/public/tickers': 1,
                         'v2/public/trading-records': 1,
                         'v2/public/symbols': 1,
-                        'v2/public/mark-price-kline': 1,
-                        'v2/public/index-price-kline': 1,
-                        'v2/public/premium-index-kline': 1,
+                        'v2/public/mark-price-kline': 3,
+                        'v2/public/index-price-kline': 3,
+                        'v2/public/premium-index-kline': 2,
                         'v2/public/open-interest': 1,
                         'v2/public/big-deal': 1,
                         'v2/public/account-ratio': 1,
