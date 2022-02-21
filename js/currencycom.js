@@ -132,7 +132,7 @@ module.exports = class currencycom extends Exchange {
                         'v1/time',
                         'v2/time',
                         'v1/exchangeInfo',
-                        'v2/exchangeInfo',
+                        'v2/exchangeInfo', // everything similar as v1, except serverTime
                         'v1/depth',
                         'v2/depth',
                         'v1/aggTrades',
@@ -266,70 +266,85 @@ module.exports = class currencycom extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetV2ExchangeInfo (params);
-        //
-        //     {
-        //         "timezone":"UTC",
-        //         "serverTime":1603252990096,
-        //         "rateLimits":[
-        //             {"rateLimitType":"REQUEST_WEIGHT","interval":"MINUTE","intervalNum":1,"limit":1200},
-        //             {"rateLimitType":"ORDERS","interval":"SECOND","intervalNum":1,"limit":10},
-        //             {"rateLimitType":"ORDERS","interval":"DAY","intervalNum":1,"limit":864000},
-        //         ],
-        //         "exchangeFilters":[],
-        //         "symbols":[
-        //             {
-        //                 "symbol":"EVK",
-        //                 "name":"Evonik",
-        //                 "status":"BREAK",
-        //                 "baseAsset":"EVK",
-        //                 "baseAssetPrecision":3,
-        //                 "quoteAsset":"EUR",
-        //                 "quoteAssetId":"EUR",
-        //                 "quotePrecision":3,
-        //                 "orderTypes":["LIMIT","MARKET"],
-        //                 "filters":[
-        //                     {"filterType":"LOT_SIZE","minQty":"1","maxQty":"27000","stepSize":"1"},
-        //                     {"filterType":"MIN_NOTIONAL","minNotional":"23"}
-        //                 ],
-        //                 "marketType":"SPOT",
-        //                 "country":"DE",
-        //                 "sector":"Basic Materials",
-        //                 "industry":"Diversified Chemicals",
-        //                 "tradingHours":"UTC; Mon 07:02 - 15:30; Tue 07:02 - 15:30; Wed 07:02 - 15:30; Thu 07:02 - 15:30; Fri 07:02 - 15:30",
-        //                 "tickSize":0.005,
-        //                 "tickValue":0.11125,
-        //                 "exchangeFee":0.05
-        //             },
-        //             {
-        //                 "symbol":"BTC/USD_LEVERAGE",
-        //                 "name":"Bitcoin / USD",
-        //                 "status":"TRADING",
-        //                 "baseAsset":"BTC",
-        //                 "baseAssetPrecision":3,
-        //                 "quoteAsset":"USD",
-        //                 "quoteAssetId":"USD_LEVERAGE",
-        //                 "quotePrecision":3,
-        //                 "orderTypes":["LIMIT","MARKET","STOP"],
-        //                 "filters":[
-        //                     {"filterType":"LOT_SIZE","minQty":"0.001","maxQty":"100","stepSize":"0.001"},
-        //                     {"filterType":"MIN_NOTIONAL","minNotional":"13"}
-        //                 ],
-        //                 "marketType":"LEVERAGE",
-        //                 "longRate":-0.01,
-        //                 "shortRate":0.01,
-        //                 "swapChargeInterval":480,
-        //                 "country":"",
-        //                 "sector":"",
-        //                 "industry":"",
-        //                 "tradingHours":"UTC; Mon - 21:00, 21:05 -; Tue - 21:00, 21:05 -; Wed - 21:00, 21:05 -; Thu - 21:00, 21:05 -; Fri - 21:00, 22:01 -; Sat - 21:00, 21:05 -; Sun - 20:00, 21:05 -",
-        //                 "tickSize":0.05,
-        //                 "tickValue":610.20875,
-        //                 "makerFee":-0.025,
-        //                 "takerFee":0.075
-        //             },
-        //         ]
-        //     }
-        //
+        // Note the differences for 'LEVERAGE' types
+        // {
+        //     timezone: "UTC",
+        //     serverTime: "1645186287261",
+        //     rateLimits: [
+        //       {
+        //         rateLimitType: "REQUEST_WEIGHT",
+        //         interval: "MINUTE",
+        //         intervalNum: "1",
+        //         limit: "1200",
+        //       },
+        //       {
+        //         rateLimitType: "ORDERS",
+        //         interval: "SECOND",
+        //         intervalNum: "1",
+        //         limit: "10",
+        //       },
+        //       {
+        //         rateLimitType: "ORDERS",
+        //         interval: "DAY",
+        //         intervalNum: "1",
+        //         limit: "864000",
+        //       },
+        //     ],
+        //     exchangeFilters: [
+        //     ],
+        //     symbols: [
+        //      {
+        //          symbol: "BTC/USDT",         // for LEVERAGED pairs: "BTC/USDT_LEVERAGE"
+        //          name: "Bitcoin / Tether",
+        //          status: "TRADING",          // can be: "TRADING", "BREAK", "HALT"
+        //          baseAsset: "BTC",
+        //          baseAssetPrecision: "4",
+        //          quoteAsset: "USDT",
+        //          quoteAssetId: "USDT",       // for LEVERAGED pairs: "USDT_LEVERAGE"
+        //          quotePrecision: "4",
+        //          orderTypes: [
+        //            "LIMIT",
+        //            "MARKET",
+        //            // for LEVERAGED pairs here might be "STOP" too
+        //          ],
+        //          filters: [
+        //            {
+        //              filterType: "LOT_SIZE",
+        //              minQty: "0.0001",
+        //              maxQty: "100",
+        //              stepSize: "0.0001",
+        //            },
+        //            {
+        //              filterType: "MIN_NOTIONAL",
+        //              minNotional: "5",
+        //            },
+        //          ],
+        //          marketModes: [
+        //            "REGULAR",              // can be: CLOSE_ONLY, LONG_ONLY, REGULAR
+        //          ],
+        //          marketType: "SPOT",       // for LEVERAGED pairs: "LEVERAGE"
+        //          longRate: -0.0684932,     // present in LEVERAGE pairs
+        //          shortRate: -0.0684932,    // present in LEVERAGE pairs
+        //          swapChargeInterval: 1440, // present in LEVERAGE pairs
+        //          country: "",
+        //          sector: "",
+        //          industry: "",
+        //          tradingHours: "UTC; Mon - 22:00, 22:05 -; Tue - 22:00, 22:05 -; Wed - 22:00, 22:05 -; Thu - 22:00, 22:05 -; Fri - 22:00, 23:01 -; Sat - 22:00, 22:05 -; Sun - 21:00, 22:05 -",
+        //          tickSize: "0.01",
+        //          tickValue: "403.4405",    // not present in several 'LEVERAGE' pairs (i.e. not in BTC/USDT_LEVERAGE, but in BTC/USD_LEVERAGE)
+        //          exchangeFee: "0.2",       // not present in 'LEVERAGE' pairs
+        //          tradingFee: 0.075,        // present in 'LEVERAGE' pairs
+        //          makerFee: -0.025,         // only present in a very few & major 'LEVERAGE' pairs
+        //          takerFee: 0.06,           // only present in a very few & major 'LEVERAGE' pairs
+        //          maxSLGap: 50,             // present in 'LEVERAGE' pairs
+        //          minSLGap: 1,              // present in 'LEVERAGE' pairs
+        //          maxTPGap: 50,             // present in 'LEVERAGE' pairs
+        //          minTPGap: 0.5,            // present in 'LEVERAGE' pairs
+        //          assetType: "CRYPTOCURRENCY",
+        //        },
+        //       ...
+        //   ]
+        // }
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
@@ -337,28 +352,32 @@ module.exports = class currencycom extends Exchange {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const id = this.safeString (market, 'symbol');
+            const symbolRaw = this.safeString (market, 'symbol');
             const baseId = this.safeString (market, 'baseAsset');
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
-            if (id.indexOf ('/') >= 0) {
-                symbol = id;
+            if (symbolRaw.indexOf ('/') >= 0) {
+                symbol = symbolRaw;
             }
+            const type = this.safeString (market, 'marketType');
+            const spot = (type === 'SPOT');
+            const futures = false;
+            const swap = (type === 'LEVERAGE');
+            const margin = (type === 'LEVERAGE'); // as we decided to set
+            if (swap) {
+                symbol += ':' + quote;
+            }
+            const active = this.safeString (market, 'status') === 'TRADING';
+            // to set taker & maker fees, we use one from the below data - pairs either have 'exchangeFee' or 'tradingFee', if none of them (rare cases), then they should have 'takerFee & makerFee'
+            const exchangeFee = this.safeString2 (market, 'exchangeFee', 'tradingFee');
+            let makerFee = this.safeString (market, 'makerFee', exchangeFee);
+            let takerFee = this.safeString (market, 'takerFee', exchangeFee);
+            makerFee = Precise.stringDiv (makerFee, '100');
+            takerFee = Precise.stringDiv (takerFee, '100');
             const filters = this.safeValue (market, 'filters', []);
             const filtersByType = this.indexBy (filters, 'filterType');
-            const status = this.safeString (market, 'status');
-            const active = (status === 'TRADING');
-            let type = this.safeStringLower (market, 'marketType');
-            if (type === 'leverage') {
-                type = 'margin';
-            }
-            const spot = (type === 'spot');
-            const margin = (type === 'margin');
-            const exchangeFee = this.safeString2 (market, 'exchangeFee', 'tradingFee');
-            const maker = Precise.stringDiv (this.safeString (market, 'makerFee', exchangeFee), '100');
-            const taker = Precise.stringDiv (this.safeString (market, 'takerFee', exchangeFee), '100');
             let limitPriceMin = undefined;
             let limitPriceMax = undefined;
             let precisionPrice = this.safeNumber (market, 'tickSize');
@@ -404,8 +423,9 @@ module.exports = class currencycom extends Exchange {
                 const filter = this.safeValue (filtersByType, 'MIN_NOTIONAL', {});
                 costMin = this.safeNumber (filter, 'minNotional');
             }
+            const isContract = swap || futures;
             result.push ({
-                'id': id,
+                'id': symbolRaw,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
@@ -416,15 +436,15 @@ module.exports = class currencycom extends Exchange {
                 'type': type,
                 'spot': spot,
                 'margin': margin,
-                'swap': false,
-                'future': false,
+                'swap': swap,
+                'future': futures,
                 'option': false,
                 'active': active,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'taker': this.parseNumber (taker),
-                'maker': this.parseNumber (maker),
+                'contract': isContract,
+                'linear': isContract ? true : undefined, // TO_DO
+                'inverse': undefined, // TO_DO
+                'taker': this.parseNumber (takerFee),
+                'maker': this.parseNumber (makerFee),
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
