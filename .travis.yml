@@ -23,7 +23,7 @@ before_install:
 # - phpenv global 7.4.2
 - pecl channel-update pecl.php.net
 - pecl install ds
-- php -i | grep php.ini
+# - php -i | grep php.ini
 - composer install
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
