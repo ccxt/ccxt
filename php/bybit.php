@@ -1688,12 +1688,10 @@ class bybit extends Exchange {
         $remaining = $this->safe_string($order, 'leaves_qty');
         $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
         $marketType = $this->safe_string($marketTypes, $symbol);
-        if ($market !== null) {
-            if ($marketType === 'linear') {
-                $feeCurrency = $market['quote'];
-            } else {
-                $feeCurrency = $market['base'];
-            }
+        if ($marketType === 'linear') {
+            $feeCurrency = $market['quote'];
+        } else {
+            $feeCurrency = $market['base'];
         }
         $lastTradeTimestamp = $this->safe_timestamp($order, 'last_exec_time');
         if ($lastTradeTimestamp === 0) {

@@ -506,28 +506,21 @@ class bw extends Exchange {
         $priceString = $this->safe_string($trade, 5);
         $amountString = $this->safe_string($trade, 6);
         $marketId = $this->safe_string($trade, 1);
-        $symbol = null;
+        $delimiter = null;
         if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                $marketName = $this->safe_string($trade, 3);
-                list($baseId, $quoteId) = explode('_', $marketName);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
+            if (!(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
+                $delimiter = '_';
+                $marketId = $this->safe_string($trade, 3);
             }
         }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market($marketId, $market, $delimiter);
         $sideString = $this->safe_string($trade, 4);
         $side = ($sideString === 'ask') ? 'sell' : 'buy';
         return $this->safe_trade(array(
             'id' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'order' => null,
             'type' => 'limit',
             'side' => $side,

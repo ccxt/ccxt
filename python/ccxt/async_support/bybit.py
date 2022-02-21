@@ -1662,11 +1662,10 @@ class bybit(Exchange):
         remaining = self.safe_string(order, 'leaves_qty')
         marketTypes = self.safe_value(self.options, 'marketTypes', {})
         marketType = self.safe_string(marketTypes, symbol)
-        if market is not None:
-            if marketType == 'linear':
-                feeCurrency = market['quote']
-            else:
-                feeCurrency = market['base']
+        if marketType == 'linear':
+            feeCurrency = market['quote']
+        else:
+            feeCurrency = market['base']
         lastTradeTimestamp = self.safe_timestamp(order, 'last_exec_time')
         if lastTradeTimestamp == 0:
             lastTradeTimestamp = None
