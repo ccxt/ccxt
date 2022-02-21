@@ -618,30 +618,8 @@ module.exports = class btcmarkets extends Exchange {
         //
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         const marketId = this.safeString (trade, 'marketId');
-        let symbol = undefined;
-        let base = undefined;
-        let quote = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                base = this.safeCurrencyCode (baseId);
-                quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-            base = market['base'];
-            quote = market['quote'];
-        }
-        let feeCurrencyCode = undefined;
-        if (quote === 'AUD') {
-            feeCurrencyCode = quote;
-        } else {
-            feeCurrencyCode = base;
-        }
+        market = this.safeMarket (marketId, market, '-');
+        const feeCurrencyCode = (market['quote'] === 'AUD') ? market['quote'] : market['base'];
         let side = this.safeString (trade, 'side');
         if (side === 'Bid') {
             side = 'buy';
@@ -667,7 +645,7 @@ module.exports = class btcmarkets extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'order': orderId,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': undefined,
             'side': side,
             'price': priceString,
