@@ -111,6 +111,7 @@ module.exports = class bitget extends Exchange {
                         'order/deposit_withdraw', // Query assets history
                     ],
                     'post': [
+                        'trade/orders', // Place trade order
                         'order/orders/place', // Place order
                         'order/orders/{order_id}/submitcancel', // Request to cancel an order request
                         'order/orders/batchcancel', // Bulk order cancellation
@@ -1908,6 +1909,7 @@ module.exports = class bitget extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': market['symbol'],
+            'orderType': type,
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -1916,6 +1918,7 @@ module.exports = class bitget extends Exchange {
             'stopPrice': undefined,
             'average': average,
             'cost': cost,
+            'quantity': amount,
             'amount': amount,
             'filled': filled,
             'remaining': undefined,
@@ -1959,10 +1962,12 @@ module.exports = class bitget extends Exchange {
             const accountId = await this.getAccountId ({
                 'type': market['type'],
             });
-            method = 'apiPostOrderOrdersPlace';
+            method = 'apiPostTradeOrders';
             request['account_id'] = accountId;
+            request['client_oid'] = clientOrderId;
             request['method'] = 'place';
-            request['type'] = side + '-' + type;
+            request['side'] = side;
+            request['type'] = type;
             if (type === 'limit') {
                 request['amount'] = this.amountToPrecision (symbol, amount);
                 request['price'] = this.priceToPrecision (symbol, price);
