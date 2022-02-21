@@ -2869,7 +2869,7 @@ module.exports = class okcoin extends Exchange {
                 result.push (trade);
             }
         }
-        market = this.safeMarkt (undefined, market);
+        market = this.safeMarket (undefined, market);
         return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit);
     }
 
