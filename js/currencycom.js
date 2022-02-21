@@ -47,7 +47,7 @@ module.exports = class currencycom extends Exchange {
                 'fetchCanceledOrders': undefined,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': undefined,
-                'fetchCurrencies': undefined,
+                'fetchCurrencies': true,
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': undefined,
                 'fetchDepositAddresses': undefined,
@@ -262,6 +262,71 @@ module.exports = class currencycom extends Exchange {
         //     }
         //
         return this.safeInteger (response, 'serverTime');
+    }
+
+    async fetchCurrencies (params = {}) {
+        // their 'currencies' endpoint needs authorization
+        if (!this.checkRequiredCredentials (false)) {
+            return undefined;
+        }
+        const response = await this.privateGetV2Currencies (params);
+        // [
+        //     {
+        //       name: "US Dollar",
+        //       displaySymbol: "USD.cx",
+        //       precision: "2",
+        //       type: "FIAT",
+        //       minWithdrawal: "100.0",
+        //       maxWithdrawal: "1.0E+8",
+        //       minDeposit: "100.0",
+        //     },
+        //     {
+        //         name: "Bitcoin",
+        //         displaySymbol: "BTC",
+        //         precision: "8",
+        //         type: "CRYPTO",  // Note: only several major ones have this value. Others (like USDT) have value : "TOKEN"
+        //         minWithdrawal: "0.00020",
+        //         commissionFixed: "0.00010",
+        //         minDeposit: "0.00010",
+        //     },
+        //     ...
+        // ]
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const currency = response[i];
+            const id = this.safeString (currency, 'displaySymbol');
+            const code = this.safeCurrencyCode (id);
+            const fee = this.safeNumber (currency, 'commissionFixed');
+            const precision = this.safeInteger (currency, 'precision');
+            result[code] = {
+                'id': id,
+                'code': code,
+                'address': this.safeString (currency, 'baseAddress'),
+                'info': currency,
+                'type': this.safeString (currency, 'type'), // TO_DO : unified
+                'name': this.safeString (currency, 'name'),
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': fee,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': undefined, // Precise.stringDiv ('1', Math-pow (10, precision)),
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.safeNumber (currency, 'minWithdrawal'),
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': this.safeNumber (currency, 'minDeposit'),
+                        'max': undefined,
+                    },
+                },
+            };
+        }
+        return result;
     }
 
     async fetchMarkets (params = {}) {
