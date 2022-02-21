@@ -1087,23 +1087,8 @@ class bitget(Exchange):
         #     }
         #
         timestamp = self.safe_integer_2(ticker, 'timestamp', 'id')
-        symbol = None
         marketId = self.safe_string_2(ticker, 'instrument_id', 'symbol')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-        elif marketId is not None:
-            parts = marketId.split('_')
-            numParts = len(parts)
-            if numParts == 2:
-                baseId, quoteId = parts
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-            else:
-                symbol = marketId
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        market = self.safe_market(marketId, market, '_')
         last = self.safe_string_2(ticker, 'last', 'close')
         open = self.safe_string(ticker, 'open')
         bidVolume = None
@@ -1123,7 +1108,7 @@ class bitget(Exchange):
         baseVolume = self.safe_string_2(ticker, 'amount', 'volume_24h')
         quoteVolume = self.safe_string(ticker, 'vol')
         return self.safe_ticker({
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_string_2(ticker, 'high', 'high_24h'),
@@ -1326,29 +1311,8 @@ class bitget(Exchange):
         #         "side":"3"
         #     }
         #
-        symbol = None
         marketId = self.safe_string(trade, 'symbol')
-        base = None
-        quote = None
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-            base = market['base']
-            quote = market['quote']
-        elif marketId is not None:
-            parts = marketId.split('_')
-            numParts = len(parts)
-            if numParts == 2:
-                baseId, quoteId = parts
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-            else:
-                symbol = marketId.upper()
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
-            base = market['base']
-            quote = market['quote']
+        market = self.safe_market(marketId, market, '_')
         timestamp = self.safe_integer(trade, 'created_at')
         timestamp = self.safe_integer_2(trade, 'timestamp', 'ts', timestamp)
         priceString = self.safe_string(trade, 'price')
@@ -1377,7 +1341,7 @@ class bitget(Exchange):
             feeCostString = Precise.string_neg(feeCostString)
         fee = None
         if feeCostString is not None:
-            feeCurrency = base if (side == 'buy') else quote
+            feeCurrency = market['base'] if (side == 'buy') else market['quote']
             fee = {
                 # fee is either a positive number(invitation rebate)
                 # or a negative number(transaction fee deduction)
@@ -1392,7 +1356,7 @@ class bitget(Exchange):
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'id': id,
             'order': orderId,
             'type': type,
@@ -1870,15 +1834,8 @@ class bitget(Exchange):
         #         type = 'swap'
         #     }
         # }
-        symbol = None
         marketId = self.safe_string(order, 'symbol')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                symbol = marketId.upper()
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        market = self.safe_market(marketId, market)
         amount = self.safe_string_2(order, 'amount', 'size')
         filled = self.safe_string_2(order, 'filled_amount', 'filled_qty')
         cost = self.safe_string(order, 'filled_cash_amount')
@@ -1901,7 +1858,7 @@ class bitget(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': None,
             'postOnly': None,
