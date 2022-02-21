@@ -1962,11 +1962,8 @@ module.exports = class bitget extends Exchange {
                 'type': market['type'],
             });
             method = 'apiPostTradeOrders';
-            if (clientOrderId !== undefined) {
-                request['client_oid'] = clientOrderId;
-            }
-            request['account_id'] = accountId;
             request['client_oid'] = clientOrderId;
+            request['account_id'] = accountId;
             request['method'] = 'place';
             request['side'] = side;
             request['type'] = type;
