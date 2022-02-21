@@ -576,14 +576,10 @@ module.exports = class blockchaincom extends Exchange {
         const feeCost = this.safeNumber (trade, 'fee');
         if (feeCost !== undefined) {
             let feeCurrency = undefined;
-            if (market !== undefined) {
-                if (side === 'buy') {
-                    const base = market['base'];
-                    feeCurrency = this.safeCurrencyCode (base);
-                } else if (side === 'sell') {
-                    const quote = market['quote'];
-                    feeCurrency = this.safeCurrencyCode (quote);
-                }
+            if (side === 'buy') {
+                feeCurrency = market['base'];
+            } else if (side === 'sell') {
+                feeCurrency = market['quote'];
             }
             fee = { 'cost': feeCost, 'currency': feeCurrency };
         }
