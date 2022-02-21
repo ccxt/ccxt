@@ -131,6 +131,7 @@ class bitget(Exchange):
                         'order/deposit_withdraw',  # Query assets history
                     ],
                     'post': [
+                        'trade/orders',  # Place trade order
                         'order/orders/place',  # Place order
                         'order/orders/{order_id}/submitcancel',  # Request to cancel an order request
                         'order/orders/batchcancel',  # Bulk order cancellation
@@ -1909,11 +1910,12 @@ class bitget(Exchange):
             accountId = await self.get_account_id({
                 'type': market['type'],
             })
-            method = 'apiPostOrderOrdersPlace'
+            method = 'apiPostTradeOrders'
             request['client_oid'] = clientOrderId
             request['account_id'] = accountId
             request['method'] = 'place'
-            request['type'] = side + '-' + type
+            request['side'] = side
+            request['type'] = type
             if type == 'limit':
                 request['amount'] = self.amount_to_precision(symbol, amount)
                 request['price'] = self.price_to_precision(symbol, price)

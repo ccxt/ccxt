@@ -115,6 +115,7 @@ class bitget extends Exchange {
                         'order/deposit_withdraw', // Query assets history
                     ),
                     'post' => array(
+                        'trade/orders', // Place trade order
                         'order/orders/place', // Place order
                         'order/orders/{order_id}/submitcancel', // Request to cancel an order request
                         'order/orders/batchcancel', // Bulk order cancellation
@@ -1963,11 +1964,12 @@ class bitget extends Exchange {
             $accountId = yield $this->get_account_id(array(
                 'type' => $market['type'],
             ));
-            $method = 'apiPostOrderOrdersPlace';
+            $method = 'apiPostTradeOrders';
             $request['client_oid'] = $clientOrderId;
             $request['account_id'] = $accountId;
             $request['method'] = 'place';
-            $request['type'] = $side . '-' . $type;
+            $request['side'] = $side;
+            $request['type'] = $type;
             if ($type === 'limit') {
                 $request['amount'] = $this->amount_to_precision($symbol, $amount);
                 $request['price'] = $this->price_to_precision($symbol, $price);
