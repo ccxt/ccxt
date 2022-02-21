@@ -1909,7 +1909,6 @@ module.exports = class bitget extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': market['symbol'],
-            'orderType': type,
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
