@@ -1252,7 +1252,6 @@ module.exports = class currencycom extends Exchange {
         const side = Precise.stringGt (quantityRaw, '0') ? 'long' : 'short';
         const quantity = Precise.stringAbs (quantityRaw);
         const entryPrice = this.safeNumber (position, 'openPrice');
-        const realizedProfit = this.safeNumber (position, 'rpl');
         const unrealizedProfit = this.safeNumber (position, 'upl');
         const marginCoeff = this.safeString (position, 'margin');
         const leverage = Precise.stringDiv ('1', marginCoeff);
@@ -1265,7 +1264,7 @@ module.exports = class currencycom extends Exchange {
             'entryPrice': entryPrice,
             'collateral': undefined,
             'side': side,
-            'realizedProfit': realizedProfit,
+            // 'realizedProfit': this.safeNumber (position, 'rpl'),
             'unrealizedProfit': unrealizedProfit,
             'leverage': leverage,
             'percentage': undefined,
