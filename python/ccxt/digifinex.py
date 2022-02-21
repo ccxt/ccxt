@@ -658,7 +658,7 @@ class digifinex(Exchange):
         #         "fee": 0.096,
         #         "fee_currency": "USDT",
         #         "timestamp": 1499865549,
-        #         "side": "buy",
+        #         "side": "buy",  # or "side": "sell_market"
         #         "is_maker": True
         #     }
         #
@@ -666,6 +666,9 @@ class digifinex(Exchange):
         orderId = self.safe_string(trade, 'order_id')
         timestamp = self.safe_timestamp_2(trade, 'date', 'timestamp')
         side = self.safe_string_2(trade, 'type', 'side')
+        parts = side.split('_')
+        side = self.safe_string(parts, 0)
+        type = self.safe_string(parts, 1)
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
         marketId = self.safe_string(trade, 'symbol')
@@ -686,7 +689,7 @@ class digifinex(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'type': None,
+            'type': type,
             'order': orderId,
             'side': side,
             'price': priceString,

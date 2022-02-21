@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.73.65';
+$version = '1.73.69';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.73.65';
+    const VERSION = '1.73.69';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -143,7 +143,6 @@ class Exchange {
         'kucoinfutures',
         'kuna',
         'latoken',
-        'latoken1',
         'lbank',
         'liquid',
         'luno',
@@ -1796,8 +1795,36 @@ class Exchange {
         $values = is_array($markets) ? array_values($markets) : array();
         for ($i = 0; $i < count($values); $i++) {
             $values[$i] = array_replace_recursive(
+                array(
+                    'id' => null,
+                    'symbol' => null,
+                    'base' => null,
+                    'quote' => null,
+                    'baseId' => null,
+                    'quoteId' => null,
+                    'active' => null,
+                    'type' => null,
+                    'linear' => null,
+                    'inverse' => null,
+                    'spot' => false,
+                    'swap' => false,
+                    'future' => false,
+                    'option' => false,
+                    'margin' => false,
+                    'contract' => false,
+                    'contractSize' => null,
+                    'expiry' => null,
+                    'expiryDatetime' => null,
+                    'optionType' => null,
+                    'strike' => null,
+                    'settle' => null,
+                    'settleId' => null,
+                    'precision' => $this->precision,
+                    'limits' => $this->limits,
+                    'info' => null,
+
+                ),
                 $this->fees['trading'],
-                array('precision' => $this->precision, 'limits' => $this->limits),
                 $values[$i]
             );
         }

@@ -636,7 +636,7 @@ class bitvavo extends Exchange {
         $timestamp = $this->safe_integer($trade, 'timestamp');
         $side = $this->safe_string($trade, 'side');
         $id = $this->safe_string_2($trade, 'id', 'fillId');
-        $marketId = $this->safe_integer($trade, 'market');
+        $marketId = $this->safe_string($trade, 'market');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $taker = $this->safe_value($trade, 'taker');
         $takerOrMaker = null;
@@ -1348,7 +1348,7 @@ class bitvavo extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_transactions($response, $currency, $since, $limit);
+        return $this->parse_transactions($response, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1383,7 +1383,7 @@ class bitvavo extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_transactions($response, $currency, $since, $limit);
+        return $this->parse_transactions($response, $currency, $since, $limit, array( 'type' => 'deposit' ));
     }
 
     public function parse_transaction_status($status) {
@@ -1452,10 +1452,10 @@ class bitvavo extends Exchange {
             );
         }
         $type = null;
-        if (is_array($transaction) && array_key_exists('success', $transaction)) {
+        if ((is_array($transaction) && array_key_exists('success', $transaction)) || (is_array($transaction) && array_key_exists('address', $transaction))) {
             $type = 'withdrawal';
         } else {
-            $type = ($status === null) ? 'deposit' : 'withdrawal';
+            $type = 'deposit';
         }
         $tag = $this->safe_string($transaction, 'paymentId');
         return array(

@@ -662,14 +662,17 @@ module.exports = class digifinex extends Exchange {
         //         "fee": 0.096,
         //         "fee_currency": "USDT",
         //         "timestamp": 1499865549,
-        //         "side": "buy",
+        //         "side": "buy", // or "side": "sell_market"
         //         "is_maker": true
         //     }
         //
         const id = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'order_id');
         const timestamp = this.safeTimestamp2 (trade, 'date', 'timestamp');
-        const side = this.safeString2 (trade, 'type', 'side');
+        let side = this.safeString2 (trade, 'type', 'side');
+        const parts = side.split ('_');
+        side = this.safeString (parts, 0);
+        const type = this.safeString (parts, 1);
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
         const marketId = this.safeString (trade, 'symbol');
@@ -691,7 +694,7 @@ module.exports = class digifinex extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'type': undefined,
+            'type': type,
             'order': orderId,
             'side': side,
             'price': priceString,

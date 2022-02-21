@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.73.65'
+__version__ = '1.73.69'
 
 # ----------------------------------------------------------------------------
 
@@ -151,7 +151,6 @@ from ccxt.kucoin import kucoin                              # noqa: F401
 from ccxt.kucoinfutures import kucoinfutures                # noqa: F401
 from ccxt.kuna import kuna                                  # noqa: F401
 from ccxt.latoken import latoken                            # noqa: F401
-from ccxt.latoken1 import latoken1                          # noqa: F401
 from ccxt.lbank import lbank                                # noqa: F401
 from ccxt.liquid import liquid                              # noqa: F401
 from ccxt.luno import luno                                  # noqa: F401
@@ -271,7 +270,6 @@ exchanges = [
     'kucoinfutures',
     'kuna',
     'latoken',
-    'latoken1',
     'lbank',
     'liquid',
     'luno',
