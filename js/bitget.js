@@ -1083,26 +1083,8 @@ module.exports = class bitget extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger2 (ticker, 'timestamp', 'id');
-        let symbol = undefined;
         const marketId = this.safeString2 (ticker, 'instrument_id', 'symbol');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        } else if (marketId !== undefined) {
-            const parts = marketId.split ('_');
-            const numParts = parts.length;
-            if (numParts === 2) {
-                const [ baseId, quoteId ] = parts;
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            } else {
-                symbol = marketId;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (marketId, market, '_');
         const last = this.safeString2 (ticker, 'last', 'close');
         const open = this.safeString (ticker, 'open');
         let bidVolume = undefined;
@@ -1124,7 +1106,7 @@ module.exports = class bitget extends Exchange {
         const baseVolume = this.safeString2 (ticker, 'amount', 'volume_24h');
         const quoteVolume = this.safeString (ticker, 'vol');
         return this.safeTicker ({
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeString2 (ticker, 'high', 'high_24h'),
@@ -1335,32 +1317,8 @@ module.exports = class bitget extends Exchange {
         //         "side":"3"
         //     }
         //
-        let symbol = undefined;
         const marketId = this.safeString (trade, 'symbol');
-        let base = undefined;
-        let quote = undefined;
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-            base = market['base'];
-            quote = market['quote'];
-        } else if (marketId !== undefined) {
-            const parts = marketId.split ('_');
-            const numParts = parts.length;
-            if (numParts === 2) {
-                const [ baseId, quoteId ] = parts;
-                base = this.safeCurrencyCode (baseId);
-                quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            } else {
-                symbol = marketId.toUpperCase ();
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-            base = market['base'];
-            quote = market['quote'];
-        }
+        market = this.safeMarket (marketId, market, '_');
         let timestamp = this.safeInteger (trade, 'created_at');
         timestamp = this.safeInteger2 (trade, 'timestamp', 'ts', timestamp);
         const priceString = this.safeString (trade, 'price');
@@ -1392,7 +1350,7 @@ module.exports = class bitget extends Exchange {
         }
         let fee = undefined;
         if (feeCostString !== undefined) {
-            const feeCurrency = (side === 'buy') ? base : quote;
+            const feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
             fee = {
                 // fee is either a positive number (invitation rebate)
                 // or a negative number (transaction fee deduction)
@@ -1408,7 +1366,7 @@ module.exports = class bitget extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'id': id,
             'order': orderId,
             'type': type,
@@ -1924,18 +1882,8 @@ module.exports = class bitget extends Exchange {
         //         type = 'swap';
         //     }
         // }
-        let symbol = undefined;
         const marketId = this.safeString (order, 'symbol');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                symbol = marketId.toUpperCase ();
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (marketId, market);
         const amount = this.safeString2 (order, 'amount', 'size');
         const filled = this.safeString2 (order, 'filled_amount', 'filled_qty');
         const cost = this.safeString (order, 'filled_cash_amount');
@@ -1959,7 +1907,7 @@ module.exports = class bitget extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
