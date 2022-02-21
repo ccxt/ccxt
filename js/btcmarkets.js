@@ -834,20 +834,7 @@ module.exports = class btcmarkets extends Exchange {
         //
         const timestamp = this.parse8601 (this.safeString (order, 'creationTime'));
         const marketId = this.safeString (order, 'marketId');
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (marketId, market, '-');
         let side = this.safeString (order, 'side');
         if (side === 'Bid') {
             side = 'buy';
@@ -871,7 +858,7 @@ module.exports = class btcmarkets extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
@@ -971,25 +958,6 @@ module.exports = class btcmarkets extends Exchange {
         //     ]
         //
         return this.parseTrades (response, market, since, limit);
-    }
-
-    lookupSymbolFromMarketId (marketId) {
-        let market = undefined;
-        let symbol = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('-');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
-        return symbol;
     }
 
     nonce () {
