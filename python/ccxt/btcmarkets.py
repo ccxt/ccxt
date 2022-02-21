@@ -597,26 +597,8 @@ class btcmarkets(Exchange):
         #
         timestamp = self.parse8601(self.safe_string(trade, 'timestamp'))
         marketId = self.safe_string(trade, 'marketId')
-        symbol = None
-        base = None
-        quote = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
-            base = market['base']
-            quote = market['quote']
-        feeCurrencyCode = None
-        if quote == 'AUD':
-            feeCurrencyCode = quote
-        else:
-            feeCurrencyCode = base
+        market = self.safe_market(marketId, market, '-')
+        feeCurrencyCode = market['quote'] if (market['quote'] == 'AUD') else market['base']
         side = self.safe_string(trade, 'side')
         if side == 'Bid':
             side = 'buy'
@@ -640,7 +622,7 @@ class btcmarkets(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'order': orderId,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': None,
             'side': side,
             'price': priceString,
@@ -814,17 +796,7 @@ class btcmarkets(Exchange):
         #
         timestamp = self.parse8601(self.safe_string(order, 'creationTime'))
         marketId = self.safe_string(order, 'marketId')
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        market = self.safe_market(marketId, market, '-')
         side = self.safe_string(order, 'side')
         if side == 'Bid':
             side = 'buy'
@@ -847,7 +819,7 @@ class btcmarkets(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
@@ -936,21 +908,6 @@ class btcmarkets(Exchange):
         #     ]
         #
         return self.parse_trades(response, market, since, limit)
-
-    def lookup_symbol_from_market_id(self, marketId):
-        market = None
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('-')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
-        return symbol
 
     def nonce(self):
         return self.milliseconds()

@@ -621,30 +621,8 @@ class btcmarkets extends Exchange {
         //
         $timestamp = $this->parse8601($this->safe_string($trade, 'timestamp'));
         $marketId = $this->safe_string($trade, 'marketId');
-        $symbol = null;
-        $base = null;
-        $quote = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-            $base = $market['base'];
-            $quote = $market['quote'];
-        }
-        $feeCurrencyCode = null;
-        if ($quote === 'AUD') {
-            $feeCurrencyCode = $quote;
-        } else {
-            $feeCurrencyCode = $base;
-        }
+        $market = $this->safe_market($marketId, $market, '-');
+        $feeCurrencyCode = ($market['quote'] === 'AUD') ? $market['quote'] : $market['base'];
         $side = $this->safe_string($trade, 'side');
         if ($side === 'Bid') {
             $side = 'buy';
@@ -670,7 +648,7 @@ class btcmarkets extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'order' => $orderId,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => null,
             'side' => $side,
             'price' => $priceString,
@@ -859,20 +837,7 @@ class btcmarkets extends Exchange {
         //
         $timestamp = $this->parse8601($this->safe_string($order, 'creationTime'));
         $marketId = $this->safe_string($order, 'marketId');
-        $symbol = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market($marketId, $market, '-');
         $side = $this->safe_string($order, 'side');
         if ($side === 'Bid') {
             $side = 'buy';
@@ -896,7 +861,7 @@ class btcmarkets extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => $type,
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
@@ -996,25 +961,6 @@ class btcmarkets extends Exchange {
         //     )
         //
         return $this->parse_trades($response, $market, $since, $limit);
-    }
-
-    public function lookup_symbol_from_market_id($marketId) {
-        $market = null;
-        $symbol = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
-        return $symbol;
     }
 
     public function nonce() {
