@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b7330c56d99881b228de8b1f496fd167",
+    "content-hash": "52f7da853fb06390ebf2d5f8053a209b",
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.73.20",
+            "version": "1.73.78",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "0f7040405aa54f44bd24a2403f456baa1cc4dbe5"
+                "reference": "7f71f6c7c0ce81b8b227a103c5b1e09636509ec7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/0f7040405aa54f44bd24a2403f456baa1cc4dbe5",
-                "reference": "0f7040405aa54f44bd24a2403f456baa1cc4dbe5",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/7f71f6c7c0ce81b8b227a103c5b1e09636509ec7",
+                "reference": "7f71f6c7c0ce81b8b227a103c5b1e09636509ec7",
                 "shasum": ""
             },
             "require": {
@@ -280,7 +280,7 @@
             ],
             "support": {
                 "issues": "https://github.com/ccxt/ccxt/issues",
-                "source": "https://github.com/ccxt/ccxt/tree/1.73.20"
+                "source": "https://github.com/ccxt/ccxt/tree/1.73.78"
             },
             "funding": [
                 {
@@ -288,7 +288,7 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2022-02-17T17:01:38+00:00"
+            "time": "2022-02-21T12:12:55+00:00"
         },
         {
             "name": "evenement/evenement",
@@ -746,12 +746,12 @@
             },
             "type": "library",
             "autoload": {
-                "psr-4": {
-                    "Ratchet\\Client\\": "src"
-                },
                 "files": [
                     "src/functions_include.php"
-                ]
+                ],
+                "psr-4": {
+                    "Ratchet\\Client\\": "src"
+                }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
