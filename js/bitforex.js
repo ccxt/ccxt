@@ -226,10 +226,7 @@ module.exports = class bitforex extends Exchange {
         //          "tid":"1131019639"
         //      }
         //
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (undefined, market);
         const timestamp = this.safeInteger (trade, 'time');
         const id = this.safeString (trade, 'tid');
         const orderId = undefined;
@@ -242,7 +239,7 @@ module.exports = class bitforex extends Exchange {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': undefined,
             'side': side,
             'price': priceString,
