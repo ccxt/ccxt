@@ -1686,12 +1686,10 @@ module.exports = class bybit extends Exchange {
         const remaining = this.safeString (order, 'leaves_qty');
         const marketTypes = this.safeValue (this.options, 'marketTypes', {});
         const marketType = this.safeString (marketTypes, symbol);
-        if (market !== undefined) {
-            if (marketType === 'linear') {
-                feeCurrency = market['quote'];
-            } else {
-                feeCurrency = market['base'];
-            }
+        if (marketType === 'linear') {
+            feeCurrency = market['quote'];
+        } else {
+            feeCurrency = market['base'];
         }
         let lastTradeTimestamp = this.safeTimestamp (order, 'last_exec_time');
         if (lastTradeTimestamp === 0) {
