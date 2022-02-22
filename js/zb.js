@@ -971,7 +971,9 @@ module.exports = class zb extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (market['spot']) {
+        const swap = market['swap'];
+        const spot = market['spot'];
+        if (spot) {
             if (type !== 'limit') {
                 throw new InvalidOrder (this.id + ' allows limit orders only');
             }
@@ -980,48 +982,96 @@ module.exports = class zb extends Exchange {
             'spot': 'spotV1PrivateGetOrder',
             'swap': 'contractV2PrivatePostTradeOrder',
         });
-        const request = {};
-        if (market['spot']) {
+        const request = {
+            'amount': this.amountToPrecision (symbol, amount),
+        };
+        if (price) {
             request['price'] = this.priceToPrecision (symbol, price);
-            request['amount'] = this.amountToPrecision (symbol, amount);
+        }
+        if (spot) {
             request['tradeType'] = (side === 'buy') ? '1' : '0';
-            request['currency'] = this.marketId (symbol);
-        } else {
-            // if (params['extend'] !== undefined) {
-            //     const orderType = this.safeValue (params['extend'], 'bizType');
-            //     const priceType = this.safeValue (params['extend'], 'priceType');
-            //     const triggerPrice = this.safeValue (params['extend'], 'triggerPrice');
-            //     const stopPrice = this.safeNumber2 (params, 'stopPrice', triggerPrice);
-            //     params = this.omit (params, [ 'stopPrice', 'extend' ]);
-            //     if (stopPrice) {
-            //         // "extend": {"orderAlgos":[{"bizType":1,"priceType":1,"triggerPrice":"70000"}]}
-            //         request['extend'] = JSON.parse ('{"orderAlgos": [{"bizType": "' + orderType + ',"priceType": "' + priceType + ',"triggerType": "' + triggerPrice + '"}]}');
-            //     }
-            // }
+            request['currency'] = market['id'];
+        } else if (swap) {
             const reduceOnly = this.safeValue (params, 'reduceOnly');
-            if (side === 'sell' && reduceOnly) {
+            if (side === 'sell' && reduceOnly || side === 3) {
                 request['side'] = 3;
-            } else if (side === 'buy' && reduceOnly) {
+            } else if (side === 'buy' && reduceOnly || side === 4) {
                 request['side'] = 4;
-            } else if (side === 'buy') {
+            } else if (side === 'buy' || side === 1) {
                 request['side'] = 1;
-            } else if (side === 'sell') {
+            } else if (side === 'sell' || side === 2) {
                 request['side'] = 2;
             }
-            request['symbol'] = this.marketId (symbol);
-            request['amount'] = this.amountToPrecision (symbol, amount); // number of orders
-            request['action'] = type; // OPTIONAL default 1: limit, 11: Best Bid Offer, 3: IOC, 4: Post only, 5: FOK, 51: Best Bid Offer FOK
+            if (type === 'limit' || type === 1) {
+                request['action'] = 1;
+            } else if (type === 'ioc' || type === 3) {
+                request['action'] = 3;
+            } else if (type === 'post only' || type === 4) {
+                request['action'] = 4;
+            } else if (type === 'fok' || type === 5) {
+                request['action'] = 5;
+            } else if (type === 'bbo' || type === 11) {
+                request['action'] = 11;
+            } else if (type === 'optimal 5' || type === 12) {
+                request['action'] = 12;
+            } else if (type === 'optimal 10' || type === 13) {
+                request['action'] = 13;
+            } else if (type === 'optimal 20' || type === 14) {
+                request['action'] = 14;
+            } else if (type === 'best limit file' || type === 19) {
+                request['action'] = 19;
+            } else if (type === 'bbo ioc' || type === 31) {
+                request['action'] = 31;
+            } else if (type === 'optimal 5 ioc' || type === 32) {
+                request['action'] = 32;
+            } else if (type === 'optimal 10 ioc' || type === 33) {
+                request['action'] = 33;
+            } else if (type === 'optimal 20 ioc' || type === 34) {
+                request['action'] = 34;
+            } else if (type === 'optimal limit ioc' || type === 39) {
+                request['action'] = 39;
+            } else if (type === 'bbo fok' || type === 51) {
+                request['action'] = 51;
+            } else if (type === 'optimal 5 fok' || type === 52) {
+                request['action'] = 52;
+            } else if (type === 'optimal 10 fok' || type === 53) {
+                request['action'] = 53;
+            } else if (type === 'optimal 20 fok' || type === 54) {
+                request['action'] = 54;
+            } else if (type === 'best limit file fok' || type === 59) {
+                request['action'] = 59;
+            }
+            request['symbol'] = market['id'];
             request['clientOrderId'] = params['clientOrderId']; // OPTIONAL '^[a-zA-Z0-9-_]{1,36}$', // The user-defined order number
             request['extend'] = params['extend']; // OPTIONAL {"orderAlgos":[{"bizType":1,"priceType":1,"triggerPrice":"70000"},{"bizType":2,"priceType":1,"triggerPrice":"40000"}]}
-            request['price'] = price; // The commission price, when it is BBO or the best 5 price (action 11, 12, 31, 32, 51 or 52) can be empty, all others are required
         }
-        const response = await this[method] (this.extend (request, params));
-        const data = this.safeValue (response, 'data');
-        const orderIdField = market['swap'] ? data['orderId'] : response['id'];
-        return {
-            'info': response,
-            'id': orderIdField,
-        };
+        let response = await this[method] (this.extend (request, params));
+        //
+        // Spot
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "操作成功",
+        //         "id": "202202224851151555"
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         "code": 10000,
+        //         "desc": "操作成功",
+        //         "data": {
+        //             "orderId": "6901786759944937472",
+        //             "orderCode": null
+        //         }
+        //     }
+        //
+        if (swap) {
+            response = this.safeValue (response, 'data');
+        }
+        response['total_amount'] = amount;
+        response['price'] = price;
+        return this.parseOrder (response, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -1132,6 +1182,8 @@ module.exports = class zb extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
+        // fetchOrder Spot
+        //
         //     {
         //         acctType: 0,
         //         currency: 'btc_usdt',
@@ -1147,9 +1199,33 @@ module.exports = class zb extends Exchange {
         //         useZbFee: false
         //     },
         //
+        // Spot
+        //
+        //     {
+        //         code: '1000',
+        //         message: '操作成功',
+        //         id: '202202224851151555',
+        //         total_amount: 0.0002,
+        //         price: 30000
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         orderId: '6901786759944937472',
+        //         orderCode: null,
+        //         total_amount: 0.0002,
+        //         price: 30000
+        //     }
+        //
+        const orderId = market['swap'] ? this.safeValue (order, 'orderId') : this.safeValue (order, 'id');
         let side = this.safeInteger (order, 'type');
-        side = (side === 1) ? 'buy' : 'sell';
-        const type = 'limit'; // market order is not availalbe in ZB
+        if (side === undefined) {
+            side = undefined;
+        } else {
+            side = (side === 1) ? 'buy' : 'sell';
+        }
+        const type = (market['spot']) ? 'limit' : undefined; // market order is not availalbe in ZB spot
         const timestamp = this.safeInteger (order, 'trade_date');
         const marketId = this.safeString (order, 'currency');
         market = this.safeMarket (marketId, market, '_');
@@ -1158,7 +1234,6 @@ module.exports = class zb extends Exchange {
         const amount = this.safeString (order, 'total_amount');
         const cost = this.safeString (order, 'trade_money');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const id = this.safeString (order, 'id');
         const feeCost = this.safeNumber (order, 'fees');
         let fee = undefined;
         if (feeCost !== undefined) {
@@ -1176,7 +1251,7 @@ module.exports = class zb extends Exchange {
         }
         return this.safeOrder ({
             'info': order,
-            'id': id,
+            'id': orderId,
             'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
