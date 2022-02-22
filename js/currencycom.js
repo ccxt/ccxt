@@ -1427,6 +1427,7 @@ module.exports = class currencycom extends Exchange {
             'exchange_commission': 'fee',
         };
         return this.safeString (types, type, type);
+    }
 
     async fetchLeverage (symbol, params = {}) {
         await this.loadMarkets ();
