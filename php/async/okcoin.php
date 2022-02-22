@@ -2875,7 +2875,7 @@ class okcoin extends Exchange {
                 $result[] = $trade;
             }
         }
-        $market = $this->safeMarkt (null, $market);
+        $market = $this->safe_market(null, $market);
         return $this->filter_by_symbol_since_limit($result, $market['symbol'], $since, $limit);
     }
 

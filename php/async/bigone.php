@@ -467,7 +467,7 @@ class bigone extends Exchange {
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
         $marketId = $this->safe_string($trade, 'asset_pair_name');
-        $symbol = $this->safe_symbol($marketId, $market, '-');
+        $market = $this->safe_market($marketId, $market, '-');
         $side = $this->safe_string($trade, 'side');
         $takerSide = $this->safe_string($trade, 'taker_side');
         $takerOrMaker = null;
@@ -502,7 +502,7 @@ class bigone extends Exchange {
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'order' => $orderId,
             'type' => 'limit',
             'side' => $side,
@@ -514,7 +514,7 @@ class bigone extends Exchange {
         );
         $makerCurrencyCode = null;
         $takerCurrencyCode = null;
-        if (($market !== null) && ($takerOrMaker !== null)) {
+        if ($takerOrMaker !== null) {
             if ($side === 'buy') {
                 if ($takerOrMaker === 'maker') {
                     $makerCurrencyCode = $market['base'];
