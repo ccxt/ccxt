@@ -2001,11 +2001,9 @@ module.exports = class gateio extends Exchange {
         const id = this.safeString (trade, 'id');
         let timestamp = this.safeTimestamp (trade, 'time');
         if (timestamp === undefined) {
-            timestamp = this.safeTimestamp (trade, 'create_time_ms');
+            timestamp = this.safeInteger (trade, 'create_time_ms');
             if (timestamp === undefined) {
-                const timestampSecondsString = this.safeString (trade, 'create_time');
-                const timestampMillisecondsString = Precise.stringMul ('1000', timestampSecondsString);
-                timestamp = this.safeInteger ({ 'k': timestampMillisecondsString }, 'k');
+                timestamp = this.safeIntegerProduct (trade, 'create_time', 1000);
             }
         }
         const marketId = this.safeString2 (trade, 'currency_pair', 'contract');
