@@ -24,8 +24,24 @@ module.exports = class huobi extends ccxt.huobi {
                 'api': {
                     'ws': {
                         'api': {
-                            'public': 'wss://{hostname}/ws',
-                            'private': 'wss://{hostname}/ws/v2',
+                            'spot': {
+                                'public': 'wss://{hostname}/ws',
+                                'private': 'wss://{hostname}/ws/v2',
+                            },
+                            'future': {
+                                'public': 'wss://api.hbdm.com/ws',
+                                'private': 'wss://api.hbdm.com/notification',
+                            },
+                            'swap': {
+                                'inverse': {
+                                    'public': 'wss://api.hbdm.com/swap-ws',
+                                    'private': 'wss://api.hbdm.com/swap-notification',
+                                },
+                                'linear': {
+                                    'public': 'wss://api.hbdm.com/linear-swap-ws',
+                                    'private': 'wss://api.hbdm.com/linear-swap-notification',
+                                },
+                            },
                         },
                         // these settings work faster for clients hosted on AWS
                         'api-aws': {
