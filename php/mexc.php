@@ -1868,6 +1868,7 @@ class mexc extends Exchange {
         $amount = $this->safe_string($order, 'quantity');
         $remaining = $this->safe_string($order, 'remain_quantity');
         $filled = $this->safe_string($order, 'deal_quantity');
+        $cost = $this->safe_string($order, 'deal_amount');
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $side = null;
@@ -1901,7 +1902,7 @@ class mexc extends Exchange {
             'stopPrice' => null,
             'average' => null,
             'amount' => $amount,
-            'cost' => null,
+            'cost' => $cost,
             'filled' => $filled,
             'remaining' => $remaining,
             'fee' => null,
