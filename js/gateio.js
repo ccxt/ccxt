@@ -1999,12 +1999,9 @@ module.exports = class gateio extends Exchange {
         //  }]
         //
         const id = this.safeString (trade, 'id');
-        let timestamp = this.safeTimestamp (trade, 'time');
+        let timestamp = this.safeInteger2 (trade, 'time', 'create_time_ms');
         if (timestamp === undefined) {
-            timestamp = this.safeInteger (trade, 'create_time_ms');
-            if (timestamp === undefined) {
-                timestamp = this.safeIntegerProduct (trade, 'create_time', 1000);
-            }
+            timestamp = this.safeIntegerProduct (trade, 'create_time', 1000);
         }
         const marketId = this.safeString2 (trade, 'currency_pair', 'contract');
         const symbol = this.safeSymbol (marketId, market);
