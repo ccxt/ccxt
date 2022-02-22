@@ -1341,12 +1341,13 @@ module.exports = class currencycom extends Exchange {
         //
         //     { "address":"0x97d64eb014ac779194991e7264f01c74c90327f0" }
         //
-        return this.parseDepositAddress (response);
+        return this.parseDepositAddress (response, currency);
     }
 
-    parseDepositAddress (depositAddress, currency) {
+    parseDepositAddress (depositAddress, currency = undefined) {
         const address = this.safeString (depositAddress, 'address');
         this.checkAddress (address);
+        currency = this.safeCurrency (undefined, currency);
         return {
             'currency': currency['code'],
             'address': address,
