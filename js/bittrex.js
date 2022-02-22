@@ -771,53 +771,6 @@ module.exports = class bittrex extends Exchange {
         return result;
     }
 
-    async fetchFundingFees (params = {}) {
-        // NOTE: privateGetAccountFeesFiat only returns FIAT fees and not crypto, so we left this undefined for now.
-        // Bittrex returns different fees depending on transaction type.
-        // This function returns the last fee found for each currency.
-        await this.loadMarkets ();
-        const fiatFees = await this.privateGetAccountFeesFiat (params);
-        //
-        // [{"fees":"25.00000000","currencySymbol":"USD","transactionType":"WITHDRAWAL","transferType":"WIRE","feeType":"FIXED"}]
-        //
-        const withdraw = {};
-        const deposit = {};
-        for (let i = 0; i < fiatFees.length; i++) {
-            const fee = fiatFees[i];
-            const symbol = this.safeString (fee, 'currencySymbol');
-            const code = this.safeCurrencyCode (symbol);
-            const transactionFee = this.safeNumber (fee, 'fees');
-            const transactionType = this.safeString (fee, 'transactionType');
-            // const transferType = this.safeString (fee, 'transferType'); [ WIRE, SEPA, INSTANT_SETTLEMENT, ACH, SEN ]
-            // const feeType = this.safeString (fee, 'feeType'); [ FIXED, PERCENT ]
-            if (transactionType === 'WITHDRAWAL') {
-                withdraw[code] = transactionFee;
-            }
-            if (transactionType === 'DEPOSIT') {
-                deposit[code] = transactionFee;
-            }
-        }
-        return {
-            'info': fiatFees,
-            'withdraw': withdraw,
-            'deposit': deposit,
-        };
-        //
-        // {
-        //     info: [
-        //       {
-        //         fees: '25.00000000',
-        //         currencySymbol: 'USD',
-        //         transactionType: 'WITHDRAWAL',
-        //         transferType: 'WIRE',
-        //         feeType: 'FIXED'
-        //       }
-        //     ],
-        //     withdraw: { USD: 25 },
-        //     deposit: {}
-        //   }
-    }
-
     parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
