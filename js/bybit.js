@@ -1236,24 +1236,22 @@ module.exports = class bybit extends Exchange {
         const method = market['linear'] ? 'publicLinearGetFundingPrevFundingRate' : 'v2PublicGetFundingPrevFundingRate';
         const response = await this[method] (this.extend (request, params));
         //
-        // {
-        //     "ret_code": 0,
-        //     "ret_msg": "ok",
-        //     "ext_code": "",
-        //     "result": {
-        //         "symbol": "BTCUSD",
-        //         "funding_rate": "0.00010000",
-        //         "funding_rate_timestamp": 1577433600
-        //         // some pairs like BTC/USDT return an iso8601 string in funding_rate_timestamp
-        //         // "funding_rate_timestamp":"2022-02-05T08:00:00.000Z"
-        //
-        //     },
-        //     "ext_info": null,
-        //     "time_now": "1577445586.446797",
-        //     "rate_limit_status": 119,
-        //     "rate_limit_reset_ms": 1577445586454,
-        //     "rate_limit": 120
-        // }
+        //    {
+        //        "ret_code": 0,
+        //        "ret_msg": "ok",
+        //        "ext_code": "",
+        //        "result": {
+        //            "symbol": "BTCUSD",
+        //            "funding_rate": "0.00010000",
+        //            "funding_rate_timestamp": 1577433600  // v2PublicGetFundingPrevFundingRate
+        // //         "funding_rate_timestamp": "2022-02-05T08:00:00.000Z"  // publicLinearGetFundingPrevFundingRate
+        //        },
+        //        "ext_info": null,
+        //        "time_now": "1577445586.446797",
+        //        "rate_limit_status": 119,
+        //        "rate_limit_reset_ms": 1577445586454,
+        //        "rate_limit": 120,
+        //    }
         //
         const result = this.safeValue (response, 'result');
         const fundingRate = this.safeNumber (result, 'funding_rate');
@@ -1261,7 +1259,6 @@ module.exports = class bybit extends Exchange {
         if (fundingTimestamp === undefined) {
             fundingTimestamp = this.parse8601 (this.safeString (result, 'funding_rate_timestamp'));
         }
-        const nextFundingTimestamp = this.sum (fundingTimestamp, 8 * 3600000);
         const currentTime = this.milliseconds ();
         return {
             'info': result,
@@ -1276,8 +1273,8 @@ module.exports = class bybit extends Exchange {
             'fundingTimestamp': fundingTimestamp,
             'fundingDatetime': this.iso8601 (fundingTimestamp),
             'nextFundingRate': undefined,
-            'nextFundingTimestamp': nextFundingTimestamp,
-            'nextFundingDatetime': this.iso8601 (nextFundingTimestamp),
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
