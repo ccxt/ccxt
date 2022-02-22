@@ -1344,14 +1344,21 @@ module.exports = class currencycom extends Exchange {
             'coin': currency['id'],
         };
         const response = await this.privateGetV2DepositAddress (this.extend (request, params));
-        const address = this.safeString (response, 'address');
+        //
+        //     { "address":"0x97d64eb014ac779194991e7264f01c74c90327f0" }
+        //
+        return this.parseDepositAddress (response);
+    }
+
+    parseDepositAddress (depositAddress, currency) {
+        const address = this.safeString (depositAddress, 'address');
         this.checkAddress (address);
         return {
-            'currency': code,
+            'currency': currency['code'],
             'address': address,
             'tag': undefined,
             'network': undefined,
-            'info': response,
+            'info': depositAddress,
         };
 >>>>>>> 2d2ac7d934 (fetchDepositAddress)
     }
