@@ -196,9 +196,7 @@ module.exports = class huobi extends ccxt.huobi {
         const market = this.market (symbol);
         const interval = this.timeframes[timeframe];
         const messageHash = 'market.' + market['id'] + '.kline.' + interval;
-        const api = this.safeString (this.options, 'api', 'api');
-        const hostname = { 'hostname': this.hostname };
-        const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
+        const url = this.getUrlByMarketType (this.getUniformMarketType (market));
         const requestId = this.requestId ();
         const request = {
             'sub': messageHash,
