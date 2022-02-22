@@ -57,7 +57,7 @@ class currencycom(Exchange):
                 'fetchCanceledOrders': None,
                 'fetchClosedOrder': None,
                 'fetchClosedOrders': None,
-                'fetchCurrencies': None,
+                'fetchCurrencies': True,
                 'fetchDeposit': None,
                 'fetchDepositAddress': None,
                 'fetchDepositAddresses': None,
@@ -270,6 +270,69 @@ class currencycom(Exchange):
         #     }
         #
         return self.safe_integer(response, 'serverTime')
+
+    async def fetch_currencies(self, params={}):
+        # requires authentication
+        if not self.check_required_credentials(False):
+            return None
+        response = await self.privateGetV2Currencies(params)
+        #
+        #     [
+        #         {
+        #           name: "US Dollar",
+        #           displaySymbol: "USD.cx",
+        #           precision: "2",
+        #           type: "FIAT",
+        #           minWithdrawal: "100.0",
+        #           maxWithdrawal: "1.0E+8",
+        #           minDeposit: "100.0",
+        #         },
+        #         {
+        #             name: "Bitcoin",
+        #             displaySymbol: "BTC",
+        #             precision: "8",
+        #             type: "CRYPTO",  # Note: only several major ones have self value. Others(like USDT) have value : "TOKEN"
+        #             minWithdrawal: "0.00020",
+        #             commissionFixed: "0.00010",
+        #             minDeposit: "0.00010",
+        #         },
+        #     ]
+        #
+        result = {}
+        for i in range(0, len(response)):
+            currency = response[i]
+            id = self.safe_string(currency, 'displaySymbol')
+            code = self.safe_currency_code(id)
+            fee = self.safe_number(currency, 'commissionFixed')
+            precision = self.safe_integer(currency, 'precision')
+            result[code] = {
+                'id': id,
+                'code': code,
+                'address': self.safe_string(currency, 'baseAddress'),
+                'info': currency,
+                'type': self.safe_string_lower(currency, 'type'),
+                'name': self.safe_string(currency, 'name'),
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
+                'fee': fee,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': self.safe_number(currency, 'minWithdrawal'),
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': self.safe_number(currency, 'minDeposit'),
+                        'max': None,
+                    },
+                },
+            }
+        return result
 
     async def fetch_markets(self, params={}):
         response = await self.publicGetV2ExchangeInfo(params)

@@ -50,7 +50,7 @@ class currencycom extends Exchange {
                 'fetchCanceledOrders' => null,
                 'fetchClosedOrder' => null,
                 'fetchClosedOrders' => null,
-                'fetchCurrencies' => null,
+                'fetchCurrencies' => true,
                 'fetchDeposit' => null,
                 'fetchDepositAddress' => null,
                 'fetchDepositAddresses' => null,
@@ -265,6 +265,72 @@ class currencycom extends Exchange {
         //     }
         //
         return $this->safe_integer($response, 'serverTime');
+    }
+
+    public function fetch_currencies($params = array ()) {
+        // requires authentication
+        if (!$this->check_required_credentials(false)) {
+            return null;
+        }
+        $response = $this->privateGetV2Currencies ($params);
+        //
+        //     array(
+        //         array(
+        //           name => "US Dollar",
+        //           displaySymbol => "USD.cx",
+        //           $precision => "2",
+        //           type => "FIAT",
+        //           minWithdrawal => "100.0",
+        //           maxWithdrawal => "1.0E+8",
+        //           minDeposit => "100.0",
+        //         ),
+        //         array(
+        //             name => "Bitcoin",
+        //             displaySymbol => "BTC",
+        //             $precision => "8",
+        //             type => "CRYPTO",  // Note => only several major ones have this value. Others (like USDT) have value : "TOKEN"
+        //             minWithdrawal => "0.00020",
+        //             commissionFixed => "0.00010",
+        //             minDeposit => "0.00010",
+        //         ),
+        //     )
+        //
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $currency = $response[$i];
+            $id = $this->safe_string($currency, 'displaySymbol');
+            $code = $this->safe_currency_code($id);
+            $fee = $this->safe_number($currency, 'commissionFixed');
+            $precision = $this->safe_integer($currency, 'precision');
+            $result[$code] = array(
+                'id' => $id,
+                'code' => $code,
+                'address' => $this->safe_string($currency, 'baseAddress'),
+                'info' => $currency,
+                'type' => $this->safe_string_lower($currency, 'type'),
+                'name' => $this->safe_string($currency, 'name'),
+                'active' => null,
+                'deposit' => null,
+                'withdraw' => null,
+                'fee' => $fee,
+                'precision' => $precision,
+                'limits' => array(
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => $this->safe_number($currency, 'minWithdrawal'),
+                        'max' => null,
+                    ),
+                    'deposit' => array(
+                        'min' => $this->safe_number($currency, 'minDeposit'),
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        return $result;
     }
 
     public function fetch_markets($params = array ()) {
