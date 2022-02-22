@@ -1774,6 +1774,7 @@ class mexc(Exchange):
         amount = self.safe_string(order, 'quantity')
         remaining = self.safe_string(order, 'remain_quantity')
         filled = self.safe_string(order, 'deal_quantity')
+        cost = self.safe_string(order, 'deal_amount')
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market, '_')
         side = None
@@ -1804,7 +1805,7 @@ class mexc(Exchange):
             'stopPrice': None,
             'average': None,
             'amount': amount,
-            'cost': None,
+            'cost': cost,
             'filled': filled,
             'remaining': remaining,
             'fee': None,
