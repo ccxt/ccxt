@@ -49,17 +49,10 @@ module.exports = class currencycom extends Exchange {
                 'fetchClosedOrders': undefined,
                 'fetchCurrencies': true,
                 'fetchDeposit': undefined,
-<<<<<<< HEAD
-                'fetchDepositAddress': undefined,
-                'fetchDepositAddresses': undefined,
-                'fetchDepositAddressesByNetwork': undefined,
-                'fetchDeposits': true,
-=======
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
-                'fetchDeposits': undefined,
->>>>>>> 2d2ac7d934 (fetchDepositAddress)
+                'fetchDeposits': true,
                 'fetchFundingFee': undefined,
                 'fetchFundingFees': undefined,
                 'fetchFundingHistory': false,
@@ -1238,10 +1231,6 @@ module.exports = class currencycom extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 37d060fd55 (typo)
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         return this.fetchTransactionsByMethod ('privateGetV2Deposits', code, since, limit, params);
     }
@@ -1329,6 +1318,7 @@ module.exports = class currencycom extends Exchange {
         const statuses = {
             'APPROVAL': 'pending',
             'PROCESSED': 'ok',
+            'CANCELLED': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }
@@ -1339,7 +1329,8 @@ module.exports = class currencycom extends Exchange {
             'withdrawal': 'withdrawal',
         };
         return this.safeString (types, type, type);
-=======
+    }
+
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1363,7 +1354,6 @@ module.exports = class currencycom extends Exchange {
             'network': undefined,
             'info': depositAddress,
         };
->>>>>>> 2d2ac7d934 (fetchDepositAddress)
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
