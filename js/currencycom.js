@@ -174,11 +174,11 @@ module.exports = class currencycom extends Exchange {
                         'v1/order',
                         'v2/order',
                         'v1/updateTradingPosition',
-                        'v2/updateTradingPosition', // TO_DO
+                        'v2/updateTradingPosition',
                         'v1/updateTradingOrder',
-                        'v2/updateTradingOrder', // TO_DO
+                        'v2/updateTradingOrder',
                         'v1/closeTradingPosition',
-                        'v2/closeTradingPosition', // TO_DO
+                        'v2/closeTradingPosition',
                     ],
                     'delete': [
                         'v1/order',
