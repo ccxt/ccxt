@@ -1672,12 +1672,12 @@ module.exports = class kucoin extends Exchange {
         //       }
         //     ]
         // }
-        const data = this.safeValue (response, 'data', [ {} ]);
-        const fee = data[0];
-        const feeSymbol = this.safeString ('symbol', fee);
-        const safeSymbol = this.safeSymbol (feeSymbol, market);
-        const makerFee = this.safeFloat (fee, 'makerFeeRate');
-        const takerFee = this.safeFloat (fee, 'takerFeeRate');
+        const data = this.safeValue (response, 'data', []);
+        const first = this.safeValue (data, 0);
+        const marketId = this.safeString (first, 'symbol');
+        const safeSymbol = this.safeSymbol (marketId, market);
+        const makerFee = this.safeFloat (first, 'makerFeeRate');
+        const takerFee = this.safeFloat (first, 'takerFeeRate');
         return {
             'info': response,
             'symbol': safeSymbol,
