@@ -5064,7 +5064,9 @@ module.exports = class huobi extends Exchange {
     async fetchPosition (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
+        let marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
+        marginType = this.safeString2 (params, 'marginType', 'defaultMarginType', marginType);
+        params = this.omit (params, [ 'defaultMarginType', 'marginType' ]);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchPosition', market, params);
         let method = undefined;
         if (market['linear']) {
@@ -5214,21 +5216,55 @@ module.exports = class huobi extends Exchange {
             //       ],
             //       ts: 1641162539767
             //     }
+            // cross usdt swap
+            // {
+            //     "status":"ok",
+            //     "data":{
+            //        "positions":[
+            //        ],
+            //        "futures_contract_detail":[
+            //            (...)
+            //        ]
+            //        "margin_mode":"cross",
+            //        "margin_account":"USDT",
+            //        "margin_asset":"USDT",
+            //        "margin_balance":"1.000000000000000000",
+            //        "margin_static":"1.000000000000000000",
+            //        "margin_position":"0",
+            //        "margin_frozen":"1.000000000000000000",
+            //        "profit_real":"0E-18",
+            //        "profit_unreal":"0",
+            //        "withdraw_available":"0",
+            //        "risk_rate":"15.666666666666666666",
+            //        "contract_detail":[
+            //          (...)
+            //        ]
+            //     },
+            //     "ts":"1645521118946"
+            //  }
             //
         }
         const request = {};
-        if (marketType === 'future') {
+        if (marketType === 'future' && market['inverse']) {
             request['symbol'] = market['baseId'];
         } else {
+            if (marginType === 'cross') {
+                request['margin_account'] = 'USDT'; // only allowed value
+            }
             request['contract_code'] = market['id'];
         }
         const response = await this[method] (this.extend (request, query));
         const data = this.safeValue (response, 'data');
-        const account = this.safeValue (data, 0);
+        let account = undefined;
+        if (marginType === 'cross') {
+            account = data;
+        } else {
+            account = this.safeValue (data, 0);
+        }
         const omitted = this.omit (account, [ 'positions' ]);
         const positions = this.safeValue (account, 'positions');
         let position = undefined;
-        if (marketType === 'future') {
+        if (marketType === 'future' && market['inverse']) {
             for (let i = 0; i < positions.length; i++) {
                 const pos = positions[i];
                 if (pos['contract_code'] === market['id']) {
