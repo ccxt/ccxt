@@ -504,7 +504,7 @@ module.exports = class huobi extends ccxt.huobi {
         //         "status": "ok",
         //         "subbed": "market.btcusdt.mbp.150",
         //         "ts": 1583414229143
-        //     }f
+        //     }
         //
         const id = this.safeString (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
