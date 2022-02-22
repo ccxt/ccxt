@@ -62,7 +62,7 @@ class currencycom(Exchange):
                 'fetchDepositAddress': None,
                 'fetchDepositAddresses': None,
                 'fetchDepositAddressesByNetwork': None,
-                'fetchDeposits': None,
+                'fetchDeposits': True,
                 'fetchFundingFee': None,
                 'fetchFundingFees': None,
                 'fetchFundingHistory': False,
@@ -96,10 +96,10 @@ class currencycom(Exchange):
                 'fetchTradingFee': None,
                 'fetchTradingFees': True,
                 'fetchTradingLimits': None,
-                'fetchTransactions': None,
+                'fetchTransactions': True,
                 'fetchTransfers': None,
                 'fetchWithdrawal': None,
-                'fetchWithdrawals': None,
+                'fetchWithdrawals': True,
                 'reduceMargin': None,
                 'setLeverage': None,
                 'setMarginMode': None,
@@ -1186,6 +1186,94 @@ class currencycom(Exchange):
         #     ]
         #
         return self.parse_trades(response, market, since, limit)
+
+    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        return self.fetch_transactions_by_method('privateGetV2Deposits', code, since, limit, params)
+
+    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        return self.fetch_transactions_by_method('privateGetV2Withdrawals', code, since, limit, params)
+
+    async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        return self.fetch_transactions_by_method('privateGetV2Transactions', code, since, limit, params)
+
+    async def fetch_transactions_by_method(self, method, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {}
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        #     [
+        #       {
+        #         "id": "616769213",
+        #         "balance": "2.088",
+        #         "amount": "1.304",   # negative for 'withdrawal'
+        #         "currency": "CAKE",
+        #         "type": "deposit",
+        #         "timestamp": "1645282121023",
+        #         "paymentMethod": "BLOCKCHAIN",
+        #         "blockchainTransactionHash": "0x57c68c1f2ae74d5eda5a2a00516361d241a5c9e1ee95bf32573523857c38c112",
+        #         "status": "PROCESSED",
+        #         "commission": "0.14",  # self property only exists in withdrawal
+        #       },
+        #     ]
+        #
+        return self.parse_transactions(response, currency, since, limit, params)
+
+    def parse_transaction(self, transaction, currency=None):
+        id = self.safe_string(transaction, 'id')
+        txHash = self.safe_string(transaction, 'blockchainTransactionHash')
+        amount = self.safe_number(transaction, 'amount')
+        timestamp = self.safe_integer(transaction, 'timestamp')
+        currencyId = self.safe_string(transaction, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
+        state = self.parse_transaction_status(self.safe_string(transaction, 'state'))
+        type = self.parse_transaction_type(self.safe_string(transaction, 'type'))
+        feeCost = self.safe_string(transaction, 'commission')
+        fee = None
+        if feeCost is not None:
+            fee = {'currency': code, 'cost': feeCost}
+        result = {
+            'id': id,
+            'txid': txHash,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'network': None,
+            'addressFrom': None,
+            'address': None,
+            'addressTo': None,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': state,
+            'updated': None,
+            'comment': None,
+            'fee': fee,
+            'info': transaction,
+        }
+        return result
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            'APPROVAL': 'pending',
+            'PROCESSED': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction_type(self, type):
+        types = {
+            'deposit': 'deposit',
+            'withdrawal': 'withdrawal',
+        }
+        return self.safe_string(types, type, type)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/' + path
