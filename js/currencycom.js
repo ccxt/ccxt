@@ -908,14 +908,13 @@ module.exports = class currencycom extends Exchange {
         const id = this.safeString2 (trade, 'a', 'id');
         let side = undefined;
         const orderId = this.safeString (trade, 'orderId');
+        let takerOrMaker = undefined;
         if ('m' in trade) {
-            side = trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
-        } else if ('isBuyerMaker' in trade) {
-            side = trade['isBuyerMaker'] ? 'sell' : 'buy';
-        } else {
-            if ('isBuyer' in trade) {
-                side = (trade['isBuyer']) ? 'buy' : 'sell'; // this is a true side
-            }
+            side = trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally [TODO: needs reason to be mentioned]
+            takerOrMaker = 'taker'; // in public trades, it's always taker
+        } else if ('isBuyer' in trade) {
+            side = (trade['isBuyer']) ? 'buy' : 'sell'; // this is a true side
+            takerOrMaker = trade['isMaker'] ? 'maker' : 'taker';
         }
         let fee = undefined;
         if ('commission' in trade) {
@@ -924,19 +923,14 @@ module.exports = class currencycom extends Exchange {
                 'currency': this.safeCurrencyCode (this.safeString (trade, 'commissionAsset')),
             };
         }
-        let takerOrMaker = undefined;
-        if ('isMaker' in trade) {
-            takerOrMaker = trade['isMaker'] ? 'maker' : 'taker';
-        }
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         return this.safeTrade ({
-            'info': trade,
+            'id': id,
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': id,
-            'order': orderId,
             'type': undefined,
             'takerOrMaker': takerOrMaker,
             'side': side,
@@ -944,6 +938,7 @@ module.exports = class currencycom extends Exchange {
             'amount': amountString,
             'cost': undefined,
             'fee': fee,
+            'info': trade,
         }, market);
     }
 
