@@ -196,20 +196,8 @@ module.exports = class huobi extends ccxt.huobi {
         const market = this.market (symbol);
         const interval = this.timeframes[timeframe];
         const messageHash = 'market.' + market['id'] + '.kline.' + interval;
-        const url = this.getUrlByMarketType (this.getUniformMarketType (market));
-        const requestId = this.requestId ();
-        const request = {
-            'sub': messageHash,
-            'id': requestId,
-        };
-        const subscription = {
-            'id': requestId,
-            'messageHash': messageHash,
-            'symbol': symbol,
-            'timeframe': timeframe,
-            'params': params,
-        };
-        const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        const type = this.getUniformMarketType (market);
+        const ohlcv = await this.subscribePublic (symbol, messageHash, type, undefined, params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
