@@ -696,57 +696,28 @@ module.exports = class bittrex extends Exchange {
         };
         const response = await this.privateGetAccountFeesTradingMarketSymbol (this.extend (request, params));
         //
-        // {"marketSymbol":"1INCH-ETH","makerRate":"0.00750000","takerRate":"0.00750000"}
+        //     {
+        //         "marketSymbol":"1INCH-ETH",
+        //         "makerRate":"0.00750000",
+        //         "takerRate":"0.00750000"
+        //     }
         //
-        return this.parseTradingFee (response);
-        // {
-        //     info: {
-        //       marketSymbol: '1INCH-ETH',
-        //       makerRate: '0.00750000',
-        //       takerRate: '0.00750000'
-        //     },
-        //     symbol: '1INCH/ETH',
-        //     maker: 0.0075,
-        //     taker: 0.0075
-        // }
+        return this.parseTradingFee (response, market);
     }
 
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetAccountFeesTrading (params);
         //
-        // [
-        //     {"marketSymbol":"1ECO-BTC","makerRate":"0.00750000","takerRate":"0.00750000"},
-        //     {"marketSymbol":"1ECO-USDT","makerRate":"0.00750000","takerRate":"0.00750000"},
-        //     {"marketSymbol":"1INCH-BTC","makerRate":"0.00750000","takerRate":"0.00750000"},
-        //     {"marketSymbol":"1INCH-ETH","makerRate":"0.00750000","takerRate":"0.00750000"},
-        //     {"marketSymbol":"1INCH-USD","makerRate":"0.00750000","takerRate":"0.00750000"},
-        //     ...
-        // ]
+        //     [
+        //         {"marketSymbol":"1ECO-BTC","makerRate":"0.00750000","takerRate":"0.00750000"},
+        //         {"marketSymbol":"1ECO-USDT","makerRate":"0.00750000","takerRate":"0.00750000"},
+        //         {"marketSymbol":"1INCH-BTC","makerRate":"0.00750000","takerRate":"0.00750000"},
+        //         {"marketSymbol":"1INCH-ETH","makerRate":"0.00750000","takerRate":"0.00750000"},
+        //         {"marketSymbol":"1INCH-USD","makerRate":"0.00750000","takerRate":"0.00750000"},
+        //     ]
         //
         return this.parseTradingFees (response);
-        //
-        // {
-        //     info: [
-        //       {
-        //         marketSymbol: '1ECO-BTC',
-        //         makerRate: '0.00750000',
-        //         takerRate: '0.00750000'
-        //       },
-        //       ...
-        //     ],
-        //     '1ECO/BTC': {
-        //         info: {
-        //           marketSymbol: '1ECO-BTC',
-        //           makerRate: '0.00750000',
-        //           takerRate: '0.00750000'
-        //         },
-        //         symbol: '1ECO/BTC',
-        //         maker: 0.0075,
-        //         taker: 0.0075
-        //     },
-        //     ...
-        // }
     }
 
     parseTradingFee (fee, market = undefined) {
