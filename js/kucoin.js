@@ -65,6 +65,8 @@ module.exports = class kucoin extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': undefined,
                 'fetchWithdrawals': true,
                 'transfer': true,
                 'withdraw': true,
@@ -129,6 +131,7 @@ module.exports = class kucoin extends Exchange {
                         'accounts/ledgers': 3.333, // 18/3s = 6/s => cost = 20 / 6 = 3.333
                         'accounts/{accountId}/holds': 1,
                         'accounts/transferable': 1,
+                        'base-fee': 1,
                         'sub/user': 1,
                         'sub-accounts': 1,
                         'sub-accounts/{subUserId}': 1,
@@ -159,6 +162,7 @@ module.exports = class kucoin extends Exchange {
                         'stop-order/{orderId}': 1,
                         'stop-order': 1,
                         'stop-order/queryOrderByClientOid': 1,
+                        'trade-fees': 1.3333, // 45/3s = 15/s => cost = 20 / 15 = 1.333
                     },
                     'post': {
                         'accounts': 1,
@@ -1649,6 +1653,37 @@ module.exports = class kucoin extends Exchange {
             'cost': costString,
             'fee': fee,
         }, market);
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbols': market['id'],
+        };
+        const response = await this.privateGetTradeFees (this.extend (request, params));
+        // {
+        //     code: '200000',
+        //     data: [
+        //       {
+        //         symbol: 'BTC-USDT',
+        //         takerFeeRate: '0.001',
+        //         makerFeeRate: '0.001'
+        //       }
+        //     ]
+        // }
+        const data = this.safeValue (response, 'data', [ {} ]);
+        const fee = data[0];
+        const feeSymbol = this.safeString ('symbol', fee);
+        const safeSymbol = this.safeSymbol (feeSymbol, market);
+        const makerFee = this.safeFloat (fee, 'makerFeeRate');
+        const takerFee = this.safeFloat (fee, 'takerFeeRate');
+        return {
+            'info': response,
+            'symbol': safeSymbol,
+            'maker': makerFee,
+            'taker': takerFee,
+        };
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
