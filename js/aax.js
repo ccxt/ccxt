@@ -56,7 +56,7 @@ module.exports = class aax extends Exchange {
                 'fetchDepositAddressesByNetwork': undefined,
                 'fetchDeposits': true,
                 'fetchFundingFee': undefined,
-                'fetchFundingFees': undefined,
+                'fetchFundingFees': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -89,8 +89,8 @@ module.exports = class aax extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFee': undefined,
-                'fetchTradingFees': undefined,
+                'fetchTradingFee': true,
+                'fetchTradingFees': true,
                 'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
                 'fetchTransfers': undefined,
@@ -857,6 +857,39 @@ module.exports = class aax extends Exchange {
             this.safeNumber (ohlcv, 3),
             this.safeNumber (ohlcv, 4),
         ];
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        // AAX has a fixed fee of 0.1% Maker and 0.15% Taker
+        // AAX VIP have a 0.016% maker fees and 0.064% taker fees (pay with AAB on trading fees).
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const safeSymbol = this.safeSymbol (market['id'], market);
+        return {
+            'info': {},
+            'symbol': safeSymbol,
+            'maker': 0.001,
+            'taker': 0.0015,
+        };
+    }
+
+    async fetchTradingFees (params = {}) {
+        // AAX has a fixed fee of 0.1% Maker and 0.15% Taker
+        // AAX VIP have a 0.016% maker fees and 0.064% taker fees (pay with AAB on trading fees).
+        await this.loadMarkets ();
+        const result = {
+            'info': {},
+        };
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            result[symbol] = {
+                'info': {},
+                'symbol': symbol,
+                'maker': 0.001,
+                'taker': 0.0015,
+            };
+        }
+        return result;
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -2081,6 +2114,54 @@ module.exports = class aax extends Exchange {
             'tagTo': tagTo,
             'comment': undefined,
             'fee': fee,
+        };
+    }
+
+    async fetchFundingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetCurrencies (params);
+        //
+        // {
+        //     info: {
+        //       code: '1',
+        //       data: [
+        //         {
+        //           chain: 'ERC20USDT',
+        //           displayName: 'TetherUS',
+        //           withdrawFee: '8',
+        //           withdrawMin: '20',
+        //           otcFee: '0',
+        //           enableOTC: true,
+        //           visible: true,
+        //           enableTransfer: true,
+        //           transferMin: '2',
+        //           depositMin: '1',
+        //           enableWithdraw: true,
+        //           enableDeposit: true,
+        //           addrWithMemo: false,
+        //           addrSupportFIO: true,
+        //           withdrawPrecision: '0.000001',
+        //           currency: 'USDT',
+        //           network: 'ERC20',
+        //           minConfirm: '12'
+        //         },
+        //         ...
+        //         ],
+        //     }
+        // }
+        //
+        const withdraw = {};
+        const data = this.safeValue (response, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const currencyData = data[i];
+            const currencyId = this.safeString (currencyData, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            withdraw[code] = this.safeFloat (currencyData, 'withdrawFee');
+        }
+        return {
+            'info': response,
+            'withdraw': withdraw,
+            'deposit': {}, // AAX does not charge deposit fees
         };
     }
 
