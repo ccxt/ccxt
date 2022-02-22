@@ -352,14 +352,14 @@ module.exports = class currencycom extends Exchange {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const symbolRaw = this.safeString (market, 'symbol');
+            const id = this.safeString (market, 'symbol');
             const baseId = this.safeString (market, 'baseAsset');
             const quoteId = this.safeString (market, 'quoteAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
-            if (symbolRaw.indexOf ('/') >= 0) {
-                symbol = symbolRaw;
+            if (id.indexOf ('/') >= 0) {
+                symbol = id;
             }
             const type = this.safeString (market, 'marketType');
             const spot = (type === 'SPOT');
@@ -425,7 +425,7 @@ module.exports = class currencycom extends Exchange {
             }
             const isContract = swap || futures;
             result.push ({
-                'id': symbolRaw,
+                'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
