@@ -998,8 +998,17 @@ module.exports = class zb extends Exchange {
             //         request['extend'] = JSON.parse ('{"orderAlgos": [{"bizType": "' + orderType + ',"priceType": "' + priceType + ',"triggerType": "' + triggerPrice + '"}]}');
             //     }
             // }
+            const reduceOnly = this.safeValue (params, 'reduceOnly');
+            if (side === 'sell' && reduceOnly) {
+                request['side'] = 3;
+            } else if (side === 'buy' && reduceOnly) {
+                request['side'] = 4;
+            } else if (side === 'buy') {
+                request['side'] = 1;
+            } else if (side === 'sell') {
+                request['side'] = 2;
+            }
             request['symbol'] = this.marketId (symbol);
-            request['side'] = side; // 1: Open long, 2: Open short, 3: Close long, 4: Close short
             request['amount'] = this.amountToPrecision (symbol, amount); // number of orders
             request['action'] = type; // OPTIONAL default 1: limit, 11: Best Bid Offer, 3: IOC, 4: Post only, 5: FOK, 51: Best Bid Offer FOK
             request['clientOrderId'] = params['clientOrderId']; // OPTIONAL '^[a-zA-Z0-9-_]{1,36}$', // The user-defined order number
