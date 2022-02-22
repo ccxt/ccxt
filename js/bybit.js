@@ -319,7 +319,7 @@ module.exports = class bybit extends Exchange {
                         'v2/private/funding/predicted-funding': 1,
                         'v2/private/account/api-key': 1,
                         'v2/private/account/lcp': 1,
-                        'v2/private/wallet/balance': 1,
+                        'v2/private/wallet/balance': 25, // 120 per minute = 2 per second => cost  = 50 / 2 = 25
                         'v2/private/wallet/fund/records': 1,
                         'v2/private/wallet/withdraw/list': 1,
                         'v2/private/exchange-order/list': 1,
@@ -1728,7 +1728,7 @@ module.exports = class bybit extends Exchange {
         }, market);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) { // TODO
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
