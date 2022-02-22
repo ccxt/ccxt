@@ -8,6 +8,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -73,7 +74,8 @@ class currencycom(Exchange):
                 'fetchL2OrderBook': True,
                 'fetchLedger': None,
                 'fetchLedgerEntry': None,
-                'fetchLeverageTiers': None,
+                'fetchLeverage': True,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -227,6 +229,7 @@ class currencycom(Exchange):
                     'Order would trigger immediately.': InvalidOrder,
                     'Account has insufficient balance for requested action.': InsufficientFunds,
                     'Rest API trading is not enabled.': ExchangeNotAvailable,
+                    'Only leverage symbol allowed here:': BadSymbol,  # when you fetchLeverage for non-leverage symbols, like 'BTC/USDT' instead of 'BTC/USDT_LEVERAGE': {"code":"-1128","msg":"Only leverage symbol allowed here: BTC/USDT"}
                 },
                 'exact': {
                     '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
@@ -1274,6 +1277,21 @@ class currencycom(Exchange):
             'withdrawal': 'withdrawal',
         }
         return self.safe_string(types, type, type)
+
+    async def fetch_leverage(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.privateGetV2LeverageSettings(self.extend(request, params))
+        #
+        # {
+        #     "values": [1, 2, 5, 10,],
+        #     "value": "10",
+        # }
+        #
+        return self.safe_number(response, 'value')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/' + path
