@@ -5246,7 +5246,7 @@ module.exports = class huobi extends Exchange {
         }
         const request = {};
         if (marketType === 'future' && market['inverse']) {
-            request['symbol'] = market['baseId'];
+            request['symbol'] = market['settleId'];
         } else {
             if (marginType === 'cross') {
                 request['margin_account'] = 'USDT'; // only allowed value
