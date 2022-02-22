@@ -64,8 +64,6 @@ module.exports = class currencycom extends Exchange {
                 'fetchLedger': true,
                 'fetchLedgerEntry': false,
                 'fetchLeverageTiers': false,
-                'fetchLedger': undefined,
-                'fetchLedgerEntry': undefined,
                 'fetchLeverage': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
