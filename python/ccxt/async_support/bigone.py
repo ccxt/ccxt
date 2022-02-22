@@ -459,7 +459,7 @@ class bigone(Exchange):
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
         marketId = self.safe_string(trade, 'asset_pair_name')
-        symbol = self.safe_symbol(marketId, market, '-')
+        market = self.safe_market(marketId, market, '-')
         side = self.safe_string(trade, 'side')
         takerSide = self.safe_string(trade, 'taker_side')
         takerOrMaker = None
@@ -489,7 +489,7 @@ class bigone(Exchange):
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': orderId,
             'type': 'limit',
             'side': side,
@@ -501,7 +501,7 @@ class bigone(Exchange):
         }
         makerCurrencyCode = None
         takerCurrencyCode = None
-        if (market is not None) and (takerOrMaker is not None):
+        if takerOrMaker is not None:
             if side == 'buy':
                 if takerOrMaker == 'maker':
                     makerCurrencyCode = market['base']
