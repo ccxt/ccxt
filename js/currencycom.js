@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, BadRequest } = require ('./base/errors');
+const { BadSymbol, ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, BadRequest } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -63,7 +63,8 @@ module.exports = class currencycom extends Exchange {
                 'fetchL2OrderBook': true,
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
-                'fetchLeverageTiers': undefined,
+                'fetchLeverage': true,
+                'fetchLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -217,6 +218,7 @@ module.exports = class currencycom extends Exchange {
                     'Order would trigger immediately.': InvalidOrder,
                     'Account has insufficient balance for requested action.': InsufficientFunds,
                     'Rest API trading is not enabled.': ExchangeNotAvailable,
+                    'Only leverage symbol allowed here:': BadSymbol, // when you fetchLeverage for non-leverage symbols, like 'BTC/USDT' instead of 'BTC/USDT_LEVERAGE': {"code":"-1128","msg":"Only leverage symbol allowed here: BTC/USDT"}
                 },
                 'exact': {
                     '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
@@ -1318,7 +1320,6 @@ module.exports = class currencycom extends Exchange {
         const statuses = {
             'APPROVAL': 'pending',
             'PROCESSED': 'ok',
-            'CANCELLED': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }
@@ -1329,6 +1330,22 @@ module.exports = class currencycom extends Exchange {
             'withdrawal': 'withdrawal',
         };
         return this.safeString (types, type, type);
+    }
+
+    async fetchLeverage (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.privateGetV2LeverageSettings (this.extend (request, params));
+        //
+        // {
+        //     "values": [ 1, 2, 5, 10, ],
+        //     "value": "10",
+        // }
+        //
+        return this.safeNumber (response, 'value');
     }
 
     async fetchDepositAddress (code, params = {}) {
