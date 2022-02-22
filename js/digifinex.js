@@ -1360,14 +1360,13 @@ module.exports = class digifinex extends Exchange {
     }
 
     parseTransactionStatus (status) {
+        // deposit state includes: 1 (in deposit), 2 (to be confirmed), 3 (successfully deposited), 4 (stopped)
+        // withdrawal state includes: 1 (application in progress), 2 (to be confirmed), 3 (completed), 4 (rejected)
         const statuses = {
-            '0': 'pending', // Email Sent
-            '1': 'canceled', // Cancelled (different from 1 = ok in deposits)
-            '2': 'pending', // Awaiting Approval
-            '3': 'failed', // Rejected
-            '4': 'pending', // Processing
-            '5': 'failed', // Failure
-            '6': 'ok', // Completed
+            '1': 'pending', // in Progress
+            '2': 'pending', // to be confirmed
+            '3': 'ok', // Completed
+            '4': 'failed', // Rejected
         };
         return this.safeString (statuses, status, status);
     }

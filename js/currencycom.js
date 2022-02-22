@@ -64,7 +64,7 @@ module.exports = class currencycom extends Exchange {
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
                 'fetchLeverage': true,
-                'fetchLeverageTiers': true,
+                'fetchLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -1346,40 +1346,6 @@ module.exports = class currencycom extends Exchange {
         // }
         //
         return this.safeNumber (response, 'value');
-    }
-
-    async fetchLeverageTiers (symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchLeverageTiers() requires a symbol argument');
-        }
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const response = await this.privateGetV2LeverageSettings (this.extend (request, params));
-        //
-        // {
-        //     "values": [ 1, 2, 5, 10, ],
-        //     "value": "10",
-        // }
-        //
-        const data = this.safeValue (response, 'values');
-        const result = {};
-        result[symbol] = [];
-        for (let i = 0; i < data.length; i++) {
-            const value = data[i];
-            result[symbol].push ({
-                'tier': undefined,
-                'notionalCurrency': undefined,
-                'notionalFloor': undefined,
-                'notionalCap': undefined,
-                'maintenanceMarginRate': undefined,
-                'maxLeverage': value,
-                'info': value,
-            });
-        }
-        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
