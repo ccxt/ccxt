@@ -255,24 +255,11 @@ module.exports = class huobi extends ccxt.huobi {
         } else {
             messageHash = 'market.' + market['id'] + '.depth.size_' + limit.toString () + '.high_freq';
         }
-        const url = this.getUrlByMarketType (this.getUniformMarketType (market));
-        const requestId = this.requestId ();
-        const request = {
-            'sub': messageHash,
-            'id': requestId,
-        };
+        const type = this.getUniformMarketType (market);
         if (!market['spot']) {
-            request['data_type'] = 'incremental';
+            params['data_type'] = 'incremental';
         }
-        const subscription = {
-            'id': requestId,
-            'messageHash': messageHash,
-            'symbol': symbol,
-            'limit': limit,
-            'params': params,
-            'method': this.handleOrderBookSubscription,
-        };
-        const orderbook = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        const orderbook = await this.subscribePublic (symbol, messageHash, type, this.handleOrderBookSubscription, params);
         return orderbook.limit (limit);
     }
 
@@ -711,5 +698,24 @@ module.exports = class huobi extends ccxt.huobi {
             return 'inverse';
         }
         return 'spot';
+    }
+
+    async subscribePublic (symbol, messageHash, type, method = undefined, params = {}) {
+        const url = this.getUrlByMarketType (type);
+        const requestId = this.requestId ();
+        const request = {
+            'sub': messageHash,
+            'id': requestId,
+        };
+        const subscription = {
+            'id': requestId,
+            'messageHash': messageHash,
+            'symbol': symbol,
+            'params': params,
+        };
+        if (method !== undefined) {
+            subscription['method'] = method;
+        }
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 };
