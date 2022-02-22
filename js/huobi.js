@@ -73,19 +73,8 @@ module.exports = class huobi extends ccxt.huobi {
         const market = this.market (symbol);
         // only supports a limit of 150 at this time
         const messageHash = 'market.' + market['id'] + '.detail';
-        const url = this.getUrlByMarketType (this.getUniformMarketType (market));
-        const requestId = this.requestId ();
-        const request = {
-            'sub': messageHash,
-            'id': requestId,
-        };
-        const subscription = {
-            'id': requestId,
-            'messageHash': messageHash,
-            'symbol': symbol,
-            'params': params,
-        };
-        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        const type = this.getUniformMarketType (market);
+        return await this.subscribePublic (symbol, messageHash, type, params);
     }
 
     handleTicker (client, message) {
