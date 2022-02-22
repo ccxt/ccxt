@@ -586,4 +586,45 @@ module.exports = class huobi extends ccxt.huobi {
             }
         }
     }
+
+    getUrlByMarketType (type, isPrivate = false) {
+        const api = this.safeString (this.options, 'api', 'api');
+        const hostname = { 'hostname': this.hostname };
+        let hostnameURL = undefined;
+        let url = undefined;
+        if (type === 'spot') {
+            if (isPrivate) {
+                hostnameURL = this.urls['api']['ws'][api]['spot']['private'];
+            } else {
+                hostnameURL = this.urls['api']['ws'][api]['spot']['public'];
+            }
+            url = this.implodeParams (hostnameURL, hostname);
+        }
+        if (type === 'future') {
+            const futureUrl = this.urls['api']['ws'][api]['future'];
+            url = isPrivate ? futureUrl['private'] : futureUrl['public'];
+        }
+        if (type === 'linear') {
+            const linearUrl = this.urls['api']['ws'][api]['swap']['linear'];
+            url = isPrivate ? linearUrl['private'] : linearUrl['public'];
+        }
+        if (type === 'inverse') {
+            const inverseUrl = this.urls['api']['ws'][api]['swap']['inverse'];
+            url = isPrivate ? inverseUrl['private'] : inverseUrl['public'];
+        }
+        return url;
+    }
+
+    getUniformMarketType (market) {
+        if (market['linear']) {
+            return 'linear';
+        }
+        if (market['future']) {
+            return 'future';
+        }
+        if (market['swap']) {
+            return 'inverse';
+        }
+        return 'spot';
+    }
 };
