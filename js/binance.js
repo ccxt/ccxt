@@ -35,7 +35,6 @@ module.exports = class binance extends Exchange {
                 'createReduceOnlyOrder': true,
                 'deposit': undefined,
                 'fetchAccounts': undefined,
-                'fetchAllTradingFees': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
                 'fetchBorrowRate': true,

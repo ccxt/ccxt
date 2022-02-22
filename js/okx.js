@@ -35,7 +35,6 @@ module.exports = class okx extends Exchange {
                 'createReduceOnlyOrder': undefined,
                 'deposit': undefined,
                 'fetchAccounts': true,
-                'fetchAllTradingFees': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
                 'fetchBorrowRate': true,
