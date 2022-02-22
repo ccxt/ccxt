@@ -209,6 +209,7 @@ module.exports = class currencycom extends Exchange {
                     'limit': 'RESULT', // we change it from 'ACK' by default to 'RESULT'
                     'stop': 'RESULT',
                 },
+                'leverage_markets_suffix': '_LEVERAGE',
             },
             'exceptions': {
                 'broad': {
@@ -266,7 +267,8 @@ module.exports = class currencycom extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetV2ExchangeInfo (params);
-        // Note the differences for 'LEVERAGE' types
+        // Note, each object's properties are different in regular (spot) instruments compared to 'LEVERAGE' instruments (comments are included along those properties)
+        //
         // {
         //     timezone: "UTC",
         //     serverTime: "1645186287261",
@@ -365,8 +367,9 @@ module.exports = class currencycom extends Exchange {
             const spot = (type === 'SPOT');
             const futures = false;
             const swap = (type === 'LEVERAGE');
-            const margin = (type === 'LEVERAGE'); // as we decided to set
+            const margin = swap; // as we decided to set
             if (swap) {
+                symbol = symbol.replace (this.options['leverage_markets_suffix'], '');
                 symbol += ':' + quote;
             }
             const active = this.safeString (market, 'status') === 'TRADING';
