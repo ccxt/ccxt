@@ -200,6 +200,7 @@ module.exports = class currencycom extends Exchange {
             'options': {
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel, 'FOK' = Fill Or Kill
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
+                'collateralCurrencies': [],
                 'recvWindow': 5 * 1000, // 5 sec, default
                 'timeDifference': 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
@@ -273,19 +274,21 @@ module.exports = class currencycom extends Exchange {
         //
         //     [
         //         {
-        //           name: "US Dollar",
-        //           displaySymbol: "USD.cx",
-        //           precision: "2",
-        //           type: "FIAT",
-        //           minWithdrawal: "100.0",
-        //           maxWithdrawal: "1.0E+8",
-        //           minDeposit: "100.0",
+        //             "name": "Euro",
+        //             "displaySymbol": "EUR.cx",
+        //             "precision": "2",
+        //             "type": "FIAT",
+        //             "minWithdrawal": "90.0",
+        //             "maxWithdrawal": "1.0E+8",
+        //             "commissionMin": "0.02",     // some instruments don't have this property
+        //             "commissionPercent": "1.5",  // some instruments don't have this property
+        //             "minDeposit": "90.0",
         //         },
         //         {
         //             name: "Bitcoin",
         //             displaySymbol: "BTC",
         //             precision: "8",
-        //             type: "CRYPTO",  // Note: only several major ones have this value. Others (like USDT) have value : "TOKEN"
+        //             type: "CRYPTO",              // Note: only several major ones have this value. Others (like USDT) have value : "TOKEN"
         //             minWithdrawal: "0.00020",
         //             commissionFixed: "0.00010",
         //             minDeposit: "0.00010",
@@ -303,7 +306,6 @@ module.exports = class currencycom extends Exchange {
                 'id': id,
                 'code': code,
                 'address': this.safeString (currency, 'baseAddress'),
-                'info': currency,
                 'type': this.safeStringLower (currency, 'type'),
                 'name': this.safeString (currency, 'name'),
                 'active': undefined,
@@ -318,13 +320,14 @@ module.exports = class currencycom extends Exchange {
                     },
                     'withdraw': {
                         'min': this.safeNumber (currency, 'minWithdrawal'),
-                        'max': undefined,
+                        'max': this.safeNumber (currency, 'maxWithdrawal'),
                     },
                     'deposit': {
                         'min': this.safeNumber (currency, 'minDeposit'),
                         'max': undefined,
                     },
                 },
+                'info': currency,
             };
         }
         return result;
