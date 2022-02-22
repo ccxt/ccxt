@@ -1239,6 +1239,9 @@ module.exports = class currencycom extends Exchange {
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 37d060fd55 (typo)
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         return this.fetchTransactionsByMethod ('privateGetV2Deposits', code, since, limit, params);
     }
