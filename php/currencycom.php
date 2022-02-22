@@ -66,7 +66,8 @@ class currencycom extends Exchange {
                 'fetchL2OrderBook' => true,
                 'fetchLedger' => null,
                 'fetchLedgerEntry' => null,
-                'fetchLeverageTiers' => null,
+                'fetchLeverage' => true,
+                'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -220,6 +221,7 @@ class currencycom extends Exchange {
                     'Order would trigger immediately.' => '\\ccxt\\InvalidOrder',
                     'Account has insufficient balance for requested action.' => '\\ccxt\\InsufficientFunds',
                     'Rest API trading is not enabled.' => '\\ccxt\\ExchangeNotAvailable',
+                    'Only leverage symbol allowed here:' => '\\ccxt\\BadSymbol', // when you fetchLeverage for non-leverage symbols, like 'BTC/USDT' instead of 'BTC/USDT_LEVERAGE' => array("code":"-1128","msg":"Only leverage symbol allowed here => BTC/USDT")
                 ),
                 'exact' => array(
                     '-1000' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1000,"msg":"An unknown error occured while processing the request.")
@@ -1331,6 +1333,22 @@ class currencycom extends Exchange {
             'withdrawal' => 'withdrawal',
         );
         return $this->safe_string($types, $type, $type);
+    }
+
+    public function fetch_leverage($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->privateGetV2LeverageSettings (array_merge($request, $params));
+        //
+        // {
+        //     "values" => array( 1, 2, 5, 10, ),
+        //     "value" => "10",
+        // }
+        //
+        return $this->safe_number($response, 'value');
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
