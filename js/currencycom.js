@@ -200,7 +200,6 @@ module.exports = class currencycom extends Exchange {
             'options': {
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel, 'FOK' = Fill Or Kill
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
-                'collateralCurrencies': [],
                 'recvWindow': 5 * 1000, // 5 sec, default
                 'timeDifference': 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
