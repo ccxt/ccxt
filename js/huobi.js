@@ -263,15 +263,21 @@ module.exports = class huobi extends ccxt.huobi {
         const market = this.market (symbol);
         // only supports a limit of 150 at this time
         limit = (limit === undefined) ? 150 : limit;
-        const messageHash = 'market.' + market['id'] + '.mbp.' + limit.toString ();
-        const api = this.safeString (this.options, 'api', 'api');
-        const hostname = { 'hostname': this.hostname };
-        const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
+        let messageHash = undefined;
+        if (market['spot']) {
+            messageHash = 'market.' + market['id'] + '.mbp.' + limit.toString ();
+        } else {
+            messageHash = 'market.' + market['id'] + '.depth.size_' + limit.toString () + '.high_freq';
+        }
+        const url = this.getUrlByMarketType (this.getUniformMarketType (market));
         const requestId = this.requestId ();
         const request = {
             'sub': messageHash,
             'id': requestId,
         };
+        if (!market['spot']) {
+            request['data_type'] = 'incremental';
+        }
         const subscription = {
             'id': requestId,
             'messageHash': messageHash,
@@ -327,9 +333,8 @@ module.exports = class huobi extends ccxt.huobi {
         const limit = this.safeInteger (subscription, 'limit');
         const params = this.safeValue (subscription, 'params');
         const messageHash = this.safeString (subscription, 'messageHash');
-        const api = this.safeString (this.options, 'api', 'api');
-        const hostname = { 'hostname': this.hostname };
-        const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
+        const market = this.market (symbol);
+        const url = this.getUrlByMarketType (this.getUniformMarketType (market));
         const requestId = this.requestId ();
         const request = {
             'req': messageHash,
@@ -349,6 +354,26 @@ module.exports = class huobi extends ccxt.huobi {
         return orderbook.limit (limit);
     }
 
+    async fetchOrderBookSnapshot (client, message, subscription) {
+        const symbol = this.safeString (subscription, 'symbol');
+        const limit = this.safeInteger (subscription, 'limit');
+        const params = this.safeValue (subscription, 'params');
+        const messageHash = this.safeString (subscription, 'messageHash');
+        const snapshot = await this.fetchOrderBook (symbol, limit, params);
+        const orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook !== undefined) {
+            orderbook.reset (snapshot);
+            // unroll the accumulated deltas
+            const messages = orderbook.cache;
+            for (let i = 0; i < messages.length; i++) {
+                const message = messages[i];
+                this.handleOrderBookMessage (client, message, orderbook);
+            }
+            this.orderbooks[symbol] = orderbook;
+            client.resolve (orderbook, messageHash);
+        }
+    }
+
     handleDelta (bookside, delta) {
         const price = this.safeFloat (delta, 0);
         const amount = this.safeFloat (delta, 1);
@@ -362,7 +387,7 @@ module.exports = class huobi extends ccxt.huobi {
     }
 
     handleOrderBookMessage (client, message, orderbook) {
-        //
+        // spot markets
         //     {
         //         ch: "market.btcusdt.mbp.150",
         //         ts: 1583472025885,
@@ -381,16 +406,39 @@ module.exports = class huobi extends ccxt.huobi {
         //             ]
         //         }
         //     }
-        //
+        // non-spot market
+        //     {
+        //         "ch":"market.BTC220218.depth.size_150.high_freq",
+        //         "tick":{
+        //            "asks":[
+        //            ],
+        //            "bids":[
+        //               [43445.74,1],
+        //               [43444.48,0 ],
+        //               [40593.92,9]
+        //             ],
+        //            "ch":"market.BTC220218.depth.size_150.high_freq",
+        //            "event":"update",
+        //            "id":152727500274,
+        //            "mrid":152727500274,
+        //            "ts":1645023376098,
+        //            "version":37536690
+        //         },
+        //         "ts":1645023376098
+        //      }
         const tick = this.safeValue (message, 'tick', {});
         const seqNum = this.safeInteger (tick, 'seqNum');
         const prevSeqNum = this.safeInteger (tick, 'prevSeqNum');
-        if ((prevSeqNum <= orderbook['nonce']) && (seqNum > orderbook['nonce'])) {
+        if (prevSeqNum === undefined || ((prevSeqNum <= orderbook['nonce']) && (seqNum > orderbook['nonce']))) {
             const asks = this.safeValue (tick, 'asks', []);
             const bids = this.safeValue (tick, 'bids', []);
             this.handleDeltas (orderbook['asks'], asks);
             this.handleDeltas (orderbook['bids'], bids);
-            orderbook['nonce'] = seqNum;
+            if (seqNum !== undefined) {
+                orderbook['nonce'] = seqNum;
+            } else {
+                orderbook['nonce'] = this.safeInteger (tick, 'mrid');
+            }
             const timestamp = this.safeInteger (message, 'ts');
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
@@ -402,6 +450,7 @@ module.exports = class huobi extends ccxt.huobi {
         //
         // deltas
         //
+        // spot markets
         //     {
         //         ch: "market.btcusdt.mbp.150",
         //         ts: 1583472025885,
@@ -421,12 +470,38 @@ module.exports = class huobi extends ccxt.huobi {
         //         }
         //     }
         //
+        // non spot markets
+        //     {
+        //         "ch":"market.BTC220218.depth.size_150.high_freq",
+        //         "tick":{
+        //            "asks":[
+        //            ],
+        //            "bids":[
+        //               [43445.74,1],
+        //               [43444.48,0 ],
+        //               [40593.92,9]
+        //             ],
+        //            "ch":"market.BTC220218.depth.size_150.high_freq",
+        //            "event":"update",
+        //            "id":152727500274,
+        //            "mrid":152727500274,
+        //            "ts":1645023376098,
+        //            "version":37536690
+        //         },
+        //         "ts":1645023376098
+        //      }
         const messageHash = this.safeString (message, 'ch');
         const ch = this.safeValue (message, 'ch');
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
         const symbol = this.safeSymbol (marketId);
-        const orderbook = this.orderbooks[symbol];
+        let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            const size = this.safeString (parts, 3);
+            const sizeParts = size.split ('_');
+            const limit = this.safeNumber (sizeParts, 1);
+            orderbook = this.orderBook ({}, limit);
+        }
         if (orderbook['nonce'] === undefined) {
             orderbook.cache.push (message);
         } else {
@@ -442,8 +517,11 @@ module.exports = class huobi extends ccxt.huobi {
             delete this.orderbooks[symbol];
         }
         this.orderbooks[symbol] = this.orderBook ({}, limit);
-        // watch the snapshot in a separate async call
-        this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
+        if (this.markets[symbol]['spot'] === true) {
+            this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
+        } else {
+            this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+        }
     }
 
     handleSubscriptionStatus (client, message) {
@@ -453,7 +531,7 @@ module.exports = class huobi extends ccxt.huobi {
         //         "status": "ok",
         //         "subbed": "market.btcusdt.mbp.150",
         //         "ts": 1583414229143
-        //     }
+        //     }f
         //
         const id = this.safeString (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
@@ -486,7 +564,7 @@ module.exports = class huobi extends ccxt.huobi {
     }
 
     handleSubject (client, message) {
-        //
+        // spot
         //     {
         //         ch: "market.btcusdt.mbp.150",
         //         ts: 1583472025885,
@@ -505,6 +583,26 @@ module.exports = class huobi extends ccxt.huobi {
         //             ]
         //         }
         //     }
+        // non spot
+        //     {
+        //         "ch":"market.BTC220218.depth.size_150.high_freq",
+        //         "tick":{
+        //            "asks":[
+        //            ],
+        //            "bids":[
+        //               [43445.74,1],
+        //               [43444.48,0 ],
+        //               [40593.92,9]
+        //             ],
+        //            "ch":"market.BTC220218.depth.size_150.high_freq",
+        //            "event":"update",
+        //            "id":152727500274,
+        //            "mrid":152727500274,
+        //            "ts":1645023376098,
+        //            "version":37536690
+        //         },
+        //         "ts":1645023376098
+        //      }
         //
         const ch = this.safeValue (message, 'ch');
         const parts = ch.split ('.');
@@ -512,6 +610,7 @@ module.exports = class huobi extends ccxt.huobi {
         if (type === 'market') {
             const methodName = this.safeString (parts, 2);
             const methods = {
+                'depth': this.handleOrderBook,
                 'mbp': this.handleOrderBook,
                 'detail': this.handleTicker,
                 'trade': this.handleTrades,
@@ -572,6 +671,7 @@ module.exports = class huobi extends ccxt.huobi {
     }
 
     handleMessage (client, message) {
+        // console.log ('OnMessage:', message);
         if (this.handleErrorMessage (client, message)) {
             //
             //     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}
