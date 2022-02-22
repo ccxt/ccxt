@@ -360,9 +360,6 @@ module.exports = class currencycom extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
-            if (id.indexOf ('/') >= 0) {
-                symbol = id;
-            }
             const type = this.safeString (market, 'marketType');
             const spot = (type === 'SPOT');
             const futures = false;
