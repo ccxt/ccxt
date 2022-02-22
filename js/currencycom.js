@@ -265,32 +265,33 @@ module.exports = class currencycom extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        // their 'currencies' endpoint needs authorization
+        // requires authentication
         if (!this.checkRequiredCredentials (false)) {
             return undefined;
         }
         const response = await this.privateGetV2Currencies (params);
-        // [
-        //     {
-        //       name: "US Dollar",
-        //       displaySymbol: "USD.cx",
-        //       precision: "2",
-        //       type: "FIAT",
-        //       minWithdrawal: "100.0",
-        //       maxWithdrawal: "1.0E+8",
-        //       minDeposit: "100.0",
-        //     },
-        //     {
-        //         name: "Bitcoin",
-        //         displaySymbol: "BTC",
-        //         precision: "8",
-        //         type: "CRYPTO",  // Note: only several major ones have this value. Others (like USDT) have value : "TOKEN"
-        //         minWithdrawal: "0.00020",
-        //         commissionFixed: "0.00010",
-        //         minDeposit: "0.00010",
-        //     },
-        //     ...
-        // ]
+        //
+        //     [
+        //         {
+        //           name: "US Dollar",
+        //           displaySymbol: "USD.cx",
+        //           precision: "2",
+        //           type: "FIAT",
+        //           minWithdrawal: "100.0",
+        //           maxWithdrawal: "1.0E+8",
+        //           minDeposit: "100.0",
+        //         },
+        //         {
+        //             name: "Bitcoin",
+        //             displaySymbol: "BTC",
+        //             precision: "8",
+        //             type: "CRYPTO",  // Note: only several major ones have this value. Others (like USDT) have value : "TOKEN"
+        //             minWithdrawal: "0.00020",
+        //             commissionFixed: "0.00010",
+        //             minDeposit: "0.00010",
+        //         },
+        //     ]
+        //
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
@@ -303,7 +304,7 @@ module.exports = class currencycom extends Exchange {
                 'code': code,
                 'address': this.safeString (currency, 'baseAddress'),
                 'info': currency,
-                'type': this.safeString (currency, 'type'), // TO_DO : unified
+                'type': this.safeStringLower (currency, 'type'),
                 'name': this.safeString (currency, 'name'),
                 'active': undefined,
                 'deposit': undefined,
@@ -312,7 +313,7 @@ module.exports = class currencycom extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': undefined, // Precise.stringDiv ('1', Math-pow (10, precision)),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
