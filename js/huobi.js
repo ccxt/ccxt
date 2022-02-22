@@ -127,19 +127,8 @@ module.exports = class huobi extends ccxt.huobi {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const messageHash = 'market.' + market['id'] + '.trade.detail';
-        const url = this.getUrlByMarketType (this.getUniformMarketType (market));
-        const requestId = this.requestId ();
-        const request = {
-            'sub': messageHash,
-            'id': requestId,
-        };
-        const subscription = {
-            'id': requestId,
-            'messageHash': messageHash,
-            'symbol': symbol,
-            'params': params,
-        };
-        const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        const type = this.getUniformMarketType (market);
+        const trades = await this.subscribePublic (symbol, messageHash, type, undefined, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
