@@ -1897,7 +1897,6 @@ module.exports = class gateio extends Exchange {
             'swap': 'privateFuturesGetSettleMyTrades',
             'future': 'privateDeliveryGetSettleMyTrades',
         });
-        // console.log (method);
         const response = await this[method] (this.extend (request, params));
         // SPOT
         //  [{
@@ -1934,8 +1933,6 @@ module.exports = class gateio extends Exchange {
         //     "price": "100.123",
         //     "role": "taker"
         //  }]
-        // const response = [ { 'size': -1, 'order_id': '129732827504', 'id': 68446315, 'role': 'maker', 'create_time': 1645464610, 'contract': 'ETH_USDT', 'price': '2749.65' }, { 'size': -1, 'order_id': '129732432603', 'id': 68446177, 'role': 'maker', 'create_time': 1645464610, 'contract': 'ETH_USDT', 'price': '2749.05' } ];
-        // const response = [ { 'size': -1, 'order_id': '129732827504', 'id': 68446315, 'role': 'maker', 'create_time': 1645299625.7406, 'contract': 'ETH_USDT', 'price': '2749.65' }, { 'size': -1, 'order_id': '129732432603', 'id': 68446177, 'role': 'maker', 'create_time': 1645299512.1703, 'contract': 'ETH_USDT', 'price': '2749.05' } ];
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -2011,7 +2008,6 @@ module.exports = class gateio extends Exchange {
                 timestamp = this.safeInteger ({ 'k': timestampMillisecondsString }, 'k');
             }
         }
-        console.log (timestamp);
         const marketId = this.safeString2 (trade, 'currency_pair', 'contract');
         const symbol = this.safeSymbol (marketId, market);
         let amountString = this.safeString2 (trade, 'amount', 'size');
