@@ -43,6 +43,7 @@ module.exports = class bittrex extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -67,6 +68,8 @@ module.exports = class bittrex extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': true,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
@@ -121,6 +124,10 @@ module.exports = class bittrex extends Exchange {
                 'private': {
                     'get': [
                         'account',
+                        'account/fees/fiat',
+                        'account/fees/fiat/{currencySymbol}',
+                        'account/fees/trading',
+                        'account/fees/trading/{marketSymbol}',
                         'account/volume',
                         'addresses',
                         'addresses/{currencySymbol}',
@@ -679,6 +686,135 @@ module.exports = class bittrex extends Exchange {
         //     ]
         //
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'marketSymbol': market['id'],
+        };
+        const response = await this.privateGetAccountFeesTradingMarketSymbol (this.extend (request, params));
+        //
+        // {"marketSymbol":"1INCH-ETH","makerRate":"0.00750000","takerRate":"0.00750000"}
+        //
+        return this.parseTradingFee (response);
+        // {
+        //     info: {
+        //       marketSymbol: '1INCH-ETH',
+        //       makerRate: '0.00750000',
+        //       takerRate: '0.00750000'
+        //     },
+        //     symbol: '1INCH/ETH',
+        //     maker: 0.0075,
+        //     taker: 0.0075
+        // }
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetAccountFeesTrading (params);
+        //
+        // [
+        //     {"marketSymbol":"1ECO-BTC","makerRate":"0.00750000","takerRate":"0.00750000"},
+        //     {"marketSymbol":"1ECO-USDT","makerRate":"0.00750000","takerRate":"0.00750000"},
+        //     {"marketSymbol":"1INCH-BTC","makerRate":"0.00750000","takerRate":"0.00750000"},
+        //     {"marketSymbol":"1INCH-ETH","makerRate":"0.00750000","takerRate":"0.00750000"},
+        //     {"marketSymbol":"1INCH-USD","makerRate":"0.00750000","takerRate":"0.00750000"},
+        //     ...
+        // ]
+        //
+        return this.parseTradingFees (response);
+        //
+        // {
+        //     info: [
+        //       {
+        //         marketSymbol: '1ECO-BTC',
+        //         makerRate: '0.00750000',
+        //         takerRate: '0.00750000'
+        //       },
+        //       ...
+        //     ],
+        //     '1ECO/BTC': {
+        //         info: {
+        //           marketSymbol: '1ECO-BTC',
+        //           makerRate: '0.00750000',
+        //           takerRate: '0.00750000'
+        //         },
+        //         symbol: '1ECO/BTC',
+        //         maker: 0.0075,
+        //         taker: 0.0075
+        //     },
+        //     ...
+        // }
+    }
+
+    parseTradingFee (fee, market = undefined) {
+        const marketId = this.safeString (fee, 'marketSymbol');
+        return {
+            'info': fee,
+            'symbol': this.safeSymbol (marketId, market),
+            'maker': this.parseNumber (fee['makerRate']),
+            'taker': this.parseNumber (fee['takerRate']),
+        };
+    }
+
+    parseTradingFees (fees) {
+        const result = {
+            'info': fees,
+        };
+        for (let i = 0; i < fees.length; i++) {
+            const fee = this.parseTradingFee (fees[i]);
+            const symbol = fee['symbol'];
+            result[symbol] = fee;
+        }
+        return result;
+    }
+
+    async fetchFundingFees (params = {}) {
+        // NOTE: Bittrex returns different fees depending on transaction type.
+        // This function returns the last fee found for each currency.
+        await this.loadMarkets ();
+        const fiatFees = await this.privateGetAccountFeesFiat (params);
+        //
+        // [{"fees":"25.00000000","currencySymbol":"USD","transactionType":"WITHDRAWAL","transferType":"WIRE","feeType":"FIXED"}]
+        //
+        const withdraw = {};
+        const deposit = {};
+        for (let i = 0; i < fiatFees.length; i++) {
+            const fee = fiatFees[i];
+            const symbol = this.safeString (fee, 'currencySymbol');
+            const code = this.safeCurrencyCode (symbol);
+            const transactionFee = this.safeNumber (fee, 'fees');
+            const transactionType = this.safeString (fee, 'transactionType');
+            // const transferType = this.safeString (fee, 'transferType'); [ WIRE, SEPA, INSTANT_SETTLEMENT, ACH, SEN ]
+            // const feeType = this.safeString (fee, 'feeType'); [ FIXED, PERCENT ]
+            if (transactionType === 'WITHDRAWAL') {
+                withdraw[code] = transactionFee;
+            }
+            if (transactionType === 'DEPOSIT') {
+                deposit[code] = transactionFee;
+            }
+        }
+        return {
+            'info': fiatFees,
+            'withdraw': withdraw,
+            'deposit': deposit,
+        };
+        //
+        // {
+        //     info: [
+        //       {
+        //         fees: '25.00000000',
+        //         currencySymbol: 'USD',
+        //         transactionType: 'WITHDRAWAL',
+        //         transferType: 'WIRE',
+        //         feeType: 'FIXED'
+        //       }
+        //     ],
+        //     withdraw: { USD: 25 },
+        //     deposit: {}
+        //   }
     }
 
     parseOHLCV (ohlcv, market = undefined) {
