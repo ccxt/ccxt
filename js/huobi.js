@@ -126,11 +126,8 @@ module.exports = class huobi extends ccxt.huobi {
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // only supports a limit of 150 at this time
         const messageHash = 'market.' + market['id'] + '.trade.detail';
-        const api = this.safeString (this.options, 'api', 'api');
-        const hostname = { 'hostname': this.hostname };
-        const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
+        const url = this.getUrlByMarketType (this.getUniformMarketType (market));
         const requestId = this.requestId ();
         const request = {
             'sub': messageHash,
