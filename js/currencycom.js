@@ -210,6 +210,7 @@ module.exports = class currencycom extends Exchange {
                     'stop': 'RESULT',
                 },
                 'leverage_markets_suffix': '_LEVERAGE',
+                'collateralCurrencies': [ 'USD', 'EUR', 'USDT' ],
             },
             'exceptions': {
                 'broad': {
