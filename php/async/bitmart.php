@@ -544,7 +544,7 @@ class bitmart extends Exchange {
             $quoteId = mb_substr($id, -4);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $splitId = $id->split ($id, '_');
+            $splitId = explode('_', $id);
             $splitIdEnding = $this->safe_string($splitId, 1);
             $settle = 'USDT';
             $symbol = $base . '/' . $quote . ':' . $settle;

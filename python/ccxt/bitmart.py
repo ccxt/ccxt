@@ -554,7 +554,7 @@ class bitmart(Exchange):
             quoteId = id[-4:]
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            splitId = id.split(id, '_')
+            splitId = id.split('_')
             splitIdEnding = self.safe_string(splitId, 1)
             settle = 'USDT'
             symbol = base + '/' + quote + ':' + settle
