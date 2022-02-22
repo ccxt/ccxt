@@ -872,11 +872,11 @@ class currencycom extends Exchange {
         // fetchTrades (public aggregate trades)
         //
         //     {
-        //         "a":1658318071,
-        //         "p":"0.02476",
-        //         "q":"0.0",
-        //         "T":1591001423382,
-        //         "m":false
+        //         "a":"1658318071",    // Aggregate tradeId
+        //         "p":"0.02476",       // Price
+        //         "q":"0.0",           // Official doc says => "Quantity (should be ignored)"
+        //         "T":"1591001423382", // Epoch $timestamp in MS
+        //         "m":false            // Was the buyer the maker
         //     }
         //
         // createOrder fills (private)
@@ -965,15 +965,15 @@ class currencycom extends Exchange {
         }
         $response = $this->publicGetV2AggTrades (array_merge($request, $params));
         //
+        // array(
         //     array(
-        //         {
-        //             "a":1658318071,
-        //             "p":"0.02476",
-        //             "q":"0.0",
-        //             "T":1591001423382,
-        //             "m":false
-        //         }
-        //     )
+        //         "a":"1658318071",    // Aggregate tradeId
+        //         "p":"0.02476",       // Price
+        //         "q":"0.0",           // Official doc says => "Quantity (should be ignored)"
+        //         "T":"1591001423382", // Epoch timestamp in MS
+        //         "m":false            // Was the buyer the maker
+        //     ),
+        // )
         //
         return $this->parse_trades($response, $market, $since, $limit);
     }
