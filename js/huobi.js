@@ -671,7 +671,6 @@ module.exports = class huobi extends ccxt.huobi {
     }
 
     handleMessage (client, message) {
-        // console.log ('OnMessage:', message);
         if (this.handleErrorMessage (client, message)) {
             //
             //     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}
