@@ -47,12 +47,12 @@ module.exports = class currencycom extends Exchange {
                 'fetchCanceledOrders': undefined,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': undefined,
-                'fetchCurrencies': undefined,
+                'fetchCurrencies': true,
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': undefined,
                 'fetchDepositAddresses': undefined,
                 'fetchDepositAddressesByNetwork': undefined,
-                'fetchDeposits': undefined,
+                'fetchDeposits': true,
                 'fetchFundingFee': undefined,
                 'fetchFundingFees': undefined,
                 'fetchFundingHistory': false,
@@ -87,10 +87,10 @@ module.exports = class currencycom extends Exchange {
                 'fetchTradingFee': undefined,
                 'fetchTradingFees': true,
                 'fetchTradingLimits': undefined,
-                'fetchTransactions': undefined,
+                'fetchTransactions': true,
                 'fetchTransfers': undefined,
                 'fetchWithdrawal': undefined,
-                'fetchWithdrawals': undefined,
+                'fetchWithdrawals': true,
                 'reduceMargin': undefined,
                 'setLeverage': undefined,
                 'setMarginMode': undefined,
@@ -264,6 +264,72 @@ module.exports = class currencycom extends Exchange {
         //     }
         //
         return this.safeInteger (response, 'serverTime');
+    }
+
+    async fetchCurrencies (params = {}) {
+        // requires authentication
+        if (!this.checkRequiredCredentials (false)) {
+            return undefined;
+        }
+        const response = await this.privateGetV2Currencies (params);
+        //
+        //     [
+        //         {
+        //           name: "US Dollar",
+        //           displaySymbol: "USD.cx",
+        //           precision: "2",
+        //           type: "FIAT",
+        //           minWithdrawal: "100.0",
+        //           maxWithdrawal: "1.0E+8",
+        //           minDeposit: "100.0",
+        //         },
+        //         {
+        //             name: "Bitcoin",
+        //             displaySymbol: "BTC",
+        //             precision: "8",
+        //             type: "CRYPTO",  // Note: only several major ones have this value. Others (like USDT) have value : "TOKEN"
+        //             minWithdrawal: "0.00020",
+        //             commissionFixed: "0.00010",
+        //             minDeposit: "0.00010",
+        //         },
+        //     ]
+        //
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const currency = response[i];
+            const id = this.safeString (currency, 'displaySymbol');
+            const code = this.safeCurrencyCode (id);
+            const fee = this.safeNumber (currency, 'commissionFixed');
+            const precision = this.safeInteger (currency, 'precision');
+            result[code] = {
+                'id': id,
+                'code': code,
+                'address': this.safeString (currency, 'baseAddress'),
+                'info': currency,
+                'type': this.safeStringLower (currency, 'type'),
+                'name': this.safeString (currency, 'name'),
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': fee,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.safeNumber (currency, 'minWithdrawal'),
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': this.safeNumber (currency, 'minDeposit'),
+                        'max': undefined,
+                    },
+                },
+            };
+        }
+        return result;
     }
 
     async fetchMarkets (params = {}) {
@@ -805,11 +871,11 @@ module.exports = class currencycom extends Exchange {
         // fetchTrades (public aggregate trades)
         //
         //     {
-        //         "a":1658318071,
-        //         "p":"0.02476",
-        //         "q":"0.0",
-        //         "T":1591001423382,
-        //         "m":false
+        //         "a":"1658318071",    // Aggregate tradeId
+        //         "p":"0.02476",       // Price
+        //         "q":"0.0",           // Official doc says: "Quantity (should be ignored)"
+        //         "T":"1591001423382", // Epoch timestamp in MS
+        //         "m":false            // Was the buyer the maker
         //     }
         //
         // createOrder fills (private)
@@ -898,15 +964,15 @@ module.exports = class currencycom extends Exchange {
         }
         const response = await this.publicGetV2AggTrades (this.extend (request, params));
         //
-        //     [
-        //         {
-        //             "a":1658318071,
-        //             "p":"0.02476",
-        //             "q":"0.0",
-        //             "T":1591001423382,
-        //             "m":false
-        //         }
-        //     ]
+        // [
+        //     {
+        //         "a":"1658318071",    // Aggregate tradeId
+        //         "p":"0.02476",       // Price
+        //         "q":"0.0",           // Official doc says: "Quantity (should be ignored)"
+        //         "T":"1591001423382", // Epoch timestamp in MS
+        //         "m":false            // Was the buyer the maker
+        //     },
+        // ]
         //
         return this.parseTrades (response, market, since, limit);
     }
@@ -1165,6 +1231,105 @@ module.exports = class currencycom extends Exchange {
         //     ]
         //
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.fetchTransactionsByMethod ('privateGetV2Deposits', code, since, limit, params);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.fetchTransactionsByMethod ('privateGetV2Withdrawals', code, since, limit, params);
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.fetchTransactionsByMethod ('privateGetV2Transactions', code, since, limit, params);
+    }
+
+    async fetchTransactionsByMethod (method, code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     [
+        //       {
+        //         "id": "616769213",
+        //         "balance": "2.088",
+        //         "amount": "1.304",   // negative for 'withdrawal'
+        //         "currency": "CAKE",
+        //         "type": "deposit",
+        //         "timestamp": "1645282121023",
+        //         "paymentMethod": "BLOCKCHAIN",
+        //         "blockchainTransactionHash": "0x57c68c1f2ae74d5eda5a2a00516361d241a5c9e1ee95bf32573523857c38c112",
+        //         "status": "PROCESSED",
+        //         "commission": "0.14", // this property only exists in withdrawal
+        //       },
+        //     ]
+        //
+        return this.parseTransactions (response, currency, since, limit, params);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        const id = this.safeString (transaction, 'id');
+        const txHash = this.safeString (transaction, 'blockchainTransactionHash');
+        const amount = this.safeNumber (transaction, 'amount');
+        const timestamp = this.safeInteger (transaction, 'timestamp');
+        const currencyId = this.safeString (transaction, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const state = this.parseTransactionStatus (this.safeString (transaction, 'state'));
+        const type = this.parseTransactionType (this.safeString (transaction, 'type'));
+        const feeCost = this.safeString (transaction, 'commission');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = { 'currency': code, 'cost': feeCost };
+        }
+        const result = {
+            'id': id,
+            'txid': txHash,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': state,
+            'updated': undefined,
+            'comment': undefined,
+            'fee': fee,
+            'info': transaction,
+        };
+        return result;
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'APPROVAL': 'pending',
+            'PROCESSED': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransactionType (type) {
+        const types = {
+            'deposit': 'deposit',
+            'withdrawal': 'withdrawal',
+        };
+        return this.safeString (types, type, type);
     }
 
     async fetchLeverage (symbol, params = {}) {
