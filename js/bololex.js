@@ -39,15 +39,12 @@ module.exports = class bololex extends Exchange {
                 'fetchOHLCV': true,
             },
             'timeframes': {
-                '1m': 'M1',
+                '1m': '1',
                 '3m': 'M3',
-                '5m': 'M5',
                 '15m': 'M15',
                 '30m': 'M30',
                 '1h': 'H1',
-                '4h': 'H4',
                 '1d': 'D1',
-                '1w': 'D7',
             },
             'urls': {
                 'logo': 'https://bololex.com/images/bololex.svg',
@@ -65,9 +62,8 @@ module.exports = class bololex extends Exchange {
                         'currencies',
                         'prices',
                         'prices/{symbol}',
-                        'trades',
                         'book/{symbol}',
-                        'chart',
+                        'tradeview/history',
                     ],
                 },
                 'private': {
@@ -228,7 +224,7 @@ module.exports = class bololex extends Exchange {
         }, params));
         const orderbook = this.safeValue (response, 'result', []);
         // console.log (orderbook);
-        return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'price', 'quantity');
+        return this.parseOrderBook (orderbook, symbol, undefined, 'buy', 'sell', 'price', 'quantity');
     }
 
     async fetchOHLCV (symbol, timeframe = '1d', since = undefined, limit = undefined, params = {}) {
@@ -236,23 +232,31 @@ module.exports = class bololex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': this.marketId (symbol),
-            'period': this.timeframes[timeframe],
-            'limit': limit || 1000,
+            'resolution': this.timeframes[timeframe],
+            'from': since / 1000,
+            'to': new Date ().getTime () / 1000,
         };
-        const response = await this.publicGetChart (this.extend (request, params));
+        const response = await this.publicGetTradeviewHistory (this.extend (request, params));
         const raw = this.safeValue (response, 'result', []);
-        return this.parseOHLCVs (raw, market, timeframe, since, limit);
+        return this.parseTradingViewOHLCV (raw, market, timeframe, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        // console.log (ohlcv);
+        const data = {
+            'timestamp': ohlcv[0],
+            'open': ohlcv[1],
+            'max': ohlcv[2],
+            'min': ohlcv[3],
+            'close': ohlcv[4],
+            'volume': ohlcv[5],
+        };
         return [
-            this.parse8601 (ohlcv['timestamp']),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'max'),
-            this.safeFloat (ohlcv, 'min'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'volume'),
+            data['timestamp'],
+            this.safeFloat (data, 'open'),
+            this.safeFloat (data, 'max'),
+            this.safeFloat (data, 'min'),
+            this.safeFloat (data, 'close'),
+            this.safeFloat (data, 'volume'),
         ];
     }
 
@@ -620,11 +624,7 @@ module.exports = class bololex extends Exchange {
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
-        const response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('code' in response) {
-            this.handleErrors ('', '', '', '', '', '', response);
-        }
-        return response;
+        return await this.fetch2 (path, api, method, params, headers, body);
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
@@ -644,6 +644,6 @@ module.exports = class bololex extends Exchange {
                 throw new InsufficientFunds (this.id + ' ' + this.json (response));
             }
         }
-        throw new ExchangeError (this.id + ' ' + this.json (response));
+        // throw new ExchangeError (this.id + ' ' + this.json (response));
     }
 };
