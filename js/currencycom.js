@@ -1166,21 +1166,18 @@ module.exports = class currencycom extends Exchange {
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        params['_method'] = 'privateGetV2Deposits';
-        return this.fetchTransactionHelper (code, since, limit, params);
+        return this.fetchTransactionHelper ('privateGetV2Deposits', code, since, limit, params);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        params['_method'] = 'privateGetV2Withdrawals';
-        return this.fetchTransactionHelper (code, since, limit, params);
+        return this.fetchTransactionHelper ('privateGetV2Withdrawals', code, since, limit, params);
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
-        params['_method'] = 'privateGetV2Transactions';
-        return this.fetchTransactionHelper (code, since, limit, params);
+        return this.fetchTransactionHelper ('privateGetV2Transactions', code, since, limit, params);
     }
 
-    async fetchTransactionHelper (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactionHelper (method, code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let currency = undefined;
@@ -1193,8 +1190,6 @@ module.exports = class currencycom extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const method = this.safeString (params, '_method');
-        params = this.omit (params, '_method');
         const response = await this[method] (this.extend (request, params));
         //
         //     [
