@@ -234,7 +234,6 @@ module.exports = class bololex extends Exchange {
             'symbol': this.marketId (symbol),
             'resolution': this.timeframes[timeframe],
             'from': since / 1000,
-            'to': new Date ().getTime () / 1000,
         };
         const response = await this.publicGetTradeviewHistory (this.extend (request, params));
         const raw = this.safeValue (response, 'result', []);
@@ -251,7 +250,7 @@ module.exports = class bololex extends Exchange {
             'volume': ohlcv[5],
         };
         return [
-            data['timestamp'],
+            this.safeInteger (data, 'timestamp'),
             this.safeFloat (data, 'open'),
             this.safeFloat (data, 'max'),
             this.safeFloat (data, 'min'),
