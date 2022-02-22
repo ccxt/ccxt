@@ -43,7 +43,7 @@ module.exports = class bittrex extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
-                'fetchFundingFees': true,
+                'fetchFundingFees': undefined,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -772,7 +772,8 @@ module.exports = class bittrex extends Exchange {
     }
 
     async fetchFundingFees (params = {}) {
-        // NOTE: Bittrex returns different fees depending on transaction type.
+        // NOTE: privateGetAccountFeesFiat only returns FIAT fees and not crypto, so we left this undefined for now.
+        // Bittrex returns different fees depending on transaction type.
         // This function returns the last fee found for each currency.
         await this.loadMarkets ();
         const fiatFees = await this.privateGetAccountFeesFiat (params);
