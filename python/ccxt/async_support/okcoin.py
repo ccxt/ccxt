@@ -2762,7 +2762,7 @@ class okcoin(Exchange):
             if numTradesInPair == 2:
                 trade = self.parse_my_trade(pair)
                 result.append(trade)
-        market = self.safeMarkt(None, market)
+        market = self.safe_market(None, market)
         return self.filter_by_symbol_since_limit(result, market['symbol'], since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
