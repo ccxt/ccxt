@@ -1239,24 +1239,22 @@ class bybit extends Exchange {
         $method = $market['linear'] ? 'publicLinearGetFundingPrevFundingRate' : 'v2PublicGetFundingPrevFundingRate';
         $response = yield $this->$method (array_merge($request, $params));
         //
-        // {
-        //     "ret_code" => 0,
-        //     "ret_msg" => "ok",
-        //     "ext_code" => "",
-        //     "result" => array(
-        //         "symbol" => "BTCUSD",
-        //         "funding_rate" => "0.00010000",
-        //         "funding_rate_timestamp" => 1577433600
-        //         // some pairs like BTC/USDT return an iso8601 string in funding_rate_timestamp
-        //         // "funding_rate_timestamp":"2022-02-05T08:00:00.000Z"
-        //
-        //     ),
-        //     "ext_info" => null,
-        //     "time_now" => "1577445586.446797",
-        //     "rate_limit_status" => 119,
-        //     "rate_limit_reset_ms" => 1577445586454,
-        //     "rate_limit" => 120
-        // }
+        //    {
+        //        "ret_code" => 0,
+        //        "ret_msg" => "ok",
+        //        "ext_code" => "",
+        //        "result" => array(
+        //            "symbol" => "BTCUSD",
+        //            "funding_rate" => "0.00010000",
+        //            "funding_rate_timestamp" => 1577433600  // v2PublicGetFundingPrevFundingRate
+        // //         "funding_rate_timestamp" => "2022-02-05T08:00:00.000Z"  // publicLinearGetFundingPrevFundingRate
+        //        ),
+        //        "ext_info" => null,
+        //        "time_now" => "1577445586.446797",
+        //        "rate_limit_status" => 119,
+        //        "rate_limit_reset_ms" => 1577445586454,
+        //        "rate_limit" => 120,
+        //    }
         //
         $result = $this->safe_value($response, 'result');
         $fundingRate = $this->safe_number($result, 'funding_rate');
@@ -1264,7 +1262,6 @@ class bybit extends Exchange {
         if ($fundingTimestamp === null) {
             $fundingTimestamp = $this->parse8601($this->safe_string($result, 'funding_rate_timestamp'));
         }
-        $nextFundingTimestamp = $this->sum($fundingTimestamp, 8 * 3600000);
         $currentTime = $this->milliseconds();
         return array(
             'info' => $result,
@@ -1279,8 +1276,8 @@ class bybit extends Exchange {
             'fundingTimestamp' => $fundingTimestamp,
             'fundingDatetime' => $this->iso8601($fundingTimestamp),
             'nextFundingRate' => null,
-            'nextFundingTimestamp' => $nextFundingTimestamp,
-            'nextFundingDatetime' => $this->iso8601($nextFundingTimestamp),
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,

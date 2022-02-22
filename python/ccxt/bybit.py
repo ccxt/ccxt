@@ -1236,31 +1236,28 @@ class bybit(Exchange):
         method = 'publicLinearGetFundingPrevFundingRate' if market['linear'] else 'v2PublicGetFundingPrevFundingRate'
         response = getattr(self, method)(self.extend(request, params))
         #
-        # {
-        #     "ret_code": 0,
-        #     "ret_msg": "ok",
-        #     "ext_code": "",
-        #     "result": {
-        #         "symbol": "BTCUSD",
-        #         "funding_rate": "0.00010000",
-        #         "funding_rate_timestamp": 1577433600
-        #         # some pairs like BTC/USDT return an iso8601 string in funding_rate_timestamp
-        #         # "funding_rate_timestamp":"2022-02-05T08:00:00.000Z"
-        #
-        #     },
-        #     "ext_info": null,
-        #     "time_now": "1577445586.446797",
-        #     "rate_limit_status": 119,
-        #     "rate_limit_reset_ms": 1577445586454,
-        #     "rate_limit": 120
-        # }
+        #    {
+        #        "ret_code": 0,
+        #        "ret_msg": "ok",
+        #        "ext_code": "",
+        #        "result": {
+        #            "symbol": "BTCUSD",
+        #            "funding_rate": "0.00010000",
+        #            "funding_rate_timestamp": 1577433600  # v2PublicGetFundingPrevFundingRate
+        #  #         "funding_rate_timestamp": "2022-02-05T08:00:00.000Z"  # publicLinearGetFundingPrevFundingRate
+        #        },
+        #        "ext_info": null,
+        #        "time_now": "1577445586.446797",
+        #        "rate_limit_status": 119,
+        #        "rate_limit_reset_ms": 1577445586454,
+        #        "rate_limit": 120,
+        #    }
         #
         result = self.safe_value(response, 'result')
         fundingRate = self.safe_number(result, 'funding_rate')
         fundingTimestamp = self.safe_timestamp(result, 'funding_rate_timestamp')
         if fundingTimestamp is None:
             fundingTimestamp = self.parse8601(self.safe_string(result, 'funding_rate_timestamp'))
-        nextFundingTimestamp = self.sum(fundingTimestamp, 8 * 3600000)
         currentTime = self.milliseconds()
         return {
             'info': result,
@@ -1275,8 +1272,8 @@ class bybit(Exchange):
             'fundingTimestamp': fundingTimestamp,
             'fundingDatetime': self.iso8601(fundingTimestamp),
             'nextFundingRate': None,
-            'nextFundingTimestamp': nextFundingTimestamp,
-            'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
