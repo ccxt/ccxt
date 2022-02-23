@@ -398,36 +398,117 @@ module.exports = class bitfinex extends Exchange {
         };
     }
 
+    async fetchTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const safeSymbol = this.safeSymbol (symbol);
+        const response = await this.privatePostSummary (params);
+        //
+        //     {
+        //          time: '2022-02-23T16:05:47.659000Z',
+        //          status: { resid_hint: null, login_last: '2022-02-23T16:05:48Z' },
+        //          is_locked: false,
+        //          leo_lev: '0',
+        //          leo_amount_avg: '0.0',
+        //          trade_vol_30d: [
+        //          {
+        //              curr: 'Total (USD)',
+        //              vol: '0.0',
+        //              vol_safe: '0.0',
+        //              vol_maker: '0.0',
+        //              vol_BFX: '0.0',
+        //              vol_BFX_safe: '0.0',
+        //              vol_BFX_maker: '0.0'
+        //          }
+        //          ],
+        //          fees_funding_30d: {},
+        //          fees_funding_total_30d: '0',
+        //          fees_trading_30d: {},
+        //          fees_trading_total_30d: '0',
+        //          rebates_trading_30d: {},
+        //          rebates_trading_total_30d: '0',
+        //          maker_fee: '0.001',
+        //          taker_fee: '0.002',
+        //          maker_fee_2crypto: '0.001',
+        //          maker_fee_2stablecoin: '0.001',
+        //          maker_fee_2fiat: '0.001',
+        //          maker_fee_2deriv: '0.0002',
+        //          taker_fee_2crypto: '0.002',
+        //          taker_fee_2stablecoin: '0.002',
+        //          taker_fee_2fiat: '0.002',
+        //          taker_fee_2deriv: '0.00065',
+        //          deriv_maker_rebate: '0.0002',
+        //          deriv_taker_fee: '0.00065',
+        //          trade_last: null
+        //     }
+        //
+        const makerFee = this.safeNumber (response, 'maker_fee');
+        const takerFee = this.safeNumber (response, 'taker_fee');
+        return {
+            'info': response,
+            'symbol': safeSymbol,
+            'maker': makerFee,
+            'taker': takerFee,
+        };
+    }
+
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostSummary (params);
         //
         //     {
-        //         time: '2019-02-20T15:50:19.152000Z',
-        //         trade_vol_30d: [
-        //             {
-        //                 curr: 'Total (USD)',
-        //                 vol: 0,
-        //                 vol_maker: 0,
-        //                 vol_BFX: 0,
-        //                 vol_BFX_maker: 0,
-        //                 vol_ETHFX: 0,
-        //                 vol_ETHFX_maker: 0
-        //             }
-        //         ],
-        //         fees_funding_30d: {},
-        //         fees_funding_total_30d: 0,
-        //         fees_trading_30d: {},
-        //         fees_trading_total_30d: 0,
-        //         maker_fee: 0.001,
-        //         taker_fee: 0.002
+        //          time: '2022-02-23T16:05:47.659000Z',
+        //          status: { resid_hint: null, login_last: '2022-02-23T16:05:48Z' },
+        //          is_locked: false,
+        //          leo_lev: '0',
+        //          leo_amount_avg: '0.0',
+        //          trade_vol_30d: [
+        //          {
+        //              curr: 'Total (USD)',
+        //              vol: '0.0',
+        //              vol_safe: '0.0',
+        //              vol_maker: '0.0',
+        //              vol_BFX: '0.0',
+        //              vol_BFX_safe: '0.0',
+        //              vol_BFX_maker: '0.0'
+        //          }
+        //          ],
+        //          fees_funding_30d: {},
+        //          fees_funding_total_30d: '0',
+        //          fees_trading_30d: {},
+        //          fees_trading_total_30d: '0',
+        //          rebates_trading_30d: {},
+        //          rebates_trading_total_30d: '0',
+        //          maker_fee: '0.001',
+        //          taker_fee: '0.002',
+        //          maker_fee_2crypto: '0.001',
+        //          maker_fee_2stablecoin: '0.001',
+        //          maker_fee_2fiat: '0.001',
+        //          maker_fee_2deriv: '0.0002',
+        //          taker_fee_2crypto: '0.002',
+        //          taker_fee_2stablecoin: '0.002',
+        //          taker_fee_2fiat: '0.002',
+        //          taker_fee_2deriv: '0.00065',
+        //          deriv_maker_rebate: '0.0002',
+        //          deriv_taker_fee: '0.00065',
+        //          trade_last: null
         //     }
         //
-        return {
+        const result = {
             'info': response,
-            'maker': this.safeNumber (response, 'maker_fee'),
-            'taker': this.safeNumber (response, 'taker_fee'),
         };
+        const makerFee = this.safeNumber (response, 'maker_fee');
+        const takerFee = this.safeNumber (response, 'taker_fee');
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            const fee = {
+                'info': {},
+                'symbol': symbol,
+                'maker': makerFee,
+                'taker': takerFee,
+            };
+            result[symbol] = fee;
+        }
+        return result;
     }
 
     async fetchMarkets (params = {}) {
