@@ -722,11 +722,13 @@ module.exports = class bittrex extends Exchange {
 
     parseTradingFee (fee, market = undefined) {
         const marketId = this.safeString (fee, 'marketSymbol');
+        const maker = this.safeNumber (fee, 'makerRate');
+        const taker = this.safeNumber (fee, 'takerRate');
         return {
             'info': fee,
             'symbol': this.safeSymbol (marketId, market),
-            'maker': this.parseNumber (fee['makerRate']),
-            'taker': this.parseNumber (fee['takerRate']),
+            'maker': maker,
+            'taker': taker,
         };
     }
 
