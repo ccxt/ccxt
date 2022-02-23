@@ -53,9 +53,9 @@ class currencycom extends Exchange {
                 'fetchClosedOrders' => null,
                 'fetchCurrencies' => true,
                 'fetchDeposit' => null,
-                'fetchDepositAddress' => null,
-                'fetchDepositAddresses' => null,
-                'fetchDepositAddressesByNetwork' => null,
+                'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchFundingFee' => null,
                 'fetchFundingFees' => null,
@@ -1350,6 +1350,32 @@ class currencycom extends Exchange {
         // }
         //
         return $this->safe_number($response, 'value');
+    }
+
+    public function fetch_deposit_address($code, $params = array ()) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'coin' => $currency['id'],
+        );
+        $response = yield $this->privateGetV2DepositAddress (array_merge($request, $params));
+        //
+        //     array( "address":"0x97d64eb014ac779194991e7264f01c74c90327f0" )
+        //
+        return $this->parse_deposit_address($response, $currency);
+    }
+
+    public function parse_deposit_address($depositAddress, $currency = null) {
+        $address = $this->safe_string($depositAddress, 'address');
+        $this->check_address($address);
+        $currency = $this->safe_currency(null, $currency);
+        return array(
+            'currency' => $currency['code'],
+            'address' => $address,
+            'tag' => null,
+            'network' => null,
+            'info' => $depositAddress,
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

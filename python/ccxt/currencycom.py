@@ -60,9 +60,9 @@ class currencycom(Exchange):
                 'fetchClosedOrders': None,
                 'fetchCurrencies': True,
                 'fetchDeposit': None,
-                'fetchDepositAddress': None,
-                'fetchDepositAddresses': None,
-                'fetchDepositAddressesByNetwork': None,
+                'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchFundingFee': None,
                 'fetchFundingFees': None,
@@ -1292,6 +1292,30 @@ class currencycom(Exchange):
         # }
         #
         return self.safe_number(response, 'value')
+
+    def fetch_deposit_address(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'coin': currency['id'],
+        }
+        response = self.privateGetV2DepositAddress(self.extend(request, params))
+        #
+        #     {"address":"0x97d64eb014ac779194991e7264f01c74c90327f0"}
+        #
+        return self.parse_deposit_address(response, currency)
+
+    def parse_deposit_address(self, depositAddress, currency=None):
+        address = self.safe_string(depositAddress, 'address')
+        self.check_address(address)
+        currency = self.safe_currency(None, currency)
+        return {
+            'currency': currency['code'],
+            'address': address,
+            'tag': None,
+            'network': None,
+            'info': depositAddress,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/' + path
