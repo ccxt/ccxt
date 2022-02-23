@@ -771,6 +771,10 @@ class gateio(Exchange):
                     })
         else:
             response = getattr(self, method)(query)
+            spotMarkets = {}
+            if margin:
+                spotMarketsResponse = self.publicSpotGetCurrencyPairs(query)
+                spotMarkets = self.index_by(spotMarketsResponse, 'id')
             #
             #  Spot
             #      [
@@ -804,6 +808,8 @@ class gateio(Exchange):
             for i in range(0, len(response)):
                 market = response[i]
                 id = self.safe_string(market, 'id')
+                spotMarket = self.safe_value(spotMarkets, id)
+                market = self.deep_extend(spotMarket, market)
                 baseId, quoteId = id.split('_')
                 base = self.safe_currency_code(baseId)
                 quote = self.safe_currency_code(quoteId)
@@ -822,7 +828,7 @@ class gateio(Exchange):
                     'quoteId': quoteId,
                     'settleId': None,
                     'type': type,
-                    'spot': spot,
+                    'spot': True,
                     'margin': margin,
                     'swap': False,
                     'future': False,
@@ -846,7 +852,7 @@ class gateio(Exchange):
                     'limits': {
                         'leverage': {
                             'min': self.parse_number('1'),
-                            'max': self.safe_number(market, 'lever', 1),
+                            'max': self.safe_number(market, 'leverage', 1),
                         },
                         'amount': {
                             'min': None,

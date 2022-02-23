@@ -767,6 +767,11 @@ class gateio extends Exchange {
             }
         } else {
             $response = yield $this->$method ($query);
+            $spotMarkets = array();
+            if ($margin) {
+                $spotMarketsResponse = yield $this->publicSpotGetCurrencyPairs ($query);
+                $spotMarkets = $this->index_by($spotMarketsResponse, 'id');
+            }
             //
             //  Spot
             //      array(
@@ -800,6 +805,8 @@ class gateio extends Exchange {
             for ($i = 0; $i < count($response); $i++) {
                 $market = $response[$i];
                 $id = $this->safe_string($market, 'id');
+                $spotMarket = $this->safe_value($spotMarkets, $id);
+                $market = $this->deep_extend($spotMarket, $market);
                 list($baseId, $quoteId) = explode('_', $id);
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
@@ -818,7 +825,7 @@ class gateio extends Exchange {
                     'quoteId' => $quoteId,
                     'settleId' => null,
                     'type' => $type,
-                    'spot' => $spot,
+                    'spot' => true,
                     'margin' => $margin,
                     'swap' => false,
                     'future' => false,
@@ -842,7 +849,7 @@ class gateio extends Exchange {
                     'limits' => array(
                         'leverage' => array(
                             'min' => $this->parse_number('1'),
-                            'max' => $this->safe_number($market, 'lever', 1),
+                            'max' => $this->safe_number($market, 'leverage', 1),
                         ),
                         'amount' => array(
                             'min' => null,
