@@ -2,18 +2,18 @@
 
 /*  ------------------------------------------------------------------------ */
 
-const { safeFloat, safeInteger, safeValue } = require ('../../../../ccxt')
+const { safeInteger, safeValue } = require ('../../../../ccxt')
 const { strictEqual: equal, deepEqual } = require ('assert')
 
 /*  ------------------------------------------------------------------------ */
 
-it ('safeFloat/safeInteger is robust', async () => {
+it ('safeInteger is robust', async () => {
 
     const $default = {}
 
-    const fns = { safeFloat, safeInteger }
+    const fns = { safeInteger }
 
-    for (const fn of ['safeFloat', 'safeInteger']) {
+    for (const fn of ['safeInteger']) {
 
         equal (fns[fn] ({ 'x': false }, 'x', $default), $default)
         equal (fns[fn] ({ 'x': true }, 'x', $default), $default)
@@ -36,7 +36,6 @@ it ('safeFloat/safeInteger is robust', async () => {
         equal (fns[fn] ({}, 'x', 0), 0)
     }
 
-    equal (safeFloat   ({ 'x': 1.59999999 }, 'x'), 1.59999999)
     equal (safeInteger ({ 'x': 1.59999999 }, 'x'), 1)
 })
 
