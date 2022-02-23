@@ -2168,4 +2168,36 @@ module.exports = class Exchange {
         this.options['timeDifference'] = after - serverTime;
         return this.options['timeDifference'];
     }
+
+    parseLeverageTiers (response, symbols, marketIdKey) {
+        const tiers = {};
+        for (let i = 0; i < response.length; i++) {
+            const item = response[i];
+            const id = this.safeString (item, marketIdKey);
+            const market = this.safeMarket (id);
+            const symbol = market['symbol'];
+            let symbolsLength = 0;
+            if (symbols !== undefined) {
+                symbolsLength = symbols.length;
+            }
+            if ((market !== undefined) && market['contract'] && (symbolsLength === 0 || symbols.includes (symbol))) {
+                tiers[symbol] = this.parseMarketLeverageTiers (item, market);
+            }
+        }
+        return tiers;
+    }
+
+    async fetchMarketLeverageTiers (symbol, params = {}) {
+        if (this.has['fetchLeverageTiers']) {
+            const market = await this.market (symbol);
+            if (!market['contract']) {
+                throw new BadSymbol (this.id + ' fetchLeverageTiers() supports contract markets only');
+            }
+            const tiers = await this.fetchLeverageTiers ([ symbol ]);
+            return this.safeValue (tiers, symbol);
+        } else {
+            throw new NotSupported (this.id + 'fetchMarketLeverageTiers() is not supported yet');
+        }
+
+    }
 }

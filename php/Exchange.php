@@ -3666,4 +3666,35 @@ class Exchange {
         $this->options['timeDifference'] = $after - $server_time;
         return $this->options['timeDifference'];
     }
+
+    public function parse_leverage_tiers($response, $symbols, $market_id_key){
+        $tiers = array();
+        for ($i = 0; $i < count($response); $i++){
+            $item = $response[$i];
+            $id = $this->safe_string($item, $market_id_key);
+            $market = $this->safe_market($id);
+            $symbol = $market['symbol'];
+            $symbols_length = 0;
+            if ($symbols !== null){
+                $symbols_length = count($symbols);
+            }
+            if (($market !== null) && $market['contract'] && ($symbols_length === 0 || in_array($symbol, $symbols))){
+                $tiers[$symbol] = $this->parse_market_leverage_tiers($item, $market);
+            }
+        }
+        return $tiers;
+    }
+
+    public function fetch_market_leverage_tiers($symbol, $params = array()) {
+        if ($this->has['fetchLeverageTiers']) {
+            $market = $this->market($symbol);
+            if (!$market['contract']) {
+                throw new BadRequest($this->id + ' fetchLeverageTiers() supports contract markets only');
+            }
+            $tiers = $this->fetch_leverage_tiers(array($symbol));
+            return $this->safe_value($tiers, $symbol);
+        } else {
+            throw new NotSupported($this->id + 'fetch_market_leverage_tiers() is not supported yet');
+        }
+    }
 }
