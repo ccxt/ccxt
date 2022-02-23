@@ -400,7 +400,7 @@ module.exports = class bitfinex extends Exchange {
 
     async fetchTradingFee (symbol, params = {}) {
         await this.loadMarkets ();
-        const safeSymbol = this.safeSymbol (symbol);
+        const market = this.market (symbol);
         const response = await this.privatePostSummary (params);
         //
         //     {
@@ -445,7 +445,7 @@ module.exports = class bitfinex extends Exchange {
         const takerFee = this.safeNumber (response, 'taker_fee');
         return {
             'info': response,
-            'symbol': safeSymbol,
+            'symbol': market['symbol'],
             'maker': makerFee,
             'taker': takerFee,
         };
