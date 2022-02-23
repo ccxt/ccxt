@@ -110,15 +110,17 @@ module.exports = class currencycom extends Exchange {
                 '1d': '1d',
                 '1w': '1w',
             },
+            'hostname': 'backend.currency.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/83718672-36745c00-a63e-11ea-81a9-677b1f789a4d.jpg',
                 'api': {
-                    'public': 'https://api-adapter.backend.currency.com/api',
-                    'private': 'https://api-adapter.backend.currency.com/api',
+                    'public': 'https://api-adapter.{hostname}/api',
+                    'private': 'https://api-adapter.{hostname}/api',
+                    'marketcap': 'https://marketcap.{hostname}/api',
                 },
                 'test': {
-                    'public': 'https://demo-api-adapter.backend.currency.com/api',
-                    'private': 'https://demo-api-adapter.backend.currency.com/api',
+                    'public': 'https://demo-api-adapter.{hostname}/api',
+                    'private': 'https://demo-api-adapter.{hostname}/api',
                 },
                 'www': 'https://www.currency.com',
                 'referral': 'https://currency.com/trading/signup?c=362jaimv&pid=referral',
@@ -143,6 +145,27 @@ module.exports = class currencycom extends Exchange {
                         'v2/klines': 1,
                         'v1/ticker/24hr': 1,
                         'v2/ticker/24hr': 1,
+                    },
+                },
+                'marketcap': {
+                    'get': {
+                        'v1/assets': 1,
+                        'v1/candles': 1,
+                        'v1/orderbook': 1,
+                        'v1/summary': 1,
+                        'v1/ticker': 1,
+                        'v1/token/assets': 1,
+                        'v1/token/orderbook': 1,
+                        'v1/token/summary': 1,
+                        'v1/token/ticker': 1,
+                        'v1/token/trades': 1,
+                        'v1/token_crypto/OHLC': 1,
+                        'v1/token_crypto/assets': 1,
+                        'v1/token_crypto/orderbook': 1,
+                        'v1/token_crypto/summary': 1,
+                        'v1/token_crypto/ticker': 1,
+                        'v1/token_crypto/trades': 1,
+                        'v1/trades': 1,
                     },
                 },
                 'private': {
@@ -1404,6 +1427,7 @@ module.exports = class currencycom extends Exchange {
                 url += '?' + this.urlencode (params);
             }
         }
+        url = this.implodeHostname (url);
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
