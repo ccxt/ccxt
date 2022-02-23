@@ -4771,7 +4771,6 @@ module.exports = class binance extends Exchange {
                 const result = [];
                 for (let j = 0; j < brackets.length; j++) {
                     const bracket = brackets[j];
-                    // we use floats here internally on purpose
                     const floorValue = this.safeNumber2 (bracket, 'notionalFloor', 'qtyFloor');
                     const maintenanceMarginPercentage = this.safeString (bracket, 'maintMarginRatio');
                     result.push ([ floorValue, maintenanceMarginPercentage ]);
