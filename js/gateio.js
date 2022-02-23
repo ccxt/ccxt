@@ -761,6 +761,15 @@ module.exports = class gateio extends Exchange {
             }
         } else {
             response = await this[method] (query);
+            const spotMarkets = {};
+            if (margin) {
+                const spotMarketsArray = await this.publicSpotGetCurrencyPairs (query);
+                for (let i = 0; i < spotMarketsArray.length; i++) {
+                    const spotMarket = spotMarketsArray[i];
+                    const spotMarketId = this.safeString (spotMarket, 'id');
+                    spotMarkets[spotMarketId] = spotMarket;
+                }
+            }
             //
             //  Spot
             //      [
@@ -792,8 +801,10 @@ module.exports = class gateio extends Exchange {
             //       ]
             //
             for (let i = 0; i < response.length; i++) {
-                const market = response[i];
+                let market = response[i];
                 const id = this.safeString (market, 'id');
+                const spotMarket = this.safeValue (spotMarkets, id);
+                market = this.deepExtend (spotMarket, market);
                 const [ baseId, quoteId ] = id.split ('_');
                 const base = this.safeCurrencyCode (baseId);
                 const quote = this.safeCurrencyCode (quoteId);
@@ -812,7 +823,7 @@ module.exports = class gateio extends Exchange {
                     'quoteId': quoteId,
                     'settleId': undefined,
                     'type': type,
-                    'spot': spot,
+                    'spot': true,
                     'margin': margin,
                     'swap': false,
                     'future': false,
@@ -836,7 +847,7 @@ module.exports = class gateio extends Exchange {
                     'limits': {
                         'leverage': {
                             'min': this.parseNumber ('1'),
-                            'max': this.safeNumber (market, 'lever', 1),
+                            'max': this.safeNumber (market, 'leverage', 1),
                         },
                         'amount': {
                             'min': undefined,
