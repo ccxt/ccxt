@@ -51,8 +51,8 @@ module.exports = class bitfinex2 extends bitfinex {
                 'fetchStatus': true,
                 'fetchTickers': true,
                 'fetchTime': false,
-                'fetchTradingFee': undefined,
-                'fetchTradingFees': undefined,
+                'fetchTradingFee': true,
+                'fetchTradingFees': true,
                 'fetchTransactions': true,
                 'withdraw': true,
             },
@@ -1593,6 +1593,181 @@ module.exports = class bitfinex2 extends bitfinex {
                 'rate': undefined,
             },
         };
+    }
+
+    async fetchTradingFee(symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol)
+        const response = await this.privatePostAuthRSummary (params);
+        //
+        //      Response Spec:
+        //      [
+        //         PLACEHOLDER,
+        //         PLACEHOLDER,
+        //         PLACEHOLDER,
+        //         PLACEHOLDER,
+        //         [
+        //            [
+        //             MAKER_FEE,
+        //             MAKER_FEE,
+        //             MAKER_FEE,
+        //             PLACEHOLDER,
+        //             PLACEHOLDER,
+        //             DERIV_REBATE
+        //            ],
+        //            [
+        //             TAKER_FEE_TO_CRYPTO,
+        //             TAKER_FEE_TO_STABLE,
+        //             TAKER_FEE_TO_FIAT,
+        //             PLACEHOLDER,
+        //             PLACEHOLDER,
+        //             DERIV_TAKER_FEE
+        //            ]
+        //         ],
+        //         PLACEHOLDER,
+        //         PLACEHOLDER,
+        //         PLACEHOLDER,
+        //         PLACEHOLDER,
+        //         {
+        //             LEO_LEV,
+        //             LEO_AMOUNT_AVG
+        //         }
+        //     ]
+        //
+        //      Example response: 
+        //
+        //     [
+        //         null,
+        //         null,
+        //         null,
+        //         null,
+        //         [
+        //          [ 0.001, 0.001, 0.001, null, null, 0.0002 ],
+        //          [ 0.002, 0.002, 0.002, null, null, 0.00065 ]
+        //         ],
+        //         [
+        //          [
+        //              {
+        //              curr: 'Total (USD)',
+        //              vol: '0',
+        //              vol_safe: '0',
+        //              vol_maker: '0',
+        //              vol_BFX: '0',
+        //              vol_BFX_safe: '0',
+        //              vol_BFX_maker: '0'
+        //              }
+        //          ],
+        //          {},
+        //          0
+        //         ],
+        //         [ null, {}, 0 ],
+        //         null,
+        //         null,
+        //         { leo_lev: '0', leo_amount_avg: '0' }
+        //     ]
+        //
+        const feeData = this.safeValue (response, 4, []);
+        const makerData = this.safeValue (feeData, 0, []);
+        const takerData = this.safeValue (feeData, 1, []);
+        const makerFee = this.safeNumber (makerData, 0);
+        const takerFee = this.safeNumber (takerData, 0);
+        return {
+                'info': response,
+                'symbol': market['symbol'],
+                'maker': makerFee,
+                'taker': takerFee,
+            };
+    }
+
+    async fetchTradingFees(params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostAuthRSummary (params);
+        //
+        //      Response Spec:
+        //      [
+        //         PLACEHOLDER,
+        //         PLACEHOLDER,
+        //         PLACEHOLDER,
+        //         PLACEHOLDER,
+        //         [
+        //            [
+        //             MAKER_FEE,
+        //             MAKER_FEE,
+        //             MAKER_FEE,
+        //             PLACEHOLDER,
+        //             PLACEHOLDER,
+        //             DERIV_REBATE
+        //            ],
+        //            [
+        //             TAKER_FEE_TO_CRYPTO,
+        //             TAKER_FEE_TO_STABLE,
+        //             TAKER_FEE_TO_FIAT,
+        //             PLACEHOLDER,
+        //             PLACEHOLDER,
+        //             DERIV_TAKER_FEE
+        //            ]
+        //         ],
+        //         PLACEHOLDER,
+        //         PLACEHOLDER,
+        //         PLACEHOLDER,
+        //         PLACEHOLDER,
+        //         {
+        //             LEO_LEV,
+        //             LEO_AMOUNT_AVG
+        //         }
+        //     ]
+        //
+        //      Example response: 
+        //
+        //     [
+        //         null,
+        //         null,
+        //         null,
+        //         null,
+        //         [
+        //          [ 0.001, 0.001, 0.001, null, null, 0.0002 ],
+        //          [ 0.002, 0.002, 0.002, null, null, 0.00065 ]
+        //         ],
+        //         [
+        //          [
+        //              {
+        //              curr: 'Total (USD)',
+        //              vol: '0',
+        //              vol_safe: '0',
+        //              vol_maker: '0',
+        //              vol_BFX: '0',
+        //              vol_BFX_safe: '0',
+        //              vol_BFX_maker: '0'
+        //              }
+        //          ],
+        //          {},
+        //          0
+        //         ],
+        //         [ null, {}, 0 ],
+        //         null,
+        //         null,
+        //         { leo_lev: '0', leo_amount_avg: '0' }
+        //     ]
+        //
+        const result = {
+            'info': response,
+        };
+        const feeData = this.safeValue (response, 4, []);
+        const makerData = this.safeValue (feeData, 0, []);
+        const takerData = this.safeValue (feeData, 1, []);
+        const makerFee = this.safeNumber (makerData, 0);
+        const takerFee = this.safeNumber (takerData, 0);
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            const fee = {
+                'info': {},
+                'symbol': symbol,
+                'maker': makerFee,
+                'taker': takerFee,
+            };
+            result[symbol] = fee;
+        }
+        return result;
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
