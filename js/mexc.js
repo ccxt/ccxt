@@ -2536,7 +2536,7 @@ module.exports = class mexc extends Exchange {
                 const cap = Precise.stringAdd (floor, riskIncrVol);
                 tiers.push ({
                     'tier': this.parseNumber (Precise.stringDiv (cap, riskIncrVol)),
-                    'notionalCurrency': this.safeCurrencyCode (quoteId),
+                    'currency': this.safeCurrencyCode (quoteId),
                     'notionalFloor': this.parseNumber (floor),
                     'notionalCap': this.parseNumber (cap),
                     'maintenanceMarginRate': this.parseNumber (maintenanceMarginRate),

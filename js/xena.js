@@ -1787,7 +1787,7 @@ module.exports = class xena extends Exchange {
                         const initialRate = this.safeString (tier, 'initialRate');
                         tiers.push ({
                             'tier': this.sum (j, 1),
-                            'notionalCurrency': market['base'],
+                            'currency': market['base'],
                             'notionalFloor': floor,
                             'notionalCap': cap,
                             'maintenanceMarginRate': this.safeNumber (tier, 'maintenanceRate'),
