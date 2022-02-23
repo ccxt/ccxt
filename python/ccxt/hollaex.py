@@ -910,7 +910,7 @@ class hollaex(Exchange):
         if type != 'market':
             convertedPrice = float(self.price_to_precision(symbol, price))
             request['price'] = self.normalize_number_if_needed(convertedPrice)
-        stopPrice = self.safe_float_2(params, 'stopPrice', 'stop')
+        stopPrice = self.safe_number_2(params, 'stopPrice', 'stop')
         if stopPrice is not None:
             request['stop'] = self.normalize_number_if_needed(float(self.price_to_precision(symbol, stopPrice)))
             params = self.omit(params, ['stopPrice', 'stop'])

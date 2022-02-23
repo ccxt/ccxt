@@ -942,7 +942,7 @@ class hollaex extends Exchange {
             $convertedPrice = floatval($this->price_to_precision($symbol, $price));
             $request['price'] = $this->normalize_number_if_needed($convertedPrice);
         }
-        $stopPrice = $this->safe_float_2($params, 'stopPrice', 'stop');
+        $stopPrice = $this->safe_number_2($params, 'stopPrice', 'stop');
         if ($stopPrice !== null) {
             $request['stop'] = $this->normalize_number_if_needed(floatval($this->price_to_precision($symbol, $stopPrice)));
             $params = $this->omit($params, array( 'stopPrice', 'stop' ));
