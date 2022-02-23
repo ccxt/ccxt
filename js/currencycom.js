@@ -49,9 +49,9 @@ module.exports = class currencycom extends Exchange {
                 'fetchClosedOrders': undefined,
                 'fetchCurrencies': true,
                 'fetchDeposit': undefined,
-                'fetchDepositAddress': undefined,
-                'fetchDepositAddresses': undefined,
-                'fetchDepositAddressesByNetwork': undefined,
+                'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingFee': undefined,
                 'fetchFundingFees': undefined,
@@ -1346,6 +1346,32 @@ module.exports = class currencycom extends Exchange {
         // }
         //
         return this.safeNumber (response, 'value');
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'coin': currency['id'],
+        };
+        const response = await this.privateGetV2DepositAddress (this.extend (request, params));
+        //
+        //     { "address":"0x97d64eb014ac779194991e7264f01c74c90327f0" }
+        //
+        return this.parseDepositAddress (response, currency);
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        const address = this.safeString (depositAddress, 'address');
+        this.checkAddress (address);
+        currency = this.safeCurrency (undefined, currency);
+        return {
+            'currency': currency['code'],
+            'address': address,
+            'tag': undefined,
+            'network': undefined,
+            'info': depositAddress,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
