@@ -67,6 +67,8 @@ class kucoin extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => true,
+                'fetchTradingFees' => null,
                 'fetchWithdrawals' => true,
                 'transfer' => true,
                 'withdraw' => true,
@@ -131,6 +133,7 @@ class kucoin extends Exchange {
                         'accounts/ledgers' => 3.333, // 18/3s = 6/s => cost = 20 / 6 = 3.333
                         'accounts/{accountId}/holds' => 1,
                         'accounts/transferable' => 1,
+                        'base-fee' => 1,
                         'sub/user' => 1,
                         'sub-accounts' => 1,
                         'sub-accounts/{subUserId}' => 1,
@@ -161,6 +164,7 @@ class kucoin extends Exchange {
                         'stop-order/{orderId}' => 1,
                         'stop-order' => 1,
                         'stop-order/queryOrderByClientOid' => 1,
+                        'trade-fees' => 1.3333, // 45/3s = 15/s => cost = 20 / 15 = 1.333
                     ),
                     'post' => array(
                         'accounts' => 1,
@@ -1651,6 +1655,36 @@ class kucoin extends Exchange {
             'cost' => $costString,
             'fee' => $fee,
         ), $market);
+    }
+
+    public function fetch_trading_fee($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbols' => $market['id'],
+        );
+        $response = $this->privateGetTradeFees (array_merge($request, $params));
+        //
+        //     {
+        //         code => '200000',
+        //         $data => array(
+        //           {
+        //             $symbol => 'BTC-USDT',
+        //             takerFeeRate => '0.001',
+        //             makerFeeRate => '0.001'
+        //           }
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $first = $this->safe_value($data, 0);
+        $marketId = $this->safe_string($first, 'symbol');
+        return array(
+            'info' => $response,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'maker' => $this->safe_number($first, 'makerFeeRate'),
+            'taker' => $this->safe_number($first, 'takerFeeRate'),
+        );
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
