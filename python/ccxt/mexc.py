@@ -2397,7 +2397,7 @@ class mexc(Exchange):
                 cap = Precise.string_add(floor, riskIncrVol)
                 tiers.append({
                     'tier': self.parse_number(Precise.string_div(cap, riskIncrVol)),
-                    'notionalCurrency': self.safe_currency_code(quoteId),
+                    'currency': self.safe_currency_code(quoteId),
                     'notionalFloor': self.parse_number(floor),
                     'notionalCap': self.parse_number(cap),
                     'maintenanceMarginRate': self.parse_number(maintenanceMarginRate),

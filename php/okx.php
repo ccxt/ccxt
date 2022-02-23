@@ -4108,7 +4108,7 @@ class okx extends Exchange {
             $tier = $data[$i];
             $brackets[] = array(
                 'tier' => $this->safe_integer($tier, 'tier'),
-                'notionalCurrency' => $market['quote'],
+                'currency' => $market['quote'],
                 'notionalFloor' => $this->safe_number($tier, 'minSz'),
                 'notionalCap' => $this->safe_number($tier, 'maxSz'),
                 'maintenanceMarginRate' => $this->safe_number($tier, 'mmr'),

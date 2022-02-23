@@ -2321,7 +2321,7 @@ class ascendex extends Exchange {
                 $initialMarginRate = $this->safe_string($bracket, 'initialMarginRate');
                 $brackets[] = array(
                     'tier' => $this->sum($j, 1),
-                    'notionalCurrency' => $market['quote'],
+                    'currency' => $market['quote'],
                     'notionalFloor' => $this->safe_number($bracket, 'positionNotionalLowerBound'),
                     'notionalCap' => $this->safe_number($bracket, 'positionNotionalUpperBound'),
                     'maintenanceMarginRate' => $this->safe_number($bracket, 'maintenanceMarginRate'),

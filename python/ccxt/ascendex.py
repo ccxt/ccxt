@@ -2226,7 +2226,7 @@ class ascendex(Exchange):
                 initialMarginRate = self.safe_string(bracket, 'initialMarginRate')
                 brackets.append({
                     'tier': self.sum(j, 1),
-                    'notionalCurrency': market['quote'],
+                    'currency': market['quote'],
                     'notionalFloor': self.safe_number(bracket, 'positionNotionalLowerBound'),
                     'notionalCap': self.safe_number(bracket, 'positionNotionalUpperBound'),
                     'maintenanceMarginRate': self.safe_number(bracket, 'maintenanceMarginRate'),

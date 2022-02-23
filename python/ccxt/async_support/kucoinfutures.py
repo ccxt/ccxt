@@ -1594,7 +1594,7 @@ class kucoinfutures(kucoin):
             market = self.market(symbol)
             tiers[symbol].append({
                 'tier': self.safe_number(tier, 'level'),
-                'notionalCurrency': market['base'],
+                'currency': market['base'],
                 'notionalFloor': self.safe_number(tier, 'minRiskLimit'),
                 'notionalCap': self.safe_number(tier, 'maxRiskLimit'),
                 'maintenanceMarginRate': self.safe_number(tier, 'maintainMargin'),

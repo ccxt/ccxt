@@ -2542,7 +2542,7 @@ class mexc extends Exchange {
                 $cap = Precise::string_add($floor, $riskIncrVol);
                 $tiers[] = array(
                     'tier' => $this->parse_number(Precise::string_div($cap, $riskIncrVol)),
-                    'notionalCurrency' => $this->safe_currency_code($quoteId),
+                    'currency' => $this->safe_currency_code($quoteId),
                     'notionalFloor' => $this->parse_number($floor),
                     'notionalCap' => $this->parse_number($cap),
                     'maintenanceMarginRate' => $this->parse_number($maintenanceMarginRate),
