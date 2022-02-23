@@ -75,7 +75,7 @@ module.exports = class huobi extends ccxt.huobi {
         const messageHash = 'market.' + market['id'] + '.detail';
         const api = this.safeString (this.options, 'api', 'api');
         const hostname = { 'hostname': this.hostname };
-        const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
+        const url = this.implodeParams (this.urls['api']['ws'][api]['spot']['public'], hostname);
         const requestId = this.requestId ();
         const request = {
             'sub': messageHash,
@@ -130,7 +130,7 @@ module.exports = class huobi extends ccxt.huobi {
         const messageHash = 'market.' + market['id'] + '.trade.detail';
         const api = this.safeString (this.options, 'api', 'api');
         const hostname = { 'hostname': this.hostname };
-        const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
+        const url = this.implodeParams (this.urls['api']['ws'][api]['spot']['public'], hostname);
         const requestId = this.requestId ();
         const request = {
             'sub': messageHash,
@@ -198,7 +198,7 @@ module.exports = class huobi extends ccxt.huobi {
         const messageHash = 'market.' + market['id'] + '.kline.' + interval;
         const api = this.safeString (this.options, 'api', 'api');
         const hostname = { 'hostname': this.hostname };
-        const url = this.implodeParams (this.urls['api']['ws'][api]['public'], hostname);
+        const url = this.implodeParams (this.urls['api']['ws'][api]['spot']['public'], hostname);
         const requestId = this.requestId ();
         const request = {
             'sub': messageHash,
