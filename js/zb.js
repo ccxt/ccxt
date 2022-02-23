@@ -1021,18 +1021,42 @@ module.exports = class zb extends Exchange {
         return this.parseOrder (response, undefined);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + 'fetchOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const swap = market['swap'];
         const request = {
-            'currency': market['id'],
-            'pageIndex': 1, // default pageIndex is 1
-            'pageSize': limit, // default pageSize is 50
+            'pageSize': limit, // default pageSize is 50 for spot, 30 for swap
+            // 'currency': market['id'], // only applicable to SPOT
+            // 'pageIndex': 1, // only applicable to SPOT
+            // 'symbol': market['id'], // only applicable to SWAP
+            // 'pageNum': 1, // only applicable to SWAP
+            // 'type': params['type'], // only applicable to SWAP
+            // 'side': params['side'], // only applicable to SWAP
+            // 'dateRange': params['dateRange'], // only applicable to SWAP
+            // 'action': params['action'], // only applicable to SWAP
+            // 'endTime': params['endTime'], // only applicable to SWAP
+            // 'startTime': since, // only applicable to SWAP
         };
-        let method = 'spotV1PrivateGetGetOrdersIgnoreTradeType';
+        const marketIdField = market['swap'] ? 'symbol' : 'currency';
+        request[marketIdField] = market['id'];
+        const pageNumField = market['swap'] ? 'pageNum' : 'pageIndex';
+        request[pageNumField] = 1;
+        if (swap) {
+            request['type'] = params['type'];
+            request['side'] = params['side'];
+            request['dateRange'] = params['dateRange'];
+            request['action'] = params['action'];
+            request['endTime'] = params['endTime'];
+            request['startTime'] = since;
+        }
+        let method = this.getSupportedMapping (market['type'], {
+            'spot': 'spotV1PrivateGetGetOrdersIgnoreTradeType',
+            'swap': 'contractV2PrivateGetTradeGetAllOrders',
+        });
         // tradeType 交易类型1/0[buy/sell]
         if ('tradeType' in params) {
             method = 'spotV1PrivateGetGetOrdersNew';
@@ -1045,6 +1069,70 @@ module.exports = class zb extends Exchange {
                 return [];
             }
             throw e;
+        }
+        // Spot
+        //
+        //     [
+        //         {
+        //             "acctType": 0,
+        //             "currency": "btc_usdt",
+        //             "fees": 0,
+        //             "id": "202202234857482656",
+        //             "price": 30000.0,
+        //             "status": 3,
+        //             "total_amount": 0.0006,
+        //             "trade_amount": 0.0000,
+        //             "trade_date": 1645610254524,
+        //             "trade_money": 0.000000,
+        //             "type": 1,
+        //             "useZbFee": false,
+        //             "webId": 0
+        //         }
+        //     ]
+        //
+        // Swap
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "action": 1,
+        //                     "amount": "0.004",
+        //                     "availableAmount": "0.004",
+        //                     "availableValue": "120",
+        //                     "avgPrice": "0",
+        //                     "canCancel": true,
+        //                     "cancelStatus": 20,
+        //                     "createTime": "1645609643885",
+        //                     "entrustType": 1,
+        //                     "id": "6902187111785635850",
+        //                     "leverage": 5,
+        //                     "margin": "24",
+        //                     "marketId": "100",
+        //                     "marketName": "BTC_USDT",
+        //                     "modifyTime": "1645609643889",
+        //                     "price": "30000",
+        //                     "showStatus": 1,
+        //                     "side": 1,
+        //                     "sourceType": 1,
+        //                     "status": 12,
+        //                     "tradeAmount": "0",
+        //                     "tradeValue": "0",
+        //                     "type": 1,
+        //                     "userId": "6896693805014120448",
+        //                     "value": "120"
+        //                 },
+        //             ],
+        //             "pageNum": 1,
+        //             "pageSize": 10
+        //         },
+        //         "desc": "操作成功"
+        //     }
+        //
+        if (swap) {
+            const data = this.safeValue (response, 'data', {});
+            response = this.safeValue (data, 'list', []);
         }
         return this.parseOrders (response, market, since, limit);
     }
