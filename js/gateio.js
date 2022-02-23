@@ -761,7 +761,7 @@ module.exports = class gateio extends Exchange {
             }
         } else {
             response = await this[method] (query);
-            let spotMarkets = {}
+            let spotMarkets = {};
             if (margin) {
                 const spotMarketsResponse = await this.publicSpotGetCurrencyPairs (query);
                 spotMarkets = this.indexBy (spotMarketsResponse, 'id');
