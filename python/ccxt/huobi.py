@@ -4782,6 +4782,8 @@ class huobi(Exchange):
         self.load_markets()
         market = self.market(symbol)
         marginType = self.safe_string_2(self.options, 'defaultMarginType', 'marginType', 'isolated')
+        marginType = self.safe_string_2(params, 'marginType', 'defaultMarginType', marginType)
+        params = self.omit(params, ['defaultMarginType', 'marginType'])
         marketType, query = self.handle_market_type_and_params('fetchPosition', market, params)
         method = None
         if market['linear']:
@@ -4931,16 +4933,58 @@ class huobi(Exchange):
             #       ],
             #       ts: 1641162539767
             #     }
+            # cross usdt swap
+            # {
+            #     "status":"ok",
+            #     "data":{
+            #        "positions":[
+            #        ],
+            #        "futures_contract_detail":[
+            #            (...)
+            #        ]
+            #        "margin_mode":"cross",
+            #        "margin_account":"USDT",
+            #        "margin_asset":"USDT",
+            #        "margin_balance":"1.000000000000000000",
+            #        "margin_static":"1.000000000000000000",
+            #        "margin_position":"0",
+            #        "margin_frozen":"1.000000000000000000",
+            #        "profit_real":"0E-18",
+            #        "profit_unreal":"0",
+            #        "withdraw_available":"0",
+            #        "risk_rate":"15.666666666666666666",
+            #        "contract_detail":[
+            #          (...)
+            #        ]
+            #     },
+            #     "ts":"1645521118946"
+            #  }
             #
-        request = {
-            'contract_code': market['id'],
-        }
+        request = {}
+        if market['future'] and market['inverse']:
+            request['symbol'] = market['settleId']
+        else:
+            if marginType == 'cross':
+                request['margin_account'] = 'USDT'  # only allowed value
+            request['contract_code'] = market['id']
         response = getattr(self, method)(self.extend(request, query))
         data = self.safe_value(response, 'data')
-        account = self.safe_value(data, 0)
+        account = None
+        if marginType == 'cross':
+            account = data
+        else:
+            account = self.safe_value(data, 0)
         omitted = self.omit(account, ['positions'])
         positions = self.safe_value(account, 'positions')
-        position = self.safe_value(positions, 0)
+        position = None
+        if market['future'] and market['inverse']:
+            for i in range(0, len(positions)):
+                entry = positions[i]
+                if entry['contract_code'] == market['id']:
+                    position = entry
+                    break
+        else:
+            position = self.safe_value(positions, 0)
         timestamp = self.safe_integer(response, 'ts')
         parsed = self.parse_position(self.extend(position, omitted))
         return self.extend(parsed, {
