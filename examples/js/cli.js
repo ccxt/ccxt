@@ -251,6 +251,7 @@ async function main () {
                 let start = exchange.milliseconds ()
                 let end = exchange.milliseconds ()
 
+                $i =0 ;
                 while (true) {
                     try {
                         const result = await exchange[methodName] (... args)
@@ -278,8 +279,11 @@ async function main () {
                         console.log (firstKey, httpsAgent.freeSockets[firstKey].length)
                     }
 
-                    if (!poll)
+                    if (!poll){
                         break;
+                    } else {
+                        console.log ('Currenc cycle:', exchange.milliseconds(), $i)
+                    }
                 }
 
             } else if (exchange[methodName] === undefined) {
