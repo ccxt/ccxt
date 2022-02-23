@@ -4817,7 +4817,7 @@ module.exports = class binance extends Exchange {
 
     parseMarketLeverageTiers (info, market) {
         /**
-            @param info: Exchange market response for 1 market
+            @param info: Exchange response for 1 market
             {
                 "symbol": "SUSHIUSDT",
                 "brackets": [
