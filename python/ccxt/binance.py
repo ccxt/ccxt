@@ -56,7 +56,6 @@ class binance(Exchange):
                 'createReduceOnlyOrder': True,
                 'deposit': None,
                 'fetchAccounts': None,
-                'fetchAllTradingFees': None,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
                 'fetchBorrowRate': True,

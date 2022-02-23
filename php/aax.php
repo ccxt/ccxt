@@ -41,7 +41,6 @@ class aax extends Exchange {
                 'deposit' => null,
                 'editOrder' => true,
                 'fetchAccounts' => null,
-                'fetchAllTradingFees' => null,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
                 'fetchBorrowRate' => false,

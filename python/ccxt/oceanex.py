@@ -42,7 +42,6 @@ class oceanex(Exchange):
                 'cancelOrders': True,
                 'createMarketOrder': True,
                 'createOrder': True,
-                'fetchAllTradingFees': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
@@ -62,7 +61,8 @@ class oceanex(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'fetchTradingFees': None,
+                'fetchTradingFee': None,
+                'fetchTradingFees': True,
                 'fetchTradingLimits': None,
             },
             'timeframes': {
@@ -449,7 +449,7 @@ class oceanex(Exchange):
         #
         return self.safe_timestamp(response, 'data')
 
-    def fetch_all_trading_fees(self, params={}):
+    def fetch_trading_fees(self, params={}):
         response = self.publicGetFeesTrading(params)
         data = self.safe_value(response, 'data')
         result = {}

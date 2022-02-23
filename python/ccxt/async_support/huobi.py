@@ -65,7 +65,6 @@ class huobi(Exchange):
                 'createReduceOnlyOrder': False,
                 'deposit': None,
                 'fetchAccounts': True,
-                'fetchAllTradingFees': None,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
                 'fetchBorrowRate': True,

@@ -47,7 +47,6 @@ class huobi extends Exchange {
                 'createReduceOnlyOrder' => false,
                 'deposit' => null,
                 'fetchAccounts' => true,
-                'fetchAllTradingFees' => null,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
                 'fetchBorrowRate' => true,

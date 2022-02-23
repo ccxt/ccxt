@@ -57,7 +57,6 @@ class aax(Exchange):
                 'deposit': None,
                 'editOrder': True,
                 'fetchAccounts': None,
-                'fetchAllTradingFees': None,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
                 'fetchBorrowRate': False,

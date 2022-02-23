@@ -40,7 +40,6 @@ class okx extends Exchange {
                 'createReduceOnlyOrder' => null,
                 'deposit' => null,
                 'fetchAccounts' => true,
-                'fetchAllTradingFees' => null,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
                 'fetchBorrowRate' => true,

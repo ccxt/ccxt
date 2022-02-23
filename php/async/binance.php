@@ -42,7 +42,6 @@ class binance extends Exchange {
                 'createReduceOnlyOrder' => true,
                 'deposit' => null,
                 'fetchAccounts' => null,
-                'fetchAllTradingFees' => null,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
                 'fetchBorrowRate' => true,

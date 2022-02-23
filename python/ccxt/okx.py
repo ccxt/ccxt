@@ -64,7 +64,6 @@ class okx(Exchange):
                 'createReduceOnlyOrder': None,
                 'deposit': None,
                 'fetchAccounts': True,
-                'fetchAllTradingFees': None,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
                 'fetchBorrowRate': True,
