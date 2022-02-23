@@ -356,7 +356,7 @@ module.exports = class gateio extends ccxt.gateio {
         if (authenticate === undefined) {
             const requestId = this.milliseconds ();
             const requestIdString = requestId.toString ();
-            const signature = this.hmac (this.encode (requestIdString), this.encode (this.secret), 'sha512', 'hex');
+            const signature = this.generateSignature (requestIdString);
             const authenticateMessage = {
                 'id': requestId,
                 'method': method,
@@ -387,16 +387,21 @@ module.exports = class gateio extends ccxt.gateio {
         await this.authenticate ();
         const url = this.getUrlByMarketType (type);
         const requestId = this.nonce ();
-        let messageHash = 'spot.usertrades';
+        const channel = 'spot.usertrades';
+        let messageHash = channel;
+        const time = this.seconds ();
+        const event = 'subscribe';
         const request = {
-            'time': this.seconds (),
+            'time': time,
             'channel': messageHash,
-            'event': 'subscribe',
+            'event': event,
         };
         if (marketId !== undefined) {
             request['payload'] = [marketId];
             messageHash += ':' + marketId;
         }
+        const payload = 'channel=' + messageHash + '&event=' + event + '&time=' + time;
+        request['auth'] = this.generateSignature (payload);
         const subscription = {
             'id': requestId,
         };
@@ -666,5 +671,9 @@ module.exports = class gateio extends ccxt.gateio {
         if (type === 'option') {
             return this.urls['api']['option'];
         }
+    }
+
+    generateSignature (payload) {
+        return this.hmac (this.encode (payload), this.encode (this.secret), 'sha512', 'hex');
     }
 };
