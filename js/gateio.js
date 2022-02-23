@@ -1898,41 +1898,55 @@ module.exports = class gateio extends Exchange {
             'future': 'privateDeliveryGetSettleMyTrades',
         });
         const response = await this[method] (this.extend (request, params));
-        // SPOT
-        //  [{
-        //      "id":"2876130500",
-        //      "create_time":"1645464610",
-        //      "create_time_ms":"1645464610777.399200",
-        //      "currency_pair":"DOGE_USDT",
-        //      "side":"sell",
-        //      "role":"taker",
-        //      "amount":"10.97",
-        //      "price":"0.137384",
-        //      "order_id":"125924049993",
-        //      "fee":"0.00301420496",
-        //      "fee_currency":"USDT",
-        //      "point_fee":"0","gt_fee":"0"
-        //  }]
-        // Perpetual Swap
-        //  [{
-        //      "size":-5,
-        //      "order_id":"130264979823",
-        //      "id":26884791,
-        //      "role":"taker",
-        //      "create_time":1645465199.5472,
-        //      "contract":"DOGE_USDT",
-        //      "price":"0.136888"
-        //  }]
-        // Future
-        //  [{
-        //     "id": 121234231,
-        //     "create_time": 1514764800.123,
-        //     "contract": "BTC_USDT",
-        //     "order_id": "21893289839",
-        //     "size": 100,
-        //     "price": "100.123",
-        //     "role": "taker"
-        //  }]
+        //
+        // spot
+        //
+        //     [
+        //         {
+        //             "id":"2876130500",
+        //             "create_time":"1645464610",
+        //             "create_time_ms":"1645464610777.399200",
+        //             "currency_pair":"DOGE_USDT",
+        //             "side":"sell",
+        //             "role":"taker",
+        //             "amount":"10.97",
+        //             "price":"0.137384",
+        //             "order_id":"125924049993",
+        //             "fee":"0.00301420496",
+        //             "fee_currency":"USDT",
+        //             "point_fee":"0",
+        //             "gt_fee":"0"
+        //         }
+        //     ]
+        //
+        // perpetual swap
+        //
+        //     [
+        //         {
+        //             "size":-5,
+        //             "order_id":"130264979823",
+        //             "id":26884791,
+        //             "role":"taker",
+        //             "create_time":1645465199.5472,
+        //             "contract":"DOGE_USDT",
+        //             "price":"0.136888"
+        //         }
+        //     ]
+        //
+        // future
+        //
+        //     [
+        //         {
+        //             "id": 121234231,
+        //             "create_time": 1514764800.123,
+        //             "contract": "BTC_USDT",
+        //             "order_id": "21893289839",
+        //             "size": 100,
+        //             "price": "100.123",
+        //             "role": "taker"
+        //         }
+        //     ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
