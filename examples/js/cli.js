@@ -283,7 +283,7 @@ async function main () {
                     if (!poll){
                         break;
                     } else {
-                        console.log ('# Current cycle:', exchange.milliseconds(), i)
+                        console.log ('# Current cycle:', exchange.iso8601 (exchange.milliseconds ()), i)
                         i++;
                     }
                 }
