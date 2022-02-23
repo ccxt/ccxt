@@ -23,7 +23,20 @@ module.exports = class gateio extends ccxt.gateio {
             },
             'urls': {
                 'api': {
+                    // 'ws': 'wss://fx-ws-testnet.gateio.ws/v4/ws/usdt',
                     'ws': 'wss://ws.gate.io/v4',
+                    // 'spot': 'wss://ws.gate.io/v4',
+                    // 'swap': {
+                    //     'usdt': 'wss://fx-ws.gateio.ws/v4/ws/usdt',
+                    //     'btc': 'wss://fx-ws.gateio.ws/v4/ws/btc',
+                    // },
+                    // 'future': {
+                    //     'usdt': 'wss://fx-ws.gateio.ws/v4/ws/delivery/usdt',
+                    //     'btc': 'wss://fx-ws.gateio.ws/v4/ws/delivery/btc',
+                    // },
+                    // 'option': {
+                    //     'wss://op-ws.gateio.live/v4/ws'
+                    // }
                 },
             },
             'options': {
@@ -361,6 +374,81 @@ module.exports = class gateio extends ccxt.gateio {
         return await future;
     }
 
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        this.checkRequiredCredentials ();
+        let [ type, query ] = this.handleMarketTypeAndParams ('watchMyTrades', undefined, params);
+        let marketId = undefined;
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            type = market['type'];
+            marketId = market['id'];
+        }
+        await this.authenticate ();
+        const url = this.getUrlByMarketType (type);
+        const requestId = this.nonce ();
+        let messageHash = 'spot.usertrades';
+        const request = {
+            'time': this.milliseconds (),
+            'channel': messageHash,
+            'event': 'subscribe',
+        };
+        if (marketId !== undefined) {
+            request['payload'] = [marketId];
+            messageHash += ':' + marketId;
+        }
+        const subscription = {
+            'id': requestId,
+        };
+        return await this.watch (url, messageHash, request, messageHash, subscription);
+    }
+
+    handleMyTrades (client, message) {
+        //
+        // {
+        //     "time": 1605176741,
+        //     "channel": "spot.usertrades",
+        //     "event": "update",
+        //     "result": [
+        //       {
+        //         "id": 5736713,
+        //         "user_id": 1000001,
+        //         "order_id": "30784428",
+        //         "currency_pair": "BTC_USDT",
+        //         "create_time": 1605176741,
+        //         "create_time_ms": "1605176741123.456",
+        //         "side": "sell",
+        //         "amount": "1.00000000",
+        //         "role": "taker",
+        //         "price": "10000.00000000",
+        //         "fee": "0.00200000000000",
+        //         "point_fee": "0",
+        //         "gt_fee": "0",
+        //         "text": "apiv4"
+        //       }
+        //     ]
+        //   }
+        //
+        const channel = this.safeString (message, 'channel');
+        const trades = this.safeValue (message, 'result', []);
+        if (trades.length > 0) {
+            if (this.myTrades === undefined) {
+                const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+                this.myTrades = new ArrayCache (limit);
+            }
+            const stored = this.myTrades;
+            const parsedTrades = this.parseTrades (trades);
+            for (let i = 0; i < trades.length; i++) {
+                stored.append (trades[i]);
+            }
+            client.resolve (this.myTrades, channel);
+            for (let i = 0; i < parsedTrades.length; i++) {
+                const messageHash = channel + ':' + parsedTrades[i]['symbol'];
+                client.resolve (this.myTrades, messageHash);
+            }
+        }
+    }
+
     async watchBalance (params = {}) {
         await this.loadMarkets ();
         this.checkRequiredCredentials ();
@@ -560,6 +648,23 @@ module.exports = class gateio extends ccxt.gateio {
             }
         } else {
             method.call (this, client, message);
+        }
+    }
+
+    getUrlByMarketType (type, isBtcContract = false) {
+        if (type === 'spot') {
+            return this.urls['api']['spot'];
+        }
+        if (type === 'swap') {
+            const baseUrl = this.urls['api']['swap'];
+            return isBtcContract ? baseUrl['btc'] : baseUrl['usdt'];
+        }
+        if (type === 'future') {
+            const baseUrl = this.urls['api']['future'];
+            return isBtcContract ? baseUrl['btc'] : baseUrl['usdt'];
+        }
+        if (type === 'option') {
+            return this.urls['api']['option'];
         }
     }
 };
