@@ -4772,7 +4772,7 @@ module.exports = class binance extends Exchange {
                 for (let j = 0; j < brackets.length; j++) {
                     const bracket = brackets[j];
                     // we use floats here internally on purpose
-                    const floorValue = this.safeFloat2 (bracket, 'notionalFloor', 'qtyFloor');
+                    const floorValue = this.safeNumber2 (bracket, 'notionalFloor', 'qtyFloor');
                     const maintenanceMarginPercentage = this.safeString (bracket, 'maintMarginRatio');
                     result.push ([ floorValue, maintenanceMarginPercentage ]);
                 }
@@ -4828,7 +4828,7 @@ module.exports = class binance extends Exchange {
                 result.push ({
                     'tier': this.safeNumber (bracket, 'bracket'),
                     'notionalCurrency': market['quote'],
-                    'notionalFloor': this.safeFloat2 (bracket, 'notionalFloor', 'qtyFloor'),
+                    'notionalFloor': this.safeNumber2 (bracket, 'notionalFloor', 'qtyFloor'),
                     'notionalCap': this.safeNumber (bracket, 'notionalCap'),
                     'maintenanceMarginRate': this.safeNumber (bracket, 'maintMarginRatio'),
                     'maxLeverage': this.safeNumber (bracket, 'initialLeverage'),
