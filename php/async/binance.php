@@ -2740,15 +2740,19 @@ class binance extends Exchange {
         //     TRAILING_STOP_MARKET $callbackRate
         //
         if ($uppercaseType === 'MARKET') {
-            $quoteOrderQty = $this->safe_value($this->options, 'quoteOrderQty', false);
-            if ($quoteOrderQty) {
-                $quoteOrderQty = $this->safe_number($params, 'quoteOrderQty');
-                $precision = $market['precision']['price'];
-                if ($quoteOrderQty !== null) {
-                    $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQty, TRUNCATE, $precision, $this->precisionMode);
-                    $params = $this->omit($params, 'quoteOrderQty');
-                } else if ($price !== null) {
-                    $request['quoteOrderQty'] = $this->decimal_to_precision($amount * $price, TRUNCATE, $precision, $this->precisionMode);
+            if ($market['spot']) {
+                $quoteOrderQty = $this->safe_value($this->options, 'quoteOrderQty', false);
+                if ($quoteOrderQty) {
+                    $quoteOrderQty = $this->safe_number($params, 'quoteOrderQty');
+                    $precision = $market['precision']['price'];
+                    if ($quoteOrderQty !== null) {
+                        $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQty, TRUNCATE, $precision, $this->precisionMode);
+                        $params = $this->omit($params, 'quoteOrderQty');
+                    } else if ($price !== null) {
+                        $request['quoteOrderQty'] = $this->decimal_to_precision($amount * $price, TRUNCATE, $precision, $this->precisionMode);
+                    } else {
+                        $quantityIsRequired = true;
+                    }
                 } else {
                     $quantityIsRequired = true;
                 }
