@@ -24,6 +24,7 @@ module.exports = class zb extends Exchange {
                 'swap': undefined, // has but unimplemented
                 'future': undefined,
                 'option': undefined,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
