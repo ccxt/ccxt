@@ -20,11 +20,12 @@ module.exports = class gateio extends ccxt.gateio {
                 'watchOHLCV': true,
                 'watchBalance': true,
                 'watchOrders': true,
+
             },
             'urls': {
                 'api': {
                     'ws': 'wss://ws.gate.io/v4',
-                    'spot': 'wss://ws.gate.io/v4',
+                    'spot': 'wss://api.gateio.ws/ws/v4/',
                     'swap': {
                         'usdt': 'wss://fx-ws.gateio.ws/v4/ws/usdt',
                         'btc': 'wss://fx-ws.gateio.ws/v4/ws/btc',
@@ -356,7 +357,7 @@ module.exports = class gateio extends ccxt.gateio {
         if (authenticate === undefined) {
             const requestId = this.milliseconds ();
             const requestIdString = requestId.toString ();
-            const signature = this.generateSignature (requestIdString);
+            const signature = this.signPayload (requestIdString);
             const authenticateMessage = {
                 'id': requestId,
                 'method': method,
@@ -384,28 +385,19 @@ module.exports = class gateio extends ccxt.gateio {
         if (type !== 'spot') {
             throw new BadRequest (this.id + ' watchMyTrades symbol supports spot markets only');
         }
-        await this.authenticate ();
         const url = this.getUrlByMarketType (type);
         const requestId = this.nonce ();
         const channel = 'spot.usertrades';
         let messageHash = channel;
-        const time = this.seconds ();
-        const event = 'subscribe';
-        const request = {
-            'time': time,
-            'channel': messageHash,
-            'event': event,
-        };
+        let payload = [];
         if (marketId !== undefined) {
-            request['payload'] = [marketId];
+            payload = [marketId];
             messageHash += ':' + marketId;
         }
-        const payload = 'channel=' + messageHash + '&event=' + event + '&time=' + time;
-        request['auth'] = this.generateSignature (payload);
         const subscription = {
             'id': requestId,
         };
-        return await this.watch (url, messageHash, request, messageHash, subscription);
+        return await this.subscribePrivate (url, channel, messageHash, payload, subscription);
     }
 
     handleMyTrades (client, message) {
@@ -673,7 +665,31 @@ module.exports = class gateio extends ccxt.gateio {
         }
     }
 
-    generateSignature (payload) {
+    signPayload (payload) {
         return this.hmac (this.encode (payload), this.encode (this.secret), 'sha512', 'hex');
+    }
+
+    generateSignature (payload) {
+        const signature = this.signPayload (payload);
+        const auth = {
+            'method': 'api_key',
+            'KEY': this.apiKey,
+            'SIGN': signature,
+        };
+        return auth;
+    }
+
+    async subscribePrivate (url, channel, messageHash, payload, subscription) {
+        const time = this.seconds ();
+        const event = 'subscribe';
+        const request = {
+            'time': time,
+            'channel': channel,
+            'event': 'subscribe',
+            'payload': payload,
+        };
+        const signaturePayload = 'channel=' + channel + '&event=' + event + '&time=' + time.toString ();
+        request['auth'] = this.generateSignature (signaturePayload);
+        return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 };
