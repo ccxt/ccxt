@@ -2581,5 +2581,6 @@ module.exports = class mexc extends Exchange {
             maintenanceMarginRate = Precise.stringAdd (maintenanceMarginRate, riskIncrMmr);
             floor = cap;
         }
+        return tiers;
     }
 };
