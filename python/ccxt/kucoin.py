@@ -82,6 +82,8 @@ class kucoin(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': None,
                 'fetchWithdrawals': True,
                 'transfer': True,
                 'withdraw': True,
@@ -146,6 +148,7 @@ class kucoin(Exchange):
                         'accounts/ledgers': 3.333,  # 18/3s = 6/s => cost = 20 / 6 = 3.333
                         'accounts/{accountId}/holds': 1,
                         'accounts/transferable': 1,
+                        'base-fee': 1,
                         'sub/user': 1,
                         'sub-accounts': 1,
                         'sub-accounts/{subUserId}': 1,
@@ -176,6 +179,7 @@ class kucoin(Exchange):
                         'stop-order/{orderId}': 1,
                         'stop-order': 1,
                         'stop-order/queryOrderByClientOid': 1,
+                        'trade-fees': 1.3333,  # 45/3s = 15/s => cost = 20 / 15 = 1.333
                     },
                     'post': {
                         'accounts': 1,
@@ -1599,6 +1603,35 @@ class kucoin(Exchange):
             'cost': costString,
             'fee': fee,
         }, market)
+
+    def fetch_trading_fee(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbols': market['id'],
+        }
+        response = self.privateGetTradeFees(self.extend(request, params))
+        #
+        #     {
+        #         code: '200000',
+        #         data: [
+        #           {
+        #             symbol: 'BTC-USDT',
+        #             takerFeeRate: '0.001',
+        #             makerFeeRate: '0.001'
+        #           }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        first = self.safe_value(data, 0)
+        marketId = self.safe_string(first, 'symbol')
+        return {
+            'info': response,
+            'symbol': self.safe_symbol(marketId, market),
+            'maker': self.safe_number(first, 'makerFeeRate'),
+            'taker': self.safe_number(first, 'takerFeeRate'),
+        }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)

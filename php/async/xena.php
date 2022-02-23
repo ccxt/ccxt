@@ -1797,7 +1797,7 @@ class xena extends Exchange {
                         $initialRate = $this->safe_string($tier, 'initialRate');
                         $tiers[] = array(
                             'tier' => $this->sum($j, 1),
-                            'notionalCurrency' => $market['base'],
+                            'currency' => $market['base'],
                             'notionalFloor' => $floor,
                             'notionalCap' => $cap,
                             'maintenanceMarginRate' => $this->safe_number($tier, 'maintenanceRate'),

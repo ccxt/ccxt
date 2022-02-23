@@ -66,6 +66,7 @@ class bittrex(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchFundingFees': None,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -90,6 +91,8 @@ class bittrex(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': True,
                 'fetchTransactions': None,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
@@ -144,6 +147,10 @@ class bittrex(Exchange):
                 'private': {
                     'get': [
                         'account',
+                        'account/fees/fiat',
+                        'account/fees/fiat/{currencySymbol}',
+                        'account/fees/trading',
+                        'account/fees/trading/{marketSymbol}',
                         'account/volume',
                         'addresses',
                         'addresses/{currencySymbol}',
@@ -681,6 +688,57 @@ class bittrex(Exchange):
         #     ]
         #
         return self.parse_trades(response, market, since, limit)
+
+    def fetch_trading_fee(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'marketSymbol': market['id'],
+        }
+        response = self.privateGetAccountFeesTradingMarketSymbol(self.extend(request, params))
+        #
+        #     {
+        #         "marketSymbol":"1INCH-ETH",
+        #         "makerRate":"0.00750000",
+        #         "takerRate":"0.00750000"
+        #     }
+        #
+        return self.parse_trading_fee(response, market)
+
+    def fetch_trading_fees(self, params={}):
+        self.load_markets()
+        response = self.privateGetAccountFeesTrading(params)
+        #
+        #     [
+        #         {"marketSymbol":"1ECO-BTC","makerRate":"0.00750000","takerRate":"0.00750000"},
+        #         {"marketSymbol":"1ECO-USDT","makerRate":"0.00750000","takerRate":"0.00750000"},
+        #         {"marketSymbol":"1INCH-BTC","makerRate":"0.00750000","takerRate":"0.00750000"},
+        #         {"marketSymbol":"1INCH-ETH","makerRate":"0.00750000","takerRate":"0.00750000"},
+        #         {"marketSymbol":"1INCH-USD","makerRate":"0.00750000","takerRate":"0.00750000"},
+        #     ]
+        #
+        return self.parse_trading_fees(response)
+
+    def parse_trading_fee(self, fee, market=None):
+        marketId = self.safe_string(fee, 'marketSymbol')
+        maker = self.safe_number(fee, 'makerRate')
+        taker = self.safe_number(fee, 'takerRate')
+        return {
+            'info': fee,
+            'symbol': self.safe_symbol(marketId, market),
+            'maker': maker,
+            'taker': taker,
+        }
+
+    def parse_trading_fees(self, fees):
+        result = {
+            'info': fees,
+        }
+        for i in range(0, len(fees)):
+            fee = self.parse_trading_fee(fees[i])
+            symbol = fee['symbol']
+            result[symbol] = fee
+        return result
 
     def parse_ohlcv(self, ohlcv, market=None):
         #

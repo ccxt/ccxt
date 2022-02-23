@@ -3924,7 +3924,7 @@ class okx(Exchange):
             tier = data[i]
             brackets.append({
                 'tier': self.safe_integer(tier, 'tier'),
-                'notionalCurrency': market['quote'],
+                'currency': market['quote'],
                 'notionalFloor': self.safe_number(tier, 'minSz'),
                 'notionalCap': self.safe_number(tier, 'maxSz'),
                 'maintenanceMarginRate': self.safe_number(tier, 'mmr'),

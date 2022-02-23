@@ -940,7 +940,7 @@ module.exports = class hollaex extends Exchange {
             const convertedPrice = parseFloat (this.priceToPrecision (symbol, price));
             request['price'] = this.normalizeNumberIfNeeded (convertedPrice);
         }
-        const stopPrice = this.safeFloat2 (params, 'stopPrice', 'stop');
+        const stopPrice = this.safeNumber2 (params, 'stopPrice', 'stop');
         if (stopPrice !== undefined) {
             request['stop'] = this.normalizeNumberIfNeeded (parseFloat (this.priceToPrecision (symbol, stopPrice)));
             params = this.omit (params, [ 'stopPrice', 'stop' ]);

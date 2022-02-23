@@ -5069,6 +5069,8 @@ class huobi extends Exchange {
         yield $this->load_markets();
         $market = $this->market($symbol);
         $marginType = $this->safe_string_2($this->options, 'defaultMarginType', 'marginType', 'isolated');
+        $marginType = $this->safe_string_2($params, 'marginType', 'defaultMarginType', $marginType);
+        $params = $this->omit($params, array( 'defaultMarginType', 'marginType' ));
         list($marketType, $query) = $this->handle_market_type_and_params('fetchPosition', $market, $params);
         $method = null;
         if ($market['linear']) {
@@ -5218,17 +5220,65 @@ class huobi extends Exchange {
             //       ),
             //       ts => 1641162539767
             //     }
+            // cross usdt swap
+            // {
+            //     "status":"ok",
+            //     "data":array(
+            //        "positions":array(
+            //        ),
+            //        "futures_contract_detail":array(
+            //            (...)
+            //        )
+            //        "margin_mode":"cross",
+            //        "margin_account":"USDT",
+            //        "margin_asset":"USDT",
+            //        "margin_balance":"1.000000000000000000",
+            //        "margin_static":"1.000000000000000000",
+            //        "margin_position":"0",
+            //        "margin_frozen":"1.000000000000000000",
+            //        "profit_real":"0E-18",
+            //        "profit_unreal":"0",
+            //        "withdraw_available":"0",
+            //        "risk_rate":"15.666666666666666666",
+            //        "contract_detail":array(
+            //          (...)
+            //        )
+            //     ),
+            //     "ts":"1645521118946"
+            //  }
             //
         }
-        $request = array(
-            'contract_code' => $market['id'],
-        );
+        $request = array();
+        if ($market['future'] && $market['inverse']) {
+            $request['symbol'] = $market['settleId'];
+        } else {
+            if ($marginType === 'cross') {
+                $request['margin_account'] = 'USDT'; // only allowed value
+            }
+            $request['contract_code'] = $market['id'];
+        }
         $response = yield $this->$method (array_merge($request, $query));
         $data = $this->safe_value($response, 'data');
-        $account = $this->safe_value($data, 0);
+        $account = null;
+        if ($marginType === 'cross') {
+            $account = $data;
+        } else {
+            $account = $this->safe_value($data, 0);
+        }
         $omitted = $this->omit($account, array( 'positions' ));
         $positions = $this->safe_value($account, 'positions');
-        $position = $this->safe_value($positions, 0);
+        $position = null;
+        if ($market['future'] && $market['inverse']) {
+            for ($i = 0; $i < count($positions); $i++) {
+                $entry = $positions[$i];
+                if ($entry['contract_code'] === $market['id']) {
+                    $position = $entry;
+                    break;
+                }
+            }
+        } else {
+            $position = $this->safe_value($positions, 0);
+        }
         $timestamp = $this->safe_integer($response, 'ts');
         $parsed = $this->parse_position(array_merge($position, $omitted));
         return array_merge($parsed, array(

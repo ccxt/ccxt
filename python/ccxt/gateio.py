@@ -771,6 +771,10 @@ class gateio(Exchange):
                     })
         else:
             response = getattr(self, method)(query)
+            spotMarkets = {}
+            if margin:
+                spotMarketsResponse = self.publicSpotGetCurrencyPairs(query)
+                spotMarkets = self.index_by(spotMarketsResponse, 'id')
             #
             #  Spot
             #      [
@@ -804,6 +808,8 @@ class gateio(Exchange):
             for i in range(0, len(response)):
                 market = response[i]
                 id = self.safe_string(market, 'id')
+                spotMarket = self.safe_value(spotMarkets, id)
+                market = self.deep_extend(spotMarket, market)
                 baseId, quoteId = id.split('_')
                 base = self.safe_currency_code(baseId)
                 quote = self.safe_currency_code(quoteId)
@@ -822,7 +828,7 @@ class gateio(Exchange):
                     'quoteId': quoteId,
                     'settleId': None,
                     'type': type,
-                    'spot': spot,
+                    'spot': True,
                     'margin': margin,
                     'swap': False,
                     'future': False,
@@ -846,7 +852,7 @@ class gateio(Exchange):
                     'limits': {
                         'leverage': {
                             'min': self.parse_number('1'),
-                            'max': self.safe_number(market, 'lever', 1),
+                            'max': self.safe_number(market, 'leverage', 1),
                         },
                         'amount': {
                             'min': None,
@@ -1847,32 +1853,55 @@ class gateio(Exchange):
             'future': 'privateDeliveryGetSettleMyTrades',
         })
         response = getattr(self, method)(self.extend(request, params))
-        # SPOT
-        # [{
-        #     id: "1851927191",
-        #     create_time: "1634333360",
-        #     create_time_ms: "1634333360359.901000",
-        #     currency_pair: "BTC_USDT",
-        #     side: "buy",
-        #     role: "taker",
-        #     amount: "0.0001",
-        #     price: "62547.51",
-        #     order_id: "93475897349",
-        #     fee: "2e-07",
-        #     fee_currency: "BTC",
-        #     point_fee: "0",
-        #     gt_fee: "0",
-        #   }]
-        # Perpetual Swap
-        # [{
-        #   size: "-13",
-        #   order_id: "79723658958",
-        #   id: "47612669",
-        #   role: "taker",
-        #   create_time: "1634600263.326",
-        #   contract: "BTC_USDT",
-        #   price: "61987.8",
-        # }]
+        #
+        # spot
+        #
+        #     [
+        #         {
+        #             "id":"2876130500",
+        #             "create_time":"1645464610",
+        #             "create_time_ms":"1645464610777.399200",
+        #             "currency_pair":"DOGE_USDT",
+        #             "side":"sell",
+        #             "role":"taker",
+        #             "amount":"10.97",
+        #             "price":"0.137384",
+        #             "order_id":"125924049993",
+        #             "fee":"0.00301420496",
+        #             "fee_currency":"USDT",
+        #             "point_fee":"0",
+        #             "gt_fee":"0"
+        #         }
+        #     ]
+        #
+        # perpetual swap
+        #
+        #     [
+        #         {
+        #             "size":-5,
+        #             "order_id":"130264979823",
+        #             "id":26884791,
+        #             "role":"taker",
+        #             "create_time":1645465199.5472,
+        #             "contract":"DOGE_USDT",
+        #             "price":"0.136888"
+        #         }
+        #     ]
+        #
+        # future
+        #
+        #     [
+        #         {
+        #             "id": 121234231,
+        #             "create_time": 1514764800.123,
+        #             "contract": "BTC_USDT",
+        #             "order_id": "21893289839",
+        #             "size": 100,
+        #             "price": "100.123",
+        #             "role": "taker"
+        #         }
+        #     ]
+        #
         return self.parse_trades(response, market, since, limit)
 
     def parse_trade(self, trade, market=None):
@@ -1899,26 +1928,49 @@ class gateio(Exchange):
         #         type: 'sell'
         #     }
         #
-        # private
+        # spot rest
         #
         #     {
-        #         "id": "218087755",
-        #         "create_time": "1578958740",
-        #         "create_time_ms": "1578958740122.710000",
-        #         "currency_pair": "BTC_USDT",
-        #         "side": "sell",
-        #         "role": "taker",
-        #         "amount": "0.0004",
-        #         "price": "8112.77",
-        #         "order_id": "8445563839",
-        #         "fee": "0.006490216",
-        #         "fee_currency": "USDT",
-        #         "point_fee": "0",
-        #         "gt_fee": "0"
+        #         "id":"2876130500",
+        #         "create_time":"1645464610",
+        #         "create_time_ms":"1645464610777.399200",
+        #         "currency_pair":"DOGE_USDT",
+        #         "side":"sell",
+        #         "role":"taker",
+        #         "amount":"10.97",
+        #         "price":"0.137384",
+        #         "order_id":"125924049993",
+        #         "fee":"0.00301420496",
+        #         "fee_currency":"USDT",
+        #         "point_fee":"0","gt_fee":"0"
+        #     }
+        #
+        # perpetual swap rest
+        #
+        #     {
+        #         "size":-5,
+        #         "order_id":"130264979823",
+        #         "id":26884791,
+        #         "role":"taker",
+        #         "create_time":1645465199.5472,
+        #         "contract":"DOGE_USDT",
+        #         "price":"0.136888"
+        #     }
+        #
+        # future rest
+        #
+        #     {
+        #         "id": 121234231,
+        #         "create_time": 1514764800.123,
+        #         "contract": "BTC_USDT",
+        #         "order_id": "21893289839",
+        #         "size": 100,
+        #         "price": "100.123",
+        #         "role": "taker"
         #     }
         #
         id = self.safe_string(trade, 'id')
-        timestamp = self.safe_timestamp(trade, 'time')
+        timestamp = self.safe_timestamp_2(trade, 'time', 'create_time')
         timestamp = self.safe_integer(trade, 'create_time_ms', timestamp)
         marketId = self.safe_string_2(trade, 'currency_pair', 'contract')
         symbol = self.safe_symbol(marketId, market)

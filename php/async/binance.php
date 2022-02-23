@@ -4834,7 +4834,7 @@ class binance extends Exchange {
                 $bracket = $brackets[$j];
                 $result[] = array(
                     'tier' => $this->safe_number($bracket, 'bracket'),
-                    'notionalCurrency' => $market['quote'],
+                    'currency' => $market['quote'],
                     'notionalFloor' => $this->safe_float_2($bracket, 'notionalFloor', 'qtyFloor'),
                     'notionalCap' => $this->safe_number($bracket, 'notionalCap'),
                     'maintenanceMarginRate' => $this->safe_number($bracket, 'maintMarginRatio'),

@@ -1704,7 +1704,7 @@ class xena(Exchange):
                         initialRate = self.safe_string(tier, 'initialRate')
                         tiers.append({
                             'tier': self.sum(j, 1),
-                            'notionalCurrency': market['base'],
+                            'currency': market['base'],
                             'notionalFloor': floor,
                             'notionalCap': cap,
                             'maintenanceMarginRate': self.safe_number(tier, 'maintenanceRate'),

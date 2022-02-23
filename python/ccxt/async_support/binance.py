@@ -4592,7 +4592,7 @@ class binance(Exchange):
                 bracket = brackets[j]
                 result.append({
                     'tier': self.safe_number(bracket, 'bracket'),
-                    'notionalCurrency': market['quote'],
+                    'currency': market['quote'],
                     'notionalFloor': self.safe_float_2(bracket, 'notionalFloor', 'qtyFloor'),
                     'notionalCap': self.safe_number(bracket, 'notionalCap'),
                     'maintenanceMarginRate': self.safe_number(bracket, 'maintMarginRatio'),
