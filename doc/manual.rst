@@ -4036,7 +4036,7 @@ The ``fetchLeverageTiers()`` method will return a structure like shown below:
        'BNB/USDT': [
            {
                "tier": 1,                       // tier index
-               "notionalCurrency": "USDT",      // the currency that notionalFloor and notionalCap are in
+               "currency": "USDT",              // the currency that notionalFloor and notionalCap are in
                "notionalFloor": 0,              // the lowest amount of this tier // stake = 0.0
                "notionalCap": 10000,            // the highest amount of this tier // max stake amount at 75x leverage = 133.33333333333334
                "maintenanceMarginRate": 0.0065, // maintenance margin rate
@@ -4045,17 +4045,17 @@ The ``fetchLeverageTiers()`` method will return a structure like shown below:
            },
            {
                "tier": 2,
-               "notionalCurrency": "USDT",
+               "currency": "USDT",
                "notionalFloor": 10000,          // min stake amount at 50x leverage = 200.0
                "notionalCap": 50000,            // max stake amount at 50x leverage = 1000.0
-               "maintenanceMarginRatio": 0.01,
+               "maintenanceMarginRate": 0.01,
                "maxLeverage": 50,
                "info": { ... },
            },
            ...
            {
                "tier": 9,
-               "notionalCurrency": "USDT",
+               "currency": "USDT",
                "notionalFloor": 20000000,
                "notionalCap": 50000000,
                "maintenanceMarginRate": 0.5,
