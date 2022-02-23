@@ -1595,9 +1595,9 @@ module.exports = class bitfinex2 extends bitfinex {
         };
     }
 
-    async fetchTradingFee(symbol, params = {}) {
+    async fetchTradingFee (symbol, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol)
+        const market = this.market (symbol);
         const response = await this.privatePostAuthRSummary (params);
         //
         //      Response Spec:
@@ -1634,7 +1634,7 @@ module.exports = class bitfinex2 extends bitfinex {
         //         }
         //     ]
         //
-        //      Example response: 
+        //      Example response:
         //
         //     [
         //         null,
@@ -1672,14 +1672,14 @@ module.exports = class bitfinex2 extends bitfinex {
         const makerFee = this.safeNumber (makerData, 0);
         const takerFee = this.safeNumber (takerData, 0);
         return {
-                'info': response,
-                'symbol': market['symbol'],
-                'maker': makerFee,
-                'taker': takerFee,
-            };
+            'info': response,
+            'symbol': market['symbol'],
+            'maker': makerFee,
+            'taker': takerFee,
+        };
     }
 
-    async fetchTradingFees(params = {}) {
+    async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostAuthRSummary (params);
         //
@@ -1717,7 +1717,7 @@ module.exports = class bitfinex2 extends bitfinex {
         //         }
         //     ]
         //
-        //      Example response: 
+        //      Example response:
         //
         //     [
         //         null,
