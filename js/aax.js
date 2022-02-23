@@ -38,7 +38,6 @@ module.exports = class aax extends Exchange {
                 'deposit': undefined,
                 'editOrder': true,
                 'fetchAccounts': undefined,
-                'fetchAllTradingFees': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
                 'fetchBorrowRate': false,
