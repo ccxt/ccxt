@@ -349,9 +349,9 @@ module.exports = class bybit extends Exchange {
                         'spot/v1/history-orders': 2.5,
                         'spot/v1/myTrades': 2.5,
                         // account
-                        'asset/v1/private/transfer/list': 1,
-                        'asset/v1/private/sub-member/transfer/list': 1,
-                        'asset/v1/private/sub-member/member-ids': 1,
+                        'asset/v1/private/transfer/list': 50, // 60 per minute = 1 per second => cost = 50 / 1 = 50
+                        'asset/v1/private/sub-member/transfer/list': 50,
+                        'asset/v1/private/sub-member/member-ids': 50,
                     },
                     'post': {
                         // inverse swap
@@ -406,8 +406,8 @@ module.exports = class bybit extends Exchange {
                         // spot
                         'spot/v1/order': 2.5,
                         // account
-                        'asset/v1/private/transfer': 2.5,
-                        'asset/v1/private/sub-member/transfer': 2.5,
+                        'asset/v1/private/transfer': 150, // 20 per minute = 0.333 per second => cost = 50 / 0.3333 = 150
+                        'asset/v1/private/sub-member/transfer': 150,
                         // USDC endpoints are testnet only as of 2022 Jan 11 ----------
                         // option USDC (testnet only)
                         'option/usdc/openapi/private/v1/place-order': 2.5,
