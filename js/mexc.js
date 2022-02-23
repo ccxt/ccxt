@@ -2463,16 +2463,8 @@ module.exports = class mexc extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    async fetchLeverageTiers (symbol = undefined, params = {}) {
+    async fetchLeverageTiers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const symbolDefined = (symbol !== undefined);
-        let market = undefined;
-        if (symbolDefined) {
-            market = this.market (symbol);
-            if (!market['contract']) {
-                throw new BadRequest (this.id + ' fetchLeverageTiers() supports contract markets only');
-            }
-        }
         const response = await this.contractPublicGetDetail (params);
         //
         //     {
@@ -2480,77 +2472,113 @@ module.exports = class mexc extends Exchange {
         //         "code":0,
         //         "data":[
         //             {
-        //                 "symbol":"BTC_USDT",
-        //                 "displayName":"BTC_USDT永续",
-        //                 "displayNameEn":"BTC_USDT SWAP",
-        //                 "positionOpenType":3,
-        //                 "baseCoin":"BTC",
-        //                 "quoteCoin":"USDT",
-        //                 "settleCoin":"USDT",
-        //                 "contractSize":0.0001,
-        //                 "minLeverage":1,
-        //                 "maxLeverage":125,
-        //                 "priceScale":2,
-        //                 "volScale":0,
-        //                 "amountScale":4,
-        //                 "priceUnit":0.5,
-        //                 "volUnit":1,
-        //                 "minVol":1,
-        //                 "maxVol":1000000,
-        //                 "bidLimitPriceRate":0.1,
-        //                 "askLimitPriceRate":0.1,
-        //                 "takerFeeRate":0.0006,
-        //                 "makerFeeRate":0.0002,
-        //                 "maintenanceMarginRate":0.004,
-        //                 "initialMarginRate":0.008,
-        //                 "riskBaseVol":10000,
-        //                 "riskIncrVol":200000,
-        //                 "riskIncrMmr":0.004,
-        //                 "riskIncrImr":0.004,
-        //                 "riskLevelLimit":5,
-        //                 "priceCoefficientVariation":0.1,
-        //                 "indexOrigin":["BINANCE","GATEIO","HUOBI","MXC"],
-        //                 "state":0, // 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
-        //                 "isNew":false,
-        //                 "isHot":true,
-        //                 "isHidden":false
+        //                 "symbol": "BTC_USDT",
+        //                 "displayName": "BTC_USDT永续",
+        //                 "displayNameEn": "BTC_USDT SWAP",
+        //                 "positionOpenType": 3,
+        //                 "baseCoin": "BTC",
+        //                 "quoteCoin": "USDT",
+        //                 "settleCoin": "USDT",
+        //                 "contractSize": 0.0001,
+        //                 "minLeverage": 1,
+        //                 "maxLeverage": 125,
+        //                 "priceScale": 2,
+        //                 "volScale": 0,
+        //                 "amountScale": 4,
+        //                 "priceUnit": 0.5,
+        //                 "volUnit": 1,
+        //                 "minVol": 1,
+        //                 "maxVol": 1000000,
+        //                 "bidLimitPriceRate": 0.1,
+        //                 "askLimitPriceRate": 0.1,
+        //                 "takerFeeRate": 0.0006,
+        //                 "makerFeeRate": 0.0002,
+        //                 "maintenanceMarginRate": 0.004,
+        //                 "initialMarginRate": 0.008,
+        //                 "riskBaseVol": 10000,
+        //                 "riskIncrVol": 200000,
+        //                 "riskIncrMmr": 0.004,
+        //                 "riskIncrImr": 0.004,
+        //                 "riskLevelLimit": 5,
+        //                 "priceCoefficientVariation": 0.1,
+        //                 "indexOrigin": ["BINANCE","GATEIO","HUOBI","MXC"],
+        //                 "state": 0, // 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
+        //                 "isNew": false,
+        //                 "isHot": true,
+        //                 "isHidden": false
         //             },
         //             ...
         //         ]
         //     }
         //
-        const result = {};
         const data = this.safeValue (response, 'data');
-        for (let i = 0; i < data.length; i++) {
-            const item = data[i];
-            let maintenanceMarginRate = this.safeString (item, 'maintenanceMarginRate');
-            let initialMarginRate = this.safeString (item, 'initialMarginRate');
-            const maxVol = this.safeString (item, 'maxVol');
-            const riskIncrVol = this.safeString (item, 'riskIncrVol');
-            const riskIncrMmr = this.safeString (item, 'riskIncrMmr');
-            const riskIncrImr = this.safeString (item, 'riskIncrImr');
-            let floor = '0';
-            const tiers = [];
-            const quoteId = this.safeString (item, 'quoteCoin');
-            while (Precise.stringLt (floor, maxVol)) {
-                const cap = Precise.stringAdd (floor, riskIncrVol);
-                tiers.push ({
-                    'tier': this.parseNumber (Precise.stringDiv (cap, riskIncrVol)),
-                    'currency': this.safeCurrencyCode (quoteId),
-                    'notionalFloor': this.parseNumber (floor),
-                    'notionalCap': this.parseNumber (cap),
-                    'maintenanceMarginRate': this.parseNumber (maintenanceMarginRate),
-                    'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRate)),
-                    'info': item,
-                });
-                initialMarginRate = Precise.stringAdd (initialMarginRate, riskIncrImr);
-                maintenanceMarginRate = Precise.stringAdd (maintenanceMarginRate, riskIncrMmr);
-                floor = cap;
+        return this.parseLeverageTiers (data, symbols, 'symbol');
+    }
+
+    parseMarketLeverageTiers (info, market) {
+        /**
+            @param info: Exchange response for 1 market
+            {
+                "symbol": "BTC_USDT",
+                "displayName": "BTC_USDT永续",
+                "displayNameEn": "BTC_USDT SWAP",
+                "positionOpenType": 3,
+                "baseCoin": "BTC",
+                "quoteCoin": "USDT",
+                "settleCoin": "USDT",
+                "contractSize": 0.0001,
+                "minLeverage": 1,
+                "maxLeverage": 125,
+                "priceScale": 2,
+                "volScale": 0,
+                "amountScale": 4,
+                "priceUnit": 0.5,
+                "volUnit": 1,
+                "minVol": 1,
+                "maxVol": 1000000,
+                "bidLimitPriceRate": 0.1,
+                "askLimitPriceRate": 0.1,
+                "takerFeeRate": 0.0006,
+                "makerFeeRate": 0.0002,
+                "maintenanceMarginRate": 0.004,
+                "initialMarginRate": 0.008,
+                "riskBaseVol": 10000,
+                "riskIncrVol": 200000,
+                "riskIncrMmr": 0.004,
+                "riskIncrImr": 0.004,
+                "riskLevelLimit": 5,
+                "priceCoefficientVariation": 0.1,
+                "indexOrigin": ["BINANCE","GATEIO","HUOBI","MXC"],
+                "state": 0, // 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
+                "isNew": false,
+                "isHot": true,
+                "isHidden": false
             }
-            const id = this.safeString (item, 'symbol');
-            const ccxtSymbol = this.safeSymbol (id);
-            result[ccxtSymbol] = tiers;
+            @param market: CCXT market
+         */
+        let maintenanceMarginRate = this.safeString (info, 'maintenanceMarginRate');
+        let initialMarginRate = this.safeString (info, 'initialMarginRate');
+        const maxVol = this.safeString (info, 'maxVol');
+        const riskIncrVol = this.safeString (info, 'riskIncrVol');
+        const riskIncrMmr = this.safeString (info, 'riskIncrMmr');
+        const riskIncrImr = this.safeString (info, 'riskIncrImr');
+        let floor = '0';
+        const tiers = [];
+        const quoteId = this.safeString (info, 'quoteCoin');
+        while (Precise.stringLt (floor, maxVol)) {
+            const cap = Precise.stringAdd (floor, riskIncrVol);
+            tiers.push ({
+                'tier': this.parseNumber (Precise.stringDiv (cap, riskIncrVol)),
+                'currency': this.safeCurrencyCode (quoteId),
+                'notionalFloor': this.parseNumber (floor),
+                'notionalCap': this.parseNumber (cap),
+                'maintenanceMarginRate': this.parseNumber (maintenanceMarginRate),
+                'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRate)),
+                'info': info,
+            });
+            initialMarginRate = Precise.stringAdd (initialMarginRate, riskIncrImr);
+            maintenanceMarginRate = Precise.stringAdd (maintenanceMarginRate, riskIncrMmr);
+            floor = cap;
         }
-        return symbolDefined ? this.safeValue (result, symbol) : result;
     }
 };
