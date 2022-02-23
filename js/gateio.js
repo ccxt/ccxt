@@ -761,14 +761,10 @@ module.exports = class gateio extends Exchange {
             }
         } else {
             response = await this[method] (query);
-            const spotMarkets = {};
+            let spotMarkets = {}
             if (margin) {
-                const spotMarketsArray = await this.publicSpotGetCurrencyPairs (query);
-                for (let i = 0; i < spotMarketsArray.length; i++) {
-                    const spotMarket = spotMarketsArray[i];
-                    const spotMarketId = this.safeString (spotMarket, 'id');
-                    spotMarkets[spotMarketId] = spotMarket;
-                }
+                const spotMarketsResponse = await this.publicSpotGetCurrencyPairs (query);
+                spotMarkets = this.indexBy (spotMarketsResponse, 'id');
             }
             //
             //  Spot
