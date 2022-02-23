@@ -1905,32 +1905,55 @@ class gateio extends Exchange {
             'future' => 'privateDeliveryGetSettleMyTrades',
         ));
         $response = yield $this->$method (array_merge($request, $params));
-        // SPOT
-        // [array(
-        //     id => "1851927191",
-        //     create_time => "1634333360",
-        //     create_time_ms => "1634333360359.901000",
-        //     currency_pair => "BTC_USDT",
-        //     side => "buy",
-        //     role => "taker",
-        //     amount => "0.0001",
-        //     price => "62547.51",
-        //     order_id => "93475897349",
-        //     fee => "2e-07",
-        //     fee_currency => "BTC",
-        //     point_fee => "0",
-        //     gt_fee => "0",
-        //   )]
-        // Perpetual Swap
-        // [array(
-        //   size => "-13",
-        //   order_id => "79723658958",
-        //   id => "47612669",
-        //   role => "taker",
-        //   create_time => "1634600263.326",
-        //   contract => "BTC_USDT",
-        //   price => "61987.8",
-        // )]
+        //
+        // spot
+        //
+        //     array(
+        //         {
+        //             "id":"2876130500",
+        //             "create_time":"1645464610",
+        //             "create_time_ms":"1645464610777.399200",
+        //             "currency_pair":"DOGE_USDT",
+        //             "side":"sell",
+        //             "role":"taker",
+        //             "amount":"10.97",
+        //             "price":"0.137384",
+        //             "order_id":"125924049993",
+        //             "fee":"0.00301420496",
+        //             "fee_currency":"USDT",
+        //             "point_fee":"0",
+        //             "gt_fee":"0"
+        //         }
+        //     )
+        //
+        // perpetual swap
+        //
+        //     array(
+        //         {
+        //             "size":-5,
+        //             "order_id":"130264979823",
+        //             "id":26884791,
+        //             "role":"taker",
+        //             "create_time":1645465199.5472,
+        //             "contract":"DOGE_USDT",
+        //             "price":"0.136888"
+        //         }
+        //     )
+        //
+        // future
+        //
+        //     array(
+        //         {
+        //             "id" => 121234231,
+        //             "create_time" => 1514764800.123,
+        //             "contract" => "BTC_USDT",
+        //             "order_id" => "21893289839",
+        //             "size" => 100,
+        //             "price" => "100.123",
+        //             "role" => "taker"
+        //         }
+        //     )
+        //
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -1958,26 +1981,49 @@ class gateio extends Exchange {
         //         type => 'sell'
         //     }
         //
-        // private
+        // spot rest
         //
         //     {
-        //         "id" => "218087755",
-        //         "create_time" => "1578958740",
-        //         "create_time_ms" => "1578958740122.710000",
-        //         "currency_pair" => "BTC_USDT",
-        //         "side" => "sell",
-        //         "role" => "taker",
-        //         "amount" => "0.0004",
-        //         "price" => "8112.77",
-        //         "order_id" => "8445563839",
-        //         "fee" => "0.006490216",
-        //         "fee_currency" => "USDT",
-        //         "point_fee" => "0",
-        //         "gt_fee" => "0"
+        //         "id":"2876130500",
+        //         "create_time":"1645464610",
+        //         "create_time_ms":"1645464610777.399200",
+        //         "currency_pair":"DOGE_USDT",
+        //         "side":"sell",
+        //         "role":"taker",
+        //         "amount":"10.97",
+        //         "price":"0.137384",
+        //         "order_id":"125924049993",
+        //         "fee":"0.00301420496",
+        //         "fee_currency":"USDT",
+        //         "point_fee":"0","gt_fee":"0"
+        //     }
+        //
+        // perpetual swap rest
+        //
+        //     {
+        //         "size":-5,
+        //         "order_id":"130264979823",
+        //         "id":26884791,
+        //         "role":"taker",
+        //         "create_time":1645465199.5472,
+        //         "contract":"DOGE_USDT",
+        //         "price":"0.136888"
+        //     }
+        //
+        // future rest
+        //
+        //     {
+        //         "id" => 121234231,
+        //         "create_time" => 1514764800.123,
+        //         "contract" => "BTC_USDT",
+        //         "order_id" => "21893289839",
+        //         "size" => 100,
+        //         "price" => "100.123",
+        //         "role" => "taker"
         //     }
         //
         $id = $this->safe_string($trade, 'id');
-        $timestamp = $this->safe_timestamp($trade, 'time');
+        $timestamp = $this->safe_timestamp_2($trade, 'time', 'create_time');
         $timestamp = $this->safe_integer($trade, 'create_time_ms', $timestamp);
         $marketId = $this->safe_string_2($trade, 'currency_pair', 'contract');
         $symbol = $this->safe_symbol($marketId, $market);
