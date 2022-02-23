@@ -127,7 +127,8 @@ module.exports = class currencycom extends Exchange {
                 ],
                 'fees': 'https://currency.com/fees-charges',
             },
-            'api': { // rate-limits described at: https://currency.com/api-get-started
+            // rate-limits are described at: https://currency.com/api-get-started
+            'api': {
                 'public': {
                     'get': {
                         'v1/time': 1,
