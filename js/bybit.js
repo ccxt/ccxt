@@ -343,11 +343,11 @@ module.exports = class bybit extends Exchange {
                         'futures/private/execution/list': 25,
                         'futures/private/trade/closed-pnl/list': 1,
                         // spot
-                        'spot/v1/account': 1,
-                        'spot/v1/order': 1,
-                        'spot/v1/open-orders': 1,
-                        'spot/v1/history-orders': 1,
-                        'spot/v1/myTrades': 1,
+                        'spot/v1/account': 2.5,
+                        'spot/v1/order': 2.5,
+                        'spot/v1/open-orders': 2.5,
+                        'spot/v1/history-orders': 2.5,
+                        'spot/v1/myTrades': 2.5,
                         // account
                         'asset/v1/private/transfer/list': 1,
                         'asset/v1/private/sub-member/transfer/list': 1,
@@ -441,11 +441,11 @@ module.exports = class bybit extends Exchange {
                     },
                     'delete': {
                         // spot
-                        'spot/v1/order': 1,
-                        'spot/v1/order/fast': 1,
-                        'spot/order/batch-cancel': 1,
-                        'spot/order/batch-fast-cancel': 1,
-                        'spot/order/batch-cancel-by-ids': 1,
+                        'spot/v1/order': 2.5,
+                        'spot/v1/order/fast': 2.5,
+                        'spot/order/batch-cancel': 2.5,
+                        'spot/order/batch-fast-cancel': 2.5,
+                        'spot/order/batch-cancel-by-ids': 2.5,
                     },
                     // outdated endpoints -------------------------------------
                     'linear': {
