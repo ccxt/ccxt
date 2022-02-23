@@ -367,6 +367,13 @@ module.exports = class bitfinex extends Exchange {
                     'limit': 'exchange limit',
                     'market': 'exchange market',
                 },
+                'fiat': {
+                    'USD': 'USD',
+                    'EUR': 'EUR',
+                    'JPY': 'JPY',
+                    'GBP': 'GBP',
+                    'CNH': 'CNH',
+                },
                 'accountsByType': {
                     'spot': 'exchange',
                     'margin': 'trading',
@@ -443,16 +450,30 @@ module.exports = class bitfinex extends Exchange {
         const result = {
             'info': response,
         };
+        const fiat = this.safeValue (this.options, 'fiat', {});
         const makerFee = this.safeNumber (response, 'maker_fee');
         const takerFee = this.safeNumber (response, 'taker_fee');
+        const makerFee2Fiat = this.safeNumber (response, 'maker_fee_2fiat');
+        const takerFee2Fiat = this.safeNumber (response, 'taker_fee_2fiat');
+        const makerFee2Deriv = this.safeNumber (response, 'maker_fee_2deriv');
+        const takerFee2Deriv = this.safeNumber (response, 'taker_fee_2deriv');
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
+            const market = this.market (symbol);
             const fee = {
                 'info': {},
                 'symbol': symbol,
-                'maker': makerFee,
-                'taker': takerFee,
             };
+            if (market['quote'] in fiat) {
+                fee['maker'] = makerFee2Fiat;
+                fee['taker'] = takerFee2Fiat;
+            } else if (market['contract']) {
+                fee['maker'] = makerFee2Deriv;
+                fee['taker'] = takerFee2Deriv;
+            } else {
+                fee['maker'] = makerFee;
+                fee['taker'] = takerFee;
+            }
             result[symbol] = fee;
         }
         return result;
