@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError, AuthenticationError } = require ('ccxt/js/base/errors');
+const { ExchangeError, AuthenticationError, BadRequest } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -23,20 +23,17 @@ module.exports = class gateio extends ccxt.gateio {
             },
             'urls': {
                 'api': {
-                    // 'ws': 'wss://fx-ws-testnet.gateio.ws/v4/ws/usdt',
                     'ws': 'wss://ws.gate.io/v4',
-                    // 'spot': 'wss://ws.gate.io/v4',
-                    // 'swap': {
-                    //     'usdt': 'wss://fx-ws.gateio.ws/v4/ws/usdt',
-                    //     'btc': 'wss://fx-ws.gateio.ws/v4/ws/btc',
-                    // },
-                    // 'future': {
-                    //     'usdt': 'wss://fx-ws.gateio.ws/v4/ws/delivery/usdt',
-                    //     'btc': 'wss://fx-ws.gateio.ws/v4/ws/delivery/btc',
-                    // },
-                    // 'option': {
-                    //     'wss://op-ws.gateio.live/v4/ws'
-                    // }
+                    'spot': 'wss://ws.gate.io/v4',
+                    'swap': {
+                        'usdt': 'wss://fx-ws.gateio.ws/v4/ws/usdt',
+                        'btc': 'wss://fx-ws.gateio.ws/v4/ws/btc',
+                    },
+                    'future': {
+                        'usdt': 'wss://fx-ws.gateio.ws/v4/ws/delivery/usdt',
+                        'btc': 'wss://fx-ws.gateio.ws/v4/ws/delivery/btc',
+                    },
+                    'option': 'wss://op-ws.gateio.live/v4/ws',
                 },
             },
             'options': {
@@ -377,19 +374,22 @@ module.exports = class gateio extends ccxt.gateio {
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         this.checkRequiredCredentials ();
-        let [ type, query ] = this.handleMarketTypeAndParams ('watchMyTrades', undefined, params);
+        let type = 'spot';
         let marketId = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
             type = market['type'];
             marketId = market['id'];
         }
+        if (type !== 'spot') {
+            throw new BadRequest (this.id + ' watchMyTrades symbol supports spot markets only');
+        }
         await this.authenticate ();
         const url = this.getUrlByMarketType (type);
         const requestId = this.nonce ();
         let messageHash = 'spot.usertrades';
         const request = {
-            'time': this.milliseconds (),
+            'time': this.seconds (),
             'channel': messageHash,
             'event': 'subscribe',
         };
