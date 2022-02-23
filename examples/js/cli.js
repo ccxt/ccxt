@@ -257,7 +257,7 @@ async function main () {
                     try {
                         const result = await exchange[methodName] (... args)
                         end = exchange.milliseconds ()
-                        console.log (end - start, 'ms')
+                        console.log (exchange.iso8601 (end), 'iteration', i++, 'passed in', end - start, 'ms')
                         start = end
                         printHumanReadable (exchange, result)
                     } catch (e) {
@@ -281,10 +281,7 @@ async function main () {
                     }
 
                     if (!poll){
-                        break;
-                    } else {
-                        console.log ('# Current cycle:', exchange.iso8601 (exchange.milliseconds ()), i)
-                        i++;
+                        break
                     }
                 }
 
