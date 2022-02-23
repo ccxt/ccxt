@@ -1662,16 +1662,18 @@ module.exports = class kucoin extends Exchange {
             'symbols': market['id'],
         };
         const response = await this.privateGetTradeFees (this.extend (request, params));
-        // {
-        //     code: '200000',
-        //     data: [
-        //       {
-        //         symbol: 'BTC-USDT',
-        //         takerFeeRate: '0.001',
-        //         makerFeeRate: '0.001'
-        //       }
-        //     ]
-        // }
+        //
+        //     {
+        //         code: '200000',
+        //         data: [
+        //           {
+        //             symbol: 'BTC-USDT',
+        //             takerFeeRate: '0.001',
+        //             makerFeeRate: '0.001'
+        //           }
+        //         ]
+        //     }
+        //
         const data = this.safeValue (response, 'data', []);
         const first = this.safeValue (data, 0);
         const marketId = this.safeString (first, 'symbol');
