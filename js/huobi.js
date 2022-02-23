@@ -5245,7 +5245,7 @@ module.exports = class huobi extends Exchange {
             //
         }
         const request = {};
-        if (marketType === 'future' && market['inverse']) {
+        if (market['future'] && market['inverse']) {
             request['symbol'] = market['settleId'];
         } else {
             if (marginType === 'cross') {
@@ -5264,11 +5264,11 @@ module.exports = class huobi extends Exchange {
         const omitted = this.omit (account, [ 'positions' ]);
         const positions = this.safeValue (account, 'positions');
         let position = undefined;
-        if (marketType === 'future' && market['inverse']) {
+        if (market['future'] && market['inverse']) {
             for (let i = 0; i < positions.length; i++) {
-                const pos = positions[i];
-                if (pos['contract_code'] === market['id']) {
-                    position = pos;
+                const entry = positions[i];
+                if (entry['contract_code'] === market['id']) {
+                    position = entry;
                     break;
                 }
             }
