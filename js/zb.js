@@ -995,6 +995,15 @@ module.exports = class zb extends Exchange {
         return await this.spotV1PrivateGetCancelOrder (this.extend (request, params));
     }
 
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        return await this.contractV2PrivatePostTradeCancelAllOrders (this.extend (request, params));
+    }
+
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
