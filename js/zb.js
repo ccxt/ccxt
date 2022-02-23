@@ -973,10 +973,15 @@ module.exports = class zb extends Exchange {
         const market = this.market (symbol);
         const swap = market['swap'];
         const spot = market['spot'];
+        const action = params['action'];
+        const timeInForce = this.safeString (params, 'timeInForce');
         if (spot) {
             if (type !== 'limit') {
                 throw new InvalidOrder (this.id + ' allows limit orders only');
             }
+        }
+        if (type === 'market') {
+            throw new InvalidOrder (this.id + ' does not allow market orders');
         }
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'spotV1PrivateGetOrder',
@@ -995,50 +1000,50 @@ module.exports = class zb extends Exchange {
             const reduceOnly = this.safeValue (params, 'reduceOnly');
             if (side === 'sell' && reduceOnly || side === 3) {
                 request['side'] = 3;
-            } else if (side === 'buy' && reduceOnly || side === 4) {
+            } else if (side === 'sell' && reduceOnly || side === 4) {
                 request['side'] = 4;
             } else if (side === 'buy' || side === 1) {
                 request['side'] = 1;
-            } else if (side === 'sell' || side === 2) {
+            } else if (side === 'buy' || side === 2) {
                 request['side'] = 2;
             }
-            if (type === 'limit' || type === 1) {
+            if (action === 1 || type === 'limit' || type === 1) {
                 request['action'] = 1;
-            } else if (type === 'ioc' || type === 3) {
+            } else if (action === 3 || timeInForce === 'IOC' || type === 3) {
                 request['action'] = 3;
-            } else if (type === 'post only' || type === 4) {
+            } else if (action === 4 || timeInForce === 'PO' || type === 4) {
                 request['action'] = 4;
-            } else if (type === 'fok' || type === 5) {
+            } else if (action === 5 || timeInForce === 'FOK' || type === 5) {
                 request['action'] = 5;
-            } else if (type === 'bbo' || type === 11) {
+            } else if (action === 11 || type === 11) {
                 request['action'] = 11;
-            } else if (type === 'optimal 5' || type === 12) {
+            } else if (action === 12 || type === 12) {
                 request['action'] = 12;
-            } else if (type === 'optimal 10' || type === 13) {
+            } else if (action === 13 || type === 13) {
                 request['action'] = 13;
-            } else if (type === 'optimal 20' || type === 14) {
+            } else if (action === 14 || type === 14) {
                 request['action'] = 14;
-            } else if (type === 'best limit file' || type === 19) {
+            } else if (action === 19 || type === 19) {
                 request['action'] = 19;
-            } else if (type === 'bbo ioc' || type === 31) {
+            } else if (action === 31 || type === 31) {
                 request['action'] = 31;
-            } else if (type === 'optimal 5 ioc' || type === 32) {
+            } else if (action === 32 || type === 32) {
                 request['action'] = 32;
-            } else if (type === 'optimal 10 ioc' || type === 33) {
+            } else if (action === 33 || type === 33) {
                 request['action'] = 33;
-            } else if (type === 'optimal 20 ioc' || type === 34) {
+            } else if (action === 34 || type === 34) {
                 request['action'] = 34;
-            } else if (type === 'optimal limit ioc' || type === 39) {
+            } else if (action === 39 || type === 39) {
                 request['action'] = 39;
-            } else if (type === 'bbo fok' || type === 51) {
+            } else if (action === 51 || type === 51) {
                 request['action'] = 51;
-            } else if (type === 'optimal 5 fok' || type === 52) {
+            } else if (action === 52 || type === 52) {
                 request['action'] = 52;
-            } else if (type === 'optimal 10 fok' || type === 53) {
+            } else if (action === 53 || type === 53) {
                 request['action'] = 53;
-            } else if (type === 'optimal 20 fok' || type === 54) {
+            } else if (action === 54 || type === 54) {
                 request['action'] = 54;
-            } else if (type === 'best limit file fok' || type === 59) {
+            } else if (action === 59 || type === 59) {
                 request['action'] = 59;
             }
             request['symbol'] = market['id'];
@@ -1068,6 +1073,9 @@ module.exports = class zb extends Exchange {
         //
         if (swap) {
             response = this.safeValue (response, 'data');
+            response['timeInForce'] = timeInForce;
+        } else {
+            response['type'] = request['tradeType'];
         }
         response['total_amount'] = amount;
         response['price'] = price;
@@ -1205,6 +1213,7 @@ module.exports = class zb extends Exchange {
         //         code: '1000',
         //         message: '操作成功',
         //         id: '202202224851151555',
+        //         type: '1',
         //         total_amount: 0.0002,
         //         price: 30000
         //     }
@@ -1214,6 +1223,7 @@ module.exports = class zb extends Exchange {
         //     {
         //         orderId: '6901786759944937472',
         //         orderCode: null,
+        //         timeInForce: 'IOC',
         //         total_amount: 0.0002,
         //         price: 30000
         //     }
@@ -1225,7 +1235,7 @@ module.exports = class zb extends Exchange {
         } else {
             side = (side === 1) ? 'buy' : 'sell';
         }
-        const type = (market['spot']) ? 'limit' : undefined; // market order is not availalbe in ZB spot
+        const type = 'limit'; // market order is not available in ZB
         const timestamp = this.safeInteger (order, 'trade_date');
         const marketId = this.safeString (order, 'currency');
         market = this.safeMarket (marketId, market, '_');
@@ -1234,6 +1244,8 @@ module.exports = class zb extends Exchange {
         const amount = this.safeString (order, 'total_amount');
         const cost = this.safeString (order, 'trade_money');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const timeInForce = this.safeString (order, 'timeInForce');
+        const postOnly = (timeInForce === 'PO');
         const feeCost = this.safeNumber (order, 'fees');
         let fee = undefined;
         if (feeCost !== undefined) {
@@ -1258,8 +1270,8 @@ module.exports = class zb extends Exchange {
             'lastTradeTimestamp': undefined,
             'symbol': market['symbol'],
             'type': type,
-            'timeInForce': undefined,
-            'postOnly': undefined,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': undefined,
