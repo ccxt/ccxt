@@ -279,15 +279,15 @@ module.exports = class currencycom extends Exchange {
         //             "type": "FIAT",
         //             "minWithdrawal": "90.0",
         //             "maxWithdrawal": "1.0E+8",
-        //             "commissionMin": "0.02",     // some instruments don't have this property
-        //             "commissionPercent": "1.5",  // some instruments don't have this property
+        //             "commissionMin": "0.02", // some instruments do not have this property
+        //             "commissionPercent": "1.5", // some instruments do not have this property
         //             "minDeposit": "90.0",
         //         },
         //         {
         //             name: "Bitcoin",
         //             displaySymbol: "BTC",
         //             precision: "8",
-        //             type: "CRYPTO",              // Note: only several major ones have this value. Others (like USDT) have value : "TOKEN"
+        //             type: "CRYPTO", // only a few major currencies have this value, others like USDT have a value of "TOKEN"
         //             minWithdrawal: "0.00020",
         //             commissionFixed: "0.00010",
         //             minDeposit: "0.00010",
