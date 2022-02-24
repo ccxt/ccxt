@@ -39,7 +39,7 @@ module.exports = class bybit extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchIndexOHLCV': true,
                 'fetchLedger': true,
-                'fetchLeverageTiers': true,
+                'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
@@ -3096,7 +3096,7 @@ module.exports = class bybit extends Exchange {
         }
     }
 
-    async fetchLeverageTiers (symbol = undefined, params = {}) {
+    async fetchMarketLeverageTiers (symbol, params = {}) {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
@@ -3108,9 +3108,6 @@ module.exports = class bybit extends Exchange {
             request['symbol'] = market['id'];
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchLeverageTiers', market, params);
-        if (type === 'linear' && symbol === undefined) {
-            throw new ArgumentsRequired (this.id + '.fetchLeverageTiers requires argument symbol for ' + type + ' markets');
-        }
         const method = this.getSupportedMapping (type, {
             'linear': 'publicLinearGetRiskLimit',
             'swap': 'publicLinearGetRiskLimit',
@@ -3175,28 +3172,70 @@ module.exports = class bybit extends Exchange {
         //    }
         //
         const result = this.safeValue (response, 'result');
-        const tiers = {};
-        let tier = 1;
+        return this.parseMarketLeverageTiers (result, market);
+    }
+
+    parseMarketLeverageTiers (info, market) {
+        /**
+            @param info: Array of leverage tier info for a single market
+            Linear
+            [
+                {
+                    id: '11',
+                    symbol: 'ETHUSDT',
+                    limit: '800000',
+                    maintain_margin: '0.01',
+                    starting_margin: '0.02',
+                    section: [
+                        '1',  '2',  '3',
+                        '5',  '10', '15',
+                        '25'
+                    ],
+                    is_lowest_risk: '1',
+                    created_at: '2022-02-04 23:30:33.555252',
+                    updated_at: '2022-02-04 23:30:33.555254',
+                    max_leverage: '50'
+                },
+                ...
+            ]
+
+            Inverse
+            [
+                {
+                    id: '180',
+                    is_lowest_risk: '0',
+                    section: [
+                        '1', '2', '3',
+                        '4', '5', '7',
+                        '8', '9'
+                    ],
+                    symbol: 'ETHUSDH22',
+                    limit: '30000',
+                    max_leverage: '9',
+                    starting_margin: '11',
+                    maintain_margin: '5.5',
+                    coin: 'ETH',
+                    created_at: '2021-04-22T15:00:00Z',
+                    updated_at: '2021-04-22T15:00:00Z'
+                }
+                ...
+            ]
+            @param market: CCXT Market
+        */
         let notionalFloor = 0;
-        for (let i = 0; i < result.length; i++) {
-            const item = result[i];
-            const symbol = this.safeSymbol (this.safeString (item, 'symbol'));
+        const tiers = [];
+        for (let i = 0; i < info.length; i++) {
+            const item = info[i];
             const notionalCap = this.safeNumber (item, 'limit');
-            if (!(symbol in result)) {
-                notionalFloor = 0;
-                tier = 1;
-                tiers[symbol] = [];
-            }
-            tiers[symbol].push ({
-                'tier': tier,
-                'notionalCurrency': market['base'],
+            tiers.push ({
+                'tier': this.sum (i, 1),
+                'currency': market['base'],
                 'notionalFloor': notionalFloor,
                 'notionalCap': notionalCap,
                 'maintenanceMarginRate': this.safeNumber (item, 'maintain_margin'),
                 'maxLeverage': this.safeNumber (item, 'max_leverage'),
                 'info': item,
             });
-            tier += 1;
             notionalFloor = notionalCap;
         }
         return tiers;
