@@ -153,6 +153,7 @@ module.exports = class ascendex extends Exchange {
                                 'futures/risk',
                                 'futures/funding-payments',
                                 'order/hist',
+                                'spot/fee',
                             ],
                             'post': [
                                 'futures/transfer/deposit',
@@ -1165,6 +1166,51 @@ module.exports = class ascendex extends Exchange {
             'fee': fee,
             'trades': undefined,
         }, market);
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const account = this.safeValue (this.accounts, 0, {});
+        const accountGroup = this.safeString (account, 'id');
+        const request = {
+            'account-group': accountGroup,
+        };
+        const response = await this.v1PrivateAccountGroupGetSpotFee (this.extend (request, params));
+        //
+        //  {
+        //     code: '0',
+        //     data: {
+        //       domain: 'spot',
+        //       userUID: 'U1479576458',
+        //       vipLevel: '0',
+        //       fees: [
+        //         { symbol: 'HT/USDT', fee: { taker: '0.001', maker: '0.001' } },
+        //         { symbol: 'LAMB/BTC', fee: { taker: '0.002', maker: '0.002' } },
+        //         { symbol: 'STOS/USDT', fee: { taker: '0.002', maker: '0.002' } },
+        //         ...
+        //       ]
+        //     }
+        //  }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const fees = this.safeValue (data, 'fees', []);
+        const result = {
+            'info': response,
+        };
+        for (let i = 0; i < fees.length; i++) {
+            const fee = fees[i];
+            const marketId = this.safeString (fee, 'symbol');
+            const symbol = this.safeSymbol (marketId, undefined, '/');
+            const takerMaker = this.safeValue (fee, 'fee', {});
+            result[symbol] = {
+                'info': {},
+                'symbol': symbol,
+                'maker': this.safeNumber (takerMaker, 'maker'),
+                'taker': this.safeNumber (takerMaker, 'taker'),
+            };
+        }
+        return result;
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -2359,6 +2405,9 @@ module.exports = class ascendex extends Exchange {
         url += request;
         if ((version === 'v1') && (request === 'cash/balance') || (request === 'margin/balance')) {
             request = 'balance';
+        }
+        if ((version === 'v1') && (request === 'spot/fee')) {
+            request = 'fee';
         }
         if (request.indexOf ('subuser') >= 0) {
             const parts = request.split ('/');
