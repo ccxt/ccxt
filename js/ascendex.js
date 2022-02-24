@@ -58,6 +58,7 @@ module.exports = class ascendex extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
@@ -1196,7 +1197,7 @@ module.exports = class ascendex extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const fees = this.safeValue (data, 'fees', []);
         const result = {
-            'info': response,
+            'info': {},
         };
         for (let i = 0; i < fees.length; i++) {
             const fee = fees[i];
@@ -1204,7 +1205,7 @@ module.exports = class ascendex extends Exchange {
             const symbol = this.safeSymbol (marketId, undefined, '/');
             const takerMaker = this.safeValue (fee, 'fee', {});
             result[symbol] = {
-                'info': {},
+                'info': fee,
                 'symbol': symbol,
                 'maker': this.safeNumber (takerMaker, 'maker'),
                 'taker': this.safeNumber (takerMaker, 'taker'),
