@@ -884,7 +884,7 @@ CCXT has tests for both the public API and the private authenticated API. By def
 
 ##### Configuring API keys and options in `keys.local.json`
 
-Exchange API keys can be added to the `keys.local.json` in the root folder inside the repository. If it does not exist on your side – create it first. That file is in `.gitignore` and in `npmignore`. You can add exchange credentials and various options for different exchanges through the `keys.local.json` file.
+Exchange API keys can be added to the `keys.local.json` in the root folder inside the repository. If it does not exist on your side – create it first. That file is in `.gitignore` and in `.npmignore`. You can add exchange credentials and various options for different exchanges to the `keys.local.json` file.
 
 An example of `keys.local.json` file:
 
@@ -913,7 +913,7 @@ You can also define API keys as `env` variables:
 - https://www.google.com/search?q=set+env+variable+mac
 - https://www.google.com/search?q=set+env+variable+windows
 
-In order to set an environment variable, consult the docs for your OS and shell. Most of the time a `set` command, or a `export` command will work. The `env` command might help check the already-set environment variables.
+Consult the docs for your OS and shell on how to set an environment variable. Most of the time a `set` command, or a `export` command will work. The `env` command might help check the already-set environment variables.
 
 Examples of `env` variables: `BINANCE_APIKEY`, `BINANCE_SECRET`, `KRAKEN_APIKEY`, `KRAKEN_SECRET`, etc.
 
