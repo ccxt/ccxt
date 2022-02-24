@@ -12,6 +12,7 @@ use \ccxt\BadRequest;
 use \ccxt\BadSymbol;
 use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
+use \ccxt\NotSupported;
 use \ccxt\ExchangeNotAvailable;
 
 class zb extends Exchange {
@@ -32,6 +33,7 @@ class zb extends Exchange {
                 'swap' => null, // has but unimplemented
                 'future' => null,
                 'option' => null,
+                'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createMarketOrder' => null,
                 'createOrder' => true,
@@ -1001,6 +1003,21 @@ class zb extends Exchange {
             'currency' => $this->market_id($symbol),
         );
         return $this->spotV1PrivateGetCancelOrder (array_merge($request, $params));
+    }
+
+    public function cancel_all_orders($symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if ($market['spot']) {
+            throw new NotSupported($this->id . ' cancelAllOrders() is not supported on ' . $market['type'] . ' markets');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        return $this->contractV2PrivatePostTradeCancelAllOrders (array_merge($request, $params));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {

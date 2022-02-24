@@ -16,6 +16,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
@@ -40,6 +41,7 @@ class zb(Exchange):
                 'swap': None,  # has but unimplemented
                 'future': None,
                 'option': None,
+                'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createMarketOrder': None,
                 'createOrder': True,
@@ -977,6 +979,18 @@ class zb(Exchange):
             'currency': self.market_id(symbol),
         }
         return self.spotV1PrivateGetCancelOrder(self.extend(request, params))
+
+    def cancel_all_orders(self, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        if market['spot']:
+            raise NotSupported(self.id + ' cancelAllOrders() is not supported on ' + market['type'] + ' markets')
+        request = {
+            'symbol': market['id'],
+        }
+        return self.contractV2PrivatePostTradeCancelAllOrders(self.extend(request, params))
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
