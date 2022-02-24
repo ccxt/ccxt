@@ -63,6 +63,7 @@ module.exports = class binance extends Exchange {
                 'fetchLedger': undefined,
                 'fetchLeverage': undefined,
                 'fetchLeverageTiers': true,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyBuys': undefined,
@@ -4782,7 +4783,7 @@ module.exports = class binance extends Exchange {
         return this.options['leverageBrackets'];
     }
 
-    async fetchLeverageTiers (symbol = undefined, params = {}) {
+    async fetchLeverageTiers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchLeverageTiers', undefined, params);
         let method = undefined;
@@ -4812,38 +4813,46 @@ module.exports = class binance extends Exchange {
         //        }
         //    ]
         //
-        const leverageBrackets = {};
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const marketId = this.safeString (entry, 'symbol');
-            const safeSymbol = this.safeSymbol (marketId);
-            let market = { 'base': undefined };
-            if (safeSymbol in this.markets) {
-                market = this.market (safeSymbol);
+        return this.parseLeverageTiers (response, symbols, 'symbol');
+    }
+
+    parseMarketLeverageTiers (info, market) {
+        /**
+            @param info: Exchange response for 1 market
+            {
+                "symbol": "SUSHIUSDT",
+                "brackets": [
+                    {
+                        "bracket": 1,
+                        "initialLeverage": 50,
+                        "notionalCap": 50000,
+                        "notionalFloor": 0,
+                        "maintMarginRatio": 0.01,
+                        "cum": 0.0
+                    },
+                    ...
+                ]
             }
-            const brackets = this.safeValue (entry, 'brackets');
-            const result = [];
-            for (let j = 0; j < brackets.length; j++) {
-                const bracket = brackets[j];
-                result.push ({
-                    'tier': this.safeNumber (bracket, 'bracket'),
-                    'currency': market['quote'],
-                    'notionalFloor': this.safeFloat2 (bracket, 'notionalFloor', 'qtyFloor'),
-                    'notionalCap': this.safeNumber (bracket, 'notionalCap'),
-                    'maintenanceMarginRate': this.safeNumber (bracket, 'maintMarginRatio'),
-                    'maxLeverage': this.safeNumber (bracket, 'initialLeverage'),
-                    'info': bracket,
-                });
-            }
-            leverageBrackets[safeSymbol] = result;
+            @param market: CCXT market
+        */
+        const marketId = this.safeString (info, 'symbol');
+        const safeSymbol = this.safeSymbol (marketId);
+        market = this.safeMarket (safeSymbol, market);
+        const brackets = this.safeValue (info, 'brackets');
+        const tiers = [];
+        for (let j = 0; j < brackets.length; j++) {
+            const bracket = brackets[j];
+            tiers.push ({
+                'tier': this.safeNumber (bracket, 'bracket'),
+                'currency': market['quote'],
+                'notionalFloor': this.safeFloat2 (bracket, 'notionalFloor', 'qtyFloor'),
+                'notionalCap': this.safeNumber (bracket, 'notionalCap'),
+                'maintenanceMarginRate': this.safeNumber (bracket, 'maintMarginRatio'),
+                'maxLeverage': this.safeNumber (bracket, 'initialLeverage'),
+                'info': bracket,
+            });
         }
-        if (symbol !== undefined) {
-            const result = {};
-            result[symbol] = this.safeValue (leverageBrackets, symbol);
-            return result;
-        } else {
-            return leverageBrackets;
-        }
+        return tiers;
     }
 
     async fetchPositions (symbols = undefined, params = {}) {

@@ -44,6 +44,7 @@ module.exports = class ascendex extends Exchange {
                 'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchOHLCV': true,
@@ -2265,16 +2266,8 @@ module.exports = class ascendex extends Exchange {
         return await this.v2PrivateAccountGroupPostFuturesMarginType (this.extend (request, params));
     }
 
-    async fetchLeverageTiers (symbol = undefined, params = {}) {
+    async fetchLeverageTiers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const tiers = {};
-        const symbolDefined = (symbol !== undefined);
-        if (symbolDefined) {
-            const market = this.market (symbol);
-            if (!market['contract']) {
-                throw new BadRequest (this.id + ' fetchLeverageTiers() supports contract markets only');
-            }
-        }
         const response = await this.v2PublicGetFuturesContract (params);
         //
         //     {
@@ -2305,34 +2298,53 @@ module.exports = class ascendex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        for (let i = 0; i < data.length; i++) {
-            const item = data[i];
-            const marginRequirements = this.safeValue (item, 'marginRequirements');
-            const id = this.safeString (item, 'symbol');
-            const market = this.market (id);
-            const brackets = [];
-            for (let j = 0; j < marginRequirements.length; j++) {
-                const bracket = marginRequirements[j];
-                const initialMarginRate = this.safeString (bracket, 'initialMarginRate');
-                brackets.push ({
-                    'tier': this.sum (j, 1),
-                    'currency': market['quote'],
-                    'notionalFloor': this.safeNumber (bracket, 'positionNotionalLowerBound'),
-                    'notionalCap': this.safeNumber (bracket, 'positionNotionalUpperBound'),
-                    'maintenanceMarginRate': this.safeNumber (bracket, 'maintenanceMarginRate'),
-                    'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRate)),
-                    'info': bracket,
-                });
+        return this.parseLeverageTiers (data, symbols, 'symbol');
+    }
+
+    parseMarketLeverageTiers (info, market = undefined) {
+        /**
+            @param info: Exchange market response for 1 market
+            {
+                "symbol":"BTC-PERP",
+                "status":"Normal",
+                "displayName":"BTCUSDT",
+                "settlementAsset":"USDT",
+                "underlying":"BTC/USDT",
+                "tradingStartTime":1579701600000,
+                "priceFilter":{"minPrice":"1","maxPrice":"1000000","tickSize":"1"},
+                "lotSizeFilter":{"minQty":"0.0001","maxQty":"1000000000","lotSize":"0.0001"},
+                "commissionType":"Quote",
+                "commissionReserveRate":"0.001",
+                "marketOrderPriceMarkup":"0.03",
+                "marginRequirements":[
+                    {"positionNotionalLowerBound":"0","positionNotionalUpperBound":"50000","initialMarginRate":"0.01","maintenanceMarginRate":"0.006"},
+                    {"positionNotionalLowerBound":"50000","positionNotionalUpperBound":"200000","initialMarginRate":"0.02","maintenanceMarginRate":"0.012"},
+                    {"positionNotionalLowerBound":"200000","positionNotionalUpperBound":"2000000","initialMarginRate":"0.04","maintenanceMarginRate":"0.024"},
+                    {"positionNotionalLowerBound":"2000000","positionNotionalUpperBound":"20000000","initialMarginRate":"0.1","maintenanceMarginRate":"0.06"},
+                    {"positionNotionalLowerBound":"20000000","positionNotionalUpperBound":"40000000","initialMarginRate":"0.2","maintenanceMarginRate":"0.12"},
+                    {"positionNotionalLowerBound":"40000000","positionNotionalUpperBound":"1000000000","initialMarginRate":"0.333333","maintenanceMarginRate":"0.2"}
+                ]
             }
-            tiers[market['symbol']] = brackets;
+            @param market: CCXT market
+        */
+        const marginRequirements = this.safeValue (info, 'marginRequirements');
+        const id = this.safeString (info, 'symbol');
+        market = this.safeMarket (id, market);
+        const tiers = [];
+        for (let i = 0; i < marginRequirements.length; i++) {
+            const tier = marginRequirements[i];
+            const initialMarginRate = this.safeString (tier, 'initialMarginRate');
+            tiers.push ({
+                'tier': this.sum (i, 1),
+                'currency': market['quote'],
+                'notionalFloor': this.safeNumber (tier, 'positionNotionalLowerBound'),
+                'notionalCap': this.safeNumber (tier, 'positionNotionalUpperBound'),
+                'maintenanceMarginRate': this.safeNumber (tier, 'maintenanceMarginRate'),
+                'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRate)),
+                'info': tier,
+            });
         }
-        if (symbolDefined) {
-            const result = {};
-            result[symbol] = this.safeValue (tiers, symbol);
-            return result;
-        } else {
-            return tiers;
-        }
+        return tiers;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
