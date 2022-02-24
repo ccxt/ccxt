@@ -1085,7 +1085,7 @@ module.exports = class zb extends Exchange {
         request[marketIdField] = market['id'];
         const pageNumField = market['swap'] ? 'pageNum' : 'pageIndex';
         request[pageNumField] = 1;
-        if (swap) {
+        if (swap && (since !== undefined)) {
             request['startTime'] = since;
         }
         let method = this.getSupportedMapping (market['type'], {
