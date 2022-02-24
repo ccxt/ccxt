@@ -973,15 +973,14 @@ module.exports = class zb extends Exchange {
         const market = this.market (symbol);
         const swap = market['swap'];
         const spot = market['spot'];
-        const action = params['action'];
         const timeInForce = this.safeString (params, 'timeInForce');
         if (spot) {
             if (type !== 'limit') {
-                throw new InvalidOrder (this.id + ' allows limit orders only');
+                throw new InvalidOrder (this.id + ' createOrder() on ' + market['type'] + ' markets allows limit orders only');
             }
         }
         if (type === 'market') {
-            throw new InvalidOrder (this.id + ' does not allow market orders');
+            throw new InvalidOrder (this.id + ' createOrder() on ' + market['type'] + ' markets does not allow market orders');
         }
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'spotV1PrivateGetOrder',
@@ -997,54 +996,29 @@ module.exports = class zb extends Exchange {
             request['tradeType'] = (side === 'buy') ? '1' : '0';
             request['currency'] = market['id'];
         } else if (swap) {
-            const reduceOnly = this.safeValue (params, 'reduceOnly');
-            if (side === 'sell' && reduceOnly || side === 3) {
-                request['side'] = 3;
-            } else if (side === 'sell' && reduceOnly || side === 4) {
-                request['side'] = 4;
-            } else if (side === 'buy' || side === 1) {
-                request['side'] = 1;
-            } else if (side === 'buy' || side === 2) {
-                request['side'] = 2;
+            const orderSide = this.safeInteger (params, 'side');
+            if (orderSide === undefined) {
+                throw new InvalidOrder (this.id + ' createOrder() on ' + market['type'] + ' markets requires an exchange specific side parameter');
             }
-            if (action === 1 || type === 'limit' || type === 1) {
+            if (side === 'buy' && orderSide === 1) {
+                request['side'] = 1; // open long
+            } else if (side === 'buy' && orderSide === 2) {
+                request['side'] = 2; // open short
+            } else if (side === 'sell' && orderSide === 3) {
+                request['side'] = 3; // close long
+            } else if (side === 'sell' && orderSide === 4) {
+                request['side'] = 4; // close short
+            }
+            if (type === 'limit') {
                 request['action'] = 1;
-            } else if (action === 3 || timeInForce === 'IOC' || type === 3) {
+            } else if (timeInForce === 'IOC') {
                 request['action'] = 3;
-            } else if (action === 4 || timeInForce === 'PO' || type === 4) {
+            } else if (timeInForce === 'PO') {
                 request['action'] = 4;
-            } else if (action === 5 || timeInForce === 'FOK' || type === 5) {
+            } else if (timeInForce === 'FOK') {
                 request['action'] = 5;
-            } else if (action === 11 || type === 11) {
-                request['action'] = 11;
-            } else if (action === 12 || type === 12) {
-                request['action'] = 12;
-            } else if (action === 13 || type === 13) {
-                request['action'] = 13;
-            } else if (action === 14 || type === 14) {
-                request['action'] = 14;
-            } else if (action === 19 || type === 19) {
-                request['action'] = 19;
-            } else if (action === 31 || type === 31) {
-                request['action'] = 31;
-            } else if (action === 32 || type === 32) {
-                request['action'] = 32;
-            } else if (action === 33 || type === 33) {
-                request['action'] = 33;
-            } else if (action === 34 || type === 34) {
-                request['action'] = 34;
-            } else if (action === 39 || type === 39) {
-                request['action'] = 39;
-            } else if (action === 51 || type === 51) {
-                request['action'] = 51;
-            } else if (action === 52 || type === 52) {
-                request['action'] = 52;
-            } else if (action === 53 || type === 53) {
-                request['action'] = 53;
-            } else if (action === 54 || type === 54) {
-                request['action'] = 54;
-            } else if (action === 59 || type === 59) {
-                request['action'] = 59;
+            } else {
+                request['action'] = type;
             }
             request['symbol'] = market['id'];
             request['clientOrderId'] = params['clientOrderId']; // OPTIONAL '^[a-zA-Z0-9-_]{1,36}$', // The user-defined order number
