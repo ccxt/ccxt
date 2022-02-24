@@ -996,18 +996,15 @@ module.exports = class zb extends Exchange {
             request['tradeType'] = (side === 'buy') ? '1' : '0';
             request['currency'] = market['id'];
         } else if (swap) {
-            const orderSide = this.safeInteger (params, 'side');
-            if (orderSide === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder() on ' + market['type'] + ' markets requires an exchange specific side parameter');
-            }
-            if (side === 'buy' && orderSide === 1) {
-                request['side'] = 1; // open long
-            } else if (side === 'buy' && orderSide === 2) {
-                request['side'] = 2; // open short
-            } else if (side === 'sell' && orderSide === 3) {
+            const reduceOnly = this.safeValue (params, 'reduceOnly');
+            if (side === 'sell' && reduceOnly) {
                 request['side'] = 3; // close long
-            } else if (side === 'sell' && orderSide === 4) {
+            } else if (side === 'buy' && reduceOnly) {
                 request['side'] = 4; // close short
+            } else if (side === 'buy') {
+                request['side'] = 1; // open long
+            } else if (side === 'sell') {
+                request['side'] = 2; // open short
             }
             if (type === 'limit') {
                 request['action'] = 1;
