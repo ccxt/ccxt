@@ -768,6 +768,53 @@ module.exports = class kucoin extends ccxt.kucoin {
         };
     }
 
+    async watchBalance (params = {}) {
+        await this.loadMarkets ();
+        const negotiation = await this.negotiate ();
+        const topic = '/account/balance';
+        const request = {
+            'privateChannel': true,
+        };
+        const messageHash = topic;
+        return await this.subscribe (negotiation, topic, messageHash, undefined, undefined, this.extend (request, params));
+    }
+
+    handleBalance (client, message) {
+        //
+        // {
+        //     "id":"6217a451294b030001e3a26a",
+        //     "type":"message",
+        //     "topic":"/account/balance",
+        //     "userId":"6217707c52f97f00012a67db",
+        //     "channelType":"private",
+        //     "subject":"account.balance",
+        //     "data":{
+        //        "accountId":"62177fe67810720001db2f18",
+        //        "available":"89",
+        //        "availableChange":"-30",
+        //        "currency":"USDT",
+        //        "hold":"0",
+        //        "holdChange":"0",
+        //        "relationContext":{
+        //        },
+        //        "relationEvent":"main.transfer",
+        //        "relationEventId":"6217a451294b030001e3a26a",
+        //        "time":"1645716561816",
+        //        "total":"89"
+        //     }
+        //
+        const data = this.safeValue (message, 'data', {});
+        const messageHash = this.safeString (message, 'topic');
+        const currencyId = this.safeString (data, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
+        const account = this.account ();
+        account['free'] = this.safeString (data, 'available');
+        account['used'] = this.safeString (data, 'hold');
+        account['total'] = this.safeString (data, 'total');
+        this.balance[code] = account;
+        client.resolve (this.balance, messageHash);
+    }
+
     handleSubject (client, message) {
         //
         //     {
@@ -792,6 +839,7 @@ module.exports = class kucoin extends ccxt.kucoin {
             'trade.snapshot': this.handleTicker,
             'trade.l3match': this.handleTrade,
             'trade.candles.update': this.handleOHLCV,
+            'account.balance': this.handleBalance,
         };
         let method = this.safeValue (methods, subject);
         if (subject === 'orderChange') {
