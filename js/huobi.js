@@ -68,6 +68,7 @@ module.exports = class huobi extends Exchange {
                 'fetchLedgerEntry': undefined,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
+                'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyBuys': undefined,
