@@ -3107,11 +3107,11 @@ module.exports = class bybit extends Exchange {
             }
             request['symbol'] = market['id'];
         }
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchLeverageTiers', market, params);
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchMarketLeverageTiers', market, params);
         const method = this.getSupportedMapping (type, {
-            'linear': 'publicLinearGetRiskLimit',
+            'linear': 'publicLinearGetRiskLimit', // Symbol required
             'swap': 'publicLinearGetRiskLimit',
-            'inverse': 'v2PublicGetRiskLimitList',
+            'inverse': 'v2PublicGetRiskLimitList', // Symbol not required, could implement fetchLeverageTiers
             'future': 'v2PublicGetRiskLimitList',
         });
         const response = await this[method] (this.extend (request, query));
