@@ -1178,20 +1178,20 @@ module.exports = class ascendex extends Exchange {
         };
         const response = await this.v1PrivateAccountGroupGetSpotFee (this.extend (request, params));
         //
-        //  {
-        //     code: '0',
-        //     data: {
-        //       domain: 'spot',
-        //       userUID: 'U1479576458',
-        //       vipLevel: '0',
-        //       fees: [
-        //         { symbol: 'HT/USDT', fee: { taker: '0.001', maker: '0.001' } },
-        //         { symbol: 'LAMB/BTC', fee: { taker: '0.002', maker: '0.002' } },
-        //         { symbol: 'STOS/USDT', fee: { taker: '0.002', maker: '0.002' } },
-        //         ...
-        //       ]
-        //     }
-        //  }
+        //      {
+        //         code: '0',
+        //         data: {
+        //           domain: 'spot',
+        //           userUID: 'U1479576458',
+        //           vipLevel: '0',
+        //           fees: [
+        //             { symbol: 'HT/USDT', fee: { taker: '0.001', maker: '0.001' } },
+        //             { symbol: 'LAMB/BTC', fee: { taker: '0.002', maker: '0.002' } },
+        //             { symbol: 'STOS/USDT', fee: { taker: '0.002', maker: '0.002' } },
+        //             ...
+        //           ]
+        //         }
+        //      }
         //
         const data = this.safeValue (response, 'data', {});
         const fees = this.safeValue (data, 'fees', []);
