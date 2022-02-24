@@ -878,11 +878,17 @@ Incoming pull requests are automatically validated by the CI service. You can wa
 
 ### How To Build & Run Tests On Your Local Machine
 
-#### Add Exchange credentials
-Add exchange credentials and options to `keys.local.json` or as environment variables.
-Example of .env variable: `KRAKEN_APIKEY`
-`keys.local.json` example:
-```
+#### Adding Exchange Credentials
+
+CCXT has tests for both the public API and the private authenticated API. By default, CCXT's built-in tests will only test the public APIs, because the code repository does not include the [API keys](https://github.com/ccxt/ccxt/wiki/Manual#authentication) that are required for the private API tests. Also, the included private tests will not alter the balance of the account in any way, all tests are non-intrusive. In order to enable private API testing, one must configure the API keys. That can be done either in `keys.local.json` or with the `env` variables.
+
+##### Configuring API keys and options in `keys.local.json`
+
+Exchange API keys can be added to the `keys.local.json` in the root folder inside the repository. If it does not exist on your side – create it first. That file is in `.gitignore` and in `npmignore`. You can add exchange credentials and various options for different exchanges through the `keys.local.json` file.
+
+An example of `keys.local.json` file:
+
+```JavaScript
 {
     "ftx": {
         "apiKey": "XXX",
@@ -895,11 +901,23 @@ Example of .env variable: `KRAKEN_APIKEY`
             "some-option": "some value"
         }
     },
-    ...
+    // ...
 }
 ```
 
+##### Configuring API keys as environment variables
 
+You can also define API keys as `env` variables:
+
+- https://www.google.com/search?q=set+env+variable+linux
+- https://www.google.com/search?q=set+env+variable+mac
+- https://www.google.com/search?q=set+env+variable+windows
+
+In order to set an environment variable, consult the docs for your OS and shell. Most of the time a `set` command, or a `export` command will work. The `env` command might help check the already-set environment variables.
+
+Examples of `env` variables: `BINANCE_APIKEY`, `BINANCE_SECRET`, `KRAKEN_APIKEY`, `KRAKEN_SECRET`, etc.
+
+#### Building
 
 Before building for the first time, install Node dependencies (skip this step if you're running our Docker image):
 
