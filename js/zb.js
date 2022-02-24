@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadRequest, BadSymbol, ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, OrderNotFound, ExchangeNotAvailable, RateLimitExceeded, PermissionDenied, InvalidOrder, InvalidAddress, OnMaintenance, RequestTimeout, AccountSuspended } = require ('./base/errors');
+const { BadRequest, BadSymbol, ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, NotSupported, OrderNotFound, ExchangeNotAvailable, RateLimitExceeded, PermissionDenied, InvalidOrder, InvalidAddress, OnMaintenance, RequestTimeout, AccountSuspended } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -997,8 +997,14 @@ module.exports = class zb extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (market['spot']) {
+            throw new NotSupported (this.id + ' cancelAllOrders() is not supported on ' + market['type'] + ' markets');
+        }
         const request = {
             'symbol': market['id'],
         };
