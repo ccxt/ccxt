@@ -603,11 +603,35 @@ module.exports = class currencycom extends Exchange {
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetV2Account (params);
-        return {
+        //
+        //    {
+        //        makerCommission: '0.20',
+        //        takerCommission: '0.20',
+        //        buyerCommission: '0.20',
+        //        sellerCommission: '0.20',
+        //        canTrade: true,
+        //        canWithdraw: true,
+        //        canDeposit: true,
+        //        updateTime: '1645738976',
+        //        userId: '-1924114235',
+        //        balances: []
+        //    }
+        //
+        const makerFee = this.safeNumber (response, 'makerCommission');
+        const takerFee = this.safeNumber (response, 'takerCommission');
+        const result = {
             'info': response,
-            'maker': this.safeNumber (response, 'makerCommission'),
-            'taker': this.safeNumber (response, 'takerCommission'),
         };
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            result[symbol] = {
+                'info': {},
+                'symbol': symbol,
+                'maker': makerFee,
+                'taker': takerFee,
+            };
+        }
+        return result;
     }
 
     parseBalance (response, type = undefined) {
