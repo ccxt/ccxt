@@ -377,27 +377,25 @@ module.exports = class gateio extends ccxt.gateio {
         this.checkRequiredCredentials ();
         let type = 'spot';
         let marketId = undefined;
+        let marketSymbol = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
             type = market['type'];
             marketId = market['id'];
+            marketSymbol = market['symbol'];
         }
         if (type !== 'spot') {
             throw new BadRequest (this.id + ' watchMyTrades symbol supports spot markets only');
         }
         const url = this.getUrlByMarketType (type);
-        const requestId = this.nonce ();
         const channel = 'spot.usertrades';
         let messageHash = channel;
         let payload = [];
         if (marketId !== undefined) {
             payload = [marketId];
-            messageHash += ':' + marketId;
+            messageHash += ':' + marketSymbol;
         }
-        const subscription = {
-            'id': requestId,
-        };
-        return await this.subscribePrivate (url, channel, messageHash, payload, subscription);
+        return await this.subscribePrivate (url, channel, messageHash, payload, undefined);
     }
 
     handleMyTrades (client, message) {
@@ -617,13 +615,15 @@ module.exports = class gateio extends ccxt.gateio {
 
     handleSubscriptionStatus (client, message) {
         const messageId = this.safeInteger (message, 'id');
-        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeValue (subscriptionsById, messageId, {});
-        const method = this.safeValue (subscription, 'method');
-        if (method !== undefined) {
-            method.call (this, client, message, subscription);
+        if (messageId !== undefined) {
+            const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+            const subscription = this.safeValue (subscriptionsById, messageId, {});
+            const method = this.safeValue (subscription, 'method');
+            if (method !== undefined) {
+                method.call (this, client, message, subscription);
+            }
+            client.resolve (message, messageId);
         }
-        client.resolve (message, messageId);
     }
 
     handleMessage (client, message) {
@@ -642,6 +642,16 @@ module.exports = class gateio extends ccxt.gateio {
             const messageId = this.safeInteger (message, 'id');
             if (messageId !== undefined) {
                 this.handleSubscriptionStatus (client, message);
+                return;
+            }
+            const event = this.safeString(message, 'event');
+            if (event === 'subscribe') {
+                this.handleSubscriptionStatus(client, message);
+                return;
+            }
+            const channel = this.safeString(message, 'channel');
+            if (channel === 'spot.usertrades') {
+                this.handleMyTrades(client, message);
             }
         } else {
             method.call (this, client, message);
