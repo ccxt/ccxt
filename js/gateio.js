@@ -3231,34 +3231,7 @@ module.exports = class gateio extends Exchange {
         //          }
         //        ]
         //
-        const tiers = this.parseLeverageTiers (response, symbols, 'name');
-        return tiers;
-    }
-
-    async fetchMarketLeverageTiers (symbol, params) {
-        const market = this.market (symbol);
-        if (!market['contract']) {
-            throw new BadRequest (this.id + ' fetchLeverageTiers() supports contract markets only');
-        }
-        return this.fetchLeverageTiers ([ symbol ], { 'type': market['type'], 'settle': market['settle'] });
-    }
-
-    parseLeverageTiers (response, symbols, idKey) {
-        const tiers = {};
-        for (let i = 0; i < response.length; i++) {
-            const item = response[i];
-            const id = this.safeString (item, idKey);
-            const market = this.safeMarket (id);
-            const symbol = market['symbol'];
-            let symbolsLength = 0;
-            if (symbols !== undefined) {
-                symbolsLength = symbols.length;
-            }
-            if ((market !== undefined) && market['contract'] && (symbolsLength === 0 || symbols.includes (symbol))) {
-                tiers[symbol] = this.parseMarketLeverageTiers (item, market);
-            }
-        }
-        return tiers;
+        return this.parseLeverageTiers (response, symbols, 'name');
     }
 
     parseMarketLeverageTiers (info, market = undefined) {
@@ -3363,7 +3336,7 @@ module.exports = class gateio extends Exchange {
             const cap = Precise.stringAdd (floor, riskLimitStep);
             tiers.push ({
                 'tier': this.parseNumber (Precise.stringDiv (cap, riskLimitStep)),
-                'notionalCurrency': this.safeString (market, 'settle'),
+                'currency': this.safeString (market, 'settle'),
                 'notionalFloor': this.parseNumber (floor),
                 'notionalCap': this.parseNumber (cap),
                 'maintenanceMarginRate': this.parseNumber (maintenanceMarginRate),
