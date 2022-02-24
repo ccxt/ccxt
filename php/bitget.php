@@ -744,6 +744,10 @@ class bitget extends Exchange {
                         '1w' => '604800',
                     ),
                 ),
+                'broker' => array(
+                    'spot' => 'iauIBf#',
+                    'swap' => 'iauIBf#',
+                ),
             ),
         ));
     }
@@ -1956,7 +1960,17 @@ class bitget extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $clientOrderId = $this->safe_string_2($params, 'client_oid', 'clientOrderId', $this->uuid());
+        $clientOrderId = $this->safe_string_2($params, 'client_oid', 'clientOrderId');
+        if ($clientOrderId === null) {
+            $broker = $this->safe_value($this->options, 'broker');
+            if ($broker !== null) {
+                $brokerId = $this->safe_string($broker, $market['type']);
+                if ($brokerId !== null) {
+                    $clientOrderId = $brokerId . $this->uuid22();
+                }
+            }
+        }
+        $request['client_oid'] = $clientOrderId;
         $params = $this->omit($params, array( 'client_oid', 'clientOrderId' ));
         $method = null;
         if ($market['spot']) {
@@ -1964,7 +1978,6 @@ class bitget extends Exchange {
                 'type' => $market['type'],
             ));
             $method = 'apiPostTradeOrders';
-            $request['client_oid'] = $clientOrderId;
             $request['account_id'] = $accountId;
             $request['method'] = 'place';
             $request['side'] = $side;
@@ -1996,7 +2009,6 @@ class bitget extends Exchange {
             // ...
         } else if ($market['swap']) {
             $request['order_type'] = '0'; // '0' = Normal order, null and 0 imply a normal limit order, '1' = Post only, '2' = Fill or Kill, '3' = Immediate Or Cancel
-            $request['client_oid'] = $clientOrderId;
             $orderType = $this->safe_string($params, 'type');
             if ($orderType === null) {
                 throw new ArgumentsRequired($this->id . " createOrder() requires a $type parameter, '1' = open long, '2' = open short, '3' = close long, '4' = close short for " . $market['type'] . ' orders');
