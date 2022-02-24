@@ -992,6 +992,7 @@ module.exports = class zb extends Exchange {
             request['currency'] = market['id'];
         } else if (swap) {
             const reduceOnly = this.safeValue (params, 'reduceOnly');
+            params = this.omit (params, 'reduceOnly');
             if (side === 'sell' && reduceOnly) {
                 request['side'] = 3; // close long
             } else if (side === 'buy' && reduceOnly) {
