@@ -39,6 +39,7 @@ module.exports = class bybit extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchIndexOHLCV': true,
                 'fetchLedger': true,
+                'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
@@ -3093,5 +3094,148 @@ module.exports = class bybit extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
+    }
+
+    async fetchMarketLeverageTiers (symbol, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            if (market['spot']) {
+                throw new BadRequest (this.id + '.fetchLeverageTiers symbol supports contract markets only');
+            }
+            request['symbol'] = market['id'];
+        }
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchMarketLeverageTiers', market, params);
+        const method = this.getSupportedMapping (type, {
+            'linear': 'publicLinearGetRiskLimit', // Symbol required
+            'swap': 'publicLinearGetRiskLimit',
+            'inverse': 'v2PublicGetRiskLimitList', // Symbol not required, could implement fetchLeverageTiers
+            'future': 'v2PublicGetRiskLimitList',
+        });
+        const response = await this[method] (this.extend (request, query));
+        //
+        //  publicLinearGetRiskLimit
+        //    {
+        //        ret_code: '0',
+        //        ret_msg: 'OK',
+        //        ext_code: '',
+        //        ext_info: '',
+        //        result: [
+        //            {
+        //                id: '11',
+        //                symbol: 'ETHUSDT',
+        //                limit: '800000',
+        //                maintain_margin: '0.01',
+        //                starting_margin: '0.02',
+        //                section: [
+        //                    '1',  '2',  '3',
+        //                    '5',  '10', '15',
+        //                    '25'
+        //                ],
+        //                is_lowest_risk: '1',
+        //                created_at: '2022-02-04 23:30:33.555252',
+        //                updated_at: '2022-02-04 23:30:33.555254',
+        //                max_leverage: '50'
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        //  v2PublicGetRiskLimitList
+        //    {
+        //        ret_code: '0',
+        //        ret_msg: 'OK',
+        //        ext_code: '',
+        //        ext_info: '',
+        //        result: [
+        //            {
+        //                id: '180',
+        //                is_lowest_risk: '0',
+        //                section: [
+        //                  '1', '2', '3',
+        //                  '4', '5', '7',
+        //                  '8', '9'
+        //                ],
+        //                symbol: 'ETHUSDH22',
+        //                limit: '30000',
+        //                max_leverage: '9',
+        //                starting_margin: '11',
+        //                maintain_margin: '5.5',
+        //                coin: 'ETH',
+        //                created_at: '2021-04-22T15:00:00Z',
+        //                updated_at: '2021-04-22T15:00:00Z'
+        //            },
+        //        ],
+        //        time_now: '1644017569.683191'
+        //    }
+        //
+        const result = this.safeValue (response, 'result');
+        return this.parseMarketLeverageTiers (result, market);
+    }
+
+    parseMarketLeverageTiers (info, market) {
+        //
+        //    Linear
+        //    [
+        //        {
+        //            id: '11',
+        //            symbol: 'ETHUSDT',
+        //            limit: '800000',
+        //            maintain_margin: '0.01',
+        //            starting_margin: '0.02',
+        //            section: [
+        //                '1',  '2',  '3',
+        //                '5',  '10', '15',
+        //                '25'
+        //            ],
+        //            is_lowest_risk: '1',
+        //            created_at: '2022-02-04 23:30:33.555252',
+        //            updated_at: '2022-02-04 23:30:33.555254',
+        //            max_leverage: '50'
+        //        },
+        //        ...
+        //    ]
+        //
+        //    Inverse
+        //    [
+        //        {
+        //            id: '180',
+        //            is_lowest_risk: '0',
+        //            section: [
+        //                '1', '2', '3',
+        //                '4', '5', '7',
+        //                '8', '9'
+        //            ],
+        //            symbol: 'ETHUSDH22',
+        //            limit: '30000',
+        //            max_leverage: '9',
+        //            starting_margin: '11',
+        //            maintain_margin: '5.5',
+        //            coin: 'ETH',
+        //            created_at: '2021-04-22T15:00:00Z',
+        //            updated_at: '2021-04-22T15:00:00Z'
+        //        }
+        //        ...
+        //    ]
+        //
+        let notionalFloor = 0;
+        const tiers = [];
+        for (let i = 0; i < info.length; i++) {
+            const item = info[i];
+            const notionalCap = this.safeNumber (item, 'limit');
+            tiers.push ({
+                'tier': this.sum (i, 1),
+                'currency': market['base'],
+                'notionalFloor': notionalFloor,
+                'notionalCap': notionalCap,
+                'maintenanceMarginRate': this.safeNumber (item, 'maintain_margin'),
+                'maxLeverage': this.safeNumber (item, 'max_leverage'),
+                'info': item,
+            });
+            notionalFloor = notionalCap;
+        }
+        return tiers;
     }
 };
