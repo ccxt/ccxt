@@ -19,7 +19,7 @@ module.exports = class kucoin extends ccxt.kucoin {
                 'watchTickers': false, // for now
                 'watchTicker': true,
                 'watchTrades': true,
-                'watchBalance': false, // for now
+                'watchBalance': true,
                 'watchOHLCV': true,
             },
             'options': {
@@ -812,7 +812,7 @@ module.exports = class kucoin extends ccxt.kucoin {
             const relationEventParts = relationEvent.split ('.');
             requestAccountType = this.safeString (relationEventParts, 0);
         }
-        const selectedType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'trade');
+        const selectedType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'trade'); // trade, main, margin or other
         const accountsByType = this.safeValue (this.options, 'accountsByType');
         const uniformType = this.safeString (accountsByType, requestAccountType);
         if (uniformType === selectedType) {
@@ -822,6 +822,7 @@ module.exports = class kucoin extends ccxt.kucoin {
             account['used'] = this.safeString (data, 'hold');
             account['total'] = this.safeString (data, 'total');
             this.balance[code] = account;
+            this.balance = this.safeBalance (this.balance);
             client.resolve (this.balance, messageHash);
         }
     }
