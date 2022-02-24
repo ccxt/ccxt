@@ -974,11 +974,6 @@ module.exports = class zb extends Exchange {
         const swap = market['swap'];
         const spot = market['spot'];
         const timeInForce = this.safeString (params, 'timeInForce');
-        if (spot) {
-            if (type !== 'limit') {
-                throw new InvalidOrder (this.id + ' createOrder() on ' + market['type'] + ' markets allows limit orders only');
-            }
-        }
         if (type === 'market') {
             throw new InvalidOrder (this.id + ' createOrder() on ' + market['type'] + ' markets does not allow market orders');
         }
@@ -1044,10 +1039,9 @@ module.exports = class zb extends Exchange {
         //
         if (swap) {
             response = this.safeValue (response, 'data');
-            response['timeInForce'] = timeInForce;
-        } else {
-            response['type'] = request['tradeType'];
         }
+        response['timeInForce'] = timeInForce;
+        response['type'] = request['tradeType'];
         response['total_amount'] = amount;
         response['price'] = price;
         return this.parseOrder (response, market);
