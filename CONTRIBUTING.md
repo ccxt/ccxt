@@ -931,6 +931,8 @@ The command below will build everything and generate PHP/Python versions from so
 npm run build
 ```
 
+#### Testing
+
 The following command will test the built generated files (for all exchanges, symbols and languages):
 
 ```
