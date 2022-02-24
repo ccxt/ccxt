@@ -5428,7 +5428,43 @@ module.exports = class huobi extends Exchange {
         return this.parseLedger (data, currency, since, limit);
     }
 
-    async fetchLeverageTiers (symbol = undefined, params = {}) {
+    async fetchLeverageTiers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.contractPublicGetLinearSwapApiV1SwapAdjustfactor (params);
+        //
+        //    {
+        //        "status": "ok",
+        //        "data": [
+        //            {
+        //                "symbol": "MANA",
+        //                "contract_code": "MANA-USDT",
+        //                "margin_mode": "isolated",
+        //                "trade_partition": "USDT",
+        //                "list": [
+        //                    {
+        //                        "lever_rate": 75,
+        //                        "ladders": [
+        //                            {
+        //                                "ladder": 0,
+        //                                "min_size": 0,
+        //                                "max_size": 999,
+        //                                "adjust_factor": 0.7
+        //                            },
+        //                            ...
+        //                        ]
+        //                    }
+        //                    ...
+        //                ]
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseLeverageTiers (data, symbols, 'contract_code');
+    }
+
+    async fetchMarketLeverageTiers (symbol, params = {}) {
         await this.loadMarkets ();
         const request = {};
         if (symbol !== undefined) {
@@ -5469,33 +5505,40 @@ module.exports = class huobi extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data');
+        const tiers = this.parseLeverageTiers (data, [ symbol ], 'contract_code');
+        return this.safeValue (tiers, symbol);
+    }
+
+    parseLeverageTiers (response, symbols, marketIdKey) {
         const result = {};
-        for (let i = 0; i < data.length; i++) {
-            const item = data[i];
+        for (let i = 0; i < response.length; i++) {
+            const item = response[i];
             const list = this.safeValue (item, 'list', []);
             const tiers = [];
-            const notionalCurrency = this.safeString (item, 'trade_partition');
-            for (let j = 0; j < list.length; j++) {
-                const obj = list[j];
-                const leverage = this.safeString (obj, 'lever_rate');
-                const ladders = this.safeValue (obj, 'ladders', []);
-                for (let k = 0; k < ladders.length; k++) {
-                    const bracket = ladders[k];
-                    const adjustFactor = this.safeString (bracket, 'adjust_factor');
-                    tiers.push ({
-                        'tier': this.safeInteger (bracket, 'ladder'),
-                        'notionalCurrency': this.safeCurrencyCode (notionalCurrency),
-                        'notionalFloor': this.safeNumber (bracket, 'min_size'),
-                        'notionalCap': this.safeNumber (bracket, 'max_size'),
-                        'maintenanceMarginRate': this.parseNumber (Precise.stringDiv (adjustFactor, leverage)),
-                        'maxLeverage': this.parseNumber (leverage),
-                        'info': bracket,
-                    });
-                }
-            }
-            const id = this.safeString (item, 'contract_code');
+            const currency = this.safeString (item, 'trade_partition');
+            const id = this.safeString (item, marketIdKey);
             const symbol = this.safeSymbol (id);
-            result[symbol] = tiers;
+            if (this.inArray (symbols, symbol)) {
+                for (let j = 0; j < list.length; j++) {
+                    const obj = list[j];
+                    const leverage = this.safeString (obj, 'lever_rate');
+                    const ladders = this.safeValue (obj, 'ladders', []);
+                    for (let k = 0; k < ladders.length; k++) {
+                        const bracket = ladders[k];
+                        const adjustFactor = this.safeString (bracket, 'adjust_factor');
+                        tiers.push ({
+                            'tier': this.safeInteger (bracket, 'ladder'),
+                            'currency': this.safeCurrencyCode (currency),
+                            'notionalFloor': this.safeNumber (bracket, 'min_size'),
+                            'notionalCap': this.safeNumber (bracket, 'max_size'),
+                            'maintenanceMarginRate': this.parseNumber (Precise.stringDiv (adjustFactor, leverage)),
+                            'maxLeverage': this.parseNumber (leverage),
+                            'info': bracket,
+                        });
+                    }
+                }
+                result[symbol] = tiers;
+            }
         }
         return result;
     }
