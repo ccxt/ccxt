@@ -1046,11 +1046,6 @@ module.exports = class zb extends Exchange {
         const pageNumField = market['swap'] ? 'pageNum' : 'pageIndex';
         request[pageNumField] = 1;
         if (swap) {
-            request['type'] = params['type'];
-            request['side'] = params['side'];
-            request['dateRange'] = params['dateRange'];
-            request['action'] = params['action'];
-            request['endTime'] = params['endTime'];
             request['startTime'] = since;
         }
         let method = this.getSupportedMapping (market['type'], {
