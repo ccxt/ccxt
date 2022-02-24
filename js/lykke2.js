@@ -269,10 +269,8 @@ module.exports = class lykke2 extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const pricePrecision = this.safeString (market, 'priceAccuracy');
-            const priceLimit = this.parsePrecision (pricePrecision);
             const precision = {
-                'price': parseInt (pricePrecision),
+                'price': this.safeInteger (market, 'priceAccuracy'),
                 'amount': this.safeInteger (market, 'baseAssetAccuracy'),
             };
             result.push ({
@@ -307,7 +305,7 @@ module.exports = class lykke2 extends Exchange {
                         'max': undefined,
                     },
                     'price': {
-                        'min': this.parseNumber (priceLimit),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
