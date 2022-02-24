@@ -1016,17 +1016,35 @@ class zb(Exchange):
         #
         return self.parse_order(response, None)
 
-    def fetch_orders(self, symbol=None, since=None, limit=50, params={}):
+    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + 'fetchOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
+        swap = market['swap']
         request = {
-            'currency': market['id'],
-            'pageIndex': 1,  # default pageIndex is 1
-            'pageSize': limit,  # default pageSize is 50
+            'pageSize': limit,  # default pageSize is 50 for spot, 30 for swap
+            # 'currency': market['id'],  # only applicable to SPOT
+            # 'pageIndex': 1,  # only applicable to SPOT
+            # 'symbol': market['id'],  # only applicable to SWAP
+            # 'pageNum': 1,  # only applicable to SWAP
+            # 'type': params['type'],  # only applicable to SWAP
+            # 'side': params['side'],  # only applicable to SWAP
+            # 'dateRange': params['dateRange'],  # only applicable to SWAP
+            # 'action': params['action'],  # only applicable to SWAP
+            # 'endTime': params['endTime'],  # only applicable to SWAP
+            # 'startTime': since,  # only applicable to SWAP
         }
-        method = 'spotV1PrivateGetGetOrdersIgnoreTradeType'
+        marketIdField = 'symbol' if market['swap'] else 'currency'
+        request[marketIdField] = market['id']
+        pageNumField = 'pageNum' if market['swap'] else 'pageIndex'
+        request[pageNumField] = 1
+        if swap:
+            request['startTime'] = since
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'spotV1PrivateGetGetOrdersIgnoreTradeType',
+            'swap': 'contractV2PrivateGetTradeGetAllOrders',
+        })
         # tradeType 交易类型1/0[buy/sell]
         if 'tradeType' in params:
             method = 'spotV1PrivateGetGetOrdersNew'
@@ -1037,6 +1055,69 @@ class zb(Exchange):
             if isinstance(e, OrderNotFound):
                 return []
             raise e
+        # Spot
+        #
+        #     [
+        #         {
+        #             "acctType": 0,
+        #             "currency": "btc_usdt",
+        #             "fees": 0,
+        #             "id": "202202234857482656",
+        #             "price": 30000.0,
+        #             "status": 3,
+        #             "total_amount": 0.0006,
+        #             "trade_amount": 0.0000,
+        #             "trade_date": 1645610254524,
+        #             "trade_money": 0.000000,
+        #             "type": 1,
+        #             "useZbFee": False,
+        #             "webId": 0
+        #         }
+        #     ]
+        #
+        # Swap
+        #
+        #     {
+        #         "code": 10000,
+        #         "data": {
+        #             "list": [
+        #                 {
+        #                     "action": 1,
+        #                     "amount": "0.004",
+        #                     "availableAmount": "0.004",
+        #                     "availableValue": "120",
+        #                     "avgPrice": "0",
+        #                     "canCancel": True,
+        #                     "cancelStatus": 20,
+        #                     "createTime": "1645609643885",
+        #                     "entrustType": 1,
+        #                     "id": "6902187111785635850",
+        #                     "leverage": 5,
+        #                     "margin": "24",
+        #                     "marketId": "100",
+        #                     "marketName": "BTC_USDT",
+        #                     "modifyTime": "1645609643889",
+        #                     "price": "30000",
+        #                     "showStatus": 1,
+        #                     "side": 1,
+        #                     "sourceType": 1,
+        #                     "status": 12,
+        #                     "tradeAmount": "0",
+        #                     "tradeValue": "0",
+        #                     "type": 1,
+        #                     "userId": "6896693805014120448",
+        #                     "value": "120"
+        #                 },
+        #             ],
+        #             "pageNum": 1,
+        #             "pageSize": 10
+        #         },
+        #         "desc": "操作成功"
+        #     }
+        #
+        if swap:
+            data = self.safe_value(response, 'data', {})
+            response = self.safe_value(data, 'list', [])
         return self.parse_orders(response, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=10, params={}):
