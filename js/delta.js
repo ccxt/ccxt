@@ -5,7 +5,6 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, ArgumentsRequired, OrderNotFound, ExchangeNotAvailable } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -34,7 +33,7 @@ module.exports = class delta extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchLedger': true,
-                'fetchLeverageTiers': false,
+                'fetchLeverageTiers': false, // An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
