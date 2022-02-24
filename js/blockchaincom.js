@@ -52,6 +52,7 @@ module.exports = class blockchaincom extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': false,
+                'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
@@ -496,6 +497,8 @@ module.exports = class blockchaincom extends Exchange {
     }
 
     async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetFees ();
         //
         //     {
         //         makerRate: "0.002",
@@ -503,13 +506,21 @@ module.exports = class blockchaincom extends Exchange {
         //         volumeInUSD: "0.0"
         //     }
         //
-        await this.loadMarkets ();
-        const response = await this.privateGetFees ();
-        return {
-            'maker': this.safeNumber (response, 'makerRate'),
-            'taker': this.safeNumber (response, 'takerRate'),
+        const makerFee = this.safeNumber (response, 'makerRate');
+        const takerFee = this.safeNumber (response, 'takerRate');
+        const result = {
             'info': response,
         };
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            result[symbol] = {
+                'info': {},
+                'symbol': symbol,
+                'maker': makerFee,
+                'taker': takerFee,
+            };
+        }
+        return result;
     }
 
     async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
