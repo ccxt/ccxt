@@ -41,6 +41,7 @@ class bybit extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchIndexOHLCV' => true,
                 'fetchLedger' => true,
+                'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
@@ -3095,5 +3096,148 @@ class bybit extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }
+    }
+
+    public function fetch_market_leverage_tiers($symbol, $params = array ()) {
+        $this->load_markets();
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            if ($market['spot']) {
+                throw new BadRequest($this->id . '.fetchLeverageTiers $symbol supports contract markets only');
+            }
+            $request['symbol'] = $market['id'];
+        }
+        list($type, $query) = $this->handle_market_type_and_params('fetchMarketLeverageTiers', $market, $params);
+        $method = $this->get_supported_mapping($type, array(
+            'linear' => 'publicLinearGetRiskLimit', // Symbol required
+            'swap' => 'publicLinearGetRiskLimit',
+            'inverse' => 'v2PublicGetRiskLimitList', // Symbol not required, could implement fetchLeverageTiers
+            'future' => 'v2PublicGetRiskLimitList',
+        ));
+        $response = $this->$method (array_merge($request, $query));
+        //
+        //  publicLinearGetRiskLimit
+        //    {
+        //        ret_code => '0',
+        //        ret_msg => 'OK',
+        //        ext_code => '',
+        //        ext_info => '',
+        //        $result => array(
+        //            array(
+        //                id => '11',
+        //                $symbol => 'ETHUSDT',
+        //                limit => '800000',
+        //                maintain_margin => '0.01',
+        //                starting_margin => '0.02',
+        //                section => array(
+        //                    '1',  '2',  '3',
+        //                    '5',  '10', '15',
+        //                    '25'
+        //                ),
+        //                is_lowest_risk => '1',
+        //                created_at => '2022-02-04 23:30:33.555252',
+        //                updated_at => '2022-02-04 23:30:33.555254',
+        //                max_leverage => '50'
+        //            ),
+        //            ...
+        //        )
+        //    }
+        //
+        //  v2PublicGetRiskLimitList
+        //    {
+        //        ret_code => '0',
+        //        ret_msg => 'OK',
+        //        ext_code => '',
+        //        ext_info => '',
+        //        $result => array(
+        //            array(
+        //                id => '180',
+        //                is_lowest_risk => '0',
+        //                section => array(
+        //                  '1', '2', '3',
+        //                  '4', '5', '7',
+        //                  '8', '9'
+        //                ),
+        //                $symbol => 'ETHUSDH22',
+        //                limit => '30000',
+        //                max_leverage => '9',
+        //                starting_margin => '11',
+        //                maintain_margin => '5.5',
+        //                coin => 'ETH',
+        //                created_at => '2021-04-22T15:00:00Z',
+        //                updated_at => '2021-04-22T15:00:00Z'
+        //            ),
+        //        ),
+        //        time_now => '1644017569.683191'
+        //    }
+        //
+        $result = $this->safe_value($response, 'result');
+        return $this->parse_market_leverage_tiers($result, $market);
+    }
+
+    public function parse_market_leverage_tiers($info, $market) {
+        //
+        //    Linear
+        //    array(
+        //        array(
+        //            id => '11',
+        //            symbol => 'ETHUSDT',
+        //            limit => '800000',
+        //            maintain_margin => '0.01',
+        //            starting_margin => '0.02',
+        //            section => array(
+        //                '1',  '2',  '3',
+        //                '5',  '10', '15',
+        //                '25'
+        //            ),
+        //            is_lowest_risk => '1',
+        //            created_at => '2022-02-04 23:30:33.555252',
+        //            updated_at => '2022-02-04 23:30:33.555254',
+        //            max_leverage => '50'
+        //        ),
+        //        ...
+        //    )
+        //
+        //    Inverse
+        //    array(
+        //        {
+        //            id => '180',
+        //            is_lowest_risk => '0',
+        //            section => array(
+        //                '1', '2', '3',
+        //                '4', '5', '7',
+        //                '8', '9'
+        //            ),
+        //            symbol => 'ETHUSDH22',
+        //            limit => '30000',
+        //            max_leverage => '9',
+        //            starting_margin => '11',
+        //            maintain_margin => '5.5',
+        //            coin => 'ETH',
+        //            created_at => '2021-04-22T15:00:00Z',
+        //            updated_at => '2021-04-22T15:00:00Z'
+        //        }
+        //        ...
+        //    )
+        //
+        $notionalFloor = 0;
+        $tiers = array();
+        for ($i = 0; $i < count($info); $i++) {
+            $item = $info[$i];
+            $notionalCap = $this->safe_number($item, 'limit');
+            $tiers[] = array(
+                'tier' => $this->sum($i, 1),
+                'currency' => $market['base'],
+                'notionalFloor' => $notionalFloor,
+                'notionalCap' => $notionalCap,
+                'maintenanceMarginRate' => $this->safe_number($item, 'maintain_margin'),
+                'maxLeverage' => $this->safe_number($item, 'max_leverage'),
+                'info' => $item,
+            );
+            $notionalFloor = $notionalCap;
+        }
+        return $tiers;
     }
 }

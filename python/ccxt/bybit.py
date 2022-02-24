@@ -57,6 +57,7 @@ class bybit(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchIndexOHLCV': True,
                 'fetchLedger': True,
+                'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
                 'fetchMyTrades': True,
@@ -2951,3 +2952,141 @@ class bybit(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             raise ExchangeError(feedback)  # unknown message
+
+    def fetch_market_leverage_tiers(self, symbol, params={}):
+        self.load_markets()
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            if market['spot']:
+                raise BadRequest(self.id + '.fetchLeverageTiers symbol supports contract markets only')
+            request['symbol'] = market['id']
+        type, query = self.handle_market_type_and_params('fetchMarketLeverageTiers', market, params)
+        method = self.get_supported_mapping(type, {
+            'linear': 'publicLinearGetRiskLimit',  # Symbol required
+            'swap': 'publicLinearGetRiskLimit',
+            'inverse': 'v2PublicGetRiskLimitList',  # Symbol not required, could implement fetchLeverageTiers
+            'future': 'v2PublicGetRiskLimitList',
+        })
+        response = getattr(self, method)(self.extend(request, query))
+        #
+        #  publicLinearGetRiskLimit
+        #    {
+        #        ret_code: '0',
+        #        ret_msg: 'OK',
+        #        ext_code: '',
+        #        ext_info: '',
+        #        result: [
+        #            {
+        #                id: '11',
+        #                symbol: 'ETHUSDT',
+        #                limit: '800000',
+        #                maintain_margin: '0.01',
+        #                starting_margin: '0.02',
+        #                section: [
+        #                    '1',  '2',  '3',
+        #                    '5',  '10', '15',
+        #                    '25'
+        #                ],
+        #                is_lowest_risk: '1',
+        #                created_at: '2022-02-04 23:30:33.555252',
+        #                updated_at: '2022-02-04 23:30:33.555254',
+        #                max_leverage: '50'
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
+        #  v2PublicGetRiskLimitList
+        #    {
+        #        ret_code: '0',
+        #        ret_msg: 'OK',
+        #        ext_code: '',
+        #        ext_info: '',
+        #        result: [
+        #            {
+        #                id: '180',
+        #                is_lowest_risk: '0',
+        #                section: [
+        #                  '1', '2', '3',
+        #                  '4', '5', '7',
+        #                  '8', '9'
+        #                ],
+        #                symbol: 'ETHUSDH22',
+        #                limit: '30000',
+        #                max_leverage: '9',
+        #                starting_margin: '11',
+        #                maintain_margin: '5.5',
+        #                coin: 'ETH',
+        #                created_at: '2021-04-22T15:00:00Z',
+        #                updated_at: '2021-04-22T15:00:00Z'
+        #            },
+        #        ],
+        #        time_now: '1644017569.683191'
+        #    }
+        #
+        result = self.safe_value(response, 'result')
+        return self.parse_market_leverage_tiers(result, market)
+
+    def parse_market_leverage_tiers(self, info, market):
+        #
+        #    Linear
+        #    [
+        #        {
+        #            id: '11',
+        #            symbol: 'ETHUSDT',
+        #            limit: '800000',
+        #            maintain_margin: '0.01',
+        #            starting_margin: '0.02',
+        #            section: [
+        #                '1',  '2',  '3',
+        #                '5',  '10', '15',
+        #                '25'
+        #            ],
+        #            is_lowest_risk: '1',
+        #            created_at: '2022-02-04 23:30:33.555252',
+        #            updated_at: '2022-02-04 23:30:33.555254',
+        #            max_leverage: '50'
+        #        },
+        #        ...
+        #    ]
+        #
+        #    Inverse
+        #    [
+        #        {
+        #            id: '180',
+        #            is_lowest_risk: '0',
+        #            section: [
+        #                '1', '2', '3',
+        #                '4', '5', '7',
+        #                '8', '9'
+        #            ],
+        #            symbol: 'ETHUSDH22',
+        #            limit: '30000',
+        #            max_leverage: '9',
+        #            starting_margin: '11',
+        #            maintain_margin: '5.5',
+        #            coin: 'ETH',
+        #            created_at: '2021-04-22T15:00:00Z',
+        #            updated_at: '2021-04-22T15:00:00Z'
+        #        }
+        #        ...
+        #    ]
+        #
+        notionalFloor = 0
+        tiers = []
+        for i in range(0, len(info)):
+            item = info[i]
+            notionalCap = self.safe_number(item, 'limit')
+            tiers.append({
+                'tier': self.sum(i, 1),
+                'currency': market['base'],
+                'notionalFloor': notionalFloor,
+                'notionalCap': notionalCap,
+                'maintenanceMarginRate': self.safe_number(item, 'maintain_margin'),
+                'maxLeverage': self.safe_number(item, 'max_leverage'),
+                'info': item,
+            })
+            notionalFloor = notionalCap
+        return tiers
