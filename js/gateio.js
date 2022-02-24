@@ -17,10 +17,10 @@ module.exports = class gateio extends ccxt.gateio {
                 'watchTicker': true,
                 'watchTickers': false, // for now
                 'watchTrades': true,
+                'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchBalance': true,
                 'watchOrders': true,
-
             },
             'urls': {
                 'api': {
@@ -644,14 +644,14 @@ module.exports = class gateio extends ccxt.gateio {
                 this.handleSubscriptionStatus (client, message);
                 return;
             }
-            const event = this.safeString(message, 'event');
+            const event = this.safeString (message, 'event');
             if (event === 'subscribe') {
-                this.handleSubscriptionStatus(client, message);
+                this.handleSubscriptionStatus (client, message);
                 return;
             }
-            const channel = this.safeString(message, 'channel');
+            const channel = this.safeString (message, 'channel');
             if (channel === 'spot.usertrades') {
-                this.handleMyTrades(client, message);
+                this.handleMyTrades (client, message);
             }
         } else {
             method.call (this, client, message);
