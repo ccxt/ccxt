@@ -302,19 +302,21 @@ class currencycom extends Exchange {
         //
         //     array(
         //         array(
-        //           name => "US Dollar",
-        //           displaySymbol => "USD.cx",
-        //           $precision => "2",
-        //           type => "FIAT",
-        //           minWithdrawal => "100.0",
-        //           maxWithdrawal => "1.0E+8",
-        //           minDeposit => "100.0",
+        //             "name" => "Euro",
+        //             "displaySymbol" => "EUR.cx",
+        //             "precision" => "2",
+        //             "type" => "FIAT",
+        //             "minWithdrawal" => "90.0",
+        //             "maxWithdrawal" => "1.0E+8",
+        //             "commissionMin" => "0.02", // some instruments do not have this property
+        //             "commissionPercent" => "1.5", // some instruments do not have this property
+        //             "minDeposit" => "90.0",
         //         ),
         //         array(
         //             name => "Bitcoin",
         //             displaySymbol => "BTC",
         //             $precision => "8",
-        //             type => "CRYPTO",  // Note => only several major ones have this value. Others (like USDT) have value : "TOKEN"
+        //             type => "CRYPTO", // only a few major currencies have this value, others like USDT have a value of "TOKEN"
         //             minWithdrawal => "0.00020",
         //             commissionFixed => "0.00010",
         //             minDeposit => "0.00010",
@@ -332,7 +334,6 @@ class currencycom extends Exchange {
                 'id' => $id,
                 'code' => $code,
                 'address' => $this->safe_string($currency, 'baseAddress'),
-                'info' => $currency,
                 'type' => $this->safe_string_lower($currency, 'type'),
                 'name' => $this->safe_string($currency, 'name'),
                 'active' => null,
@@ -347,13 +348,14 @@ class currencycom extends Exchange {
                     ),
                     'withdraw' => array(
                         'min' => $this->safe_number($currency, 'minWithdrawal'),
-                        'max' => null,
+                        'max' => $this->safe_number($currency, 'maxWithdrawal'),
                     ),
                     'deposit' => array(
                         'min' => $this->safe_number($currency, 'minDeposit'),
                         'max' => null,
                     ),
                 ),
+                'info' => $currency,
             );
         }
         return $result;

@@ -306,19 +306,21 @@ class currencycom(Exchange):
         #
         #     [
         #         {
-        #           name: "US Dollar",
-        #           displaySymbol: "USD.cx",
-        #           precision: "2",
-        #           type: "FIAT",
-        #           minWithdrawal: "100.0",
-        #           maxWithdrawal: "1.0E+8",
-        #           minDeposit: "100.0",
+        #             "name": "Euro",
+        #             "displaySymbol": "EUR.cx",
+        #             "precision": "2",
+        #             "type": "FIAT",
+        #             "minWithdrawal": "90.0",
+        #             "maxWithdrawal": "1.0E+8",
+        #             "commissionMin": "0.02",  # some instruments do not have self property
+        #             "commissionPercent": "1.5",  # some instruments do not have self property
+        #             "minDeposit": "90.0",
         #         },
         #         {
         #             name: "Bitcoin",
         #             displaySymbol: "BTC",
         #             precision: "8",
-        #             type: "CRYPTO",  # Note: only several major ones have self value. Others(like USDT) have value : "TOKEN"
+        #             type: "CRYPTO",  # only a few major currencies have self value, others like USDT have a value of "TOKEN"
         #             minWithdrawal: "0.00020",
         #             commissionFixed: "0.00010",
         #             minDeposit: "0.00010",
@@ -336,7 +338,6 @@ class currencycom(Exchange):
                 'id': id,
                 'code': code,
                 'address': self.safe_string(currency, 'baseAddress'),
-                'info': currency,
                 'type': self.safe_string_lower(currency, 'type'),
                 'name': self.safe_string(currency, 'name'),
                 'active': None,
@@ -351,13 +352,14 @@ class currencycom(Exchange):
                     },
                     'withdraw': {
                         'min': self.safe_number(currency, 'minWithdrawal'),
-                        'max': None,
+                        'max': self.safe_number(currency, 'maxWithdrawal'),
                     },
                     'deposit': {
                         'min': self.safe_number(currency, 'minDeposit'),
                         'max': None,
                     },
                 },
+                'info': currency,
             }
         return result
 
