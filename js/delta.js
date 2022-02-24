@@ -34,7 +34,8 @@ module.exports = class delta extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchLedger': true,
-                'fetchLeverageTiers': 'emulated',
+                'fetchLeverageTiers': true,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -1533,6 +1534,7 @@ module.exports = class delta extends Exchange {
 
     parseMarketLeverageTiers (info, market) {
         /**
+            https://www.delta.exchange/contracts/
             @param info: Exchange response for a single market
             {
                 "annualized_funding":"5.475000000000000000",
