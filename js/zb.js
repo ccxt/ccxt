@@ -1206,7 +1206,6 @@ module.exports = class zb extends Exchange {
         } else {
             side = (side === 1) ? 'buy' : 'sell';
         }
-        const type = 'limit'; // market order is not available in ZB
         const timestamp = this.safeInteger (order, 'trade_date');
         const marketId = this.safeString (order, 'currency');
         market = this.safeMarket (marketId, market, '_');
@@ -1240,7 +1239,7 @@ module.exports = class zb extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': market['symbol'],
-            'type': type,
+            'type': 'limit', // market order is not available on ZB
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'side': side,
