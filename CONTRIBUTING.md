@@ -878,8 +878,10 @@ Incoming pull requests are automatically validated by the CI service. You can wa
 
 ### How To Build & Run Tests On Your Local Machine
 
-#### Add API Keys to keys.local.json
-Add exchange credentials and options to `keys.local.json` following this example:
+#### Add Exchange credentials
+Add exchange credentials and options to `keys.local.json` or as environment variables.
+Example of .env variable: `KRAKEN_APIKEY`
+`keys.local.json` example:
 ```
 {
     "ftx": {
@@ -896,6 +898,8 @@ Add exchange credentials and options to `keys.local.json` following this example
     ...
 }
 ```
+
+
 
 Before building for the first time, install Node dependencies (skip this step if you're running our Docker image):
 
