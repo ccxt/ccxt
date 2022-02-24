@@ -806,13 +806,24 @@ module.exports = class kucoin extends ccxt.kucoin {
         const data = this.safeValue (message, 'data', {});
         const messageHash = this.safeString (message, 'topic');
         const currencyId = this.safeString (data, 'currency');
-        const code = this.safeCurrencyCode (currencyId);
-        const account = this.account ();
-        account['free'] = this.safeString (data, 'available');
-        account['used'] = this.safeString (data, 'hold');
-        account['total'] = this.safeString (data, 'total');
-        this.balance[code] = account;
-        client.resolve (this.balance, messageHash);
+        const relationEvent = this.safeString (data, 'relationEvent');
+        let requestAccountType = undefined;
+        if (relationEvent !== undefined) {
+            const relationEventParts = relationEvent.split ('.');
+            requestAccountType = this.safeString (relationEventParts, 0);
+        }
+        const selectedType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'trade');
+        const accountsByType = this.safeValue (this.options, 'accountsByType');
+        const uniformType = this.safeString (accountsByType, requestAccountType);
+        if (uniformType === selectedType) {
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (data, 'available');
+            account['used'] = this.safeString (data, 'hold');
+            account['total'] = this.safeString (data, 'total');
+            this.balance[code] = account;
+            client.resolve (this.balance, messageHash);
+        }
     }
 
     handleSubject (client, message) {
