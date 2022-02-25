@@ -910,7 +910,8 @@ module.exports = class currencycom extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        // # createOrder #
+        //
+        // createOrder
         //
         // limit
         //
@@ -950,8 +951,7 @@ module.exports = class currencycom extends Exchange {
         //         ],
         //     }
         //
-        //
-        // # cancelOrder #
+        // cancelOrder
         //
         //     {
         //         "symbol": "DOGE/USD",
@@ -965,8 +965,7 @@ module.exports = class currencycom extends Exchange {
         //         "side": "BUY",
         //     }
         //
-        //
-        // # fetchOpenOrders entry #
+        // fetchOpenOrders
         //
         //   {
         //       "symbol": "DOGE/USD",
@@ -979,9 +978,9 @@ module.exports = class currencycom extends Exchange {
         //       "type": "LIMIT",
         //       "side": "BUY",
         //       "time": "1645284216240",
-        //       "updateTime": "1645284216240", // ?
+        //       "updateTime": "1645284216240",
         //       "leverage": false, // whether it's swap or not
-        //       "working": true // ?
+        //       "working": true,
         //   }
         //
         const marketId = this.safeString (order, 'symbol');
