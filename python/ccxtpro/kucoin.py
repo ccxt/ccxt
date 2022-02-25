@@ -23,7 +23,7 @@ class kucoin(Exchange, ccxt.kucoin):
                 'watchTickers': False,  # for now
                 'watchTicker': True,
                 'watchTrades': True,
-                'watchBalance': False,  # for now
+                'watchBalance': True,
                 'watchOHLCV': True,
             },
             'options': {
@@ -706,6 +706,125 @@ class kucoin(Exchange, ccxt.kucoin):
             'fee': fee,
         }
 
+    async def watch_balance(self, params={}):
+        await self.load_markets()
+        negotiation = await self.negotiate()
+        topic = '/account/balance'
+        request = {
+            'privateChannel': True,
+        }
+        messageHash = topic
+        return await self.subscribe(negotiation, topic, messageHash, self.handle_balance_subscription, None, self.extend(request, params))
+
+    def handle_balance(self, client, message):
+        #
+        # {
+        #     "id":"6217a451294b030001e3a26a",
+        #     "type":"message",
+        #     "topic":"/account/balance",
+        #     "userId":"6217707c52f97f00012a67db",
+        #     "channelType":"private",
+        #     "subject":"account.balance",
+        #     "data":{
+        #        "accountId":"62177fe67810720001db2f18",
+        #        "available":"89",
+        #        "availableChange":"-30",
+        #        "currency":"USDT",
+        #        "hold":"0",
+        #        "holdChange":"0",
+        #        "relationContext":{
+        #        },
+        #        "relationEvent":"main.transfer",
+        #        "relationEventId":"6217a451294b030001e3a26a",
+        #        "time":"1645716561816",
+        #        "total":"89"
+        #     }
+        #
+        data = self.safe_value(message, 'data', {})
+        messageHash = self.safe_string(message, 'topic')
+        currencyId = self.safe_string(data, 'currency')
+        relationEvent = self.safe_string(data, 'relationEvent')
+        requestAccountType = None
+        if relationEvent is not None:
+            relationEventParts = relationEvent.split('.')
+            requestAccountType = self.safe_string(relationEventParts, 0)
+        selectedType = self.safe_string_2(self.options, 'watchBalance', 'defaultType', 'trade')  # trade, main, margin or other
+        accountsByType = self.safe_value(self.options, 'accountsByType')
+        uniformType = self.safe_string(accountsByType, requestAccountType, 'trade')
+        if not (uniformType in self.balance):
+            self.balance[uniformType] = {}
+        code = self.safe_currency_code(currencyId)
+        account = self.account()
+        account['free'] = self.safe_string(data, 'available')
+        account['used'] = self.safe_string(data, 'hold')
+        account['total'] = self.safe_string(data, 'total')
+        self.balance[selectedType][code] = account
+        self.balance[selectedType] = self.safe_balance(self.balance[selectedType])
+        client.resolve(self.balance[selectedType], messageHash)
+
+    def handle_balance_subscription(self, client, message, subscription):
+        self.spawn(self.fetch_balance_snapshot, client, message)
+
+    async def fetch_balance_snapshot(self, client, message):
+        await self.load_markets()
+        self.check_required_credentials()
+        messageHash = '/account/balance'
+        selectedType = self.safe_string_2(self.options, 'watchBalance', 'defaultType', 'trade')  # trade, main, margin or other
+        params = {
+            'type': selectedType,
+        }
+        snapshot = await self.fetch_balance(params)
+        #
+        # {
+        #     "info":{
+        #        "code":"200000",
+        #        "data":[
+        #           {
+        #              "id":"6217a451cbe8910001ed3aa8",
+        #              "currency":"USDT",
+        #              "type":"trade",
+        #              "balance":"10",
+        #              "available":"4.995",
+        #              "holds":"5.005"
+        #           }
+        #        ]
+        #     },
+        #     "USDT":{
+        #        "free":4.995,
+        #        "used":5.005,
+        #        "total":10
+        #     },
+        #     "free":{
+        #        "USDT":4.995
+        #     },
+        #     "used":{
+        #        "USDT":5.005
+        #     },
+        #     "total":{
+        #        "USDT":10
+        #     }
+        #  }
+        #
+        data = self.safe_value(snapshot['info'], 'data', [])
+        if len(data) > 0:
+            selectedType = self.safe_string_2(self.options, 'watchBalance', 'defaultType', 'trade')  # trade, main, margin or other
+            for i in range(0, len(data)):
+                balance = data[i]
+                type = self.safe_string(balance, 'type')
+                accountsByType = self.safe_value(self.options, 'accountsByType')
+                uniformType = self.safe_string(accountsByType, type, 'trade')
+                if not (uniformType in self.balance):
+                    self.balance[uniformType] = {}
+                currencyId = self.safe_string(balance, 'currency')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['free'] = self.safe_string(balance, 'available')
+                account['used'] = self.safe_string(balance, 'holds')
+                account['total'] = self.safe_string(balance, 'total')
+                self.balance[selectedType][code] = account
+                self.balance[selectedType] = self.safe_balance(self.balance[selectedType])
+            client.resolve(self.balance[selectedType], messageHash)
+
     def handle_subject(self, client, message):
         #
         #     {
@@ -730,6 +849,7 @@ class kucoin(Exchange, ccxt.kucoin):
             'trade.snapshot': self.handle_ticker,
             'trade.l3match': self.handle_trade,
             'trade.candles.update': self.handle_ohlcv,
+            'account.balance': self.handle_balance,
         }
         method = self.safe_value(methods, subject)
         if subject == 'orderChange':
