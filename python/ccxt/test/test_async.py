@@ -377,6 +377,7 @@ async def test_balance(exchange):
 
 # ------------------------------------------------------------------------------
 
+
 async def test_symbol(exchange, symbol, code):
     dump(green('SYMBOL: ' + symbol))
     dump(green('CODE: ' + code))

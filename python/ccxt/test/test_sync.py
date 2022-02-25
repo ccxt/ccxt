@@ -348,6 +348,7 @@ def test_balance(exchange):
 
 # ------------------------------------------------------------------------------
 
+
 def test_symbol(exchange, symbol, code):
     dump(green('SYMBOL: ' + symbol))
     dump(green('CODE: ' + code))
