@@ -1197,9 +1197,7 @@ module.exports = class ascendex extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const fees = this.safeValue (data, 'fees', []);
-        const result = {
-            'info': {},
-        };
+        const result = {};
         for (let i = 0; i < fees.length; i++) {
             const fee = fees[i];
             const marketId = this.safeString (fee, 'symbol');
