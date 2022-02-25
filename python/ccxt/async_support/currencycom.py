@@ -95,7 +95,7 @@ class currencycom(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'fetchTradingFee': None,
+                'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTradingLimits': None,
                 'fetchTransactions': True,
@@ -596,11 +596,34 @@ class currencycom(Exchange):
     async def fetch_trading_fees(self, params={}):
         await self.load_markets()
         response = await self.privateGetV2Account(params)
-        return {
-            'info': response,
-            'maker': self.safe_number(response, 'makerCommission'),
-            'taker': self.safe_number(response, 'takerCommission'),
-        }
+        #
+        #    {
+        #        makerCommission: '0.20',
+        #        takerCommission: '0.20',
+        #        buyerCommission: '0.20',
+        #        sellerCommission: '0.20',
+        #        canTrade: True,
+        #        canWithdraw: True,
+        #        canDeposit: True,
+        #        updateTime: '1645738976',
+        #        userId: '-1924114235',
+        #        balances: []
+        #    }
+        #
+        makerFee = self.safe_number(response, 'makerCommission')
+        takerFee = self.safe_number(response, 'takerCommission')
+        result = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': makerFee,
+                'taker': takerFee,
+                'percentage': True,
+                'tierBased': False,
+            }
+        return result
 
     def parse_balance(self, response, type=None):
         #

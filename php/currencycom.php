@@ -87,7 +87,7 @@ class currencycom extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
-                'fetchTradingFee' => null,
+                'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTradingLimits' => null,
                 'fetchTransactions' => true,
@@ -606,11 +606,35 @@ class currencycom extends Exchange {
     public function fetch_trading_fees($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetV2Account ($params);
-        return array(
-            'info' => $response,
-            'maker' => $this->safe_number($response, 'makerCommission'),
-            'taker' => $this->safe_number($response, 'takerCommission'),
-        );
+        //
+        //    {
+        //        makerCommission => '0.20',
+        //        takerCommission => '0.20',
+        //        buyerCommission => '0.20',
+        //        sellerCommission => '0.20',
+        //        canTrade => true,
+        //        canWithdraw => true,
+        //        canDeposit => true,
+        //        updateTime => '1645738976',
+        //        userId => '-1924114235',
+        //        balances => array()
+        //    }
+        //
+        $makerFee = $this->safe_number($response, 'makerCommission');
+        $takerFee = $this->safe_number($response, 'takerCommission');
+        $result = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $result[$symbol] = array(
+                'info' => $response,
+                'symbol' => $symbol,
+                'maker' => $makerFee,
+                'taker' => $takerFee,
+                'percentage' => true,
+                'tierBased' => false,
+            );
+        }
+        return $result;
     }
 
     public function parse_balance($response, $type = null) {
