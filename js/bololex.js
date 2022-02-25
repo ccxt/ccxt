@@ -63,6 +63,7 @@ module.exports = class bololex extends Exchange {
                         'prices',
                         'prices/{symbol}',
                         'book/{symbol}',
+                        'trades',
                         'tradeview/history',
                     ],
                 },
@@ -263,12 +264,11 @@ module.exports = class bololex extends Exchange {
         await this.loadMarkets ();
         const response = await this.publicGetPrices (params);
         const tickers = this.safeValue (response, 'result', []);
-        const ids = Object.keys (tickers);
         const result = {};
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const ticker = tickers[id];
-            const symbol = this.safeString (ticker, 'symbol');
+        for (let i = 0; i < tickers.length; i++) {
+            const ticker = tickers[i];
+            let symbol = this.safeString (ticker, 'symbol');
+            symbol = symbol.replace ('/', '-');
             const market = this.markets_by_id[symbol];
             result[symbol] = this.parseTicker (ticker, market);
         }
@@ -313,7 +313,7 @@ module.exports = class bololex extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = 10, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         this.omit (params, 'page');
@@ -367,16 +367,12 @@ module.exports = class bololex extends Exchange {
             'datetime': datetime,
             'symbol': this.safeString (trade, 'symbol', this.safeString (trade, 'pair')),
             'type': undefined,
-            'side': undefined,
+            'side': this.safeString (trade, 'side').toLowerCase (),
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': {
-                'cost': this.safeFloat (trade, 'fee'),
-                'currency': undefined,
-                'rate': undefined,
-            },
+            'fee': [],
         };
     }
 
