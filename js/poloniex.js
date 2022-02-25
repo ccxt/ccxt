@@ -47,6 +47,7 @@ module.exports = class poloniex extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
@@ -395,7 +396,7 @@ module.exports = class poloniex extends Exchange {
 
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
-        const fees = await this.privatePostReturnFeeInfo (params);
+        const response = await this.privatePostReturnFeeInfo (params);
         //
         //     {
         //         makerFee: '0.00100000',
@@ -406,13 +407,19 @@ module.exports = class poloniex extends Exchange {
         //         nextTier: 500000,
         //     }
         //
-        return {
-            'info': fees,
-            'maker': this.safeNumber (fees, 'makerFee'),
-            'taker': this.safeNumber (fees, 'takerFee'),
-            'withdraw': {},
-            'deposit': {},
-        };
+        const result = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': this.safeNumber (response, 'makerFee'),
+                'taker': this.safeNumber (response, 'takerFee'),
+                'percentage': true,
+                'tierBased': true,
+            };
+        }
+        return result;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
