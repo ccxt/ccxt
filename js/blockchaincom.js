@@ -508,13 +508,11 @@ module.exports = class blockchaincom extends Exchange {
         //
         const makerFee = this.safeNumber (response, 'makerRate');
         const takerFee = this.safeNumber (response, 'takerRate');
-        const result = {
-            'info': response,
-        };
+        const result = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             result[symbol] = {
-                'info': {},
+                'info': response,
                 'symbol': symbol,
                 'maker': makerFee,
                 'taker': takerFee,
