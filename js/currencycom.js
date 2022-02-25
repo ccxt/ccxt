@@ -61,10 +61,10 @@ module.exports = class currencycom extends Exchange {
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchL2OrderBook': true,
-                'fetchLedger': undefined,
-                'fetchLedgerEntry': undefined,
-                'fetchLeverage': true,
+                'fetchLedger': true,
+                'fetchLedgerEntry': false,
                 'fetchLeverageTiers': false,
+                'fetchLeverage': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -1373,6 +1373,101 @@ module.exports = class currencycom extends Exchange {
         const types = {
             'deposit': 'deposit',
             'withdrawal': 'withdrawal',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetV2Ledger (this.extend (request, params));
+        // in the below example, first item expresses withdrawal/deposit type, second example expresses trade
+        //
+        // [
+        //     {
+        //       "id": "619031398",
+        //       "balance": "0.0",
+        //       "amount": "-1.088",
+        //       "currency": "CAKE",
+        //       "type": "withdrawal",
+        //       "timestamp": "1645460496425",
+        //       "commission": "0.13",
+        //       "paymentMethod": "BLOCKCHAIN", // present in withdrawal/deposit
+        //       "blockchainTransactionHash": "0x400ac905557c3d34638b1c60eba110b3ee0f97f4eb0f7318015ab76e7f16b7d6", // present in withdrawal/deposit
+        //       "status": "PROCESSED"
+        //     },
+        //     {
+        //       "id": "619031034",
+        //       "balance": "8.17223588",
+        //       "amount": "-0.01326294",
+        //       "currency": "USD",
+        //       "type": "exchange_commission",
+        //       "timestamp": "1645460461235",
+        //       "commission": "0.01326294",
+        //       "status": "PROCESSED"
+        //     },
+        // ]
+        //
+        return this.parseLedger (response, currency, since, limit);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        const id = this.safeString (item, 'id');
+        const amountString = this.safeString (item, 'amount');
+        const amount = Precise.stringAbs (amountString);
+        const timestamp = this.safeInteger (item, 'timestamp');
+        const currencyId = this.safeString (item, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const feeCost = this.safeString (item, 'commission');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = { 'currency': code, 'cost': feeCost };
+        }
+        const direction = Precise.stringLt (amountString, '0') ? 'out' : 'in';
+        const result = {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'direction': direction,
+            'account': undefined,
+            'referenceId': this.safeString (item, 'blockchainTransactionHash'),
+            'referenceAccount': undefined,
+            'type': this.parseLedgerEntryType (this.safeString (item, 'type')),
+            'currency': code,
+            'amount': amount,
+            'before': undefined,
+            'after': this.safeString (item, 'balance'),
+            'status': this.parseLedgerEntryStatus (this.safeString (item, 'status')),
+            'fee': fee,
+            'info': item,
+        };
+        return result;
+    }
+
+    parseLedgerEntryStatus (status) {
+        const statuses = {
+            'APPROVAL': 'pending',
+            'PROCESSED': 'ok',
+            'CANCELLED': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseLedgerEntryType (type) {
+        const types = {
+            'deposit': 'transaction',
+            'withdrawal': 'transaction',
+            'exchange_commission': 'fee',
         };
         return this.safeString (types, type, type);
     }
