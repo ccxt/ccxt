@@ -68,6 +68,8 @@ class ascendex(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
@@ -163,6 +165,7 @@ class ascendex(Exchange):
                                 'futures/risk',
                                 'futures/funding-payments',
                                 'order/hist',
+                                'spot/fee',
                             ],
                             'post': [
                                 'futures/transfer/deposit',
@@ -1143,6 +1146,47 @@ class ascendex(Exchange):
             'fee': fee,
             'trades': None,
         }, market)
+
+    async def fetch_trading_fees(self, params={}):
+        await self.load_markets()
+        await self.load_accounts()
+        account = self.safe_value(self.accounts, 0, {})
+        accountGroup = self.safe_string(account, 'id')
+        request = {
+            'account-group': accountGroup,
+        }
+        response = await self.v1PrivateAccountGroupGetSpotFee(self.extend(request, params))
+        #
+        #      {
+        #         code: '0',
+        #         data: {
+        #           domain: 'spot',
+        #           userUID: 'U1479576458',
+        #           vipLevel: '0',
+        #           fees: [
+        #             {symbol: 'HT/USDT', fee: {taker: '0.001', maker: '0.001'}},
+        #             {symbol: 'LAMB/BTC', fee: {taker: '0.002', maker: '0.002'}},
+        #             {symbol: 'STOS/USDT', fee: {taker: '0.002', maker: '0.002'}},
+        #             ...
+        #           ]
+        #         }
+        #      }
+        #
+        data = self.safe_value(response, 'data', {})
+        fees = self.safe_value(data, 'fees', [])
+        result = {}
+        for i in range(0, len(fees)):
+            fee = fees[i]
+            marketId = self.safe_string(fee, 'symbol')
+            symbol = self.safe_symbol(marketId, None, '/')
+            takerMaker = self.safe_value(fee, 'fee', {})
+            result[symbol] = {
+                'info': fee,
+                'symbol': symbol,
+                'maker': self.safe_number(takerMaker, 'maker'),
+                'taker': self.safe_number(takerMaker, 'taker'),
+            }
+        return result
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -2276,6 +2320,8 @@ class ascendex(Exchange):
         url += request
         if (version == 'v1') and (request == 'cash/balance') or (request == 'margin/balance'):
             request = 'balance'
+        if (version == 'v1') and (request == 'spot/fee'):
+            request = 'fee'
         if request.find('subuser') >= 0:
             parts = request.split('/')
             request = parts[2]

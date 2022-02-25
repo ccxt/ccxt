@@ -115,7 +115,6 @@ class binance(Exchange):
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': False,
-                'loadLeverageBrackets': True,
                 'reduceMargin': True,
                 'setLeverage': True,
                 'setMarginMode': True,

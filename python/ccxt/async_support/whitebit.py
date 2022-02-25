@@ -64,6 +64,7 @@ class whitebit(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'withdraw': True,
             },
@@ -408,12 +409,42 @@ class whitebit(Exchange):
         }
 
     async def fetch_trading_fees(self, params={}):
-        response = await self.v2PublicGetFee(params)
-        fees = self.safe_value(response, 'result')
-        return {
-            'maker': self.safe_number(fees, 'makerFee'),
-            'taker': self.safe_number(fees, 'takerFee'),
-        }
+        response = await self.v4PublicGetAssets(params)
+        #
+        #      {
+        #          '1INCH': {
+        #              name: '1inch',
+        #              unified_cryptoasset_id: '8104',
+        #              can_withdraw: True,
+        #              can_deposit: True,
+        #              min_withdraw: '33',
+        #              max_withdraw: '0',
+        #              maker_fee: '0.1',
+        #              taker_fee: '0.1',
+        #              min_deposit: '30',
+        #              max_deposit: '0'
+        #            },
+        #            ...
+        #      }
+        #
+        result = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            market = self.market(symbol)
+            fee = self.safe_value(response, market['baseId'], {})
+            makerFee = self.safe_string(fee, 'maker_fee')
+            takerFee = self.safe_string(fee, 'taker_fee')
+            makerFee = Precise.string_div(makerFee, '100')
+            takerFee = Precise.string_div(takerFee, '100')
+            result[symbol] = {
+                'info': fee,
+                'symbol': market['symbol'],
+                'percentage': True,
+                'tierBased': False,
+                'maker': self.parse_number(makerFee),
+                'taker': self.parse_number(takerFee),
+            }
+        return result
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()

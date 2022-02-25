@@ -72,8 +72,8 @@ class currencycom(Exchange):
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
                 'fetchL2OrderBook': True,
-                'fetchLedger': None,
-                'fetchLedgerEntry': None,
+                'fetchLedger': True,
+                'fetchLedgerEntry': False,
                 'fetchLeverage': True,
                 'fetchLeverageTiers': False,
                 'fetchMarkets': True,
@@ -95,7 +95,7 @@ class currencycom(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'fetchTradingFee': None,
+                'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTradingLimits': None,
                 'fetchTransactions': True,
@@ -596,11 +596,34 @@ class currencycom(Exchange):
     async def fetch_trading_fees(self, params={}):
         await self.load_markets()
         response = await self.privateGetV2Account(params)
-        return {
-            'info': response,
-            'maker': self.safe_number(response, 'makerCommission'),
-            'taker': self.safe_number(response, 'takerCommission'),
-        }
+        #
+        #    {
+        #        makerCommission: '0.20',
+        #        takerCommission: '0.20',
+        #        buyerCommission: '0.20',
+        #        sellerCommission: '0.20',
+        #        canTrade: True,
+        #        canWithdraw: True,
+        #        canDeposit: True,
+        #        updateTime: '1645738976',
+        #        userId: '-1924114235',
+        #        balances: []
+        #    }
+        #
+        makerFee = self.safe_number(response, 'makerCommission')
+        takerFee = self.safe_number(response, 'takerCommission')
+        result = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': makerFee,
+                'taker': takerFee,
+                'percentage': True,
+                'tierBased': False,
+            }
+        return result
 
     def parse_balance(self, response, type=None):
         #
@@ -1214,13 +1237,13 @@ class currencycom(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
-        return self.fetch_transactions_by_method('privateGetV2Deposits', code, since, limit, params)
+        return await self.fetch_transactions_by_method('privateGetV2Deposits', code, since, limit, params)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
-        return self.fetch_transactions_by_method('privateGetV2Withdrawals', code, since, limit, params)
+        return await self.fetch_transactions_by_method('privateGetV2Withdrawals', code, since, limit, params)
 
     async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
-        return self.fetch_transactions_by_method('privateGetV2Transactions', code, since, limit, params)
+        return await self.fetch_transactions_by_method('privateGetV2Transactions', code, since, limit, params)
 
     async def fetch_transactions_by_method(self, method, code=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -1298,6 +1321,93 @@ class currencycom(Exchange):
         types = {
             'deposit': 'deposit',
             'withdrawal': 'withdrawal',
+        }
+        return self.safe_string(types, type, type)
+
+    async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {}
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.privateGetV2Ledger(self.extend(request, params))
+        # in the below example, first item expresses withdrawal/deposit type, second example expresses trade
+        #
+        # [
+        #     {
+        #       "id": "619031398",
+        #       "balance": "0.0",
+        #       "amount": "-1.088",
+        #       "currency": "CAKE",
+        #       "type": "withdrawal",
+        #       "timestamp": "1645460496425",
+        #       "commission": "0.13",
+        #       "paymentMethod": "BLOCKCHAIN",  # present in withdrawal/deposit
+        #       "blockchainTransactionHash": "0x400ac905557c3d34638b1c60eba110b3ee0f97f4eb0f7318015ab76e7f16b7d6",  # present in withdrawal/deposit
+        #       "status": "PROCESSED"
+        #     },
+        #     {
+        #       "id": "619031034",
+        #       "balance": "8.17223588",
+        #       "amount": "-0.01326294",
+        #       "currency": "USD",
+        #       "type": "exchange_commission",
+        #       "timestamp": "1645460461235",
+        #       "commission": "0.01326294",
+        #       "status": "PROCESSED"
+        #     },
+        # ]
+        #
+        return self.parse_ledger(response, currency, since, limit)
+
+    def parse_ledger_entry(self, item, currency=None):
+        id = self.safe_string(item, 'id')
+        amountString = self.safe_string(item, 'amount')
+        amount = Precise.string_abs(amountString)
+        timestamp = self.safe_integer(item, 'timestamp')
+        currencyId = self.safe_string(item, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
+        feeCost = self.safe_string(item, 'commission')
+        fee = None
+        if feeCost is not None:
+            fee = {'currency': code, 'cost': feeCost}
+        direction = 'out' if Precise.string_lt(amountString, '0') else 'in'
+        result = {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'direction': direction,
+            'account': None,
+            'referenceId': self.safe_string(item, 'blockchainTransactionHash'),
+            'referenceAccount': None,
+            'type': self.parse_ledger_entry_type(self.safe_string(item, 'type')),
+            'currency': code,
+            'amount': amount,
+            'before': None,
+            'after': self.safe_string(item, 'balance'),
+            'status': self.parse_ledger_entry_status(self.safe_string(item, 'status')),
+            'fee': fee,
+            'info': item,
+        }
+        return result
+
+    def parse_ledger_entry_status(self, status):
+        statuses = {
+            'APPROVAL': 'pending',
+            'PROCESSED': 'ok',
+            'CANCELLED': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_ledger_entry_type(self, type):
+        types = {
+            'deposit': 'transaction',
+            'withdrawal': 'transaction',
+            'exchange_commission': 'fee',
         }
         return self.safe_string(types, type, type)
 
