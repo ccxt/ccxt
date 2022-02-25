@@ -2502,37 +2502,12 @@ The `fetchLeverageTiers()` method will return a structure like shown below:
             "maxLeverage": 75,               // max available leverage for this market when the value of the trade is > notionalFloor and < notionalCap
             "info": { ... }                  // Response from exchange
         },
-        {
-            "tier": 2,
-            "notionalCurrency": "USDT",
-            "notionalFloor": 10000,          // min stake amount at 50x leverage = 200.0
-            "notionalCap": 50000,            // max stake amount at 50x leverage = 1000.0
-            "maintenanceMarginRate": 0.01,
-            "maxLeverage": 50,
-            "info": { ... },
-        },
         ...
-        {
-            "tier": 9,
-            "notionalCurrency": "USDT",
-            "notionalFloor": 20000000,
-            "notionalCap": 50000000,
-            "maintenanceMarginRate": 0.5,
-            "maxLeverage": 1,
-            "info": { ... },
-        },
     ]
     ...
   ],
 }
 ```
-
-In the example above:
-
-- stakes below 133.33       = a max leverage of 75
-- stakes from 200 + 1000    = a max leverage of 50
-- a stake amount of 150     = a max leverage of (10000 / 150)   = 66.66
-- stakes between 133.33-200 = a max leverage of (10000 / stake) = 50.01 -> 74.99
 
 ### Market Leverage Tiers Structure
 
