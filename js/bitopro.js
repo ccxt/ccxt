@@ -308,8 +308,8 @@ module.exports = class bitopro extends Exchange {
                 'option': false,
                 'derivative': false,
                 'contract': false,
-                'linear': false,
-                'inverse': false,
+                'linear': undefined,
+                'inverse': undefined,
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -1291,7 +1291,7 @@ module.exports = class bitopro extends Exchange {
             if (method === 'POST') {
                 body = this.json (params);
                 const payload = this.stringToBase64 (body);
-                const signature = this.hmac (payload, this.secret, 'sha384');
+                const signature = this.hmac (payload, this.encode (this.secret), 'sha384');
                 headers['X-BITOPRO-APIKEY'] = this.apiKey;
                 headers['X-BITOPRO-PAYLOAD'] = payload;
                 headers['X-BITOPRO-SIGNATURE'] = signature;
@@ -1305,7 +1305,7 @@ module.exports = class bitopro extends Exchange {
                 };
                 rawData = this.json (rawData);
                 const payload = this.stringToBase64 (rawData);
-                const signature = this.hmac (payload, this.secret, 'sha384');
+                const signature = this.hmac (payload, this.encode (this.secret), 'sha384');
                 headers['X-BITOPRO-APIKEY'] = this.apiKey;
                 headers['X-BITOPRO-PAYLOAD'] = payload;
                 headers['X-BITOPRO-SIGNATURE'] = signature;
