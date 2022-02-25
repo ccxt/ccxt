@@ -70,6 +70,7 @@ class binance extends Exchange {
                 'fetchLedger' => null,
                 'fetchLeverage' => null,
                 'fetchLeverageTiers' => true,
+                'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMyBuys' => null,
@@ -4789,7 +4790,7 @@ class binance extends Exchange {
         return $this->options['leverageBrackets'];
     }
 
-    public function fetch_leverage_tiers($symbol = null, $params = array ()) {
+    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
         yield $this->load_markets();
         list($type, $query) = $this->handle_market_type_and_params('fetchLeverageTiers', null, $params);
         $method = null;
@@ -4819,38 +4820,46 @@ class binance extends Exchange {
         //        }
         //    )
         //
-        $leverageBrackets = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $entry = $response[$i];
-            $marketId = $this->safe_string($entry, 'symbol');
-            $safeSymbol = $this->safe_symbol($marketId);
-            $market = array( 'base' => null );
-            if (is_array($this->markets) && array_key_exists($safeSymbol, $this->markets)) {
-                $market = $this->market($safeSymbol);
+        return $this->parse_leverage_tiers($response, $symbols, 'symbol');
+    }
+
+    public function parse_market_leverage_tiers($info, $market) {
+        /**
+            @param $info => Exchange response for 1 $market
+            {
+                "symbol" => "SUSHIUSDT",
+                "brackets" => array(
+                    array(
+                        "bracket" => 1,
+                        "initialLeverage" => 50,
+                        "notionalCap" => 50000,
+                        "notionalFloor" => 0,
+                        "maintMarginRatio" => 0.01,
+                        "cum" => 0.0
+                    ),
+                    ...
+                )
             }
-            $brackets = $this->safe_value($entry, 'brackets');
-            $result = array();
-            for ($j = 0; $j < count($brackets); $j++) {
-                $bracket = $brackets[$j];
-                $result[] = array(
-                    'tier' => $this->safe_number($bracket, 'bracket'),
-                    'currency' => $market['quote'],
-                    'notionalFloor' => $this->safe_float_2($bracket, 'notionalFloor', 'qtyFloor'),
-                    'notionalCap' => $this->safe_number($bracket, 'notionalCap'),
-                    'maintenanceMarginRate' => $this->safe_number($bracket, 'maintMarginRatio'),
-                    'maxLeverage' => $this->safe_number($bracket, 'initialLeverage'),
-                    'info' => $bracket,
-                );
-            }
-            $leverageBrackets[$safeSymbol] = $result;
+            @param $market => CCXT $market
+        */
+        $marketId = $this->safe_string($info, 'symbol');
+        $safeSymbol = $this->safe_symbol($marketId);
+        $market = $this->safe_market($safeSymbol, $market);
+        $brackets = $this->safe_value($info, 'brackets');
+        $tiers = array();
+        for ($j = 0; $j < count($brackets); $j++) {
+            $bracket = $brackets[$j];
+            $tiers[] = array(
+                'tier' => $this->safe_number($bracket, 'bracket'),
+                'currency' => $market['quote'],
+                'notionalFloor' => $this->safe_float_2($bracket, 'notionalFloor', 'qtyFloor'),
+                'notionalCap' => $this->safe_number($bracket, 'notionalCap'),
+                'maintenanceMarginRate' => $this->safe_number($bracket, 'maintMarginRatio'),
+                'maxLeverage' => $this->safe_number($bracket, 'initialLeverage'),
+                'info' => $bracket,
+            );
         }
-        if ($symbol !== null) {
-            $result = array();
-            $result[$symbol] = $this->safe_value($leverageBrackets, $symbol);
-            return $result;
-        } else {
-            return $leverageBrackets;
-        }
+        return $tiers;
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {

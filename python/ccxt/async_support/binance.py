@@ -84,6 +84,7 @@ class binance(Exchange):
                 'fetchLedger': None,
                 'fetchLeverage': None,
                 'fetchLeverageTiers': True,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
                 'fetchMyBuys': None,
@@ -4549,7 +4550,7 @@ class binance(Exchange):
                 self.options['leverageBrackets'][symbol] = result
         return self.options['leverageBrackets']
 
-    async def fetch_leverage_tiers(self, symbol=None, params={}):
+    async def fetch_leverage_tiers(self, symbols=None, params={}):
         await self.load_markets()
         type, query = self.handle_market_type_and_params('fetchLeverageTiers', None, params)
         method = None
@@ -4578,34 +4579,43 @@ class binance(Exchange):
         #        }
         #    ]
         #
-        leverageBrackets = {}
-        for i in range(0, len(response)):
-            entry = response[i]
-            marketId = self.safe_string(entry, 'symbol')
-            safeSymbol = self.safe_symbol(marketId)
-            market = {'base': None}
-            if safeSymbol in self.markets:
-                market = self.market(safeSymbol)
-            brackets = self.safe_value(entry, 'brackets')
-            result = []
-            for j in range(0, len(brackets)):
-                bracket = brackets[j]
-                result.append({
-                    'tier': self.safe_number(bracket, 'bracket'),
-                    'currency': market['quote'],
-                    'notionalFloor': self.safe_float_2(bracket, 'notionalFloor', 'qtyFloor'),
-                    'notionalCap': self.safe_number(bracket, 'notionalCap'),
-                    'maintenanceMarginRate': self.safe_number(bracket, 'maintMarginRatio'),
-                    'maxLeverage': self.safe_number(bracket, 'initialLeverage'),
-                    'info': bracket,
-                })
-            leverageBrackets[safeSymbol] = result
-        if symbol is not None:
-            result = {}
-            result[symbol] = self.safe_value(leverageBrackets, symbol)
-            return result
-        else:
-            return leverageBrackets
+        return self.parse_leverage_tiers(response, symbols, 'symbol')
+
+    def parse_market_leverage_tiers(self, info, market):
+        '''
+            @param info: Exchange response for 1 market
+            {
+                "symbol": "SUSHIUSDT",
+                "brackets": [
+                    {
+                        "bracket": 1,
+                        "initialLeverage": 50,
+                        "notionalCap": 50000,
+                        "notionalFloor": 0,
+                        "maintMarginRatio": 0.01,
+                        "cum": 0.0
+                    },
+                    ...
+                ]
+            @param market: CCXT market
+       '''
+        marketId = self.safe_string(info, 'symbol')
+        safeSymbol = self.safe_symbol(marketId)
+        market = self.safe_market(safeSymbol, market)
+        brackets = self.safe_value(info, 'brackets')
+        tiers = []
+        for j in range(0, len(brackets)):
+            bracket = brackets[j]
+            tiers.append({
+                'tier': self.safe_number(bracket, 'bracket'),
+                'currency': market['quote'],
+                'notionalFloor': self.safe_float_2(bracket, 'notionalFloor', 'qtyFloor'),
+                'notionalCap': self.safe_number(bracket, 'notionalCap'),
+                'maintenanceMarginRate': self.safe_number(bracket, 'maintMarginRatio'),
+                'maxLeverage': self.safe_number(bracket, 'initialLeverage'),
+                'info': bracket,
+            })
+        return tiers
 
     async def fetch_positions(self, symbols=None, params={}):
         defaultMethod = self.safe_string(self.options, 'fetchPositions', 'positionRisk')

@@ -60,6 +60,7 @@ class mexc(Exchange):
                 'fetchIsolatedPositions': None,
                 'fetchLeverage': None,
                 'fetchLeverageTiers': True,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
                 'fetchMyTrades': True,
@@ -2326,14 +2327,8 @@ class mexc(Exchange):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    async def fetch_leverage_tiers(self, symbol=None, params={}):
+    async def fetch_leverage_tiers(self, symbols=None, params={}):
         await self.load_markets()
-        symbolDefined = (symbol is not None)
-        market = None
-        if symbolDefined:
-            market = self.market(symbol)
-            if not market['contract']:
-                raise BadRequest(self.id + ' fetchLeverageTiers() supports contract markets only')
         response = await self.contractPublicGetDetail(params)
         #
         #     {
@@ -2341,73 +2336,109 @@ class mexc(Exchange):
         #         "code":0,
         #         "data":[
         #             {
-        #                 "symbol":"BTC_USDT",
-        #                 "displayName":"BTC_USDT永续",
-        #                 "displayNameEn":"BTC_USDT SWAP",
-        #                 "positionOpenType":3,
-        #                 "baseCoin":"BTC",
-        #                 "quoteCoin":"USDT",
-        #                 "settleCoin":"USDT",
-        #                 "contractSize":0.0001,
-        #                 "minLeverage":1,
-        #                 "maxLeverage":125,
-        #                 "priceScale":2,
-        #                 "volScale":0,
-        #                 "amountScale":4,
-        #                 "priceUnit":0.5,
-        #                 "volUnit":1,
-        #                 "minVol":1,
-        #                 "maxVol":1000000,
-        #                 "bidLimitPriceRate":0.1,
-        #                 "askLimitPriceRate":0.1,
-        #                 "takerFeeRate":0.0006,
-        #                 "makerFeeRate":0.0002,
-        #                 "maintenanceMarginRate":0.004,
-        #                 "initialMarginRate":0.008,
-        #                 "riskBaseVol":10000,
-        #                 "riskIncrVol":200000,
-        #                 "riskIncrMmr":0.004,
-        #                 "riskIncrImr":0.004,
-        #                 "riskLevelLimit":5,
-        #                 "priceCoefficientVariation":0.1,
-        #                 "indexOrigin":["BINANCE","GATEIO","HUOBI","MXC"],
-        #                 "state":0,  # 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
-        #                 "isNew":false,
-        #                 "isHot":true,
-        #                 "isHidden":false
+        #                 "symbol": "BTC_USDT",
+        #                 "displayName": "BTC_USDT永续",
+        #                 "displayNameEn": "BTC_USDT SWAP",
+        #                 "positionOpenType": 3,
+        #                 "baseCoin": "BTC",
+        #                 "quoteCoin": "USDT",
+        #                 "settleCoin": "USDT",
+        #                 "contractSize": 0.0001,
+        #                 "minLeverage": 1,
+        #                 "maxLeverage": 125,
+        #                 "priceScale": 2,
+        #                 "volScale": 0,
+        #                 "amountScale": 4,
+        #                 "priceUnit": 0.5,
+        #                 "volUnit": 1,
+        #                 "minVol": 1,
+        #                 "maxVol": 1000000,
+        #                 "bidLimitPriceRate": 0.1,
+        #                 "askLimitPriceRate": 0.1,
+        #                 "takerFeeRate": 0.0006,
+        #                 "makerFeeRate": 0.0002,
+        #                 "maintenanceMarginRate": 0.004,
+        #                 "initialMarginRate": 0.008,
+        #                 "riskBaseVol": 10000,
+        #                 "riskIncrVol": 200000,
+        #                 "riskIncrMmr": 0.004,
+        #                 "riskIncrImr": 0.004,
+        #                 "riskLevelLimit": 5,
+        #                 "priceCoefficientVariation": 0.1,
+        #                 "indexOrigin": ["BINANCE","GATEIO","HUOBI","MXC"],
+        #                 "state": 0,  # 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
+        #                 "isNew": False,
+        #                 "isHot": True,
+        #                 "isHidden": False
         #             },
         #             ...
         #         ]
         #     }
         #
-        result = {}
         data = self.safe_value(response, 'data')
-        for i in range(0, len(data)):
-            item = data[i]
-            maintenanceMarginRate = self.safe_string(item, 'maintenanceMarginRate')
-            initialMarginRate = self.safe_string(item, 'initialMarginRate')
-            maxVol = self.safe_string(item, 'maxVol')
-            riskIncrVol = self.safe_string(item, 'riskIncrVol')
-            riskIncrMmr = self.safe_string(item, 'riskIncrMmr')
-            riskIncrImr = self.safe_string(item, 'riskIncrImr')
-            floor = '0'
-            tiers = []
-            quoteId = self.safe_string(item, 'quoteCoin')
-            while(Precise.string_lt(floor, maxVol)):
-                cap = Precise.string_add(floor, riskIncrVol)
-                tiers.append({
-                    'tier': self.parse_number(Precise.string_div(cap, riskIncrVol)),
-                    'currency': self.safe_currency_code(quoteId),
-                    'notionalFloor': self.parse_number(floor),
-                    'notionalCap': self.parse_number(cap),
-                    'maintenanceMarginRate': self.parse_number(maintenanceMarginRate),
-                    'maxLeverage': self.parse_number(Precise.string_div('1', initialMarginRate)),
-                    'info': item,
-                })
-                initialMarginRate = Precise.string_add(initialMarginRate, riskIncrImr)
-                maintenanceMarginRate = Precise.string_add(maintenanceMarginRate, riskIncrMmr)
-                floor = cap
-            id = self.safe_string(item, 'symbol')
-            ccxtSymbol = self.safe_symbol(id)
-            result[ccxtSymbol] = tiers
-        return self.safe_value(result, symbol) if symbolDefined else result
+        return self.parse_leverage_tiers(data, symbols, 'symbol')
+
+    def parse_market_leverage_tiers(self, info, market):
+        '''
+            @param info: Exchange response for 1 market
+            {
+                "symbol": "BTC_USDT",
+                "displayName": "BTC_USDT永续",
+                "displayNameEn": "BTC_USDT SWAP",
+                "positionOpenType": 3,
+                "baseCoin": "BTC",
+                "quoteCoin": "USDT",
+                "settleCoin": "USDT",
+                "contractSize": 0.0001,
+                "minLeverage": 1,
+                "maxLeverage": 125,
+                "priceScale": 2,
+                "volScale": 0,
+                "amountScale": 4,
+                "priceUnit": 0.5,
+                "volUnit": 1,
+                "minVol": 1,
+                "maxVol": 1000000,
+                "bidLimitPriceRate": 0.1,
+                "askLimitPriceRate": 0.1,
+                "takerFeeRate": 0.0006,
+                "makerFeeRate": 0.0002,
+                "maintenanceMarginRate": 0.004,
+                "initialMarginRate": 0.008,
+                "riskBaseVol": 10000,
+                "riskIncrVol": 200000,
+                "riskIncrMmr": 0.004,
+                "riskIncrImr": 0.004,
+                "riskLevelLimit": 5,
+                "priceCoefficientVariation": 0.1,
+                "indexOrigin": ["BINANCE","GATEIO","HUOBI","MXC"],
+                "state": 0,  # 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
+                "isNew": False,
+                "isHot": True,
+                "isHidden": False
+            @param market: CCXT market
+        '''
+        maintenanceMarginRate = self.safe_string(info, 'maintenanceMarginRate')
+        initialMarginRate = self.safe_string(info, 'initialMarginRate')
+        maxVol = self.safe_string(info, 'maxVol')
+        riskIncrVol = self.safe_string(info, 'riskIncrVol')
+        riskIncrMmr = self.safe_string(info, 'riskIncrMmr')
+        riskIncrImr = self.safe_string(info, 'riskIncrImr')
+        floor = '0'
+        tiers = []
+        quoteId = self.safe_string(info, 'quoteCoin')
+        while(Precise.string_lt(floor, maxVol)):
+            cap = Precise.string_add(floor, riskIncrVol)
+            tiers.append({
+                'tier': self.parse_number(Precise.string_div(cap, riskIncrVol)),
+                'currency': self.safe_currency_code(quoteId),
+                'notionalFloor': self.parse_number(floor),
+                'notionalCap': self.parse_number(cap),
+                'maintenanceMarginRate': self.parse_number(maintenanceMarginRate),
+                'maxLeverage': self.parse_number(Precise.string_div('1', initialMarginRate)),
+                'info': info,
+            })
+            initialMarginRate = Precise.string_add(initialMarginRate, riskIncrImr)
+            maintenanceMarginRate = Precise.string_add(maintenanceMarginRate, riskIncrMmr)
+            floor = cap
+        return tiers

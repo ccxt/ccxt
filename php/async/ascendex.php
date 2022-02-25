@@ -49,6 +49,7 @@ class ascendex extends Exchange {
                 'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => true,
+                'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchOHLCV' => true,
@@ -2270,16 +2271,8 @@ class ascendex extends Exchange {
         return yield $this->v2PrivateAccountGroupPostFuturesMarginType (array_merge($request, $params));
     }
 
-    public function fetch_leverage_tiers($symbol = null, $params = array ()) {
+    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
         yield $this->load_markets();
-        $tiers = array();
-        $symbolDefined = ($symbol !== null);
-        if ($symbolDefined) {
-            $market = $this->market($symbol);
-            if (!$market['contract']) {
-                throw new BadRequest($this->id . ' fetchLeverageTiers() supports contract markets only');
-            }
-        }
         $response = yield $this->v2PublicGetFuturesContract ($params);
         //
         //     {
@@ -2310,34 +2303,53 @@ class ascendex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data');
-        for ($i = 0; $i < count($data); $i++) {
-            $item = $data[$i];
-            $marginRequirements = $this->safe_value($item, 'marginRequirements');
-            $id = $this->safe_string($item, 'symbol');
-            $market = $this->market($id);
-            $brackets = array();
-            for ($j = 0; $j < count($marginRequirements); $j++) {
-                $bracket = $marginRequirements[$j];
-                $initialMarginRate = $this->safe_string($bracket, 'initialMarginRate');
-                $brackets[] = array(
-                    'tier' => $this->sum($j, 1),
-                    'currency' => $market['quote'],
-                    'notionalFloor' => $this->safe_number($bracket, 'positionNotionalLowerBound'),
-                    'notionalCap' => $this->safe_number($bracket, 'positionNotionalUpperBound'),
-                    'maintenanceMarginRate' => $this->safe_number($bracket, 'maintenanceMarginRate'),
-                    'maxLeverage' => $this->parse_number(Precise::string_div('1', $initialMarginRate)),
-                    'info' => $bracket,
-                );
+        return $this->parse_leverage_tiers($data, $symbols, 'symbol');
+    }
+
+    public function parse_market_leverage_tiers($info, $market = null) {
+        /**
+            @param $info => Exchange $market response for 1 $market
+            {
+                "symbol":"BTC-PERP",
+                "status":"Normal",
+                "displayName":"BTCUSDT",
+                "settlementAsset":"USDT",
+                "underlying":"BTC/USDT",
+                "tradingStartTime":1579701600000,
+                "priceFilter":array("minPrice":"1","maxPrice":"1000000","tickSize":"1"),
+                "lotSizeFilter":array("minQty":"0.0001","maxQty":"1000000000","lotSize":"0.0001"),
+                "commissionType":"Quote",
+                "commissionReserveRate":"0.001",
+                "marketOrderPriceMarkup":"0.03",
+                "marginRequirements":array(
+                    array("positionNotionalLowerBound":"0","positionNotionalUpperBound":"50000","initialMarginRate":"0.01","maintenanceMarginRate":"0.006"),
+                    array("positionNotionalLowerBound":"50000","positionNotionalUpperBound":"200000","initialMarginRate":"0.02","maintenanceMarginRate":"0.012"),
+                    array("positionNotionalLowerBound":"200000","positionNotionalUpperBound":"2000000","initialMarginRate":"0.04","maintenanceMarginRate":"0.024"),
+                    array("positionNotionalLowerBound":"2000000","positionNotionalUpperBound":"20000000","initialMarginRate":"0.1","maintenanceMarginRate":"0.06"),
+                    array("positionNotionalLowerBound":"20000000","positionNotionalUpperBound":"40000000","initialMarginRate":"0.2","maintenanceMarginRate":"0.12"),
+                    array("positionNotionalLowerBound":"40000000","positionNotionalUpperBound":"1000000000","initialMarginRate":"0.333333","maintenanceMarginRate":"0.2")
+                )
             }
-            $tiers[$market['symbol']] = $brackets;
+            @param $market => CCXT $market
+        */
+        $marginRequirements = $this->safe_value($info, 'marginRequirements');
+        $id = $this->safe_string($info, 'symbol');
+        $market = $this->safe_market($id, $market);
+        $tiers = array();
+        for ($i = 0; $i < count($marginRequirements); $i++) {
+            $tier = $marginRequirements[$i];
+            $initialMarginRate = $this->safe_string($tier, 'initialMarginRate');
+            $tiers[] = array(
+                'tier' => $this->sum($i, 1),
+                'currency' => $market['quote'],
+                'notionalFloor' => $this->safe_number($tier, 'positionNotionalLowerBound'),
+                'notionalCap' => $this->safe_number($tier, 'positionNotionalUpperBound'),
+                'maintenanceMarginRate' => $this->safe_number($tier, 'maintenanceMarginRate'),
+                'maxLeverage' => $this->parse_number(Precise::string_div('1', $initialMarginRate)),
+                'info' => $tier,
+            );
         }
-        if ($symbolDefined) {
-            $result = array();
-            $result[$symbol] = $this->safe_value($tiers, $symbol);
-            return $result;
-        } else {
-            return $tiers;
-        }
+        return $tiers;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

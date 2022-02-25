@@ -92,7 +92,8 @@ class okx(Exchange):
                 'fetchLedger': True,
                 'fetchLedgerEntry': None,
                 'fetchLeverage': True,
-                'fetchLeverageTiers': True,
+                'fetchLeverageTiers': False,
+                'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
                 'fetchMyBuys': None,
@@ -3880,10 +3881,8 @@ class okx(Exchange):
     def add_margin(self, symbol, amount, params={}):
         return self.modify_margin_helper(symbol, amount, 'add', params)
 
-    def fetch_leverage_tiers(self, symbol=None, params={}):
+    def fetch_market_leverage_tiers(self, symbol, params={}):
         self.load_markets()
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchLeverageTiers() requires a symbol argument')
         market = self.market(symbol)
         type = 'MARGIN' if market['spot'] else market['type'].upper()
         uly = self.safe_string(market['info'], 'uly')
@@ -3919,10 +3918,33 @@ class okx(Exchange):
         #    }
         #
         data = self.safe_value(response, 'data')
-        brackets = []
-        for i in range(0, len(data)):
-            tier = data[i]
-            brackets.append({
+        return self.parse_market_leverage_tiers(data, market)
+
+    def parse_market_leverage_tiers(self, info, market=None):
+        '''
+            @param info: Exchange response for 1 market
+            [
+                {
+                    "baseMaxLoan": "500",
+                    "imr": "0.1",
+                    "instId": "ETH-USDT",
+                    "maxLever": "10",
+                    "maxSz": "500",
+                    "minSz": "0",
+                    "mmr": "0.03",
+                    "optMgnFactor": "0",
+                    "quoteMaxLoan": "200000",
+                    "tier": "1",
+                    "uly": ""
+                },
+                ...
+            ]
+            @param market: CCXT market
+       '''
+        tiers = []
+        for i in range(0, len(info)):
+            tier = info[i]
+            tiers.append({
                 'tier': self.safe_integer(tier, 'tier'),
                 'currency': market['quote'],
                 'notionalFloor': self.safe_number(tier, 'minSz'),
@@ -3931,9 +3953,7 @@ class okx(Exchange):
                 'maxLeverage': self.safe_number(tier, 'maxLever'),
                 'info': tier,
             })
-        result = {}
-        result[symbol] = brackets
-        return result
+        return tiers
 
     def set_sandbox_mode(self, enable):
         super(okx, self).set_sandbox_mode(enable)
