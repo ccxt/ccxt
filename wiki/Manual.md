@@ -2462,8 +2462,9 @@ The possible values in the `status` field are:
 - `'error'` means that either the exchange API is broken, or the implementation of the exchange in CCXT is broken
 - `'maintenance'` means regular maintenance, and the `eta` field should contain the datetime when the exchange is expected to be operational again
 
-## Fetch Leverage Tiers and Fetch Market Leverage Tiers
+## Leverage Tiers
 
+* contract only
 * These are private methods on **binance**
 
 You can obtain the absolute maximum leverage for a market by accessing `market['limits']['leverage']['max']`.
@@ -2480,7 +2481,7 @@ fetchMarketLeverageTiers(symbol, params = {})
 
 The `fetchLeverageTiers()` method can be used to obtain the maximum leverage for a market at varying position sizes. It can also be used to obtain the maintenance margin rate, and the max tradeable amount for a market when that information is not available from the market object:
 
-### Fetch Leverage Tiers Structure
+### Leverage Tiers Structure
 
 The `fetchLeverageTiers()` method will return a structure like shown below:
 
@@ -2528,7 +2529,7 @@ In the example above:
 - a stake amount of 150     = a max leverage of (10000 / 150)   = 66.66
 - stakes between 133.33-200 = a max leverage of (10000 / stake) = 50.01 -> 74.99
 
-### Fetch Market Leverage Tiers Structure
+### Market Leverage Tiers Structure
 
 The `fetchMarketLeverageTiers()` method will return a structure like shown below:
 
