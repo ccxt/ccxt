@@ -957,20 +957,77 @@ class zb(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
-        if type != 'limit':
-            raise InvalidOrder(self.id + ' allows limit orders only')
         self.load_markets()
+        market = self.market(symbol)
+        swap = market['swap']
+        spot = market['spot']
+        timeInForce = self.safe_string(params, 'timeInForce')
+        if type == 'market':
+            raise InvalidOrder(self.id + ' createOrder() on ' + market['type'] + ' markets does not allow market orders')
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'spotV1PrivateGetOrder',
+            'swap': 'contractV2PrivatePostTradeOrder',
+        })
         request = {
-            'price': self.price_to_precision(symbol, price),
             'amount': self.amount_to_precision(symbol, amount),
-            'tradeType': '1' if (side == 'buy') else '0',
-            'currency': self.market_id(symbol),
         }
-        response = self.spotV1PrivateGetOrder(self.extend(request, params))
-        return {
-            'info': response,
-            'id': response['id'],
-        }
+        if price:
+            request['price'] = self.price_to_precision(symbol, price)
+        if spot:
+            request['tradeType'] = '1' if (side == 'buy') else '0'
+            request['currency'] = market['id']
+        elif swap:
+            reduceOnly = self.safe_value(params, 'reduceOnly')
+            params = self.omit(params, 'reduceOnly')
+            if side == 'sell' and reduceOnly:
+                request['side'] = 3  # close long
+            elif side == 'buy' and reduceOnly:
+                request['side'] = 4  # close short
+            elif side == 'buy':
+                request['side'] = 1  # open long
+            elif side == 'sell':
+                request['side'] = 2  # open short
+            if type == 'limit':
+                request['action'] = 1
+            elif timeInForce == 'IOC':
+                request['action'] = 3
+            elif timeInForce == 'PO':
+                request['action'] = 4
+            elif timeInForce == 'FOK':
+                request['action'] = 5
+            else:
+                request['action'] = type
+            request['symbol'] = market['id']
+            request['clientOrderId'] = params['clientOrderId']  # OPTIONAL '^[a-zA-Z0-9-_]{1,36}$',  # The user-defined order number
+            request['extend'] = params['extend']  # OPTIONAL {"orderAlgos":[{"bizType":1,"priceType":1,"triggerPrice":"70000"},{"bizType":2,"priceType":1,"triggerPrice":"40000"}]}
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # Spot
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "操作成功",
+        #         "id": "202202224851151555"
+        #     }
+        #
+        # Swap
+        #
+        #     {
+        #         "code": 10000,
+        #         "desc": "操作成功",
+        #         "data": {
+        #             "orderId": "6901786759944937472",
+        #             "orderCode": null
+        #         }
+        #     }
+        #
+        if swap:
+            response = self.safe_value(response, 'data')
+        response['timeInForce'] = timeInForce
+        response['type'] = request['tradeType']
+        response['total_amount'] = amount
+        response['price'] = price
+        return self.parse_order(response, market)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -1158,6 +1215,8 @@ class zb(Exchange):
 
     def parse_order(self, order, market=None):
         #
+        # fetchOrder Spot
+        #
         #     {
         #         acctType: 0,
         #         currency: 'btc_usdt',
@@ -1173,9 +1232,33 @@ class zb(Exchange):
         #         useZbFee: False
         #     },
         #
+        # Spot
+        #
+        #     {
+        #         code: '1000',
+        #         message: '操作成功',
+        #         id: '202202224851151555',
+        #         type: '1',
+        #         total_amount: 0.0002,
+        #         price: 30000
+        #     }
+        #
+        # Swap
+        #
+        #     {
+        #         orderId: '6901786759944937472',
+        #         orderCode: null,
+        #         timeInForce: 'IOC',
+        #         total_amount: 0.0002,
+        #         price: 30000
+        #     }
+        #
+        orderId = self.safe_value(order, 'orderId') if market['swap'] else self.safe_value(order, 'id')
         side = self.safe_integer(order, 'type')
-        side = 'buy' if (side == 1) else 'sell'
-        type = 'limit'  # market order is not availalbe in ZB
+        if side is None:
+            side = None
+        else:
+            side = 'buy' if (side == 1) else 'sell'
         timestamp = self.safe_integer(order, 'trade_date')
         marketId = self.safe_string(order, 'currency')
         market = self.safe_market(marketId, market, '_')
@@ -1184,7 +1267,8 @@ class zb(Exchange):
         amount = self.safe_string(order, 'total_amount')
         cost = self.safe_string(order, 'trade_money')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        id = self.safe_string(order, 'id')
+        timeInForce = self.safe_string(order, 'timeInForce')
+        postOnly = (timeInForce == 'PO')
         feeCost = self.safe_number(order, 'fees')
         fee = None
         if feeCost is not None:
@@ -1200,15 +1284,15 @@ class zb(Exchange):
             }
         return self.safe_order({
             'info': order,
-            'id': id,
+            'id': orderId,
             'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'symbol': market['symbol'],
-            'type': type,
-            'timeInForce': None,
-            'postOnly': None,
+            'type': 'limit',  # market order is not available on ZB
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': None,

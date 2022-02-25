@@ -979,21 +979,83 @@ class zb extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        if ($type !== 'limit') {
-            throw new InvalidOrder($this->id . ' allows limit orders only');
-        }
         yield $this->load_markets();
+        $market = $this->market($symbol);
+        $swap = $market['swap'];
+        $spot = $market['spot'];
+        $timeInForce = $this->safe_string($params, 'timeInForce');
+        if ($type === 'market') {
+            throw new InvalidOrder($this->id . ' createOrder() on ' . $market['type'] . ' markets does not allow $market orders');
+        }
+        $method = $this->get_supported_mapping($market['type'], array(
+            'spot' => 'spotV1PrivateGetOrder',
+            'swap' => 'contractV2PrivatePostTradeOrder',
+        ));
         $request = array(
-            'price' => $this->price_to_precision($symbol, $price),
             'amount' => $this->amount_to_precision($symbol, $amount),
-            'tradeType' => ($side === 'buy') ? '1' : '0',
-            'currency' => $this->market_id($symbol),
         );
-        $response = yield $this->spotV1PrivateGetOrder (array_merge($request, $params));
-        return array(
-            'info' => $response,
-            'id' => $response['id'],
-        );
+        if ($price) {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        if ($spot) {
+            $request['tradeType'] = ($side === 'buy') ? '1' : '0';
+            $request['currency'] = $market['id'];
+        } else if ($swap) {
+            $reduceOnly = $this->safe_value($params, 'reduceOnly');
+            $params = $this->omit($params, 'reduceOnly');
+            if ($side === 'sell' && $reduceOnly) {
+                $request['side'] = 3; // close long
+            } else if ($side === 'buy' && $reduceOnly) {
+                $request['side'] = 4; // close short
+            } else if ($side === 'buy') {
+                $request['side'] = 1; // open long
+            } else if ($side === 'sell') {
+                $request['side'] = 2; // open short
+            }
+            if ($type === 'limit') {
+                $request['action'] = 1;
+            } else if ($timeInForce === 'IOC') {
+                $request['action'] = 3;
+            } else if ($timeInForce === 'PO') {
+                $request['action'] = 4;
+            } else if ($timeInForce === 'FOK') {
+                $request['action'] = 5;
+            } else {
+                $request['action'] = $type;
+            }
+            $request['symbol'] = $market['id'];
+            $request['clientOrderId'] = $params['clientOrderId']; // OPTIONAL '^[a-zA-Z0-9-_]array(1,36)$', // The user-defined order number
+            $request['extend'] = $params['extend']; // OPTIONAL array("orderAlgos":[array("bizType":1,"priceType":1,"triggerPrice":"70000"),array("bizType":2,"priceType":1,"triggerPrice":"40000")])
+        }
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        // Spot
+        //
+        //     {
+        //         "code" => 1000,
+        //         "message" => "操作成功",
+        //         "id" => "202202224851151555"
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         "code" => 10000,
+        //         "desc" => "操作成功",
+        //         "data" => {
+        //             "orderId" => "6901786759944937472",
+        //             "orderCode" => null
+        //         }
+        //     }
+        //
+        if ($swap) {
+            $response = $this->safe_value($response, 'data');
+        }
+        $response['timeInForce'] = $timeInForce;
+        $response['type'] = $request['tradeType'];
+        $response['total_amount'] = $amount;
+        $response['price'] = $price;
+        return $this->parse_order($response, $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
@@ -1202,24 +1264,51 @@ class zb extends Exchange {
 
     public function parse_order($order, $market = null) {
         //
+        // fetchOrder Spot
+        //
         //     array(
         //         acctType => 0,
         //         currency => 'btc_usdt',
         //         fees => 3.6e-7,
-        //         $id => '202102282829772463',
+        //         id => '202102282829772463',
         //         $price => 45177.5,
         //         $status => 2,
         //         total_amount => 0.0002,
         //         trade_amount => 0.0002,
         //         trade_date => 1614515104998,
         //         trade_money => 8.983712,
-        //         $type => 1,
+        //         type => 1,
         //         useZbFee => false
         //     ),
         //
+        // Spot
+        //
+        //     {
+        //         code => '1000',
+        //         message => '操作成功',
+        //         id => '202202224851151555',
+        //         type => '1',
+        //         total_amount => 0.0002,
+        //         $price => 30000
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         $orderId => '6901786759944937472',
+        //         orderCode => null,
+        //         $timeInForce => 'IOC',
+        //         total_amount => 0.0002,
+        //         $price => 30000
+        //     }
+        //
+        $orderId = $market['swap'] ? $this->safe_value($order, 'orderId') : $this->safe_value($order, 'id');
         $side = $this->safe_integer($order, 'type');
-        $side = ($side === 1) ? 'buy' : 'sell';
-        $type = 'limit'; // $market $order is not availalbe in ZB
+        if ($side === null) {
+            $side = null;
+        } else {
+            $side = ($side === 1) ? 'buy' : 'sell';
+        }
         $timestamp = $this->safe_integer($order, 'trade_date');
         $marketId = $this->safe_string($order, 'currency');
         $market = $this->safe_market($marketId, $market, '_');
@@ -1228,7 +1317,8 @@ class zb extends Exchange {
         $amount = $this->safe_string($order, 'total_amount');
         $cost = $this->safe_string($order, 'trade_money');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $id = $this->safe_string($order, 'id');
+        $timeInForce = $this->safe_string($order, 'timeInForce');
+        $postOnly = ($timeInForce === 'PO');
         $feeCost = $this->safe_number($order, 'fees');
         $fee = null;
         if ($feeCost !== null) {
@@ -1246,15 +1336,15 @@ class zb extends Exchange {
         }
         return $this->safe_order(array(
             'info' => $order,
-            'id' => $id,
+            'id' => $orderId,
             'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $market['symbol'],
-            'type' => $type,
-            'timeInForce' => null,
-            'postOnly' => null,
+            'type' => 'limit', // $market $order is not available on ZB
+            'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
