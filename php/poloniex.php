@@ -49,6 +49,7 @@ class poloniex extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,
@@ -397,7 +398,7 @@ class poloniex extends Exchange {
 
     public function fetch_trading_fees($params = array ()) {
         $this->load_markets();
-        $fees = $this->privatePostReturnFeeInfo ($params);
+        $response = $this->privatePostReturnFeeInfo ($params);
         //
         //     {
         //         makerFee => '0.00100000',
@@ -408,13 +409,19 @@ class poloniex extends Exchange {
         //         nextTier => 500000,
         //     }
         //
-        return array(
-            'info' => $fees,
-            'maker' => $this->safe_number($fees, 'makerFee'),
-            'taker' => $this->safe_number($fees, 'takerFee'),
-            'withdraw' => array(),
-            'deposit' => array(),
-        );
+        $result = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $result[$symbol] = array(
+                'info' => $response,
+                'symbol' => $symbol,
+                'maker' => $this->safe_number($response, 'makerFee'),
+                'taker' => $this->safe_number($response, 'takerFee'),
+                'percentage' => true,
+                'tierBased' => true,
+            );
+        }
+        return $result;
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
