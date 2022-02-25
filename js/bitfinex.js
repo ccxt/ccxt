@@ -461,6 +461,8 @@ module.exports = class bitfinex extends Exchange {
             const fee = {
                 'info': response,
                 'symbol': symbol,
+                'percentage': true,
+                'tierBased': true,
             };
             if (market['quote'] in fiat) {
                 fee['maker'] = makerFee2Fiat;
