@@ -372,7 +372,11 @@ module.exports = class bololex extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': [],
+            'fee': {
+                'cost': this.safeFloat (trade, 'fee'),
+                'currency': undefined,
+                'rate': undefined,
+            },
         };
     }
 
