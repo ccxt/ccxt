@@ -1414,6 +1414,11 @@ print(dir(ccxt.kraken()))           # Python
 var_dump (new \ccxt\kraken ()); // PHP
 ```
 
+**contract only and margin only**
+
+- methods in this documentation that are documented as **contract only** or **margin only** are only intended to be used for contract trading and margin trading respectively. They may work when trading in other types of markets but will most likely return irrelevant information.
+
+
 ## Synchronous vs Asynchronous Calls
 
 ### JavaScript
