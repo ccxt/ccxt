@@ -970,21 +970,83 @@ module.exports = class zb extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type !== 'limit') {
-            throw new InvalidOrder (this.id + ' allows limit orders only');
-        }
         await this.loadMarkets ();
+        const market = this.market (symbol);
+        const swap = market['swap'];
+        const spot = market['spot'];
+        const timeInForce = this.safeString (params, 'timeInForce');
+        if (type === 'market') {
+            throw new InvalidOrder (this.id + ' createOrder() on ' + market['type'] + ' markets does not allow market orders');
+        }
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'spotV1PrivateGetOrder',
+            'swap': 'contractV2PrivatePostTradeOrder',
+        });
         const request = {
-            'price': this.priceToPrecision (symbol, price),
             'amount': this.amountToPrecision (symbol, amount),
-            'tradeType': (side === 'buy') ? '1' : '0',
-            'currency': this.marketId (symbol),
         };
-        const response = await this.spotV1PrivateGetOrder (this.extend (request, params));
-        return {
-            'info': response,
-            'id': response['id'],
-        };
+        if (price) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        if (spot) {
+            request['tradeType'] = (side === 'buy') ? '1' : '0';
+            request['currency'] = market['id'];
+        } else if (swap) {
+            const reduceOnly = this.safeValue (params, 'reduceOnly');
+            params = this.omit (params, 'reduceOnly');
+            if (side === 'sell' && reduceOnly) {
+                request['side'] = 3; // close long
+            } else if (side === 'buy' && reduceOnly) {
+                request['side'] = 4; // close short
+            } else if (side === 'buy') {
+                request['side'] = 1; // open long
+            } else if (side === 'sell') {
+                request['side'] = 2; // open short
+            }
+            if (type === 'limit') {
+                request['action'] = 1;
+            } else if (timeInForce === 'IOC') {
+                request['action'] = 3;
+            } else if (timeInForce === 'PO') {
+                request['action'] = 4;
+            } else if (timeInForce === 'FOK') {
+                request['action'] = 5;
+            } else {
+                request['action'] = type;
+            }
+            request['symbol'] = market['id'];
+            request['clientOrderId'] = params['clientOrderId']; // OPTIONAL '^[a-zA-Z0-9-_]{1,36}$', // The user-defined order number
+            request['extend'] = params['extend']; // OPTIONAL {"orderAlgos":[{"bizType":1,"priceType":1,"triggerPrice":"70000"},{"bizType":2,"priceType":1,"triggerPrice":"40000"}]}
+        }
+        let response = await this[method] (this.extend (request, params));
+        //
+        // Spot
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "操作成功",
+        //         "id": "202202224851151555"
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         "code": 10000,
+        //         "desc": "操作成功",
+        //         "data": {
+        //             "orderId": "6901786759944937472",
+        //             "orderCode": null
+        //         }
+        //     }
+        //
+        if (swap) {
+            response = this.safeValue (response, 'data');
+        }
+        response['timeInForce'] = timeInForce;
+        response['type'] = request['tradeType'];
+        response['total_amount'] = amount;
+        response['price'] = price;
+        return this.parseOrder (response, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -1193,6 +1255,8 @@ module.exports = class zb extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
+        // fetchOrder Spot
+        //
         //     {
         //         acctType: 0,
         //         currency: 'btc_usdt',
@@ -1208,9 +1272,34 @@ module.exports = class zb extends Exchange {
         //         useZbFee: false
         //     },
         //
+        // Spot
+        //
+        //     {
+        //         code: '1000',
+        //         message: '操作成功',
+        //         id: '202202224851151555',
+        //         type: '1',
+        //         total_amount: 0.0002,
+        //         price: 30000
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         orderId: '6901786759944937472',
+        //         orderCode: null,
+        //         timeInForce: 'IOC',
+        //         total_amount: 0.0002,
+        //         price: 30000
+        //     }
+        //
+        const orderId = market['swap'] ? this.safeValue (order, 'orderId') : this.safeValue (order, 'id');
         let side = this.safeInteger (order, 'type');
-        side = (side === 1) ? 'buy' : 'sell';
-        const type = 'limit'; // market order is not availalbe in ZB
+        if (side === undefined) {
+            side = undefined;
+        } else {
+            side = (side === 1) ? 'buy' : 'sell';
+        }
         const timestamp = this.safeInteger (order, 'trade_date');
         const marketId = this.safeString (order, 'currency');
         market = this.safeMarket (marketId, market, '_');
@@ -1219,7 +1308,8 @@ module.exports = class zb extends Exchange {
         const amount = this.safeString (order, 'total_amount');
         const cost = this.safeString (order, 'trade_money');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const id = this.safeString (order, 'id');
+        const timeInForce = this.safeString (order, 'timeInForce');
+        const postOnly = (timeInForce === 'PO');
         const feeCost = this.safeNumber (order, 'fees');
         let fee = undefined;
         if (feeCost !== undefined) {
@@ -1237,15 +1327,15 @@ module.exports = class zb extends Exchange {
         }
         return this.safeOrder ({
             'info': order,
-            'id': id,
+            'id': orderId,
             'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': market['symbol'],
-            'type': type,
-            'timeInForce': undefined,
-            'postOnly': undefined,
+            'type': 'limit', // market order is not available on ZB
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': undefined,
