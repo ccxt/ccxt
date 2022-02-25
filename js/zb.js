@@ -1072,15 +1072,18 @@ module.exports = class zb extends Exchange {
         const market = this.market (symbol);
         const swap = market['swap'];
         const request = {
-            'pageSize': limit, // default pageSize is 10 for spot, 30 for swap
-            // 'currency': market['id'], // only applicable to SPOT
-            // 'pageIndex': 1, // only applicable to SPOT
-            // 'symbol': market['id'], // only applicable to SWAP
-            // 'pageNum': 1, // only applicable to SWAP
-            // 'type': params['type'], // only applicable to SWAP
-            // 'side': params['side'], // only applicable to SWAP
-            // 'action': params['action'], // only applicable to SWAP
+            // 'pageSize': limit, // default pageSize is 10 for spot, 30 for swap
+            // 'currency': market['id'], // spot only
+            // 'pageIndex': 1, // spot only
+            // 'symbol': market['id'], // swap only
+            // 'pageNum': 1, // swap only
+            // 'type': params['type'], // swap only
+            // 'side': params['side'], // swap only
+            // 'action': params['action'], // swap only
         };
+        if (limit !== undefined) {
+            request['pageSize'] = limit; // default pageSize is 10 for spot, 30 for swap
+        }
         const marketIdField = market['swap'] ? 'symbol' : 'currency';
         request[marketIdField] = market['id'];
         const pageNumField = market['swap'] ? 'pageNum' : 'pageIndex';
