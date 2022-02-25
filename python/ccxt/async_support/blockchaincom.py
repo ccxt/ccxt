@@ -57,6 +57,7 @@ class blockchaincom(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': False,
+                'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
@@ -480,6 +481,8 @@ class blockchaincom(Exchange):
         }
 
     async def fetch_trading_fees(self, params={}):
+        await self.load_markets()
+        response = await self.privateGetFees(params)
         #
         #     {
         #         makerRate: "0.002",
@@ -487,13 +490,18 @@ class blockchaincom(Exchange):
         #         volumeInUSD: "0.0"
         #     }
         #
-        await self.load_markets()
-        response = await self.privateGetFees()
-        return {
-            'maker': self.safe_number(response, 'makerRate'),
-            'taker': self.safe_number(response, 'takerRate'),
-            'info': response,
-        }
+        makerFee = self.safe_number(response, 'makerRate')
+        takerFee = self.safe_number(response, 'takerRate')
+        result = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': makerFee,
+                'taker': takerFee,
+            }
+        return result
 
     async def fetch_canceled_orders(self, symbol=None, since=None, limit=None, params={}):
         state = 'CANCELED'
