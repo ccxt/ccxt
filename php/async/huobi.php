@@ -106,7 +106,6 @@ class huobi extends Exchange {
                 'fetchWithdrawal' => null,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => null,
-                'loadLeverageBrackets' => null,
                 'reduceMargin' => null,
                 'setLeverage' => true,
                 'setMarginMode' => false,
