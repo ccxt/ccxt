@@ -736,23 +736,6 @@ module.exports = class Exchange {
         }
         if (this.has[multiMarketMethod] && this.has[emulatedMethod] === undefined) {
             this.has[emulatedMethod] = 'emulated';
-            this[emulatedMethod] = async (symbol, ...args) => {
-                const response = await this[multiMarketMethod] ([symbol], ...args);
-                let item = undefined;
-                if (Array.isArray (response)) {
-                    item = response.filter(item['symbol'] === symbol)[0];
-                } else if (response instanceof Object) {
-                    item = response[symbol]
-                }
-                if (item === undefined) {
-                    throw new InvalidAddress (this.id + ' ' + emulatedMethod + ' could not get data for ' + symbol);
-                }
-                return item;
-            }
-        } else {
-            this[emulatedMethod] = (symbol, ...args) => {
-                throw new NotSupported (this.id + ' ' + emulatedMethod + ' not supported yet');
-            }
         }
     }
 
