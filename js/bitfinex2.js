@@ -1666,9 +1666,7 @@ module.exports = class bitfinex2 extends bitfinex {
         //         { leo_lev: '0', leo_amount_avg: '0' }
         //     ]
         //
-        const result = {
-            'info': response,
-        };
+        const result = {};
         const fiat = this.safeValue (this.options, 'fiat', {});
         const feeData = this.safeValue (response, 4, []);
         const makerData = this.safeValue (feeData, 0, []);
@@ -1683,7 +1681,7 @@ module.exports = class bitfinex2 extends bitfinex {
             const symbol = this.symbols[i];
             const market = this.market (symbol);
             const fee = {
-                'info': {},
+                'info': response,
                 'symbol': symbol,
             };
             if (market['quote'] in fiat) {
