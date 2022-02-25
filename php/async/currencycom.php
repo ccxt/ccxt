@@ -65,8 +65,8 @@ class currencycom extends Exchange {
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchL2OrderBook' => true,
-                'fetchLedger' => null,
-                'fetchLedgerEntry' => null,
+                'fetchLedger' => true,
+                'fetchLedgerEntry' => false,
                 'fetchLeverage' => true,
                 'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
@@ -1377,6 +1377,101 @@ class currencycom extends Exchange {
         $types = array(
             'deposit' => 'deposit',
             'withdrawal' => 'withdrawal',
+        );
+        return $this->safe_string($types, $type, $type);
+    }
+
+    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $request = array();
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = yield $this->privateGetV2Ledger (array_merge($request, $params));
+        // in the below example, first item expresses withdrawal/deposit type, second example expresses trade
+        //
+        // array(
+        //     array(
+        //       "id" => "619031398",
+        //       "balance" => "0.0",
+        //       "amount" => "-1.088",
+        //       "currency" => "CAKE",
+        //       "type" => "withdrawal",
+        //       "timestamp" => "1645460496425",
+        //       "commission" => "0.13",
+        //       "paymentMethod" => "BLOCKCHAIN", // present in withdrawal/deposit
+        //       "blockchainTransactionHash" => "0x400ac905557c3d34638b1c60eba110b3ee0f97f4eb0f7318015ab76e7f16b7d6", // present in withdrawal/deposit
+        //       "status" => "PROCESSED"
+        //     ),
+        //     array(
+        //       "id" => "619031034",
+        //       "balance" => "8.17223588",
+        //       "amount" => "-0.01326294",
+        //       "currency" => "USD",
+        //       "type" => "exchange_commission",
+        //       "timestamp" => "1645460461235",
+        //       "commission" => "0.01326294",
+        //       "status" => "PROCESSED"
+        //     ),
+        // )
+        //
+        return $this->parse_ledger($response, $currency, $since, $limit);
+    }
+
+    public function parse_ledger_entry($item, $currency = null) {
+        $id = $this->safe_string($item, 'id');
+        $amountString = $this->safe_string($item, 'amount');
+        $amount = Precise::string_abs($amountString);
+        $timestamp = $this->safe_integer($item, 'timestamp');
+        $currencyId = $this->safe_string($item, 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $feeCost = $this->safe_string($item, 'commission');
+        $fee = null;
+        if ($feeCost !== null) {
+            $fee = array( 'currency' => $code, 'cost' => $feeCost );
+        }
+        $direction = Precise::string_lt($amountString, '0') ? 'out' : 'in';
+        $result = array(
+            'id' => $id,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'direction' => $direction,
+            'account' => null,
+            'referenceId' => $this->safe_string($item, 'blockchainTransactionHash'),
+            'referenceAccount' => null,
+            'type' => $this->parse_ledger_entry_type($this->safe_string($item, 'type')),
+            'currency' => $code,
+            'amount' => $amount,
+            'before' => null,
+            'after' => $this->safe_string($item, 'balance'),
+            'status' => $this->parse_ledger_entry_status($this->safe_string($item, 'status')),
+            'fee' => $fee,
+            'info' => $item,
+        );
+        return $result;
+    }
+
+    public function parse_ledger_entry_status($status) {
+        $statuses = array(
+            'APPROVAL' => 'pending',
+            'PROCESSED' => 'ok',
+            'CANCELLED' => 'canceled',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_ledger_entry_type($type) {
+        $types = array(
+            'deposit' => 'transaction',
+            'withdrawal' => 'transaction',
+            'exchange_commission' => 'fee',
         );
         return $this->safe_string($types, $type, $type);
     }
