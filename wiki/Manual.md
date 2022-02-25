@@ -2572,6 +2572,117 @@ In the example above:
 - a stake amount of 150     = a max leverage of (10000 / 150)   = 66.66
 - stakes between 133.33-200 = a max leverage of (10000 / stake) = 50.01 -> 74.99
 
+## Funding Rate and Funding Rates
+
+- contract only
+
+Data on the current, most recent, and next funding rates can be obtained using the methods
+
+- `fetchFundingRates ()` for all market symbols
+- `fetchFundingRates ([ symbol1, symbol2, ... ])` for multiple market symbols
+- `fetchFundingRate (symbol)` for a single market symbol
+
+```Javascript
+fetchFundingRate (symbol, params = {})
+```
+
+- **symbol** (String) Unified CCXT symbol, required (e.g. `"BTC/USDT:USDT"`)
+- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+```Javascript
+fetchFundingRates (symbols = undefined, params = {})
+```
+
+- **symbols** (Array[String]) An optional array/list of unified CCXT symbols (e.g. `["BTC/USDT:USDT", "ETH/USDT:USDT"]`)
+- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+
+### Funding Rate Structure
+
+The `fetchFundingRate()` method will return a structure like shown below:
+
+```Javascript
+{
+  info: { ... },
+  symbol: 'BTC/USDT:USDT',
+  markPrice: 39294.43,
+  indexPrice: 39291.78,
+  interestRate: 0.0003,
+  estimatedSettlePrice: undefined,
+  timestamp: undefined,
+  datetime: undefined,
+  fundingRate: 0.000072,
+  fundingTimestamp: 1645833600000,
+  fundingDatetime: '2022-02-26T00:00:00.000Z',
+  nextFundingRate: -0.000018,
+  nextFundingTimestamp: undefined,
+  nextFundingDatetime: undefined,
+  previousFundingRate: undefined,
+  previousFundingTimestamp: undefined,
+  previousFundingDatetime: undefined
+}
+```
+
+### Funding Rates Structure
+
+The `fetchFundingRates()` method will return a structure like shown below:
+
+```Javascript
+{
+    'BTC/USDT:USDT': {
+        info: { ... },
+        symbol: 'BTC/USDT:USDT',
+        markPrice: 39294.43,
+        indexPrice: 39291.78,
+        interestRate: 0.0003,
+        estimatedSettlePrice: undefined,
+        timestamp: undefined,
+        datetime: undefined,
+        fundingRate: 0.000072,
+        fundingTimestamp: 1645833600000,
+        fundingDatetime: '2022-02-26T00:00:00.000Z',
+        nextFundingRate: -0.000018,
+        nextFundingTimestamp: undefined,
+        nextFundingDatetime: undefined,
+        previousFundingRate: undefined,
+        previousFundingTimestamp: undefined,
+        previousFundingDatetime: undefined
+    },
+    ...
+}
+```
+
+## Funding Rate History 
+
+- contract only
+
+```Javascript
+fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {})
+```
+
+- **symbol** (String) Unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
+- **since** (Integer) Timestamp for the earliest funding rate (e.g. `1645807945000`)
+- **limit** (Integer) The maximum number of funding rates to retrieve (e.g. `10`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+### Funding Rate History Structure
+
+The `fetchFundingRateHistory()` method will return a structure like shown below:
+
+```Javascript
+[
+    {
+        info: { ... },
+        symbol: "BTC/USDT:USDT",
+        fundingRate: -0.000068,
+        timestamp: 1642953600000,
+        datetime: "2022-01-23T16:00:00.000Z"
+    },
+    ...
+]
+```
+
+
 # Private API
 
 - [Authentication](#authentication)
