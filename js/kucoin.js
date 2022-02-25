@@ -814,17 +814,18 @@ module.exports = class kucoin extends ccxt.kucoin {
         }
         const selectedType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'trade'); // trade, main, margin or other
         const accountsByType = this.safeValue (this.options, 'accountsByType');
-        const uniformType = this.safeString (accountsByType, requestAccountType);
-        if (uniformType === selectedType) {
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (data, 'available');
-            account['used'] = this.safeString (data, 'hold');
-            account['total'] = this.safeString (data, 'total');
-            this.balance[code] = account;
-            this.balance = this.safeBalance (this.balance);
-            client.resolve (this.balance, messageHash);
+        const uniformType = this.safeString (accountsByType, requestAccountType, 'trade');
+        if (!(uniformType in this.balance)) {
+            this.balance[uniformType] = {};
         }
+        const code = this.safeCurrencyCode (currencyId);
+        const account = this.account ();
+        account['free'] = this.safeString (data, 'available');
+        account['used'] = this.safeString (data, 'hold');
+        account['total'] = this.safeString (data, 'total');
+        this.balance[selectedType][code] = account;
+        this.balance[selectedType] = this.safeBalance (this.balance[selectedType]);
+        client.resolve (this.balance[selectedType], messageHash);
     }
 
     handleSubject (client, message) {
