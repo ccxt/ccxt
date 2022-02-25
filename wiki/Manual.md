@@ -2578,8 +2578,9 @@ In the example above:
 
 Data on the current, most recent, and next funding rates can be obtained using the methods
 
-- `fetchFundingRates ([ symbol1, symbol2, symbol3, ... ])` (for all or multiple market symbols)
-- `fetchFundingRate (symbol)` (for a single market symbol)
+- `fetchFundingRates ()` for all market symbols
+- `fetchFundingRates ([ symbol1, symbol2, ... ])` for multiple market symbols
+- `fetchFundingRate (symbol)` for a single market symbol
 
 ```Javascript
 fetchFundingRate (symbol, params = {})
