@@ -619,13 +619,11 @@ module.exports = class currencycom extends Exchange {
         //
         const makerFee = this.safeNumber (response, 'makerCommission');
         const takerFee = this.safeNumber (response, 'takerCommission');
-        const result = {
-            'info': response,
-        };
+        const result = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             result[symbol] = {
-                'info': {},
+                'info': response,
                 'symbol': symbol,
                 'maker': makerFee,
                 'taker': takerFee,
