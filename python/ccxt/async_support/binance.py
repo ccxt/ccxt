@@ -12,6 +12,7 @@ from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import MarginModeAlreadySet
 from ccxt.base.errors import BadResponse
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -804,6 +805,12 @@ class binance(Exchange):
                 'defaultType': 'spot',  # 'spot', 'future', 'margin', 'delivery'
                 'hasAlreadyAuthenticatedSuccessfully': False,
                 'warnOnFetchOpenOrdersWithoutSymbol': True,
+                # not an error
+                # https://github.com/ccxt/ccxt/issues/11268
+                # https://github.com/ccxt/ccxt/pull/11624
+                # POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
+                # binanceusdm
+                'throwMarginModeAlreadySet': False,
                 'fetchPositions': 'positionRisk',  # or 'account'
                 'recvWindow': 5 * 1000,  # 5 sec, binance default
                 'timeDifference': 0,  # the difference between system clock and Binance clock
@@ -4807,7 +4814,22 @@ class binance(Exchange):
             'symbol': market['id'],
             'marginType': marginType,
         }
-        return await getattr(self, method)(self.extend(request, params))
+        response = None
+        try:
+            response = await getattr(self, method)(self.extend(request, params))
+        except Exception as e:
+            # not an error
+            # https://github.com/ccxt/ccxt/issues/11268
+            # https://github.com/ccxt/ccxt/pull/11624
+            # POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
+            # binanceusdm
+            if isinstance(e, MarginModeAlreadySet):
+                throwMarginModeAlreadySet = self.safe_value(self.options, 'throwMarginModeAlreadySet', False)
+                if throwMarginModeAlreadySet:
+                    raise e
+                else:
+                    response = {'code': -4046, 'msg': 'No need to change margin type.'}
+        return response
 
     async def set_position_mode(self, hedged, symbol=None, params={}):
         defaultType = self.safe_string(self.options, 'defaultType', 'future')
@@ -4935,14 +4957,14 @@ class binance(Exchange):
             # on a temporary ban, the API key is valid, but disabled for a while
             if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
                 raise DDoSProtection(self.id + ' temporary banned: ' + body)
+            feedback = self.id + ' ' + body
             if message == 'No need to change margin type.':
                 # not an error
                 # https://github.com/ccxt/ccxt/issues/11268
                 # https://github.com/ccxt/ccxt/pull/11624
                 # POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
                 # binanceusdm {"code":-4046,"msg":"No need to change margin type."}
-                return True
-            feedback = self.id + ' ' + body
+                raise MarginModeAlreadySet(feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
             raise ExchangeError(feedback)
         if not success:
