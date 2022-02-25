@@ -1255,15 +1255,15 @@ module.exports = class currencycom extends Exchange {
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchTransactionsByMethod ('privateGetV2Deposits', code, since, limit, params);
+        return await this.fetchTransactionsByMethod ('privateGetV2Deposits', code, since, limit, params);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchTransactionsByMethod ('privateGetV2Withdrawals', code, since, limit, params);
+        return await this.fetchTransactionsByMethod ('privateGetV2Withdrawals', code, since, limit, params);
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchTransactionsByMethod ('privateGetV2Transactions', code, since, limit, params);
+        return await this.fetchTransactionsByMethod ('privateGetV2Transactions', code, since, limit, params);
     }
 
     async fetchTransactionsByMethod (method, code = undefined, since = undefined, limit = undefined, params = {}) {
