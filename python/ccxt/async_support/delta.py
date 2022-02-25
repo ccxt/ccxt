@@ -43,6 +43,8 @@ class delta(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchLedger': True,
+                'fetchLeverageTiers': False,  # An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,

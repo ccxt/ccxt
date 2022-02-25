@@ -939,14 +939,13 @@ class currencycom extends Exchange {
         $id = $this->safe_string_2($trade, 'a', 'id');
         $side = null;
         $orderId = $this->safe_string($trade, 'orderId');
+        $takerOrMaker = null;
         if (is_array($trade) && array_key_exists('m', $trade)) {
-            $side = $trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
-        } else if (is_array($trade) && array_key_exists('isBuyerMaker', $trade)) {
-            $side = $trade['isBuyerMaker'] ? 'sell' : 'buy';
-        } else {
-            if (is_array($trade) && array_key_exists('isBuyer', $trade)) {
-                $side = ($trade['isBuyer']) ? 'buy' : 'sell'; // this is a true $side
-            }
+            $side = $trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally [TODO => needs reason to be mentioned]
+            $takerOrMaker = 'taker'; // in public trades, it's always taker
+        } else if (is_array($trade) && array_key_exists('isBuyer', $trade)) {
+            $side = ($trade['isBuyer']) ? 'buy' : 'sell'; // this is a true $side
+            $takerOrMaker = $trade['isMaker'] ? 'maker' : 'taker';
         }
         $fee = null;
         if (is_array($trade) && array_key_exists('commission', $trade)) {
@@ -955,19 +954,14 @@ class currencycom extends Exchange {
                 'currency' => $this->safe_currency_code($this->safe_string($trade, 'commissionAsset')),
             );
         }
-        $takerOrMaker = null;
-        if (is_array($trade) && array_key_exists('isMaker', $trade)) {
-            $takerOrMaker = $trade['isMaker'] ? 'maker' : 'taker';
-        }
         $marketId = $this->safe_string($trade, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         return $this->safe_trade(array(
-            'info' => $trade,
+            'id' => $id,
+            'order' => $orderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
-            'id' => $id,
-            'order' => $orderId,
             'type' => null,
             'takerOrMaker' => $takerOrMaker,
             'side' => $side,
@@ -975,6 +969,7 @@ class currencycom extends Exchange {
             'amount' => $amountString,
             'cost' => null,
             'fee' => $fee,
+            'info' => $trade,
         ), $market);
     }
 
