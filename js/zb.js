@@ -1225,18 +1225,37 @@ module.exports = class zb extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + 'fetchOpenOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const swap = market['swap'];
         const request = {
-            'currency': market['id'],
-            'pageIndex': 1, // default pageIndex is 1
-            'pageSize': limit, // default pageSize is 10
+            // 'pageSize': limit, // default pageSize is 10 for spot, 30 for swap
+            // 'currency': market['id'], // spot only
+            // 'pageIndex': 1, // spot only
+            // 'symbol': market['id'], // swap only
+            // 'pageNum': 1, // swap only
+            // 'type': params['type'], // swap only
+            // 'side': params['side'], // swap only
+            // 'action': params['action'], // swap only
         };
-        let method = 'spotV1PrivateGetGetUnfinishedOrdersIgnoreTradeType';
+        if (limit !== undefined) {
+            request['pageSize'] = limit; // default pageSize is 10 for spot, 30 for swap
+        }
+        const marketIdField = market['swap'] ? 'symbol' : 'currency';
+        request[marketIdField] = market['id'];
+        const pageNumField = market['swap'] ? 'pageNum' : 'pageIndex';
+        request[pageNumField] = 1;
+        if (swap && (since !== undefined)) {
+            request['startTime'] = since;
+        }
+        let method = this.getSupportedMapping (market['type'], {
+            'spot': 'spotV1PrivateGetGetUnfinishedOrdersIgnoreTradeType',
+            'swap': 'contractV2PrivateGetTradeGetUndoneOrders',
+        });
         // tradeType 交易类型1/0[buy/sell]
         if ('tradeType' in params) {
             method = 'spotV1PrivateGetGetOrdersNew';
@@ -1249,6 +1268,69 @@ module.exports = class zb extends Exchange {
                 return [];
             }
             throw e;
+        }
+        //
+        // Spot
+        //
+        //     [
+        //         {
+        //             "currency": "btc_usdt",
+        //             "id": "20150928158614292",
+        //             "price": 1560,
+        //             "status": 3,
+        //             "total_amount": 0.1,
+        //             "trade_amount": 0,
+        //             "trade_date": 1443410396717,
+        //             "trade_money": 0,
+        //             "type": 0,
+        //             "fees": "0.03",
+        //             "useZbFee": true
+        //         },
+        //     ]
+        //
+        // Swap
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "action": 1,
+        //                     "amount": "0.003",
+        //                     "availableAmount": "0.003",
+        //                     "availableValue": "90",
+        //                     "avgPrice": "0",
+        //                     "canCancel": true,
+        //                     "cancelStatus": 20,
+        //                     "createTime": "1645694610880",
+        //                     "entrustType": 1,
+        //                     "id": "6902543489192632320",
+        //                     "leverage": 5,
+        //                     "margin": "18",
+        //                     "marketId": "100",
+        //                     "modifyTime": "1645694610883",
+        //                     "price": "30000",
+        //                     "priority": 0,
+        //                     "showStatus": 1,
+        //                     "side": 1,
+        //                     "sourceType": 1,
+        //                     "status": 12,
+        //                     "tradeAmount": "0",
+        //                     "tradeValue": "0",
+        //                     "type": 1,
+        //                     "userId": "6896693805014120448",
+        //                     "value": "90"
+        //                 }
+        //             ],
+        //             "pageNum": 1,
+        //             "pageSize": 30
+        //         },
+        //         "desc": "操作成功"
+        //     }
+        //
+        if (swap) {
+            const data = this.safeValue (response, 'data', {});
+            response = this.safeValue (data, 'list', []);
         }
         return this.parseOrders (response, market, since, limit);
     }
