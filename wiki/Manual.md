@@ -2578,22 +2578,22 @@ In the example above:
 
 Data on the current, most recent, and next funding rates can be obtained using the methods
 
-- `fetchFundingRates()` (multiple symbols)
-- `fetchFundingRate()` (single symbol)
+- `fetchFundingRates ([ symbol1, symbol2, symbol3, ... ])` (for all or multiple market symbols)
+- `fetchFundingRate (symbol)` (for a single market symbol)
 
 ```Javascript
 fetchFundingRate (symbol, params = {})
 ```
 
-- **symbol** (String) Unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
-- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+- **symbol** (String) Unified CCXT symbol, required (e.g. `"BTC/USDT:USDT"`)
+- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
 ```Javascript
 fetchFundingRates (symbols = undefined, params = {})
 ```
 
-- **symbols** (Array[String]) Unified CCXT symbol (e.g. `["BTC/USDT:USDT", "ETH/USDT:USDT"]`)
-- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+- **symbols** (Array[String]) An optional array/list of unified CCXT symbols (e.g. `["BTC/USDT:USDT", "ETH/USDT:USDT"]`)
+- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
 
 ### Funding Rate Structure
@@ -2663,7 +2663,6 @@ fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefine
 - **since** (Integer) Timestamp for the earliest funding rate (e.g. `1645807945000`)
 - **limit** (Integer) The maximum number of funding rates to retrieve (e.g. `10`)
 - **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
-
 
 ### Funding Rate History Structure
 
