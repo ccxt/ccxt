@@ -1214,13 +1214,13 @@ class currencycom(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
-        return self.fetch_transactions_by_method('privateGetV2Deposits', code, since, limit, params)
+        return await self.fetch_transactions_by_method('privateGetV2Deposits', code, since, limit, params)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
-        return self.fetch_transactions_by_method('privateGetV2Withdrawals', code, since, limit, params)
+        return await self.fetch_transactions_by_method('privateGetV2Withdrawals', code, since, limit, params)
 
     async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
-        return self.fetch_transactions_by_method('privateGetV2Transactions', code, since, limit, params)
+        return await self.fetch_transactions_by_method('privateGetV2Transactions', code, since, limit, params)
 
     async def fetch_transactions_by_method(self, method, code=None, since=None, limit=None, params={}):
         await self.load_markets()
