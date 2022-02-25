@@ -447,9 +447,7 @@ module.exports = class bitfinex extends Exchange {
         //          trade_last: null
         //     }
         //
-        const result = {
-            'info': response,
-        };
+        const result = {};
         const fiat = this.safeValue (this.options, 'fiat', {});
         const makerFee = this.safeNumber (response, 'maker_fee');
         const takerFee = this.safeNumber (response, 'taker_fee');
@@ -461,7 +459,7 @@ module.exports = class bitfinex extends Exchange {
             const symbol = this.symbols[i];
             const market = this.market (symbol);
             const fee = {
-                'info': {},
+                'info': response,
                 'symbol': symbol,
             };
             if (market['quote'] in fiat) {
