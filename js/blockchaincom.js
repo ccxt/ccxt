@@ -498,7 +498,7 @@ module.exports = class blockchaincom extends Exchange {
 
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetFees ();
+        const response = await this.privateGetFees (params);
         //
         //     {
         //         makerRate: "0.002",
