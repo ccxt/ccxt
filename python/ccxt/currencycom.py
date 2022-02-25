@@ -916,31 +916,27 @@ class currencycom(Exchange):
         id = self.safe_string_2(trade, 'a', 'id')
         side = None
         orderId = self.safe_string(trade, 'orderId')
+        takerOrMaker = None
         if 'm' in trade:
-            side = 'sell' if trade['m'] else 'buy'  # self is reversed intentionally
-        elif 'isBuyerMaker' in trade:
-            side = 'sell' if trade['isBuyerMaker'] else 'buy'
-        else:
-            if 'isBuyer' in trade:
-                side = 'buy' if (trade['isBuyer']) else 'sell'  # self is a True side
+            side = 'sell' if trade['m'] else 'buy'  # self is reversed intentionally [TODO: needs reason to be mentioned]
+            takerOrMaker = 'taker'  # in public trades, it's always taker
+        elif 'isBuyer' in trade:
+            side = 'buy' if (trade['isBuyer']) else 'sell'  # self is a True side
+            takerOrMaker = 'maker' if trade['isMaker'] else 'taker'
         fee = None
         if 'commission' in trade:
             fee = {
                 'cost': self.safe_string(trade, 'commission'),
                 'currency': self.safe_currency_code(self.safe_string(trade, 'commissionAsset')),
             }
-        takerOrMaker = None
-        if 'isMaker' in trade:
-            takerOrMaker = 'maker' if trade['isMaker'] else 'taker'
         marketId = self.safe_string(trade, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         return self.safe_trade({
-            'info': trade,
+            'id': id,
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': id,
-            'order': orderId,
             'type': None,
             'takerOrMaker': takerOrMaker,
             'side': side,
@@ -948,6 +944,7 @@ class currencycom(Exchange):
             'amount': amountString,
             'cost': None,
             'fee': fee,
+            'info': trade,
         }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
