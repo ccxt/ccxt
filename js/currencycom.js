@@ -627,6 +627,8 @@ module.exports = class currencycom extends Exchange {
                 'symbol': symbol,
                 'maker': makerFee,
                 'taker': takerFee,
+                'percentage': true,
+                'tierBased': false,
             };
         }
         return result;
