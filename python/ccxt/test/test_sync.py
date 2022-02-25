@@ -351,37 +351,37 @@ def test_balance(exchange):
 def test_symbol(exchange, symbol, code):
     dump(green('SYMBOL: ' + symbol))
     dump(green('CODE: ' + code))
-    dump('Testing fetch_ticker:' + symbol )
+    dump('Testing fetch_ticker:' + symbol)
     test_ticker(exchange, symbol)
-    dump('Testing fetch_tickers:' + symbol )
+    dump('Testing fetch_tickers:' + symbol)
     test_tickers(exchange, symbol)
-    dump('Testing fetch_ohlcv:' + symbol )
+    dump('Testing fetch_ohlcv:' + symbol)
     test_ohlcvs(exchange, symbol)
 
     if exchange.id == 'coinmarketcap':
         response = exchange.fetchGlobal()
         dump(green(response))
     else:
-        dump('Testing fetch_order_book:' + symbol )
+        dump('Testing fetch_order_book:' + symbol)
         test_order_book(exchange, symbol)
-        dump('Testing fetch_trades:' + symbol )
+        dump('Testing fetch_trades:' + symbol)
         test_trades(exchange, symbol)
         if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
             return
         if exchange.has['signIn']:
             dump('Testing sign_in')
             exchange.sign_in()
-        dump('Testing fetch_orders:' + symbol )
+        dump('Testing fetch_orders:' + symbol)
         test_orders(exchange, symbol)
-        dump('Testing fetch_open_orders:' + symbol )
+        dump('Testing fetch_open_orders:' + symbol)
         test_open_orders(exchange, symbol)
-        dump('Testing fetch_closed_orders:' + symbol )
+        dump('Testing fetch_closed_orders:' + symbol)
         test_closed_orders(exchange, symbol)
-        dump('Testing fetch_transactions:' + code )
+        dump('Testing fetch_transactions:' + code)
         test_transactions(exchange, code)
         dump('Testing fetch_balance')
         test_balance(exchange)
-        dump('Testing fetch_positions:' + symbol )
+        dump('Testing fetch_positions:' + symbol)
         test_positions(exchange, symbol)
 
 # ------------------------------------------------------------------------------
