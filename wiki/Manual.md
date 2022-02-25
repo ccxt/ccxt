@@ -2474,7 +2474,11 @@ The possible values in the `status` field are:
 
 You can obtain the absolute maximum leverage for a market by accessing `market['limits']['leverage']['max']`.
 For many contracts, the maximum leverage will depend on the size of your position.
-You can access those limits via the `fetchLeverageTiers()` (multiple symbols) and `fetchMarketLeverageTiers()` (single symbol) methods.
+
+You can access those limits by using
+
+- `fetchLeverageTiers()` (multiple symbols) 
+- `fetchMarketLeverageTiers()` (single symbol)
 
 ```Javascript
 fetchLeverageTiers(symbols = undefined, params = {})
