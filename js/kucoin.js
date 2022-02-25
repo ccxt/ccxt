@@ -776,7 +776,7 @@ module.exports = class kucoin extends ccxt.kucoin {
             'privateChannel': true,
         };
         const messageHash = topic;
-        return await this.subscribe (negotiation, topic, messageHash, undefined, undefined, this.extend (request, params));
+        return await this.subscribe (negotiation, topic, messageHash, this.handleBalanceSubscription, undefined, this.extend (request, params));
     }
 
     handleBalance (client, message) {
@@ -826,6 +826,74 @@ module.exports = class kucoin extends ccxt.kucoin {
         this.balance[selectedType][code] = account;
         this.balance[selectedType] = this.safeBalance (this.balance[selectedType]);
         client.resolve (this.balance[selectedType], messageHash);
+    }
+
+    handleBalanceSubscription (client, message, subscription) {
+        this.spawn (this.fetchBalanceSnapshot, client, message);
+    }
+
+    async fetchBalanceSnapshot (client, message) {
+        await this.loadMarkets ();
+        this.checkRequiredCredentials ();
+        const messageHash = '/account/balance';
+        const selectedType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'trade'); // trade, main, margin or other
+        const params = {
+            'type': selectedType,
+        };
+        const snapshot = await this.fetchBalance (params);
+        //
+        // {
+        //     "info":{
+        //        "code":"200000",
+        //        "data":[
+        //           {
+        //              "id":"6217a451cbe8910001ed3aa8",
+        //              "currency":"USDT",
+        //              "type":"trade",
+        //              "balance":"10",
+        //              "available":"4.995",
+        //              "holds":"5.005"
+        //           }
+        //        ]
+        //     },
+        //     "USDT":{
+        //        "free":4.995,
+        //        "used":5.005,
+        //        "total":10
+        //     },
+        //     "free":{
+        //        "USDT":4.995
+        //     },
+        //     "used":{
+        //        "USDT":5.005
+        //     },
+        //     "total":{
+        //        "USDT":10
+        //     }
+        //  }
+        //
+        const data = this.safeValue (snapshot['info'], 'data', []);
+        if (data.length > 0) {
+            const selectedType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'trade'); // trade, main, margin or other
+            for (let i = 0; i < data.length; i++) {
+                const balance = data[i];
+                const type = this.safeString (balance, 'type');
+                const accountsByType = this.safeValue (this.options, 'accountsByType');
+                const uniformType = this.safeString (accountsByType, type, 'trade');
+                if (!(uniformType in this.balance)) {
+                    this.balance[uniformType] = {};
+                }
+                const currencyId = this.safeString (balance, 'currency');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString (balance, 'available');
+                account['used'] = this.safeString (balance, 'holds');
+                account['total'] = this.safeString (balance, 'total');
+                this.balance[selectedType][code] = account;
+                this.balance[selectedType] = this.safeBalance (this.balance[selectedType]);
+            }
+            client.resolve (this.balance[selectedType], messageHash);
+        }
     }
 
     handleSubject (client, message) {
