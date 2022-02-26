@@ -707,8 +707,6 @@ class zb(Exchange):
         balances = self.safe_value(response['result'], 'coins')
         result = {
             'info': response,
-            'timestamp': None,
-            'datetime': None,
         }
         for i in range(0, len(balances)):
             balance = balances[i]
@@ -729,12 +727,119 @@ class zb(Exchange):
             result[code] = account
         return self.safe_balance(result)
 
+    def parse_swap_balance(self, response):
+        result = {
+            'info': response,
+        }
+        data = self.safe_value(response, 'data', {})
+        for i in range(0, len(data)):
+            balance = data[i]
+            #
+            #     {
+            #         "userId": "6896693805014120448",
+            #         "currencyId": "6",
+            #         "currencyName": "usdt",
+            #         "amount": "30.56585118",
+            #         "freezeAmount": "0",
+            #         "contractType": 1,
+            #         "id": "6899113714763638819",
+            #         "createTime": "1644876888934",
+            #         "modifyTime": "1645787446037",
+            #         "accountBalance": "30.56585118",
+            #         "allMargin": "0",
+            #         "allowTransferOutAmount": "30.56585118"
+            #     },
+            #
+            code = self.safe_currency_code(self.safe_string(balance, 'currencyName'))
+            account = self.account()
+            account['total'] = self.safe_string(balance, 'accountBalance')
+            account['free'] = self.safe_string(balance, 'allowTransferOutAmount')
+            account['used'] = self.safe_string(balance, 'freezeAmount')
+            result[code] = account
+        return self.safe_balance(result)
+
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.spotV1PrivateGetGetAccountInfo(params)
+        marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'spotV1PrivateGetGetAccountInfo',
+            'swap': 'contractV2PrivateGetFundBalance',
+        })
+        request = {
+            # 'futuresAccountType': 1,  # SWAP
+            # 'currencyId': currency['id'],  # SWAP
+            # 'currencyName': 'usdt',  # SWAP
+        }
+        swap = (marketType == 'swap')
+        if swap:
+            request['futuresAccountType'] = 1
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        # Spot
+        #
+        #     {
+        #         "result": {
+        #             "coins": [
+        #                 {
+        #                     "isCanWithdraw": "true",
+        #                     "canLoan": False,
+        #                     "fundstype": 51,
+        #                     "showName": "ZB",
+        #                     "isCanRecharge": "true",
+        #                     "cnName": "ZB",
+        #                     "enName": "ZB",
+        #                     "available": "0",
+        #                     "freez": "0",
+        #                     "unitTag": "ZB",
+        #                     "key": "zb",
+        #                     "unitDecimal": 8
+        #                 },
+        #             ],
+        #             "version": 1645856691340,
+        #             "base": {
+        #                 "auth_google_enabled": True,
+        #                 "auth_mobile_enabled": False,
+        #                 "trade_password_enabled": True,
+        #                 "username": "blank@gmail.com"
+        #             }
+        #         },
+        #         "leverPerm": True,
+        #         "otcPerm": False,
+        #         "assetPerm": True,
+        #         "moneyPerm": True,
+        #         "subUserPerm": True,
+        #         "entrustPerm": True
+        #     }
+        #
+        # Swap
+        #
+        #     {
+        #         "code": 10000,
+        #         "data": [
+        #             {
+        #                 "userId": "6896693805014120448",
+        #                 "currencyId": "6",
+        #                 "currencyName": "usdt",
+        #                 "amount": "30.56585118",
+        #                 "freezeAmount": "0",
+        #                 "contractType": 1,
+        #                 "id": "6899113714763638819",
+        #                 "createTime": "1644876888934",
+        #                 "modifyTime": "1645787446037",
+        #                 "accountBalance": "30.56585118",
+        #                 "allMargin": "0",
+        #                 "allowTransferOutAmount": "30.56585118"
+        #             },
+        #         ],
+        #         "desc": "操作成功"
+        #     }
+        #
         # todo: use self somehow
         # permissions = response['result']['base']
-        return self.parse_balance(response)
+        if swap:
+            return self.parse_swap_balance(response)
+        else:
+            return self.parse_balance(response)
 
     def parse_deposit_address(self, depositAddress, currency=None):
         #

@@ -701,8 +701,6 @@ class zb extends Exchange {
         $balances = $this->safe_value($response['result'], 'coins');
         $result = array(
             'info' => $response,
-            'timestamp' => null,
-            'datetime' => null,
         );
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
@@ -725,12 +723,123 @@ class zb extends Exchange {
         return $this->safe_balance($result);
     }
 
+    public function parse_swap_balance($response) {
+        $result = array(
+            'info' => $response,
+        );
+        $data = $this->safe_value($response, 'data', array());
+        for ($i = 0; $i < count($data); $i++) {
+            $balance = $data[$i];
+            //
+            //     array(
+            //         "userId" => "6896693805014120448",
+            //         "currencyId" => "6",
+            //         "currencyName" => "usdt",
+            //         "amount" => "30.56585118",
+            //         "freezeAmount" => "0",
+            //         "contractType" => 1,
+            //         "id" => "6899113714763638819",
+            //         "createTime" => "1644876888934",
+            //         "modifyTime" => "1645787446037",
+            //         "accountBalance" => "30.56585118",
+            //         "allMargin" => "0",
+            //         "allowTransferOutAmount" => "30.56585118"
+            //     ),
+            //
+            $code = $this->safe_currency_code($this->safe_string($balance, 'currencyName'));
+            $account = $this->account();
+            $account['total'] = $this->safe_string($balance, 'accountBalance');
+            $account['free'] = $this->safe_string($balance, 'allowTransferOutAmount');
+            $account['used'] = $this->safe_string($balance, 'freezeAmount');
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         $this->load_markets();
-        $response = $this->spotV1PrivateGetGetAccountInfo ($params);
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'spotV1PrivateGetGetAccountInfo',
+            'swap' => 'contractV2PrivateGetFundBalance',
+        ));
+        $request = array(
+            // 'futuresAccountType' => 1, // SWAP
+            // 'currencyId' => currency['id'], // SWAP
+            // 'currencyName' => 'usdt', // SWAP
+        );
+        $swap = ($marketType === 'swap');
+        if ($swap) {
+            $request['futuresAccountType'] = 1;
+        }
+        $response = $this->$method (array_merge($request, $query));
+        //
+        // Spot
+        //
+        //     {
+        //         "result" => {
+        //             "coins" => array(
+        //                 array(
+        //                     "isCanWithdraw" => "true",
+        //                     "canLoan" => false,
+        //                     "fundstype" => 51,
+        //                     "showName" => "ZB",
+        //                     "isCanRecharge" => "true",
+        //                     "cnName" => "ZB",
+        //                     "enName" => "ZB",
+        //                     "available" => "0",
+        //                     "freez" => "0",
+        //                     "unitTag" => "ZB",
+        //                     "key" => "zb",
+        //                     "unitDecimal" => 8
+        //                 ),
+        //             ),
+        //             "version" => 1645856691340,
+        //             "base" => array(
+        //                 "auth_google_enabled" => true,
+        //                 "auth_mobile_enabled" => false,
+        //                 "trade_password_enabled" => true,
+        //                 "username" => "blank@gmail.com"
+        //             }
+        //         ),
+        //         "leverPerm" => true,
+        //         "otcPerm" => false,
+        //         "assetPerm" => true,
+        //         "moneyPerm" => true,
+        //         "subUserPerm" => true,
+        //         "entrustPerm" => true
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         "code" => 10000,
+        //         "data" => array(
+        //             array(
+        //                 "userId" => "6896693805014120448",
+        //                 "currencyId" => "6",
+        //                 "currencyName" => "usdt",
+        //                 "amount" => "30.56585118",
+        //                 "freezeAmount" => "0",
+        //                 "contractType" => 1,
+        //                 "id" => "6899113714763638819",
+        //                 "createTime" => "1644876888934",
+        //                 "modifyTime" => "1645787446037",
+        //                 "accountBalance" => "30.56585118",
+        //                 "allMargin" => "0",
+        //                 "allowTransferOutAmount" => "30.56585118"
+        //             ),
+        //         ),
+        //         "desc" => "操作成功"
+        //     }
+        //
         // todo => use this somehow
         // $permissions = $response['result']['base'];
-        return $this->parse_balance($response);
+        if ($swap) {
+            return $this->parse_swap_balance($response);
+        } else {
+            return $this->parse_balance($response);
+        }
     }
 
     public function parse_deposit_address($depositAddress, $currency = null) {
