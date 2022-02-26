@@ -38,7 +38,6 @@ class oceanex extends Exchange {
                 'cancelOrders' => true,
                 'createMarketOrder' => true,
                 'createOrder' => true,
-                'fetchAllTradingFees' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
@@ -58,7 +57,8 @@ class oceanex extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
-                'fetchTradingFees' => null,
+                'fetchTradingFee' => null,
+                'fetchTradingFees' => true,
                 'fetchTradingLimits' => null,
             ),
             'timeframes' => array(
@@ -465,7 +465,7 @@ class oceanex extends Exchange {
         return $this->safe_timestamp($response, 'data');
     }
 
-    public function fetch_all_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()) {
         $response = yield $this->publicGetFeesTrading ($params);
         $data = $this->safe_value($response, 'data');
         $result = array();

@@ -761,6 +761,10 @@ class bitget(Exchange):
                         '1w': '604800',
                     },
                 },
+                'broker': {
+                    'spot': 'iauIBf#',
+                    'swap': 'iauIBf#',
+                },
             },
         })
 
@@ -1903,7 +1907,14 @@ class bitget(Exchange):
         request = {
             'symbol': market['id'],
         }
-        clientOrderId = self.safe_string_2(params, 'client_oid', 'clientOrderId', self.uuid())
+        clientOrderId = self.safe_string_2(params, 'client_oid', 'clientOrderId')
+        if clientOrderId is None:
+            broker = self.safe_value(self.options, 'broker')
+            if broker is not None:
+                brokerId = self.safe_string(broker, market['type'])
+                if brokerId is not None:
+                    clientOrderId = brokerId + self.uuid22()
+        request['client_oid'] = clientOrderId
         params = self.omit(params, ['client_oid', 'clientOrderId'])
         method = None
         if market['spot']:
@@ -1911,7 +1922,6 @@ class bitget(Exchange):
                 'type': market['type'],
             })
             method = 'apiPostTradeOrders'
-            request['client_oid'] = clientOrderId
             request['account_id'] = accountId
             request['method'] = 'place'
             request['side'] = side
@@ -1938,7 +1948,6 @@ class bitget(Exchange):
             # ...
         elif market['swap']:
             request['order_type'] = '0'  # '0' = Normal order, None and 0 imply a normal limit order, '1' = Post only, '2' = Fill or Kill, '3' = Immediate Or Cancel
-            request['client_oid'] = clientOrderId
             orderType = self.safe_string(params, 'type')
             if orderType is None:
                 raise ArgumentsRequired(self.id + " createOrder() requires a type parameter, '1' = open long, '2' = open short, '3' = close long, '4' = close short for " + market['type'] + ' orders')

@@ -28,11 +28,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.73.76';
+$version = '1.74.31';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.73.76';
+    const VERSION = '1.74.31';
 
     public static $loop;
     public static $kernel;
@@ -332,5 +332,18 @@ class Exchange extends \ccxt\Exchange {
         $after = $this->milliseconds();
         $this->options['timeDifference'] = $after - $server_time;
         return $this->options['timeDifference'];
+    }
+
+    public function fetch_market_leverage_tiers($symbol, $params = array()) {
+        if ($this->has['fetchLeverageTiers']) {
+            $market = yield $this->market($symbol);
+            if (!$market['contract']) {
+                throw new BadRequest($this->id + ' fetchLeverageTiers() supports contract markets only');
+            }
+            $tiers = yield $this->fetch_leverage_tiers(array($symbol));
+            return $this->safe_value($tiers, $symbol);
+        } else {
+            throw new NotSupported($this->id + 'fetch_market_leverage_tiers() is not supported yet');
+        }
     }
 }

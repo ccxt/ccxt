@@ -12,6 +12,7 @@ from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import MarginModeAlreadySet
 from ccxt.base.errors import BadResponse
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -56,7 +57,6 @@ class binance(Exchange):
                 'createReduceOnlyOrder': True,
                 'deposit': None,
                 'fetchAccounts': None,
-                'fetchAllTradingFees': None,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
                 'fetchBorrowRate': True,
@@ -85,6 +85,7 @@ class binance(Exchange):
                 'fetchLedger': None,
                 'fetchLeverage': None,
                 'fetchLeverageTiers': True,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
                 'fetchMyBuys': None,
@@ -115,7 +116,6 @@ class binance(Exchange):
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': False,
-                'loadLeverageBrackets': True,
                 'reduceMargin': True,
                 'setLeverage': True,
                 'setMarginMode': True,
@@ -805,6 +805,12 @@ class binance(Exchange):
                 'defaultType': 'spot',  # 'spot', 'future', 'margin', 'delivery'
                 'hasAlreadyAuthenticatedSuccessfully': False,
                 'warnOnFetchOpenOrdersWithoutSymbol': True,
+                # not an error
+                # https://github.com/ccxt/ccxt/issues/11268
+                # https://github.com/ccxt/ccxt/pull/11624
+                # POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
+                # binanceusdm
+                'throwMarginModeAlreadySet': False,
                 'fetchPositions': 'positionRisk',  # or 'account'
                 'recvWindow': 5 * 1000,  # 5 sec, binance default
                 'timeDifference': 0,  # the difference between system clock and Binance clock
@@ -2662,15 +2668,18 @@ class binance(Exchange):
         #     TRAILING_STOP_MARKET callbackRate
         #
         if uppercaseType == 'MARKET':
-            quoteOrderQty = self.safe_value(self.options, 'quoteOrderQty', False)
-            if quoteOrderQty:
-                quoteOrderQty = self.safe_number(params, 'quoteOrderQty')
-                precision = market['precision']['price']
-                if quoteOrderQty is not None:
-                    request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQty, TRUNCATE, precision, self.precisionMode)
-                    params = self.omit(params, 'quoteOrderQty')
-                elif price is not None:
-                    request['quoteOrderQty'] = self.decimal_to_precision(amount * price, TRUNCATE, precision, self.precisionMode)
+            if market['spot']:
+                quoteOrderQty = self.safe_value(self.options, 'quoteOrderQty', False)
+                if quoteOrderQty:
+                    quoteOrderQty = self.safe_number(params, 'quoteOrderQty')
+                    precision = market['precision']['price']
+                    if quoteOrderQty is not None:
+                        request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQty, TRUNCATE, precision, self.precisionMode)
+                        params = self.omit(params, 'quoteOrderQty')
+                    elif price is not None:
+                        request['quoteOrderQty'] = self.decimal_to_precision(amount * price, TRUNCATE, precision, self.precisionMode)
+                    else:
+                        quantityIsRequired = True
                 else:
                     quantityIsRequired = True
             else:
@@ -4547,7 +4556,7 @@ class binance(Exchange):
                 self.options['leverageBrackets'][symbol] = result
         return self.options['leverageBrackets']
 
-    async def fetch_leverage_tiers(self, symbol=None, params={}):
+    async def fetch_leverage_tiers(self, symbols=None, params={}):
         await self.load_markets()
         type, query = self.handle_market_type_and_params('fetchLeverageTiers', None, params)
         method = None
@@ -4576,34 +4585,43 @@ class binance(Exchange):
         #        }
         #    ]
         #
-        leverageBrackets = {}
-        for i in range(0, len(response)):
-            entry = response[i]
-            marketId = self.safe_string(entry, 'symbol')
-            safeSymbol = self.safe_symbol(marketId)
-            market = {'base': None}
-            if safeSymbol in self.markets:
-                market = self.market(safeSymbol)
-            brackets = self.safe_value(entry, 'brackets')
-            result = []
-            for j in range(0, len(brackets)):
-                bracket = brackets[j]
-                result.append({
-                    'tier': self.safe_number(bracket, 'bracket'),
-                    'notionalCurrency': market['quote'],
-                    'notionalFloor': self.safe_float_2(bracket, 'notionalFloor', 'qtyFloor'),
-                    'notionalCap': self.safe_number(bracket, 'notionalCap'),
-                    'maintenanceMarginRate': self.safe_number(bracket, 'maintMarginRatio'),
-                    'maxLeverage': self.safe_number(bracket, 'initialLeverage'),
-                    'info': bracket,
-                })
-            leverageBrackets[safeSymbol] = result
-        if symbol is not None:
-            result = {}
-            result[symbol] = self.safe_value(leverageBrackets, symbol)
-            return result
-        else:
-            return leverageBrackets
+        return self.parse_leverage_tiers(response, symbols, 'symbol')
+
+    def parse_market_leverage_tiers(self, info, market):
+        '''
+            @param info: Exchange response for 1 market
+            {
+                "symbol": "SUSHIUSDT",
+                "brackets": [
+                    {
+                        "bracket": 1,
+                        "initialLeverage": 50,
+                        "notionalCap": 50000,
+                        "notionalFloor": 0,
+                        "maintMarginRatio": 0.01,
+                        "cum": 0.0
+                    },
+                    ...
+                ]
+            @param market: CCXT market
+       '''
+        marketId = self.safe_string(info, 'symbol')
+        safeSymbol = self.safe_symbol(marketId)
+        market = self.safe_market(safeSymbol, market)
+        brackets = self.safe_value(info, 'brackets')
+        tiers = []
+        for j in range(0, len(brackets)):
+            bracket = brackets[j]
+            tiers.append({
+                'tier': self.safe_number(bracket, 'bracket'),
+                'currency': market['quote'],
+                'notionalFloor': self.safe_float_2(bracket, 'notionalFloor', 'qtyFloor'),
+                'notionalCap': self.safe_number(bracket, 'notionalCap'),
+                'maintenanceMarginRate': self.safe_number(bracket, 'maintMarginRatio'),
+                'maxLeverage': self.safe_number(bracket, 'initialLeverage'),
+                'info': bracket,
+            })
+        return tiers
 
     async def fetch_positions(self, symbols=None, params={}):
         defaultMethod = self.safe_string(self.options, 'fetchPositions', 'positionRisk')
@@ -4796,7 +4814,22 @@ class binance(Exchange):
             'symbol': market['id'],
             'marginType': marginType,
         }
-        return await getattr(self, method)(self.extend(request, params))
+        response = None
+        try:
+            response = await getattr(self, method)(self.extend(request, params))
+        except Exception as e:
+            # not an error
+            # https://github.com/ccxt/ccxt/issues/11268
+            # https://github.com/ccxt/ccxt/pull/11624
+            # POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
+            # binanceusdm
+            if isinstance(e, MarginModeAlreadySet):
+                throwMarginModeAlreadySet = self.safe_value(self.options, 'throwMarginModeAlreadySet', False)
+                if throwMarginModeAlreadySet:
+                    raise e
+                else:
+                    response = {'code': -4046, 'msg': 'No need to change margin type.'}
+        return response
 
     async def set_position_mode(self, hedged, symbol=None, params={}):
         defaultType = self.safe_string(self.options, 'defaultType', 'future')
@@ -4924,14 +4957,14 @@ class binance(Exchange):
             # on a temporary ban, the API key is valid, but disabled for a while
             if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
                 raise DDoSProtection(self.id + ' temporary banned: ' + body)
+            feedback = self.id + ' ' + body
             if message == 'No need to change margin type.':
                 # not an error
                 # https://github.com/ccxt/ccxt/issues/11268
                 # https://github.com/ccxt/ccxt/pull/11624
                 # POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
                 # binanceusdm {"code":-4046,"msg":"No need to change margin type."}
-                return True
-            feedback = self.id + ' ' + body
+                raise MarginModeAlreadySet(feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
             raise ExchangeError(feedback)
         if not success:

@@ -53,6 +53,7 @@ class ascendex(Exchange):
                 'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': True,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchOHLCV': True,
@@ -67,6 +68,8 @@ class ascendex(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
@@ -162,6 +165,7 @@ class ascendex(Exchange):
                                 'futures/risk',
                                 'futures/funding-payments',
                                 'order/hist',
+                                'spot/fee',
                             ],
                             'post': [
                                 'futures/transfer/deposit',
@@ -1142,6 +1146,47 @@ class ascendex(Exchange):
             'fee': fee,
             'trades': None,
         }, market)
+
+    async def fetch_trading_fees(self, params={}):
+        await self.load_markets()
+        await self.load_accounts()
+        account = self.safe_value(self.accounts, 0, {})
+        accountGroup = self.safe_string(account, 'id')
+        request = {
+            'account-group': accountGroup,
+        }
+        response = await self.v1PrivateAccountGroupGetSpotFee(self.extend(request, params))
+        #
+        #      {
+        #         code: '0',
+        #         data: {
+        #           domain: 'spot',
+        #           userUID: 'U1479576458',
+        #           vipLevel: '0',
+        #           fees: [
+        #             {symbol: 'HT/USDT', fee: {taker: '0.001', maker: '0.001'}},
+        #             {symbol: 'LAMB/BTC', fee: {taker: '0.002', maker: '0.002'}},
+        #             {symbol: 'STOS/USDT', fee: {taker: '0.002', maker: '0.002'}},
+        #             ...
+        #           ]
+        #         }
+        #      }
+        #
+        data = self.safe_value(response, 'data', {})
+        fees = self.safe_value(data, 'fees', [])
+        result = {}
+        for i in range(0, len(fees)):
+            fee = fees[i]
+            marketId = self.safe_string(fee, 'symbol')
+            symbol = self.safe_symbol(marketId, None, '/')
+            takerMaker = self.safe_value(fee, 'fee', {})
+            result[symbol] = {
+                'info': fee,
+                'symbol': symbol,
+                'maker': self.safe_number(takerMaker, 'maker'),
+                'taker': self.safe_number(takerMaker, 'taker'),
+            }
+        return result
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -2177,14 +2222,8 @@ class ascendex(Exchange):
             raise BadSymbol(self.id + ' setMarginMode() supports futures contracts only')
         return await self.v2PrivateAccountGroupPostFuturesMarginType(self.extend(request, params))
 
-    async def fetch_leverage_tiers(self, symbol=None, params={}):
+    async def fetch_leverage_tiers(self, symbols=None, params={}):
         await self.load_markets()
-        tiers = {}
-        symbolDefined = (symbol is not None)
-        if symbolDefined:
-            market = self.market(symbol)
-            if not market['contract']:
-                raise BadRequest(self.id + ' fetchLeverageTiers() supports contract markets only')
         response = await self.v2PublicGetFuturesContract(params)
         #
         #     {
@@ -2215,31 +2254,50 @@ class ascendex(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data')
-        for i in range(0, len(data)):
-            item = data[i]
-            marginRequirements = self.safe_value(item, 'marginRequirements')
-            id = self.safe_string(item, 'symbol')
-            market = self.market(id)
-            brackets = []
-            for j in range(0, len(marginRequirements)):
-                bracket = marginRequirements[j]
-                initialMarginRate = self.safe_string(bracket, 'initialMarginRate')
-                brackets.append({
-                    'tier': self.sum(j, 1),
-                    'notionalCurrency': market['quote'],
-                    'notionalFloor': self.safe_number(bracket, 'positionNotionalLowerBound'),
-                    'notionalCap': self.safe_number(bracket, 'positionNotionalUpperBound'),
-                    'maintenanceMarginRate': self.safe_number(bracket, 'maintenanceMarginRate'),
-                    'maxLeverage': self.parse_number(Precise.string_div('1', initialMarginRate)),
-                    'info': bracket,
-                })
-            tiers[market['symbol']] = brackets
-        if symbolDefined:
-            result = {}
-            result[symbol] = self.safe_value(tiers, symbol)
-            return result
-        else:
-            return tiers
+        return self.parse_leverage_tiers(data, symbols, 'symbol')
+
+    def parse_market_leverage_tiers(self, info, market=None):
+        '''
+            @param info: Exchange market response for 1 market
+            {
+                "symbol":"BTC-PERP",
+                "status":"Normal",
+                "displayName":"BTCUSDT",
+                "settlementAsset":"USDT",
+                "underlying":"BTC/USDT",
+                "tradingStartTime":1579701600000,
+                "priceFilter":{"minPrice":"1","maxPrice":"1000000","tickSize":"1"},
+                "lotSizeFilter":{"minQty":"0.0001","maxQty":"1000000000","lotSize":"0.0001"},
+                "commissionType":"Quote",
+                "commissionReserveRate":"0.001",
+                "marketOrderPriceMarkup":"0.03",
+                "marginRequirements":[
+                    {"positionNotionalLowerBound":"0","positionNotionalUpperBound":"50000","initialMarginRate":"0.01","maintenanceMarginRate":"0.006"},
+                    {"positionNotionalLowerBound":"50000","positionNotionalUpperBound":"200000","initialMarginRate":"0.02","maintenanceMarginRate":"0.012"},
+                    {"positionNotionalLowerBound":"200000","positionNotionalUpperBound":"2000000","initialMarginRate":"0.04","maintenanceMarginRate":"0.024"},
+                    {"positionNotionalLowerBound":"2000000","positionNotionalUpperBound":"20000000","initialMarginRate":"0.1","maintenanceMarginRate":"0.06"},
+                    {"positionNotionalLowerBound":"20000000","positionNotionalUpperBound":"40000000","initialMarginRate":"0.2","maintenanceMarginRate":"0.12"},
+                    {"positionNotionalLowerBound":"40000000","positionNotionalUpperBound":"1000000000","initialMarginRate":"0.333333","maintenanceMarginRate":"0.2"}
+                ]
+            @param market: CCXT market
+       '''
+        marginRequirements = self.safe_value(info, 'marginRequirements')
+        id = self.safe_string(info, 'symbol')
+        market = self.safe_market(id, market)
+        tiers = []
+        for i in range(0, len(marginRequirements)):
+            tier = marginRequirements[i]
+            initialMarginRate = self.safe_string(tier, 'initialMarginRate')
+            tiers.append({
+                'tier': self.sum(i, 1),
+                'currency': market['quote'],
+                'notionalFloor': self.safe_number(tier, 'positionNotionalLowerBound'),
+                'notionalCap': self.safe_number(tier, 'positionNotionalUpperBound'),
+                'maintenanceMarginRate': self.safe_number(tier, 'maintenanceMarginRate'),
+                'maxLeverage': self.parse_number(Precise.string_div('1', initialMarginRate)),
+                'info': tier,
+            })
+        return tiers
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         version = api[0]
@@ -2262,6 +2320,8 @@ class ascendex(Exchange):
         url += request
         if (version == 'v1') and (request == 'cash/balance') or (request == 'margin/balance'):
             request = 'balance'
+        if (version == 'v1') and (request == 'spot/fee'):
+            request = 'fee'
         if request.find('subuser') >= 0:
             parts = request.split('/')
             request = parts[2]

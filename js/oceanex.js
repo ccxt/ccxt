@@ -34,7 +34,6 @@ module.exports = class oceanex extends Exchange {
                 'cancelOrders': true,
                 'createMarketOrder': true,
                 'createOrder': true,
-                'fetchAllTradingFees': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
@@ -54,7 +53,8 @@ module.exports = class oceanex extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFees': undefined,
+                'fetchTradingFee': undefined,
+                'fetchTradingFees': true,
                 'fetchTradingLimits': undefined,
             },
             'timeframes': {
@@ -461,7 +461,7 @@ module.exports = class oceanex extends Exchange {
         return this.safeTimestamp (response, 'data');
     }
 
-    async fetchAllTradingFees (params = {}) {
+    async fetchTradingFees (params = {}) {
         const response = await this.publicGetFeesTrading (params);
         const data = this.safeValue (response, 'data');
         const result = {};

@@ -55,6 +55,7 @@ class blockchaincom extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => false,
+                'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
@@ -499,6 +500,8 @@ class blockchaincom extends Exchange {
     }
 
     public function fetch_trading_fees($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->privateGetFees ($params);
         //
         //     {
         //         makerRate => "0.002",
@@ -506,13 +509,19 @@ class blockchaincom extends Exchange {
         //         volumeInUSD => "0.0"
         //     }
         //
-        yield $this->load_markets();
-        $response = yield $this->privateGetFees ();
-        return array(
-            'maker' => $this->safe_number($response, 'makerRate'),
-            'taker' => $this->safe_number($response, 'takerRate'),
-            'info' => $response,
-        );
+        $makerFee = $this->safe_number($response, 'makerRate');
+        $takerFee = $this->safe_number($response, 'takerRate');
+        $result = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $result[$symbol] = array(
+                'info' => $response,
+                'symbol' => $symbol,
+                'maker' => $makerFee,
+                'taker' => $takerFee,
+            );
+        }
+        return $result;
     }
 
     public function fetch_canceled_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
