@@ -27,8 +27,30 @@ class huobi extends \ccxt\async\huobi {
                 'api' => array(
                     'ws' => array(
                         'api' => array(
-                            'public' => 'wss://{hostname}/ws',
-                            'private' => 'wss://{hostname}/ws/v2',
+                            'spot' => array(
+                                'public' => 'wss://{hostname}/ws',
+                                'private' => 'wss://{hostname}/ws/v2',
+                            ),
+                            'future' => array(
+                                'linear' => array(
+                                    'public' => 'wss://api.hbdm.com/linear-swap-ws',
+                                    'private' => 'wss://api.hbdm.com/linear-swap-notification',
+                                ),
+                                'inverse' => array(
+                                    'public' => 'wss://api.hbdm.com/ws',
+                                    'private' => 'wss://api.hbdm.com/notification',
+                                ),
+                            ),
+                            'swap' => array(
+                                'inverse' => array(
+                                    'public' => 'wss://api.hbdm.com/swap-ws',
+                                    'private' => 'wss://api.hbdm.com/swap-notification',
+                                ),
+                                'linear' => array(
+                                    'public' => 'wss://api.hbdm.com/linear-swap-ws',
+                                    'private' => 'wss://api.hbdm.com/linear-swap-notification',
+                                ),
+                            ),
                         ),
                         // these settings work faster for clients hosted on AWS
                         'api-aws' => array(
@@ -62,7 +84,7 @@ class huobi extends \ccxt\async\huobi {
         $messageHash = 'market.' . $market['id'] . '.detail';
         $api = $this->safe_string($this->options, 'api', 'api');
         $hostname = array( 'hostname' => $this->hostname );
-        $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
+        $url = $this->implode_params($this->urls['api']['ws'][$api]['spot']['public'], $hostname);
         $requestId = $this->request_id();
         $request = array(
             'sub' => $messageHash,
@@ -117,7 +139,7 @@ class huobi extends \ccxt\async\huobi {
         $messageHash = 'market.' . $market['id'] . '.trade.detail';
         $api = $this->safe_string($this->options, 'api', 'api');
         $hostname = array( 'hostname' => $this->hostname );
-        $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
+        $url = $this->implode_params($this->urls['api']['ws'][$api]['spot']['public'], $hostname);
         $requestId = $this->request_id();
         $request = array(
             'sub' => $messageHash,
@@ -185,7 +207,7 @@ class huobi extends \ccxt\async\huobi {
         $messageHash = 'market.' . $market['id'] . '.kline.' . $interval;
         $api = $this->safe_string($this->options, 'api', 'api');
         $hostname = array( 'hostname' => $this->hostname );
-        $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
+        $url = $this->implode_params($this->urls['api']['ws'][$api]['spot']['public'], $hostname);
         $requestId = $this->request_id();
         $request = array(
             'sub' => $messageHash,
@@ -250,24 +272,17 @@ class huobi extends \ccxt\async\huobi {
         $market = $this->market($symbol);
         // only supports a $limit of 150 at this time
         $limit = ($limit === null) ? 150 : $limit;
-        $messageHash = 'market.' . $market['id'] . '.mbp.' . (string) $limit;
-        $api = $this->safe_string($this->options, 'api', 'api');
-        $hostname = array( 'hostname' => $this->hostname );
-        $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
-        $requestId = $this->request_id();
-        $request = array(
-            'sub' => $messageHash,
-            'id' => $requestId,
-        );
-        $subscription = array(
-            'id' => $requestId,
-            'messageHash' => $messageHash,
-            'symbol' => $symbol,
-            'limit' => $limit,
-            'params' => $params,
-            'method' => array($this, 'handle_order_book_subscription'),
-        );
-        $orderbook = yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
+        $messageHash = null;
+        if ($market['spot']) {
+            $messageHash = 'market.' . $market['id'] . '.mbp.' . (string) $limit;
+        } else {
+            $messageHash = 'market.' . $market['id'] . '.depth.size_' . (string) $limit . '.high_freq';
+        }
+        $url = $this->get_url_by_market_type($market['type'], $market['linear']);
+        if (!$market['spot']) {
+            $params['data_type'] = 'incremental';
+        }
+        $orderbook = yield $this->subscribe_public($url, $symbol, $messageHash, array($this, 'handle_order_book_subscription'), $params);
         return $orderbook->limit ($limit);
     }
 
@@ -314,9 +329,8 @@ class huobi extends \ccxt\async\huobi {
         $limit = $this->safe_integer($subscription, 'limit');
         $params = $this->safe_value($subscription, 'params');
         $messageHash = $this->safe_string($subscription, 'messageHash');
-        $api = $this->safe_string($this->options, 'api', 'api');
-        $hostname = array( 'hostname' => $this->hostname );
-        $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
+        $market = $this->market($symbol);
+        $url = $this->get_url_by_market_type($market['type'], $market['linear']);
         $requestId = $this->request_id();
         $request = array(
             'req' => $messageHash,
@@ -336,6 +350,26 @@ class huobi extends \ccxt\async\huobi {
         return $orderbook->limit ($limit);
     }
 
+    public function fetch_order_book_snapshot($client, $message, $subscription) {
+        $symbol = $this->safe_string($subscription, 'symbol');
+        $limit = $this->safe_integer($subscription, 'limit');
+        $params = $this->safe_value($subscription, 'params');
+        $messageHash = $this->safe_string($subscription, 'messageHash');
+        $snapshot = yield $this->fetch_order_book($symbol, $limit, $params);
+        $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if ($orderbook !== null) {
+            $orderbook->reset ($snapshot);
+            // unroll the accumulated deltas
+            $messages = $orderbook->cache;
+            for ($i = 0; $i < count($messages); $i++) {
+                $message = $messages[$i];
+                $this->handle_order_book_message($client, $message, $orderbook);
+            }
+            $this->orderbooks[$symbol] = $orderbook;
+            $client->resolve ($orderbook, $messageHash);
+        }
+    }
+
     public function handle_delta($bookside, $delta) {
         $price = $this->safe_float($delta, 0);
         $amount = $this->safe_float($delta, 1);
@@ -349,7 +383,7 @@ class huobi extends \ccxt\async\huobi {
     }
 
     public function handle_order_book_message($client, $message, $orderbook) {
-        //
+        // spot markets
         //     {
         //         ch => "market.btcusdt.mbp.150",
         //         ts => 1583472025885,
@@ -368,16 +402,39 @@ class huobi extends \ccxt\async\huobi {
         //             ]
         //         }
         //     }
-        //
+        // non-spot market
+        //     {
+        //         "ch":"market.BTC220218.depth.size_150.high_freq",
+        //         "tick":array(
+        //            "asks":array(
+        //            ),
+        //            "bids":[
+        //               [43445.74,1],
+        //               [43444.48,0 ],
+        //               [40593.92,9]
+        //             ],
+        //            "ch":"market.BTC220218.depth.size_150.high_freq",
+        //            "event":"update",
+        //            "id":152727500274,
+        //            "mrid":152727500274,
+        //            "ts":1645023376098,
+        //            "version":37536690
+        //         ),
+        //         "ts":1645023376098
+        //      }
         $tick = $this->safe_value($message, 'tick', array());
         $seqNum = $this->safe_integer($tick, 'seqNum');
         $prevSeqNum = $this->safe_integer($tick, 'prevSeqNum');
-        if (($prevSeqNum <= $orderbook['nonce']) && ($seqNum > $orderbook['nonce'])) {
+        if ($prevSeqNum === null || (($prevSeqNum <= $orderbook['nonce']) && ($seqNum > $orderbook['nonce']))) {
             $asks = $this->safe_value($tick, 'asks', array());
             $bids = $this->safe_value($tick, 'bids', array());
             $this->handle_deltas($orderbook['asks'], $asks);
             $this->handle_deltas($orderbook['bids'], $bids);
-            $orderbook['nonce'] = $seqNum;
+            if ($seqNum !== null) {
+                $orderbook['nonce'] = $seqNum;
+            } else {
+                $orderbook['nonce'] = $this->safe_integer($tick, 'mrid');
+            }
             $timestamp = $this->safe_integer($message, 'ts');
             $orderbook['timestamp'] = $timestamp;
             $orderbook['datetime'] = $this->iso8601($timestamp);
@@ -389,6 +446,7 @@ class huobi extends \ccxt\async\huobi {
         //
         // deltas
         //
+        // spot markets
         //     {
         //         $ch => "market.btcusdt.mbp.150",
         //         ts => 1583472025885,
@@ -408,12 +466,38 @@ class huobi extends \ccxt\async\huobi {
         //         }
         //     }
         //
+        // non spot markets
+        //     {
+        //         "ch":"market.BTC220218.depth.size_150.high_freq",
+        //         "tick":array(
+        //            "asks":array(
+        //            ),
+        //            "bids":[
+        //               [43445.74,1],
+        //               [43444.48,0 ],
+        //               [40593.92,9]
+        //             ],
+        //            "ch":"market.BTC220218.depth.size_150.high_freq",
+        //            "event":"update",
+        //            "id":152727500274,
+        //            "mrid":152727500274,
+        //            "ts":1645023376098,
+        //            "version":37536690
+        //         ),
+        //         "ts":1645023376098
+        //      }
         $messageHash = $this->safe_string($message, 'ch');
         $ch = $this->safe_value($message, 'ch');
         $parts = explode('.', $ch);
         $marketId = $this->safe_string($parts, 1);
         $symbol = $this->safe_symbol($marketId);
-        $orderbook = $this->orderbooks[$symbol];
+        $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if ($orderbook === null) {
+            $size = $this->safe_string($parts, 3);
+            $sizeParts = explode('_', $size);
+            $limit = $this->safe_number($sizeParts, 1);
+            $orderbook = $this->order_book(array(), $limit);
+        }
         if ($orderbook['nonce'] === null) {
             $orderbook->cache[] = $message;
         } else {
@@ -429,8 +513,11 @@ class huobi extends \ccxt\async\huobi {
             unset($this->orderbooks[$symbol]);
         }
         $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
-        // watch the snapshot in a separate async call
-        $this->spawn(array($this, 'watch_order_book_snapshot'), $client, $message, $subscription);
+        if ($this->markets[$symbol]['spot'] === true) {
+            $this->spawn(array($this, 'watch_order_book_snapshot'), $client, $message, $subscription);
+        } else {
+            $this->spawn(array($this, 'fetch_order_book_snapshot'), $client, $message, $subscription);
+        }
     }
 
     public function handle_subscription_status($client, $message) {
@@ -473,7 +560,7 @@ class huobi extends \ccxt\async\huobi {
     }
 
     public function handle_subject($client, $message) {
-        //
+        // spot
         //     {
         //         $ch => "market.btcusdt.mbp.150",
         //         ts => 1583472025885,
@@ -492,6 +579,26 @@ class huobi extends \ccxt\async\huobi {
         //             ]
         //         }
         //     }
+        // non spot
+        //     {
+        //         "ch":"market.BTC220218.depth.size_150.high_freq",
+        //         "tick":array(
+        //            "asks":array(
+        //            ),
+        //            "bids":[
+        //               [43445.74,1],
+        //               [43444.48,0 ],
+        //               [40593.92,9]
+        //             ],
+        //            "ch":"market.BTC220218.depth.size_150.high_freq",
+        //            "event":"update",
+        //            "id":152727500274,
+        //            "mrid":152727500274,
+        //            "ts":1645023376098,
+        //            "version":37536690
+        //         ),
+        //         "ts":1645023376098
+        //      }
         //
         $ch = $this->safe_value($message, 'ch');
         $parts = explode('.', $ch);
@@ -499,6 +606,7 @@ class huobi extends \ccxt\async\huobi {
         if ($type === 'market') {
             $methodName = $this->safe_string($parts, 2);
             $methods = array(
+                'depth' => array($this, 'handle_order_book'),
                 'mbp' => array($this, 'handle_order_book'),
                 'detail' => array($this, 'handle_ticker'),
                 'trade' => array($this, 'handle_trades'),
@@ -572,5 +680,43 @@ class huobi extends \ccxt\async\huobi {
                 $this->handle_ping($client, $message);
             }
         }
+    }
+
+    public function get_url_by_market_type($type, $isLinear = true, $isPrivate = false) {
+        $api = $this->safe_string($this->options, 'api', 'api');
+        $hostname = array( 'hostname' => $this->hostname );
+        $hostnameURL = null;
+        $url = null;
+        if ($type === 'spot') {
+            if ($isPrivate) {
+                $hostnameURL = $this->urls['api']['ws'][$api]['spot']['private'];
+            } else {
+                $hostnameURL = $this->urls['api']['ws'][$api]['spot']['public'];
+            }
+            $url = $this->implode_params($hostnameURL, $hostname);
+        } else {
+            $baseUrl = $this->urls['api']['ws'][$api][$type];
+            $subTypeUrl = $isLinear ? $baseUrl['linear'] : $baseUrl['inverse'];
+            $url = $isPrivate ? $subTypeUrl['private'] : $subTypeUrl['public'];
+        }
+        return $url;
+    }
+
+    public function subscribe_public($url, $symbol, $messageHash, $method = null, $params = array ()) {
+        $requestId = $this->request_id();
+        $request = array(
+            'sub' => $messageHash,
+            'id' => $requestId,
+        );
+        $subscription = array(
+            'id' => $requestId,
+            'messageHash' => $messageHash,
+            'symbol' => $symbol,
+            'params' => $params,
+        );
+        if ($method !== null) {
+            $subscription['method'] = $method;
+        }
+        return yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
     }
 }
