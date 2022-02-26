@@ -14,6 +14,7 @@ use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
 use \ccxt\NotSupported;
 use \ccxt\ExchangeNotAvailable;
+use \ccxt\Precise;
 
 class zb extends Exchange {
 
@@ -51,6 +52,8 @@ class zb extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPosition' => true,
+                'fetchPositions' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
@@ -113,15 +116,15 @@ class zb extends Exchange {
                 ),
                 'exact' => array(
                     // '1000' => 'Successful operation',
-                    '10001' => '\\ccxt\\BaseError', // Operation failed
+                    '10001' => '\\ccxt\\ExchangeError', // Operation failed
                     '10002' => '\\ccxt\\PermissionDenied', // Operation is forbidden
                     '10003' => '\\ccxt\\BadResponse', // Data existed
                     '10004' => '\\ccxt\\BadResponse', // Date not exist
                     '10005' => '\\ccxt\\PermissionDenied', // Forbidden to access the interface
                     '10006' => '\\ccxt\\BadRequest', // Currency invalid or expired
-                    '10007' => '\\ccxt\\BaseError', // {0}
-                    '10008' => '\\ccxt\\BaseError', // Operation failed => {0}
-                    '10009' => '\\ccxt\\BaseError', // URL error
+                    '10007' => '\\ccxt\\ExchangeError', // {0}
+                    '10008' => '\\ccxt\\ExchangeError', // Operation failed => {0}
+                    '10009' => '\\ccxt\\ExchangeError', // URL error
                     '1001' => '\\ccxt\\ExchangeError', // 'General error message',
                     '10010' => '\\ccxt\\AuthenticationError', // API KEY not exist
                     '10011' => '\\ccxt\\AuthenticationError', // API KEY CLOSED
@@ -291,7 +294,7 @@ class zb extends Exchange {
                     '3012' => '\\ccxt\\InvalidOrder', // Duplicate custom customerOrderId
                     '4001' => '\\ccxt\\ExchangeNotAvailable', // 'API interface is locked or not enabled',
                     '4002' => '\\ccxt\\RateLimitExceeded', // 'Request too often',
-                    '9999' => '\\ccxt\\BaseError', // Unknown error
+                    '9999' => '\\ccxt\\ExchangeError', // Unknown error
                 ),
                 'broad' => array(
                     '提币地址有误，请先添加提币地址。' => '\\ccxt\\InvalidAddress', // array("code":1001,"message":"提币地址有误，请先添加提币地址。")
@@ -2080,6 +2083,233 @@ class zb extends Exchange {
         $datas = $this->safe_value($message, 'datas', array());
         $deposits = $this->safe_value($datas, 'list', array());
         return $this->parse_transactions($deposits, $currency, $since, $limit);
+    }
+
+    public function fetch_position($symbol, $params = array ()) {
+        yield $this->load_markets();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $request = array(
+            'futuresAccountType' => 1, // 1 => USDT-M Perpetual Futures
+            // 'symbol' => $market['id'],
+            // 'marketId' => $market['id'],
+            // 'side' => $params['side'],
+        );
+        $response = yield $this->contractV2PrivateGetPositionsGetPositions (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 10000,
+        //         "data" => array(
+        //             {
+        //                 "amount" => "0.002",
+        //                 "appendAmount" => "0",
+        //                 "autoLightenRatio" => "0",
+        //                 "avgPrice" => "38570",
+        //                 "bankruptcyPrice" => "46288.41",
+        //                 "contractType" => 1,
+        //                 "createTime" => "1645784751867",
+        //                 "freezeAmount" => "0",
+        //                 "freezeList" => array(
+        //                     {
+        //                         "amount" => "15.436832",
+        //                         "currencyId" => "6",
+        //                         "currencyName" => "usdt",
+        //                         "modifyTime" => "1645784751867"
+        //                     }
+        //                 ),
+        //                 "id" => "6902921567894972486",
+        //                 "lastAppendAmount" => "0",
+        //                 "leverage" => 5,
+        //                 "liquidateLevel" => 1,
+        //                 "liquidatePrice" => "46104",
+        //                 "maintainMargin" => "0.30912384",
+        //                 "margin" => "15.436832",
+        //                 "marginAppendCount" => 0,
+        //                 "marginBalance" => "15.295872",
+        //                 "marginMode" => 1,
+        //                 "marginRate" => "0.020209",
+        //                 "marketId" => "100",
+        //                 "marketName" => "BTC_USDT",
+        //                 "modifyTime" => "1645784751867",
+        //                 "nominalValue" => "77.14736",
+        //                 "originAppendAmount" => "0",
+        //                 "originId" => "6902921567894972591",
+        //                 "refreshType" => "Timer",
+        //                 "returnRate" => "-0.0091",
+        //                 "side" => 0,
+        //                 "status" => 1,
+        //                 "unrealizedPnl" => "-0.14096",
+        //                 "userId" => "6896693805014120448"
+        //             }
+        //         ),
+        //         "desc" => "操作成功"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $firstPosition = $this->safe_value($data, 0);
+        return $this->parse_position($firstPosition, $market);
+    }
+
+    public function fetch_positions($symbols = null, $params = array ()) {
+        yield $this->load_markets();
+        $market = null;
+        if ($symbols !== null) {
+            $market = $this->market($symbols);
+        }
+        $request = array(
+            'futuresAccountType' => 1, // 1 => USDT-M Perpetual Futures
+            // 'symbol' => $market['id'],
+            // 'marketId' => $market['id'],
+            // 'side' => $params['side'],
+        );
+        $response = yield $this->contractV2PrivateGetPositionsGetPositions (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 10000,
+        //         "data" => array(
+        //             {
+        //                 "amount" => "0.002",
+        //                 "appendAmount" => "0",
+        //                 "autoLightenRatio" => "0",
+        //                 "avgPrice" => "38570",
+        //                 "bankruptcyPrice" => "46288.41",
+        //                 "contractType" => 1,
+        //                 "createTime" => "1645784751867",
+        //                 "freezeAmount" => "0",
+        //                 "freezeList" => array(
+        //                     array(
+        //                         "amount" => "15.436832",
+        //                         "currencyId" => "6",
+        //                         "currencyName" => "usdt",
+        //                         "modifyTime" => "1645784751867"
+        //                     }
+        //                 ),
+        //                 "id" => "6902921567894972486",
+        //                 "lastAppendAmount" => "0",
+        //                 "leverage" => 5,
+        //                 "liquidateLevel" => 1,
+        //                 "liquidatePrice" => "46104",
+        //                 "maintainMargin" => "0.30912384",
+        //                 "margin" => "15.436832",
+        //                 "marginAppendCount" => 0,
+        //                 "marginBalance" => "15.295872",
+        //                 "marginMode" => 1,
+        //                 "marginRate" => "0.020209",
+        //                 "marketId" => "100",
+        //                 "marketName" => "BTC_USDT",
+        //                 "modifyTime" => "1645784751867",
+        //                 "nominalValue" => "77.14736",
+        //                 "originAppendAmount" => "0",
+        //                 "originId" => "6902921567894972591",
+        //                 "refreshType" => "Timer",
+        //                 "returnRate" => "-0.0091",
+        //                 "side" => 0,
+        //                 "status" => 1,
+        //                 "unrealizedPnl" => "-0.14096",
+        //                 "userId" => "6896693805014120448"
+        //             ),
+        //         ),
+        //         "desc" => "操作成功"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_positions($data, $market);
+    }
+
+    public function parse_position($position, $market = null) {
+        //
+        //     {
+        //         "amount" => "0.002",
+        //         "appendAmount" => "0",
+        //         "autoLightenRatio" => "0",
+        //         "avgPrice" => "38570",
+        //         "bankruptcyPrice" => "46288.41",
+        //         "contractType" => 1,
+        //         "createTime" => "1645784751867",
+        //         "freezeAmount" => "0",
+        //         "freezeList" => array(
+        //             {
+        //                 "amount" => "15.436832",
+        //                 "currencyId" => "6",
+        //                 "currencyName" => "usdt",
+        //                 "modifyTime" => "1645784751867"
+        //             }
+        //         ),
+        //         "id" => "6902921567894972486",
+        //         "lastAppendAmount" => "0",
+        //         "leverage" => 5,
+        //         "liquidateLevel" => 1,
+        //         "liquidatePrice" => "46104",
+        //         "maintainMargin" => "0.30912384",
+        //         "margin" => "15.436832",
+        //         "marginAppendCount" => 0,
+        //         "marginBalance" => "15.295872",
+        //         "marginMode" => 1,
+        //         "marginRate" => "0.020209",
+        //         "marketId" => "100",
+        //         "marketName" => "BTC_USDT",
+        //         "modifyTime" => "1645784751867",
+        //         "nominalValue" => "77.14736",
+        //         "originAppendAmount" => "0",
+        //         "originId" => "6902921567894972591",
+        //         "refreshType" => "Timer",
+        //         "returnRate" => "-0.0091",
+        //         "side" => 0,
+        //         "status" => 1,
+        //         "unrealizedPnl" => "-0.14096",
+        //         "userId" => "6896693805014120448"
+        //     }
+        //
+        $market = $this->safe_market($this->safe_string($position, 'marketName'), $market);
+        $symbol = $market['symbol'];
+        $contracts = $this->safe_string($position, 'amount');
+        $entryPrice = $this->safe_number($position, 'avgPrice');
+        $initialMargin = $this->safe_string($position, 'margin');
+        $rawSide = $this->safe_string($position, 'side');
+        $side = ($rawSide === '1') ? 'long' : 'short';
+        $openType = $this->safe_string($position, 'marginMode');
+        $marginType = ($openType === '1') ? 'isolated' : 'cross';
+        $leverage = $this->safe_string($position, 'leverage');
+        $liquidationPrice = $this->safe_number($position, 'liquidatePrice');
+        $unrealizedProfit = $this->safe_number($position, 'unrealizedPnl');
+        $maintenanceMargin = $this->safe_number($position, 'maintainMargin');
+        $marginRatio = $this->safe_number($position, 'marginRate');
+        $notional = $this->safe_number($position, 'nominalValue');
+        $percentage = Precise::string_mul($this->safe_string($position, 'returnRate'), '100');
+        $timestamp = $this->safe_number($position, 'createTime');
+        return array(
+            'info' => $position,
+            'symbol' => $symbol,
+            'contracts' => $this->parse_number($contracts),
+            'contractSize' => null,
+            'entryPrice' => $entryPrice,
+            'collateral' => null,
+            'side' => $side,
+            'unrealizedProfit' => $unrealizedProfit,
+            'leverage' => $this->parse_number($leverage),
+            'percentage' => $percentage,
+            'marginType' => $marginType,
+            'notional' => $notional,
+            'markPrice' => null,
+            'liquidationPrice' => $liquidationPrice,
+            'initialMargin' => $this->parse_number($initialMargin),
+            'initialMarginPercentage' => null,
+            'maintenanceMargin' => $maintenanceMargin,
+            'maintenanceMarginPercentage' => null,
+            'marginRatio' => $marginRatio,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
+    }
+
+    public function parse_positions($positions) {
+        $result = array();
+        for ($i = 0; $i < count($positions); $i++) {
+            $result[] = $this->parse_position($positions[$i]);
+        }
+        return $result;
     }
 
     public function nonce() {
