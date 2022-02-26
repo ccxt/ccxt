@@ -365,29 +365,54 @@ async def test_transactions(exchange, code):
 # ------------------------------------------------------------------------------
 
 
+async def test_balance(exchange):
+    if exchange.has['fetchBalance']:
+        delay = int(exchange.rateLimit / 1000)
+        await asyncio.sleep(delay)
+
+        await exchange.fetch_balance()
+        dump(green(exchange.id), 'fetched balance')
+    else:
+        dump(green(exchange.id), 'fetch_balance() not supported')
+
+# ------------------------------------------------------------------------------
+
+
 async def test_symbol(exchange, symbol, code):
     dump(green('SYMBOL: ' + symbol))
     dump(green('CODE: ' + code))
+    dump('Testing fetch_ticker:' + symbol)
     await test_ticker(exchange, symbol)
+    dump('Testing fetch_tickers:' + symbol)
     await test_tickers(exchange, symbol)
+    dump('Testing fetch_ohlcv:' + symbol)
     await test_ohlcvs(exchange, symbol)
 
     if exchange.id == 'coinmarketcap':
         response = await exchange.fetchGlobal()
         dump(green(response))
     else:
+        dump('Testing fetch_order_book:' + symbol)
         await test_order_book(exchange, symbol)
+        dump('Testing fetch_trades:' + symbol)
         await test_trades(exchange, symbol)
         if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
             return
         if exchange.has['signIn']:
+            dump('Testing sign_in')
             await exchange.sign_in()
+        dump('Testing fetch_orders:' + symbol)
         await test_orders(exchange, symbol)
+        dump('Testing fetch_open_orders:' + symbol)
         await test_open_orders(exchange, symbol)
+        dump('Testing fetch_closed_orders:' + symbol)
         await test_closed_orders(exchange, symbol)
+        dump('Testing fetch_transactions:' + code)
         await test_transactions(exchange, code)
-        await exchange.fetch_balance()
-        dump(green(exchange.id), 'fetched balance')
+        dump('Testing fetch_balance')
+        await test_balance(exchange)
+        dump('Testing fetch_positions:' + symbol)
+        await test_positions(exchange, symbol)
 
 # ------------------------------------------------------------------------------
 

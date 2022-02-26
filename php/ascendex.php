@@ -63,6 +63,8 @@ class ascendex extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => true,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
@@ -158,6 +160,7 @@ class ascendex extends Exchange {
                                 'futures/risk',
                                 'futures/funding-payments',
                                 'order/hist',
+                                'spot/fee',
                             ),
                             'post' => array(
                                 'futures/transfer/deposit',
@@ -1170,6 +1173,49 @@ class ascendex extends Exchange {
             'fee' => $fee,
             'trades' => null,
         ), $market);
+    }
+
+    public function fetch_trading_fees($params = array ()) {
+        $this->load_markets();
+        $this->load_accounts();
+        $account = $this->safe_value($this->accounts, 0, array());
+        $accountGroup = $this->safe_string($account, 'id');
+        $request = array(
+            'account-group' => $accountGroup,
+        );
+        $response = $this->v1PrivateAccountGroupGetSpotFee (array_merge($request, $params));
+        //
+        //      {
+        //         code => '0',
+        //         $data => {
+        //           domain => 'spot',
+        //           userUID => 'U1479576458',
+        //           vipLevel => '0',
+        //           $fees => array(
+        //             array( $symbol => 'HT/USDT', $fee => array( taker => '0.001', maker => '0.001' ) ),
+        //             array( $symbol => 'LAMB/BTC', $fee => array( taker => '0.002', maker => '0.002' ) ),
+        //             array( $symbol => 'STOS/USDT', $fee => array( taker => '0.002', maker => '0.002' ) ),
+        //             ...
+        //           )
+        //         }
+        //      }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $fees = $this->safe_value($data, 'fees', array());
+        $result = array();
+        for ($i = 0; $i < count($fees); $i++) {
+            $fee = $fees[$i];
+            $marketId = $this->safe_string($fee, 'symbol');
+            $symbol = $this->safe_symbol($marketId, null, '/');
+            $takerMaker = $this->safe_value($fee, 'fee', array());
+            $result[$symbol] = array(
+                'info' => $fee,
+                'symbol' => $symbol,
+                'maker' => $this->safe_number($takerMaker, 'maker'),
+                'taker' => $this->safe_number($takerMaker, 'taker'),
+            );
+        }
+        return $result;
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -2375,6 +2421,9 @@ class ascendex extends Exchange {
         $url .= $request;
         if (($version === 'v1') && ($request === 'cash/balance') || ($request === 'margin/balance')) {
             $request = 'balance';
+        }
+        if (($version === 'v1') && ($request === 'spot/fee')) {
+            $request = 'fee';
         }
         if (mb_strpos($request, 'subuser') !== false) {
             $parts = explode('/', $request);

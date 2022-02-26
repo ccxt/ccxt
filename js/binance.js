@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } = require ('./base/errors');
 const { TRUNCATE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -94,7 +94,6 @@ module.exports = class binance extends Exchange {
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
-                'loadLeverageBrackets': true,
                 'reduceMargin': true,
                 'setLeverage': true,
                 'setMarginMode': true,
@@ -784,6 +783,12 @@ module.exports = class binance extends Exchange {
                 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery'
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
+                // not an error
+                // https://github.com/ccxt/ccxt/issues/11268
+                // https://github.com/ccxt/ccxt/pull/11624
+                // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
+                // binanceusdm
+                'throwMarginModeAlreadySet': false,
                 'fetchPositions': 'positionRisk', // or 'account'
                 'recvWindow': 5 * 1000, // 5 sec, binance default
                 'timeDifference': 0, // the difference between system clock and Binance clock
@@ -5071,7 +5076,25 @@ module.exports = class binance extends Exchange {
             'symbol': market['id'],
             'marginType': marginType,
         };
-        return await this[method] (this.extend (request, params));
+        let response = undefined;
+        try {
+            response = await this[method] (this.extend (request, params));
+        } catch (e) {
+            // not an error
+            // https://github.com/ccxt/ccxt/issues/11268
+            // https://github.com/ccxt/ccxt/pull/11624
+            // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
+            // binanceusdm
+            if (e instanceof MarginModeAlreadySet) {
+                const throwMarginModeAlreadySet = this.safeValue (this.options, 'throwMarginModeAlreadySet', false);
+                if (throwMarginModeAlreadySet) {
+                    throw e;
+                } else {
+                    response = { 'code': -4046, 'msg': 'No need to change margin type.' };
+                }
+            }
+        }
+        return response;
     }
 
     async setPositionMode (hedged, symbol = undefined, params = {}) {
@@ -5227,15 +5250,15 @@ module.exports = class binance extends Exchange {
             if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
                 throw new DDoSProtection (this.id + ' temporary banned: ' + body);
             }
+            const feedback = this.id + ' ' + body;
             if (message === 'No need to change margin type.') {
                 // not an error
                 // https://github.com/ccxt/ccxt/issues/11268
                 // https://github.com/ccxt/ccxt/pull/11624
                 // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
                 // binanceusdm {"code":-4046,"msg":"No need to change margin type."}
-                return true;
+                throw new MarginModeAlreadySet (feedback);
             }
-            const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
             throw new ExchangeError (feedback);
         }

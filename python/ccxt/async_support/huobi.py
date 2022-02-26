@@ -93,6 +93,8 @@ class huobi(Exchange):
                 'fetchLedger': True,
                 'fetchLedgerEntry': None,
                 'fetchLeverage': False,
+                'fetchLeverageTiers': True,
+                'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
                 'fetchMyBuys': None,
@@ -124,7 +126,6 @@ class huobi(Exchange):
                 'fetchWithdrawal': None,
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': None,
-                'loadLeverageBrackets': None,
                 'reduceMargin': None,
                 'setLeverage': True,
                 'setMarginMode': False,
@@ -342,6 +343,7 @@ class huobi(Exchange):
                             'v1/common/timestamp': 1,
                             'v1/common/exchange': 1,  # order limits
                             # Market Data
+                            'market/history/candles': 1,
                             'market/history/kline': 1,
                             'market/detail/merged': 1,
                             'market/tickers': 1,
@@ -2030,20 +2032,27 @@ class huobi(Exchange):
             self.safe_number(ohlcv, 'amount'),
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=1000, params={}):
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'period': self.timeframes[timeframe],
             # 'symbol': market['id'],  # spot, future
             # 'contract_code': market['id'],  # swap
-            # 'side': limit,  # max 2000
+            # 'size': 1000,  # max 1000 for spot, 2000 for contracts
+            # 'from': int(since / 1000), spot only
+            # 'to': self.seconds(), spot only
         }
         fieldName = 'symbol'
         price = self.safe_string(params, 'price')
         params = self.omit(params, 'price')
-        method = 'spotPublicGetMarketHistoryKline'
-        if market['future']:
+        method = 'spotPublicGetMarketHistoryCandles'
+        if market['spot']:
+            if since is not None:
+                request['from'] = int(since / 1000)
+            if limit is not None:
+                request['size'] = limit  # max 2000
+        elif market['future']:
             if market['inverse']:
                 if price == 'mark':
                     method = 'contractPublicGetIndexMarketHistoryMarkPriceKline'
@@ -2083,9 +2092,20 @@ class huobi(Exchange):
                 else:
                     method = 'contractPublicGetLinearSwapExMarketHistoryKline'
             fieldName = 'contract_code'
+        if market['contract']:
+            if limit is None:
+                limit = 2000
+            if price is None:
+                duration = self.parse_timeframe(timeframe)
+                if since is None:
+                    now = self.seconds()
+                    request['from'] = now - duration * (limit - 1)
+                    request['to'] = now
+                else:
+                    start = int(since / 1000)
+                    request['from'] = start
+                    request['to'] = self.sum(start, duration * (limit - 1))
         request[fieldName] = market['id']
-        if limit is not None:
-            request['size'] = limit  # max 2000
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -5109,3 +5129,109 @@ class huobi(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         return self.parse_ledger(data, currency, since, limit)
+
+    async def fetch_leverage_tiers(self, symbols=None, params={}):
+        await self.load_markets()
+        response = await self.contractPublicGetLinearSwapApiV1SwapAdjustfactor(params)
+        #
+        #    {
+        #        "status": "ok",
+        #        "data": [
+        #            {
+        #                "symbol": "MANA",
+        #                "contract_code": "MANA-USDT",
+        #                "margin_mode": "isolated",
+        #                "trade_partition": "USDT",
+        #                "list": [
+        #                    {
+        #                        "lever_rate": 75,
+        #                        "ladders": [
+        #                            {
+        #                                "ladder": 0,
+        #                                "min_size": 0,
+        #                                "max_size": 999,
+        #                                "adjust_factor": 0.7
+        #                            },
+        #                            ...
+        #                        ]
+        #                    }
+        #                    ...
+        #                ]
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_leverage_tiers(data, symbols, 'contract_code')
+
+    async def fetch_market_leverage_tiers(self, symbol, params={}):
+        await self.load_markets()
+        request = {}
+        if symbol is not None:
+            market = self.market(symbol)
+            if not market['contract']:
+                raise BadRequest(self.id + '.fetchLeverageTiers symbol supports contract markets only')
+            request['contract_code'] = market['id']
+        response = await self.contractPublicGetLinearSwapApiV1SwapAdjustfactor(self.extend(request, params))
+        #
+        #    {
+        #        "status": "ok",
+        #        "data": [
+        #            {
+        #                "symbol": "MANA",
+        #                "contract_code": "MANA-USDT",
+        #                "margin_mode": "isolated",
+        #                "trade_partition": "USDT",
+        #                "list": [
+        #                    {
+        #                        "lever_rate": 75,
+        #                        "ladders": [
+        #                            {
+        #                                "ladder": 0,
+        #                                "min_size": 0,
+        #                                "max_size": 999,
+        #                                "adjust_factor": 0.7
+        #                            },
+        #                            ...
+        #                        ]
+        #                    }
+        #                    ...
+        #                ]
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        tiers = self.parse_leverage_tiers(data, [symbol], 'contract_code')
+        return self.safe_value(tiers, symbol)
+
+    def parse_leverage_tiers(self, response, symbols, marketIdKey):
+        result = {}
+        for i in range(0, len(response)):
+            item = response[i]
+            list = self.safe_value(item, 'list', [])
+            tiers = []
+            currency = self.safe_string(item, 'trade_partition')
+            id = self.safe_string(item, marketIdKey)
+            symbol = self.safe_symbol(id)
+            if self.in_array(symbols, symbol):
+                for j in range(0, len(list)):
+                    obj = list[j]
+                    leverage = self.safe_string(obj, 'lever_rate')
+                    ladders = self.safe_value(obj, 'ladders', [])
+                    for k in range(0, len(ladders)):
+                        bracket = ladders[k]
+                        adjustFactor = self.safe_string(bracket, 'adjust_factor')
+                        tiers.append({
+                            'tier': self.safe_integer(bracket, 'ladder'),
+                            'currency': self.safe_currency_code(currency),
+                            'notionalFloor': self.safe_number(bracket, 'min_size'),
+                            'notionalCap': self.safe_number(bracket, 'max_size'),
+                            'maintenanceMarginRate': self.parse_number(Precise.string_div(adjustFactor, leverage)),
+                            'maxLeverage': self.parse_number(leverage),
+                            'info': bracket,
+                        })
+                result[symbol] = tiers
+        return result

@@ -113,17 +113,162 @@ class zb extends Exchange {
                 ),
                 'exact' => array(
                     // '1000' => 'Successful operation',
+                    '10001' => '\\ccxt\\BaseError', // Operation failed
+                    '10002' => '\\ccxt\\PermissionDenied', // Operation is forbidden
+                    '10003' => '\\ccxt\\BadResponse', // Data existed
+                    '10004' => '\\ccxt\\BadResponse', // Date not exist
+                    '10005' => '\\ccxt\\PermissionDenied', // Forbidden to access the interface
+                    '10006' => '\\ccxt\\BadRequest', // Currency invalid or expired
+                    '10007' => '\\ccxt\\BaseError', // {0}
+                    '10008' => '\\ccxt\\BaseError', // Operation failed => {0}
+                    '10009' => '\\ccxt\\BaseError', // URL error
                     '1001' => '\\ccxt\\ExchangeError', // 'General error message',
+                    '10010' => '\\ccxt\\AuthenticationError', // API KEY not exist
+                    '10011' => '\\ccxt\\AuthenticationError', // API KEY CLOSED
+                    '10012' => '\\ccxt\\AccountSuspended', // User API has been frozen, please contact customer service for processing
+                    '10013' => '\\ccxt\\AuthenticationError', // API verification failed
+                    '10014' => '\\ccxt\\AuthenticationError', // Invalid signature(1001)
+                    '10015' => '\\ccxt\\AuthenticationError', // Invalid signature(1002)
+                    '10016' => '\\ccxt\\AuthenticationError', // Invalid ip
+                    '10017' => '\\ccxt\\PermissionDenied', // Permission denied
+                    '10018' => '\\ccxt\\AccountSuspended', // User has been frozen, please contact customer service
+                    '10019' => '\\ccxt\\RequestTimeout', // Request time has expired
                     '1002' => '\\ccxt\\ExchangeError', // 'Internal error',
+                    '10020' => '\\ccxt\\BadRequest', // {0}Parameter cannot be empty
+                    '10021' => '\\ccxt\\BadRequest', // {0}Invalid parameter
+                    '10022' => '\\ccxt\\BadRequest', // Request method error
+                    '10023' => '\\ccxt\\RateLimitExceeded', // Request frequency is too fast, exceeding the limit allowed by the interface
+                    '10024' => '\\ccxt\\AuthenticationError', // Login failed
+                    '10025' => '\\ccxt\\ExchangeError', // Non-personal operation
+                    '10026' => '\\ccxt\\NetworkError', // Failed to request interface, please try again
+                    '10027' => '\\ccxt\\RequestTimeout', // Timed out, please try again later
+                    '10028' => '\\ccxt\\ExchangeNotAvailable', // System busy, please try again later
+                    '10029' => '\\ccxt\\DDoSProtection', // Frequent operation, please try again later
                     '1003' => '\\ccxt\\AuthenticationError', // 'Verification does not pass',
+                    '10030' => '\\ccxt\\BadRequest', // Currency already exist
+                    '10031' => '\\ccxt\\BadRequest', // Currency does not exist
+                    '10032' => '\\ccxt\\BadRequest', // Market existed
+                    '10033' => '\\ccxt\\BadRequest', // Market not exist
+                    '10034' => '\\ccxt\\BadRequest', // Currency error
+                    '10035' => '\\ccxt\\BadRequest', // Market not open
+                    '10036' => '\\ccxt\\BadRequest', // Ineffective market type
+                    '10037' => '\\ccxt\\ArgumentsRequired', // User id cannot be empty
+                    '10038' => '\\ccxt\\BadRequest', // Market id cannot be empty
+                    '10039' => '\\ccxt\\BadResponse', // Failed to get mark price
                     '1004' => '\\ccxt\\AuthenticationError', // 'Funding security password lock',
+                    '10040' => '\\ccxt\\BadResponse', // Failed to obtain the opening margin configuration
+                    '10041' => '\\ccxt\\BadResponse', // Failed to obtain maintenance margin allocation
+                    '10042' => '\\ccxt\\ExchangeError', // Avg. price error
+                    '10043' => '\\ccxt\\ExchangeError', // Abnormal acquisition of liquidation price
+                    '10044' => '\\ccxt\\ExchangeError', // Unrealized profit and loss acquisition exception
+                    '10045' => '\\ccxt\\ExchangeError', // jdbcData source acquisition failed
+                    '10046' => '\\ccxt\\ExchangeError', // Invalid position opening direction
+                    '10047' => '\\ccxt\\ExchangeError', // The maximum position allowed by the current leverage multiple has been exceeded
+                    '10048' => '\\ccxt\\ExchangeError', // The maximum allowable order quantity has been exceeded
+                    '10049' => '\\ccxt\\NetworkError', // Failed to get the latest price
                     '1005' => '\\ccxt\\AuthenticationError', // 'Funds security password is incorrect, please confirm and re-enter.',
                     '1006' => '\\ccxt\\AuthenticationError', // 'Real-name certification pending approval or audit does not pass',
                     '1009' => '\\ccxt\\ExchangeNotAvailable', // 'This interface is under maintenance',
                     '1010' => '\\ccxt\\ExchangeNotAvailable', // Not available now
+                    '10100' => '\\ccxt\\OnMaintenance', // Sorry! System maintenance, stop operation
                     '1012' => '\\ccxt\\PermissionDenied', // Insufficient permissions
                     '1013' => '\\ccxt\\ExchangeError', // Cannot trade, please contact email => support@zb.cn for support.
                     '1014' => '\\ccxt\\ExchangeError', // Cannot sell during the pre-sale period
+                    '11000' => '\\ccxt\\ExchangeError', // Funding change failed
+                    '11001' => '\\ccxt\\ExchangeError', // Position change failed
+                    '110011' => '\\ccxt\\ExchangeError', // Exceeds the maximum leverage allowed by the position
+                    '11002' => '\\ccxt\\ExchangeError', // Funding not exist
+                    '11003' => '\\ccxt\\ExchangeError', // Freeze records not exist
+                    '11004' => '\\ccxt\\InsufficientFunds', // Insufficient frozen funds
+                    '11005' => '\\ccxt\\InvalidOrder', // Insufficient positions
+                    '11006' => '\\ccxt\\InsufficientFunds', // Insufficient frozen positions
+                    '11007' => '\\ccxt\\OrderNotFound', // Position not exist
+                    '11008' => '\\ccxt\\ExchangeError', // The contract have positions, cannot be modified
+                    '11009' => '\\ccxt\\ExchangeError', // Failed to query data
+                    '110110' => '\\ccxt\\ExchangeError', // Exceed the market's maximum leverage
+                    '11012' => '\\ccxt\\InsufficientFunds', // Insufficient margin
+                    '11013' => '\\ccxt\\ExchangeError', // Exceeding accuracy limit
+                    '11014' => '\\ccxt\\ExchangeError', // Invalid bill type
+                    '11015' => '\\ccxt\\AuthenticationError', // Failed to add default account
+                    '11016' => '\\ccxt\\AuthenticationError', // Account not exist
+                    '11017' => '\\ccxt\\ExchangeError', // Funds are not frozen or unfrozen
+                    '11018' => '\\ccxt\\InsufficientFunds', // Insufficient funds
+                    '11019' => '\\ccxt\\ExchangeError', // Bill does not exist
+                    '11021' => '\\ccxt\\InsufficientFunds', // Inconsistent currency for funds transfer
+                    '11023' => '\\ccxt\\ExchangeError', // Same transaction currency
+                    '11030' => '\\ccxt\\PermissionDenied', // Position is locked, the operation is prohibited
+                    '11031' => '\\ccxt\\ExchangeError', // The number of bill changes is zero
+                    '11032' => '\\ccxt\\ExchangeError', // The same request is being processed, please do not submit it repeatedly
+                    '11033' => '\\ccxt\\ArgumentsRequired', // Position configuration data is empty
+                    '11034' => '\\ccxt\\ExchangeError', // Funding fee is being settled, please do not operate
+                    '12000' => '\\ccxt\\InvalidOrder', // Invalid order price
+                    '12001' => '\\ccxt\\InvalidOrder', // Invalid order amount
+                    '12002' => '\\ccxt\\InvalidOrder', // Invalid order type
+                    '12003' => '\\ccxt\\InvalidOrder', // Invalid price accuracy
+                    '12004' => '\\ccxt\\InvalidOrder', // Invalid quantity precision
+                    '12005' => '\\ccxt\\InvalidOrder', // order value less than the minimum or greater than the maximum
+                    '12006' => '\\ccxt\\InvalidOrder', // Customize's order number format is wrong
+                    '12007' => '\\ccxt\\InvalidOrder', // Direction error
+                    '12008' => '\\ccxt\\InvalidOrder', // Order type error
+                    '12009' => '\\ccxt\\InvalidOrder', // Commission type error
+                    '12010' => '\\ccxt\\InvalidOrder', // Failed to place the order, the loss of the order placed at this price will exceed margin
+                    '12011' => '\\ccxt\\InvalidOrder', // it's not a buz order
+                    '12012' => '\\ccxt\\OrderNotFound', // order not exist
+                    '12013' => '\\ccxt\\InvalidOrder', // Order user does not match
+                    '12014' => '\\ccxt\\InvalidOrder', // Order is still in transaction
+                    '12015' => '\\ccxt\\InvalidOrder', // Order preprocessing failed
+                    '12016' => '\\ccxt\\InvalidOrder', // Order cannot be canceled
+                    '12017' => '\\ccxt\\InvalidOrder', // Transaction Record not exist
+                    '12018' => '\\ccxt\\InvalidOrder', // Order failed
+                    '12019' => '\\ccxt\\ArgumentsRequired', // extend parameter cannot be empty
+                    '12020' => '\\ccxt\\ExchangeError', // extend Parameter error
+                    '12021' => '\\ccxt\\InvalidOrder', // The order price is not within the price limit rules!
+                    '12022' => '\\ccxt\\InvalidOrder', // Stop placing an order while the system is calculating the fund fee
+                    '12023' => '\\ccxt\\OrderNotFound', // There are no positions to close
+                    '12024' => '\\ccxt\\InvalidOrder', // Orders are prohibited, stay tuned!
+                    '12025' => '\\ccxt\\InvalidOrder', // Order cancellation is prohibited, so stay tuned!
+                    '12026' => '\\ccxt\\DuplicateOrderId', // Order failed， customize order number exists
+                    '12027' => '\\ccxt\\ExchangeNotAvailable', // System busy, please try again later
+                    '12028' => '\\ccxt\\InvalidOrder', // The market has banned trading
+                    '12029' => '\\ccxt\\InvalidOrder', // Forbidden place order, stay tuned
+                    '12201' => '\\ccxt\\InvalidOrder', // Delegation strategy does not exist or the status has changed
+                    '12202' => '\\ccxt\\InvalidOrder', // Delegation strategy has been changed, cannot be canceled
+                    '12203' => '\\ccxt\\InvalidOrder', // Wrong order type
+                    '12204' => '\\ccxt\\InvalidOrder', // Invalid trigger price
+                    '12205' => '\\ccxt\\InvalidOrder', // The trigger price must be greater than the market’s selling price or lower than the buying price.
+                    '12206' => '\\ccxt\\InvalidOrder', // Direction and order type do not match
+                    '12207' => '\\ccxt\\RateLimitExceeded', // Submission failed, exceeding the allowed limit
+                    '13001' => '\\ccxt\\AuthenticationError', // User not exist
+                    '13002' => '\\ccxt\\PermissionDenied', // User did not activate futures
+                    // '13003' => '\\ccxt\\AuthenticationError', // User is locked
+                    '13003' => '\\ccxt\\InvalidOrder', // Margin gear is not continuous
+                    '13004' => '\\ccxt\\InvalidOrder', // The margin quick calculation amount is less than 0
+                    '13005' => '\\ccxt\\RateLimitExceeded', // You have exceeded the number of exports that day
+                    '13006' => '\\ccxt\\ExchangeError', // No markets are bookmarked
+                    '13007' => '\\ccxt\\ExchangeError', // Market not favorited
+                    '13008' => '\\ccxt\\ExchangeError', // Not in any market user whitelist
+                    '13009' => '\\ccxt\\ExchangeError', // Not in the whitelist of users in this market
+                    '14000' => '\\ccxt\\ExchangeError', // {0}not support
+                    '14001' => '\\ccxt\\AuthenticationError', // Already logged in, no need to log in multiple times
+                    '14002' => '\\ccxt\\AuthenticationError', // Not logged in yet, please log in before subscribing
+                    '14003' => '\\ccxt\\ExchangeError', // This is a channel for one-time queries, no need to unsubscribe
+                    '14100' => '\\ccxt\\ExchangeError', // Accuracy does not support
+                    '14101' => '\\ccxt\\RateLimitExceeded', // Request exceeded frequency limit
+                    '14200' => '\\ccxt\\ArgumentsRequired', // id empty
+                    '14300' => '\\ccxt\\ExchangeError', // activity not exist
+                    '14301' => '\\ccxt\\ExchangeError', // The event has been opened and cannot be admitted
+                    '14302' => '\\ccxt\\ExchangeError', // The purchase time has passed and cannot be admitted
+                    '14303' => '\\ccxt\\ExchangeError', // Not yet open for the purchase
+                    '14305' => '\\ccxt\\ExchangeError', // Cannot enter, the maximum number of returns has been exceeded
+                    '14306' => '\\ccxt\\ExchangeError', // Cannot repeat admission
+                    '14307' => '\\ccxt\\InvalidOrder', // Unable to cancel, status has been changed
+                    '14308' => '\\ccxt\\InvalidOrder', // Unable to cancel, the amount does not match
+                    '14309' => '\\ccxt\\ExchangeError', // Activity has not started
+                    '14310' => '\\ccxt\\NotSupported', // Activity is over
+                    '14311' => '\\ccxt\\NotSupported', // The activity does not support orders placed in this market
+                    '14312' => '\\ccxt\\ExchangeError', // You have not participated in this activity
+                    '14313' => '\\ccxt\\PermissionDenied', // Sorry! The purchase failed, the maximum number of participants has been reached
+                    '14314' => '\\ccxt\\ExchangeError', // Active period id error
                     '2001' => '\\ccxt\\InsufficientFunds', // 'Insufficient CNY Balance',
                     '2002' => '\\ccxt\\InsufficientFunds', // 'Insufficient BTC Balance',
                     '2003' => '\\ccxt\\InsufficientFunds', // 'Insufficient LTC Balance',
@@ -146,7 +291,7 @@ class zb extends Exchange {
                     '3012' => '\\ccxt\\InvalidOrder', // Duplicate custom customerOrderId
                     '4001' => '\\ccxt\\ExchangeNotAvailable', // 'API interface is locked or not enabled',
                     '4002' => '\\ccxt\\RateLimitExceeded', // 'Request too often',
-                    '10017' => '\\ccxt\\PermissionDenied', // array("code":10017,"desc":"没有权限") when contract trading is not enabled on the api key
+                    '9999' => '\\ccxt\\BaseError', // Unknown error
                 ),
                 'broad' => array(
                     '提币地址有误，请先添加提币地址。' => '\\ccxt\\InvalidAddress', // array("code":1001,"message":"提币地址有误，请先添加提币地址。")
@@ -556,8 +701,6 @@ class zb extends Exchange {
         $balances = $this->safe_value($response['result'], 'coins');
         $result = array(
             'info' => $response,
-            'timestamp' => null,
-            'datetime' => null,
         );
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
@@ -580,12 +723,123 @@ class zb extends Exchange {
         return $this->safe_balance($result);
     }
 
+    public function parse_swap_balance($response) {
+        $result = array(
+            'info' => $response,
+        );
+        $data = $this->safe_value($response, 'data', array());
+        for ($i = 0; $i < count($data); $i++) {
+            $balance = $data[$i];
+            //
+            //     array(
+            //         "userId" => "6896693805014120448",
+            //         "currencyId" => "6",
+            //         "currencyName" => "usdt",
+            //         "amount" => "30.56585118",
+            //         "freezeAmount" => "0",
+            //         "contractType" => 1,
+            //         "id" => "6899113714763638819",
+            //         "createTime" => "1644876888934",
+            //         "modifyTime" => "1645787446037",
+            //         "accountBalance" => "30.56585118",
+            //         "allMargin" => "0",
+            //         "allowTransferOutAmount" => "30.56585118"
+            //     ),
+            //
+            $code = $this->safe_currency_code($this->safe_string($balance, 'currencyName'));
+            $account = $this->account();
+            $account['total'] = $this->safe_string($balance, 'accountBalance');
+            $account['free'] = $this->safe_string($balance, 'allowTransferOutAmount');
+            $account['used'] = $this->safe_string($balance, 'freezeAmount');
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
         $this->load_markets();
-        $response = $this->spotV1PrivateGetGetAccountInfo ($params);
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'spotV1PrivateGetGetAccountInfo',
+            'swap' => 'contractV2PrivateGetFundBalance',
+        ));
+        $request = array(
+            // 'futuresAccountType' => 1, // SWAP
+            // 'currencyId' => currency['id'], // SWAP
+            // 'currencyName' => 'usdt', // SWAP
+        );
+        $swap = ($marketType === 'swap');
+        if ($swap) {
+            $request['futuresAccountType'] = 1;
+        }
+        $response = $this->$method (array_merge($request, $query));
+        //
+        // Spot
+        //
+        //     {
+        //         "result" => {
+        //             "coins" => array(
+        //                 array(
+        //                     "isCanWithdraw" => "true",
+        //                     "canLoan" => false,
+        //                     "fundstype" => 51,
+        //                     "showName" => "ZB",
+        //                     "isCanRecharge" => "true",
+        //                     "cnName" => "ZB",
+        //                     "enName" => "ZB",
+        //                     "available" => "0",
+        //                     "freez" => "0",
+        //                     "unitTag" => "ZB",
+        //                     "key" => "zb",
+        //                     "unitDecimal" => 8
+        //                 ),
+        //             ),
+        //             "version" => 1645856691340,
+        //             "base" => array(
+        //                 "auth_google_enabled" => true,
+        //                 "auth_mobile_enabled" => false,
+        //                 "trade_password_enabled" => true,
+        //                 "username" => "blank@gmail.com"
+        //             }
+        //         ),
+        //         "leverPerm" => true,
+        //         "otcPerm" => false,
+        //         "assetPerm" => true,
+        //         "moneyPerm" => true,
+        //         "subUserPerm" => true,
+        //         "entrustPerm" => true
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         "code" => 10000,
+        //         "data" => array(
+        //             array(
+        //                 "userId" => "6896693805014120448",
+        //                 "currencyId" => "6",
+        //                 "currencyName" => "usdt",
+        //                 "amount" => "30.56585118",
+        //                 "freezeAmount" => "0",
+        //                 "contractType" => 1,
+        //                 "id" => "6899113714763638819",
+        //                 "createTime" => "1644876888934",
+        //                 "modifyTime" => "1645787446037",
+        //                 "accountBalance" => "30.56585118",
+        //                 "allMargin" => "0",
+        //                 "allowTransferOutAmount" => "30.56585118"
+        //             ),
+        //         ),
+        //         "desc" => "操作成功"
+        //     }
+        //
         // todo => use this somehow
         // $permissions = $response['result']['base'];
-        return $this->parse_balance($response);
+        if ($swap) {
+            return $this->parse_swap_balance($response);
+        } else {
+            return $this->parse_balance($response);
+        }
     }
 
     public function parse_deposit_address($depositAddress, $currency = null) {
@@ -1234,18 +1488,37 @@ class zb extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = 10, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . 'fetchOpenOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
+        $swap = $market['swap'];
         $request = array(
-            'currency' => $market['id'],
-            'pageIndex' => 1, // default pageIndex is 1
-            'pageSize' => $limit, // default pageSize is 10
+            // 'pageSize' => $limit, // default pageSize is 10 for spot, 30 for $swap
+            // 'currency' => $market['id'], // spot only
+            // 'pageIndex' => 1, // spot only
+            // 'symbol' => $market['id'], // $swap only
+            // 'pageNum' => 1, // $swap only
+            // 'type' => $params['type'], // $swap only
+            // 'side' => $params['side'], // $swap only
+            // 'action' => $params['action'], // $swap only
         );
-        $method = 'spotV1PrivateGetGetUnfinishedOrdersIgnoreTradeType';
+        if ($limit !== null) {
+            $request['pageSize'] = $limit; // default pageSize is 10 for spot, 30 for $swap
+        }
+        $marketIdField = $market['swap'] ? 'symbol' : 'currency';
+        $request[$marketIdField] = $market['id'];
+        $pageNumField = $market['swap'] ? 'pageNum' : 'pageIndex';
+        $request[$pageNumField] = 1;
+        if ($swap && ($since !== null)) {
+            $request['startTime'] = $since;
+        }
+        $method = $this->get_supported_mapping($market['type'], array(
+            'spot' => 'spotV1PrivateGetGetUnfinishedOrdersIgnoreTradeType',
+            'swap' => 'contractV2PrivateGetTradeGetUndoneOrders',
+        ));
         // tradeType 交易类型1/0[buy/sell]
         if (is_array($params) && array_key_exists('tradeType', $params)) {
             $method = 'spotV1PrivateGetGetOrdersNew';
@@ -1258,6 +1531,69 @@ class zb extends Exchange {
                 return array();
             }
             throw $e;
+        }
+        //
+        // Spot
+        //
+        //     array(
+        //         array(
+        //             "currency" => "btc_usdt",
+        //             "id" => "20150928158614292",
+        //             "price" => 1560,
+        //             "status" => 3,
+        //             "total_amount" => 0.1,
+        //             "trade_amount" => 0,
+        //             "trade_date" => 1443410396717,
+        //             "trade_money" => 0,
+        //             "type" => 0,
+        //             "fees" => "0.03",
+        //             "useZbFee" => true
+        //         ),
+        //     )
+        //
+        // Swap
+        //
+        //     {
+        //         "code" => 10000,
+        //         "data" => {
+        //             "list" => array(
+        //                 array(
+        //                     "action" => 1,
+        //                     "amount" => "0.003",
+        //                     "availableAmount" => "0.003",
+        //                     "availableValue" => "90",
+        //                     "avgPrice" => "0",
+        //                     "canCancel" => true,
+        //                     "cancelStatus" => 20,
+        //                     "createTime" => "1645694610880",
+        //                     "entrustType" => 1,
+        //                     "id" => "6902543489192632320",
+        //                     "leverage" => 5,
+        //                     "margin" => "18",
+        //                     "marketId" => "100",
+        //                     "modifyTime" => "1645694610883",
+        //                     "price" => "30000",
+        //                     "priority" => 0,
+        //                     "showStatus" => 1,
+        //                     "side" => 1,
+        //                     "sourceType" => 1,
+        //                     "status" => 12,
+        //                     "tradeAmount" => "0",
+        //                     "tradeValue" => "0",
+        //                     "type" => 1,
+        //                     "userId" => "6896693805014120448",
+        //                     "value" => "90"
+        //                 }
+        //             ),
+        //             "pageNum" => 1,
+        //             "pageSize" => 30
+        //         ),
+        //         "desc" => "操作成功"
+        //     }
+        //
+        if ($swap) {
+            $data = $this->safe_value($response, 'data', array());
+            $response = $this->safe_value($data, 'list', array());
         }
         return $this->parse_orders($response, $market, $since, $limit);
     }

@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadRequest, BadSymbol, ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, NotSupported, OrderNotFound, ExchangeNotAvailable, RateLimitExceeded, PermissionDenied, InvalidOrder, InvalidAddress, OnMaintenance, RequestTimeout, AccountSuspended } = require ('./base/errors');
+const { BadRequest, BadSymbol, ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, NotSupported, OrderNotFound, ExchangeNotAvailable, RateLimitExceeded, PermissionDenied, InvalidOrder, InvalidAddress, OnMaintenance, RequestTimeout, AccountSuspended, NetworkError, DDoSProtection, DuplicateOrderId, BadResponse } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -107,17 +107,162 @@ module.exports = class zb extends Exchange {
                 },
                 'exact': {
                     // '1000': 'Successful operation',
+                    '10001': ExchangeError, // Operation failed
+                    '10002': PermissionDenied, // Operation is forbidden
+                    '10003': BadResponse, // Data existed
+                    '10004': BadResponse, // Date not exist
+                    '10005': PermissionDenied, // Forbidden to access the interface
+                    '10006': BadRequest, // Currency invalid or expired
+                    '10007': ExchangeError, // {0}
+                    '10008': ExchangeError, // Operation failed: {0}
+                    '10009': ExchangeError, // URL error
                     '1001': ExchangeError, // 'General error message',
+                    '10010': AuthenticationError, // API KEY not exist
+                    '10011': AuthenticationError, // API KEY CLOSED
+                    '10012': AccountSuspended, // User API has been frozen, please contact customer service for processing
+                    '10013': AuthenticationError, // API verification failed
+                    '10014': AuthenticationError, // Invalid signature(1001)
+                    '10015': AuthenticationError, // Invalid signature(1002)
+                    '10016': AuthenticationError, // Invalid ip
+                    '10017': PermissionDenied, // Permission denied
+                    '10018': AccountSuspended, // User has been frozen, please contact customer service
+                    '10019': RequestTimeout, // Request time has expired
                     '1002': ExchangeError, // 'Internal error',
+                    '10020': BadRequest, // {0}Parameter cannot be empty
+                    '10021': BadRequest, // {0}Invalid parameter
+                    '10022': BadRequest, // Request method error
+                    '10023': RateLimitExceeded, // Request frequency is too fast, exceeding the limit allowed by the interface
+                    '10024': AuthenticationError, // Login failed
+                    '10025': ExchangeError, // Non-personal operation
+                    '10026': NetworkError, // Failed to request interface, please try again
+                    '10027': RequestTimeout, // Timed out, please try again later
+                    '10028': ExchangeNotAvailable, // System busy, please try again later
+                    '10029': DDoSProtection, // Frequent operation, please try again later
                     '1003': AuthenticationError, // 'Verification does not pass',
+                    '10030': BadRequest, // Currency already exist
+                    '10031': BadRequest, // Currency does not exist
+                    '10032': BadRequest, // Market existed
+                    '10033': BadRequest, // Market not exist
+                    '10034': BadRequest, // Currency error
+                    '10035': BadRequest, // Market not open
+                    '10036': BadRequest, // Ineffective market type
+                    '10037': ArgumentsRequired, // User id cannot be empty
+                    '10038': BadRequest, // Market id cannot be empty
+                    '10039': BadResponse, // Failed to get mark price
                     '1004': AuthenticationError, // 'Funding security password lock',
+                    '10040': BadResponse, // Failed to obtain the opening margin configuration
+                    '10041': BadResponse, // Failed to obtain maintenance margin allocation
+                    '10042': ExchangeError, // Avg. price error
+                    '10043': ExchangeError, // Abnormal acquisition of liquidation price
+                    '10044': ExchangeError, // Unrealized profit and loss acquisition exception
+                    '10045': ExchangeError, // jdbcData source acquisition failed
+                    '10046': ExchangeError, // Invalid position opening direction
+                    '10047': ExchangeError, // The maximum position allowed by the current leverage multiple has been exceeded
+                    '10048': ExchangeError, // The maximum allowable order quantity has been exceeded
+                    '10049': NetworkError, // Failed to get the latest price
                     '1005': AuthenticationError, // 'Funds security password is incorrect, please confirm and re-enter.',
                     '1006': AuthenticationError, // 'Real-name certification pending approval or audit does not pass',
                     '1009': ExchangeNotAvailable, // 'This interface is under maintenance',
                     '1010': ExchangeNotAvailable, // Not available now
+                    '10100': OnMaintenance, // Sorry! System maintenance, stop operation
                     '1012': PermissionDenied, // Insufficient permissions
                     '1013': ExchangeError, // Cannot trade, please contact email: support@zb.cn for support.
                     '1014': ExchangeError, // Cannot sell during the pre-sale period
+                    '11000': ExchangeError, // Funding change failed
+                    '11001': ExchangeError, // Position change failed
+                    '110011': ExchangeError, // Exceeds the maximum leverage allowed by the position
+                    '11002': ExchangeError, // Funding not exist
+                    '11003': ExchangeError, // Freeze records not exist
+                    '11004': InsufficientFunds, // Insufficient frozen funds
+                    '11005': InvalidOrder, // Insufficient positions
+                    '11006': InsufficientFunds, // Insufficient frozen positions
+                    '11007': OrderNotFound, // Position not exist
+                    '11008': ExchangeError, // The contract have positions, cannot be modified
+                    '11009': ExchangeError, // Failed to query data
+                    '110110': ExchangeError, // Exceed the market's maximum leverage
+                    '11012': InsufficientFunds, // Insufficient margin
+                    '11013': ExchangeError, // Exceeding accuracy limit
+                    '11014': ExchangeError, // Invalid bill type
+                    '11015': AuthenticationError, // Failed to add default account
+                    '11016': AuthenticationError, // Account not exist
+                    '11017': ExchangeError, // Funds are not frozen or unfrozen
+                    '11018': InsufficientFunds, // Insufficient funds
+                    '11019': ExchangeError, // Bill does not exist
+                    '11021': InsufficientFunds, // Inconsistent currency for funds transfer
+                    '11023': ExchangeError, // Same transaction currency
+                    '11030': PermissionDenied, // Position is locked, the operation is prohibited
+                    '11031': ExchangeError, // The number of bill changes is zero
+                    '11032': ExchangeError, // The same request is being processed, please do not submit it repeatedly
+                    '11033': ArgumentsRequired, // Position configuration data is empty
+                    '11034': ExchangeError, // Funding fee is being settled, please do not operate
+                    '12000': InvalidOrder, // Invalid order price
+                    '12001': InvalidOrder, // Invalid order amount
+                    '12002': InvalidOrder, // Invalid order type
+                    '12003': InvalidOrder, // Invalid price accuracy
+                    '12004': InvalidOrder, // Invalid quantity precision
+                    '12005': InvalidOrder, // order value less than the minimum or greater than the maximum
+                    '12006': InvalidOrder, // Customize's order number format is wrong
+                    '12007': InvalidOrder, // Direction error
+                    '12008': InvalidOrder, // Order type error
+                    '12009': InvalidOrder, // Commission type error
+                    '12010': InvalidOrder, // Failed to place the order, the loss of the order placed at this price will exceed margin
+                    '12011': InvalidOrder, // it's not a buz order
+                    '12012': OrderNotFound, // order not exist
+                    '12013': InvalidOrder, // Order user does not match
+                    '12014': InvalidOrder, // Order is still in transaction
+                    '12015': InvalidOrder, // Order preprocessing failed
+                    '12016': InvalidOrder, // Order cannot be canceled
+                    '12017': InvalidOrder, // Transaction Record not exist
+                    '12018': InvalidOrder, // Order failed
+                    '12019': ArgumentsRequired, // extend parameter cannot be empty
+                    '12020': ExchangeError, // extend Parameter error
+                    '12021': InvalidOrder, // The order price is not within the price limit rules!
+                    '12022': InvalidOrder, // Stop placing an order while the system is calculating the fund fee
+                    '12023': OrderNotFound, // There are no positions to close
+                    '12024': InvalidOrder, // Orders are prohibited, stay tuned!
+                    '12025': InvalidOrder, // Order cancellation is prohibited, so stay tuned!
+                    '12026': DuplicateOrderId, // Order failed， customize order number exists
+                    '12027': ExchangeNotAvailable, // System busy, please try again later
+                    '12028': InvalidOrder, // The market has banned trading
+                    '12029': InvalidOrder, // Forbidden place order, stay tuned
+                    '12201': InvalidOrder, // Delegation strategy does not exist or the status has changed
+                    '12202': InvalidOrder, // Delegation strategy has been changed, cannot be canceled
+                    '12203': InvalidOrder, // Wrong order type
+                    '12204': InvalidOrder, // Invalid trigger price
+                    '12205': InvalidOrder, // The trigger price must be greater than the market’s selling price or lower than the buying price.
+                    '12206': InvalidOrder, // Direction and order type do not match
+                    '12207': RateLimitExceeded, // Submission failed, exceeding the allowed limit
+                    '13001': AuthenticationError, // User not exist
+                    '13002': PermissionDenied, // User did not activate futures
+                    // '13003': AuthenticationError, // User is locked
+                    '13003': InvalidOrder, // Margin gear is not continuous
+                    '13004': InvalidOrder, // The margin quick calculation amount is less than 0
+                    '13005': RateLimitExceeded, // You have exceeded the number of exports that day
+                    '13006': ExchangeError, // No markets are bookmarked
+                    '13007': ExchangeError, // Market not favorited
+                    '13008': ExchangeError, // Not in any market user whitelist
+                    '13009': ExchangeError, // Not in the whitelist of users in this market
+                    '14000': ExchangeError, // {0}not support
+                    '14001': AuthenticationError, // Already logged in, no need to log in multiple times
+                    '14002': AuthenticationError, // Not logged in yet, please log in before subscribing
+                    '14003': ExchangeError, // This is a channel for one-time queries, no need to unsubscribe
+                    '14100': ExchangeError, // Accuracy does not support
+                    '14101': RateLimitExceeded, // Request exceeded frequency limit
+                    '14200': ArgumentsRequired, // id empty
+                    '14300': ExchangeError, // activity not exist
+                    '14301': ExchangeError, // The event has been opened and cannot be admitted
+                    '14302': ExchangeError, // The purchase time has passed and cannot be admitted
+                    '14303': ExchangeError, // Not yet open for the purchase
+                    '14305': ExchangeError, // Cannot enter, the maximum number of returns has been exceeded
+                    '14306': ExchangeError, // Cannot repeat admission
+                    '14307': InvalidOrder, // Unable to cancel, status has been changed
+                    '14308': InvalidOrder, // Unable to cancel, the amount does not match
+                    '14309': ExchangeError, // Activity has not started
+                    '14310': NotSupported, // Activity is over
+                    '14311': NotSupported, // The activity does not support orders placed in this market
+                    '14312': ExchangeError, // You have not participated in this activity
+                    '14313': PermissionDenied, // Sorry! The purchase failed, the maximum number of participants has been reached
+                    '14314': ExchangeError, // Active period id error
                     '2001': InsufficientFunds, // 'Insufficient CNY Balance',
                     '2002': InsufficientFunds, // 'Insufficient BTC Balance',
                     '2003': InsufficientFunds, // 'Insufficient LTC Balance',
@@ -140,7 +285,7 @@ module.exports = class zb extends Exchange {
                     '3012': InvalidOrder, // Duplicate custom customerOrderId
                     '4001': ExchangeNotAvailable, // 'API interface is locked or not enabled',
                     '4002': RateLimitExceeded, // 'Request too often',
-                    '10017': PermissionDenied, // {"code":10017,"desc":"没有权限"} when contract trading is not enabled on the api key
+                    '9999': ExchangeError, // Unknown error
                 },
                 'broad': {
                     '提币地址有误，请先添加提币地址。': InvalidAddress, // {"code":1001,"message":"提币地址有误，请先添加提币地址。"}
@@ -550,8 +695,6 @@ module.exports = class zb extends Exchange {
         const balances = this.safeValue (response['result'], 'coins');
         const result = {
             'info': response,
-            'timestamp': undefined,
-            'datetime': undefined,
         };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -574,12 +717,123 @@ module.exports = class zb extends Exchange {
         return this.safeBalance (result);
     }
 
+    parseSwapBalance (response) {
+        const result = {
+            'info': response,
+        };
+        const data = this.safeValue (response, 'data', {});
+        for (let i = 0; i < data.length; i++) {
+            const balance = data[i];
+            //
+            //     {
+            //         "userId": "6896693805014120448",
+            //         "currencyId": "6",
+            //         "currencyName": "usdt",
+            //         "amount": "30.56585118",
+            //         "freezeAmount": "0",
+            //         "contractType": 1,
+            //         "id": "6899113714763638819",
+            //         "createTime": "1644876888934",
+            //         "modifyTime": "1645787446037",
+            //         "accountBalance": "30.56585118",
+            //         "allMargin": "0",
+            //         "allowTransferOutAmount": "30.56585118"
+            //     },
+            //
+            const code = this.safeCurrencyCode (this.safeString (balance, 'currencyName'));
+            const account = this.account ();
+            account['total'] = this.safeString (balance, 'accountBalance');
+            account['free'] = this.safeString (balance, 'allowTransferOutAmount');
+            account['used'] = this.safeString (balance, 'freezeAmount');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.spotV1PrivateGetGetAccountInfo (params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'spotV1PrivateGetGetAccountInfo',
+            'swap': 'contractV2PrivateGetFundBalance',
+        });
+        const request = {
+            // 'futuresAccountType': 1, // SWAP
+            // 'currencyId': currency['id'], // SWAP
+            // 'currencyName': 'usdt', // SWAP
+        };
+        const swap = (marketType === 'swap');
+        if (swap) {
+            request['futuresAccountType'] = 1;
+        }
+        const response = await this[method] (this.extend (request, query));
+        //
+        // Spot
+        //
+        //     {
+        //         "result": {
+        //             "coins": [
+        //                 {
+        //                     "isCanWithdraw": "true",
+        //                     "canLoan": false,
+        //                     "fundstype": 51,
+        //                     "showName": "ZB",
+        //                     "isCanRecharge": "true",
+        //                     "cnName": "ZB",
+        //                     "enName": "ZB",
+        //                     "available": "0",
+        //                     "freez": "0",
+        //                     "unitTag": "ZB",
+        //                     "key": "zb",
+        //                     "unitDecimal": 8
+        //                 },
+        //             ],
+        //             "version": 1645856691340,
+        //             "base": {
+        //                 "auth_google_enabled": true,
+        //                 "auth_mobile_enabled": false,
+        //                 "trade_password_enabled": true,
+        //                 "username": "blank@gmail.com"
+        //             }
+        //         },
+        //         "leverPerm": true,
+        //         "otcPerm": false,
+        //         "assetPerm": true,
+        //         "moneyPerm": true,
+        //         "subUserPerm": true,
+        //         "entrustPerm": true
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": [
+        //             {
+        //                 "userId": "6896693805014120448",
+        //                 "currencyId": "6",
+        //                 "currencyName": "usdt",
+        //                 "amount": "30.56585118",
+        //                 "freezeAmount": "0",
+        //                 "contractType": 1,
+        //                 "id": "6899113714763638819",
+        //                 "createTime": "1644876888934",
+        //                 "modifyTime": "1645787446037",
+        //                 "accountBalance": "30.56585118",
+        //                 "allMargin": "0",
+        //                 "allowTransferOutAmount": "30.56585118"
+        //             },
+        //         ],
+        //         "desc": "操作成功"
+        //     }
+        //
         // todo: use this somehow
         // let permissions = response['result']['base'];
-        return this.parseBalance (response);
+        if (swap) {
+            return this.parseSwapBalance (response);
+        } else {
+            return this.parseBalance (response);
+        }
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
@@ -1228,18 +1482,37 @@ module.exports = class zb extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + 'fetchOpenOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const swap = market['swap'];
         const request = {
-            'currency': market['id'],
-            'pageIndex': 1, // default pageIndex is 1
-            'pageSize': limit, // default pageSize is 10
+            // 'pageSize': limit, // default pageSize is 10 for spot, 30 for swap
+            // 'currency': market['id'], // spot only
+            // 'pageIndex': 1, // spot only
+            // 'symbol': market['id'], // swap only
+            // 'pageNum': 1, // swap only
+            // 'type': params['type'], // swap only
+            // 'side': params['side'], // swap only
+            // 'action': params['action'], // swap only
         };
-        let method = 'spotV1PrivateGetGetUnfinishedOrdersIgnoreTradeType';
+        if (limit !== undefined) {
+            request['pageSize'] = limit; // default pageSize is 10 for spot, 30 for swap
+        }
+        const marketIdField = market['swap'] ? 'symbol' : 'currency';
+        request[marketIdField] = market['id'];
+        const pageNumField = market['swap'] ? 'pageNum' : 'pageIndex';
+        request[pageNumField] = 1;
+        if (swap && (since !== undefined)) {
+            request['startTime'] = since;
+        }
+        let method = this.getSupportedMapping (market['type'], {
+            'spot': 'spotV1PrivateGetGetUnfinishedOrdersIgnoreTradeType',
+            'swap': 'contractV2PrivateGetTradeGetUndoneOrders',
+        });
         // tradeType 交易类型1/0[buy/sell]
         if ('tradeType' in params) {
             method = 'spotV1PrivateGetGetOrdersNew';
@@ -1252,6 +1525,69 @@ module.exports = class zb extends Exchange {
                 return [];
             }
             throw e;
+        }
+        //
+        // Spot
+        //
+        //     [
+        //         {
+        //             "currency": "btc_usdt",
+        //             "id": "20150928158614292",
+        //             "price": 1560,
+        //             "status": 3,
+        //             "total_amount": 0.1,
+        //             "trade_amount": 0,
+        //             "trade_date": 1443410396717,
+        //             "trade_money": 0,
+        //             "type": 0,
+        //             "fees": "0.03",
+        //             "useZbFee": true
+        //         },
+        //     ]
+        //
+        // Swap
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "action": 1,
+        //                     "amount": "0.003",
+        //                     "availableAmount": "0.003",
+        //                     "availableValue": "90",
+        //                     "avgPrice": "0",
+        //                     "canCancel": true,
+        //                     "cancelStatus": 20,
+        //                     "createTime": "1645694610880",
+        //                     "entrustType": 1,
+        //                     "id": "6902543489192632320",
+        //                     "leverage": 5,
+        //                     "margin": "18",
+        //                     "marketId": "100",
+        //                     "modifyTime": "1645694610883",
+        //                     "price": "30000",
+        //                     "priority": 0,
+        //                     "showStatus": 1,
+        //                     "side": 1,
+        //                     "sourceType": 1,
+        //                     "status": 12,
+        //                     "tradeAmount": "0",
+        //                     "tradeValue": "0",
+        //                     "type": 1,
+        //                     "userId": "6896693805014120448",
+        //                     "value": "90"
+        //                 }
+        //             ],
+        //             "pageNum": 1,
+        //             "pageSize": 30
+        //         },
+        //         "desc": "操作成功"
+        //     }
+        //
+        if (swap) {
+            const data = this.safeValue (response, 'data', {});
+            response = this.safeValue (data, 'list', []);
         }
         return this.parseOrders (response, market, since, limit);
     }

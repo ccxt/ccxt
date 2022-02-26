@@ -10,6 +10,7 @@ use \ccxt\ExchangeError;
 use \ccxt\AuthenticationError;
 use \ccxt\ArgumentsRequired;
 use \ccxt\BadRequest;
+use \ccxt\MarginModeAlreadySet;
 use \ccxt\InvalidOrder;
 use \ccxt\NotSupported;
 use \ccxt\DDoSProtection;
@@ -101,7 +102,6 @@ class binance extends Exchange {
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => false,
-                'loadLeverageBrackets' => true,
                 'reduceMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
@@ -791,6 +791,12 @@ class binance extends Exchange {
                 'defaultType' => 'spot', // 'spot', 'future', 'margin', 'delivery'
                 'hasAlreadyAuthenticatedSuccessfully' => false,
                 'warnOnFetchOpenOrdersWithoutSymbol' => true,
+                // not an error
+                // https://github.com/ccxt/ccxt/issues/11268
+                // https://github.com/ccxt/ccxt/pull/11624
+                // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
+                // binanceusdm
+                'throwMarginModeAlreadySet' => false,
                 'fetchPositions' => 'positionRisk', // or 'account'
                 'recvWindow' => 5 * 1000, // 5 sec, binance default
                 'timeDifference' => 0, // the difference between system clock and Binance clock
@@ -5078,7 +5084,25 @@ class binance extends Exchange {
             'symbol' => $market['id'],
             'marginType' => $marginType,
         );
-        return yield $this->$method (array_merge($request, $params));
+        $response = null;
+        try {
+            $response = yield $this->$method (array_merge($request, $params));
+        } catch (Exception $e) {
+            // not an error
+            // https://github.com/ccxt/ccxt/issues/11268
+            // https://github.com/ccxt/ccxt/pull/11624
+            // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
+            // binanceusdm
+            if ($e instanceof MarginModeAlreadySet) {
+                $throwMarginModeAlreadySet = $this->safe_value($this->options, 'throwMarginModeAlreadySet', false);
+                if ($throwMarginModeAlreadySet) {
+                    throw $e;
+                } else {
+                    $response = array( 'code' => -4046, 'msg' => 'No need to change margin type.' );
+                }
+            }
+        }
+        return $response;
     }
 
     public function set_position_mode($hedged, $symbol = null, $params = array ()) {
@@ -5234,15 +5258,15 @@ class binance extends Exchange {
             if (($error === '-2015') && $this->options['hasAlreadyAuthenticatedSuccessfully']) {
                 throw new DDoSProtection($this->id . ' temporary banned => ' . $body);
             }
+            $feedback = $this->id . ' ' . $body;
             if ($message === 'No need to change margin type.') {
                 // not an $error
                 // https://github.com/ccxt/ccxt/issues/11268
                 // https://github.com/ccxt/ccxt/pull/11624
                 // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
                 // binanceusdm array("code":-4046,"msg":"No need to change margin type.")
-                return true;
+                throw new MarginModeAlreadySet($feedback);
             }
-            $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
             throw new ExchangeError($feedback);
         }
