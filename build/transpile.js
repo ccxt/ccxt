@@ -447,7 +447,6 @@ class Transpiler {
 
             [ /JSON\.stringify/g, 'json_encode' ],
             [ /JSON\.parse\s+\(([^\)]+)\)/g, 'json_decode($1, $$as_associative_array = true)' ],
-            [ /([^\(\s]+)\.includes\s+\(([^\)]+)\)/g, 'mb_strpos($1, $2)' ],
             // [ /\'([^\']+)\'\.sprintf\s*\(([^\)]+)\)/g, "sprintf ('$1', $2)" ],
             [ /([^\s]+)\.toFixed\s*\(([0-9]+)\)/g, "sprintf('%.$2f', $1)" ],
             [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "sprintf('%.' . $2 . 'f', $1)" ],
