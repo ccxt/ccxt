@@ -26,8 +26,24 @@ class huobi(Exchange, ccxt.huobi):
                 'api': {
                     'ws': {
                         'api': {
-                            'public': 'wss://{hostname}/ws',
-                            'private': 'wss://{hostname}/ws/v2',
+                            'spot': {
+                                'public': 'wss://{hostname}/ws',
+                                'private': 'wss://{hostname}/ws/v2',
+                            },
+                            'future': {
+                                'public': 'wss://api.hbdm.com/ws',
+                                'private': 'wss://api.hbdm.com/notification',
+                            },
+                            'swap': {
+                                'inverse': {
+                                    'public': 'wss://api.hbdm.com/swap-ws',
+                                    'private': 'wss://api.hbdm.com/swap-notification',
+                                },
+                                'linear': {
+                                    'public': 'wss://api.hbdm.com/linear-swap-ws',
+                                    'private': 'wss://api.hbdm.com/linear-swap-notification',
+                                },
+                            },
                         },
                         # these settings work faster for clients hosted on AWS
                         'api-aws': {
@@ -59,7 +75,7 @@ class huobi(Exchange, ccxt.huobi):
         messageHash = 'market.' + market['id'] + '.detail'
         api = self.safe_string(self.options, 'api', 'api')
         hostname = {'hostname': self.hostname}
-        url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
+        url = self.implode_params(self.urls['api']['ws'][api]['spot']['public'], hostname)
         requestId = self.request_id()
         request = {
             'sub': messageHash,
@@ -112,7 +128,7 @@ class huobi(Exchange, ccxt.huobi):
         messageHash = 'market.' + market['id'] + '.trade.detail'
         api = self.safe_string(self.options, 'api', 'api')
         hostname = {'hostname': self.hostname}
-        url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
+        url = self.implode_params(self.urls['api']['ws'][api]['spot']['public'], hostname)
         requestId = self.request_id()
         request = {
             'sub': messageHash,
@@ -175,7 +191,7 @@ class huobi(Exchange, ccxt.huobi):
         messageHash = 'market.' + market['id'] + '.kline.' + interval
         api = self.safe_string(self.options, 'api', 'api')
         hostname = {'hostname': self.hostname}
-        url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
+        url = self.implode_params(self.urls['api']['ws'][api]['spot']['public'], hostname)
         requestId = self.request_id()
         request = {
             'sub': messageHash,
@@ -235,24 +251,15 @@ class huobi(Exchange, ccxt.huobi):
         market = self.market(symbol)
         # only supports a limit of 150 at self time
         limit = 150 if (limit is None) else limit
-        messageHash = 'market.' + market['id'] + '.mbp.' + str(limit)
-        api = self.safe_string(self.options, 'api', 'api')
-        hostname = {'hostname': self.hostname}
-        url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
-        requestId = self.request_id()
-        request = {
-            'sub': messageHash,
-            'id': requestId,
-        }
-        subscription = {
-            'id': requestId,
-            'messageHash': messageHash,
-            'symbol': symbol,
-            'limit': limit,
-            'params': params,
-            'method': self.handle_order_book_subscription,
-        }
-        orderbook = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
+        messageHash = None
+        if market['spot']:
+            messageHash = 'market.' + market['id'] + '.mbp.' + str(limit)
+        else:
+            messageHash = 'market.' + market['id'] + '.depth.size_' + str(limit) + '.high_freq'
+        type = self.get_uniform_market_type(market)
+        if not market['spot']:
+            params['data_type'] = 'incremental'
+        orderbook = await self.subscribe_public(symbol, messageHash, type, self.handle_order_book_subscription, params)
         return orderbook.limit(limit)
 
     def handle_order_book_snapshot(self, client, message, subscription):
@@ -296,9 +303,8 @@ class huobi(Exchange, ccxt.huobi):
         limit = self.safe_integer(subscription, 'limit')
         params = self.safe_value(subscription, 'params')
         messageHash = self.safe_string(subscription, 'messageHash')
-        api = self.safe_string(self.options, 'api', 'api')
-        hostname = {'hostname': self.hostname}
-        url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
+        market = self.market(symbol)
+        url = self.get_url_by_market_type(self.get_uniform_market_type(market))
         requestId = self.request_id()
         request = {
             'req': messageHash,
@@ -317,6 +323,23 @@ class huobi(Exchange, ccxt.huobi):
         orderbook = await self.watch(url, requestId, request, requestId, snapshotSubscription)
         return orderbook.limit(limit)
 
+    async def fetch_order_book_snapshot(self, client, message, subscription):
+        symbol = self.safe_string(subscription, 'symbol')
+        limit = self.safe_integer(subscription, 'limit')
+        params = self.safe_value(subscription, 'params')
+        messageHash = self.safe_string(subscription, 'messageHash')
+        snapshot = await self.fetch_order_book(symbol, limit, params)
+        orderbook = self.safe_value(self.orderbooks, symbol)
+        if orderbook is not None:
+            orderbook.reset(snapshot)
+            # unroll the accumulated deltas
+            messages = orderbook.cache
+            for i in range(0, len(messages)):
+                message = messages[i]
+                self.handle_order_book_message(client, message, orderbook)
+            self.orderbooks[symbol] = orderbook
+            client.resolve(orderbook, messageHash)
+
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)
         amount = self.safe_float(delta, 1)
@@ -327,7 +350,7 @@ class huobi(Exchange, ccxt.huobi):
             self.handle_delta(bookside, deltas[i])
 
     def handle_order_book_message(self, client, message, orderbook):
-        #
+        # spot markets
         #     {
         #         ch: "market.btcusdt.mbp.150",
         #         ts: 1583472025885,
@@ -346,16 +369,38 @@ class huobi(Exchange, ccxt.huobi):
         #             ]
         #         }
         #     }
-        #
+        # non-spot market
+        #     {
+        #         "ch":"market.BTC220218.depth.size_150.high_freq",
+        #         "tick":{
+        #            "asks":[
+        #            ],
+        #            "bids":[
+        #               [43445.74,1],
+        #               [43444.48,0],
+        #               [40593.92,9]
+        #             ],
+        #            "ch":"market.BTC220218.depth.size_150.high_freq",
+        #            "event":"update",
+        #            "id":152727500274,
+        #            "mrid":152727500274,
+        #            "ts":1645023376098,
+        #            "version":37536690
+        #         },
+        #         "ts":1645023376098
+        #      }
         tick = self.safe_value(message, 'tick', {})
         seqNum = self.safe_integer(tick, 'seqNum')
         prevSeqNum = self.safe_integer(tick, 'prevSeqNum')
-        if (prevSeqNum <= orderbook['nonce']) and (seqNum > orderbook['nonce']):
+        if prevSeqNum is None or ((prevSeqNum <= orderbook['nonce']) and (seqNum > orderbook['nonce'])):
             asks = self.safe_value(tick, 'asks', [])
             bids = self.safe_value(tick, 'bids', [])
             self.handle_deltas(orderbook['asks'], asks)
             self.handle_deltas(orderbook['bids'], bids)
-            orderbook['nonce'] = seqNum
+            if seqNum is not None:
+                orderbook['nonce'] = seqNum
+            else:
+                orderbook['nonce'] = self.safe_integer(tick, 'mrid')
             timestamp = self.safe_integer(message, 'ts')
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
@@ -365,6 +410,7 @@ class huobi(Exchange, ccxt.huobi):
         #
         # deltas
         #
+        # spot markets
         #     {
         #         ch: "market.btcusdt.mbp.150",
         #         ts: 1583472025885,
@@ -384,12 +430,37 @@ class huobi(Exchange, ccxt.huobi):
         #         }
         #     }
         #
+        # non spot markets
+        #     {
+        #         "ch":"market.BTC220218.depth.size_150.high_freq",
+        #         "tick":{
+        #            "asks":[
+        #            ],
+        #            "bids":[
+        #               [43445.74,1],
+        #               [43444.48,0],
+        #               [40593.92,9]
+        #             ],
+        #            "ch":"market.BTC220218.depth.size_150.high_freq",
+        #            "event":"update",
+        #            "id":152727500274,
+        #            "mrid":152727500274,
+        #            "ts":1645023376098,
+        #            "version":37536690
+        #         },
+        #         "ts":1645023376098
+        #      }
         messageHash = self.safe_string(message, 'ch')
         ch = self.safe_value(message, 'ch')
         parts = ch.split('.')
         marketId = self.safe_string(parts, 1)
         symbol = self.safe_symbol(marketId)
-        orderbook = self.orderbooks[symbol]
+        orderbook = self.safe_value(self.orderbooks, symbol)
+        if orderbook is None:
+            size = self.safe_string(parts, 3)
+            sizeParts = size.split('_')
+            limit = self.safe_number(sizeParts, 1)
+            orderbook = self.order_book({}, limit)
         if orderbook['nonce'] is None:
             orderbook.cache.append(message)
         else:
@@ -402,8 +473,10 @@ class huobi(Exchange, ccxt.huobi):
         if symbol in self.orderbooks:
             del self.orderbooks[symbol]
         self.orderbooks[symbol] = self.order_book({}, limit)
-        # watch the snapshot in a separate async call
-        self.spawn(self.watch_order_book_snapshot, client, message, subscription)
+        if self.markets[symbol]['spot'] is True:
+            self.spawn(self.watch_order_book_snapshot, client, message, subscription)
+        else:
+            self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
 
     def handle_subscription_status(self, client, message):
         #
@@ -440,7 +513,7 @@ class huobi(Exchange, ccxt.huobi):
         return message
 
     def handle_subject(self, client, message):
-        #
+        # spot
         #     {
         #         ch: "market.btcusdt.mbp.150",
         #         ts: 1583472025885,
@@ -459,6 +532,26 @@ class huobi(Exchange, ccxt.huobi):
         #             ]
         #         }
         #     }
+        # non spot
+        #     {
+        #         "ch":"market.BTC220218.depth.size_150.high_freq",
+        #         "tick":{
+        #            "asks":[
+        #            ],
+        #            "bids":[
+        #               [43445.74,1],
+        #               [43444.48,0],
+        #               [40593.92,9]
+        #             ],
+        #            "ch":"market.BTC220218.depth.size_150.high_freq",
+        #            "event":"update",
+        #            "id":152727500274,
+        #            "mrid":152727500274,
+        #            "ts":1645023376098,
+        #            "version":37536690
+        #         },
+        #         "ts":1645023376098
+        #      }
         #
         ch = self.safe_value(message, 'ch')
         parts = ch.split('.')
@@ -466,6 +559,7 @@ class huobi(Exchange, ccxt.huobi):
         if type == 'market':
             methodName = self.safe_string(parts, 2)
             methods = {
+                'depth': self.handle_order_book,
                 'mbp': self.handle_order_book,
                 'detail': self.handle_ticker,
                 'trade': self.handle_trades,
@@ -527,3 +621,51 @@ class huobi(Exchange, ccxt.huobi):
                 self.handle_subject(client, message)
             elif 'ping' in message:
                 self.handle_ping(client, message)
+
+    def get_url_by_market_type(self, type, isPrivate=False):
+        api = self.safe_string(self.options, 'api', 'api')
+        hostname = {'hostname': self.hostname}
+        hostnameURL = None
+        url = None
+        if type == 'spot':
+            if isPrivate:
+                hostnameURL = self.urls['api']['ws'][api]['spot']['private']
+            else:
+                hostnameURL = self.urls['api']['ws'][api]['spot']['public']
+            url = self.implode_params(hostnameURL, hostname)
+        if type == 'future':
+            futureUrl = self.urls['api']['ws'][api]['future']
+            url = futureUrl['private'] if isPrivate else futureUrl['public']
+        if type == 'linear':
+            linearUrl = self.urls['api']['ws'][api]['swap']['linear']
+            url = linearUrl['private'] if isPrivate else linearUrl['public']
+        if type == 'inverse':
+            inverseUrl = self.urls['api']['ws'][api]['swap']['inverse']
+            url = inverseUrl['private'] if isPrivate else inverseUrl['public']
+        return url
+
+    def get_uniform_market_type(self, market):
+        if market['linear']:
+            return 'linear'
+        if market['future']:
+            return 'future'
+        if market['swap']:
+            return 'inverse'
+        return 'spot'
+
+    async def subscribe_public(self, symbol, messageHash, type, method=None, params={}):
+        url = self.get_url_by_market_type(type)
+        requestId = self.request_id()
+        request = {
+            'sub': messageHash,
+            'id': requestId,
+        }
+        subscription = {
+            'id': requestId,
+            'messageHash': messageHash,
+            'symbol': symbol,
+            'params': params,
+        }
+        if method is not None:
+            subscription['method'] = method
+        return await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
