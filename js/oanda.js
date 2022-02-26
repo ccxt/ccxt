@@ -55,7 +55,7 @@ module.exports = class oanda extends Exchange {
                 'fetchOrders': true,
                 'fetchOrdersByIds': true,
                 'fetchOrderTrades': true,
-                // 'fetchPosition': true, // removed because of emulation, will be implemented in base later
+                'fetchPosition': true, // removed because of emulation, will be implemented in base later
                 'fetchPositions': true,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': false,
@@ -723,7 +723,8 @@ module.exports = class oanda extends Exchange {
         let type = undefined;
         let price = undefined;
         let timeInForce = undefined;
-        let amount = undefined;
+        let amountRaw = undefined;
+        let amountAbs = undefined;
         let filled = undefined;
         let remaining = undefined;
         let status = undefined;
@@ -741,8 +742,9 @@ module.exports = class oanda extends Exchange {
             timestamp = this.parseDate (this.safeString (orderCreateTransaction, 'time'));
             price = this.safeString (orderCreateTransaction, 'price');
             timeInForce = this.parseTimeInForce (this.safeString (orderCreateTransaction, 'timeInForce'));
-            amount = this.safeString (orderCreateTransaction, 'units');
-            side = Precise.stringGt (amount, '0') ? 'buy' : 'sell';
+            amountRaw = this.safeString (orderCreateTransaction, 'units');
+            amountAbs = Precise.stringAbs (amountRaw);
+            side = Precise.stringGt (amountRaw, '0') ? 'buy' : 'sell';
             type = this.parseOrderTransactionType (this.safeString (orderCreateTransaction, 'type'));
             let tempStatus = undefined;
             // depending the last key, we find out the order status.
@@ -767,15 +769,16 @@ module.exports = class oanda extends Exchange {
             timestamp = this.parseDate (this.safeString (chosenOrder, 'createTime'));
             price = this.safeString (chosenOrder, 'price');
             timeInForce = this.parseTimeInForce (this.safeString (chosenOrder, 'timeInForce'));
-            amount = this.safeString (chosenOrder, 'units');
-            side = Precise.stringGt (amount, '0') ? 'buy' : 'sell';
+            amountRaw = this.safeString (chosenOrder, 'units');
+            amountAbs = Precise.stringAbs (amountRaw);
+            side = Precise.stringGt (amountRaw, '0') ? 'buy' : 'sell';
             type = this.parseOrderType (this.safeString (chosenOrder, 'type'));
             const state = this.safeString (chosenOrder, 'state');
             status = this.parseOrderStatus (state);
             if (state === 'FILLED') {
-                filled = amount;
+                filled = amountAbs;
             } else if (state === 'PENDING' || state === 'TRIGGERED') {
-                remaining = amount;
+                remaining = amountAbs;
             }
         }
         const safeSymbol = this.safeSymbol (marketId, market);
@@ -794,7 +797,7 @@ module.exports = class oanda extends Exchange {
             'price': price,
             'stopPrice': undefined,
             'average': undefined,
-            'amount': amount,
+            'amount': amountAbs,
             'filled': filled,
             'remaining': remaining,
             'cost': undefined,
