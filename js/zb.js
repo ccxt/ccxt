@@ -770,16 +770,39 @@ module.exports = class zb extends Exchange {
         const response = await this[method] (this.extend (request, query));
         //
         // Spot
+        //
         //     {
-        //         enName: "BTC",
-        //         freez: "0.00000000",
-        //         unitDecimal:  8,
-        //         cnName: "BTC",
-        //         isCanRecharge:  true,
-        //         unitTag: "฿",
-        //         isCanWithdraw:  true,
-        //         available: "0.00000000",
-        //         key: "btc"
+        //         "result": {
+        //             "coins": [
+        //                 {
+        //                     "isCanWithdraw": "true",
+        //                     "canLoan": false,
+        //                     "fundstype": 51,
+        //                     "showName": "ZB",
+        //                     "isCanRecharge": "true",
+        //                     "cnName": "ZB",
+        //                     "enName": "ZB",
+        //                     "available": "0",
+        //                     "freez": "0",
+        //                     "unitTag": "ZB",
+        //                     "key": "zb",
+        //                     "unitDecimal": 8
+        //                 },
+        //             ],
+        //             "version": 1645856691340,
+        //             "base": {
+        //                 "auth_google_enabled": true,
+        //                 "auth_mobile_enabled": false,
+        //                 "trade_password_enabled": true,
+        //                 "username": "blank@gmail.com"
+        //             }
+        //         },
+        //         "leverPerm": true,
+        //         "otcPerm": false,
+        //         "assetPerm": true,
+        //         "moneyPerm": true,
+        //         "subUserPerm": true,
+        //         "entrustPerm": true
         //     }
         //
         // Swap
