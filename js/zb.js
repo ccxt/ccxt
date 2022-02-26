@@ -759,7 +759,8 @@ module.exports = class zb extends Exchange {
             // 'currencyId': currency['id'], // SWAP
             // 'currencyName': 'usdt', // SWAP
         };
-        if (marketType === 'swap') {
+        const swap = (marketType === 'swap');
+        if (swap) {
             request['futuresAccountType'] = 1;
         }
         const response = await this[method] (this.extend (request, query));
@@ -825,7 +826,7 @@ module.exports = class zb extends Exchange {
         //
         // todo: use this somehow
         // let permissions = response['result']['base'];
-        if (marketType === 'swap') {
+        if (swap) {
             return this.parseSwapBalance (response);
         } else {
             return this.parseBalance (response);
