@@ -31,8 +31,14 @@ class huobi(Exchange, ccxt.huobi):
                                 'private': 'wss://{hostname}/ws/v2',
                             },
                             'future': {
-                                'public': 'wss://api.hbdm.com/ws',
-                                'private': 'wss://api.hbdm.com/notification',
+                                'linear': {
+                                    'public': 'wss://api.hbdm.com/linear-swap-ws',
+                                    'private': 'wss://api.hbdm.com/linear-swap-notification',
+                                },
+                                'inverse': {
+                                    'public': 'wss://api.hbdm.com/ws',
+                                    'private': 'wss://api.hbdm.com/notification',
+                                },
                             },
                             'swap': {
                                 'inverse': {
@@ -256,10 +262,10 @@ class huobi(Exchange, ccxt.huobi):
             messageHash = 'market.' + market['id'] + '.mbp.' + str(limit)
         else:
             messageHash = 'market.' + market['id'] + '.depth.size_' + str(limit) + '.high_freq'
-        type = self.get_uniform_market_type(market)
+        url = self.get_url_by_market_type(market['type'], market['linear'])
         if not market['spot']:
             params['data_type'] = 'incremental'
-        orderbook = await self.subscribe_public(symbol, messageHash, type, self.handle_order_book_subscription, params)
+        orderbook = await self.subscribe_public(url, symbol, messageHash, self.handle_order_book_subscription, params)
         return orderbook.limit(limit)
 
     def handle_order_book_snapshot(self, client, message, subscription):
@@ -304,7 +310,7 @@ class huobi(Exchange, ccxt.huobi):
         params = self.safe_value(subscription, 'params')
         messageHash = self.safe_string(subscription, 'messageHash')
         market = self.market(symbol)
-        url = self.get_url_by_market_type(self.get_uniform_market_type(market))
+        url = self.get_url_by_market_type(market['type'], market['linear'])
         requestId = self.request_id()
         request = {
             'req': messageHash,
@@ -622,7 +628,7 @@ class huobi(Exchange, ccxt.huobi):
             elif 'ping' in message:
                 self.handle_ping(client, message)
 
-    def get_url_by_market_type(self, type, isPrivate=False):
+    def get_url_by_market_type(self, type, isLinear=True, isPrivate=False):
         api = self.safe_string(self.options, 'api', 'api')
         hostname = {'hostname': self.hostname}
         hostnameURL = None
@@ -633,28 +639,13 @@ class huobi(Exchange, ccxt.huobi):
             else:
                 hostnameURL = self.urls['api']['ws'][api]['spot']['public']
             url = self.implode_params(hostnameURL, hostname)
-        if type == 'future':
-            futureUrl = self.urls['api']['ws'][api]['future']
-            url = futureUrl['private'] if isPrivate else futureUrl['public']
-        if type == 'linear':
-            linearUrl = self.urls['api']['ws'][api]['swap']['linear']
-            url = linearUrl['private'] if isPrivate else linearUrl['public']
-        if type == 'inverse':
-            inverseUrl = self.urls['api']['ws'][api]['swap']['inverse']
-            url = inverseUrl['private'] if isPrivate else inverseUrl['public']
+        else:
+            baseUrl = self.urls['api']['ws'][api][type]
+            subTypeUrl = baseUrl['linear'] if isLinear else baseUrl['inverse']
+            url = subTypeUrl['private'] if isPrivate else subTypeUrl['public']
         return url
 
-    def get_uniform_market_type(self, market):
-        if market['linear']:
-            return 'linear'
-        if market['future']:
-            return 'future'
-        if market['swap']:
-            return 'inverse'
-        return 'spot'
-
-    async def subscribe_public(self, symbol, messageHash, type, method=None, params={}):
-        url = self.get_url_by_market_type(type)
+    async def subscribe_public(self, url, symbol, messageHash, method=None, params={}):
         requestId = self.request_id()
         request = {
             'sub': messageHash,

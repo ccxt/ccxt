@@ -32,8 +32,14 @@ class huobi extends \ccxt\async\huobi {
                                 'private' => 'wss://{hostname}/ws/v2',
                             ),
                             'future' => array(
-                                'public' => 'wss://api.hbdm.com/ws',
-                                'private' => 'wss://api.hbdm.com/notification',
+                                'linear' => array(
+                                    'public' => 'wss://api.hbdm.com/linear-swap-ws',
+                                    'private' => 'wss://api.hbdm.com/linear-swap-notification',
+                                ),
+                                'inverse' => array(
+                                    'public' => 'wss://api.hbdm.com/ws',
+                                    'private' => 'wss://api.hbdm.com/notification',
+                                ),
                             ),
                             'swap' => array(
                                 'inverse' => array(
@@ -272,11 +278,11 @@ class huobi extends \ccxt\async\huobi {
         } else {
             $messageHash = 'market.' . $market['id'] . '.depth.size_' . (string) $limit . '.high_freq';
         }
-        $type = $this->get_uniform_market_type($market);
+        $url = $this->get_url_by_market_type($market['type'], $market['linear']);
         if (!$market['spot']) {
             $params['data_type'] = 'incremental';
         }
-        $orderbook = yield $this->subscribe_public($symbol, $messageHash, $type, array($this, 'handle_order_book_subscription'), $params);
+        $orderbook = yield $this->subscribe_public($url, $symbol, $messageHash, array($this, 'handle_order_book_subscription'), $params);
         return $orderbook->limit ($limit);
     }
 
@@ -324,7 +330,7 @@ class huobi extends \ccxt\async\huobi {
         $params = $this->safe_value($subscription, 'params');
         $messageHash = $this->safe_string($subscription, 'messageHash');
         $market = $this->market($symbol);
-        $url = $this->get_url_by_market_type($this->get_uniform_market_type($market));
+        $url = $this->get_url_by_market_type($market['type'], $market['linear']);
         $requestId = $this->request_id();
         $request = array(
             'req' => $messageHash,
@@ -676,7 +682,7 @@ class huobi extends \ccxt\async\huobi {
         }
     }
 
-    public function get_url_by_market_type($type, $isPrivate = false) {
+    public function get_url_by_market_type($type, $isLinear = true, $isPrivate = false) {
         $api = $this->safe_string($this->options, 'api', 'api');
         $hostname = array( 'hostname' => $this->hostname );
         $hostnameURL = null;
@@ -688,37 +694,15 @@ class huobi extends \ccxt\async\huobi {
                 $hostnameURL = $this->urls['api']['ws'][$api]['spot']['public'];
             }
             $url = $this->implode_params($hostnameURL, $hostname);
-        }
-        if ($type === 'future') {
-            $futureUrl = $this->urls['api']['ws'][$api]['future'];
-            $url = $isPrivate ? $futureUrl['private'] : $futureUrl['public'];
-        }
-        if ($type === 'linear') {
-            $linearUrl = $this->urls['api']['ws'][$api]['swap']['linear'];
-            $url = $isPrivate ? $linearUrl['private'] : $linearUrl['public'];
-        }
-        if ($type === 'inverse') {
-            $inverseUrl = $this->urls['api']['ws'][$api]['swap']['inverse'];
-            $url = $isPrivate ? $inverseUrl['private'] : $inverseUrl['public'];
+        } else {
+            $baseUrl = $this->urls['api']['ws'][$api][$type];
+            $subTypeUrl = $isLinear ? $baseUrl['linear'] : $baseUrl['inverse'];
+            $url = $isPrivate ? $subTypeUrl['private'] : $subTypeUrl['public'];
         }
         return $url;
     }
 
-    public function get_uniform_market_type($market) {
-        if ($market['linear']) {
-            return 'linear';
-        }
-        if ($market['future']) {
-            return 'future';
-        }
-        if ($market['swap']) {
-            return 'inverse';
-        }
-        return 'spot';
-    }
-
-    public function subscribe_public($symbol, $messageHash, $type, $method = null, $params = array ()) {
-        $url = $this->get_url_by_market_type($type);
+    public function subscribe_public($url, $symbol, $messageHash, $method = null, $params = array ()) {
         $requestId = $this->request_id();
         $request = array(
             'sub' => $messageHash,
