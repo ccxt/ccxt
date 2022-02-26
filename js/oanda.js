@@ -651,15 +651,15 @@ module.exports = class oanda extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrders (symbol, since, limit, this.extend ({ 'state': 'PENDING' }, params));
+        return await this.fetchOrders (symbol, since, limit, this.extend ({ 'state': 'PENDING' }, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrders (symbol, since, limit, this.extend ({ 'state': 'TRIGGERED' }, params));
+        return await this.fetchOrders (symbol, since, limit, this.extend ({ 'state': 'TRIGGERED' }, params));
     }
 
     async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrders (symbol, since, limit, this.extend ({ 'state': 'CANCELLED' }, params));
+        return await this.fetchOrders (symbol, since, limit, this.extend ({ 'state': 'CANCELLED' }, params));
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
