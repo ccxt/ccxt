@@ -1064,6 +1064,8 @@ module.exports = class zb extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
+        // Spot
+        //
         //     {
         //         "date":1624537391,
         //         "amount":"0.0142",
@@ -1073,10 +1075,44 @@ module.exports = class zb extends Exchange {
         //         "tid":1718869018
         //     }
         //
-        const timestamp = this.safeTimestamp (trade, 'date');
-        let side = this.safeString (trade, 'trade_type');
-        side = (side === 'bid') ? 'buy' : 'sell';
-        const id = this.safeString (trade, 'tid');
+        // Swap
+        //
+        //     {
+        //         "amount": "0.002",
+        //         "createTime": "1645787446034",
+        //         "feeAmount": "-0.05762699",
+        //         "feeCurrency": "USDT",
+        //         "id": "6902932868050395136",
+        //         "maker": false,
+        //         "orderId": "6902932868042006528",
+        //         "price": "38417.99",
+        //         "relizedPnl": "0.30402",
+        //         "side": 4,
+        //         "userId": "6896693805014120448"
+        //     },
+        //
+        const sideField = market['swap'] ? 'side' : 'trade_type';
+        let side = this.safeString (trade, sideField);
+        let maker = this.safeString (trade, 'maker');
+        if (market['spot']) {
+            side = (side === 'bid') ? 'buy' : 'sell';
+        } else {
+            if (side === '3') {
+                side = 'sell'; // close long
+            } else if (side === '4') {
+                side = 'buy'; // close short
+            } else if (side === '1') {
+                side = 'buy'; // open long
+            } else if (side === '2') {
+                side = 'sell'; // open short
+            }
+            maker = (maker === 'false') ? 'taker' : 'maker';
+        }
+        const timeField = market['swap'] ? 'createTime' : 'date';
+        const timeMethod = market['swap'] ? 'safeInteger' : 'safeTimestamp';
+        const timestamp = this[timeMethod] (trade, timeField);
+        const idField = market['swap'] ? 'orderId' : 'tid';
+        const id = this.safeString (trade, idField);
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'amount');
         market = this.safeMarket (undefined, market);
@@ -1089,7 +1125,7 @@ module.exports = class zb extends Exchange {
             'type': undefined,
             'side': side,
             'order': undefined,
-            'takerOrMaker': undefined,
+            'takerOrMaker': maker,
             'price': price,
             'amount': amount,
             'cost': undefined,
@@ -1098,12 +1134,40 @@ module.exports = class zb extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const swap = market['swap'];
         const request = {
-            'market': market['id'],
+            // 'market': market['id'], // SPOT
+            // 'symbol': market['id'], // SWAP
+            // 'side': 1, // SWAP
+            // 'dateRange': 0, // SWAP
+            // 'startTime': since, // SWAP
+            // 'endtime': this.milliseconds (), // SWAP
+            // 'pageNum': 1, // SWAP
+            // 'pageSize': limit,  // SWAP default is 10
         };
-        const response = await this.spotV1PublicGetTrades (this.extend (request, params));
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const marketIdField = swap ? 'symbol' : 'market';
+        request[marketIdField] = market['id'];
+        if (swap && params['pageNum'] === undefined) {
+            request['pageNum'] = 1;
+        }
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'spotV1PublicGetTrades',
+            'swap': 'contractV2PrivateGetTradeTradeHistory',
+        });
+        let response = await this[method] (this.extend (request, params));
+        //
+        // Spot
         //
         //     [
         //         {"date":1624537391,"amount":"0.0142","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869018},
@@ -1111,6 +1175,36 @@ module.exports = class zb extends Exchange {
         //         {"date":1624537391,"amount":"0.0133","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869021},
         //     ]
         //
+        // Swap
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "amount": "0.002",
+        //                     "createTime": "1645787446034",
+        //                     "feeAmount": "-0.05762699",
+        //                     "feeCurrency": "USDT",
+        //                     "id": "6902932868050395136",
+        //                     "maker": false,
+        //                     "orderId": "6902932868042006528",
+        //                     "price": "38417.99",
+        //                     "relizedPnl": "0.30402",
+        //                     "side": 4,
+        //                     "userId": "6896693805014120448"
+        //                 },
+        //             ],
+        //             "pageNum": 1,
+        //             "pageSize": 10
+        //         },
+        //         "desc": "操作成功"
+        //     }
+        //
+        if (swap) {
+            const data = this.safeValue (response, 'data');
+            response = this.safeValue (data, 'list');
+        }
         return this.parseTrades (response, market, since, limit);
     }
 
