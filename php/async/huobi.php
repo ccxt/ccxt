@@ -75,6 +75,8 @@ class huobi extends Exchange {
                 'fetchLedger' => true,
                 'fetchLedgerEntry' => null,
                 'fetchLeverage' => false,
+                'fetchLeverageTiers' => true,
+                'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMyBuys' => null,
@@ -5432,5 +5434,120 @@ class huobi extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_ledger($data, $currency, $since, $limit);
+    }
+
+    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->contractPublicGetLinearSwapApiV1SwapAdjustfactor ($params);
+        //
+        //    {
+        //        "status" => "ok",
+        //        "data" => array(
+        //            {
+        //                "symbol" => "MANA",
+        //                "contract_code" => "MANA-USDT",
+        //                "margin_mode" => "isolated",
+        //                "trade_partition" => "USDT",
+        //                "list" => array(
+        //                    array(
+        //                        "lever_rate" => 75,
+        //                        "ladders" => array(
+        //                            array(
+        //                                "ladder" => 0,
+        //                                "min_size" => 0,
+        //                                "max_size" => 999,
+        //                                "adjust_factor" => 0.7
+        //                            ),
+        //                            ...
+        //                        )
+        //                    }
+        //                    ...
+        //                )
+        //            ),
+        //            ...
+        //        )
+        //    }
+        //
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_leverage_tiers($data, $symbols, 'contract_code');
+    }
+
+    public function fetch_market_leverage_tiers($symbol, $params = array ()) {
+        yield $this->load_markets();
+        $request = array();
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            if (!$market['contract']) {
+                throw new BadRequest($this->id . '.fetchLeverageTiers $symbol supports contract markets only');
+            }
+            $request['contract_code'] = $market['id'];
+        }
+        $response = yield $this->contractPublicGetLinearSwapApiV1SwapAdjustfactor (array_merge($request, $params));
+        //
+        //    {
+        //        "status" => "ok",
+        //        "data" => array(
+        //            {
+        //                "symbol" => "MANA",
+        //                "contract_code" => "MANA-USDT",
+        //                "margin_mode" => "isolated",
+        //                "trade_partition" => "USDT",
+        //                "list" => array(
+        //                    array(
+        //                        "lever_rate" => 75,
+        //                        "ladders" => array(
+        //                            array(
+        //                                "ladder" => 0,
+        //                                "min_size" => 0,
+        //                                "max_size" => 999,
+        //                                "adjust_factor" => 0.7
+        //                            ),
+        //                            ...
+        //                        )
+        //                    }
+        //                    ...
+        //                )
+        //            ),
+        //            ...
+        //        )
+        //    }
+        //
+        $data = $this->safe_value($response, 'data');
+        $tiers = $this->parse_leverage_tiers($data, array( $symbol ), 'contract_code');
+        return $this->safe_value($tiers, $symbol);
+    }
+
+    public function parse_leverage_tiers($response, $symbols, $marketIdKey) {
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $item = $response[$i];
+            $list = $this->safe_value($item, 'list', array());
+            $tiers = array();
+            $currency = $this->safe_string($item, 'trade_partition');
+            $id = $this->safe_string($item, $marketIdKey);
+            $symbol = $this->safe_symbol($id);
+            if ($this->in_array($symbols, $symbol)) {
+                for ($j = 0; $j < count($list); $j++) {
+                    $obj = $list[$j];
+                    $leverage = $this->safe_string($obj, 'lever_rate');
+                    $ladders = $this->safe_value($obj, 'ladders', array());
+                    for ($k = 0; $k < count($ladders); $k++) {
+                        $bracket = $ladders[$k];
+                        $adjustFactor = $this->safe_string($bracket, 'adjust_factor');
+                        $tiers[] = array(
+                            'tier' => $this->safe_integer($bracket, 'ladder'),
+                            'currency' => $this->safe_currency_code($currency),
+                            'notionalFloor' => $this->safe_number($bracket, 'min_size'),
+                            'notionalCap' => $this->safe_number($bracket, 'max_size'),
+                            'maintenanceMarginRate' => $this->parse_number(Precise::string_div($adjustFactor, $leverage)),
+                            'maxLeverage' => $this->parse_number($leverage),
+                            'info' => $bracket,
+                        );
+                    }
+                }
+                $result[$symbol] = $tiers;
+            }
+        }
+        return $result;
     }
 }
