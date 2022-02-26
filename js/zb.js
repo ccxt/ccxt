@@ -1138,7 +1138,7 @@ module.exports = class zb extends Exchange {
             'type': undefined,
             'side': side,
             'order': this.safeString (trade, 'orderId'),
-            'takerOrMaker': maker,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': undefined,
