@@ -1093,7 +1093,7 @@ module.exports = class zb extends Exchange {
         //
         const sideField = market['swap'] ? 'side' : 'trade_type';
         let side = this.safeString (trade, sideField);
-        let maker = this.safeString (trade, 'maker');
+        let maker = this.safeValue (trade, 'maker');
         if (market['spot']) {
             side = (side === 'bid') ? 'buy' : 'sell';
         } else {
@@ -1106,7 +1106,7 @@ module.exports = class zb extends Exchange {
             } else if (side === '2') {
                 side = 'sell'; // open short
             }
-            maker = (maker === 'false') ? 'taker' : 'maker';
+            maker = (maker === false) ? 'taker' : 'maker';
         }
         const timeField = market['swap'] ? 'createTime' : 'date';
         const timeMethod = market['swap'] ? 'safeInteger' : 'safeTimestamp';
@@ -1115,6 +1115,15 @@ module.exports = class zb extends Exchange {
         const id = this.safeString (trade, idField);
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'amount');
+        let fee = undefined;
+        const feeCostString = this.safeString (trade, 'feeAmount');
+        const feeCurrencyString = this.safeString (trade, 'feeCurrency');
+        if (feeCostString !== undefined) {
+            fee = {
+                'cost': feeCostString,
+                'currency': this.safeCurrencyCode (feeCurrencyString),
+            };
+        }
         market = this.safeMarket (undefined, market);
         return this.safeTrade ({
             'info': trade,
@@ -1129,7 +1138,7 @@ module.exports = class zb extends Exchange {
             'price': price,
             'amount': amount,
             'cost': undefined,
-            'fee': undefined,
+            'fee': fee,
         }, market);
     }
 
