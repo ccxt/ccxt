@@ -692,8 +692,6 @@ module.exports = class zb extends Exchange {
         const balances = this.safeValue (response['result'], 'coins');
         const result = {
             'info': response,
-            'timestamp': undefined,
-            'datetime': undefined,
         };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -716,12 +714,123 @@ module.exports = class zb extends Exchange {
         return this.safeBalance (result);
     }
 
+    parseSwapBalance (response) {
+        const result = {
+            'info': response,
+        };
+        const data = this.safeValue (response, 'data', {});
+        for (let i = 0; i < data.length; i++) {
+            const balance = data[i];
+            //
+            //     {
+            //         "userId": "6896693805014120448",
+            //         "currencyId": "6",
+            //         "currencyName": "usdt",
+            //         "amount": "30.56585118",
+            //         "freezeAmount": "0",
+            //         "contractType": 1,
+            //         "id": "6899113714763638819",
+            //         "createTime": "1644876888934",
+            //         "modifyTime": "1645787446037",
+            //         "accountBalance": "30.56585118",
+            //         "allMargin": "0",
+            //         "allowTransferOutAmount": "30.56585118"
+            //     },
+            //
+            const code = this.safeCurrencyCode (this.safeString (balance, 'currencyName'));
+            const account = this.account ();
+            account['total'] = this.safeString (balance, 'accountBalance');
+            account['free'] = this.safeString (balance, 'allowTransferOutAmount');
+            account['used'] = this.safeString (balance, 'freezeAmount');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.spotV1PrivateGetGetAccountInfo (params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'spotV1PrivateGetGetAccountInfo',
+            'swap': 'contractV2PrivateGetFundBalance',
+        });
+        const request = {
+            // 'futuresAccountType': 1, // SWAP
+            // 'currencyId': currency['id'], // SWAP
+            // 'currencyName': 'usdt', // SWAP
+        };
+        const swap = (marketType === 'swap');
+        if (swap) {
+            request['futuresAccountType'] = 1;
+        }
+        const response = await this[method] (this.extend (request, query));
+        //
+        // Spot
+        //
+        //     {
+        //         "result": {
+        //             "coins": [
+        //                 {
+        //                     "isCanWithdraw": "true",
+        //                     "canLoan": false,
+        //                     "fundstype": 51,
+        //                     "showName": "ZB",
+        //                     "isCanRecharge": "true",
+        //                     "cnName": "ZB",
+        //                     "enName": "ZB",
+        //                     "available": "0",
+        //                     "freez": "0",
+        //                     "unitTag": "ZB",
+        //                     "key": "zb",
+        //                     "unitDecimal": 8
+        //                 },
+        //             ],
+        //             "version": 1645856691340,
+        //             "base": {
+        //                 "auth_google_enabled": true,
+        //                 "auth_mobile_enabled": false,
+        //                 "trade_password_enabled": true,
+        //                 "username": "blank@gmail.com"
+        //             }
+        //         },
+        //         "leverPerm": true,
+        //         "otcPerm": false,
+        //         "assetPerm": true,
+        //         "moneyPerm": true,
+        //         "subUserPerm": true,
+        //         "entrustPerm": true
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": [
+        //             {
+        //                 "userId": "6896693805014120448",
+        //                 "currencyId": "6",
+        //                 "currencyName": "usdt",
+        //                 "amount": "30.56585118",
+        //                 "freezeAmount": "0",
+        //                 "contractType": 1,
+        //                 "id": "6899113714763638819",
+        //                 "createTime": "1644876888934",
+        //                 "modifyTime": "1645787446037",
+        //                 "accountBalance": "30.56585118",
+        //                 "allMargin": "0",
+        //                 "allowTransferOutAmount": "30.56585118"
+        //             },
+        //         ],
+        //         "desc": "操作成功"
+        //     }
+        //
         // todo: use this somehow
         // let permissions = response['result']['base'];
-        return this.parseBalance (response);
+        if (swap) {
+            return this.parseSwapBalance (response);
+        } else {
+            return this.parseBalance (response);
+        }
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
