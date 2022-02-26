@@ -71,7 +71,7 @@ module.exports = class lykke2 extends Exchange {
                 'secret': false,
             },
             'urls': {
-                'logo': 'https://lykke-marketing-website.cdn.prismic.io/lykke-marketing-website/7dd44480-31ea-45c8-a246-c97989cd9da6_logo.svg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/155840500-1ea4fdf0-47c0-4daa-9597-c6c1cd51b9ec.jpg',
                 'api': {
                     'public': 'https://hft-apiv2.lykke.com/api',
                     'private': 'https://hft-apiv2.lykke.com/api',
