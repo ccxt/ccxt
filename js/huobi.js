@@ -679,7 +679,7 @@ module.exports = class huobi extends ccxt.huobi {
         }
     }
 
-    getUrlByMarketType (type, subType = 'linear', isPrivate = false) {
+    getUrlByMarketType (type, isLinear = true, isPrivate = false) {
         const api = this.safeString (this.options, 'api', 'api');
         const hostname = { 'hostname': this.hostname };
         let hostnameURL = undefined;
@@ -694,12 +694,12 @@ module.exports = class huobi extends ccxt.huobi {
         }
         if (type === 'future') {
             const baseUrl = this.urls['api']['ws'][api]['future'];
-            const futureUrl = subType === 'linear' ? baseUrl['linear'] : baseUrl['inverse'];
+            const futureUrl = isLinear ? baseUrl['linear'] : baseUrl['inverse'];
             url = isPrivate ? futureUrl['private'] : futureUrl['public'];
         }
         if (type === 'swap') {
             const baseUrl = this.urls['api']['ws'][api]['swap'];
-            const swapUrl = subType === 'linear' ? baseUrl['linear'] : baseUrl['inverse'];
+            const swapUrl = isLinear ? baseUrl['linear'] : baseUrl['inverse'];
             url = isPrivate ? swapUrl['private'] : swapUrl['public'];
         }
         return url;
