@@ -2462,9 +2462,9 @@ The possible values in the `status` field are:
 - `'error'` means that either the exchange API is broken, or the implementation of the exchange in CCXT is broken
 - `'maintenance'` means regular maintenance, and the `eta` field should contain the datetime when the exchange is expected to be operational again
 
-## Fetch Leverage Tiers and Fetch Market Leverage Tiers
+## Leverage Tiers and Market Leverage Tiers
 
-* These are private methods on **binance**
+* These are private methods on **Binance**
 
 You can obtain the absolute maximum leverage for a market by accessing `market['limits']['leverage']['max']`.
 For many contracts, the maximum leverage will depend on the size of your position.
@@ -2480,7 +2480,7 @@ fetchMarketLeverageTiers(symbol, params = {})
 
 The `fetchLeverageTiers()` method can be used to obtain the maximum leverage for a market at varying position sizes. It can also be used to obtain the maintenance margin rate, and the max tradeable amount for a market when that information is not available from the market object:
 
-### Fetch Leverage Tiers Structure
+### Leverage Tiers Structure
 
 The `fetchLeverageTiers()` method will return a structure like shown below:
 
@@ -2496,39 +2496,14 @@ The `fetchLeverageTiers()` method will return a structure like shown below:
             "maxLeverage": 75,               // max available leverage for this market when the value of the trade is > notionalFloor and < notionalCap
             "info": { ... }                  // Response from exchange
         },
-        {
-            "tier": 2,
-            "notionalCurrency": "USDT",
-            "notionalFloor": 10000,          // min stake amount at 50x leverage = 200.0
-            "notionalCap": 50000,            // max stake amount at 50x leverage = 1000.0
-            "maintenanceMarginRate": 0.01,
-            "maxLeverage": 50,
-            "info": { ... },
-        },
         ...
-        {
-            "tier": 9,
-            "notionalCurrency": "USDT",
-            "notionalFloor": 20000000,
-            "notionalCap": 50000000,
-            "maintenanceMarginRate": 0.5,
-            "maxLeverage": 1,
-            "info": { ... },
-        },
     ]
     ...
   ],
 }
 ```
 
-In the example above:
-
-- stakes below 133.33       = a max leverage of 75
-- stakes from 200 + 1000    = a max leverage of 50
-- a stake amount of 150     = a max leverage of (10000 / 150)   = 66.66
-- stakes between 133.33-200 = a max leverage of (10000 / stake) = 50.01 -> 74.99
-
-### Fetch Market Leverage Tiers Structure
+### Market Leverage Tiers Structure
 
 The `fetchMarketLeverageTiers()` method will return a structure like shown below:
 
@@ -2572,6 +2547,8 @@ In the example above:
 - a stake amount of 150     = a max leverage of (10000 / 150)   = 66.66
 - stakes between 133.33-200 = a max leverage of (10000 / stake) = 50.01 -> 74.99
 
+**Note for Huobi users:** Huobi uses both leverage and amount to determine maintenance margin rates: https://www.huobi.com/support/en-us/detail/900000089903
+
 ## Funding Rate and Funding Rates
 
 - contract only
@@ -2603,23 +2580,23 @@ The `fetchFundingRate()` method will return a structure like shown below:
 
 ```Javascript
 {
-  info: { ... },
-  symbol: 'BTC/USDT:USDT',
-  markPrice: 39294.43,
-  indexPrice: 39291.78,
-  interestRate: 0.0003,
-  estimatedSettlePrice: undefined,
-  timestamp: undefined,
-  datetime: undefined,
-  fundingRate: 0.000072,
-  fundingTimestamp: 1645833600000,
-  fundingDatetime: '2022-02-26T00:00:00.000Z',
-  nextFundingRate: -0.000018,
-  nextFundingTimestamp: undefined,
-  nextFundingDatetime: undefined,
-  previousFundingRate: undefined,
-  previousFundingTimestamp: undefined,
-  previousFundingDatetime: undefined
+    info: { ... },
+    symbol: 'BTC/USDT:USDT',
+    markPrice: 39294.43,
+    indexPrice: 39291.78,
+    interestRate: 0.0003,
+    estimatedSettlePrice: undefined,
+    timestamp: undefined,
+    datetime: undefined,
+    fundingRate: 0.000072,
+    fundingTimestamp: 1645833600000,
+    fundingDatetime: '2022-02-26T00:00:00.000Z',
+    nextFundingRate: -0.000018,
+    nextFundingTimestamp: undefined,
+    nextFundingDatetime: undefined,
+    previousFundingRate: undefined,
+    previousFundingTimestamp: undefined,
+    previousFundingDatetime: undefined
 }
 ```
 
@@ -2681,7 +2658,6 @@ The `fetchFundingRateHistory()` method will return a structure like shown below:
     ...
 ]
 ```
-
 
 # Private API
 
