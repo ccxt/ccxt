@@ -246,6 +246,7 @@ async function testExchange (exchange) {
         'BTC/JPY',
         'LTC/BTC',
         'ZRX/WETH',
+        'EUR/USD',
     ])
 
     if (symbol === undefined) {
