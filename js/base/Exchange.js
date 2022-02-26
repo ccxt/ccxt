@@ -2180,7 +2180,8 @@ module.exports = class Exchange {
             if (symbols !== undefined) {
                 symbolsLength = symbols.length;
             }
-            if ((market !== undefined) && market['contract'] && (symbolsLength === 0 || symbols.includes (symbol))) {
+            const contract = this.safeValue (market, 'contract', false);
+            if (contract && (symbolsLength === 0 || symbols.includes (symbol))) {
                 tiers[symbol] = this.parseMarketLeverageTiers (item, market);
             }
         }

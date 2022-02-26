@@ -3680,7 +3680,8 @@ class Exchange {
             if ($symbols !== null){
                 $symbols_length = count($symbols);
             }
-            if (($market !== null) && $market['contract'] && ($symbols_length === 0 || in_array($symbol, $symbols))){
+            $contract = $this->safe_value($market, 'contract', false);
+            if ($contract && ($symbols_length === 0 || in_array($symbol, $symbols))){
                 $tiers[$symbol] = $this->parse_market_leverage_tiers($item, $market);
             }
         }
