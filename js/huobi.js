@@ -77,7 +77,6 @@ module.exports = class huobi extends ccxt.huobi {
     async watchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // only supports a limit of 150 at this time
         const messageHash = 'market.' + market['id'] + '.detail';
         const url = this.getUrlByMarketType (market['type'], market['linear']);
         return await this.subscribePublic (url, symbol, messageHash, undefined, params);
