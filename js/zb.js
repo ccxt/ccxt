@@ -1111,8 +1111,6 @@ module.exports = class zb extends Exchange {
         const timeField = market['swap'] ? 'createTime' : 'date';
         const timeMethod = market['swap'] ? 'safeInteger' : 'safeTimestamp';
         const timestamp = this[timeMethod] (trade, timeField);
-        const idField = market['swap'] ? 'orderId' : 'tid';
-        const id = this.safeString (trade, idField);
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'amount');
         let fee = undefined;
@@ -1127,13 +1125,13 @@ module.exports = class zb extends Exchange {
         market = this.safeMarket (undefined, market);
         return this.safeTrade ({
             'info': trade,
-            'id': id,
+            'id': this.safeString (trade, 'tid'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': undefined,
             'side': side,
-            'order': undefined,
+            'order': this.safeString (trade, 'orderId'),
             'takerOrMaker': maker,
             'price': price,
             'amount': amount,
