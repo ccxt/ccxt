@@ -147,6 +147,7 @@ class latoken(Exchange):
                 'DMD': 'Diamond Coin',
                 'FREN': 'Frenchie',
                 'GDX': 'GoldenX',
+                'GEC': 'Geco One',
                 'GEM': 'NFTmall',
                 'IMC': 'IMCoin',
                 'MT': 'Monarch',

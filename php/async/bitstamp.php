@@ -750,7 +750,7 @@ class bitstamp extends Exchange {
         $feeCostString = $this->safe_string($trade, 'fee');
         $feeCurrency = null;
         if ($market !== null) {
-            $priceString = $this->safe_string($trade, $market['id'], $priceString);
+            $priceString = $this->safe_string($trade, $market['marketId'], $priceString);
             $amountString = $this->safe_string($trade, $market['baseId'], $amountString);
             $costString = $this->safe_string($trade, $market['quoteId'], $costString);
             $feeCurrency = $market['quote'];

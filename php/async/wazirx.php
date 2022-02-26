@@ -599,7 +599,8 @@ class wazirx extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        if (!($type === 'limit') || ($type === 'stop_limit')) {
+        $type = strtolower($type);
+        if (($type !== 'limit') && ($type !== 'stop_limit')) {
             throw new ExchangeError($this->id . ' createOrder() supports limit and stop_limit orders only');
         }
         if ($price === null) {

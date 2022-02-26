@@ -62,6 +62,7 @@ class poloniex(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
@@ -397,7 +398,7 @@ class poloniex(Exchange):
 
     def fetch_trading_fees(self, params={}):
         self.load_markets()
-        fees = self.privatePostReturnFeeInfo(params)
+        response = self.privatePostReturnFeeInfo(params)
         #
         #     {
         #         makerFee: '0.00100000',
@@ -408,13 +409,18 @@ class poloniex(Exchange):
         #         nextTier: 500000,
         #     }
         #
-        return {
-            'info': fees,
-            'maker': self.safe_number(fees, 'makerFee'),
-            'taker': self.safe_number(fees, 'takerFee'),
-            'withdraw': {},
-            'deposit': {},
-        }
+        result = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': self.safe_number(response, 'makerFee'),
+                'taker': self.safe_number(response, 'takerFee'),
+                'percentage': True,
+                'tierBased': True,
+            }
+        return result
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

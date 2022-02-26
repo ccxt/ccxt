@@ -39,7 +39,6 @@ module.exports = class huobi extends Exchange {
                 'createReduceOnlyOrder': false,
                 'deposit': undefined,
                 'fetchAccounts': true,
-                'fetchAllTradingFees': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
                 'fetchBorrowRate': true,
@@ -99,7 +98,6 @@ module.exports = class huobi extends Exchange {
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': undefined,
-                'loadLeverageBrackets': undefined,
                 'reduceMargin': undefined,
                 'setLeverage': true,
                 'setMarginMode': false,
@@ -317,6 +315,7 @@ module.exports = class huobi extends Exchange {
                             'v1/common/timestamp': 1,
                             'v1/common/exchange': 1, // order limits
                             // Market Data
+                            'market/history/candles': 1,
                             'market/history/kline': 1,
                             'market/detail/merged': 1,
                             'market/tickers': 1,
@@ -2084,20 +2083,29 @@ module.exports = class huobi extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 1000, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'period': this.timeframes[timeframe],
             // 'symbol': market['id'], // spot, future
             // 'contract_code': market['id'], // swap
-            // 'side': limit, // max 2000
+            // 'size': 1000, // max 1000 for spot, 2000 for contracts
+            // 'from': parseInt (since / 1000), spot only
+            // 'to': this.seconds (), spot only
         };
         let fieldName = 'symbol';
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
-        let method = 'spotPublicGetMarketHistoryKline';
-        if (market['future']) {
+        let method = 'spotPublicGetMarketHistoryCandles';
+        if (market['spot']) {
+            if (since !== undefined) {
+                request['from'] = parseInt (since / 1000);
+            }
+            if (limit !== undefined) {
+                request['size'] = limit; // max 2000
+            }
+        } else if (market['future']) {
             if (market['inverse']) {
                 if (price === 'mark') {
                     method = 'contractPublicGetIndexMarketHistoryMarkPriceKline';
@@ -2144,10 +2152,24 @@ module.exports = class huobi extends Exchange {
             }
             fieldName = 'contract_code';
         }
-        request[fieldName] = market['id'];
-        if (limit !== undefined) {
-            request['size'] = limit; // max 2000
+        if (market['contract']) {
+            if (limit === undefined) {
+                limit = 2000;
+            }
+            if (price === undefined) {
+                const duration = this.parseTimeframe (timeframe);
+                if (since === undefined) {
+                    const now = this.seconds ();
+                    request['from'] = now - duration * (limit - 1);
+                    request['to'] = now;
+                } else {
+                    const start = parseInt (since / 1000);
+                    request['from'] = start;
+                    request['to'] = this.sum (start, duration * (limit - 1));
+                }
+            }
         }
+        request[fieldName] = market['id'];
         const response = await this[method] (this.extend (request, params));
         //
         //     {
@@ -5061,7 +5083,9 @@ module.exports = class huobi extends Exchange {
     async fetchPosition (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
+        let marginType = this.safeString2 (this.options, 'defaultMarginType', 'marginType', 'isolated');
+        marginType = this.safeString2 (params, 'marginType', 'defaultMarginType', marginType);
+        params = this.omit (params, [ 'defaultMarginType', 'marginType' ]);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchPosition', market, params);
         let method = undefined;
         if (market['linear']) {
@@ -5211,17 +5235,65 @@ module.exports = class huobi extends Exchange {
             //       ],
             //       ts: 1641162539767
             //     }
+            // cross usdt swap
+            // {
+            //     "status":"ok",
+            //     "data":{
+            //        "positions":[
+            //        ],
+            //        "futures_contract_detail":[
+            //            (...)
+            //        ]
+            //        "margin_mode":"cross",
+            //        "margin_account":"USDT",
+            //        "margin_asset":"USDT",
+            //        "margin_balance":"1.000000000000000000",
+            //        "margin_static":"1.000000000000000000",
+            //        "margin_position":"0",
+            //        "margin_frozen":"1.000000000000000000",
+            //        "profit_real":"0E-18",
+            //        "profit_unreal":"0",
+            //        "withdraw_available":"0",
+            //        "risk_rate":"15.666666666666666666",
+            //        "contract_detail":[
+            //          (...)
+            //        ]
+            //     },
+            //     "ts":"1645521118946"
+            //  }
             //
         }
-        const request = {
-            'contract_code': market['id'],
-        };
+        const request = {};
+        if (market['future'] && market['inverse']) {
+            request['symbol'] = market['settleId'];
+        } else {
+            if (marginType === 'cross') {
+                request['margin_account'] = 'USDT'; // only allowed value
+            }
+            request['contract_code'] = market['id'];
+        }
         const response = await this[method] (this.extend (request, query));
         const data = this.safeValue (response, 'data');
-        const account = this.safeValue (data, 0);
+        let account = undefined;
+        if (marginType === 'cross') {
+            account = data;
+        } else {
+            account = this.safeValue (data, 0);
+        }
         const omitted = this.omit (account, [ 'positions' ]);
         const positions = this.safeValue (account, 'positions');
-        const position = this.safeValue (positions, 0);
+        let position = undefined;
+        if (market['future'] && market['inverse']) {
+            for (let i = 0; i < positions.length; i++) {
+                const entry = positions[i];
+                if (entry['contract_code'] === market['id']) {
+                    position = entry;
+                    break;
+                }
+            }
+        } else {
+            position = this.safeValue (positions, 0);
+        }
         const timestamp = this.safeInteger (response, 'ts');
         const parsed = this.parsePosition (this.extend (position, omitted));
         return this.extend (parsed, {

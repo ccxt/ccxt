@@ -741,6 +741,10 @@ module.exports = class bitget extends Exchange {
                         '1w': '604800',
                     },
                 },
+                'broker': {
+                    'spot': 'iauIBf#',
+                    'swap': 'iauIBf#',
+                },
             },
         });
     }
@@ -1953,7 +1957,17 @@ module.exports = class bitget extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const clientOrderId = this.safeString2 (params, 'client_oid', 'clientOrderId', this.uuid ());
+        let clientOrderId = this.safeString2 (params, 'client_oid', 'clientOrderId');
+        if (clientOrderId === undefined) {
+            const broker = this.safeValue (this.options, 'broker');
+            if (broker !== undefined) {
+                const brokerId = this.safeString (broker, market['type']);
+                if (brokerId !== undefined) {
+                    clientOrderId = brokerId + this.uuid22 ();
+                }
+            }
+        }
+        request['client_oid'] = clientOrderId;
         params = this.omit (params, [ 'client_oid', 'clientOrderId' ]);
         let method = undefined;
         if (market['spot']) {
@@ -1961,7 +1975,6 @@ module.exports = class bitget extends Exchange {
                 'type': market['type'],
             });
             method = 'apiPostTradeOrders';
-            request['client_oid'] = clientOrderId;
             request['account_id'] = accountId;
             request['method'] = 'place';
             request['side'] = side;
@@ -1993,7 +2006,6 @@ module.exports = class bitget extends Exchange {
             // ...
         } else if (market['swap']) {
             request['order_type'] = '0'; // '0' = Normal order, undefined and 0 imply a normal limit order, '1' = Post only, '2' = Fill or Kill, '3' = Immediate Or Cancel
-            request['client_oid'] = clientOrderId;
             const orderType = this.safeString (params, 'type');
             if (orderType === undefined) {
                 throw new ArgumentsRequired (this.id + " createOrder() requires a type parameter, '1' = open long, '2' = open short, '3' = close long, '4' = close short for " + market['type'] + ' orders');
