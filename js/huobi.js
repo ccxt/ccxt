@@ -275,11 +275,11 @@ module.exports = class huobi extends ccxt.huobi {
         } else {
             messageHash = 'market.' + market['id'] + '.depth.size_' + limit.toString () + '.high_freq';
         }
-        const type = this.getUniformMarketType (market);
+        const url = this.getUrlByMarketType (market['type'], market['linear']);
         if (!market['spot']) {
             params['data_type'] = 'incremental';
         }
-        const orderbook = await this.subscribePublic (symbol, messageHash, type, this.handleOrderBookSubscription, params);
+        const orderbook = await this.subscribePublic (url, symbol, messageHash, this.handleOrderBookSubscription, params);
         return orderbook.limit (limit);
     }
 
@@ -327,7 +327,7 @@ module.exports = class huobi extends ccxt.huobi {
         const params = this.safeValue (subscription, 'params');
         const messageHash = this.safeString (subscription, 'messageHash');
         const market = this.market (symbol);
-        const url = this.getUrlByMarketType (this.getUniformMarketType (market));
+        const url = this.getUrlByMarketType (market['type'], market['linear']);
         const requestId = this.requestId ();
         const request = {
             'req': messageHash,
@@ -679,7 +679,7 @@ module.exports = class huobi extends ccxt.huobi {
         }
     }
 
-    getUrlByMarketType (type, isPrivate = false) {
+    getUrlByMarketType (type, subType = 'linear', isPrivate = false) {
         const api = this.safeString (this.options, 'api', 'api');
         const hostname = { 'hostname': this.hostname };
         let hostnameURL = undefined;
@@ -693,35 +693,19 @@ module.exports = class huobi extends ccxt.huobi {
             url = this.implodeParams (hostnameURL, hostname);
         }
         if (type === 'future') {
-            const futureUrl = this.urls['api']['ws'][api]['future'];
+            const baseUrl = this.urls['api']['ws'][api]['future'];
+            const futureUrl = subType === 'linear' ? baseUrl['linear'] : baseUrl['inverse'];
             url = isPrivate ? futureUrl['private'] : futureUrl['public'];
         }
-        if (type === 'linear') {
-            const linearUrl = this.urls['api']['ws'][api]['swap']['linear'];
-            url = isPrivate ? linearUrl['private'] : linearUrl['public'];
-        }
-        if (type === 'inverse') {
-            const inverseUrl = this.urls['api']['ws'][api]['swap']['inverse'];
-            url = isPrivate ? inverseUrl['private'] : inverseUrl['public'];
+        if (type === 'swap') {
+            const baseUrl = this.urls['api']['ws'][api]['swap'];
+            const swapUrl = subType === 'linear' ? baseUrl['linear'] : baseUrl['inverse'];
+            url = isPrivate ? swapUrl['private'] : swapUrl['public'];
         }
         return url;
     }
 
-    getUniformMarketType (market) {
-        if (market['linear']) {
-            return 'linear';
-        }
-        if (market['future']) {
-            return 'future';
-        }
-        if (market['swap']) {
-            return 'inverse';
-        }
-        return 'spot';
-    }
-
-    async subscribePublic (symbol, messageHash, type, method = undefined, params = {}) {
-        const url = this.getUrlByMarketType (type);
+    async subscribePublic (url, symbol, messageHash, method = undefined, params = {}) {
         const requestId = this.requestId ();
         const request = {
             'sub': messageHash,
