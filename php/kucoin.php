@@ -24,7 +24,7 @@ class kucoin extends \ccxt\async\kucoin {
                 'watchTickers' => false, // for now
                 'watchTicker' => true,
                 'watchTrades' => true,
-                'watchBalance' => false, // for now
+                'watchBalance' => true,
                 'watchOHLCV' => true,
             ),
             'options' => array(
@@ -773,6 +773,134 @@ class kucoin extends \ccxt\async\kucoin {
         );
     }
 
+    public function watch_balance($params = array ()) {
+        yield $this->load_markets();
+        $negotiation = yield $this->negotiate();
+        $topic = '/account/balance';
+        $request = array(
+            'privateChannel' => true,
+        );
+        $messageHash = $topic;
+        return yield $this->subscribe($negotiation, $topic, $messageHash, array($this, 'handle_balance_subscription'), null, array_merge($request, $params));
+    }
+
+    public function handle_balance($client, $message) {
+        //
+        // {
+        //     "id":"6217a451294b030001e3a26a",
+        //     "type":"message",
+        //     "topic":"/account/balance",
+        //     "userId":"6217707c52f97f00012a67db",
+        //     "channelType":"private",
+        //     "subject":"account.balance",
+        //     "data":{
+        //        "accountId":"62177fe67810720001db2f18",
+        //        "available":"89",
+        //        "availableChange":"-30",
+        //        "currency":"USDT",
+        //        "hold":"0",
+        //        "holdChange":"0",
+        //        "relationContext":array(
+        //        ),
+        //        "relationEvent":"main.transfer",
+        //        "relationEventId":"6217a451294b030001e3a26a",
+        //        "time":"1645716561816",
+        //        "total":"89"
+        //     }
+        //
+        $data = $this->safe_value($message, 'data', array());
+        $messageHash = $this->safe_string($message, 'topic');
+        $currencyId = $this->safe_string($data, 'currency');
+        $relationEvent = $this->safe_string($data, 'relationEvent');
+        $requestAccountType = null;
+        if ($relationEvent !== null) {
+            $relationEventParts = explode('.', $relationEvent);
+            $requestAccountType = $this->safe_string($relationEventParts, 0);
+        }
+        $selectedType = $this->safe_string_2($this->options, 'watchBalance', 'defaultType', 'trade'); // trade, main, margin or other
+        $accountsByType = $this->safe_value($this->options, 'accountsByType');
+        $uniformType = $this->safe_string($accountsByType, $requestAccountType, 'trade');
+        if (!(is_array($this->balance) && array_key_exists($uniformType, $this->balance))) {
+            $this->balance[$uniformType] = array();
+        }
+        $code = $this->safe_currency_code($currencyId);
+        $account = $this->account();
+        $account['free'] = $this->safe_string($data, 'available');
+        $account['used'] = $this->safe_string($data, 'hold');
+        $account['total'] = $this->safe_string($data, 'total');
+        $this->balance[$selectedType][$code] = $account;
+        $this->balance[$selectedType] = $this->safe_balance($this->balance[$selectedType]);
+        $client->resolve ($this->balance[$selectedType], $messageHash);
+    }
+
+    public function handle_balance_subscription($client, $message, $subscription) {
+        $this->spawn(array($this, 'fetch_balance_snapshot'), $client, $message);
+    }
+
+    public function fetch_balance_snapshot($client, $message) {
+        yield $this->load_markets();
+        $this->check_required_credentials();
+        $messageHash = '/account/balance';
+        $selectedType = $this->safe_string_2($this->options, 'watchBalance', 'defaultType', 'trade'); // trade, main, margin or other
+        $params = array(
+            'type' => $selectedType,
+        );
+        $snapshot = yield $this->fetch_balance($params);
+        //
+        // {
+        //     "info":{
+        //        "code":"200000",
+        //        "data":array(
+        //           array(
+        //              "id":"6217a451cbe8910001ed3aa8",
+        //              "currency":"USDT",
+        //              "type":"trade",
+        //              "balance":"10",
+        //              "available":"4.995",
+        //              "holds":"5.005"
+        //           }
+        //        )
+        //     ),
+        //     "USDT":array(
+        //        "free":4.995,
+        //        "used":5.005,
+        //        "total":10
+        //     ),
+        //     "free":array(
+        //        "USDT":4.995
+        //     ),
+        //     "used":array(
+        //        "USDT":5.005
+        //     ),
+        //     "total":{
+        //        "USDT":10
+        //     }
+        //  }
+        //
+        $data = $this->safe_value($snapshot['info'], 'data', array());
+        if (strlen($data) > 0) {
+            $selectedType = $this->safe_string_2($this->options, 'watchBalance', 'defaultType', 'trade'); // trade, main, margin or other
+            for ($i = 0; $i < count($data); $i++) {
+                $balance = $data[$i];
+                $type = $this->safe_string($balance, 'type');
+                $accountsByType = $this->safe_value($this->options, 'accountsByType');
+                $uniformType = $this->safe_string($accountsByType, $type, 'trade');
+                if (!(is_array($this->balance) && array_key_exists($uniformType, $this->balance))) {
+                    $this->balance[$uniformType] = array();
+                }
+                $currencyId = $this->safe_string($balance, 'currency');
+                $code = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                $account['free'] = $this->safe_string($balance, 'available');
+                $account['used'] = $this->safe_string($balance, 'holds');
+                $account['total'] = $this->safe_string($balance, 'total');
+                $this->balance[$selectedType][$code] = $account;
+                $this->balance[$selectedType] = $this->safe_balance($this->balance[$selectedType]);
+            }
+            $client->resolve ($this->balance[$selectedType], $messageHash);
+        }
+    }
+
     public function handle_subject($client, $message) {
         //
         //     {
@@ -797,6 +925,7 @@ class kucoin extends \ccxt\async\kucoin {
             'trade.snapshot' => array($this, 'handle_ticker'),
             'trade.l3match' => array($this, 'handle_trade'),
             'trade.candles.update' => array($this, 'handle_ohlcv'),
+            'account.balance' => array($this, 'handle_balance'),
         );
         $method = $this->safe_value($methods, $subject);
         if ($subject === 'orderChange') {

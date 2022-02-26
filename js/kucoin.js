@@ -19,7 +19,7 @@ module.exports = class kucoin extends ccxt.kucoin {
                 'watchTickers': false, // for now
                 'watchTicker': true,
                 'watchTrades': true,
-                'watchBalance': false, // for now
+                'watchBalance': true,
                 'watchOHLCV': true,
             },
             'options': {
@@ -768,6 +768,134 @@ module.exports = class kucoin extends ccxt.kucoin {
         };
     }
 
+    async watchBalance (params = {}) {
+        await this.loadMarkets ();
+        const negotiation = await this.negotiate ();
+        const topic = '/account/balance';
+        const request = {
+            'privateChannel': true,
+        };
+        const messageHash = topic;
+        return await this.subscribe (negotiation, topic, messageHash, this.handleBalanceSubscription, undefined, this.extend (request, params));
+    }
+
+    handleBalance (client, message) {
+        //
+        // {
+        //     "id":"6217a451294b030001e3a26a",
+        //     "type":"message",
+        //     "topic":"/account/balance",
+        //     "userId":"6217707c52f97f00012a67db",
+        //     "channelType":"private",
+        //     "subject":"account.balance",
+        //     "data":{
+        //        "accountId":"62177fe67810720001db2f18",
+        //        "available":"89",
+        //        "availableChange":"-30",
+        //        "currency":"USDT",
+        //        "hold":"0",
+        //        "holdChange":"0",
+        //        "relationContext":{
+        //        },
+        //        "relationEvent":"main.transfer",
+        //        "relationEventId":"6217a451294b030001e3a26a",
+        //        "time":"1645716561816",
+        //        "total":"89"
+        //     }
+        //
+        const data = this.safeValue (message, 'data', {});
+        const messageHash = this.safeString (message, 'topic');
+        const currencyId = this.safeString (data, 'currency');
+        const relationEvent = this.safeString (data, 'relationEvent');
+        let requestAccountType = undefined;
+        if (relationEvent !== undefined) {
+            const relationEventParts = relationEvent.split ('.');
+            requestAccountType = this.safeString (relationEventParts, 0);
+        }
+        const selectedType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'trade'); // trade, main, margin or other
+        const accountsByType = this.safeValue (this.options, 'accountsByType');
+        const uniformType = this.safeString (accountsByType, requestAccountType, 'trade');
+        if (!(uniformType in this.balance)) {
+            this.balance[uniformType] = {};
+        }
+        const code = this.safeCurrencyCode (currencyId);
+        const account = this.account ();
+        account['free'] = this.safeString (data, 'available');
+        account['used'] = this.safeString (data, 'hold');
+        account['total'] = this.safeString (data, 'total');
+        this.balance[selectedType][code] = account;
+        this.balance[selectedType] = this.safeBalance (this.balance[selectedType]);
+        client.resolve (this.balance[selectedType], messageHash);
+    }
+
+    handleBalanceSubscription (client, message, subscription) {
+        this.spawn (this.fetchBalanceSnapshot, client, message);
+    }
+
+    async fetchBalanceSnapshot (client, message) {
+        await this.loadMarkets ();
+        this.checkRequiredCredentials ();
+        const messageHash = '/account/balance';
+        const selectedType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'trade'); // trade, main, margin or other
+        const params = {
+            'type': selectedType,
+        };
+        const snapshot = await this.fetchBalance (params);
+        //
+        // {
+        //     "info":{
+        //        "code":"200000",
+        //        "data":[
+        //           {
+        //              "id":"6217a451cbe8910001ed3aa8",
+        //              "currency":"USDT",
+        //              "type":"trade",
+        //              "balance":"10",
+        //              "available":"4.995",
+        //              "holds":"5.005"
+        //           }
+        //        ]
+        //     },
+        //     "USDT":{
+        //        "free":4.995,
+        //        "used":5.005,
+        //        "total":10
+        //     },
+        //     "free":{
+        //        "USDT":4.995
+        //     },
+        //     "used":{
+        //        "USDT":5.005
+        //     },
+        //     "total":{
+        //        "USDT":10
+        //     }
+        //  }
+        //
+        const data = this.safeValue (snapshot['info'], 'data', []);
+        if (data.length > 0) {
+            const selectedType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'trade'); // trade, main, margin or other
+            for (let i = 0; i < data.length; i++) {
+                const balance = data[i];
+                const type = this.safeString (balance, 'type');
+                const accountsByType = this.safeValue (this.options, 'accountsByType');
+                const uniformType = this.safeString (accountsByType, type, 'trade');
+                if (!(uniformType in this.balance)) {
+                    this.balance[uniformType] = {};
+                }
+                const currencyId = this.safeString (balance, 'currency');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString (balance, 'available');
+                account['used'] = this.safeString (balance, 'holds');
+                account['total'] = this.safeString (balance, 'total');
+                this.balance[selectedType][code] = account;
+                this.balance[selectedType] = this.safeBalance (this.balance[selectedType]);
+            }
+            client.resolve (this.balance[selectedType], messageHash);
+        }
+    }
+
     handleSubject (client, message) {
         //
         //     {
@@ -792,6 +920,7 @@ module.exports = class kucoin extends ccxt.kucoin {
             'trade.snapshot': this.handleTicker,
             'trade.l3match': this.handleTrade,
             'trade.candles.update': this.handleOHLCV,
+            'account.balance': this.handleBalance,
         };
         let method = this.safeValue (methods, subject);
         if (subject === 'orderChange') {
