@@ -745,7 +745,7 @@ module.exports = class zb extends Exchange {
             const code = this.safeCurrencyCode (this.safeString (balance, 'currencyName'));
             const account = this.account ();
             account['total'] = this.safeString (balance, 'accountBalance');
-            account['free'] = this.safeString (balance, 'amount');
+            account['free'] = this.safeString (balance, 'allowTransferOutAmount');
             account['used'] = this.safeString (balance, 'freezeAmount');
             result[code] = account;
         }
