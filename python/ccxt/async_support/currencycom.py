@@ -88,7 +88,7 @@ class currencycom(Exchange):
                 'fetchOrders': None,
                 'fetchOrderTrades': None,
                 'fetchPosition': None,
-                'fetchPositions': None,
+                'fetchPositions': True,
                 'fetchPositionsRisk': None,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -1477,6 +1477,86 @@ class currencycom(Exchange):
                 url += '?' + self.urlencode(params)
         url = self.implode_hostname(url)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    async def fetch_positions(self, symbols=None, params={}):
+        await self.load_markets()
+        response = await self.privateGetV2TradingPositions(params)
+        #
+        # {
+        #     "positions": [
+        #       {
+        #         "accountId": "109698017416453793",
+        #         "id": "00a18490-0079-54c4-0000-0000803e73d3",
+        #         "instrumentId": "45463225268524228",
+        #         "orderId": "00a18490-0079-54c4-0000-0000803e73d2",
+        #         "openQuantity": "13.6",
+        #         "openPrice": "0.75724",
+        #         "closeQuantity": "0.0",
+        #         "closePrice": "0",
+        #         "rpl": "-0.007723848",
+        #         "rplConverted": "0",
+        #         "upl": "-0.006664",
+        #         "uplConverted": "-0.006664",
+        #         "swap": "0",
+        #         "swapConverted": "0",
+        #         "fee": "-0.007723848",
+        #         "dividend": "0",
+        #         "margin": "0.2",
+        #         "state": "ACTIVE",
+        #         "currency": "USD",
+        #         "createdTimestamp": "1645473877236",
+        #         "openTimestamp": "1645473877193",
+        #         "type": "NET",
+        #         "cost": "2.0583600",
+        #         "symbol": "XRP/USD_LEVERAGE"
+        #       }
+        #     ]
+        # }
+        #
+        data = self.safe_value(response, 'positions', [])
+        return self.parse_positions(data)
+
+    def parse_positions(self, positions):
+        result = []
+        for i in range(0, len(positions)):
+            result.append(self.parse_position(positions[i]))
+        return result
+
+    def parse_position(self, position, market=None):
+        market = self.safe_market(self.safe_string(position, 'symbol'), market)
+        symbol = market['symbol']
+        timestamp = self.safe_number(position, 'createdTimestamp')
+        quantityRaw = self.safe_string(position, 'openQuantity')
+        side = 'long' if Precise.string_gt(quantityRaw, '0') else 'short'
+        quantity = Precise.string_abs(quantityRaw)
+        entryPrice = self.safe_number(position, 'openPrice')
+        unrealizedProfit = self.safe_number(position, 'upl')
+        marginCoeff = self.safe_string(position, 'margin')
+        leverage = Precise.string_div('1', marginCoeff)
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'contracts': self.parse_number(quantity),
+            'contractSize': None,
+            'entryPrice': entryPrice,
+            'collateral': None,
+            'side': side,
+            # 'realizedProfit': self.safe_number(position, 'rpl'),
+            'unrealizedProfit': unrealizedProfit,
+            'leverage': leverage,
+            'percentage': None,
+            'marginType': None,
+            'notional': None,
+            'markPrice': None,
+            'liquidationPrice': None,
+            'initialMargin': None,
+            'initialMarginPercentage': None,
+            'maintenanceMargin': self.parse_number(marginCoeff),
+            'maintenanceMarginPercentage': None,
+            'marginRatio': None,
+            'info': position,
+        }
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if (httpCode == 418) or (httpCode == 429):
