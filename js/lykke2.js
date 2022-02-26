@@ -221,7 +221,7 @@ module.exports = class lykke2 extends Exchange {
                 'deposit': deposit,
                 'withdraw': withdraw,
                 'fee': undefined,
-                'precision': this.safeNumber (currency, 'accuracy'),
+                'precision': this.safeInteger (currency, 'accuracy'),
                 'limits': {
                     'withdraw': {
                         'min': this.safeValue (currency, 'cashoutMinimalAmount'),
@@ -713,10 +713,10 @@ module.exports = class lykke2 extends Exchange {
         const query = {
             'assetPairId': market['id'],
             'side': this.capitalize (side),
-            'volume': amount,
+            'volume': parseFloat (this.amountToPrecision (symbol, amount)),
         };
         if (type === 'limit') {
-            query['price'] = price;
+            query['price'] = parseFloat (this.priceToPrecision (symbol, amount));
         }
         const method = 'privatePostOrders' + this.capitalize (type);
         const result = await this[method] (this.extend (query, params));
@@ -1084,7 +1084,7 @@ module.exports = class lykke2 extends Exchange {
         const currency = this.currency (code);
         const request = {
             'assetId': currency['id'],
-            'volume': amount,
+            'volume': parseFloat (this.currencyToPrecision (code, amount)),
             'destinationAddress': address,
             // 'destinationAddressExtension': tag,
         };
