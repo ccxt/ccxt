@@ -23,7 +23,7 @@
     },
     "require": {
         "php": ">=7.0",
-        "ccxt/ccxt": ">=1.73.84",
+        "ccxt/ccxt": ">=1.74.35",
         "react/http": "=1.4.0",
         "recoil/react": "1.0.2",
         "ratchet/pawl": "^0.4.1",
