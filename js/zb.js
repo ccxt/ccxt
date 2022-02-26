@@ -692,8 +692,6 @@ module.exports = class zb extends Exchange {
         const balances = this.safeValue (response['result'], 'coins');
         const result = {
             'info': response,
-            'timestamp': undefined,
-            'datetime': undefined,
         };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
@@ -717,11 +715,8 @@ module.exports = class zb extends Exchange {
     }
 
     parseSwapBalance (response) {
-        const timestamp = this.milliseconds ();
         const result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
         };
         const data = this.safeValue (response, 'data', {});
         for (let i = 0; i < data.length; i++) {
