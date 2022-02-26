@@ -336,29 +336,54 @@ def test_transactions(exchange, code):
 # ------------------------------------------------------------------------------
 
 
+def test_balance(exchange):
+    if exchange.has['fetchBalance']:
+        delay = int(exchange.rateLimit / 1000)
+        time.sleep(delay)
+
+        exchange.fetch_balance()
+        dump(green(exchange.id), 'fetched balance')
+    else:
+        dump(green(exchange.id), 'fetch_balance() not supported')
+
+# ------------------------------------------------------------------------------
+
+
 def test_symbol(exchange, symbol, code):
     dump(green('SYMBOL: ' + symbol))
     dump(green('CODE: ' + code))
+    dump('Testing fetch_ticker:' + symbol)
     test_ticker(exchange, symbol)
+    dump('Testing fetch_tickers:' + symbol)
     test_tickers(exchange, symbol)
+    dump('Testing fetch_ohlcv:' + symbol)
     test_ohlcvs(exchange, symbol)
 
     if exchange.id == 'coinmarketcap':
         response = exchange.fetchGlobal()
         dump(green(response))
     else:
+        dump('Testing fetch_order_book:' + symbol)
         test_order_book(exchange, symbol)
+        dump('Testing fetch_trades:' + symbol)
         test_trades(exchange, symbol)
         if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
             return
         if exchange.has['signIn']:
+            dump('Testing sign_in')
             exchange.sign_in()
+        dump('Testing fetch_orders:' + symbol)
         test_orders(exchange, symbol)
+        dump('Testing fetch_open_orders:' + symbol)
         test_open_orders(exchange, symbol)
+        dump('Testing fetch_closed_orders:' + symbol)
         test_closed_orders(exchange, symbol)
+        dump('Testing fetch_transactions:' + code)
         test_transactions(exchange, code)
-        exchange.fetch_balance()
-        dump(green(exchange.id), 'fetched balance')
+        dump('Testing fetch_balance')
+        test_balance(exchange)
+        dump('Testing fetch_positions:' + symbol)
+        test_positions(exchange, symbol)
 
 # ------------------------------------------------------------------------------
 
