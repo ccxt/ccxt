@@ -2239,7 +2239,7 @@ class gateio(Exchange):
         else:
             if contract:
                 # contract conditional order
-                rule = 1 if (side == 'sell') else 2
+                rule = 1 if (side == 'buy') else 2
                 request = {
                     'initial': {
                         'contract': market['id'],
@@ -2275,7 +2275,7 @@ class gateio(Exchange):
                 params = self.omit(params, 'account')
                 defaultExpiration = self.safe_integer(options, 'expiration')
                 expiration = self.safe_integer(params, 'expiration', defaultExpiration)
-                rule = '>=' if (side == 'sell') else '<='
+                rule = '>=' if (side == 'buy') else '<='
                 triggerPrice = self.safe_value(trigger, 'price', stopPrice)
                 request = {
                     'trigger': {
@@ -2376,7 +2376,8 @@ class gateio(Exchange):
 
     def parse_order(self, order, market=None):
         #
-        # createOrder, spot
+        # SPOT
+        # createOrder/cancelOrder/fetchOrder
         #
         #     {
         #       "id": "62364648575",
@@ -2406,48 +2407,134 @@ class gateio(Exchange):
         #       "rebated_fee_currency": "USDT"
         #     }
         #
+        # SPOT TRIGGER ORDERS
+        # createOrder
+        #    {
+        #        "id":12604556
+        #    }
         #
-        id = self.safe_string(order, 'id')
-        clientOrderId = self.safe_string(order, 'text')
-        marketId = self.safe_string_2(order, 'currency_pair', 'contract')
-        symbol = self.safe_symbol(marketId, market)
-        timestamp = self.safe_timestamp(order, 'create_time')
-        timestamp = self.safe_integer(order, 'create_time_ms', timestamp)
-        lastTradeTimestamp = self.safe_timestamp(order, 'update_time')
-        lastTradeTimestamp = self.safe_integer(order, 'update_time_ms', lastTradeTimestamp)
-        amountRaw = self.safe_string_2(order, 'amount', 'size')
-        amount = Precise.string_abs(amountRaw)
-        price = self.safe_string(order, 'price')
+        # fetchOrder/cancelOrder
+        #    {
+        #        "market": "ADA_USDT",
+        #        "user":6392049,
+        #        "trigger": {
+        #            "price": "1.08",  # stopPrice
+        #            "rule": "\u003e=",
+        #            "expiration": 86400
+        #        },
+        #        "put": {
+        #            "type": "limit",
+        #            "side": "buy",
+        #            "price": "1.08",  # order price
+        #            "amount": "1.00000000000000000000",
+        #            "account": "normal",
+        #            "time_in_force": "gtc"
+        #        },
+        #        "id": 71639298,
+        #        "ctime": 1643945985,
+        #        "status": "open"
+        #    }
+        #
+        # FUTURE AND SWAP
+        # createOrder/cancelOrder/fetchOrder
+        #
+        #    {
+        #        "id": 123028481731,
+        #        "contract": "ADA_USDT",
+        #        "mkfr": "-0.00005",
+        #        "tkfr": "0.00048",
+        #        "tif": "ioc",
+        #        "is_reduce_only": False,
+        #        "create_time": 1643950262.68,
+        #        "finish_time": 1643950262.68,
+        #        "price": "0",
+        #        "size": 1,
+        #        "refr": "0",
+        #        "left":0,
+        #        "text": "api",
+        #        "fill_price": "1.05273",
+        #        "user":6329238,
+        #        "finish_as": "filled",
+        #        "status": "finished",
+        #        "is_liq": False,
+        #        "refu":0,
+        #        "is_close": False,
+        #        "iceberg": 0
+        #    }
+        #
+        # TRIGGER ORDERS(FUTURE AND SWAP)
+        #
+        # createOrder
+        #    {
+        #        "id":12604556
+        #    }
+        #
+        # fetchOrder/cancelOrder
+        #    {
+        #        "user": 6320300,
+        #        "trigger": {
+        #            "strategy_type": 0,
+        #            "price_type": 0,
+        #            "price": "1.03",  # stopPrice
+        #            "rule": 2,
+        #            "expiration": 0
+        #        },
+        #        "initial": {
+        #            "contract": "ADA_USDT",
+        #            "size":-1,
+        #            "price": "1.02",
+        #            "tif": "gtc",
+        #            "text":"",
+        #            "iceberg": 0,
+        #            "is_close": False,
+        #            "is_reduce_only": False,
+        #            "auto_size":""
+        #        },
+        #        "id": 126393906,
+        #        "trade_id": 0,
+        #        "status": "open",
+        #        "reason": "",
+        #        "create_time": 1643953482,
+        #        "finish_time": 1643953482,
+        #        "is_stop_order": False,
+        #        "stop_trigger": {
+        #            "rule": 0,
+        #            "trigger_price": "",
+        #            "order_price": ""
+        #        },
+        #        "me_order_id": 0,
+        #        "order_type":""
+        #    }
+        #
+        put = self.safe_value_2(order, 'put', 'initial')
+        trigger = self.safe_value(order, 'trigger')
+        contract = self.safe_string(put, 'contract')
+        type = self.safe_string(put, 'type')
+        timeInForce = self.safe_string_upper_2(put, 'time_in_force', 'tif')
+        amount = self.safe_string_2(put, 'amount', 'size')
+        side = self.safe_string(put, 'side')
+        price = self.safe_string(put, 'price')
+        contract = self.safe_string(order, 'contract', contract)
+        type = self.safe_string(order, 'type', type)
+        timeInForce = self.safe_string_upper_2(order, 'time_in_force', 'tif', timeInForce)
+        amount = self.safe_string_2(order, 'amount', 'size', amount)
+        side = self.safe_string(order, 'side', side)
+        price = self.safe_string(order, 'price', price)
         remaining = self.safe_string(order, 'left')
-        # 'filled_total': same as fill_price(spots), not existing(swap)
-        cost = self.safe_string(order, 'filled_total')
-        rawStatus = None
-        side = None
-        average = None
-        contract = self.safe_value(market, 'contract')
+        filled = Precise.string_sub(amount, remaining)
+        cost = self.safe_number(order, 'filled_total')
+        if put:
+            remaining = amount
+            filled = '0'
+            cost = self.parse_number('0')
+        # }
         if contract:
-            # fill price is the price per contract for swaps, but the cost for spot
-            average = self.safe_string(order, 'fill_price')
-            if amount:
-                side = 'buy' if Precise.string_gt(amountRaw, '0') else 'sell'
-            else:
-                side = None
-            rawStatus = self.safe_string(order, 'finish_as', 'open')
-        else:
-            # open, closed, cancelled - almost already ccxt unified!
-            rawStatus = self.safe_string(order, 'status')
-            side = self.safe_string(order, 'side')
-        status = self.parse_order_status(rawStatus)
-        timeInForce = self.safe_string_upper_2(order, 'time_in_force', 'tif')
-        if timeInForce == 'POC':
-            timeInForce = 'PO'
-        type = self.safe_string(order, 'type')
-        if type is None:
-            # response for swaps doesn't include the type information
-            if timeInForce == 'PO' or timeInForce == 'GTC' or timeInForce == 'IOC' or timeInForce == 'FOK':
-                type = 'limit'
-            else:
-                type = 'market'
+            isMarketOrder = Precise.stringEq(price, '0') and (timeInForce == 'IOC')
+            type = 'market' if isMarketOrder else 'limit'
+            side = 'buy' if Precise.string_gt(amount, '0') else 'sell'
+        timestamp = self.safe_timestamp_2(order, 'create_time', 'ctime')
+        exchangeSymbol = self.safe_string_2(order, 'currency_pair', 'market', contract)
+        # Everything below self(above return) is related to fees
         fees = []
         gtFee = self.safe_string(order, 'gt_fee')
         if gtFee:
@@ -2467,39 +2554,29 @@ class gateio(Exchange):
                 'currency': self.safe_currency_code(self.safe_string(order, 'rebated_fee_currency')),
                 'cost': Precise.string_neg(rebate),
             })
-        mkfr = self.safe_string(order, 'mkfr')
-        tkfr = self.safe_string(order, 'tkfr')
-        if mkfr:
-            fees.append({
-                'currency': self.safe_currency_code(self.safe_string(market, 'settleId')),
-                'cost': mkfr,
-            })
-        if tkfr:
-            fees.append({
-                'currency': self.safe_currency_code(self.safe_string(market, 'settleId')),
-                'cost': tkfr,
-            })
+        numFeeCurrencies = len(fees)
+        multipleFeeCurrencies = numFeeCurrencies > 1
         return self.safe_order({
-            'id': id,
-            'clientOrderId': clientOrderId,
+            'id': self.safe_number(order, 'id'),
+            'clientOrderId': self.safe_number(order, 'user'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'status': status,
-            'symbol': symbol,
+            'lastTradeTimestamp': self.safe_timestamp_2(order, 'update_time', 'finish_time'),
+            'status': self.safe_string(order, 'status'),
+            'symbol': self.safe_symbol(exchangeSymbol),
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': None,
             'side': side,
-            'price': price,
-            'stopPrice': None,
-            'average': average,
-            'amount': amount,
+            'price': self.parse_number(price),
+            'stopPrice': self.safe_number(trigger, 'price'),
+            'average': self.safe_number(order, 'fill_price'),
+            'amount': self.parse_number(Precise.string_abs(amount)),
             'cost': cost,
-            'filled': None,
-            'remaining': remaining,
-            'fee': None,
-            'fees': fees,
+            'filled': self.parse_number(filled),
+            'remaining': self.parse_number(Precise.string_abs(remaining)),
+            'fee': None if multipleFeeCurrencies else self.safe_value(fees, 0),
+            'fees': fees if multipleFeeCurrencies else [],
             'trades': None,
             'info': order,
         }, market)
@@ -2508,6 +2585,8 @@ class gateio(Exchange):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
+        stop = self.safe_value_2(params, 'is_stop_order', 'stop', False)
+        params = self.omit(params, ['is_stop_order', 'stop'])
         market = self.market(symbol)
         request = {
             'order_id': id,
@@ -2516,12 +2595,21 @@ class gateio(Exchange):
             request['currency_pair'] = market['id']
         else:
             request['settle'] = market['settleId']
-        method = self.get_supported_mapping(market['type'], {
-            'spot': 'privateSpotGetOrdersOrderId',
-            'margin': 'privateSpotGetOrdersOrderId',
-            'swap': 'privateFuturesGetSettleOrdersOrderId',
-            'future': 'privateDeliveryGetSettlePriceOrdersOrderId',
-        })
+        method = None
+        if stop:
+            method = self.get_supported_mapping(market['type'], {
+                'spot': 'privateSpotGetPriceOrdersOrderId',
+                'margin': 'privateSpotGetPriceOrdersOrderId',
+                'swap': 'privateFuturesGetSettlePriceOrdersOrderId',
+                'future': 'privateDeliveryGetSettlePriceOrdersOrderId',
+            })
+        else:
+            method = self.get_supported_mapping(market['type'], {
+                'spot': 'privateSpotGetOrdersOrderId',
+                'margin': 'privateSpotGetOrdersOrderId',
+                'swap': 'privateFuturesGetSettleOrdersOrderId',
+                'future': 'privateDeliveryGetSettleOrdersOrderId',
+            })
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_order(response, market)
 
@@ -2664,11 +2752,13 @@ class gateio(Exchange):
             request['settle'] = market['settleId']
         else:
             request['currency_pair'] = market['id']
+        isStop = self.safe_value(params, 'isStop', False)
+        pathMiddle = 'Price' if isStop else ''
         method = self.get_supported_mapping(market['type'], {
-            'spot': 'privateSpotDeleteOrdersOrderId',
-            'margin': 'privateSpotDeleteOrdersOrderId',
-            'swap': 'privateFuturesDeleteSettleOrdersOrderId',
-            'future': 'privateDeliveryDeleteSettleOrdersOrderId',
+            'spot': 'privateSpotDelete' + pathMiddle + 'OrdersOrderId',
+            'margin': 'privateSpotDelete' + pathMiddle + 'OrdersOrderId',
+            'swap': 'privateFuturesDeleteSettle' + pathMiddle + 'OrdersOrderId',
+            'future': 'privateDeliveryDeleteSettle' + pathMiddle + 'OrdersOrderId',
         })
         response = await getattr(self, method)(self.extend(request, params))
         #

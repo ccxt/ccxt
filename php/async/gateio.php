@@ -2327,7 +2327,7 @@ class gateio extends Exchange {
         } else {
             if ($contract) {
                 // $contract conditional order
-                $rule = ($side === 'sell') ? 1 : 2;
+                $rule = ($side === 'buy') ? 1 : 2;
                 $request = array(
                     'initial' => array(
                         'contract' => $market['id'],
@@ -2366,7 +2366,7 @@ class gateio extends Exchange {
                 $params = $this->omit($params, 'account');
                 $defaultExpiration = $this->safe_integer($options, 'expiration');
                 $expiration = $this->safe_integer($params, 'expiration', $defaultExpiration);
-                $rule = ($side === 'sell') ? '>=' : '<=';
+                $rule = ($side === 'buy') ? '>=' : '<=';
                 $triggerPrice = $this->safe_value($trigger, 'price', $stopPrice);
                 $request = array(
                     'trigger' => array(
@@ -2471,7 +2471,8 @@ class gateio extends Exchange {
 
     public function parse_order($order, $market = null) {
         //
-        // createOrder, spot
+        // SPOT
+        // createOrder/cancelOrder/fetchOrder
         //
         //     {
         //       "id" => "62364648575",
@@ -2501,53 +2502,136 @@ class gateio extends Exchange {
         //       "rebated_fee_currency" => "USDT"
         //     }
         //
+        // SPOT TRIGGER ORDERS
+        // createOrder
+        //    {
+        //        "id":12604556
+        //    }
         //
-        $id = $this->safe_string($order, 'id');
-        $clientOrderId = $this->safe_string($order, 'text');
-        $marketId = $this->safe_string_2($order, 'currency_pair', 'contract');
-        $symbol = $this->safe_symbol($marketId, $market);
-        $timestamp = $this->safe_timestamp($order, 'create_time');
-        $timestamp = $this->safe_integer($order, 'create_time_ms', $timestamp);
-        $lastTradeTimestamp = $this->safe_timestamp($order, 'update_time');
-        $lastTradeTimestamp = $this->safe_integer($order, 'update_time_ms', $lastTradeTimestamp);
-        $amountRaw = $this->safe_string_2($order, 'amount', 'size');
-        $amount = Precise::string_abs($amountRaw);
-        $price = $this->safe_string($order, 'price');
+        // fetchOrder/cancelOrder
+        //    {
+        //        "market" => "ADA_USDT",
+        //        "user":6392049,
+        //        "trigger" => array(
+        //            "price" => "1.08", // stopPrice
+        //            "rule" => "\u003e=",
+        //            "expiration" => 86400
+        //        ),
+        //        "put" => array(
+        //            "type" => "limit",
+        //            "side" => "buy",
+        //            "price" => "1.08", // $order $price
+        //            "amount" => "1.00000000000000000000",
+        //            "account" => "normal",
+        //            "time_in_force" => "gtc"
+        //        ),
+        //        "id" => 71639298,
+        //        "ctime" => 1643945985,
+        //        "status" => "open"
+        //    }
+        //
+        // FUTURE AND SWAP
+        // createOrder/cancelOrder/fetchOrder
+        //
+        //    {
+        //        "id" => 123028481731,
+        //        "contract" => "ADA_USDT",
+        //        "mkfr" => "-0.00005",
+        //        "tkfr" => "0.00048",
+        //        "tif" => "ioc",
+        //        "is_reduce_only" => false,
+        //        "create_time" => 1643950262.68,
+        //        "finish_time" => 1643950262.68,
+        //        "price" => "0",
+        //        "size" => 1,
+        //        "refr" => "0",
+        //        "left":0,
+        //        "text" => "api",
+        //        "fill_price" => "1.05273",
+        //        "user":6329238,
+        //        "finish_as" => "filled",
+        //        "status" => "finished",
+        //        "is_liq" => false,
+        //        "refu":0,
+        //        "is_close" => false,
+        //        "iceberg" => 0
+        //    }
+        //
+        // TRIGGER ORDERS (FUTURE AND SWAP)
+        //
+        // createOrder
+        //    {
+        //        "id":12604556
+        //    }
+        //
+        // fetchOrder/cancelOrder
+        //    {
+        //        "user" => 6320300,
+        //        "trigger" => array(
+        //            "strategy_type" => 0,
+        //            "price_type" => 0,
+        //            "price" => "1.03", // stopPrice
+        //            "rule" => 2,
+        //            "expiration" => 0
+        //        ),
+        //        "initial" => array(
+        //            "contract" => "ADA_USDT",
+        //            "size":-1,
+        //            "price" => "1.02",
+        //            "tif" => "gtc",
+        //            "text":"",
+        //            "iceberg" => 0,
+        //            "is_close" => false,
+        //            "is_reduce_only" => false,
+        //            "auto_size":""
+        //        ),
+        //        "id" => 126393906,
+        //        "trade_id" => 0,
+        //        "status" => "open",
+        //        "reason" => "",
+        //        "create_time" => 1643953482,
+        //        "finish_time" => 1643953482,
+        //        "is_stop_order" => false,
+        //        "stop_trigger" => array(
+        //            "rule" => 0,
+        //            "trigger_price" => "",
+        //            "order_price" => ""
+        //        ),
+        //        "me_order_id" => 0,
+        //        "order_type":""
+        //    }
+        //
+        $put = $this->safe_value_2($order, 'put', 'initial');
+        $trigger = $this->safe_value($order, 'trigger');
+        $contract = $this->safe_string($put, 'contract');
+        $type = $this->safe_string($put, 'type');
+        $timeInForce = $this->safe_string_upper_2($put, 'time_in_force', 'tif');
+        $amount = $this->safe_string_2($put, 'amount', 'size');
+        $side = $this->safe_string($put, 'side');
+        $price = $this->safe_string($put, 'price');
+        $contract = $this->safe_string($order, 'contract', $contract);
+        $type = $this->safe_string($order, 'type', $type);
+        $timeInForce = $this->safe_string_upper_2($order, 'time_in_force', 'tif', $timeInForce);
+        $amount = $this->safe_string_2($order, 'amount', 'size', $amount);
+        $side = $this->safe_string($order, 'side', $side);
+        $price = $this->safe_string($order, 'price', $price);
         $remaining = $this->safe_string($order, 'left');
-        // 'filled_total' => same as fill_price (spots), not existing (swap)
-        $cost = $this->safe_string($order, 'filled_total');
-        $rawStatus = null;
-        $side = null;
-        $average = null;
-        $contract = $this->safe_value($market, 'contract');
+        $filled = Precise::string_sub($amount, $remaining);
+        $cost = $this->safe_number($order, 'filled_total');
+        if ($put) {
+            $remaining = $amount;
+            $filled = '0';
+            $cost = $this->parse_number('0');
+        }
+        // }
         if ($contract) {
-            // fill $price is the $price per $contract for swaps, but the $cost for spot
-            $average = $this->safe_string($order, 'fill_price');
-            if ($amount) {
-                $side = Precise::string_gt($amountRaw, '0') ? 'buy' : 'sell';
-            } else {
-                $side = null;
-            }
-            $rawStatus = $this->safe_string($order, 'finish_as', 'open');
-        } else {
-            // open, closed, cancelled - almost already ccxt unified!
-            $rawStatus = $this->safe_string($order, 'status');
-            $side = $this->safe_string($order, 'side');
+            $isMarketOrder = Precise.stringEq ($price, '0') && ($timeInForce === 'IOC');
+            $type = $isMarketOrder ? 'market' : 'limit';
+            $side = Precise::string_gt($amount, '0') ? 'buy' : 'sell';
         }
-        $status = $this->parse_order_status($rawStatus);
-        $timeInForce = $this->safe_string_upper_2($order, 'time_in_force', 'tif');
-        if ($timeInForce === 'POC') {
-            $timeInForce = 'PO';
-        }
-        $type = $this->safe_string($order, 'type');
-        if ($type === null) {
-            // response for swaps doesn't include the $type information
-            if ($timeInForce === 'PO' || $timeInForce === 'GTC' || $timeInForce === 'IOC' || $timeInForce === 'FOK') {
-                $type = 'limit';
-            } else {
-                $type = 'market';
-            }
-        }
+        $timestamp = $this->safe_timestamp_2($order, 'create_time', 'ctime');
+        $exchangeSymbol = $this->safe_string_2($order, 'currency_pair', 'market', $contract);
+        // Everything below this(above return) is related to $fees
         $fees = array();
         $gtFee = $this->safe_string($order, 'gt_fee');
         if ($gtFee) {
@@ -2570,41 +2654,29 @@ class gateio extends Exchange {
                 'cost' => Precise::string_neg($rebate),
             );
         }
-        $mkfr = $this->safe_string($order, 'mkfr');
-        $tkfr = $this->safe_string($order, 'tkfr');
-        if ($mkfr) {
-            $fees[] = array(
-                'currency' => $this->safe_currency_code($this->safe_string($market, 'settleId')),
-                'cost' => $mkfr,
-            );
-        }
-        if ($tkfr) {
-            $fees[] = array(
-                'currency' => $this->safe_currency_code($this->safe_string($market, 'settleId')),
-                'cost' => $tkfr,
-            );
-        }
+        $numFeeCurrencies = is_array($fees) ? count($fees) : 0;
+        $multipleFeeCurrencies = $numFeeCurrencies > 1;
         return $this->safe_order(array(
-            'id' => $id,
-            'clientOrderId' => $clientOrderId,
+            'id' => $this->safe_number($order, 'id'),
+            'clientOrderId' => $this->safe_number($order, 'user'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => $lastTradeTimestamp,
-            'status' => $status,
-            'symbol' => $symbol,
+            'lastTradeTimestamp' => $this->safe_timestamp_2($order, 'update_time', 'finish_time'),
+            'status' => $this->safe_string($order, 'status'),
+            'symbol' => $this->safe_symbol($exchangeSymbol),
             'type' => $type,
             'timeInForce' => $timeInForce,
             'postOnly' => null,
             'side' => $side,
-            'price' => $price,
-            'stopPrice' => null,
-            'average' => $average,
-            'amount' => $amount,
+            'price' => $this->parse_number($price),
+            'stopPrice' => $this->safe_number($trigger, 'price'),
+            'average' => $this->safe_number($order, 'fill_price'),
+            'amount' => $this->parse_number(Precise::string_abs($amount)),
             'cost' => $cost,
-            'filled' => null,
-            'remaining' => $remaining,
-            'fee' => null,
-            'fees' => $fees,
+            'filled' => $this->parse_number($filled),
+            'remaining' => $this->parse_number(Precise::string_abs($remaining)),
+            'fee' => $multipleFeeCurrencies ? null : $this->safe_value($fees, 0),
+            'fees' => $multipleFeeCurrencies ? $fees : array(),
             'trades' => null,
             'info' => $order,
         ), $market);
@@ -2615,6 +2687,8 @@ class gateio extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
         yield $this->load_markets();
+        $stop = $this->safe_value_2($params, 'is_stop_order', 'stop', false);
+        $params = $this->omit($params, array( 'is_stop_order', 'stop' ));
         $market = $this->market($symbol);
         $request = array(
             'order_id' => $id,
@@ -2624,12 +2698,22 @@ class gateio extends Exchange {
         } else {
             $request['settle'] = $market['settleId'];
         }
-        $method = $this->get_supported_mapping($market['type'], array(
-            'spot' => 'privateSpotGetOrdersOrderId',
-            'margin' => 'privateSpotGetOrdersOrderId',
-            'swap' => 'privateFuturesGetSettleOrdersOrderId',
-            'future' => 'privateDeliveryGetSettlePriceOrdersOrderId',
-        ));
+        $method = null;
+        if ($stop) {
+            $method = $this->get_supported_mapping($market['type'], array(
+                'spot' => 'privateSpotGetPriceOrdersOrderId',
+                'margin' => 'privateSpotGetPriceOrdersOrderId',
+                'swap' => 'privateFuturesGetSettlePriceOrdersOrderId',
+                'future' => 'privateDeliveryGetSettlePriceOrdersOrderId',
+            ));
+        } else {
+            $method = $this->get_supported_mapping($market['type'], array(
+                'spot' => 'privateSpotGetOrdersOrderId',
+                'margin' => 'privateSpotGetOrdersOrderId',
+                'swap' => 'privateFuturesGetSettleOrdersOrderId',
+                'future' => 'privateDeliveryGetSettleOrdersOrderId',
+            ));
+        }
         $response = yield $this->$method (array_merge($request, $params));
         return $this->parse_order($response, $market);
     }
@@ -2785,11 +2869,13 @@ class gateio extends Exchange {
         } else {
             $request['currency_pair'] = $market['id'];
         }
+        $isStop = $this->safe_value($params, 'isStop', false);
+        $pathMiddle = $isStop ? 'Price' : '';
         $method = $this->get_supported_mapping($market['type'], array(
-            'spot' => 'privateSpotDeleteOrdersOrderId',
-            'margin' => 'privateSpotDeleteOrdersOrderId',
-            'swap' => 'privateFuturesDeleteSettleOrdersOrderId',
-            'future' => 'privateDeliveryDeleteSettleOrdersOrderId',
+            'spot' => 'privateSpotDelete' . $pathMiddle . 'OrdersOrderId',
+            'margin' => 'privateSpotDelete' . $pathMiddle . 'OrdersOrderId',
+            'swap' => 'privateFuturesDeleteSettle' . $pathMiddle . 'OrdersOrderId',
+            'future' => 'privateDeliveryDeleteSettle' . $pathMiddle . 'OrdersOrderId',
         ));
         $response = yield $this->$method (array_merge($request, $params));
         //
