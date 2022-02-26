@@ -96,7 +96,6 @@ module.exports = class okx extends Exchange {
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': undefined,
-                'loadLeverageBrackets': undefined,
                 'reduceMargin': true,
                 'setLeverage': true,
                 'setMarginMode': true,

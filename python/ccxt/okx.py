@@ -125,7 +125,6 @@ class okx(Exchange):
                 'fetchWithdrawal': None,
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': None,
-                'loadLeverageBrackets': None,
                 'reduceMargin': True,
                 'setLeverage': True,
                 'setMarginMode': True,

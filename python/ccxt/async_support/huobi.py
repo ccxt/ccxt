@@ -124,7 +124,6 @@ class huobi(Exchange):
                 'fetchWithdrawal': None,
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': None,
-                'loadLeverageBrackets': None,
                 'reduceMargin': None,
                 'setLeverage': True,
                 'setMarginMode': False,
@@ -342,6 +341,7 @@ class huobi(Exchange):
                             'v1/common/timestamp': 1,
                             'v1/common/exchange': 1,  # order limits
                             # Market Data
+                            'market/history/candles': 1,
                             'market/history/kline': 1,
                             'market/detail/merged': 1,
                             'market/tickers': 1,
@@ -2030,20 +2030,27 @@ class huobi(Exchange):
             self.safe_number(ohlcv, 'amount'),
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=1000, params={}):
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'period': self.timeframes[timeframe],
             # 'symbol': market['id'],  # spot, future
             # 'contract_code': market['id'],  # swap
-            # 'side': limit,  # max 2000
+            # 'size': 1000,  # max 1000 for spot, 2000 for contracts
+            # 'from': int(since / 1000), spot only
+            # 'to': self.seconds(), spot only
         }
         fieldName = 'symbol'
         price = self.safe_string(params, 'price')
         params = self.omit(params, 'price')
-        method = 'spotPublicGetMarketHistoryKline'
-        if market['future']:
+        method = 'spotPublicGetMarketHistoryCandles'
+        if market['spot']:
+            if since is not None:
+                request['from'] = int(since / 1000)
+            if limit is not None:
+                request['size'] = limit  # max 2000
+        elif market['future']:
             if market['inverse']:
                 if price == 'mark':
                     method = 'contractPublicGetIndexMarketHistoryMarkPriceKline'
@@ -2083,9 +2090,20 @@ class huobi(Exchange):
                 else:
                     method = 'contractPublicGetLinearSwapExMarketHistoryKline'
             fieldName = 'contract_code'
+        if market['contract']:
+            if limit is None:
+                limit = 2000
+            if price is None:
+                duration = self.parse_timeframe(timeframe)
+                if since is None:
+                    now = self.seconds()
+                    request['from'] = now - duration * (limit - 1)
+                    request['to'] = now
+                else:
+                    start = int(since / 1000)
+                    request['from'] = start
+                    request['to'] = self.sum(start, duration * (limit - 1))
         request[fieldName] = market['id']
-        if limit is not None:
-            request['size'] = limit  # max 2000
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
