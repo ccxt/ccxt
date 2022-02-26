@@ -29,8 +29,14 @@ module.exports = class huobi extends ccxt.huobi {
                                 'private': 'wss://{hostname}/ws/v2',
                             },
                             'future': {
-                                'public': 'wss://api.hbdm.com/ws',
-                                'private': 'wss://api.hbdm.com/notification',
+                                'linear': {
+                                    'public': 'wss://api.hbdm.com/linear-swap-ws',
+                                    'private': 'wss://api.hbdm.com/linear-swap-notification',
+                                },
+                                'inverse': {
+                                    'public': 'wss://api.hbdm.com/ws',
+                                    'private': 'wss://api.hbdm.com/notification',
+                                },
                             },
                             'swap': {
                                 'inverse': {
