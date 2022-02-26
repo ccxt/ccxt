@@ -1106,7 +1106,7 @@ module.exports = class zb extends Exchange {
             } else if (side === '2') {
                 side = 'sell'; // open short
             }
-            maker = (maker === false) ? 'taker' : 'maker';
+            maker = (maker) ? 'maker' : 'taker';
         }
         const timeField = market['swap'] ? 'createTime' : 'date';
         const timeMethod = market['swap'] ? 'safeInteger' : 'safeTimestamp';
