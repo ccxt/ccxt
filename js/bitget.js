@@ -52,6 +52,8 @@ module.exports = class bitget extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': false,
+                'setMarginMode': true,
+                'setLeverage': true,
             },
             'timeframes': {
                 'spot': {
@@ -850,11 +852,13 @@ module.exports = class bitget extends Exchange {
             const precisePrice = new Precise (priceStep);
             precisePrice.decimals = this.sum (precisePrice.decimals, priceDecimals);
             precisePrice.reduce ();
-            pricePrecision = this.parseNumber (precisePrice.toString ());
+            const priceString = precisePrice.toString ();
+            pricePrecision = this.parseNumber (priceString);
             const preciseAmount = new Precise (amountStep);
             preciseAmount.decimals = this.sum (preciseAmount.decimals, amountDecimals);
             preciseAmount.reduce ();
-            amountPrecision = this.parseNumber (preciseAmount.toString ());
+            const amountString = preciseAmount.toString ();
+            amountPrecision = this.parseNumber (amountString);
         }
         const status = this.safeString (market, 'status');
         let active = undefined;
