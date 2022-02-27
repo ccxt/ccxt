@@ -2529,7 +2529,7 @@ class gateio(Exchange):
             cost = self.parse_number('0')
         # }
         if contract:
-            isMarketOrder = Precise.stringEq(price, '0') and (timeInForce == 'IOC')
+            isMarketOrder = Precise.string_equals(price, '0') and (timeInForce == 'IOC')
             type = 'market' if isMarketOrder else 'limit'
             side = 'buy' if Precise.string_gt(amount, '0') else 'sell'
         timestamp = self.safe_timestamp_2(order, 'create_time', 'ctime')

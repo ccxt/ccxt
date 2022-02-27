@@ -2624,7 +2624,7 @@ class gateio extends Exchange {
         }
         // }
         if ($contract) {
-            $isMarketOrder = Precise.stringEq ($price, '0') && ($timeInForce === 'IOC');
+            $isMarketOrder = Precise::string_equals($price, '0') && ($timeInForce === 'IOC');
             $type = $isMarketOrder ? 'market' : 'limit';
             $side = Precise::string_gt($amount, '0') ? 'buy' : 'sell';
         }
