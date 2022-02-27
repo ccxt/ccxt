@@ -2197,9 +2197,9 @@ module.exports = class bitget extends Exchange {
                 auth += body;
             } else {
                 if (Object.keys (params).length) {
-                    const query = this.urlencode (this.keysort (params));
-                    url += '?' + query;
-                    auth += '?' + query;
+                    const query = '?' + this.urlencode (this.keysort (params));
+                    url += query;
+                    auth += query;
                 }
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
