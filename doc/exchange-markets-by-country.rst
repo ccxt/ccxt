@@ -1031,9 +1031,9 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
      - bitget
      - `Bitget <https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j>`__
-     - .. image:: https://img.shields.io/badge/3-lightgray
+     - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://bitgetlimited.github.io/apidoc/en/swap
-          :alt: API Version 3
+          :alt: API Version 1
      
    * - Singapore
      - .. image:: https://user-images.githubusercontent.com/1294454/139516488-243a830d-05dd-446b-91c6-c1f18fe30c63.jpg
