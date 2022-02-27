@@ -94,20 +94,20 @@ module.exports = class lykke2 extends Exchange {
                         'orderbooks': 2.5,
                         'tickers': 2.5,
                         'prices': 2.5,
-                        'trades/public/{AssetPairId}': 2.5,
+                        'trades/public/{assetPairId}': 2.5,
                     },
                 },
                 'private': {
                     'get': {
                         'balance': 2.5,
                         'trades': 2.5,
-                        'trades/order/{OrderId}': 2.5,
+                        'trades/order/{orderId}': 2.5,
                         'orders/active': 1,
                         'orders/closed': 1,
-                        'orders/{OrderId}': 1,
+                        'orders/{orderId}': 1,
                         'operations': 2.5,
                         'operations/deposits/addresses': 2.5,
-                        'operations/deposits/addresses/{AssetId}': 2.5,
+                        'operations/deposits/addresses/{assetId}': 2.5,
                     },
                     'post': {
                         'orders/limit': 1,
@@ -118,7 +118,7 @@ module.exports = class lykke2 extends Exchange {
                     },
                     'delete': {
                         'orders': 1,
-                        'orders/{OrderId}': 1,
+                        'orders/{orderId}': 1,
                     },
                 },
             },
@@ -565,7 +565,7 @@ module.exports = class lykke2 extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'AssetPairId': market['id'],
+            'assetPairId': market['id'],
             // 'offset': 0,
         };
         if (limit !== undefined) {
@@ -769,7 +769,7 @@ module.exports = class lykke2 extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         const request = {
-            'OrderId': id,
+            'orderId': id,
         };
         //
         //     {
@@ -802,7 +802,7 @@ module.exports = class lykke2 extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            'OrderId': id,
+            'orderId': id,
         };
         const response = await this.privateGetOrdersOrderId (this.extend (request, params));
         const payload = this.safeValue (response, 'payload');
@@ -961,7 +961,7 @@ module.exports = class lykke2 extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'AssetId': this.safeString (currency, 'id'),
+            'assetId': this.safeString (currency, 'id'),
         };
         const response = await this.privateGetOperationsDepositsAddressesAssetId (this.extend (request, params));
         //
