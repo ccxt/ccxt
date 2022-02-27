@@ -52,8 +52,8 @@ module.exports = class bitget extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': false,
-                'setMarginMode': true,
                 'setLeverage': true,
+                'setMarginMode': true,
             },
             'timeframes': {
                 'spot': {
@@ -1594,7 +1594,7 @@ module.exports = class bitget extends Exchange {
             request['size'] = this.amountToPrecision (symbol, amount);
             const reduceOnly = this.safeValue (params, 'reduceOnly', false);
             if (reduceOnly) {
-                request['side'] = (side === 'buy') ? 'close_long' : 'close_short';
+                request['side'] = (side === 'buy') ? 'close_short' : 'close_long';
             } else {
                 request['side'] = (side === 'buy') ? 'open_long' : 'open_short';
             }
