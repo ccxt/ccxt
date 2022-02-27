@@ -156,6 +156,7 @@ async function loadExchange (exchange) {
         'BTC/RUB',
         'BTC/UAH',
         'LTC/BTC',
+        'EUR/USD',
     ]
 
     let result = exchange.symbols.filter ((symbol) => symbols.indexOf (symbol) >= 0)
@@ -245,6 +246,7 @@ async function testExchange (exchange) {
         'BTC/JPY',
         'LTC/BTC',
         'ZRX/WETH',
+        'EUR/USD',
     ])
 
     if (symbol === undefined) {

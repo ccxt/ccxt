@@ -393,6 +393,7 @@ function test_exchange($exchange) {
         'BTC/JPY',
         'LTC/BTC',
         'USD/SLL',
+        'EUR/USD',
     ));
 
     if ($symbol === null) {
