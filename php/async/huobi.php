@@ -1668,6 +1668,14 @@ class huobi extends Exchange {
                 $method = 'contractPublicGetSwapExMarketDepth';
                 $fieldName = 'contract_code';
             }
+        } else {
+            if ($limit !== null) {
+                // Valid depths are 5, 10, 20 or empty https://huobiapi.github.io/docs/spot/v1/en/#get-$market-depth
+                if (($limit !== 5) && ($limit !== 10) && ($limit !== 20)) {
+                    throw new BadRequest($this->id . ' fetchOrderBook() $limit argument must be null, 5, 10 or 20, default is 150');
+                }
+                $request['depth'] = $limit;
+            }
         }
         $request[$fieldName] = $market['id'];
         $response = yield $this->$method (array_merge($request, $params));
