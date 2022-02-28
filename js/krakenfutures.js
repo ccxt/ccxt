@@ -230,12 +230,12 @@ module.exports = class krakenfu extends Exchange {
             const base = parsed['base'];
             const quote = parsed['quote'];
             // swap == perpetual
-            let settleId = undefined;
             let settle = undefined;
             const contract = (swap || future);
             if (contract) {
-                settleId = linear ? baseId : quoteId;
-                settle = this.safeCurrencyCode (settleId);
+                settle = base;
+                linear = false;
+                inverse = true;
                 symbol = base + '/' + quote + ':' + settle;
                 if (future) {
                     symbol = symbol + '-' + this.yymmdd (expiry);
@@ -246,7 +246,7 @@ module.exports = class krakenfu extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': undefined,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': undefined,
