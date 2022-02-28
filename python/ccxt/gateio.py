@@ -87,6 +87,7 @@ class gateio(Exchange):
                 'fetchTickers': True,
                 'fetchTime': False,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchWithdrawals': True,
                 'setLeverage': True,
@@ -1190,6 +1191,36 @@ class gateio(Exchange):
             'address': address,
             'tag': tag,
             'network': None,
+        }
+
+    def fetch_trading_fee(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'currency_pair': market['id'],
+        }
+        response = self.privateWalletGetFee(self.extend(request, params))
+        #
+        #     {
+        #       "user_id": 1486602,
+        #       "taker_fee": "0.002",
+        #       "maker_fee": "0.002",
+        #       "gt_discount": True,
+        #       "gt_taker_fee": "0.0015",
+        #       "gt_maker_fee": "0.0015",
+        #       "loan_fee": "0.18",
+        #       "point_type": "0",
+        #       "futures_taker_fee": "0.0005",
+        #       "futures_maker_fee": "0"
+        #     }
+        #
+        taker = self.safe_number(response, 'taker_fee')
+        maker = self.safe_number(response, 'maker_fee')
+        return {
+            'info': response,
+            'symbol': symbol,
+            'maker': maker,
+            'taker': taker,
         }
 
     def fetch_trading_fees(self, params={}):

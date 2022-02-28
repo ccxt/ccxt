@@ -77,6 +77,7 @@ class gateio extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => false,
                 'fetchTrades' => true,
+                'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchWithdrawals' => true,
                 'setLeverage' => true,
@@ -1202,6 +1203,37 @@ class gateio extends Exchange {
             'address' => $address,
             'tag' => $tag,
             'network' => null,
+        );
+    }
+
+    public function fetch_trading_fee($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'currency_pair' => $market['id'],
+        );
+        $response = $this->privateWalletGetFee (array_merge($request, $params));
+        //
+        //     {
+        //       "user_id" => 1486602,
+        //       "taker_fee" => "0.002",
+        //       "maker_fee" => "0.002",
+        //       "gt_discount" => true,
+        //       "gt_taker_fee" => "0.0015",
+        //       "gt_maker_fee" => "0.0015",
+        //       "loan_fee" => "0.18",
+        //       "point_type" => "0",
+        //       "futures_taker_fee" => "0.0005",
+        //       "futures_maker_fee" => "0"
+        //     }
+        //
+        $taker = $this->safe_number($response, 'taker_fee');
+        $maker = $this->safe_number($response, 'maker_fee');
+        return array(
+            'info' => $response,
+            'symbol' => $symbol,
+            'maker' => $maker,
+            'taker' => $taker,
         );
     }
 
