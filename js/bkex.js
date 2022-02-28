@@ -3,9 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InvalidAddress, ExchangeError, BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InvalidOrder, InsufficientFunds, ArgumentsRequired, OrderNotFound, PermissionDenied, NotSupported } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
-const Precise = require ('./base/Precise');
+const { ExchangeError } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -19,8 +17,6 @@ module.exports = class bkex extends Exchange {
             'version': 'v2',
             'certified': true,
             'has': {
-                'publicAPI': true,
-                'privateAPI': true,
                 'CORS': undefined,
                 'spot': undefined,
                 'margin': undefined,
@@ -42,8 +38,8 @@ module.exports = class bkex extends Exchange {
                 'fetchBidsAsks': undefined,
                 'fetchBorrowRate': undefined,
                 'fetchBorrowRateHistory': undefined,
-                'fetchBorrowRatesPerSymbol': undefined,
                 'fetchBorrowRates': undefined,
+                'fetchBorrowRatesPerSymbol': undefined,
                 'fetchCanceledOrders': undefined,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': undefined,
@@ -93,6 +89,8 @@ module.exports = class bkex extends Exchange {
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': undefined,
                 'loadMarkets': true,
+                'privateAPI': true,
+                'publicAPI': true,
                 'reduceMargin': undefined,
                 'setLeverage': undefined,
                 'setMarginMode': undefined,
