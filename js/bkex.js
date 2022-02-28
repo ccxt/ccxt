@@ -43,7 +43,7 @@ module.exports = class bkex extends Exchange {
                 'fetchCanceledOrders': undefined,
                 'fetchClosedOrder': undefined,
                 'fetchClosedOrders': undefined,
-                'fetchCurrencies': undefined,
+                'fetchCurrencies': true,
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': undefined,
                 'fetchDepositAddresses': undefined,
@@ -112,14 +112,8 @@ module.exports = class bkex extends Exchange {
             'urls': {
                 'logo': '',
                 'api': {
-                    'spot': {
-                        'public': 'https://api.bkex.com',
-                        'private': 'https://api.bkex.com',
-                    },
-                    'contract': {
-                        'public': 'https://api.bkex.com',
-                        'private': 'https://api.bkex.com',
-                    },
+                    'public': 'https://api.bkex.com',
+                    'private': 'https://api.bkex.com',
                 },
                 'www': 'https://www.bkex.com/',
                 'doc': [
@@ -131,71 +125,60 @@ module.exports = class bkex extends Exchange {
                 'referral': '',
             },
             'api': {
-                'spot': {
-                    'public': {
-                        'get': {
-                            '/v2/common/symbols': 1,
-                            '/v2/common/currencys': 1,
-                            '/v2/common/timestamp': 1,
-                            '/v2/q/kline': 1,
-                            '/v2/q/tickers': 1,
-                            '/v2/q/ticker/price': 1,
-                            '/v2/q/depth': 1,
-                            '/v2/q/deals': 1,
-                        },
-                    },
-                    'private': {
-                        'get': {
-                            '/v2/u/api/info': 1,
-                            '/v2/u/account/balance': 1,
-                            '/v2/u/wallet/address': 1,
-                            '/v2/u/wallet/depositRecord': 1,
-                            '/v2/u/wallet/withdrawRecord': 1,
-                            '/v2/u/order/openOrders': 1,
-                            '/v2/u/order/openOrder/detail': 1,
-                            '/v2/u/order/historyOrders': 1,
-                        },
-                        'post': {
-                            '/v2/u/account/transfer': 1,
-                            '/v2/u/wallet/withdraw': 1,
-                            '/v2/u/order/create': 1,
-                            '/v2/u/order/cancel': 1,
-                            '/v2/u/order/batchCreate': 1,
-                            '/v2/u/order/batchCancel': 1,
-                        },
-                        'delete': {
-                        },
+                'public': {
+                    'get': {
+                        '/common/symbols': 1,
+                        '/common/currencys': 1,
+                        '/common/timestamp': 1,
+                        '/q/kline': 1,
+                        '/q/tickers': 1,
+                        '/q/ticker/price': 1,
+                        '/q/depth': 1,
+                        '/q/deals': 1,
+                        // contracts:
+                        '/contract/common/brokerInfo': 1,
+                        '/contract/q/index': 1,
+                        '/contract/q/depth': 1,
+                        '/contract/q/depthMerged': 1,
+                        '/contract/q/trades': 1,
+                        '/contract/q/kline': 1,
+                        '/contract/q/ticker24hr': 1,
                     },
                 },
-                'contract': {
-                    'public': {
-                        'get': {
-                            '/v2/contract/common/brokerInfo': 1,
-                            '/v2/contract/q/index': 1,
-                            '/v2/contract/q/depth': 1,
-                            '/v2/contract/q/depthMerged': 1,
-                            '/v2/contract/q/trades': 1,
-                            '/v2/contract/q/kline': 1,
-                            '/v2/contract/q/ticker24hr': 1,
-                        },
+                'private': {
+                    'get': {
+                        '/u/api/info': 1,
+                        '/u/account/balance': 1,
+                        '/u/wallet/address': 1,
+                        '/u/wallet/depositRecord': 1,
+                        '/u/wallet/withdrawRecord': 1,
+                        '/u/order/openOrders': 1,
+                        '/u/order/openOrder/detail': 1,
+                        '/u/order/historyOrders': 1,
+                        // contracts:
+                        '/contract/trade/getOrder': 1,
+                        '/contract/trade/openOrders': 1,
+                        '/contract/trade/historyOrders': 1,
+                        '/contract/trade/myTrades': 1,
+                        '/contract/trade/positions': 1,
+                        '/contract/u/account': 1,
                     },
-                    'private': {
-                        'get': {
-                            '/v2/contract/trade/getOrder': 1,
-                            '/v2/contract/trade/openOrders': 1,
-                            '/v2/contract/trade/historyOrders': 1,
-                            '/v2/contract/trade/myTrades': 1,
-                            '/v2/contract/trade/positions': 1,
-                            '/v2/contract/u/account': 1,
-                        },
-                        'post': {
-                            '/v2/contract/trade/order': 1,
-                            '/v2/contract/trade/orderCancel': 1,
-                            '/v2/contract/trade/modifyMargin': 1,
-                            '/v2/contract/ws/dataStream/create': 1,
-                            '/v2/contract/ws/dataStream/update': 1,
-                            '/v2/contract/ws/dataStream/delete': 1,
-                        },
+                    'post': {
+                        '/u/account/transfer': 1,
+                        '/u/wallet/withdraw': 1,
+                        '/u/order/create': 1,
+                        '/u/order/cancel': 1,
+                        '/u/order/batchCreate': 1,
+                        '/u/order/batchCancel': 1,
+                        // contracts:
+                        '/contract/trade/order': 1,
+                        '/contract/trade/orderCancel': 1,
+                        '/contract/trade/modifyMargin': 1,
+                        '/contract/ws/dataStream/create': 1,
+                        '/contract/ws/dataStream/update': 1,
+                        '/contract/ws/dataStream/delete': 1,
+                    },
+                    'delete': {
                     },
                 },
             },
@@ -235,7 +218,7 @@ module.exports = class bkex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.spotPublicGetV2CommonSymbols (params);
+        const response = await this.publicGetCommonSymbols (params);
         // {
         //     "code": "0",
         //     "data": [
@@ -312,11 +295,61 @@ module.exports = class bkex extends Exchange {
         return result;
     }
 
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetCommonCurrencys (params);
+        // {
+        //     "code": "0",
+        //     "data": [
+        //        {
+        //           "currency": "ETH",
+        //           "maxWithdrawOneDay": "100.000000000000000000",
+        //           "maxWithdrawSingle": "50.000000000000000000",
+        //           "minWithdrawSingle": "0.005000000000000000",
+        //           "supportDeposit": true,
+        //           "supportTrade": true,
+        //           "supportWithdraw": true,
+        //           "withdrawFee": 0.01
+        //        },
+        //     ],
+        //     "msg": "success",
+        //     "status": 0
+        // }
+        const data = this.safeValue (response, 'data', {});
+        const result = {};
+        for (let i = 0; i < data.length; i++) {
+            const currency = data[i];
+            const id = this.safeString (currency, 'currency');
+            const code = this.safeCurrencyCode (id);
+            const name = this.safeString (currency, 'name');
+            const withdrawEnabled = this.safeValue (currency, 'supportWithdraw');
+            const depositEnabled = this.safeValue (currency, 'supportDeposit');
+            const tradeEnabled = this.safeValue (currency, 'supportTrade');
+            const active = withdrawEnabled && depositEnabled && tradeEnabled;
+            result[code] = {
+                'id': id,
+                'code': code,
+                'name': name,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
+                'active': active,
+                'fee': this.safeValue (currency, 'withdrawFee'),
+                'precision': undefined,
+                'limits': {
+                    'amount': { 'min': undefined, 'max': undefined },
+                    'price': { 'min': undefined, 'max': undefined },
+                    'cost': { 'min': undefined, 'max': undefined },
+                    'withdraw': { 'min': this.safeNumber (currency, 'minWithdrawSingle'), 'max': this.safeNumber (currency, 'maxWithdrawSingle') },
+                },
+                'info': currency,
+            };
+        }
+        return result;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const [ section, access ] = api;
-        let url = this.urls['api'][section][access] + this.implodeParams (path, params);
+        let url = this.urls['api'][api] + '/' + this.version + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
-        if (access === 'public') {
+        if (api === 'public') {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
