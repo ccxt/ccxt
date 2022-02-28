@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { AuthenticationError, BadRequest, BadSymbol, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, NotSupported, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } = require ('./base/errors');
+const { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, NotSupported, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -128,11 +128,6 @@ module.exports = class krakenfu extends Exchange {
                     'quoteIds': [ 'USD', 'XBT' ],
                     'reversed': false,
                 },
-                'orderTypes': {
-                    'limit': 'lmt',
-                    'stop': 'stp',
-                    'IOC': 'ioc',
-                },
                 'versions': {
                     'public': {
                         'GET': {
@@ -198,8 +193,8 @@ module.exports = class krakenfu extends Exchange {
         //                "tags": [],
         //            },
         //            {
-        //                "symbol":"in_xbtusd",
-        //                "type":"spot index",
+        //                "symbol": "in_xbtusd",
+        //                "type": "spot index",
         //                "tradeable":false
         //            }
         //        ]
@@ -535,50 +530,50 @@ module.exports = class krakenfu extends Exchange {
         // fetchTrades (public)
         //
         // {
-        //    "time":"2019-02-14T09:25:33.920Z",
+        //    "time": "2019-02-14T09:25:33.920Z",
         //    "trade_id":100,
         //    "price":3574,
         //    "size":100,
-        //    "side":"buy",
-        //    "type":"fill"                                          // fill, liquidation, assignment, termination
-        //    "uid":"11c3d82c-9e70-4fe9-8115-f643f1b162d4"
+        //    "side": "buy",
+        //    "type": "fill"                                          // fill, liquidation, assignment, termination
+        //    "uid": "11c3d82c-9e70-4fe9-8115-f643f1b162d4"
         // }
         //
         // fetchMyTrades (private)
         //
         // {
-        //    "fillTime":"2016-02-25T09:47:01.000Z",
-        //    "order_id":"c18f0c17-9971-40e6-8e5b-10df05d422f0",
-        //    "fill_id":"522d4e08-96e7-4b44-9694-bfaea8fe215e",
-        //    "cliOrdId":"d427f920-ec55-4c18-ba95-5fe241513b30",     // OPTIONAL
-        //    "symbol":"fi_xbtusd_180615",
-        //    "side":"buy",
+        //    "fillTime": "2016-02-25T09:47:01.000Z",
+        //    "order_id": "c18f0c17-9971-40e6-8e5b-10df05d422f0",
+        //    "fill_id": "522d4e08-96e7-4b44-9694-bfaea8fe215e",
+        //    "cliOrdId": "d427f920-ec55-4c18-ba95-5fe241513b30",     // OPTIONAL
+        //    "symbol": "fi_xbtusd_180615",
+        //    "side": "buy",
         //    "size":2000,
         //    "price":4255,
-        //    "fillType":"maker"                                     // taker, takerAfterEdit, maker, liquidation, assignee
+        //    "fillType": "maker"                                     // taker, takerAfterEdit, maker, liquidation, assignee
         // },
         //
         // execution report (createOrder, editOrder)
         // {
-        //    "executionId":"e1ec9f63-2338-4c44-b40a-43486c6732d7",
+        //    "executionId": "e1ec9f63-2338-4c44-b40a-43486c6732d7",
         //    "price":7244.5,
         //    "amount":10,
         //    "orderPriorEdit":null,
         //    "orderPriorExecution":{
-        //       "orderId":"61ca5732-3478-42fe-8362-abbfd9465294",
+        //       "orderId": "61ca5732-3478-42fe-8362-abbfd9465294",
         //       "cliOrdId":null,
-        //       "type":"lmt",
-        //       "symbol":"pi_xbtusd",
-        //       "side":"buy",
+        //       "type": "lmt",
+        //       "symbol": "pi_xbtusd",
+        //       "side": "buy",
         //       "quantity":10,
         //       "filled":0,
         //       "limitPrice":7500,
         //       "reduceOnly":false,
-        //       "timestamp":"2019-12-11T17:17:33.888Z",
-        //       "lastUpdateTimestamp":"2019-12-11T17:17:33.888Z"
+        //       "timestamp": "2019-12-11T17:17:33.888Z",
+        //       "lastUpdateTimestamp": "2019-12-11T17:17:33.888Z"
         //    },
         //    "takerReducedQuantity":null,
-        //    "type":"EXECUTION"
+        //    "type": "EXECUTION"
         // }
         const timestamp = this.parse8601 (this.safeString2 (trade, 'time', 'fillTime'));
         const price = this.safeFloat (trade, 'price');
@@ -656,27 +651,35 @@ module.exports = class krakenfu extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        // type            string     'lmt'/'limit' for a limit order
-        //                            'post' for a post-only limit order
-        //                            'stp'/'stop' for a stop order
-        //                            'take_profit' for a take profit order
-        //                            'ioc' for an immediate-or-cancel order
-        // stopPrice       float      The stop price associated with a stop or take profit order.
-        //                            Required if orderType is stp or take_profit. Must not have
-        //                            more than 2 decimal places. Note that for stop orders, limitPrice denotes
-        //                            the worst price at which the stop or take_profit order can get filled at.
-        //                            If no limitPrice is provided the stop or take_profit order will trigger a market order.
-        // triggerSignal   string     If placing a stp or take_profit, the signal used for trigger. One of:
-        //                              mark - the mark price
-        //                              index - the index price
-        //                              last - the last executed trade
-        // cliOrdId        UUID       The order identity that is specified from the user. It must be globally unique.
-        // reduceOnly      string     Set as true if you wish the order to only reduce an existing position.
-        //                            Any order which increases an existing position will be rejected. Default false.
+        /**
+            @param {string} symbol: CCXT market symbol
+            @param {string} type: One of 'limit', 'market', 'post' (post-only limit order), 'take_profit' (take_profit order)
+            @param {string} side: buy or sell
+            @param {integer} amount: Contract quantity
+            @param {float} price: Limit order price
+            @param {float} params.stopPrice: The stop price associated with a stop or take profit order. Required if orderType is stp or take_profit. Must not have more than 2 decimal places. Note that for stop orders, limitPrice denotes the worst price at which the stop or take_profit order can get filled at. If no limitPrice is provided the stop or take_profit order will trigger a market order.
+            @param {string} params.triggerSignal: If placing a stp or take_profit, the signal used for trigger. One of: 'mark', 'index', 'last' (market price)
+            @param {string} params.cliOrdId: UUID - The order identity that is specified from the user. It must be globally unique.
+            @param {boolean} params.reduceOnly: Set as true if you wish the order to only reduce an existing position. Any order which increases an existing position will be rejected. Default false.
+        */
         await this.loadMarkets ();
-        const typeId = this.safeString (this.options['orderTypes'], type, type);
+        type = this.safeString (params, 'orderType', type);
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const stopPrice = this.safeString (params, 'stopPrice');
+        if ((type === 'stp' || type === 'take_profit') && stopPrice === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder requires params.stopPrice when type is ' + type);
+        }
+        if (stopPrice !== undefined) {
+            type = 'stp';
+        } else if (timeInForce === 'ioc') {
+            type = 'ioc';
+        } else if (type === 'limit') {
+            type = 'lmt';
+        } else if (type === 'market') {
+            type = 'mkt';
+        }
         const request = {
-            'orderType': typeId,
+            'orderType': type,
             'symbol': this.marketId (symbol),
             'side': side,
             'size': amount,
@@ -685,12 +688,42 @@ module.exports = class krakenfu extends Exchange {
             request['limitPrice'] = price;
         }
         const response = await this.privatePostSendorder (this.extend (request, params));
-        const status = this.safeString (response['sendStatus'], 'status');
+        //
+        //    {
+        //        "result": "success",
+        //        "sendStatus": {
+        //            "order_id": "salf320-e337-47ac-b345-30sdfsalj",
+        //            "status": "placed",
+        //            "receivedTime": "2022-02-28T19:32:17.122Z",
+        //            "orderEvents": [
+        //                {
+        //                    "order": {
+        //                        "orderId": "salf320-e337-47ac-b345-30sdfsalj",
+        //                        "cliOrdId": null,
+        //                        "type": "lmt",
+        //                        "symbol": "pi_xrpusd",
+        //                        "side": "buy",
+        //                        "quantity": 1,
+        //                        "filled": 0,
+        //                        "limitPrice": 0.7,
+        //                        "reduceOnly": false,
+        //                        "timestamp": "2022-02-28T19:32:17.122Z",
+        //                        "lastUpdateTimestamp": "2022-02-28T19:32:17.122Z"
+        //                    },
+        //                    "reducedQuantity": null,
+        //                    "type": "PLACE"
+        //                }
+        //            ]
+        //        },
+        //        "serverTime": "2022-02-28T19:32:17.122Z"
+        //    }
+        //
+        const sendStatus = this.safeValue (response, 'sendStatus');
+        const status = this.safeString (sendStatus, 'status');
         this.verifyOrderActionSuccess (status, 'placed', [ 'filled' ]);
-        const order = this.parseOrder (response['sendStatus']);
-        const id = this.safeString (order, 'id');
-        this.orders[id] = order;
-        return this.extend ({ 'info': response }, order);
+        // const id = this.safeString (order, 'id');
+        // this.orders[id] = order;
+        return this.parseOrder (sendStatus);
     }
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
@@ -708,7 +741,7 @@ module.exports = class krakenfu extends Exchange {
         const status = this.safeString (response['editStatus'], 'status');
         this.verifyOrderActionSuccess (status, 'edited', [ 'filled' ]);
         const order = this.parseOrder (response['editStatus']);
-        this.orders[order['id']] = order;
+        // this.orders[order['id']] = order;
         return this.extend ({ 'info': response }, order);
     }
 
@@ -720,7 +753,7 @@ module.exports = class krakenfu extends Exchange {
         let order = {};
         if ('cancelStatus' in response) {
             order = this.parseOrder (response['cancelStatus']);
-            this.orders[order['id']] = order;
+            // this.orders[order['id']] = order;
         }
         return this.extend ({ 'info': response }, order);
     }
@@ -770,7 +803,7 @@ module.exports = class krakenfu extends Exchange {
     parseOrderType (orderType) {
         const map = {
             'lmt': 'limit',
-            'stp': 'stop',
+            'mkt': 'market',
         };
         return this.safeString (map, orderType, orderType);
     }
@@ -840,190 +873,190 @@ module.exports = class krakenfu extends Exchange {
         //
         // LIMIT
         // {
-        //   "order_id":"179f9af8-e45e-469d-b3e9-2fd4675cb7d0",
-        //   "status":"placed",
-        //   "receivedTime":"2019-09-05T16:33:50.734Z",
+        //   "order_id": "179f9af8-e45e-469d-b3e9-2fd4675cb7d0",
+        //   "status": "placed",
+        //   "receivedTime": "2019-09-05T16:33:50.734Z",
         //   "orderEvents":[
         //      {
         //         "order":{
-        //            "orderId":"179f9af8-e45e-469d-b3e9-2fd4675cb7d0",
+        //            "orderId": "179f9af8-e45e-469d-b3e9-2fd4675cb7d0",
         //            "cliOrdId":null,
-        //            "type":"lmt",
-        //            "symbol":"pi_xbtusd",
-        //            "side":"buy",
+        //            "type": "lmt",
+        //            "symbol": "pi_xbtusd",
+        //            "side": "buy",
         //            "quantity":10000,
         //            "filled":0,
         //            "limitPrice":9400,
         //            "reduceOnly":false,
-        //            "timestamp":"2019-09-05T16:33:50.734Z",
-        //            "lastUpdateTimestamp":"2019-09-05T16:33:50.734Z"
+        //            "timestamp": "2019-09-05T16:33:50.734Z",
+        //            "lastUpdateTimestamp": "2019-09-05T16:33:50.734Z"
         //         },
         //         "reducedQuantity":null,
-        //         "type":"PLACE"
+        //         "type": "PLACE"
         //      }
         //   ]
         // }
         //
         // LIMIT REJECTED
         // {
-        //   "order_id":"614a5298-0071-450f-83c6-0617ce8c6bc4",
-        //   "status":"wouldNotReducePosition",
-        //   "receivedTime":"2019-09-05T16:32:54.076Z",
+        //   "order_id": "614a5298-0071-450f-83c6-0617ce8c6bc4",
+        //   "status": "wouldNotReducePosition",
+        //   "receivedTime": "2019-09-05T16:32:54.076Z",
         //   "orderEvents":[
         //      {
-        //         "uid":"614a5298-0071-450f-83c6-0617ce8c6bc4",
+        //         "uid": "614a5298-0071-450f-83c6-0617ce8c6bc4",
         //         "order":{
-        //            "orderId":"614a5298-0071-450f-83c6-0617ce8c6bc4",
+        //            "orderId": "614a5298-0071-450f-83c6-0617ce8c6bc4",
         //            "cliOrdId":null,
-        //            "type":"lmt",
-        //            "symbol":"pi_xbtusd",
-        //            "side":"buy",
+        //            "type": "lmt",
+        //            "symbol": "pi_xbtusd",
+        //            "side": "buy",
         //            "quantity":10000,
         //            "filled":0,
         //            "limitPrice":9400,
         //            "reduceOnly":true,
-        //            "timestamp":"2019-09-05T16:32:54.076Z",
-        //            "lastUpdateTimestamp":"2019-09-05T16:32:54.076Z"
+        //            "timestamp": "2019-09-05T16:32:54.076Z",
+        //            "lastUpdateTimestamp": "2019-09-05T16:32:54.076Z"
         //         },
-        //         "reason":"WOULD_NOT_REDUCE_POSITION",
-        //         "type":"REJECT"
+        //         "reason": "WOULD_NOT_REDUCE_POSITION",
+        //         "type": "REJECT"
         //      }
         //   ]
         // }
         //
         // CONDITIONAL
         // {
-        //   "order_id":"1abfd3c6-af93-4b30-91cc-e4a93797f3f5",
-        //   "status":"placed",
-        //   "receivedTime":"2019-12-05T10:20:50.701Z",
+        //   "order_id": "1abfd3c6-af93-4b30-91cc-e4a93797f3f5",
+        //   "status": "placed",
+        //   "receivedTime": "2019-12-05T10:20:50.701Z",
         //   "orderEvents":[
         //      {
         //         "orderTrigger":{
-        //            "uid":"1abfd3c6-af93-4b30-91cc-e4a93797f3f5",
+        //            "uid": "1abfd3c6-af93-4b30-91cc-e4a93797f3f5",
         //            "clientId":null,
-        //            "type":"lmt",                                         // "ioc" if stop market
-        //            "symbol":"pi_xbtusd",
-        //            "side":"buy",
+        //            "type": "lmt",                                         // "ioc" if stop market
+        //            "symbol": "pi_xbtusd",
+        //            "side": "buy",
         //            "quantity":10,
         //            "limitPrice":15000,
         //            "triggerPrice":9500,
-        //            "triggerSide":"trigger_below",
-        //            "triggerSignal":"mark_price",
+        //            "triggerSide": "trigger_below",
+        //            "triggerSignal": "mark_price",
         //            "reduceOnly":false,
-        //            "timestamp":"2019-12-05T10:20:50.701Z",
-        //            "lastUpdateTimestamp":"2019-12-05T10:20:50.701Z"
+        //            "timestamp": "2019-12-05T10:20:50.701Z",
+        //            "lastUpdateTimestamp": "2019-12-05T10:20:50.701Z"
         //         },
-        //         "type":"PLACE"
+        //         "type": "PLACE"
         //      }
         //   ]
         // }
         //
         // EXECUTION
         // {
-        //    "order_id":"61ca5732-3478-42fe-8362-abbfd9465294",
-        //    "status":"placed",
-        //    "receivedTime":"2019-12-11T17:17:33.888Z",
+        //    "order_id": "61ca5732-3478-42fe-8362-abbfd9465294",
+        //    "status": "placed",
+        //    "receivedTime": "2019-12-11T17:17:33.888Z",
         //    "orderEvents":[
         //       {
-        //          "executionId":"e1ec9f63-2338-4c44-b40a-43486c6732d7",
+        //          "executionId": "e1ec9f63-2338-4c44-b40a-43486c6732d7",
         //          "price":7244.5,
         //          "amount":10,
         //          "orderPriorEdit":null,
         //          "orderPriorExecution":{
-        //             "orderId":"61ca5732-3478-42fe-8362-abbfd9465294",
+        //             "orderId": "61ca5732-3478-42fe-8362-abbfd9465294",
         //             "cliOrdId":null,
-        //             "type":"lmt",
-        //             "symbol":"pi_xbtusd",
-        //             "side":"buy",
+        //             "type": "lmt",
+        //             "symbol": "pi_xbtusd",
+        //             "side": "buy",
         //             "quantity":10,
         //             "filled":0,
         //             "limitPrice":7500,
         //             "reduceOnly":false,
-        //             "timestamp":"2019-12-11T17:17:33.888Z",
-        //             "lastUpdateTimestamp":"2019-12-11T17:17:33.888Z"
+        //             "timestamp": "2019-12-11T17:17:33.888Z",
+        //             "lastUpdateTimestamp": "2019-12-11T17:17:33.888Z"
         //          },
         //          "takerReducedQuantity":null,
-        //          "type":"EXECUTION"
+        //          "type": "EXECUTION"
         //       }
         //    ]
         // }
         //
         // "EDIT ORDER"
         // {
-        //    "status":"edited",
-        //    "orderId":"022774bc-2c4a-4f26-9317-436c8d85746d",
-        //    "receivedTime":"2019-09-05T16:47:47.521Z",
+        //    "status": "edited",
+        //    "orderId": "022774bc-2c4a-4f26-9317-436c8d85746d",
+        //    "receivedTime": "2019-09-05T16:47:47.521Z",
         //    "orderEvents":[
         //       {
         //          "old":{
-        //             "orderId":"022774bc-2c4a-4f26-9317-436c8d85746d",
+        //             "orderId": "022774bc-2c4a-4f26-9317-436c8d85746d",
         //             "cliOrdId":null,
-        //             "type":"lmt",
-        //             "symbol":"pi_xbtusd",
-        //             "side":"buy",
+        //             "type": "lmt",
+        //             "symbol": "pi_xbtusd",
+        //             "side": "buy",
         //             "quantity":1000,
         //             "filled":0,
         //             "limitPrice":9400.0,
         //             "reduceOnly":false,
-        //             "timestamp":"2019-09-05T16:41:35.173Z",
-        //             "lastUpdateTimestamp":"2019-09-05T16:41:35.173Z"
+        //             "timestamp": "2019-09-05T16:41:35.173Z",
+        //             "lastUpdateTimestamp": "2019-09-05T16:41:35.173Z"
         //          },
         //          "new":{
-        //             "orderId":"022774bc-2c4a-4f26-9317-436c8d85746d",
+        //             "orderId": "022774bc-2c4a-4f26-9317-436c8d85746d",
         //             "cliOrdId":null,
-        //             "type":"lmt",
-        //             "symbol":"pi_xbtusd",
-        //             "side":"buy",
+        //             "type": "lmt",
+        //             "symbol": "pi_xbtusd",
+        //             "side": "buy",
         //             "quantity":1501,
         //             "filled":0,
         //             "limitPrice":7200,
         //             "reduceOnly":false,
-        //             "timestamp":"2019-09-05T16:41:35.173Z",
-        //             "lastUpdateTimestamp":"2019-09-05T16:47:47.519Z"
+        //             "timestamp": "2019-09-05T16:41:35.173Z",
+        //             "lastUpdateTimestamp": "2019-09-05T16:47:47.519Z"
         //          },
         //          "reducedQuantity":null,
-        //          "type":"EDIT"
+        //          "type": "EDIT"
         //       }
         //    ]
         // }
         //
         // "CANCEL ORDER"
         // {
-        //    "status":"cancelled",
+        //    "status": "cancelled",
         //    "orderEvents":[
         //       {
-        //          "uid":"85c40002-3f20-4e87-9302-262626c3531b",
+        //          "uid": "85c40002-3f20-4e87-9302-262626c3531b",
         //          "order":{
-        //             "orderId":"85c40002-3f20-4e87-9302-262626c3531b",
+        //             "orderId": "85c40002-3f20-4e87-9302-262626c3531b",
         //             "cliOrdId":null,
-        //             "type":"lmt",
-        //             "symbol":"pi_xbtusd",
-        //             "side":"buy",
+        //             "type": "lmt",
+        //             "symbol": "pi_xbtusd",
+        //             "side": "buy",
         //             "quantity":1000,
         //             "filled":0,
         //             "limitPrice":10144,
         //             "stopPrice":null,
         //             "reduceOnly":false,
-        //             "timestamp":"2019-08-01T15:26:27.790Z"
+        //             "timestamp": "2019-08-01T15:26:27.790Z"
         //          },
-        //          "type":"CANCEL"
+        //          "type": "CANCEL"
         //       }
         //    ]
         // }
         //
         // "FETCH OPEN ORDERS"
         // {
-        //     "order_id":"59302619-41d2-4f0b-941f-7e7914760ad3",
-        //     "symbol":"pi_xbtusd",
-        //     "side":"sell",
-        //     "orderType":"lmt",
+        //     "order_id": "59302619-41d2-4f0b-941f-7e7914760ad3",
+        //     "symbol": "pi_xbtusd",
+        //     "side": "sell",
+        //     "orderType": "lmt",
         //     "limitPrice":10640,
         //     "unfilledSize":304,
-        //     "receivedTime":"2019-09-05T17:01:17.410Z",
-        //     "status":"untouched",
+        //     "receivedTime": "2019-09-05T17:01:17.410Z",
+        //     "status": "untouched",
         //     "filledSize":0,
         //     "reduceOnly":true,
-        //     "lastUpdateTime":"2019-09-05T17:01:17.410Z"
+        //     "lastUpdateTime": "2019-09-05T17:01:17.410Z"
         // }
         //
         const orderEvents = this.safeValue (order, 'orderEvents', []);
@@ -1168,19 +1201,19 @@ module.exports = class krakenfu extends Exchange {
         }
         const response = await this.privateGetFills (params);
         // {
-        //    "result":"success",
-        //    "serverTime":"2016-02-25T09:45:53.818Z",
+        //    "result": "success",
+        //    "serverTime": "2016-02-25T09:45:53.818Z",
         //    "fills":[
         //       {
-        //          "fillTime":"2016-02-25T09:47:01.000Z",
-        //          "order_id":"c18f0c17-9971-40e6-8e5b-10df05d422f0",
-        //          "fill_id":"522d4e08-96e7-4b44-9694-bfaea8fe215e",
-        //          "cliOrdId":"d427f920-ec55-4c18-ba95-5fe241513b30", // EXTRA
-        //          "symbol":"fi_xbtusd_180615",
-        //          "side":"buy",
+        //          "fillTime": "2016-02-25T09:47:01.000Z",
+        //          "order_id": "c18f0c17-9971-40e6-8e5b-10df05d422f0",
+        //          "fill_id": "522d4e08-96e7-4b44-9694-bfaea8fe215e",
+        //          "cliOrdId": "d427f920-ec55-4c18-ba95-5fe241513b30", // EXTRA
+        //          "symbol": "fi_xbtusd_180615",
+        //          "side": "buy",
         //          "size":2000,
         //          "price":4255,
-        //          "fillType":"maker"
+        //          "fillType": "maker"
         //       },
         //       ...
         //    ]
@@ -1192,19 +1225,19 @@ module.exports = class krakenfu extends Exchange {
         await this.loadMarkets ();
         const response = await this.privateGetAccounts (params);
         // {
-        //    "result":"success",
-        //    "serverTime":"2016-02-25T09:45:53.818Z",
+        //    "result": "success",
+        //    "serverTime": "2016-02-25T09:45:53.818Z",
         //    "accounts":{
         //        "cash":{
-        //            "type":"cashAccount",
+        //            "type": "cashAccount",
         //            "balances":{
         //                "xbt":141.31756797,
         //                "xrp":52465.1254,
         //            },
         //        },
         //        "fi_xbtusd":{
-        //            "type":"marginAccount",
-        //            "currency":"xbt",
+        //            "type": "marginAccount",
+        //            "currency": "xbt",
         //            "balances":{
         //                "fi_xbtusd_171215":50000,
         //                "fi_xbtusd_180615":-15000,
