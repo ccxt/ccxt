@@ -2652,7 +2652,7 @@ module.exports = class gateio extends Exchange {
         const multipleFeeCurrencies = numFeeCurrencies > 1;
         return this.safeOrder ({
             'id': this.safeNumber (order, 'id'),
-            'clientOrderId': this.safeNumber (order, 'user'),
+            'clientOrderId': this.safeString (order, 'text'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': this.safeTimestamp2 (order, 'update_time', 'finish_time'),
