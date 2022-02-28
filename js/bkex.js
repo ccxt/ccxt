@@ -79,7 +79,7 @@ module.exports = class bkex extends Exchange {
                 'fetchStatus': undefined,
                 'fetchTicker': undefined,
                 'fetchTickers': undefined,
-                'fetchTime': undefined,
+                'fetchTime': true,
                 'fetchTrades': undefined,
                 'fetchTradingFee': undefined,
                 'fetchTradingFees': undefined,
@@ -344,6 +344,19 @@ module.exports = class bkex extends Exchange {
             };
         }
         return result;
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.publicGetCommonTimestamp (params);
+        //
+        //    {
+        //        "code": '0',
+        //        "data": 1573542445411,
+        //        "msg": "success",
+        //        "status": 0
+        //    }
+        //
+        return this.safeInteger (response, 'data');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
