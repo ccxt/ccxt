@@ -332,7 +332,7 @@ module.exports = class bkex extends Exchange {
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'active': active,
-                'fee': this.safeValue (currency, 'withdrawFee'),
+                'fee': this.safeNumber (currency, 'withdrawFee'),
                 'precision': undefined,
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
