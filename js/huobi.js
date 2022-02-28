@@ -630,6 +630,27 @@ module.exports = class huobi extends ccxt.huobi {
         this.spawn (this.pong, client, message);
     }
 
+    handleAuthenticate (client, message) {
+        // spot
+        // {
+        //     "action": "req",
+        //     "code": 200,
+        //     "ch": "auth",
+        //     "data": {}
+        // }
+        // non spot
+        //    {
+        //        op: 'auth',
+        //        type: 'api',
+        //        'err-code': 0,
+        //        ts: 1645200307319,
+        //        data: { 'user-id': '35930539' }
+        //    }
+        //
+        client.resolve (message, 'auth');
+        return message;
+    }
+
     handleErrorMessage (client, message) {
         //
         //     {
@@ -668,11 +689,42 @@ module.exports = class huobi extends ccxt.huobi {
             //
             //     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}
             //
+            // first ping format
+            //
+            //    {'ping': 1645106821667 }
+            //
+            // second ping format
+            //
+            //    {"action":"ping","data":{"ts":1645106821667}}
+            //
+            // third pong format
+            //
+            //
+            // auth spot
+            //     {
+            //         "action": "req",
+            //         "code": 200,
+            //         "ch": "auth",
+            //         "data": {}
+            //     }
+            // auth non spot
+            //    {
+            //        op: 'auth',
+            //        type: 'api',
+            //        'err-code': 0,
+            //        ts: 1645200307319,
+            //        data: { 'user-id': '35930539' }
+            //    }
+            //
             if ('id' in message) {
                 this.handleSubscriptionStatus (client, message);
             } else if ('ch' in message) {
-                // route by channel aka topic aka subject
-                this.handleSubject (client, message);
+                if (message['ch'] === 'auth') {
+                    this.handleAuthenticate (client, message);
+                } else {
+                    // route by channel aka topic aka subject
+                    this.handleSubject (client, message);
+                }
             } else if ('ping' in message) {
                 this.handlePing (client, message);
             }
@@ -714,6 +766,40 @@ module.exports = class huobi extends ccxt.huobi {
         if (method !== undefined) {
             subscription['method'] = method;
         }
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+    }
+
+    async subscribePrivate (messageHash, type, params = {}) {
+        const requestId = this.nonce ();
+        const subscription = {
+            'id': requestId,
+            'messageHash': messageHash,
+            'params': params,
+        };
+        let request = undefined;
+        if (type === 'spot') {
+            request = {
+                'action': 'sub',
+                'ch': messageHash,
+            };
+        } else {
+            request = {
+                'op': 'sub',
+                'topic': messageHash,
+                'cid': requestId,
+            };
+        }
+        const url = this.getUrlByMarketType (type, true);
+        const hostname = this.getHostnameByMarketType (type);
+        const authParams = {
+            'type': type,
+            'url': url,
+            'hostname': hostname,
+        };
+        if (type === 'spot') {
+            this.options['ws']['gunzip'] = false;
+        }
+        await this.authenticate (authParams);
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 };
