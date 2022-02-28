@@ -2654,7 +2654,6 @@ module.exports = class gateio extends Exchange {
         const numFeeCurrencies = fees.length;
         const multipleFeeCurrencies = numFeeCurrencies > 1;
         const status = this.parseOrderStatus (rawStatus);
-        
         return this.safeOrder ({
             'id': this.safeNumber (order, 'id'),
             'clientOrderId': this.safeNumber (order, 'user'),
