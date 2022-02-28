@@ -3,7 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadResponse, BadRequest, BadSymbol, BaseError, ExchangeError, ArgumentsRequired, AuthenticationError, DDoSProtection, DuplicateOrderId, InsufficientFunds, NetworkError, NotSupported, OrderNotFound, ExchangeNotAvailable, RateLimitExceeded, PermissionDenied, InvalidOrder, InvalidAddress, OnMaintenance, RequestTimeout, AccountSuspended } = require ('./base/errors');
+const { BadRequest, BadSymbol, ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, NotSupported, OrderNotFound, ExchangeNotAvailable, RateLimitExceeded, PermissionDenied, InvalidOrder, InvalidAddress, OnMaintenance, RequestTimeout, AccountSuspended, NetworkError, DDoSProtection, DuplicateOrderId, BadResponse } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -42,6 +43,8 @@ module.exports = class zb extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPosition': true,
+                'fetchPositions': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -104,15 +107,15 @@ module.exports = class zb extends Exchange {
                 },
                 'exact': {
                     // '1000': 'Successful operation',
-                    '10001': BaseError, // Operation failed
+                    '10001': ExchangeError, // Operation failed
                     '10002': PermissionDenied, // Operation is forbidden
                     '10003': BadResponse, // Data existed
                     '10004': BadResponse, // Date not exist
                     '10005': PermissionDenied, // Forbidden to access the interface
                     '10006': BadRequest, // Currency invalid or expired
-                    '10007': BaseError, // {0}
-                    '10008': BaseError, // Operation failed: {0}
-                    '10009': BaseError, // URL error
+                    '10007': ExchangeError, // {0}
+                    '10008': ExchangeError, // Operation failed: {0}
+                    '10009': ExchangeError, // URL error
                     '1001': ExchangeError, // 'General error message',
                     '10010': AuthenticationError, // API KEY not exist
                     '10011': AuthenticationError, // API KEY CLOSED
@@ -282,7 +285,7 @@ module.exports = class zb extends Exchange {
                     '3012': InvalidOrder, // Duplicate custom customerOrderId
                     '4001': ExchangeNotAvailable, // 'API interface is locked or not enabled',
                     '4002': RateLimitExceeded, // 'Request too often',
-                    '9999': BaseError, // Unknown error
+                    '9999': ExchangeError, // Unknown error
                 },
                 'broad': {
                     '提币地址有误，请先添加提币地址。': InvalidAddress, // {"code":1001,"message":"提币地址有误，请先添加提币地址。"}
@@ -2071,6 +2074,233 @@ module.exports = class zb extends Exchange {
         const datas = this.safeValue (message, 'datas', {});
         const deposits = this.safeValue (datas, 'list', []);
         return this.parseTransactions (deposits, currency, since, limit);
+    }
+
+    async fetchPosition (symbol, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {
+            'futuresAccountType': 1, // 1: USDT-M Perpetual Futures
+            // 'symbol': market['id'],
+            // 'marketId': market['id'],
+            // 'side': params['side'],
+        };
+        const response = await this.contractV2PrivateGetPositionsGetPositions (this.extend (request, params));
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": [
+        //             {
+        //                 "amount": "0.002",
+        //                 "appendAmount": "0",
+        //                 "autoLightenRatio": "0",
+        //                 "avgPrice": "38570",
+        //                 "bankruptcyPrice": "46288.41",
+        //                 "contractType": 1,
+        //                 "createTime": "1645784751867",
+        //                 "freezeAmount": "0",
+        //                 "freezeList": [
+        //                     {
+        //                         "amount": "15.436832",
+        //                         "currencyId": "6",
+        //                         "currencyName": "usdt",
+        //                         "modifyTime": "1645784751867"
+        //                     }
+        //                 ],
+        //                 "id": "6902921567894972486",
+        //                 "lastAppendAmount": "0",
+        //                 "leverage": 5,
+        //                 "liquidateLevel": 1,
+        //                 "liquidatePrice": "46104",
+        //                 "maintainMargin": "0.30912384",
+        //                 "margin": "15.436832",
+        //                 "marginAppendCount": 0,
+        //                 "marginBalance": "15.295872",
+        //                 "marginMode": 1,
+        //                 "marginRate": "0.020209",
+        //                 "marketId": "100",
+        //                 "marketName": "BTC_USDT",
+        //                 "modifyTime": "1645784751867",
+        //                 "nominalValue": "77.14736",
+        //                 "originAppendAmount": "0",
+        //                 "originId": "6902921567894972591",
+        //                 "refreshType": "Timer",
+        //                 "returnRate": "-0.0091",
+        //                 "side": 0,
+        //                 "status": 1,
+        //                 "unrealizedPnl": "-0.14096",
+        //                 "userId": "6896693805014120448"
+        //             }
+        //         ],
+        //         "desc": "操作成功"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const firstPosition = this.safeValue (data, 0);
+        return this.parsePosition (firstPosition, market);
+    }
+
+    async fetchPositions (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbols !== undefined) {
+            market = this.market (symbols);
+        }
+        const request = {
+            'futuresAccountType': 1, // 1: USDT-M Perpetual Futures
+            // 'symbol': market['id'],
+            // 'marketId': market['id'],
+            // 'side': params['side'],
+        };
+        const response = await this.contractV2PrivateGetPositionsGetPositions (this.extend (request, params));
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": [
+        //             {
+        //                 "amount": "0.002",
+        //                 "appendAmount": "0",
+        //                 "autoLightenRatio": "0",
+        //                 "avgPrice": "38570",
+        //                 "bankruptcyPrice": "46288.41",
+        //                 "contractType": 1,
+        //                 "createTime": "1645784751867",
+        //                 "freezeAmount": "0",
+        //                 "freezeList": [
+        //                     {
+        //                         "amount": "15.436832",
+        //                         "currencyId": "6",
+        //                         "currencyName": "usdt",
+        //                         "modifyTime": "1645784751867"
+        //                     }
+        //                 ],
+        //                 "id": "6902921567894972486",
+        //                 "lastAppendAmount": "0",
+        //                 "leverage": 5,
+        //                 "liquidateLevel": 1,
+        //                 "liquidatePrice": "46104",
+        //                 "maintainMargin": "0.30912384",
+        //                 "margin": "15.436832",
+        //                 "marginAppendCount": 0,
+        //                 "marginBalance": "15.295872",
+        //                 "marginMode": 1,
+        //                 "marginRate": "0.020209",
+        //                 "marketId": "100",
+        //                 "marketName": "BTC_USDT",
+        //                 "modifyTime": "1645784751867",
+        //                 "nominalValue": "77.14736",
+        //                 "originAppendAmount": "0",
+        //                 "originId": "6902921567894972591",
+        //                 "refreshType": "Timer",
+        //                 "returnRate": "-0.0091",
+        //                 "side": 0,
+        //                 "status": 1,
+        //                 "unrealizedPnl": "-0.14096",
+        //                 "userId": "6896693805014120448"
+        //             },
+        //         ],
+        //         "desc": "操作成功"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parsePositions (data, market);
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        //     {
+        //         "amount": "0.002",
+        //         "appendAmount": "0",
+        //         "autoLightenRatio": "0",
+        //         "avgPrice": "38570",
+        //         "bankruptcyPrice": "46288.41",
+        //         "contractType": 1,
+        //         "createTime": "1645784751867",
+        //         "freezeAmount": "0",
+        //         "freezeList": [
+        //             {
+        //                 "amount": "15.436832",
+        //                 "currencyId": "6",
+        //                 "currencyName": "usdt",
+        //                 "modifyTime": "1645784751867"
+        //             }
+        //         ],
+        //         "id": "6902921567894972486",
+        //         "lastAppendAmount": "0",
+        //         "leverage": 5,
+        //         "liquidateLevel": 1,
+        //         "liquidatePrice": "46104",
+        //         "maintainMargin": "0.30912384",
+        //         "margin": "15.436832",
+        //         "marginAppendCount": 0,
+        //         "marginBalance": "15.295872",
+        //         "marginMode": 1,
+        //         "marginRate": "0.020209",
+        //         "marketId": "100",
+        //         "marketName": "BTC_USDT",
+        //         "modifyTime": "1645784751867",
+        //         "nominalValue": "77.14736",
+        //         "originAppendAmount": "0",
+        //         "originId": "6902921567894972591",
+        //         "refreshType": "Timer",
+        //         "returnRate": "-0.0091",
+        //         "side": 0,
+        //         "status": 1,
+        //         "unrealizedPnl": "-0.14096",
+        //         "userId": "6896693805014120448"
+        //     }
+        //
+        market = this.safeMarket (this.safeString (position, 'marketName'), market);
+        const symbol = market['symbol'];
+        const contracts = this.safeString (position, 'amount');
+        const entryPrice = this.safeNumber (position, 'avgPrice');
+        const initialMargin = this.safeString (position, 'margin');
+        const rawSide = this.safeString (position, 'side');
+        const side = (rawSide === '1') ? 'long' : 'short';
+        const openType = this.safeString (position, 'marginMode');
+        const marginType = (openType === '1') ? 'isolated' : 'cross';
+        const leverage = this.safeString (position, 'leverage');
+        const liquidationPrice = this.safeNumber (position, 'liquidatePrice');
+        const unrealizedProfit = this.safeNumber (position, 'unrealizedPnl');
+        const maintenanceMargin = this.safeNumber (position, 'maintainMargin');
+        const marginRatio = this.safeNumber (position, 'marginRate');
+        const notional = this.safeNumber (position, 'nominalValue');
+        const percentage = Precise.stringMul (this.safeString (position, 'returnRate'), '100');
+        const timestamp = this.safeNumber (position, 'createTime');
+        return {
+            'info': position,
+            'symbol': symbol,
+            'contracts': this.parseNumber (contracts),
+            'contractSize': undefined,
+            'entryPrice': entryPrice,
+            'collateral': undefined,
+            'side': side,
+            'unrealizedProfit': unrealizedProfit,
+            'leverage': this.parseNumber (leverage),
+            'percentage': percentage,
+            'marginType': marginType,
+            'notional': notional,
+            'markPrice': undefined,
+            'liquidationPrice': liquidationPrice,
+            'initialMargin': this.parseNumber (initialMargin),
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': maintenanceMargin,
+            'maintenanceMarginPercentage': undefined,
+            'marginRatio': marginRatio,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+    }
+
+    parsePositions (positions) {
+        const result = [];
+        for (let i = 0; i < positions.length; i++) {
+            result.push (this.parsePosition (positions[i]));
+        }
+        return result;
     }
 
     nonce () {

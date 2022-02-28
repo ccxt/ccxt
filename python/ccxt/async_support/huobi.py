@@ -1637,6 +1637,12 @@ class huobi(Exchange):
             elif market['swap']:
                 method = 'contractPublicGetSwapExMarketDepth'
                 fieldName = 'contract_code'
+        else:
+            if limit is not None:
+                # Valid depths are 5, 10, 20 or empty https://huobiapi.github.io/docs/spot/v1/en/#get-market-depth
+                if (limit != 5) and (limit != 10) and (limit != 20):
+                    raise BadRequest(self.id + ' fetchOrderBook() limit argument must be None, 5, 10 or 20, default is 150')
+                request['depth'] = limit
         request[fieldName] = market['id']
         response = await getattr(self, method)(self.extend(request, params))
         #

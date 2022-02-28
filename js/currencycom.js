@@ -77,7 +77,7 @@ module.exports = class currencycom extends Exchange {
                 'fetchOrders': undefined,
                 'fetchOrderTrades': undefined,
                 'fetchPosition': undefined,
-                'fetchPositions': undefined,
+                'fetchPositions': true,
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -1545,6 +1545,90 @@ module.exports = class currencycom extends Exchange {
         }
         url = this.implodeHostname (url);
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    async fetchPositions (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetV2TradingPositions (params);
+        //
+        // {
+        //     "positions": [
+        //       {
+        //         "accountId": "109698017416453793",
+        //         "id": "00a18490-0079-54c4-0000-0000803e73d3",
+        //         "instrumentId": "45463225268524228",
+        //         "orderId": "00a18490-0079-54c4-0000-0000803e73d2",
+        //         "openQuantity": "13.6",
+        //         "openPrice": "0.75724",
+        //         "closeQuantity": "0.0",
+        //         "closePrice": "0",
+        //         "rpl": "-0.007723848",
+        //         "rplConverted": "0",
+        //         "upl": "-0.006664",
+        //         "uplConverted": "-0.006664",
+        //         "swap": "0",
+        //         "swapConverted": "0",
+        //         "fee": "-0.007723848",
+        //         "dividend": "0",
+        //         "margin": "0.2",
+        //         "state": "ACTIVE",
+        //         "currency": "USD",
+        //         "createdTimestamp": "1645473877236",
+        //         "openTimestamp": "1645473877193",
+        //         "type": "NET",
+        //         "cost": "2.0583600",
+        //         "symbol": "XRP/USD_LEVERAGE"
+        //       }
+        //     ]
+        // }
+        //
+        const data = this.safeValue (response, 'positions', []);
+        return this.parsePositions (data);
+    }
+
+    parsePositions (positions) {
+        const result = [];
+        for (let i = 0; i < positions.length; i++) {
+            result.push (this.parsePosition (positions[i]));
+        }
+        return result;
+    }
+
+    parsePosition (position, market = undefined) {
+        market = this.safeMarket (this.safeString (position, 'symbol'), market);
+        const symbol = market['symbol'];
+        const timestamp = this.safeNumber (position, 'createdTimestamp');
+        const quantityRaw = this.safeString (position, 'openQuantity');
+        const side = Precise.stringGt (quantityRaw, '0') ? 'long' : 'short';
+        const quantity = Precise.stringAbs (quantityRaw);
+        const entryPrice = this.safeNumber (position, 'openPrice');
+        const unrealizedProfit = this.safeNumber (position, 'upl');
+        const marginCoeff = this.safeString (position, 'margin');
+        const leverage = Precise.stringDiv ('1', marginCoeff);
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'contracts': this.parseNumber (quantity),
+            'contractSize': undefined,
+            'entryPrice': entryPrice,
+            'collateral': undefined,
+            'side': side,
+            // 'realizedProfit': this.safeNumber (position, 'rpl'),
+            'unrealizedProfit': unrealizedProfit,
+            'leverage': leverage,
+            'percentage': undefined,
+            'marginType': undefined,
+            'notional': undefined,
+            'markPrice': undefined,
+            'liquidationPrice': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': this.parseNumber (marginCoeff),
+            'maintenanceMarginPercentage': undefined,
+            'marginRatio': undefined,
+            'info': position,
+        };
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

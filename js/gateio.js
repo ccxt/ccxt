@@ -2619,7 +2619,7 @@ module.exports = class gateio extends Exchange {
         }
         // }
         if (contract) {
-            const isMarketOrder = Precise.stringEq (price, '0') && (timeInForce === 'IOC');
+            const isMarketOrder = Precise.stringEquals (price, '0') && (timeInForce === 'IOC');
             type = isMarketOrder ? 'market' : 'limit';
             side = Precise.stringGt (amount, '0') ? 'buy' : 'sell';
         }

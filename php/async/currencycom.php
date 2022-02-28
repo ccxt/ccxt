@@ -81,7 +81,7 @@ class currencycom extends Exchange {
                 'fetchOrders' => null,
                 'fetchOrderTrades' => null,
                 'fetchPosition' => null,
-                'fetchPositions' => null,
+                'fetchPositions' => true,
                 'fetchPositionsRisk' => null,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -1549,6 +1549,90 @@ class currencycom extends Exchange {
         }
         $url = $this->implode_hostname($url);
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function fetch_positions($symbols = null, $params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->privateGetV2TradingPositions ($params);
+        //
+        // {
+        //     "positions" => array(
+        //       {
+        //         "accountId" => "109698017416453793",
+        //         "id" => "00a18490-0079-54c4-0000-0000803e73d3",
+        //         "instrumentId" => "45463225268524228",
+        //         "orderId" => "00a18490-0079-54c4-0000-0000803e73d2",
+        //         "openQuantity" => "13.6",
+        //         "openPrice" => "0.75724",
+        //         "closeQuantity" => "0.0",
+        //         "closePrice" => "0",
+        //         "rpl" => "-0.007723848",
+        //         "rplConverted" => "0",
+        //         "upl" => "-0.006664",
+        //         "uplConverted" => "-0.006664",
+        //         "swap" => "0",
+        //         "swapConverted" => "0",
+        //         "fee" => "-0.007723848",
+        //         "dividend" => "0",
+        //         "margin" => "0.2",
+        //         "state" => "ACTIVE",
+        //         "currency" => "USD",
+        //         "createdTimestamp" => "1645473877236",
+        //         "openTimestamp" => "1645473877193",
+        //         "type" => "NET",
+        //         "cost" => "2.0583600",
+        //         "symbol" => "XRP/USD_LEVERAGE"
+        //       }
+        //     )
+        // }
+        //
+        $data = $this->safe_value($response, 'positions', array());
+        return $this->parse_positions($data);
+    }
+
+    public function parse_positions($positions) {
+        $result = array();
+        for ($i = 0; $i < count($positions); $i++) {
+            $result[] = $this->parse_position($positions[$i]);
+        }
+        return $result;
+    }
+
+    public function parse_position($position, $market = null) {
+        $market = $this->safe_market($this->safe_string($position, 'symbol'), $market);
+        $symbol = $market['symbol'];
+        $timestamp = $this->safe_number($position, 'createdTimestamp');
+        $quantityRaw = $this->safe_string($position, 'openQuantity');
+        $side = Precise::string_gt($quantityRaw, '0') ? 'long' : 'short';
+        $quantity = Precise::string_abs($quantityRaw);
+        $entryPrice = $this->safe_number($position, 'openPrice');
+        $unrealizedProfit = $this->safe_number($position, 'upl');
+        $marginCoeff = $this->safe_string($position, 'margin');
+        $leverage = Precise::string_div('1', $marginCoeff);
+        return array(
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'contracts' => $this->parse_number($quantity),
+            'contractSize' => null,
+            'entryPrice' => $entryPrice,
+            'collateral' => null,
+            'side' => $side,
+            // 'realizedProfit' => $this->safe_number($position, 'rpl'),
+            'unrealizedProfit' => $unrealizedProfit,
+            'leverage' => $leverage,
+            'percentage' => null,
+            'marginType' => null,
+            'notional' => null,
+            'markPrice' => null,
+            'liquidationPrice' => null,
+            'initialMargin' => null,
+            'initialMarginPercentage' => null,
+            'maintenanceMargin' => $this->parse_number($marginCoeff),
+            'maintenanceMarginPercentage' => null,
+            'marginRatio' => null,
+            'info' => $position,
+        );
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

@@ -491,6 +491,7 @@ async def test_exchange(exchange, symbol=None):
             'BTC/JPY',
             'LTC/BTC',
             'USD/SLL',
+            'EUR/USD',
         ])
 
         if symbol is None:

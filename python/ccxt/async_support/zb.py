@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
-from ccxt.base.errors import BaseError
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -26,6 +25,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.precise import Precise
 
 
 class zb(Exchange):
@@ -64,6 +64,8 @@ class zb(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': True,
+                'fetchPositions': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -126,15 +128,15 @@ class zb(Exchange):
                 },
                 'exact': {
                     # '1000': 'Successful operation',
-                    '10001': BaseError,  # Operation failed
+                    '10001': ExchangeError,  # Operation failed
                     '10002': PermissionDenied,  # Operation is forbidden
                     '10003': BadResponse,  # Data existed
                     '10004': BadResponse,  # Date not exist
                     '10005': PermissionDenied,  # Forbidden to access the interface
                     '10006': BadRequest,  # Currency invalid or expired
-                    '10007': BaseError,  # {0}
-                    '10008': BaseError,  # Operation failed: {0}
-                    '10009': BaseError,  # URL error
+                    '10007': ExchangeError,  # {0}
+                    '10008': ExchangeError,  # Operation failed: {0}
+                    '10009': ExchangeError,  # URL error
                     '1001': ExchangeError,  # 'General error message',
                     '10010': AuthenticationError,  # API KEY not exist
                     '10011': AuthenticationError,  # API KEY CLOSED
@@ -304,7 +306,7 @@ class zb(Exchange):
                     '3012': InvalidOrder,  # Duplicate custom customerOrderId
                     '4001': ExchangeNotAvailable,  # 'API interface is locked or not enabled',
                     '4002': RateLimitExceeded,  # 'Request too often',
-                    '9999': BaseError,  # Unknown error
+                    '9999': ExchangeError,  # Unknown error
                 },
                 'broad': {
                     '提币地址有误，请先添加提币地址。': InvalidAddress,  # {"code":1001,"message":"提币地址有误，请先添加提币地址。"}
@@ -1997,6 +1999,226 @@ class zb(Exchange):
         datas = self.safe_value(message, 'datas', {})
         deposits = self.safe_value(datas, 'list', [])
         return self.parse_transactions(deposits, currency, since, limit)
+
+    async def fetch_position(self, symbol, params={}):
+        await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        request = {
+            'futuresAccountType': 1,  # 1: USDT-M Perpetual Futures
+            # 'symbol': market['id'],
+            # 'marketId': market['id'],
+            # 'side': params['side'],
+        }
+        response = await self.contractV2PrivateGetPositionsGetPositions(self.extend(request, params))
+        #
+        #     {
+        #         "code": 10000,
+        #         "data": [
+        #             {
+        #                 "amount": "0.002",
+        #                 "appendAmount": "0",
+        #                 "autoLightenRatio": "0",
+        #                 "avgPrice": "38570",
+        #                 "bankruptcyPrice": "46288.41",
+        #                 "contractType": 1,
+        #                 "createTime": "1645784751867",
+        #                 "freezeAmount": "0",
+        #                 "freezeList": [
+        #                     {
+        #                         "amount": "15.436832",
+        #                         "currencyId": "6",
+        #                         "currencyName": "usdt",
+        #                         "modifyTime": "1645784751867"
+        #                     }
+        #                 ],
+        #                 "id": "6902921567894972486",
+        #                 "lastAppendAmount": "0",
+        #                 "leverage": 5,
+        #                 "liquidateLevel": 1,
+        #                 "liquidatePrice": "46104",
+        #                 "maintainMargin": "0.30912384",
+        #                 "margin": "15.436832",
+        #                 "marginAppendCount": 0,
+        #                 "marginBalance": "15.295872",
+        #                 "marginMode": 1,
+        #                 "marginRate": "0.020209",
+        #                 "marketId": "100",
+        #                 "marketName": "BTC_USDT",
+        #                 "modifyTime": "1645784751867",
+        #                 "nominalValue": "77.14736",
+        #                 "originAppendAmount": "0",
+        #                 "originId": "6902921567894972591",
+        #                 "refreshType": "Timer",
+        #                 "returnRate": "-0.0091",
+        #                 "side": 0,
+        #                 "status": 1,
+        #                 "unrealizedPnl": "-0.14096",
+        #                 "userId": "6896693805014120448"
+        #             }
+        #         ],
+        #         "desc": "操作成功"
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        firstPosition = self.safe_value(data, 0)
+        return self.parse_position(firstPosition, market)
+
+    async def fetch_positions(self, symbols=None, params={}):
+        await self.load_markets()
+        market = None
+        if symbols is not None:
+            market = self.market(symbols)
+        request = {
+            'futuresAccountType': 1,  # 1: USDT-M Perpetual Futures
+            # 'symbol': market['id'],
+            # 'marketId': market['id'],
+            # 'side': params['side'],
+        }
+        response = await self.contractV2PrivateGetPositionsGetPositions(self.extend(request, params))
+        #
+        #     {
+        #         "code": 10000,
+        #         "data": [
+        #             {
+        #                 "amount": "0.002",
+        #                 "appendAmount": "0",
+        #                 "autoLightenRatio": "0",
+        #                 "avgPrice": "38570",
+        #                 "bankruptcyPrice": "46288.41",
+        #                 "contractType": 1,
+        #                 "createTime": "1645784751867",
+        #                 "freezeAmount": "0",
+        #                 "freezeList": [
+        #                     {
+        #                         "amount": "15.436832",
+        #                         "currencyId": "6",
+        #                         "currencyName": "usdt",
+        #                         "modifyTime": "1645784751867"
+        #                     }
+        #                 ],
+        #                 "id": "6902921567894972486",
+        #                 "lastAppendAmount": "0",
+        #                 "leverage": 5,
+        #                 "liquidateLevel": 1,
+        #                 "liquidatePrice": "46104",
+        #                 "maintainMargin": "0.30912384",
+        #                 "margin": "15.436832",
+        #                 "marginAppendCount": 0,
+        #                 "marginBalance": "15.295872",
+        #                 "marginMode": 1,
+        #                 "marginRate": "0.020209",
+        #                 "marketId": "100",
+        #                 "marketName": "BTC_USDT",
+        #                 "modifyTime": "1645784751867",
+        #                 "nominalValue": "77.14736",
+        #                 "originAppendAmount": "0",
+        #                 "originId": "6902921567894972591",
+        #                 "refreshType": "Timer",
+        #                 "returnRate": "-0.0091",
+        #                 "side": 0,
+        #                 "status": 1,
+        #                 "unrealizedPnl": "-0.14096",
+        #                 "userId": "6896693805014120448"
+        #             },
+        #         ],
+        #         "desc": "操作成功"
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_positions(data, market)
+
+    def parse_position(self, position, market=None):
+        #
+        #     {
+        #         "amount": "0.002",
+        #         "appendAmount": "0",
+        #         "autoLightenRatio": "0",
+        #         "avgPrice": "38570",
+        #         "bankruptcyPrice": "46288.41",
+        #         "contractType": 1,
+        #         "createTime": "1645784751867",
+        #         "freezeAmount": "0",
+        #         "freezeList": [
+        #             {
+        #                 "amount": "15.436832",
+        #                 "currencyId": "6",
+        #                 "currencyName": "usdt",
+        #                 "modifyTime": "1645784751867"
+        #             }
+        #         ],
+        #         "id": "6902921567894972486",
+        #         "lastAppendAmount": "0",
+        #         "leverage": 5,
+        #         "liquidateLevel": 1,
+        #         "liquidatePrice": "46104",
+        #         "maintainMargin": "0.30912384",
+        #         "margin": "15.436832",
+        #         "marginAppendCount": 0,
+        #         "marginBalance": "15.295872",
+        #         "marginMode": 1,
+        #         "marginRate": "0.020209",
+        #         "marketId": "100",
+        #         "marketName": "BTC_USDT",
+        #         "modifyTime": "1645784751867",
+        #         "nominalValue": "77.14736",
+        #         "originAppendAmount": "0",
+        #         "originId": "6902921567894972591",
+        #         "refreshType": "Timer",
+        #         "returnRate": "-0.0091",
+        #         "side": 0,
+        #         "status": 1,
+        #         "unrealizedPnl": "-0.14096",
+        #         "userId": "6896693805014120448"
+        #     }
+        #
+        market = self.safe_market(self.safe_string(position, 'marketName'), market)
+        symbol = market['symbol']
+        contracts = self.safe_string(position, 'amount')
+        entryPrice = self.safe_number(position, 'avgPrice')
+        initialMargin = self.safe_string(position, 'margin')
+        rawSide = self.safe_string(position, 'side')
+        side = 'long' if (rawSide == '1') else 'short'
+        openType = self.safe_string(position, 'marginMode')
+        marginType = 'isolated' if (openType == '1') else 'cross'
+        leverage = self.safe_string(position, 'leverage')
+        liquidationPrice = self.safe_number(position, 'liquidatePrice')
+        unrealizedProfit = self.safe_number(position, 'unrealizedPnl')
+        maintenanceMargin = self.safe_number(position, 'maintainMargin')
+        marginRatio = self.safe_number(position, 'marginRate')
+        notional = self.safe_number(position, 'nominalValue')
+        percentage = Precise.string_mul(self.safe_string(position, 'returnRate'), '100')
+        timestamp = self.safe_number(position, 'createTime')
+        return {
+            'info': position,
+            'symbol': symbol,
+            'contracts': self.parse_number(contracts),
+            'contractSize': None,
+            'entryPrice': entryPrice,
+            'collateral': None,
+            'side': side,
+            'unrealizedProfit': unrealizedProfit,
+            'leverage': self.parse_number(leverage),
+            'percentage': percentage,
+            'marginType': marginType,
+            'notional': notional,
+            'markPrice': None,
+            'liquidationPrice': liquidationPrice,
+            'initialMargin': self.parse_number(initialMargin),
+            'initialMarginPercentage': None,
+            'maintenanceMargin': maintenanceMargin,
+            'maintenanceMarginPercentage': None,
+            'marginRatio': marginRatio,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
+
+    def parse_positions(self, positions):
+        result = []
+        for i in range(0, len(positions)):
+            result.append(self.parse_position(positions[i]))
+        return result
 
     def nonce(self):
         return self.milliseconds()
