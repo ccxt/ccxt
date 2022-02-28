@@ -413,4 +413,23 @@ module.exports = class bitstamp extends ccxt.bitstamp {
             return this.handleSubject (client, message);
         }
     }
+
+    async authenticate (params = {}) {
+        this.checkRequiredCredentials ();
+        const response = await this.privatePostWebsocketsToken (params);
+        //
+        // {
+        //     "valid_sec":60,
+        //     "token":"siPaT4m6VGQCdsDCVbLBemiphHQs552e",
+        //     "user_id":4848701
+        // }
+        //
+        const sessionToken = this.safeString (response, 'token');
+        if (sessionToken !== undefined) {
+            const validity = this.safeNumber (response, 'valid_sec') * 1000;
+            this.options['expiresIn'] = this.milliseconds () + validity;
+            this.options['wsSessionToken'] = sessionToken;
+            return response;
+        }
+    }
 };
