@@ -524,31 +524,18 @@ module.exports = class huobi extends ccxt.huobi {
             type = this.safeString2 (this.options, 'watchMyTrades', 'defaultType', 'spot');
             type = this.safeString (params, 'type', type);
         }
-        if (type !== 'spot' && symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchMyTrades requires a symbol for non spot markets');
-        }
         let market = undefined;
         let marketId = undefined;
         if (symbol !== undefined) {
             await this.loadMarkets ();
             market = this.market (symbol);
-            type = this.getUniformMarketType (market);
+            type = market['type'];
             marketId = market['id'].toLowerCase ();
         }
-        let messageHash = undefined;
-        if (type === 'spot') {
-            messageHash = 'trade.clearing' + '#' + marketId;
-        } else {
-            let prefix = 'positions';
-            if (type === 'linear') {
-                const marginMode = this.safeString (params, 'margin', 'cross');
-                prefix = (marginMode === 'cross') ? prefix + '_cross' : prefix;
-            }
-            if (type === 'future') {
-                marketId = market['baseId'].toLowerCase ();
-            }
-            messageHash = prefix + '.' + marketId;
+        if (type !== 'spot') {
+            throw new ArgumentsRequired (this.id + ' watchMyTrades supports spot markets only');
         }
+        const messageHash = 'trade.clearing' + '#' + marketId;
         const trades = await this.subscribePrivate (messageHash, type, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -788,6 +775,10 @@ module.exports = class huobi extends ccxt.huobi {
             url = isPrivate ? subTypeUrl['private'] : subTypeUrl['public'];
         }
         return url;
+    }
+
+    getHostnameByMarketType (type) {
+        return type === 'spot' ? this.urls['hostnames']['spot'] : this.urls['hostnames']['contract'];
     }
 
     async subscribePublic (url, symbol, messageHash, method = undefined, params = {}) {
