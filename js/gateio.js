@@ -2606,6 +2606,10 @@ module.exports = class gateio extends Exchange {
         contract = this.safeString (order, 'contract', contract);
         type = this.safeString (order, 'type', type);
         timeInForce = this.safeStringUpper2 (order, 'time_in_force', 'tif', timeInForce);
+        if (timeInForce === 'POC') {
+            timeInForce = 'PO';
+        }
+        const postOnly = (timeInForce === 'PO');
         amount = this.safeString2 (order, 'amount', 'size', amount);
         side = this.safeString (order, 'side', side);
         price = this.safeString (order, 'price', price);
@@ -2660,7 +2664,7 @@ module.exports = class gateio extends Exchange {
             'symbol': this.safeSymbol (exchangeSymbol),
             'type': type,
             'timeInForce': timeInForce,
-            'postOnly': undefined,
+            'postOnly': postOnly,
             'side': side,
             'price': this.parseNumber (price),
             'stopPrice': this.safeNumber (trigger, 'price'),
