@@ -2412,12 +2412,6 @@ class binance extends Exchange {
         }
         $method = $this->safe_string($this->options, 'fetchTradesMethod', $defaultMethod);
         if ($method === 'publicGetAggTrades') {
-            if ($since !== null) {
-                $request['startTime'] = $since;
-                // https://github.com/ccxt/ccxt/issues/6400
-                // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
-                $request['endTime'] = $this->sum($since, 3600000);
-            }
             if ($type === 'future') {
                 $method = 'fapiPublicGetAggTrades';
             } else if ($type === 'delivery') {
@@ -2429,6 +2423,12 @@ class binance extends Exchange {
             } else if ($type === 'delivery') {
                 $method = 'dapiPublicGetHistoricalTrades';
             }
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+            // https://github.com/ccxt/ccxt/issues/6400
+            // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
+            $request['endTime'] = $this->sum($since, 3600000);
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // default = 500, maximum = 1000
