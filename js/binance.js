@@ -2405,12 +2405,6 @@ module.exports = class binance extends Exchange {
         }
         let method = this.safeString (this.options, 'fetchTradesMethod', defaultMethod);
         if (method === 'publicGetAggTrades') {
-            if (since !== undefined) {
-                request['startTime'] = since;
-                // https://github.com/ccxt/ccxt/issues/6400
-                // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
-                request['endTime'] = this.sum (since, 3600000);
-            }
             if (type === 'future') {
                 method = 'fapiPublicGetAggTrades';
             } else if (type === 'delivery') {
@@ -2422,6 +2416,12 @@ module.exports = class binance extends Exchange {
             } else if (type === 'delivery') {
                 method = 'dapiPublicGetHistoricalTrades';
             }
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+            // https://github.com/ccxt/ccxt/issues/6400
+            // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
+            request['endTime'] = this.sum (since, 3600000);
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default = 500, maximum = 1000
