@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { ExchangeError, ArgumentsRequired } = require ('ccxt/js/base/errors');
-const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -619,6 +619,16 @@ module.exports = class huobi extends ccxt.huobi {
         //         },
         //         "ts":1645023376098
         //      }
+        // spot private trade
+        //
+        //  {
+        //      "action":"push",
+        //      "ch":"trade.clearing#ltcusdt#1",
+        //      "data":{
+        //         "eventType":"trade",
+        //         "symbol":"ltcusdt",
+        //           (...)
+        //  }
         //
         const ch = this.safeValue (message, 'ch');
         const parts = ch.split ('.');
@@ -639,6 +649,12 @@ module.exports = class huobi extends ccxt.huobi {
             } else {
                 return method.call (this, client, message);
             }
+        }
+        // private subjects
+        const privateParts = ch.split ('#');
+        const privateType = this.safeString (privateParts, 0);
+        if (privateType === 'trade') {
+            this.handleMyTrade (client, message);
         }
     }
 
@@ -751,6 +767,55 @@ module.exports = class huobi extends ccxt.huobi {
             } else if ('ping' in message) {
                 this.handlePing (client, message);
             }
+        }
+    }
+
+    handleMyTrade (client, message) {
+        //
+        // spot
+        //
+        // {
+        //     "action":"push",
+        //     "ch":"trade.clearing#ltcusdt#1",
+        //     "data":{
+        //        "eventType":"trade",
+        //        "symbol":"ltcusdt",
+        //        "orderId":"478862728954426",
+        //        "orderSide":"buy",
+        //        "orderType":"buy-market",
+        //        "accountId":44234548,
+        //        "source":"spot-web",
+        //        "orderValue":"5.01724137",
+        //        "orderCreateTime":1645124660365,
+        //        "orderStatus":"filled",
+        //        "feeCurrency":"ltc",
+        //        "tradePrice":"118.89",
+        //        "tradeVolume":"0.042200701236437042",
+        //        "aggressor":true,
+        //        "tradeId":101539740584,
+        //        "tradeTime":1645124660368,
+        //        "transactFee":"0.000041778694224073",
+        //        "feeDeduct":"0",
+        //        "feeDeductType":""
+        //     }
+        //  }
+        //
+        if (this.myTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.myTrades = new ArrayCacheBySymbolById (limit);
+        }
+        const cachedTrades = this.myTrades;
+        const messageHash = this.safeString (message, 'ch');
+        if (messageHash !== undefined) {
+            const data = this.safeValue (message, 'data');
+            const parsed = this.parseWsTrade (data);
+            const symbol = this.safeString (parsed, 'symbol');
+            if (symbol !== undefined) {
+                cachedTrades.append (parsed);
+            }
+        }
+        if (messageHash !== undefined) {
+            client.resolve (this.myTrades, messageHash);
         }
     }
 
