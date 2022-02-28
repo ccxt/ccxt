@@ -2612,16 +2612,19 @@ module.exports = class gateio extends Exchange {
         let remaining = this.safeString (order, 'left');
         let filled = Precise.stringSub (amount, remaining);
         let cost = this.safeNumber (order, 'filled_total');
+        let rawStatus = undefined;
         if (put) {
             remaining = amount;
             filled = '0';
             cost = this.parseNumber ('0');
         }
-        // }
         if (contract) {
             const isMarketOrder = Precise.stringEquals (price, '0') && (timeInForce === 'IOC');
             type = isMarketOrder ? 'market' : 'limit';
             side = Precise.stringGt (amount, '0') ? 'buy' : 'sell';
+            rawStatus = this.safeString (order, 'finish_as', 'open');
+        } else {
+            rawStatus = this.safeString (order, 'status');
         }
         const timestamp = this.safeTimestamp2 (order, 'create_time', 'ctime');
         const exchangeSymbol = this.safeString2 (order, 'currency_pair', 'market', contract);
@@ -2650,13 +2653,15 @@ module.exports = class gateio extends Exchange {
         }
         const numFeeCurrencies = fees.length;
         const multipleFeeCurrencies = numFeeCurrencies > 1;
+        const status = this.parseOrderStatus (rawStatus);
+        
         return this.safeOrder ({
             'id': this.safeNumber (order, 'id'),
             'clientOrderId': this.safeNumber (order, 'user'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': this.safeTimestamp2 (order, 'update_time', 'finish_time'),
-            'status': this.safeString (order, 'status'),
+            'status': status,
             'symbol': this.safeSymbol (exchangeSymbol),
             'type': type,
             'timeInForce': timeInForce,
