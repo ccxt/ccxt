@@ -2658,7 +2658,7 @@ class gateio extends Exchange {
         $multipleFeeCurrencies = $numFeeCurrencies > 1;
         return $this->safe_order(array(
             'id' => $this->safe_number($order, 'id'),
-            'clientOrderId' => $this->safe_number($order, 'user'),
+            'clientOrderId' => $this->safe_string($order, 'text'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $this->safe_timestamp_2($order, 'update_time', 'finish_time'),

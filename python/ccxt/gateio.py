@@ -2558,7 +2558,7 @@ class gateio(Exchange):
         multipleFeeCurrencies = numFeeCurrencies > 1
         return self.safe_order({
             'id': self.safe_number(order, 'id'),
-            'clientOrderId': self.safe_number(order, 'user'),
+            'clientOrderId': self.safe_string(order, 'text'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': self.safe_timestamp_2(order, 'update_time', 'finish_time'),
