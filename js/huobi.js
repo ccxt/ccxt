@@ -824,6 +824,70 @@ module.exports = class huobi extends ccxt.huobi {
         }
     }
 
+    parseWsTrade (trade) {
+        // spot private
+        //
+        //   {
+        //        "eventType":"trade",
+        //        "symbol":"ltcusdt",
+        //        "orderId":"478862728954426",
+        //        "orderSide":"buy",
+        //        "orderType":"buy-market",
+        //        "accountId":44234548,
+        //        "source":"spot-web",
+        //        "orderValue":"5.01724137",
+        //        "orderCreateTime":1645124660365,
+        //        "orderStatus":"filled",
+        //        "feeCurrency":"ltc",
+        //        "tradePrice":"118.89",
+        //        "tradeVolume":"0.042200701236437042",
+        //        "aggressor":true,
+        //        "tradeId":101539740584,
+        //        "tradeTime":1645124660368,
+        //        "transactFee":"0.000041778694224073",
+        //        "feeDeduct":"0",
+        //        "feeDeductType":""
+        //  }
+        const symbol = this.safeString (trade, 'symbol');
+        const side = this.safeString2 (trade, 'side', 'orderSide');
+        const tradeId = this.safeString (trade, 'tradeId');
+        const price = this.safeString (trade, 'tradePrice');
+        const amount = this.safeString (trade, 'tradeVolume');
+        const order = this.safeString (trade, 'orderId');
+        const timestamp = this.safeInteger (trade, 'tradeTime');
+        const market = this.market (symbol);
+        let orderType = this.safeString (trade, 'orderType');
+        let type = undefined;
+        if (orderType !== undefined) {
+            orderType = orderType.split ('-');
+            type = this.safeString (orderType, 1);
+        }
+        let fee = undefined;
+        const feeCurrency = this.safeString (trade, 'feeCurrency');
+        if (feeCurrency !== undefined) {
+            fee = {
+                'cost': this.safeString (trade, 'feeDeduct'),
+                'rate': undefined,
+                'currency': feeCurrency,
+            };
+        }
+        return this.safeTrade ({
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'id': tradeId,
+            'order': order,
+            'type': type,
+            'takerOrMaker': undefined,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'fee': fee,
+        }, market);
+    }
+
     getUrlByMarketType (type, isLinear = true, isPrivate = false) {
         const api = this.safeString (this.options, 'api', 'api');
         const hostname = { 'hostname': this.hostname };
