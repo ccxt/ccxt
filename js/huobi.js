@@ -658,7 +658,7 @@ module.exports = class huobi extends ccxt.huobi {
         // private subjects
         const privateParts = ch.split ('#');
         const privateType = this.safeString (privateParts, 0);
-        if (privateType === 'trade') {
+        if (privateType === 'trade.clearing') {
             this.handleMyTrade (client, message);
         }
     }
@@ -667,7 +667,27 @@ module.exports = class huobi extends ccxt.huobi {
         //
         //     { ping: 1583491673714 }
         //
-        await client.send ({ 'pong': this.safeInteger (message, 'ping') });
+        // or
+        //     { action: 'ping', data: { ts: 1645108204665 } }
+        // or
+        //     { op: 'ping', ts: '1645202800015' }
+        const ping = this.safeInteger (message, 'ping');
+        if (ping !== undefined) {
+            await client.send ({ 'pong': ping });
+            return;
+        }
+        const action = this.safeString (message, 'action');
+        if (action === 'ping') {
+            const data = this.safeValue (message, 'data');
+            const ping = this.safeInteger (data, 'ts');
+            await client.send ({ 'action': 'pong', 'data': { 'ts': ping }});
+            return;
+        }
+        const op = this.safeString (message, 'op');
+        if (op === 'ping') {
+            const ping = this.safeInteger (message, 'ts');
+            await client.send ({ 'op': 'pong', 'ts': ping });
+        }
     }
 
     handlePing (client, message) {
@@ -759,17 +779,42 @@ module.exports = class huobi extends ccxt.huobi {
             //        ts: 1645200307319,
             //        data: { 'user-id': '35930539' }
             //    }
+            // trade
+            // {
+            //     "action":"push",
+            //     "ch":"trade.clearing#ltcusdt#1",
+            //     "data":{
+            //        "eventType":"trade",
+            //          (...)
+            //     }
+            //  }
             //
             if ('id' in message) {
                 this.handleSubscriptionStatus (client, message);
-            } else if ('ch' in message) {
+                return;
+            }
+            if ('action' in message) {
+                const action = this.safeString (message, 'action');
+                if (action === 'ping') {
+                    this.handlePing (client, message);
+                    return;
+                }
+                if (action === 'sub') {
+                    this.handleSubscriptionStatus (client, message);
+                    return;
+                }
+            }
+            if ('ch' in message) {
                 if (message['ch'] === 'auth') {
                     this.handleAuthenticate (client, message);
+                    return;
                 } else {
                     // route by channel aka topic aka subject
                     this.handleSubject (client, message);
+                    return;
                 }
-            } else if ('ping' in message) {
+            }
+            if ('ping' in message) {
                 this.handlePing (client, message);
             }
         }
