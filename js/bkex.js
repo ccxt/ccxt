@@ -322,6 +322,17 @@ module.exports = class bkex extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
+            const query = this.urlencode (params);
+            if (method !== 'GET') {
+                body = query;
+            }
+            const signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha256');
+            headers = {
+                'Cache-Control': 'no-cache',
+                'Content-type': 'application/x-www-form-urlencoded',
+                'X_ACCESS_KEY': this.apiKey,
+                'X_SIGNATURE': signature,
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
