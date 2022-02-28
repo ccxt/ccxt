@@ -517,6 +517,45 @@ module.exports = class huobi extends ccxt.huobi {
         }
     }
 
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        this.checkRequiredCredentials ();
+        let type = undefined;
+        if (type === undefined) {
+            type = this.safeString2 (this.options, 'watchMyTrades', 'defaultType', 'spot');
+            type = this.safeString (params, 'type', type);
+        }
+        if (type !== 'spot' && symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchMyTrades requires a symbol for non spot markets');
+        }
+        let market = undefined;
+        let marketId = undefined;
+        if (symbol !== undefined) {
+            await this.loadMarkets ();
+            market = this.market (symbol);
+            type = this.getUniformMarketType (market);
+            marketId = market['id'].toLowerCase ();
+        }
+        let messageHash = undefined;
+        if (type === 'spot') {
+            messageHash = 'trade.clearing' + '#' + marketId;
+        } else {
+            let prefix = 'positions';
+            if (type === 'linear') {
+                const marginMode = this.safeString (params, 'margin', 'cross');
+                prefix = (marginMode === 'cross') ? prefix + '_cross' : prefix;
+            }
+            if (type === 'future') {
+                marketId = market['baseId'].toLowerCase ();
+            }
+            messageHash = prefix + '.' + marketId;
+        }
+        const trades = await this.subscribePrivate (messageHash, type, params);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit);
+    }
+
     handleSubscriptionStatus (client, message) {
         //
         //     {
