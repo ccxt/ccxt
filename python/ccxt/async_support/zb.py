@@ -1165,6 +1165,8 @@ class zb(Exchange):
 
     def parse_trade(self, trade, market=None):
         #
+        # Spot
+        #
         #     {
         #         "date":1624537391,
         #         "amount":"0.0142",
@@ -1174,36 +1176,102 @@ class zb(Exchange):
         #         "tid":1718869018
         #     }
         #
-        timestamp = self.safe_timestamp(trade, 'date')
-        side = self.safe_string(trade, 'trade_type')
-        side = 'buy' if (side == 'bid') else 'sell'
-        id = self.safe_string(trade, 'tid')
+        # Swap
+        #
+        #     {
+        #         "amount": "0.002",
+        #         "createTime": "1645787446034",
+        #         "feeAmount": "-0.05762699",
+        #         "feeCurrency": "USDT",
+        #         "id": "6902932868050395136",
+        #         "maker": False,
+        #         "orderId": "6902932868042006528",
+        #         "price": "38417.99",
+        #         "relizedPnl": "0.30402",
+        #         "side": 4,
+        #         "userId": "6896693805014120448"
+        #     },
+        #
+        sideField = 'side' if market['swap'] else 'trade_type'
+        side = self.safe_string(trade, sideField)
+        takerOrMaker = None
+        maker = self.safe_value(trade, 'maker')
+        if maker is not None:
+            takerOrMaker = 'maker' if maker else 'taker'
+        if market['spot']:
+            side = 'buy' if (side == 'bid') else 'sell'
+        else:
+            if side == '3':
+                side = 'sell'  # close long
+            elif side == '4':
+                side = 'buy'  # close short
+            elif side == '1':
+                side = 'buy'  # open long
+            elif side == '2':
+                side = 'sell'  # open short
+        timestamp = None
+        if market['swap']:
+            timestamp = self.safe_integer(trade, 'createTime')
+        else:
+            timestamp = self.safe_timestamp(trade, 'date')
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'amount')
+        fee = None
+        feeCostString = self.safe_string(trade, 'feeAmount')
+        if feeCostString is not None:
+            feeCurrencyId = self.safe_string(trade, 'feeCurrency')
+            fee = {
+                'cost': feeCostString,
+                'currency': self.safe_currency_code(feeCurrencyId),
+            }
         market = self.safe_market(None, market)
         return self.safe_trade({
             'info': trade,
-            'id': id,
+            'id': self.safe_string(trade, 'tid'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
             'type': None,
             'side': side,
-            'order': None,
-            'takerOrMaker': None,
+            'order': self.safe_string(trade, 'orderId'),
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': None,
-            'fee': None,
+            'fee': fee,
         }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchTrades() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
+        swap = market['swap']
         request = {
-            'market': market['id'],
+            # 'market': market['id'],  # SPOT
+            # 'symbol': market['id'],  # SWAP
+            # 'side': 1,  # SWAP
+            # 'dateRange': 0,  # SWAP
+            # 'startTime': since,  # SWAP
+            # 'endtime': self.milliseconds(),  # SWAP
+            # 'pageNum': 1,  # SWAP
+            # 'pageSize': limit,  # SWAP default is 10
         }
-        response = await self.spotV1PublicGetTrades(self.extend(request, params))
+        if limit is not None:
+            request['pageSize'] = limit
+        if since is not None:
+            request['startTime'] = since
+        marketIdField = 'symbol' if swap else 'market'
+        request[marketIdField] = market['id']
+        if swap and params['pageNum'] is None:
+            request['pageNum'] = 1
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'spotV1PublicGetTrades',
+            'swap': 'contractV2PrivateGetTradeTradeHistory',
+        })
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # Spot
         #
         #     [
         #         {"date":1624537391,"amount":"0.0142","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869018},
@@ -1211,6 +1279,35 @@ class zb(Exchange):
         #         {"date":1624537391,"amount":"0.0133","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869021},
         #     ]
         #
+        # Swap
+        #
+        #     {
+        #         "code": 10000,
+        #         "data": {
+        #             "list": [
+        #                 {
+        #                     "amount": "0.002",
+        #                     "createTime": "1645787446034",
+        #                     "feeAmount": "-0.05762699",
+        #                     "feeCurrency": "USDT",
+        #                     "id": "6902932868050395136",
+        #                     "maker": False,
+        #                     "orderId": "6902932868042006528",
+        #                     "price": "38417.99",
+        #                     "relizedPnl": "0.30402",
+        #                     "side": 4,
+        #                     "userId": "6896693805014120448"
+        #                 },
+        #             ],
+        #             "pageNum": 1,
+        #             "pageSize": 10
+        #         },
+        #         "desc": "操作成功"
+        #     }
+        #
+        if swap:
+            data = self.safe_value(response, 'data')
+            response = self.safe_value(data, 'list')
         return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
