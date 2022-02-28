@@ -15,7 +15,7 @@ module.exports = class bkex extends Exchange {
             'id': 'bkex',
             'name': 'BKEX',
             'countries': [ 'BVI' ], // British Virgin Islands
-            'rateLimit': 50,
+            'rateLimit': 100,
             'version': 'v2',
             'certified': true,
             'has': {
@@ -114,8 +114,14 @@ module.exports = class bkex extends Exchange {
             'urls': {
                 'logo': '',
                 'api': {
-                    'public': 'https://api.bkex.com',
-                    'private': 'https://api.bkex.com',
+                    'spot': {
+                        'public': 'https://api.bkex.com',
+                        'private': 'https://api.bkex.com',
+                    },
+                    'contract': {
+                        'public': 'https://api.bkex.com',
+                        'private': 'https://api.bkex.com',
+                    },
                 },
                 'www': 'https://www.bkex.com/',
                 'doc': [
@@ -127,37 +133,6 @@ module.exports = class bkex extends Exchange {
                 'referral': '',
             },
             'api': {
-                'contract': {
-                    'public': {
-                        'get': {
-                            '/v2/contract/common/brokerInfo': 1,
-                            '/v2/contract/q/index': 1,
-                            '/v2/contract/q/depth': 1,
-                            '/v2/contract/q/depthMerged': 1,
-                            '/v2/contract/q/trades': 1,
-                            '/v2/contract/q/kline': 1,
-                            '/v2/contract/q/ticker24hr': 1,
-                        },
-                    },
-                    'private': {
-                        'get': {
-                            '/v2/contract/trade/getOrder': 1,
-                            '/v2/contract/trade/openOrders': 1,
-                            '/v2/contract/trade/historyOrders': 1,
-                            '/v2/contract/trade/myTrades': 1,
-                            '/v2/contract/trade/positions': 1,
-                            '/v2/contract/u/account': 1,
-                        },
-                        'post': {
-                            '/v2/contract/trade/order': 1,
-                            '/v2/contract/trade/orderCancel': 1,
-                            '/v2/contract/trade/modifyMargin': 1,
-                            '/v2/contract/ws/dataStream/create': 1,
-                            '/v2/contract/ws/dataStream/update': 1,
-                            '/v2/contract/ws/dataStream/delete': 1
-                        },
-                    },
-                },
                 'spot': {
                     'public': {
                         'get': {
@@ -194,8 +169,38 @@ module.exports = class bkex extends Exchange {
                         },
                     },
                 },
+                'contract': {
+                    'public': {
+                        'get': {
+                            '/v2/contract/common/brokerInfo': 1,
+                            '/v2/contract/q/index': 1,
+                            '/v2/contract/q/depth': 1,
+                            '/v2/contract/q/depthMerged': 1,
+                            '/v2/contract/q/trades': 1,
+                            '/v2/contract/q/kline': 1,
+                            '/v2/contract/q/ticker24hr': 1,
+                        },
+                    },
+                    'private': {
+                        'get': {
+                            '/v2/contract/trade/getOrder': 1,
+                            '/v2/contract/trade/openOrders': 1,
+                            '/v2/contract/trade/historyOrders': 1,
+                            '/v2/contract/trade/myTrades': 1,
+                            '/v2/contract/trade/positions': 1,
+                            '/v2/contract/u/account': 1,
+                        },
+                        'post': {
+                            '/v2/contract/trade/order': 1,
+                            '/v2/contract/trade/orderCancel': 1,
+                            '/v2/contract/trade/modifyMargin': 1,
+                            '/v2/contract/ws/dataStream/create': 1,
+                            '/v2/contract/ws/dataStream/update': 1,
+                            '/v2/contract/ws/dataStream/delete': 1,
+                        },
+                    },
+                },
             },
-            'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
                     'tierBased': false,
@@ -224,19 +229,137 @@ module.exports = class bkex extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    '400': BadRequest, // Invalid parameter
                 },
                 'broad': {
-                    'test': InvalidOrder, // {"msg":"price and quantity must be positive","code":400}
                 },
             },
         });
     }
 
+    async fetchMarkets (params = {}) {
+        const response = await this.spotPublicGetV2CommonSymbols (params);
+        // {
+        //     "code": "0",
+        //     "data": [
+        //         {
+        //             "minimumOrderSize": "0",
+        //             "minimumTradeVolume": "0E-18",
+        //             "pricePrecision": "11",
+        //             "supportTrade": true,
+        //             "symbol": "COMT_USDT",
+        //             "volumePrecision": 0
+        //         },
+        //     ],
+        //     "msg": "success",
+        //     "status": 0
+        // }
+        const data = this.safeValue (response, 'data');
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const market = data[i];
+            const id = this.safeString (market, 'symbol');
+            const [ baseId, quoteId ] = id.split ('_');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            result.push ({
+                'id': id,
+                'marketId': baseId + '_' + quoteId,
+                'symbol': base + '/' + quote,
+                'base': base,
+                'quote': quote,
+                'settle': undefined,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
+                'type': 'spot',
+                'spot': true,
+                'margin': false,
+                'future': false,
+                'swap': false,
+                'option': false,
+                'active': this.safeValue (market, 'supportTrade'),
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeInteger (market, 'volumePrecision'),
+                    'price': this.safeInteger (market, 'pricePrecision'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (market, 'minimumOrderSize'),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'minimumTradeVolume'),
+                        'max': undefined,
+                    },
+                },
+                'info': market,
+            });
+        }
+        return result;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const [ section, access ] = api;
+        let url = this.urls['api'][section][access] + this.implodeParams (path, params);
+        params = this.omit (params, this.extractParams (path));
+        if (access === 'public') {
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            }
+        } else {
+            this.checkRequiredCredentials ();
+        }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return;
+        }
+        //
+        // success
+        //
+        //   {
+        //      "code": "0",
+        //      "msg": "success",
+        //      "status": 0,
+        //      "data": [...],
+        //   }
+        //
+        // error
+        //   {
+        //      "timestamp": "1646041085490",
+        //      "status": "403",
+        //      "error": "Forbidden",
+        //      "message": "签名错误",
+        //      "path": "/whatever/incorrect/path"
+        //   }
+        const message = this.safeValue (response, 'msg');
+        if (message === 'success') {
+            return;
+        }
+        const responseCode = this.safeString (response, 'code');
+        if (responseCode !== '0') {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], responseCode, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+            throw new ExchangeError (feedback);
+        }
     }
 };
