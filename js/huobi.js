@@ -536,7 +536,7 @@ module.exports = class huobi extends ccxt.huobi {
             throw new ArgumentsRequired (this.id + ' watchMyTrades supports spot markets only');
         }
         const messageHash = 'trade.clearing' + '#' + marketId;
-        const trades = await this.subscribePrivate (messageHash, type, params);
+        const trades = await this.subscribePrivate (messageHash, type, 'linear', params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -799,7 +799,7 @@ module.exports = class huobi extends ccxt.huobi {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 
-    async subscribePrivate (messageHash, type, params = {}) {
+    async subscribePrivate (messageHash, type, subtype, params = {}) {
         const requestId = this.nonce ();
         const subscription = {
             'id': requestId,
@@ -819,7 +819,8 @@ module.exports = class huobi extends ccxt.huobi {
                 'cid': requestId,
             };
         }
-        const url = this.getUrlByMarketType (type, true);
+        const isLinear = subtype === 'linear';
+        const url = this.getUrlByMarketType (type, isLinear, true);
         const hostname = this.getHostnameByMarketType (type);
         const authParams = {
             'type': type,
