@@ -532,7 +532,12 @@ module.exports = class huobi extends ccxt.huobi {
         if (type !== 'spot') {
             throw new ArgumentsRequired (this.id + ' watchMyTrades supports spot markets only');
         }
-        const messageHash = 'trade.clearing' + '#' + marketId;
+        let mode = undefined;
+        if (mode === undefined) {
+            mode = this.safeString2 (this.options, 'watchMyTrades', 'mode', 0);
+            mode = this.safeString (params, 'mode', mode);
+        }
+        const messageHash = 'trade.clearing' + '#' + marketId + '#' + mode;
         const trades = await this.subscribePrivate (messageHash, type, 'linear', params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
