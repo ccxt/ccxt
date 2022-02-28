@@ -17,6 +17,7 @@ module.exports = class huobi extends ccxt.huobi {
                 'watchTickers': false, // for now
                 'watchTicker': true,
                 'watchTrades': true,
+                'watchMyTrades': true,
                 'watchBalance': false, // for now
                 'watchOHLCV': true,
             },
