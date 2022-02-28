@@ -669,8 +669,10 @@ module.exports = class huobi extends ccxt.huobi {
         //
         // or
         //     { action: 'ping', data: { ts: 1645108204665 } }
+        //
         // or
         //     { op: 'ping', ts: '1645202800015' }
+        //
         const ping = this.safeInteger (message, 'ping');
         if (ping !== undefined) {
             await client.send ({ 'pong': ping });
