@@ -802,4 +802,70 @@ module.exports = class huobi extends ccxt.huobi {
         await this.authenticate (authParams);
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
+
+    async authenticate (params = {}) {
+        const url = this.safeString (params, 'url');
+        const hostname = this.safeString (params, 'hostname');
+        const type = this.safeString (params, 'type');
+        if (url === undefined || hostname === undefined || type === undefined) {
+            throw new ArgumentsRequired (this.id + ' authenticate requires a url, hostname and type argument');
+        }
+        this.checkRequiredCredentials ();
+        const messageHash = 'auth';
+        const relativePath = url.replace ('wss://' + hostname, '');
+        const client = this.client (url);
+        let future = this.safeValue (client.subscriptions, messageHash);
+        if (future === undefined) {
+            future = client.future (messageHash);
+            const timestamp = this.ymdhms (this.milliseconds (), 'T');
+            let signatureParams = undefined;
+            if (type === 'spot') {
+                signatureParams = {
+                    'accessKey': this.apiKey,
+                    'signatureMethod': 'HmacSHA256',
+                    'signatureVersion': '2.1',
+                    'timestamp': timestamp,
+                };
+            } else {
+                signatureParams = {
+                    'AccessKeyId': this.apiKey,
+                    'SignatureMethod': 'HmacSHA256',
+                    'SignatureVersion': '2',
+                    'Timestamp': timestamp,
+                };
+            }
+            signatureParams = this.keysort (signatureParams);
+            const auth = this.urlencode (signatureParams);
+            const payload = [ 'GET', hostname, relativePath, auth ].join ("\n"); // eslint-disable-line quotes
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
+            let request = undefined;
+            if (type === 'spot') {
+                const params = {
+                    'authType': 'api',
+                    'accessKey': this.apiKey,
+                    'signatureMethod': 'HmacSHA256',
+                    'signatureVersion': '2.1',
+                    'timestamp': timestamp,
+                    'signature': signature,
+                };
+                request = {
+                    'params': params,
+                    'action': 'req',
+                    'ch': messageHash,
+                };
+            } else {
+                request = {
+                    'op': messageHash,
+                    'type': 'api',
+                    'AccessKeyId': this.apiKey,
+                    'SignatureMethod': 'HmacSHA256',
+                    'SignatureVersion': '2',
+                    'Timestamp': timestamp,
+                    'Signature': signature,
+                };
+            }
+            await this.watch (url, messageHash, request, messageHash, future);
+        }
+        return await future;
+    }
 };
