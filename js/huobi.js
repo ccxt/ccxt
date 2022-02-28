@@ -520,17 +520,14 @@ module.exports = class huobi extends ccxt.huobi {
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         this.checkRequiredCredentials ();
         let type = undefined;
-        if (type === undefined) {
-            type = this.safeString2 (this.options, 'watchMyTrades', 'defaultType', 'spot');
-            type = this.safeString (params, 'type', type);
-        }
-        let market = undefined;
-        let marketId = undefined;
+        let marketId = '*'; // wildcard
         if (symbol !== undefined) {
             await this.loadMarkets ();
-            market = this.market (symbol);
+            const market = this.market (symbol);
             type = market['type'];
             marketId = market['id'].toLowerCase ();
+        } else {
+            [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', undefined, params);
         }
         if (type !== 'spot') {
             throw new ArgumentsRequired (this.id + ' watchMyTrades supports spot markets only');
