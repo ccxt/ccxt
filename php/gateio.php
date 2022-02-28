@@ -2617,16 +2617,19 @@ class gateio extends Exchange {
         $remaining = $this->safe_string($order, 'left');
         $filled = Precise::string_sub($amount, $remaining);
         $cost = $this->safe_number($order, 'filled_total');
+        $rawStatus = null;
         if ($put) {
             $remaining = $amount;
             $filled = '0';
             $cost = $this->parse_number('0');
         }
-        // }
         if ($contract) {
             $isMarketOrder = Precise::string_equals($price, '0') && ($timeInForce === 'IOC');
             $type = $isMarketOrder ? 'market' : 'limit';
             $side = Precise::string_gt($amount, '0') ? 'buy' : 'sell';
+            $rawStatus = $this->safe_string($order, 'finish_as', 'open');
+        } else {
+            $rawStatus = $this->safe_string($order, 'status');
         }
         $timestamp = $this->safe_timestamp_2($order, 'create_time', 'ctime');
         $exchangeSymbol = $this->safe_string_2($order, 'currency_pair', 'market', $contract);
@@ -2655,13 +2658,14 @@ class gateio extends Exchange {
         }
         $numFeeCurrencies = is_array($fees) ? count($fees) : 0;
         $multipleFeeCurrencies = $numFeeCurrencies > 1;
+        $status = $this->parse_order_status($rawStatus);
         return $this->safe_order(array(
             'id' => $this->safe_number($order, 'id'),
             'clientOrderId' => $this->safe_string($order, 'text'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $this->safe_timestamp_2($order, 'update_time', 'finish_time'),
-            'status' => $this->safe_string($order, 'status'),
+            'status' => $status,
             'symbol' => $this->safe_symbol($exchangeSymbol),
             'type' => $type,
             'timeInForce' => $timeInForce,
