@@ -2517,6 +2517,9 @@ class gateio(Exchange):
         contract = self.safe_string(order, 'contract', contract)
         type = self.safe_string(order, 'type', type)
         timeInForce = self.safe_string_upper_2(order, 'time_in_force', 'tif', timeInForce)
+        if timeInForce == 'POC':
+            timeInForce = 'PO'
+        postOnly = (timeInForce == 'PO')
         amount = self.safe_string_2(order, 'amount', 'size', amount)
         side = self.safe_string(order, 'side', side)
         price = self.safe_string(order, 'price', price)
@@ -2570,7 +2573,7 @@ class gateio(Exchange):
             'symbol': self.safe_symbol(exchangeSymbol),
             'type': type,
             'timeInForce': timeInForce,
-            'postOnly': None,
+            'postOnly': postOnly,
             'side': side,
             'price': self.parse_number(price),
             'stopPrice': self.safe_number(trigger, 'price'),

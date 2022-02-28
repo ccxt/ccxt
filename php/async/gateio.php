@@ -2612,6 +2612,10 @@ class gateio extends Exchange {
         $contract = $this->safe_string($order, 'contract', $contract);
         $type = $this->safe_string($order, 'type', $type);
         $timeInForce = $this->safe_string_upper_2($order, 'time_in_force', 'tif', $timeInForce);
+        if ($timeInForce === 'POC') {
+            $timeInForce = 'PO';
+        }
+        $postOnly = ($timeInForce === 'PO');
         $amount = $this->safe_string_2($order, 'amount', 'size', $amount);
         $side = $this->safe_string($order, 'side', $side);
         $price = $this->safe_string($order, 'price', $price);
@@ -2670,7 +2674,7 @@ class gateio extends Exchange {
             'symbol' => $this->safe_symbol($exchangeSymbol),
             'type' => $type,
             'timeInForce' => $timeInForce,
-            'postOnly' => null,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $this->parse_number($price),
             'stopPrice' => $this->safe_number($trigger, 'price'),
