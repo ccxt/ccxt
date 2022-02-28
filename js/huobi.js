@@ -865,8 +865,6 @@ module.exports = class huobi extends ccxt.huobi {
             if (symbol !== undefined) {
                 cachedTrades.append (parsed);
             }
-        }
-        if (messageHash !== undefined) {
             client.resolve (this.myTrades, messageHash);
         }
     }
