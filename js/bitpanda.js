@@ -426,18 +426,21 @@ module.exports = class bitpanda extends Exchange {
         //         }
         //     ]
         //
-        const feeTiers = this.safeValue (response, 'fee_tiers');
+        const first = this.safeValue (response, 0, {});
+        const feeTiers = this.safeValue (first, 'fee_tiers');
+        const tiers = this.parseFeeTiers (feeTiers);
+        const firstTier = this.safeValue (feeTiers, 0, {});
         const result = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             result[symbol] = {
-                'info': response,
+                'info': first,
                 'symbol': symbol,
-                'maker': undefined,
-                'taker': undefined,
+                'maker': this.safeNumber (firstTier, 'maker_fee'),
+                'taker': this.safeNumber (firstTier, 'taker_fee'),
                 'percentage': true,
                 'tierBased': true,
-                'tiers': this.parseFeeTiers (feeTiers),
+                'tiers': tiers,
             };
         }
         return result;
@@ -474,6 +477,7 @@ module.exports = class bitpanda extends Exchange {
         takerFee = Precise.stringDiv (takerFee, '100');
         const feeTiers = this.safeValue (response, 'fee_tiers');
         const result = {};
+        const tiers = this.parseFeeTiers (feeTiers);
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             result[symbol] = {
@@ -483,7 +487,7 @@ module.exports = class bitpanda extends Exchange {
                 'taker': this.parseNumber (takerFee),
                 'percentage': true,
                 'tierBased': true,
-                'tiers': this.parseFeeTiers (feeTiers),
+                'tiers': tiers,
             };
         }
         return result;
