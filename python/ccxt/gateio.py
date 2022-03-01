@@ -87,6 +87,7 @@ class gateio(Exchange):
                 'fetchTickers': True,
                 'fetchTime': False,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchWithdrawals': True,
                 'setLeverage': True,
@@ -1190,6 +1191,36 @@ class gateio(Exchange):
             'address': address,
             'tag': tag,
             'network': None,
+        }
+
+    def fetch_trading_fee(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'currency_pair': market['id'],
+        }
+        response = self.privateWalletGetFee(self.extend(request, params))
+        #
+        #     {
+        #       "user_id": 1486602,
+        #       "taker_fee": "0.002",
+        #       "maker_fee": "0.002",
+        #       "gt_discount": True,
+        #       "gt_taker_fee": "0.0015",
+        #       "gt_maker_fee": "0.0015",
+        #       "loan_fee": "0.18",
+        #       "point_type": "0",
+        #       "futures_taker_fee": "0.0005",
+        #       "futures_maker_fee": "0"
+        #     }
+        #
+        taker = self.safe_number(response, 'taker_fee')
+        maker = self.safe_number(response, 'maker_fee')
+        return {
+            'info': response,
+            'symbol': symbol,
+            'maker': maker,
+            'taker': taker,
         }
 
     def fetch_trading_fees(self, params={}):
@@ -2517,21 +2548,27 @@ class gateio(Exchange):
         contract = self.safe_string(order, 'contract', contract)
         type = self.safe_string(order, 'type', type)
         timeInForce = self.safe_string_upper_2(order, 'time_in_force', 'tif', timeInForce)
+        if timeInForce == 'POC':
+            timeInForce = 'PO'
+        postOnly = (timeInForce == 'PO')
         amount = self.safe_string_2(order, 'amount', 'size', amount)
         side = self.safe_string(order, 'side', side)
         price = self.safe_string(order, 'price', price)
         remaining = self.safe_string(order, 'left')
         filled = Precise.string_sub(amount, remaining)
         cost = self.safe_number(order, 'filled_total')
+        rawStatus = None
         if put:
             remaining = amount
             filled = '0'
             cost = self.parse_number('0')
-        # }
         if contract:
             isMarketOrder = Precise.string_equals(price, '0') and (timeInForce == 'IOC')
             type = 'market' if isMarketOrder else 'limit'
             side = 'buy' if Precise.string_gt(amount, '0') else 'sell'
+            rawStatus = self.safe_string(order, 'finish_as', 'open')
+        else:
+            rawStatus = self.safe_string(order, 'status')
         timestamp = self.safe_timestamp_2(order, 'create_time', 'ctime')
         exchangeSymbol = self.safe_string_2(order, 'currency_pair', 'market', contract)
         # Everything below self(above return) is related to fees
@@ -2556,17 +2593,18 @@ class gateio(Exchange):
             })
         numFeeCurrencies = len(fees)
         multipleFeeCurrencies = numFeeCurrencies > 1
+        status = self.parse_order_status(rawStatus)
         return self.safe_order({
             'id': self.safe_number(order, 'id'),
-            'clientOrderId': self.safe_number(order, 'user'),
+            'clientOrderId': self.safe_string(order, 'text'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': self.safe_timestamp_2(order, 'update_time', 'finish_time'),
-            'status': self.safe_string(order, 'status'),
+            'status': status,
             'symbol': self.safe_symbol(exchangeSymbol),
             'type': type,
             'timeInForce': timeInForce,
-            'postOnly': None,
+            'postOnly': postOnly,
             'side': side,
             'price': self.parse_number(price),
             'stopPrice': self.safe_number(trigger, 'price'),

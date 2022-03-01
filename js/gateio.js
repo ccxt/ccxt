@@ -72,6 +72,7 @@ module.exports = class gateio extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': false,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchWithdrawals': true,
                 'setLeverage': true,
@@ -1197,6 +1198,37 @@ module.exports = class gateio extends Exchange {
             'address': address,
             'tag': tag,
             'network': undefined,
+        };
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'currency_pair': market['id'],
+        };
+        const response = await this.privateWalletGetFee (this.extend (request, params));
+        //
+        //     {
+        //       "user_id": 1486602,
+        //       "taker_fee": "0.002",
+        //       "maker_fee": "0.002",
+        //       "gt_discount": true,
+        //       "gt_taker_fee": "0.0015",
+        //       "gt_maker_fee": "0.0015",
+        //       "loan_fee": "0.18",
+        //       "point_type": "0",
+        //       "futures_taker_fee": "0.0005",
+        //       "futures_maker_fee": "0"
+        //     }
+        //
+        const taker = this.safeNumber (response, 'taker_fee');
+        const maker = this.safeNumber (response, 'maker_fee');
+        return {
+            'info': response,
+            'symbol': symbol,
+            'maker': maker,
+            'taker': taker,
         };
     }
 
@@ -2606,22 +2638,29 @@ module.exports = class gateio extends Exchange {
         contract = this.safeString (order, 'contract', contract);
         type = this.safeString (order, 'type', type);
         timeInForce = this.safeStringUpper2 (order, 'time_in_force', 'tif', timeInForce);
+        if (timeInForce === 'POC') {
+            timeInForce = 'PO';
+        }
+        const postOnly = (timeInForce === 'PO');
         amount = this.safeString2 (order, 'amount', 'size', amount);
         side = this.safeString (order, 'side', side);
         price = this.safeString (order, 'price', price);
         let remaining = this.safeString (order, 'left');
         let filled = Precise.stringSub (amount, remaining);
         let cost = this.safeNumber (order, 'filled_total');
+        let rawStatus = undefined;
         if (put) {
             remaining = amount;
             filled = '0';
             cost = this.parseNumber ('0');
         }
-        // }
         if (contract) {
             const isMarketOrder = Precise.stringEquals (price, '0') && (timeInForce === 'IOC');
             type = isMarketOrder ? 'market' : 'limit';
             side = Precise.stringGt (amount, '0') ? 'buy' : 'sell';
+            rawStatus = this.safeString (order, 'finish_as', 'open');
+        } else {
+            rawStatus = this.safeString (order, 'status');
         }
         const timestamp = this.safeTimestamp2 (order, 'create_time', 'ctime');
         const exchangeSymbol = this.safeString2 (order, 'currency_pair', 'market', contract);
@@ -2650,17 +2689,18 @@ module.exports = class gateio extends Exchange {
         }
         const numFeeCurrencies = fees.length;
         const multipleFeeCurrencies = numFeeCurrencies > 1;
+        const status = this.parseOrderStatus (rawStatus);
         return this.safeOrder ({
             'id': this.safeNumber (order, 'id'),
-            'clientOrderId': this.safeNumber (order, 'user'),
+            'clientOrderId': this.safeString (order, 'text'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': this.safeTimestamp2 (order, 'update_time', 'finish_time'),
-            'status': this.safeString (order, 'status'),
+            'status': status,
             'symbol': this.safeSymbol (exchangeSymbol),
             'type': type,
             'timeInForce': timeInForce,
-            'postOnly': undefined,
+            'postOnly': postOnly,
             'side': side,
             'price': this.parseNumber (price),
             'stopPrice': this.safeNumber (trigger, 'price'),

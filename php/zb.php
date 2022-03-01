@@ -1184,6 +1184,8 @@ class zb extends Exchange {
 
     public function parse_trade($trade, $market = null) {
         //
+        // Spot
+        //
         //     {
         //         "date":1624537391,
         //         "amount":"0.0142",
@@ -1193,37 +1195,112 @@ class zb extends Exchange {
         //         "tid":1718869018
         //     }
         //
-        $timestamp = $this->safe_timestamp($trade, 'date');
-        $side = $this->safe_string($trade, 'trade_type');
-        $side = ($side === 'bid') ? 'buy' : 'sell';
-        $id = $this->safe_string($trade, 'tid');
+        // Swap
+        //
+        //     array(
+        //         "amount" => "0.002",
+        //         "createTime" => "1645787446034",
+        //         "feeAmount" => "-0.05762699",
+        //         "feeCurrency" => "USDT",
+        //         "id" => "6902932868050395136",
+        //         "maker" => false,
+        //         "orderId" => "6902932868042006528",
+        //         "price" => "38417.99",
+        //         "relizedPnl" => "0.30402",
+        //         "side" => 4,
+        //         "userId" => "6896693805014120448"
+        //     ),
+        //
+        $sideField = $market['swap'] ? 'side' : 'trade_type';
+        $side = $this->safe_string($trade, $sideField);
+        $takerOrMaker = null;
+        $maker = $this->safe_value($trade, 'maker');
+        if ($maker !== null) {
+            $takerOrMaker = $maker ? 'maker' : 'taker';
+        }
+        if ($market['spot']) {
+            $side = ($side === 'bid') ? 'buy' : 'sell';
+        } else {
+            if ($side === '3') {
+                $side = 'sell'; // close long
+            } else if ($side === '4') {
+                $side = 'buy'; // close short
+            } else if ($side === '1') {
+                $side = 'buy'; // open long
+            } else if ($side === '2') {
+                $side = 'sell'; // open short
+            }
+        }
+        $timestamp = null;
+        if ($market['swap']) {
+            $timestamp = $this->safe_integer($trade, 'createTime');
+        } else {
+            $timestamp = $this->safe_timestamp($trade, 'date');
+        }
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'amount');
+        $fee = null;
+        $feeCostString = $this->safe_string($trade, 'feeAmount');
+        if ($feeCostString !== null) {
+            $feeCurrencyId = $this->safe_string($trade, 'feeCurrency');
+            $fee = array(
+                'cost' => $feeCostString,
+                'currency' => $this->safe_currency_code($feeCurrencyId),
+            );
+        }
         $market = $this->safe_market(null, $market);
         return $this->safe_trade(array(
             'info' => $trade,
-            'id' => $id,
+            'id' => $this->safe_string($trade, 'tid'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $market['symbol'],
             'type' => null,
             'side' => $side,
-            'order' => null,
-            'takerOrMaker' => null,
+            'order' => $this->safe_string($trade, 'orderId'),
+            'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
             'cost' => null,
-            'fee' => null,
+            'fee' => $fee,
         ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchTrades() requires a $symbol argument');
+        }
         $this->load_markets();
         $market = $this->market($symbol);
+        $swap = $market['swap'];
         $request = array(
-            'market' => $market['id'],
+            // 'market' => $market['id'], // SPOT
+            // 'symbol' => $market['id'], // SWAP
+            // 'side' => 1, // SWAP
+            // 'dateRange' => 0, // SWAP
+            // 'startTime' => $since, // SWAP
+            // 'endtime' => $this->milliseconds(), // SWAP
+            // 'pageNum' => 1, // SWAP
+            // 'pageSize' => $limit,  // SWAP default is 10
         );
-        $response = $this->spotV1PublicGetTrades (array_merge($request, $params));
+        if ($limit !== null) {
+            $request['pageSize'] = $limit;
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        $marketIdField = $swap ? 'symbol' : 'market';
+        $request[$marketIdField] = $market['id'];
+        if ($swap && $params['pageNum'] === null) {
+            $request['pageNum'] = 1;
+        }
+        $method = $this->get_supported_mapping($market['type'], array(
+            'spot' => 'spotV1PublicGetTrades',
+            'swap' => 'contractV2PrivateGetTradeTradeHistory',
+        ));
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // Spot
         //
         //     array(
         //         array("date":1624537391,"amount":"0.0142","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869018),
@@ -1231,6 +1308,36 @@ class zb extends Exchange {
         //         array("date":1624537391,"amount":"0.0133","price":"33936.42","trade_type":"ask","type":"sell","tid":1718869021),
         //     )
         //
+        // Swap
+        //
+        //     {
+        //         "code" => 10000,
+        //         "data" => array(
+        //             "list" => array(
+        //                 array(
+        //                     "amount" => "0.002",
+        //                     "createTime" => "1645787446034",
+        //                     "feeAmount" => "-0.05762699",
+        //                     "feeCurrency" => "USDT",
+        //                     "id" => "6902932868050395136",
+        //                     "maker" => false,
+        //                     "orderId" => "6902932868042006528",
+        //                     "price" => "38417.99",
+        //                     "relizedPnl" => "0.30402",
+        //                     "side" => 4,
+        //                     "userId" => "6896693805014120448"
+        //                 ),
+        //             ),
+        //             "pageNum" => 1,
+        //             "pageSize" => 10
+        //         ),
+        //         "desc" => "操作成功"
+        //     }
+        //
+        if ($swap) {
+            $data = $this->safe_value($response, 'data');
+            $response = $this->safe_value($data, 'list');
+        }
         return $this->parse_trades($response, $market, $since, $limit);
     }
 

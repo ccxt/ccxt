@@ -78,6 +78,7 @@ class gateio extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => false,
                 'fetchTrades' => true,
+                'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchWithdrawals' => true,
                 'setLeverage' => true,
@@ -1203,6 +1204,37 @@ class gateio extends Exchange {
             'address' => $address,
             'tag' => $tag,
             'network' => null,
+        );
+    }
+
+    public function fetch_trading_fee($symbol, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'currency_pair' => $market['id'],
+        );
+        $response = yield $this->privateWalletGetFee (array_merge($request, $params));
+        //
+        //     {
+        //       "user_id" => 1486602,
+        //       "taker_fee" => "0.002",
+        //       "maker_fee" => "0.002",
+        //       "gt_discount" => true,
+        //       "gt_taker_fee" => "0.0015",
+        //       "gt_maker_fee" => "0.0015",
+        //       "loan_fee" => "0.18",
+        //       "point_type" => "0",
+        //       "futures_taker_fee" => "0.0005",
+        //       "futures_maker_fee" => "0"
+        //     }
+        //
+        $taker = $this->safe_number($response, 'taker_fee');
+        $maker = $this->safe_number($response, 'maker_fee');
+        return array(
+            'info' => $response,
+            'symbol' => $symbol,
+            'maker' => $maker,
+            'taker' => $taker,
         );
     }
 
@@ -2612,22 +2644,29 @@ class gateio extends Exchange {
         $contract = $this->safe_string($order, 'contract', $contract);
         $type = $this->safe_string($order, 'type', $type);
         $timeInForce = $this->safe_string_upper_2($order, 'time_in_force', 'tif', $timeInForce);
+        if ($timeInForce === 'POC') {
+            $timeInForce = 'PO';
+        }
+        $postOnly = ($timeInForce === 'PO');
         $amount = $this->safe_string_2($order, 'amount', 'size', $amount);
         $side = $this->safe_string($order, 'side', $side);
         $price = $this->safe_string($order, 'price', $price);
         $remaining = $this->safe_string($order, 'left');
         $filled = Precise::string_sub($amount, $remaining);
         $cost = $this->safe_number($order, 'filled_total');
+        $rawStatus = null;
         if ($put) {
             $remaining = $amount;
             $filled = '0';
             $cost = $this->parse_number('0');
         }
-        // }
         if ($contract) {
             $isMarketOrder = Precise::string_equals($price, '0') && ($timeInForce === 'IOC');
             $type = $isMarketOrder ? 'market' : 'limit';
             $side = Precise::string_gt($amount, '0') ? 'buy' : 'sell';
+            $rawStatus = $this->safe_string($order, 'finish_as', 'open');
+        } else {
+            $rawStatus = $this->safe_string($order, 'status');
         }
         $timestamp = $this->safe_timestamp_2($order, 'create_time', 'ctime');
         $exchangeSymbol = $this->safe_string_2($order, 'currency_pair', 'market', $contract);
@@ -2656,17 +2695,18 @@ class gateio extends Exchange {
         }
         $numFeeCurrencies = is_array($fees) ? count($fees) : 0;
         $multipleFeeCurrencies = $numFeeCurrencies > 1;
+        $status = $this->parse_order_status($rawStatus);
         return $this->safe_order(array(
             'id' => $this->safe_number($order, 'id'),
-            'clientOrderId' => $this->safe_number($order, 'user'),
+            'clientOrderId' => $this->safe_string($order, 'text'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $this->safe_timestamp_2($order, 'update_time', 'finish_time'),
-            'status' => $this->safe_string($order, 'status'),
+            'status' => $status,
             'symbol' => $this->safe_symbol($exchangeSymbol),
             'type' => $type,
             'timeInForce' => $timeInForce,
-            'postOnly' => null,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $this->parse_number($price),
             'stopPrice' => $this->safe_number($trigger, 'price'),
