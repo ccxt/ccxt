@@ -21,9 +21,11 @@ module.exports = class bitmart extends ccxt.bitmart {
             'urls': {
                 'api': {
                     'ws': 'wss://ws-manager-compress.{hostname}?protocol=1.1',
+                    'private': 'wss://ws-manager-compress.{hostname}/user?protocol=1.1',
                 },
             },
             'options': {
+                'defaultType': 'spot',
                 'watchOrderBook': {
                     'depth': 'depth5', // depth5, depth400
                 },
@@ -303,24 +305,35 @@ module.exports = class bitmart extends ccxt.bitmart {
         return message;
     }
 
+    async watchBalance (params = {}) {
+        const defaultType = this.safeString2 (this.options, 'watchBalance', 'defaultType');
+        const type = this.safeString (params, 'type', defaultType);
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + " watchBalance requires a type parameter (one of 'spot', 'margin', 'futures', 'swap')");
+        }
+        const query = this.omit (params, 'type');
+        const negotiation = await this.authenticate ();
+        // return await this.subscribeToUserAccount (negotiation, query);
+    }
+
     async authenticate (params = {}) {
+        this.options['ws']['inflate'] = false;
         this.checkRequiredCredentials ();
-        const url = this.urls['api']['ws'];
+        const url = this.getUrl ();
         const messageHash = 'login';
         const client = this.client (url);
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
             future = client.future ('authenticated');
-            const timestamp = this.seconds ().toString ();
-            const method = 'GET';
-            const path = '/users/self/verify';
-            const auth = timestamp + method + path;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
+            const timestamp = this.milliseconds ().toString ();
+            const memo = this.uid;
+            const path = 'bitmart.WebSocket';
+            const auth = timestamp + '#' + memo + '#' + path;
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
             const request = {
                 'op': messageHash,
                 'args': [
                     this.apiKey,
-                    this.password,
                     timestamp,
                     signature,
                 ],
@@ -497,5 +510,9 @@ module.exports = class bitmart extends ccxt.bitmart {
                 return method.call (this, client, message);
             }
         }
+    }
+
+    getUrl () {
+        return this.implodeHostname (this.urls['api']['private']);
     }
 };
