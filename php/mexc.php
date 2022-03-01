@@ -271,7 +271,7 @@ class mexc extends Exchange {
                     '401' => '\\ccxt\\AuthenticationError', // Invalid signature, fail to pass the validation
                     '403' => '\\ccxt\\PermissionDenied', // array("msg":"no permission to access the endpoint","code":403)
                     '429' => '\\ccxt\\RateLimitExceeded', // too many requests, rate limit rule is violated
-                    '1000' => '\\ccxt\\PermissionDenied', // array("success":false,"code":1000,"message":"Please open contract account first!")
+                    '1000' => '\\ccxt\\AccountNotEnabled', // array("success":false,"code":1000,"message":"Please open contract account first!")
                     '1002' => '\\ccxt\\InvalidOrder', // array("success":false,"code":1002,"message":"Contract not allow place order!")
                     '10072' => '\\ccxt\\AuthenticationError', // Invalid access key
                     '10073' => '\\ccxt\\AuthenticationError', // Invalid request time
