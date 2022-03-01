@@ -581,7 +581,7 @@ module.exports = class bitstamp extends ccxt.bitstamp {
             if (sessionToken !== undefined) {
                 const userId = this.safeNumber (response, 'user_id');
                 const validity = this.safeIntegerProduct (response, 'valid_sec', 1000);
-                this.options['expiresIn'] = time + validity;
+                this.options['expiresIn'] = this.sum (time, validity);
                 this.options['userId'] = userId;
                 this.options['wsSessionToken'] = sessionToken;
                 return response;
