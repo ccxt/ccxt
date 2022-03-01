@@ -375,9 +375,10 @@ module.exports = class bkex extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit;
         }
+        // their docs says that 'from/to' arguments are mandatory, however that's not true in reality
         if (since !== undefined) {
             request['from'] = since;
-            // when 'since' [from] argument is set, then exchange also requires 'to' value to be set. So we have to set 'to' argument depending 'limit' amount (if limit was not provided, then exchange-default 500 atm).
+            // when 'since' [from] argument is set, then exchange also requires 'to' value to be set. So we have to set 'to' argument depending 'limit' amount (if limit was not provided, then exchange-default 500).
             if (limit === undefined) {
                 limit = 500;
             }
@@ -418,6 +419,82 @@ module.exports = class bkex extends Exchange {
             this.safeFloat (ohlcv, 'close'),
             this.safeFloat (ohlcv, 'volume'),
         ];
+    }
+
+    async fetchTickersHelper (symbols, params = {}) {
+        await this.loadMarkets ();
+        let request = {};
+        let market = undefined;
+        if (symbols !== undefined) {
+            const marketIds = [];
+            for (let i = 0; i < symbols.length; i++) {
+                market = this.market (symbols[i]);
+                marketIds.push (market['id']);
+            }
+            request['symbol'] = marketIds.join (',');
+        }
+        request = this.extend (request, params);
+        return [ await this.publicGetQTickers (request), market ];
+        // {
+        //     "code": "0",
+        //     "data": [
+        //       {
+        //         "change": "6.52",
+        //         "close": "43573.470000",
+        //         "high": "44940.540000",
+        //         "low": "40799.840000",
+        //         "open": "40905.780000",
+        //         "quoteVolume": "225621691.5991",
+        //         "symbol": "BTC_USDT",
+        //         "ts": "1646156490781",
+        //         "volume": 5210.349
+        //       }
+        //     ],
+        //     "msg": "success",
+        //     "status": 0
+        // }
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        const [ response, market ] = await this.fetchTickersHelper ([ symbol ], params);
+        const tickers = this.safeValue (response, 'data');
+        const ticker = this.safeValue (tickers, 0);
+        return this.parseTicker (ticker, market);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        const [ response ] = await this.fetchTickersHelper (symbols, params);
+        const tickers = this.safeValue (response, 'data');
+        return this.parseTickers (tickers, symbols, params);
+    }
+
+    parseTicker (ticker, market = undefined) {
+        const marketId = this.safeString (ticker, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const timestamp = this.safeInteger (ticker, 'ts');
+        const last = this.safeString (ticker, 'close');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': this.safeString (ticker, 'open'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': this.safeString (ticker, 'change'),
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'volume'),
+            'quoteVolume': this.safeString (ticker, 'quoteVolume'),
+            'info': ticker,
+        }, market, false);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
