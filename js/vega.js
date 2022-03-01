@@ -12,7 +12,7 @@ module.exports = class vega extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'vega',
             'name': 'Vega',
-            'countries': ['UK'], // United Kingdom
+            'countries': [ 'UK' ], // United Kingdom
             'enableRateLimit': true,
             'rateLimit': 500,
             'has': {
@@ -70,7 +70,7 @@ module.exports = class vega extends Exchange {
                     ],
                 },
                 'private': {
-                    'post': ['command'],
+                    'post': [ 'command' ],
                 },
             },
             'exceptions': {
