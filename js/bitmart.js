@@ -20,8 +20,10 @@ module.exports = class bitmart extends ccxt.bitmart {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://ws-manager-compress.{hostname}?protocol=1.1',
-                    'private': 'wss://ws-manager-compress.{hostname}/user?protocol=1.1',
+                    'ws': {
+                        'public': 'wss://ws-manager-compress.{hostname}/api?protocol=1.1',
+                        'private': 'wss://ws-manager-compress.{hostname}/user?protocol=1.1',
+                    },
                 },
             },
             'options': {
@@ -29,9 +31,8 @@ module.exports = class bitmart extends ccxt.bitmart {
                 'watchOrderBook': {
                     'depth': 'depth5', // depth5, depth400
                 },
-                // 'watchBalance': 'spot', // margin, futures, swap
                 'ws': {
-                    'inflate': true,
+                    'inflate': false,
                 },
                 'timeframes': {
                     '1m': '1m',
@@ -58,8 +59,21 @@ module.exports = class bitmart extends ccxt.bitmart {
     async subscribe (channel, symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const url = this.implodeHostname (this.urls['api']['ws']);
+        const url = this.implodeHostname (this.urls['api']['ws']['public']);
         const messageHash = market['type'] + '/' + channel + ':' + market['id'];
+        const request = {
+            'op': 'subscribe',
+            'args': [ messageHash ],
+        };
+        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+    }
+
+    async subscribePrivate (channel, symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const url = this.implodeHostname (this.urls['api']['ws']['private']);
+        const messageHash = market['type'] + '/' + channel + ':' + market['id'];
+        await this.authenticate ();
         const request = {
             'op': 'subscribe',
             'args': [ messageHash ],
@@ -77,6 +91,23 @@ module.exports = class bitmart extends ccxt.bitmart {
 
     async watchTicker (symbol, params = {}) {
         return await this.subscribe ('ticker', symbol, params);
+    }
+
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['type'] !== 'spot') {
+            throw new ArgumentsRequired (this.id + ' watchOrders supports spot markets only');
+        }
+        const channel = 'spot/user/order';
+        const orders = await this.subscribe (channel, symbol, params);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
     handleTrade (client, message) {
@@ -305,17 +336,6 @@ module.exports = class bitmart extends ccxt.bitmart {
         return message;
     }
 
-    async watchBalance (params = {}) {
-        const defaultType = this.safeString2 (this.options, 'watchBalance', 'defaultType');
-        const type = this.safeString (params, 'type', defaultType);
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " watchBalance requires a type parameter (one of 'spot', 'margin', 'futures', 'swap')");
-        }
-        const query = this.omit (params, 'type');
-        const negotiation = await this.authenticate ();
-        // return await this.subscribeToUserAccount (negotiation, query);
-    }
-
     async authenticate (params = {}) {
         this.options['ws']['inflate'] = false;
         this.checkRequiredCredentials ();
@@ -341,63 +361,6 @@ module.exports = class bitmart extends ccxt.bitmart {
             this.spawn (this.watch, url, messageHash, request, messageHash, future);
         }
         return await future;
-    }
-
-    async subscribeToUserAccount (negotiation, params = {}) {
-        const defaultType = this.safeString2 (this.options, 'watchBalance', 'defaultType');
-        const type = this.safeString (params, 'type', defaultType);
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " watchBalance requires a type parameter (one of 'spot', 'margin', 'futures', 'swap')");
-        }
-        await this.loadMarkets ();
-        const currencyId = this.safeString (params, 'currency');
-        const code = this.safeString (params, 'code', this.safeCurrencyCode (currencyId));
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-        }
-        const marketId = this.safeString (params, 'instrument_id');
-        const symbol = this.safeString (params, 'symbol');
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        } else if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
-        const marketUndefined = (market === undefined);
-        const currencyUndefined = (currency === undefined);
-        if (type === 'spot') {
-            if (currencyUndefined) {
-                throw new ArgumentsRequired (this.id + " watchBalance requires a 'currency' (id) or a unified 'code' parameter for " + type + ' accounts');
-            }
-        } else if ((type === 'margin') || (type === 'swap') || (type === 'option')) {
-            if (marketUndefined) {
-                throw new ArgumentsRequired (this.id + " watchBalance requires a 'instrument_id' (id) or a unified 'symbol' parameter for " + type + ' accounts');
-            }
-        } else if (type === 'futures') {
-            if (currencyUndefined && marketUndefined) {
-                throw new ArgumentsRequired (this.id + " watchBalance requires a 'currency' (id), or unified 'code', or 'instrument_id' (id), or unified 'symbol' parameter for " + type + ' accounts');
-            }
-        }
-        let suffix = undefined;
-        if (!currencyUndefined) {
-            suffix = currency['id'];
-        } else if (!marketUndefined) {
-            suffix = market['id'];
-        }
-        const accountType = (type === 'margin') ? 'spot' : type;
-        const account = (type === 'margin') ? 'margin_account' : 'account';
-        const messageHash = accountType + '/' + account;
-        const subscriptionHash = messageHash + ':' + suffix;
-        const url = this.urls['api']['ws'];
-        const request = {
-            'op': 'subscribe',
-            'args': [ subscriptionHash ],
-        };
-        const query = this.omit (params, [ 'currency', 'code', 'instrument_id', 'symbol', 'type' ]);
-        return await this.watch (url, messageHash, this.deepExtend (request, query), subscriptionHash);
     }
 
     handleSubscriptionStatus (client, message) {
