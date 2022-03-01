@@ -64,7 +64,7 @@ module.exports = class bkex extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': undefined,
                 'fetchMyTrades': undefined,
-                'fetchOHLCV': undefined,
+                'fetchOHLCV': true,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': undefined,
                 'fetchOrder': undefined,
@@ -105,9 +105,11 @@ module.exports = class bkex extends Exchange {
                 '15m': '15m',
                 '30m': '30m',
                 '1h': '1h',
+                '4h': '4h',
+                '6h': '6h',
+                '12h': '12h',
                 '1d': '1d',
-                '1w': '1w',
-                '1M': '1M',
+                '1w': '1w'
             },
             'urls': {
                 'logo': '',
@@ -219,6 +221,7 @@ module.exports = class bkex extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetCommonSymbols (params);
+        //
         // {
         //     "code": "0",
         //     "data": [
@@ -234,6 +237,7 @@ module.exports = class bkex extends Exchange {
         //     "msg": "success",
         //     "status": 0
         // }
+        //
         const data = this.safeValue (response, 'data');
         const result = [];
         for (let i = 0; i < data.length; i++) {
@@ -297,6 +301,7 @@ module.exports = class bkex extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetCommonCurrencys (params);
+        //
         // {
         //     "code": "0",
         //     "data": [
@@ -314,6 +319,7 @@ module.exports = class bkex extends Exchange {
         //     "msg": "success",
         //     "status": 0
         // }
+        //
         const data = this.safeValue (response, 'data', {});
         const result = {};
         for (let i = 0; i < data.length; i++) {
@@ -349,14 +355,69 @@ module.exports = class bkex extends Exchange {
     async fetchTime (params = {}) {
         const response = await this.publicGetCommonTimestamp (params);
         //
-        //    {
-        //        "code": '0',
-        //        "data": 1573542445411,
-        //        "msg": "success",
-        //        "status": 0
-        //    }
+        // {
+        //     "code": '0',
+        //     "data": 1573542445411,
+        //     "msg": "success",
+        //     "status": 0
+        // }
         //
         return this.safeInteger (response, 'data');
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'period': this.timeframes[timeframe],
+        };
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        if (since !== undefined) {
+            request['from'] = since;
+            // when 'since' [from] argument is set, then exchange also requires 'to' value to be set. So we have to set 'to' argument depending 'limit' amount (if limit was not provided, then exchange-default 500 atm).
+            if (limit === undefined) {
+                limit = 500;
+            }
+            const duration = this.parseTimeframe (timeframe);
+            const timerange = limit * duration * 1000;
+            request['to'] = this.sum (request['from'], timerange);
+        }
+        const response = await this.publicGetQKline (request);
+        //
+        // {
+        //     "code": "0",
+        //     "data": [
+        //       {
+        //          "close": "43414.68",
+        //          "high": "43446.47",
+        //          "low": "43403.05",
+        //          "open": "43406.05",
+        //          "quoteVolume": "61500.40099",
+        //          "symbol": "BTC_USDT",
+        //          "ts": "1646152440000",
+        //          "volume": 1.41627
+        //       },
+        //     ],
+        //     "msg": "success",
+        //     "status": 0
+        // }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        return [
+            this.safeInteger (ohlcv, 'ts'),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'volume'),
+        ];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
