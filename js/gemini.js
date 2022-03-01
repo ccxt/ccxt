@@ -718,7 +718,7 @@ module.exports = class gemini extends Exchange {
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetV1Notionalvolume (params);
-        //     
+        //
         //      {
         //          "web_maker_fee_bps": 25,
         //          "web_taker_fee_bps": 35,
@@ -748,14 +748,14 @@ module.exports = class gemini extends Exchange {
         //
         const makerBps = this.safeString (response, 'api_maker_fee_bps');
         const takerBps = this.safeString (response, 'api_taker_fee_bps');
-        const makerString = Precise.stringDiv(makerBps, '10000');
-        const takerString = Precise.stringDiv(takerBps, '10000');
+        const makerString = Precise.stringDiv (makerBps, '10000');
+        const takerString = Precise.stringDiv (takerBps, '10000');
         const maker = this.parseNumber (makerString);
         const taker = this.parseNumber (takerString);
         const result = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
-            result [symbol] = {
+            result[symbol] = {
                 'info': response,
                 'symbol': symbol,
                 'maker': maker,
