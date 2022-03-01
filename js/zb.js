@@ -2427,7 +2427,7 @@ module.exports = class zb extends Exchange {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['pageSize'] = since;
+            request['pageSize'] = limit;
         }
         const response = await this.contractV2PrivateGetFundGetBill (this.extend (request, params));
         //
