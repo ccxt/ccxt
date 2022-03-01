@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ArgumentsRequired } = require ('ccxt/js/base/errors');
+const { ArgumentsRequired, AuthenticationError } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -34,6 +34,11 @@ module.exports = class bitstamp extends ccxt.bitstamp {
                 },
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
+            },
+            'exceptions': {
+                'exact': {
+                    '4009': AuthenticationError,
+                },
             },
         });
     }
@@ -505,6 +510,13 @@ module.exports = class bitstamp extends ccxt.bitstamp {
         //     channel: '',
         //     data: { code: 4009, message: 'Connection is unauthorized.' }
         // }
+        const event = this.safeString (message, 'event');
+        if (event === 'bts:error') {
+            const feedback = this.id + ' ' + this.json (message);
+            const data = this.safeValue (message, 'data', {});
+            const code = this.safeNumber (data, 'code');
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+        }
         return message;
     }
 
