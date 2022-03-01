@@ -135,23 +135,9 @@ class huobi extends \ccxt\async\huobi {
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
-        // only supports a $limit of 150 at this time
         $messageHash = 'market.' . $market['id'] . '.trade.detail';
-        $api = $this->safe_string($this->options, 'api', 'api');
-        $hostname = array( 'hostname' => $this->hostname );
-        $url = $this->implode_params($this->urls['api']['ws'][$api]['spot']['public'], $hostname);
-        $requestId = $this->request_id();
-        $request = array(
-            'sub' => $messageHash,
-            'id' => $requestId,
-        );
-        $subscription = array(
-            'id' => $requestId,
-            'messageHash' => $messageHash,
-            'symbol' => $symbol,
-            'params' => $params,
-        );
-        $trades = yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
+        $url = $this->get_url_by_market_type($market['type'], $market['linear']);
+        $trades = yield $this->subscribe_public($url, $symbol, $messageHash, null, $params);
         if ($this->newUpdates) {
             $limit = $trades->getLimit ($symbol, $limit);
         }
