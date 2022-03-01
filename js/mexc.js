@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InvalidAddress, ExchangeError, BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InvalidOrder, InsufficientFunds, ArgumentsRequired, OrderNotFound, PermissionDenied, NotSupported } = require ('./base/errors');
+const { AccountNotEnabled, InvalidAddress, ExchangeError, BadRequest, AuthenticationError, RateLimitExceeded, BadSymbol, InvalidOrder, InsufficientFunds, ArgumentsRequired, OrderNotFound, PermissionDenied, NotSupported } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -266,7 +266,7 @@ module.exports = class mexc extends Exchange {
                     '401': AuthenticationError, // Invalid signature, fail to pass the validation
                     '403': PermissionDenied, // {"msg":"no permission to access the endpoint","code":403}
                     '429': RateLimitExceeded, // too many requests, rate limit rule is violated
-                    '1000': PermissionDenied, // {"success":false,"code":1000,"message":"Please open contract account first!"}
+                    '1000': AccountNotEnabled, // {"success":false,"code":1000,"message":"Please open contract account first!"}
                     '1002': InvalidOrder, // {"success":false,"code":1002,"message":"Contract not allow place order!"}
                     '10072': AuthenticationError, // Invalid access key
                     '10073': AuthenticationError, // Invalid request time
