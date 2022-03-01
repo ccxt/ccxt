@@ -65,6 +65,8 @@ module.exports = class idex extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': true,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
@@ -516,6 +518,45 @@ module.exports = class idex extends Exchange {
             'cost': costString,
             'fee': fee,
         }, market);
+    }
+
+    async fetchTradingFees (params = {}) {
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        const nonce1 = this.uuidv1 ();
+        const request = {
+            'nonce': nonce1,
+        };
+        let response = undefined;
+        response = await this.privateGetUser (this.extend (request, params));
+        //
+        //     {
+        //         depositEnabled: true,
+        //         orderEnabled: true,
+        //         cancelEnabled: true,
+        //         withdrawEnabled: true,
+        //         totalPortfolioValueUsd: '0.00',
+        //         makerFeeRate: '0.0000',
+        //         takerFeeRate: '0.0025',
+        //         takerIdexFeeRate: '0.0005',
+        //         takerLiquidityProviderFeeRate: '0.0020'
+        //     }
+        //
+        const maker = this.safeNumber (response, 'makerFeeRate');
+        const taker = this.safeNumber (response, 'takerFeeRate');
+        const result = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': true,
+                'tierBased': false,
+            };
+        }
+        return result;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
