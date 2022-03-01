@@ -36,6 +36,7 @@ module.exports = class zb extends Exchange {
                 'fetchDepositAddresses': true,
                 'fetchDeposits': true,
                 'fetchFundingRate': true,
+                'fetchFundingRates': true,
                 'fetchFundingRateHistory': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
@@ -2013,9 +2014,21 @@ module.exports = class zb extends Exchange {
 
     parseFundingRate (contract, market = undefined) {
         //
+        // fetchFundingRate
+        //
         //     {
         //         "fundingRate": "0.0001",
         //         "nextCalculateTime": "2022-02-19 00:00:00"
+        //     }
+        //
+        // fetchFundingRates
+        //
+        //     {
+        //         "symbol": "BTC_USDT",
+        //         "markPrice": "43254.42",
+        //         "indexPrice": "43278.61",
+        //         "lastFundingRate": "0.0001",
+        //         "nextFundingTime": "1646121600000"
         //     }
         //
         const marketId = this.safeString (contract, 'symbol');
@@ -2025,8 +2038,8 @@ module.exports = class zb extends Exchange {
         return {
             'info': contract,
             'symbol': symbol,
-            'markPrice': undefined,
-            'indexPrice': undefined,
+            'markPrice': this.safeString (contract, 'markPrice'),
+            'indexPrice': this.safeString (contract, 'indexPrice'),
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
@@ -2037,10 +2050,33 @@ module.exports = class zb extends Exchange {
             'nextFundingRate': undefined,
             'nextFundingTimestamp': this.parse8601 (nextFundingDatetime),
             'nextFundingDatetime': nextFundingDatetime,
-            'previousFundingRate': undefined,
+            'previousFundingRate': this.safeString (contract, 'lastFundingRate'),
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
         };
+    }
+
+    async fetchFundingRates (symbols, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.contractV2PublicGetPremiumIndex (params);
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": [
+        //             {
+        //                 "symbol": "BTC_USDT",
+        //                 "markPrice": "43254.42",
+        //                 "indexPrice": "43278.61",
+        //                 "lastFundingRate": "0.0001",
+        //                 "nextFundingTime": "1646121600000"
+        //             },
+        //         ],
+        //         "desc":"操作成功"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const result = this.parseFundingRates (data);
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
