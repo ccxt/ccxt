@@ -436,6 +436,7 @@ module.exports = class vega extends Exchange {
             'taker': 0.0011,
             'maker': 0.0009,
             'decimalPlaces': decimalPlaces,
+            'baseId': 'USD',
         };
     }
 
