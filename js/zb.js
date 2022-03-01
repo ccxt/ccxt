@@ -35,6 +35,7 @@ module.exports = class zb extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
                 'fetchDeposits': true,
+                'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchMarkets': true,
@@ -2406,6 +2407,67 @@ module.exports = class zb extends Exchange {
         const result = [];
         for (let i = 0; i < positions.length; i++) {
             result.push (this.parsePosition (positions[i]));
+        }
+        return result;
+    }
+
+    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'futuresAccountType': 1,
+            // 'currencyId': '11',
+            // 'type': 1,
+            // 'endTime': this.milliseconds (),
+            // 'pageNum': 1,
+        };
+        if (symbol !== undefined) {
+            request['currencyName'] = symbol; // 'USDT'
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = since;
+        }
+        const response = await this.contractV2PrivateGetFundGetBill (this.extend (request, params));
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "type": 3,
+        //                     "changeAmount": "0.00434664",
+        //                     "isIn": 0,
+        //                     "beforeAmount": "30.53353135",
+        //                     "beforeFreezeAmount": "21.547",
+        //                     "createTime": "1646121604997",
+        //                     "available": "30.52918471",
+        //                     "unit": "usdt",
+        //                     "symbol": "BTC_USDT"
+        //                 },
+        //             ],
+        //             "pageNum": 1,
+        //             "pageSize": 10
+        //         },
+        //         "desc": "操作成功"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const list = this.safeValue (data, 'list', []);
+        const result = [];
+        for (let i = 0; i < list.length; i++) {
+            const entry = list[i];
+            const timestamp = this.safeString (entry, 'createTime');
+            result.push ({
+                'info': entry,
+                'symbol': this.safeSymbol (this.safeString (entry, 'symbol')),
+                'code': this.safeCurrencyCode (this.safeString (entry, 'unit')),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'id': this.safeString (entry, 'id'),
+                'amount': this.safeNumber (entry, 'changeAmount'),
+            });
         }
         return result;
     }
