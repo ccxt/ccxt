@@ -458,17 +458,16 @@ module.exports = class blockchaincom extends Exchange {
             'clOrdId': clientOrderId,
         };
         params = this.omit (params, [ 'clientOrderId', 'clOrdId' ]);
-        if (uppercaseOrderType === 'LIMIT') {
-            request['price'] = this.priceToPrecision (symbol, price);
-        }
-        if (uppercaseOrderType === 'STOPLIMIT') {
-            const stopPx = this.safeNumber2 (params, 'stopPrice', 'stopPx');
-            if (stopPx === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
+        const stopPrice = this.safeValue2 (params, 'stopPx', 'stopPrice');
+        if (stopPrice !== undefined) {
+            request['stopPx'] = this.priceToPrecision (symbol, stopPrice);
+            if (type === 'limit') {
+                request['price'] = this.priceToPrecision (symbol, price);
+                request['ordType'] = 'STOPLIMIT';
+            } else if (type === 'market') {
+                request['ordType'] = 'STOP';
             }
-            params = this.omit (params, [ 'stopPrice', 'stopPx' ]);
-            request['price'] = this.priceToPrecision (symbol, price);
-            request['stopPx'] = this.priceToPrecision (symbol, stopPx);
+            params = this.omit (params, [ 'price', 'stopPx', 'stopPrice' ]);
         }
         const response = await this.privatePostOrders (this.extend (request, params));
         return this.parseOrder (response, market);
