@@ -92,6 +92,38 @@ module.exports = class kraken extends Exchange {
                 'doc': 'https://www.kraken.com/features/api',
                 'fees': 'https://www.kraken.com/en-us/features/fee-schedule',
             },
+            'fees': {
+                'trading': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'taker': 0.26 / 100,
+                    'maker': 0.16 / 100,
+                    'tiers': {
+                        'taker': [
+                            [ 0, 0.0026 ],
+                            [ 50000, 0.0024 ],
+                            [ 100000, 0.0022 ],
+                            [ 250000, 0.0020 ],
+                            [ 500000, 0.0018 ],
+                            [ 1000000, 0.0016 ],
+                            [ 2500000, 0.0014 ],
+                            [ 5000000, 0.0012 ],
+                            [ 10000000, 0.0001 ],
+                        ],
+                        'maker': [
+                            [ 0, 0.0016 ],
+                            [ 50000, 0.0014 ],
+                            [ 100000, 0.0012 ],
+                            [ 250000, 0.0010 ],
+                            [ 500000, 0.0008 ],
+                            [ 1000000, 0.0006 ],
+                            [ 2500000, 0.0004 ],
+                            [ 5000000, 0.0002 ],
+                            [ 10000000, 0.0 ],
+                        ],
+                    },
+                },
+            },
             'handleContentTypeApplicationZip': true,
             'api': {
                 'zendesk': {
@@ -575,6 +607,8 @@ module.exports = class kraken extends Exchange {
             'symbol': market['symbol'],
             'maker': this.safeNumber (symbolMakerFee, 'fee'),
             'taker': this.safeNumber (symbolTakerFee, 'fee'),
+            'percentage': true,
+            'tierBased': true,
         };
     }
 
