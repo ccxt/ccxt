@@ -2458,16 +2458,19 @@ module.exports = class zb extends Exchange {
         const result = [];
         for (let i = 0; i < list.length; i++) {
             const entry = list[i];
+            const fundingType = this.safeNumber (entry, 'type');
             const timestamp = this.safeString (entry, 'createTime');
-            result.push ({
-                'info': entry,
-                'symbol': this.safeSymbol (this.safeString (entry, 'symbol')),
-                'code': this.safeCurrencyCode (this.safeString (entry, 'unit')),
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'id': this.safeString (entry, 'id'),
-                'amount': this.safeNumber (entry, 'changeAmount'),
-            });
+            if (fundingType === 3 || fundingType === 4 ) {
+                result.push ({
+                    'info': entry,
+                    'symbol': this.safeSymbol (this.safeString (entry, 'symbol')),
+                    'code': this.safeCurrencyCode (this.safeString (entry, 'unit')),
+                    'timestamp': timestamp,
+                    'datetime': this.iso8601 (timestamp),
+                    'id': this.safeString (entry, 'id'),
+                    'amount': this.safeNumber (entry, 'changeAmount'),
+                });
+            }
         }
         return result;
     }
