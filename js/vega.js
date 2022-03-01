@@ -17,21 +17,39 @@ module.exports = class vega extends Exchange {
             'rateLimit': 500,
             'has': {
                 'CORS': true,
-                'fetchMarkets': true,
-                'fetchCurrencies': true,
+                //
+                'fetchTradingFees': false,
+                'fetchLedger': false,
+                'fetchOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': false,
+                'fetchDeposits': false,
                 'fetchTickers': true,
                 'fetchTicker': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
+                'fetchWithdrawals': false,
+                'fetchStatus': false,
+                'fetchBalance': false,
+                'fetchOpenOrders': false,
+                'fetchMyTrades': false,
+                'fetchOHLCV': false,
+                'fetchTransactions': false,
+                'fetchTrades': false,
+                'fetchFundingFees': false,
+                'fetchClosedOrders': false,
+                'fetchCurrencies': true,
+                'fetchL2OrderBook': false,
+                'fetchMarkets': true,
+                'fetchOrderBooks': false,
+                'fetchPositions': true,
+                //
                 'createOrder': true,
                 'cancelOrder': true,
-                'fetchPositions': true,
             },
             'urls': {
                 'logo': 'https://vega.xyz/favicon.ico', // todo
                 'test': {
-                    'public': 'https://lb.testnet.vega.xyz',
-                    'privateNode': 'https://lb.testnet.vega.xyz',
+                    'public': 'https://lb.testnet.vega.xyz/datanode/rest',
+                    'privateNode': 'https://lb.testnet.vega.xyz/datanode/rest',
                     'privateWallet': 'https://wallet.testnet.vega.xyz/api/v1',
                 },
                 'www': 'https://vega.xyz',
@@ -52,9 +70,7 @@ module.exports = class vega extends Exchange {
                     ],
                 },
                 'private': {
-                    'post': [
-                        'command',
-                    ],
+                    'post': ['command'],
                 },
             },
             'exceptions': {
@@ -88,12 +104,26 @@ module.exports = class vega extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        // get markets
+        const marketsResponse = await this.publicGetMarkets ({});
+        const markets = this.safeValue (marketsResponse, 'markets');
+        // get markets datas
         const response = await this.publicGetMarketsData (params);
         const data = this.safeValue (response, 'marketsData', {});
+        // parse
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const marketData = data[i];
-            result.push (this.parseMarketData (marketData));
+            let market = null;
+            for (let j = 0; j < markets.length; j++) {
+                const m = markets[j];
+                if (m.id === this.safeString (marketData, 'market')) {
+                    market = m;
+                    break;
+                }
+            }
+            const parsedMarket = this.parseMarket (market);
+            result.push (this.parseMarketData (marketData, parsedMarket));
         }
         return result;
     }
@@ -111,7 +141,7 @@ module.exports = class vega extends Exchange {
             this.extend (request, params)
         );
         const marketData = this.safeValue (response, 'marketData', {});
-        return this.parseMarketData (marketData);
+        return this.parseMarketData (marketData, market);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -391,15 +421,20 @@ module.exports = class vega extends Exchange {
         const id = this.safeString (market, 'id');
         const tradableInstrument = this.safeValue (market, 'tradableInstrument', {});
         const instrument = this.safeValue (tradableInstrument, 'instrument', {});
-        const name = this.safeString (instrument, 'name');
-        const code = this.safeString (instrument, 'code');
-        const decimalPlaces = this.parse_number (
+        const base = this.safeString (instrument, 'name');
+        const symbol = this.safeString (instrument, 'code');
+        const decimalPlaces = this.parseNumber (
             this.safeString (market, 'decimalPlaces')
         );
+        const future = this.safeValue (instrument, 'future');
+        const quote = this.safeString (future, 'quoteName');
         return {
             'id': id,
-            'name': name,
-            'symbol': code,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'taker': 0.0011,
+            'maker': 0.0009,
             'decimalPlaces': decimalPlaces,
         };
     }
@@ -424,12 +459,13 @@ module.exports = class vega extends Exchange {
         const symbol = this.safeString (details, 'symbol');
         return {
             'id': id,
+            'code': symbol,
             'name': name,
             'symbol': symbol,
         };
     }
 
-    parseMarketData (marketData) {
+    parseMarketData (marketData, market) {
         // {
         //   "markPrice": "6883",
         //   "bestBidPrice": "100000",
@@ -495,7 +531,68 @@ module.exports = class vega extends Exchange {
         //     }
         //   ]
         // }
-        return marketData;
+        const bid = this.safeNumber (marketData, 'markPrice');
+        const low = this.safeNumber (marketData, 'bestBidPrice');
+        const bidVolume = this.safeNumber (marketData, 'bestBidVolume');
+        const high = this.safeNumber (marketData, 'bestOfferPrice');
+        const askVolume = this.safeNumber (marketData, 'bestOfferVolume');
+        // const timestamp = this.safeNumber (marketData, 'bestStaticBidPrice');
+        // const timestamp = this.safeNumber (marketData, 'bestStaticBidVolume');
+        // const timestamp = this.safeNumber (marketData, 'bestStaticOfferPrice');
+        // const timestamp = this.safeNumber (marketData, 'bestStaticOfferVolume');
+        // const timestamp = this.safeNumber (marketData, 'midPrice');
+        // const timestamp = this.safeNumber (marketData, 'staticMidPrice');
+        // const timestamp = this.safeNumber (marketData, 'market');
+        const timestamp = this.safeNumber (marketData, 'timestamp'); // nano seconds
+        // const timestamp = this.safeNumber (marketData, 'openInterest');
+        // const timestamp = this.safeNumber (marketData, 'auctionEnd');
+        // const timestamp = this.safeNumber (marketData, 'auctionStart');
+        // const timestamp = this.safeNumber (marketData, 'indicativePrice');
+        // const timestamp = this.safeNumber (marketData, 'indicativeVolume');
+        // const timestamp = this.safeNumber (marketData, 'marketTradingMode');
+        // const timestamp = this.safeNumber (marketData, 'trigger');
+        // const timestamp = this.safeNumber (marketData, 'extensionTrigger');
+        // const timestamp = this.safeNumber (marketData, 'targetStake');
+        // const timestamp = this.safeNumber (marketData, 'suppliedStake');
+        // const timestamp = this.safeValue (marketData, 'priceMonitoringBounds');
+        // const timestamp = this.safeNumber (marketData, 'marketValueProxy');
+        // const timestamp = this.safeValue (marketData, 'liquidityProviderFeeShare');
+        const ask = bid;
+        const open = ask;
+        const close = ask;
+        const last = bid;
+        const previousClose = ask;
+        const vwap = ask;
+        const symbol = market.symbol;
+        const info = {};
+        const datetime = this.iso8601 (timestamp / 1000);
+        const percentage = 10;
+        const change = last - open;
+        const average = (last + open) / 2;
+        const baseVolume = 1;
+        const quoteVolume = 1;
+        return {
+            'symbol': symbol,
+            'info': info,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'high': high, // highest price
+            'low': low, // lowest price
+            'bid': bid, // current best bid (buy) price
+            'bidVolume': bidVolume, // current best bid (buy) amount (may be missing or undefined)
+            'ask': ask, // current best ask (sell) price
+            'askVolume': askVolume, // current best ask (sell) amount (may be missing or undefined)
+            'vwap': vwap, // volume weighed average price
+            'open': open, // opening price
+            'close': close, // price of last trade (closing price for current period)
+            'last': last, // same as `close`, duplicated for convenience
+            'previousClose': previousClose, // closing price for the previous period
+            'change': change, // absolute change, `last - open`
+            'percentage': percentage, // relative change, `(change/open) * 100`
+            'average': average, // average price, `(last + open) / 2`
+            'baseVolume': baseVolume, // volume of base currency
+            'quoteVolume': quoteVolume, // volume of quote currency
+        };
     }
 
     parseOrder (order) {
