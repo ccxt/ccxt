@@ -2629,7 +2629,7 @@ The `fetchFundingRates()` method will return a structure like shown below:
 }
 ```
 
-## Funding Rate History 
+## Funding Rate History
 
 - contract only
 
@@ -3185,7 +3185,7 @@ Most of methods returning orders within ccxt unified API will usually yield an o
     'datetime':          '2017-08-17 12:42:48.000', // ISO8601 datetime of 'timestamp' with milliseconds
     'timestamp':          1502962946216, // order placing/opening Unix timestamp in milliseconds
     'lastTradeTimestamp': 1502962956216, // Unix timestamp of the most recent trade on this order
-    'status':      'open',        // 'open', 'closed', 'canceled', 'expired'
+    'status':      'open',        // 'open', 'closed', 'canceled', 'expired', 'rejected'
     'symbol':      'ETH/BTC',     // symbol
     'type':        'limit',       // 'market', 'limit'
     'timeInForce': 'GTC',         // 'GTC', 'IOC', 'FOK', 'PO'
