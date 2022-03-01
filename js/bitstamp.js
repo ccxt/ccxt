@@ -14,6 +14,7 @@ module.exports = class bitstamp extends ccxt.bitstamp {
             'has': {
                 'ws': true,
                 'watchOrderBook': true,
+                'watchOrders': true,
                 'watchTrades': true,
                 'watchOHLCV': false,
                 'watchTicker': false,
@@ -25,6 +26,9 @@ module.exports = class bitstamp extends ccxt.bitstamp {
                 },
             },
             'options': {
+                'expiresIn': '',
+                'userId': '',
+                'wsSessionToken': '',
                 'watchOrderBook': {
                     'type': 'order_book', // detail_order_book, diff_order_book
                 },
@@ -302,7 +306,6 @@ module.exports = class bitstamp extends ccxt.bitstamp {
             throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument');
         }
         await this.loadMarkets ();
-        await this.authenticate ();
         const market = this.market (symbol);
         const channel = 'private-my_orders';
         const messageHash = channel + '_' + market['id'];
@@ -551,26 +554,32 @@ module.exports = class bitstamp extends ccxt.bitstamp {
 
     async authenticate (params = {}) {
         this.checkRequiredCredentials ();
-        const response = await this.privatePostWebsocketsToken (params);
-        //
-        // {
-        //     "valid_sec":60,
-        //     "token":"siPaT4m6VGQCdsDCVbLBemiphHQs552e",
-        //     "user_id":4848701
-        // }
-        //
-        const sessionToken = this.safeString (response, 'token');
-        if (sessionToken !== undefined) {
-            const userId = this.safeNumber (response, 'user_id');
-            this.options['userId'] = userId;
-            this.options['wsSessionToken'] = sessionToken;
-            return response;
+        const time = this.milliseconds ();
+        const expiresIn = this.safeInteger (this.options, 'expiresIn');
+        if (time > expiresIn) {
+            const response = await this.privatePostWebsocketsToken (params);
+            //
+            // {
+            //     "valid_sec":60,
+            //     "token":"siPaT4m6VGQCdsDCVbLBemiphHQs552e",
+            //     "user_id":4848701
+            // }
+            //
+            const sessionToken = this.safeString (response, 'token');
+            if (sessionToken !== undefined) {
+                const userId = this.safeNumber (response, 'user_id');
+                const validity = this.safeIntegerProduct (response, 'valid_sec', 1000);
+                this.options['expiresIn'] = time + validity;
+                this.options['userId'] = userId;
+                this.options['wsSessionToken'] = sessionToken;
+                return response;
+            }
         }
     }
 
     async subscribePrivate (subscription, messageHash, params = {}) {
-        await this.authenticate ();
         const url = this.urls['api']['ws'];
+        await this.authenticate ();
         messageHash += '-' + this.options['userId'];
         const request = {
             'event': 'bts:subscribe',
