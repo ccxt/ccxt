@@ -345,6 +345,11 @@ module.exports = class bitstamp extends ccxt.bitstamp {
         //         'channel': "detail_order_book_btcusd",
         //         'data': {},
         //     }
+        //     {
+        //         event: 'bts:subscription_succeeded',
+        //         channel: 'private-my_orders_ltcusd-4848701',
+        //         data: {}
+        //     }
         //
         const channel = this.safeString (message, 'channel');
         const subscription = this.safeValue (client.subscriptions, channel, {});
@@ -395,6 +400,11 @@ module.exports = class bitstamp extends ccxt.bitstamp {
     }
 
     handleErrorMessage (client, message) {
+        // {
+        //     event: 'bts:error',
+        //     channel: '',
+        //     data: { code: 4009, message: 'Connection is unauthorized.' }
+        // }
         return message;
     }
 
@@ -428,6 +438,12 @@ module.exports = class bitstamp extends ccxt.bitstamp {
         //         channel: 'detail_order_book_btcusd'
         //     }
         //
+        //     {
+        //         event: 'bts:subscription_succeeded',
+        //         channel: 'private-my_orders_ltcusd-4848701',
+        //         data: {}
+        //     }
+        //
         const event = this.safeString (message, 'event');
         if (event === 'bts:subscription_succeeded') {
             return this.handleSubscriptionStatus (client, message);
@@ -448,8 +464,8 @@ module.exports = class bitstamp extends ccxt.bitstamp {
         //
         const sessionToken = this.safeString (response, 'token');
         if (sessionToken !== undefined) {
-            const validity = this.safeNumber (response, 'valid_sec') * 1000;
-            this.options['expiresIn'] = this.milliseconds () + validity;
+            const userId = this.safeNumber (response, 'user_id');
+            this.options['userId'] = userId;
             this.options['wsSessionToken'] = sessionToken;
             return response;
         }
@@ -461,7 +477,7 @@ module.exports = class bitstamp extends ccxt.bitstamp {
         const request = {
             'event': 'bts:subscribe',
             'data': {
-                'channel': messageHash,
+                'channel': messageHash + '-' + this.options['userId'],
                 'auth': this.options['wsSessionToken'],
             },
         };
