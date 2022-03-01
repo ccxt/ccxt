@@ -565,7 +565,7 @@ module.exports = class kraken extends Exchange {
         return this.parseTradingFee (result, market);
     }
 
-    parseTradingFee (response, market = undefined) {
+    parseTradingFee (response, market) {
         const makerFees = this.safeValue (response, 'fees_maker', {});
         const takerFees = this.safeValue (response, 'fees', {});
         const symbolMakerFee = this.safeValue (makerFees, market['id'], {});
