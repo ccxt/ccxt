@@ -12,6 +12,7 @@
     "bitmex":        { "skip": true },
     "bitstamp1":     { "skip": true },
     "btcmarkets":    { "skip": true },
+    "btctradeua":    { "skip": true },
     "braziliex":     { "skip": true },
     "buda":          { "skip": true },
     "coinegg":       { "skip": true },
