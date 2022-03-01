@@ -3,6 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
+const { ArgumentsRequired } = require ('ccxt/js/base/errors');
 const { ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -296,6 +297,27 @@ module.exports = class bitstamp extends ccxt.bitstamp {
         client.resolve (array, channel);
     }
 
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const market = this.market (symbol);
+        const messageHash = 'private-my_orders' + '_' + market['id'];
+        const subscription = {
+            'messageHash': messageHash,
+            'symbol': symbol,
+            'limit': limit,
+            'params': params,
+        };
+        const orders = await this.subscribePrivate (subscription, messageHash, params);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
+    }
+
     handleOrderBookSubscription (client, message, subscription) {
         const type = this.safeString (subscription, 'type');
         const symbol = this.safeString (subscription, 'symbol');
@@ -431,5 +453,18 @@ module.exports = class bitstamp extends ccxt.bitstamp {
             this.options['wsSessionToken'] = sessionToken;
             return response;
         }
+    }
+
+    async subscribePrivate (subscription, messageHash, params = {}) {
+        await this.authenticate ();
+        const url = this.urls['api']['ws'];
+        const request = {
+            'event': 'bts:subscribe',
+            'data': {
+                'channel': messageHash,
+                'auth': this.options['wsSessionToken'],
+            },
+        };
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 };
