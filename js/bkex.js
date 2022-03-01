@@ -77,8 +77,8 @@ module.exports = class bkex extends Exchange {
                 'fetchPositionsRisk': undefined,
                 'fetchPremiumIndexOHLCV': undefined,
                 'fetchStatus': undefined,
-                'fetchTicker': undefined,
-                'fetchTickers': undefined,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': undefined,
                 'fetchTradingFee': undefined,
@@ -109,7 +109,7 @@ module.exports = class bkex extends Exchange {
                 '6h': '6h',
                 '12h': '12h',
                 '1d': '1d',
-                '1w': '1w'
+                '1w': '1w',
             },
             'urls': {
                 'logo': '',
@@ -423,7 +423,7 @@ module.exports = class bkex extends Exchange {
 
     async fetchTickersHelper (symbols, params = {}) {
         await this.loadMarkets ();
-        let request = {};
+        const request = {};
         let market = undefined;
         if (symbols !== undefined) {
             const marketIds = [];
@@ -433,8 +433,8 @@ module.exports = class bkex extends Exchange {
             }
             request['symbol'] = marketIds.join (',');
         }
-        request = this.extend (request, params);
-        return [ await this.publicGetQTickers (request), market ];
+        const response = await this.publicGetQTickers (this.extend (request, params));
+        return [ response, market ];
         // {
         //     "code": "0",
         //     "data": [
@@ -495,6 +495,39 @@ module.exports = class bkex extends Exchange {
             'quoteVolume': this.safeString (ticker, 'quoteVolume'),
             'info': ticker,
         }, market, false);
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['depth'] = Math.min (limit, 50);
+        }
+        const response = await this.publicGetQDepth (this.extend (request, params));
+        //
+        // {
+        //     "code": "0",
+        //     "data": {
+        //       "ask": [
+        //         ["43820.07","0.86947"],
+        //         ["43820.25","0.07503"],
+        //       ],
+        //       "bid": [
+        //         ["43815.94","0.43743"],
+        //         ["43815.72","0.08901"],
+        //       ],
+        //       "symbol": "BTC_USDT",
+        //       "timestamp": 1646161595841
+        //     },
+        //     "msg": "success",
+        //     "status": 0
+        // }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseOrderBook (data, symbol, undefined, 'bid', 'ask');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
