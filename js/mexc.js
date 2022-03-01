@@ -64,6 +64,7 @@ module.exports = class mexc extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
