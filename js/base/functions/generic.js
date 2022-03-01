@@ -2,7 +2,7 @@
 
 // ----------------------------------------------------------------------------
 
-const { isObject, isNumber, isDictionary, isArray } = require ('./type')
+const { isObject, isNumber, isDictionary, isArray, safeInteger, safeValue, safeString } = require ('./type')
 
 // ----------------------------------------------------------------------------
 
@@ -220,6 +220,90 @@ module.exports = {
         return x
     }
 
+    // ------------------------------------------------------------------------
+
+    , safeStringOmit (x, ...args) {
+
+        const result = [];
+        if (!Array.isArray (x)) {
+
+            const out = clone (x)
+
+            for (const k of args) {
+                if (isArray (k)) { // omit (x, ['a', 'b'])
+                    for (const kk of k) {
+                        result.push ( safeString (out,kk))
+                        delete out[kk]
+                    }
+                } else {
+                    result.push ( safeString (out,k))
+                    delete out[k] // omit (x, 'a', 'b')
+                }
+            }
+
+            result.unshift (out)
+            return result
+        }
+
+        return x
+    }
+
+    // ------------------------------------------------------------------------
+
+    , safeIntegerOmit (x, ...args) {
+
+        const result = [];
+        if (!Array.isArray (x)) {
+
+            const out = clone (x)
+
+            for (const k of args) {
+                if (isArray (k)) { // omit (x, ['a', 'b'])
+                    for (const kk of k) {
+                        result.push ( safeInteger (out,kk))
+                        delete out[kk]
+                    }
+                } else {
+                    result.push ( safeInteger (out,k))
+                    delete out[k] // omit (x, 'a', 'b')
+                }
+            }
+
+            result.unshift (out)
+            return result
+        }
+
+        return x
+    }
+
+
+    // ------------------------------------------------------------------------
+
+    , safeValueOmit (x, ...args) {
+
+        const result = [];
+        if (!Array.isArray (x)) {
+
+            const out = clone (x)
+
+            for (const k of args) {
+                if (isArray (k)) { // omit (x, ['a', 'b'])
+                    for (const kk of k) {
+                        result.push ( safeValue (out,kk))
+                        delete out[kk]
+                    }
+                } else {
+                    result.push ( safeValue (out,k))
+                    delete out[k] // omit (x, 'a', 'b')
+                }
+            }
+
+            result.unshift (out)
+            return result
+        }
+
+        return x
+    }
     // ------------------------------------------------------------------------
 
     , sum (...xs) {

@@ -2100,6 +2100,32 @@ module.exports = class Exchange {
         return this.parseNumber (value, d)
     }
 
+    safeNumberOmit (x, ...args) {
+
+        const result = [];
+        if (!Array.isArray (x)) {
+
+            const out = clone (x)
+
+            for (const k of args) {
+                if (this.isArray (k)) { // omit (x, ['a', 'b'])
+                    for (const kk of k) {
+                        result.push ( this.safeNumber (out,kk))
+                        delete out[kk]
+                    }
+                } else {
+                    result.push ( this.safeNumber (out,k))
+                    delete out[k] // omit (x, 'a', 'b')
+                }
+            }
+
+            result.unshift (out)
+            return result
+        }
+
+        return x
+    }
+
     parsePrecision (precision) {
         if (precision === undefined) {
             return undefined
