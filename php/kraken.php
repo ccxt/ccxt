@@ -71,7 +71,8 @@ class kraken extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
-                'fetchTradingFees' => true,
+                'fetchTradingFee' => true,
+                'fetchTradingFees' => false,
                 'fetchWithdrawals' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false, // Kraken only supports cross margin
@@ -129,58 +130,6 @@ class kraken extends Exchange {
                             array( 5000000, 0.0002 ),
                             array( 10000000, 0.0 ),
                         ),
-                    ),
-                ),
-                // this is a bad way of hardcoding fees that change on daily basis
-                // hardcoding is now considered obsolete, we will remove all of it eventually
-                'funding' => array(
-                    'tierBased' => false,
-                    'percentage' => false,
-                    'withdraw' => array(
-                        'BTC' => 0.001,
-                        'ETH' => 0.005,
-                        'XRP' => 0.02,
-                        'XLM' => 0.00002,
-                        'LTC' => 0.02,
-                        'DOGE' => 2,
-                        'ZEC' => 0.00010,
-                        'ICN' => 0.02,
-                        'REP' => 0.01,
-                        'ETC' => 0.005,
-                        'MLN' => 0.003,
-                        'XMR' => 0.05,
-                        'DASH' => 0.005,
-                        'GNO' => 0.01,
-                        'EOS' => 0.5,
-                        'BCH' => 0.001,
-                        'XTZ' => 0.05,
-                        'USD' => 5, // if domestic wire
-                        'EUR' => 5, // if domestic wire
-                        'CAD' => 10, // CAD EFT Withdrawal
-                        'JPY' => 300, // if domestic wire
-                    ),
-                    'deposit' => array(
-                        'BTC' => 0,
-                        'ETH' => 0,
-                        'XRP' => 0,
-                        'XLM' => 0,
-                        'LTC' => 0,
-                        'DOGE' => 0,
-                        'ZEC' => 0,
-                        'ICN' => 0,
-                        'REP' => 0,
-                        'ETC' => 0,
-                        'MLN' => 0,
-                        'XMR' => 0,
-                        'DASH' => 0,
-                        'GNO' => 0,
-                        'EOS' => 0,
-                        'BCH' => 0,
-                        'XTZ' => 0.05,
-                        'USD' => 5, // if domestic wire
-                        'EUR' => 0, // free deposit if EUR SEPA Deposit
-                        'CAD' => 5, // if domestic wire
-                        'JPY' => 0, // Domestic Deposit (Free, ¥5,000 deposit minimum)
                     ),
                 ),
             ),
@@ -616,27 +565,59 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fee($symbol, $params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostTradeVolume ($params);
-        $tradedVolume = $this->safe_number($response['result'], 'volume');
-        $tiers = $this->fees['trading']['tiers'];
-        $taker = $tiers['taker'][1];
-        $maker = $tiers['maker'][1];
-        for ($i = 0; $i < count($tiers['taker']); $i++) {
-            if ($tradedVolume >= $tiers['taker'][$i][0]) {
-                $taker = $tiers['taker'][$i][1];
-            }
-        }
-        for ($i = 0; $i < count($tiers['maker']); $i++) {
-            if ($tradedVolume >= $tiers['maker'][$i][0]) {
-                $maker = $tiers['maker'][$i][1];
-            }
-        }
+        $market = $this->market($symbol);
+        $request = array(
+            'pair' => $market['id'],
+            'fee-info' => true,
+        );
+        $response = $this->privatePostTradeVolume (array_merge($request, $params));
+        //
+        //     {
+        //        error => array(),
+        //        $result => {
+        //          currency => 'ZUSD',
+        //          volume => '0.0000',
+        //          fees => {
+        //            XXBTZUSD => array(
+        //              fee => '0.2600',
+        //              minfee => '0.1000',
+        //              maxfee => '0.2600',
+        //              nextfee => '0.2400',
+        //              tiervolume => '0.0000',
+        //              nextvolume => '50000.0000'
+        //            }
+        //          ),
+        //          fees_maker => {
+        //            XXBTZUSD => {
+        //              fee => '0.1600',
+        //              minfee => '0.0000',
+        //              maxfee => '0.1600',
+        //              nextfee => '0.1400',
+        //              tiervolume => '0.0000',
+        //              nextvolume => '50000.0000'
+        //            }
+        //          }
+        //        }
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        return $this->parse_trading_fee($result, $market);
+    }
+
+    public function parse_trading_fee($response, $market) {
+        $makerFees = $this->safe_value($response, 'fees_maker', array());
+        $takerFees = $this->safe_value($response, 'fees', array());
+        $symbolMakerFee = $this->safe_value($makerFees, $market['id'], array());
+        $symbolTakerFee = $this->safe_value($takerFees, $market['id'], array());
         return array(
             'info' => $response,
-            'maker' => $maker,
-            'taker' => $taker,
+            'symbol' => $market['symbol'],
+            'maker' => $this->safe_number($symbolMakerFee, 'fee'),
+            'taker' => $this->safe_number($symbolTakerFee, 'fee'),
+            'percentage' => true,
+            'tierBased' => true,
         );
     }
 
