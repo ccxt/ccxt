@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, InvalidOrder } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -443,6 +443,8 @@ module.exports = class blockchaincom extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clOrdId', this.uuid16 ());
         await this.loadMarkets ();
+        const orderType = this.safeString (params, 'ordType', type);
+        const uppercaseOrderType = orderType.toUpperCase ();
         const market = this.market (symbol);
         const request = {
             // 'stopPx' : limit price
@@ -452,16 +454,21 @@ module.exports = class blockchaincom extends Exchange {
             'symbol': market['id'],
             'side': side.toUpperCase (),
             'orderQty': this.amountToPrecision (symbol, amount),
-            'ordType': type.toUpperCase (), // LIMIT, MARKET, STOP, STOPLIMIT
+            'ordType': uppercaseOrderType, // LIMIT, MARKET, STOP, STOPLIMIT
             'clOrdId': clientOrderId,
         };
         params = this.omit (params, [ 'clientOrderId', 'clOrdId' ]);
-        if (request['ordType'] === 'LIMIT') {
+        if (uppercaseOrderType === 'LIMIT') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        if (request['ordType'] === 'STOPLIMIT') {
+        if (uppercaseOrderType === 'STOPLIMIT') {
+            const stopPx = this.safeNumber2 (params, 'stopPrice', 'stopPx');
+            if (stopPx === undefined) {
+                throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
+            }
+            params = this.omit (params, [ 'stopPrice', 'stopPx' ]);
             request['price'] = this.priceToPrecision (symbol, price);
-            request['stopPx'] = this.priceToPrecision (symbol, price);
+            request['stopPx'] = this.priceToPrecision (symbol, stopPx);
         }
         const response = await this.privatePostOrders (this.extend (request, params));
         return this.parseOrder (response, market);
