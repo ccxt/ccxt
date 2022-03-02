@@ -116,23 +116,23 @@ module.exports = class bitmart extends ccxt.bitmart {
         // {
         //     "data":[
         //         {
-        //             "symbol":"BTC_USDT",
-        //             "side":"buy",
-        //             "type":"market",
-        //             "notional":"",
-        //             "size":"1.0000000000",
-        //             "ms_t":"1609926028000",
-        //             "price":"46100.0000000000",
-        //             "filled_notional":"46100.0000000000",
-        //             "filled_size":"1.0000000000",
-        //             "margin_trading":"0",
-        //             "state":"2",
-        //             "order_id":"2147857398",
-        //             "order_type":"0",
-        //             "last_fill_time":"1609926039226",
-        //             "last_fill_price":"46100.00000",
-        //             "last_fill_count":"1.00000"
-        //         }
+        //             symbol: 'LTC_USDT',
+        //             notional: '',
+        //             side: 'buy',
+        //             last_fill_time: '0',
+        //             ms_t: '1646216634000',
+        //             type: 'limit',
+        //             filled_notional: '0.000000000000000000000000000000',
+        //             last_fill_price: '0',
+        //             size: '0.500000000000000000000000000000',
+        //             price: '50.000000000000000000000000000000',
+        //             last_fill_count: '0',
+        //             filled_size: '0.000000000000000000000000000000',
+        //             margin_trading: '0',
+        //             state: '8',
+        //             order_id: '24807076628',
+        //             order_type: '0'
+        //           }
         //     ],
         //     "table":"spot/user/order"
         // }
@@ -163,25 +163,27 @@ module.exports = class bitmart extends ccxt.bitmart {
 
     parseWsOrder (order, market = undefined) {
         //
-        //   {
-        //       "symbol":"BTC_USDT",
-        //       "side":"buy",
-        //       "type":"market",
-        //       "notional":"",
-        //       "size":"1.0000000000",
-        //       "ms_t":"1609926028000",
-        //       "price":"46100.0000000000",
-        //       "filled_notional":"46100.0000000000",
-        //       "filled_size":"1.0000000000",
-        //       "margin_trading":"0",
-        //       "state":"2",
-        //       "order_id":"2147857398",
-        //       "order_type":"0",
-        //       "last_fill_time":"1609926039226",s
-        //       "last_fill_price":"46100.00000",
-        //       "last_fill_count":"1.00000"
-        //    }
+        // {
+        //     symbol: 'LTC_USDT',
+        //     notional: '',
+        //     side: 'buy',
+        //     last_fill_time: '0',
+        //     ms_t: '1646216634000',
+        //     type: 'limit',
+        //     filled_notional: '0.000000000000000000000000000000',
+        //     last_fill_price: '0',
+        //     size: '0.500000000000000000000000000000',
+        //     price: '50.000000000000000000000000000000',
+        //     last_fill_count: '0',
+        //     filled_size: '0.000000000000000000000000000000',
+        //     margin_trading: '0',
+        //     state: '8',
+        //     order_id: '24807076628',
+        //     order_type: '0'
+        //   }
         //
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
         const id = this.safeString (order, 'order_id');
         const clientOrderId = this.safeString (order, 'clientOid');
         const price = this.safeString (order, 'price');
@@ -189,10 +191,8 @@ module.exports = class bitmart extends ccxt.bitmart {
         const amount = this.safeString (order, 'size');
         const type = this.safeString (order, 'type');
         const rawState = this.safeString (order, 'state');
-        const status = this.parseWsOrderStatus (rawState);
+        const status = this.parseOrderStatusByType (market['type'], rawState);
         const timestamp = this.safeInteger (order, 'ms_t');
-        const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const side = this.safeStringLower (order, 'side');
         return this.safeOrder ({
