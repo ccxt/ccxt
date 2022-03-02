@@ -2704,6 +2704,15 @@ module.exports = class binance extends Exchange {
             }
         }
         let uppercaseType = type.toUpperCase ();
+        const stopPrice = this.safeNumber (params, 'stopPrice');
+        if (stopPrice) {
+            params = this.omit (params, 'stopPrice');
+            if (uppercaseType === 'MARKET') {
+                uppercaseType = market['contract'] ? 'STOP_MARKET' : 'STOP_LOSS';
+            } else if (uppercaseType === 'LIMIT') {
+                uppercaseType = market['contract'] ? 'STOP' : 'STOP_LOSS_LIMIT';
+            }
+        }
         const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
         if (!this.inArray (uppercaseType, validOrderTypes)) {
             throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type in market ' + symbol);
@@ -2755,16 +2764,6 @@ module.exports = class binance extends Exchange {
         //     TAKE_PROFIT_MARKET   stopPrice
         //     TRAILING_STOP_MARKET callbackRate
         //
-        const stopPrice = this.safeNumber (params, 'stopPrice');
-        if (stopPrice) {
-            params = this.omit (params, 'stopPrice');
-            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
-            if (uppercaseType === 'MARKET') {
-                uppercaseType = market['contract'] ? 'STOP_MARKET' : 'STOP_LOSS';
-            } else if (uppercaseType === 'LIMIT') {
-                uppercaseType = market['contract'] ? 'STOP' : 'STOP_LOSS_LIMIT';
-            }
-        }
         if (uppercaseType === 'MARKET') {
             if (market['spot']) {
                 const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', false);
@@ -2832,8 +2831,12 @@ module.exports = class binance extends Exchange {
         if (timeInForceIsRequired) {
             request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
-        if (stopPriceIsRequired && (stopPrice === undefined)) {
-            throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
+        if (stopPriceIsRequired) {
+            if (stopPrice === undefined) {
+                throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
+            } else {
+                request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+            }
         }
         const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response, market);
