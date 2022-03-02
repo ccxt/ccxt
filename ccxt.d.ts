@@ -531,6 +531,7 @@ declare module 'ccxt' {
     export class liquid extends Exchange {}
     export class luno extends Exchange {}
     export class lykke extends Exchange {}
+    export class lykke2 extends Exchange {}
     export class mercado extends Exchange {}
     export class mexc extends Exchange {}
     export class ndax extends Exchange {}
@@ -652,6 +653,7 @@ declare module 'ccxt' {
         | 'liquid'
         | 'luno'
         | 'lykke'
+        | 'lykke2'
         | 'mercado'
         | 'mexc'
         | 'ndax'
