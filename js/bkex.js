@@ -1063,9 +1063,8 @@ module.exports = class bkex extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.version + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
-        const keysLength = Object.keys (params).length;
-        let paramsSortedEncoded = undefined;
-        if (keysLength > 0) {
+        let paramsSortedEncoded = '';
+        if (Object.keys (params).length) {
             paramsSortedEncoded = this.urlencode (this.keysort (params));
             if (method === 'GET') {
                 url += '?' + paramsSortedEncoded;
