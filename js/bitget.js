@@ -1394,14 +1394,14 @@ module.exports = class bitget extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const tradingFees = {};
+        const result = {};
         for (let i = 0; i < data.length; i++) {
             const feeInfo = data[i];
             const fee = this.parseTradingFee (feeInfo);
             const symbol = fee['symbol'];
-            tradingFees[symbol] = fee;
+            result[symbol] = fee;
         }
-        return tradingFees;
+        return result;
     }
 
     parseTradingFee (data, market = undefined) {
