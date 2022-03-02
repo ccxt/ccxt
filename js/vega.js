@@ -476,11 +476,20 @@ module.exports = class vega extends Exchange {
         const details = this.safeValue (asset, 'details');
         const name = this.safeString (details, 'name');
         const symbol = this.safeString (details, 'symbol');
+        const decimals = this.safeNumber (details, 'decimals');
         return {
             'id': id,
             'code': symbol,
+            'info': asset,
+            'type': undefined,
             'name': name,
-            'symbol': symbol,
+            'active': undefined,
+            'fee': undefined,
+            'precision': decimals,
+            'limits': {
+                'withdraw': { 'min': undefined, 'max': undefined },
+                'amount': { 'min': undefined, 'max': undefined },
+            },
         };
     }
 
