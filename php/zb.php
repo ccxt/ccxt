@@ -45,6 +45,7 @@ class zb extends Exchange {
                 'fetchDeposits' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
+                'fetchFundingRates' => true,
                 'fetchMarkets' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -2021,9 +2022,21 @@ class zb extends Exchange {
 
     public function parse_funding_rate($contract, $market = null) {
         //
+        // fetchFundingRate
+        //
         //     {
         //         "fundingRate" => "0.0001",
         //         "nextCalculateTime" => "2022-02-19 00:00:00"
+        //     }
+        //
+        // fetchFundingRates
+        //
+        //     {
+        //         "symbol" => "BTC_USDT",
+        //         "markPrice" => "43254.42",
+        //         "indexPrice" => "43278.61",
+        //         "lastFundingRate" => "0.0001",
+        //         "nextFundingTime" => "1646121600000"
         //     }
         //
         $marketId = $this->safe_string($contract, 'symbol');
@@ -2033,8 +2046,8 @@ class zb extends Exchange {
         return array(
             'info' => $contract,
             'symbol' => $symbol,
-            'markPrice' => null,
-            'indexPrice' => null,
+            'markPrice' => $this->safe_string($contract, 'markPrice'),
+            'indexPrice' => $this->safe_string($contract, 'indexPrice'),
             'interestRate' => null,
             'estimatedSettlePrice' => null,
             'timestamp' => null,
@@ -2045,10 +2058,33 @@ class zb extends Exchange {
             'nextFundingRate' => null,
             'nextFundingTimestamp' => $this->parse8601($nextFundingDatetime),
             'nextFundingDatetime' => $nextFundingDatetime,
-            'previousFundingRate' => null,
+            'previousFundingRate' => $this->safe_string($contract, 'lastFundingRate'),
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
         );
+    }
+
+    public function fetch_funding_rates($symbols, $params = array ()) {
+        $this->load_markets();
+        $response = $this->contractV2PublicGetPremiumIndex ($params);
+        //
+        //     {
+        //         "code" => 10000,
+        //         "data" => array(
+        //             array(
+        //                 "symbol" => "BTC_USDT",
+        //                 "markPrice" => "43254.42",
+        //                 "indexPrice" => "43278.61",
+        //                 "lastFundingRate" => "0.0001",
+        //                 "nextFundingTime" => "1646121600000"
+        //             ),
+        //         ),
+        //         "desc":"操作成功"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $result = $this->parse_funding_rates($data);
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
