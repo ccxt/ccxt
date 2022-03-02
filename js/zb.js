@@ -1415,12 +1415,44 @@ module.exports = class zb extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
         await this.loadMarkets ();
+        const market = this.market (symbol);
+        const swap = market['swap'];
         const request = {
-            'id': id.toString (),
-            'currency': this.marketId (symbol),
+            // 'currency': this.marketId (symbol), // only applicable to SPOT
+            // 'id': id.toString (), // only applicable to SPOT
+            // 'symbol': this.marketId (symbol), // only applicable to SWAP
+            // 'orderId': id.toString (), // only applicable to SWAP
+            // 'clientOrderId': params['clientOrderId'], // only applicable to SWAP
         };
-        return await this.spotV1PrivateGetCancelOrder (this.extend (request, params));
+        const marketIdField = swap ? 'symbol' : 'currency';
+        request[marketIdField] = this.marketId (symbol);
+        const orderIdField = swap ? 'orderId' : 'id';
+        request[orderIdField] = id.toString ();
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'spotV1PrivateGetCancelOrder',
+            'swap': 'contractV2PrivatePostTradeCancelOrder',
+        });
+        const response = await this[method] (this.extend (request, params));
+        //
+        // Spot
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "Success。"
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         "code": 10007,
+        //         "desc": "orderId与clientOrderId选填1个"
+        //     }
+        //
+        return this.parseOrder (response, market);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
