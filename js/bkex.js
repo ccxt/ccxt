@@ -730,7 +730,7 @@ module.exports = class bkex extends Exchange {
             request['endTime'] = endTime;
         }
         if (limit !== undefined) {
-            request['size'] = limit;
+            request['Size'] = limit; // Todo: id api-docs, 'size' is incorrectly required to be in Uppercase
         }
         const response = await this.privateGetUWalletDepositRecord (this.extend (request, params));
         //
@@ -757,6 +757,50 @@ module.exports = class bkex extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const dataInner = this.safeValue (data, 'data', []);
+        for (let i = 0; i < dataInner.length; i++) {
+            dataInner[i]['transactType'] = 'deposit';
+        }
+        return this.parseTransactions (dataInner, code, since, limit, params);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires code argument');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+            const endTime = this.milliseconds ();
+            request['endTime'] = endTime;
+        }
+        if (limit !== undefined) {
+            request['Size'] = limit; // Todo: id api-docs, 'size' is incorrectly required to be in Uppercase
+        }
+        const response = await this.privateGetUWalletWithdrawRecord (this.extend (request, params));
+        //
+        // {
+        //     "code": "0",
+        //     "data": {
+        //       "data": [
+        //         {
+        //           ...
+        //         }
+        //       ],
+        //       "total": 1
+        //     },
+        //     "msg": "success",
+        //     "status": 0
+        // }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const dataInner = this.safeValue (data, 'data', []);
+        for (let i = 0; i < dataInner.length; i++) {
+            dataInner[i]['transactType'] = 'withdrawal';
+        }
         return this.parseTransactions (dataInner, code, since, limit, params);
     }
 
@@ -780,10 +824,7 @@ module.exports = class bkex extends Exchange {
         const addressTo = this.safeValue (transaction, 'toAddress', {});
         const addressFrom = this.safeString (transaction, 'fromAddress');
         const txid = this.safeString (transaction, 'hash');
-        let type = '';
-        if (addressFrom !== undefined) {
-            type = 'deposit';
-        }
+        const type = this.safeString (transaction, 'transactType');
         const timestamp = this.safeInteger (transaction, 'createTime');
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
@@ -833,6 +874,8 @@ module.exports = class bkex extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const query = this.urlencode (params);
+            // const queryArray = query.split ('&');
+            // const sortedQuery = this.sortBy (queryArray, 0).join ('&');
             const signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha256');
             headers = {
                 'Cache-Control': 'no-cache',
