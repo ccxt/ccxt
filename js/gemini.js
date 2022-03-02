@@ -717,7 +717,7 @@ module.exports = class gemini extends Exchange {
 
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetV1Notionalvolume (params);
+        const response = await this.privatePostV1Notionalvolume (params);
         //
         //      {
         //          "web_maker_fee_bps": 25,
@@ -764,6 +764,7 @@ module.exports = class gemini extends Exchange {
                 'tierBased': true,
             };
         }
+        return result;
     }
 
     async fetchBalance (params = {}) {
