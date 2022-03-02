@@ -1423,12 +1423,44 @@ class zb extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+        }
         $this->load_markets();
+        $market = $this->market($symbol);
+        $swap = $market['swap'];
         $request = array(
-            'id' => (string) $id,
-            'currency' => $this->market_id($symbol),
+            // 'currency' => $this->market_id($symbol), // only applicable to SPOT
+            // 'id' => (string) $id, // only applicable to SPOT
+            // 'symbol' => $this->market_id($symbol), // only applicable to SWAP
+            // 'orderId' => (string) $id, // only applicable to SWAP
+            // 'clientOrderId' => $params['clientOrderId'], // only applicable to SWAP
         );
-        return $this->spotV1PrivateGetCancelOrder (array_merge($request, $params));
+        $marketIdField = $swap ? 'symbol' : 'currency';
+        $request[$marketIdField] = $this->market_id($symbol);
+        $orderIdField = $swap ? 'orderId' : 'id';
+        $request[$orderIdField] = (string) $id;
+        $method = $this->get_supported_mapping($market['type'], array(
+            'spot' => 'spotV1PrivateGetCancelOrder',
+            'swap' => 'contractV2PrivatePostTradeCancelOrder',
+        ));
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // Spot
+        //
+        //     {
+        //         "code" => 1000,
+        //         "message" => "Success。"
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         "code" => 10007,
+        //         "desc" => "orderId与clientOrderId选填1个"
+        //     }
+        //
+        return $this->parse_order($response, $market);
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {

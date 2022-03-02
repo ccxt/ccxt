@@ -1385,12 +1385,43 @@ class zb(Exchange):
         return self.parse_order(response, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
+        market = self.market(symbol)
+        swap = market['swap']
         request = {
-            'id': str(id),
-            'currency': self.market_id(symbol),
+            # 'currency': self.market_id(symbol),  # only applicable to SPOT
+            # 'id': str(id),  # only applicable to SPOT
+            # 'symbol': self.market_id(symbol),  # only applicable to SWAP
+            # 'orderId': str(id),  # only applicable to SWAP
+            # 'clientOrderId': params['clientOrderId'],  # only applicable to SWAP
         }
-        return await self.spotV1PrivateGetCancelOrder(self.extend(request, params))
+        marketIdField = 'symbol' if swap else 'currency'
+        request[marketIdField] = self.market_id(symbol)
+        orderIdField = 'orderId' if swap else 'id'
+        request[orderIdField] = str(id)
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'spotV1PrivateGetCancelOrder',
+            'swap': 'contractV2PrivatePostTradeCancelOrder',
+        })
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # Spot
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "Success。"
+        #     }
+        #
+        # Swap
+        #
+        #     {
+        #         "code": 10007,
+        #         "desc": "orderId与clientOrderId选填1个"
+        #     }
+        #
+        return self.parse_order(response, market)
 
     async def cancel_all_orders(self, symbol=None, params={}):
         if symbol is None:
