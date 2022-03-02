@@ -242,11 +242,14 @@ class Client {
     }
 
     public function on_message(Message $message) {
-        if ($this->gunzip) {
-            $message = \ccxtpro\gunzip($message);
-        } else if ($this->inflate) {
-            $message = \ccxtpro\inflate($message);
+        if (!ctype_print((string)$message)) { // only decompress if the message is a binary
+            if ($this->gunzip) {
+                $message = \ccxtpro\gunzip($message);
+            } else if ($this->inflate) {
+                $message = \ccxtpro\inflate($message);
+            }
         }
+
         try {
             $message = (string) $message;
             if ($this->verbose) {
