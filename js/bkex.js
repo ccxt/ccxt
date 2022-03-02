@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest } = require ('./base/errors');
+const { ExchangeError, BadRequest, ArgumentsRequired } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -713,6 +713,113 @@ module.exports = class bkex extends Exchange {
             'network': undefined,
             'info': data,
         };
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires code argument');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+            const endTime = this.milliseconds ();
+            request['endTime'] = endTime;
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        const response = await this.privateGetUWalletDepositRecord (this.extend (request, params));
+        //
+        // {
+        //     "code": "0",
+        //     "data": {
+        //       "data": [
+        //         {
+        //           "createTime": "1622274255000",
+        //           "currency": "BNB",
+        //           "fromAddress": "bnb10af52w77pkehgxhnwgeca50q2t2354q4xexa5y",
+        //           "hash": "97B982F497782C2777C0F6AD16CEAAC65A93A364B684A23A71CFBB8C010DEEA6",
+        //           "id": "2021052923441510234383337",
+        //           "status": "0",
+        //           "toAddress": "bnb13w64gkc42c0l45m2p5me4qn35z0a3ej9ldks3j_82784659",
+        //           "volume": 0.073
+        //         }
+        //       ],
+        //       "total": 1
+        //     },
+        //     "msg": "success",
+        //     "status": 0
+        // }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const dataInner = this.safeValue (data, 'data', []);
+        return this.parseTransactions (dataInner, code, since, limit, params);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchDeposits
+        //
+        // {
+        //   "createTime": "1622274255000",
+        //   "currency": "BNB",
+        //   "fromAddress": "bnb10af52w77pkehgxhnwgeca50q2t2354q4xexa5y",
+        //   "hash": "97B982F497782C2777C0F6AD16CEAAC65A93A364B684A23A71CFBB8C010DEEA6",
+        //   "id": "2021052923441510234383337",
+        //   "status": "0",
+        //   "toAddress": "bnb13w64gkc42c0l45m2p5me4qn35z0a3ej9ldks3j_82784659",
+        //   "volume": 0.073
+        // }
+        //
+        const id = this.safeString (transaction, 'id');
+        const amount = this.safeNumber (transaction, 'volume');
+        const addressTo = this.safeValue (transaction, 'toAddress', {});
+        const addressFrom = this.safeString (transaction, 'fromAddress');
+        const txid = this.safeString (transaction, 'hash');
+        let type = '';
+        if (addressFrom !== undefined) {
+            type = 'deposit';
+        }
+        const timestamp = this.safeInteger (transaction, 'createTime');
+        const currencyId = this.safeString (transaction, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        return {
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'network': undefined,
+            'address': addressTo,
+            'addressTo': addressTo,
+            'addressFrom': addressFrom,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'status': status,
+            'type': type,
+            'updated': undefined,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': {
+                'currency': code,
+                'cost': undefined,
+            },
+            'info': transaction,
+        };
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            '-1': 'failed',
+            '0': 'ok',
+            '3': 'pending',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
