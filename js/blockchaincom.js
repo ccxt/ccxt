@@ -567,46 +567,42 @@ module.exports = class blockchaincom extends Exchange {
         //         "timestamp":1634559249687
         //     }
         //
-        const id = this.safeString (trade, 'exOrdId');
-        const order = this.safeString (trade, 'tradeId');
+        const orderId = this.safeString (trade, 'exOrdId');
+        const tradeId = this.safeString (trade, 'tradeId');
         const side = this.safeString (trade, 'side').toLowerCase ();
         const marketId = this.safeString (trade, 'symbol');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'qty');
-        const costString = Precise.stringMul (priceString, amountString);
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (costString);
         const timestamp = this.safeInteger (trade, 'timestamp');
         const datetime = this.iso8601 (timestamp);
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'fee');
-        if (feeCost !== undefined) {
+        const feeCostString = this.safeString (trade, 'fee');
+        if (feeCostString !== undefined) {
             let feeCurrency = undefined;
             if (side === 'buy') {
                 feeCurrency = market['base'];
             } else if (side === 'sell') {
                 feeCurrency = market['quote'];
             }
-            fee = { 'cost': feeCost, 'currency': feeCurrency };
+            fee = { 'cost': feeCostString, 'currency': feeCurrency };
         }
-        return {
-            'id': id,
+        return this.safeTrade ({
+            'id': tradeId,
             'timestamp': timestamp,
             'datetime': datetime,
             'symbol': symbol,
-            'order': order,
+            'order': orderId,
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-            'info': order,
-        };
+            'info': trade,
+        }, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
