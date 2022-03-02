@@ -608,6 +608,19 @@ class poloniex(Exchange):
 
     def parse_trade(self, trade, market=None):
         #
+        # fetchTrades
+        #
+        #      {
+        #          globalTradeID: "667563407",
+        #          tradeID: "1984256",
+        #          date: "2022-03-01 20:06:06",
+        #          type: "buy",
+        #          rate: "0.13361871",
+        #          amount: "28.40841257",
+        #          total: "3.79589544",
+        #          orderNumber: "159992152911"
+        #      }
+        #
         # fetchMyTrades
         #
         #     {
@@ -646,32 +659,24 @@ class poloniex(Exchange):
         fee = None
         priceString = self.safe_string(trade, 'rate')
         amountString = self.safe_string(trade, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = None
         costString = self.safe_string(trade, 'total')
-        if costString is None:
-            costString = Precise.string_mul(priceString, amountString)
-            cost = self.parse_number(costString)
-        else:
-            cost = self.parse_number(costString)
         feeDisplay = self.safe_string(trade, 'feeDisplay')
         if feeDisplay is not None:
             parts = feeDisplay.split(' ')
-            feeCost = self.safe_number(parts, 0)
-            if feeCost is not None:
+            feeCostString = self.safe_string(parts, 0)
+            if feeCostString is not None:
                 feeCurrencyId = self.safe_string(parts, 1)
                 feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
-                feeRate = self.safe_string(parts, 2)
-                if feeRate is not None:
-                    feeRate = feeRate.replace('(', '')
-                    feeRateParts = feeRate.split('%')
-                    feeRate = self.safe_string(feeRateParts, 0)
-                    feeRate = float(feeRate) / 100
+                feeRateString = self.safe_string(parts, 2)
+                if feeRateString is not None:
+                    feeRateString = feeRateString.replace('(', '')
+                    feeRateParts = feeRateString.split('%')
+                    feeRateString = self.safe_string(feeRateParts, 0)
+                    feeRateString = Precise.string_div(feeRateString, '100')
                 fee = {
-                    'cost': feeCost,
+                    'cost': feeCostString,
                     'currency': feeCurrencyCode,
-                    'rate': feeRate,
+                    'rate': feeRateString,
                 }
         else:
             feeCostString = self.safe_string(trade, 'fee')
@@ -680,15 +685,15 @@ class poloniex(Exchange):
                 feeBase = amountString if (side == 'buy') else costString
                 feeRateString = Precise.string_div(feeCostString, feeBase)
                 fee = {
-                    'cost': self.parse_number(feeCostString),
+                    'cost': feeCostString,
                     'currency': feeCurrencyCode,
-                    'rate': self.parse_number(feeRateString),
+                    'rate': feeRateString,
                 }
         takerOrMaker = None
         takerAdjustment = self.safe_number(trade, 'takerAdjustment')
         if takerAdjustment is not None:
             takerOrMaker = 'taker'
-        return {
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -698,11 +703,11 @@ class poloniex(Exchange):
             'type': 'limit',
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()

@@ -624,6 +624,19 @@ class poloniex extends Exchange {
 
     public function parse_trade($trade, $market = null) {
         //
+        // fetchTrades
+        //
+        //      {
+        //          globalTradeID => "667563407",
+        //          tradeID => "1984256",
+        //          date => "2022-03-01 20:06:06",
+        //          type => "buy",
+        //          rate => "0.13361871",
+        //          amount => "28.40841257",
+        //          total => "3.79589544",
+        //          orderNumber => "159992152911"
+        //      }
+        //
         // fetchMyTrades
         //
         //     {
@@ -631,7 +644,7 @@ class poloniex extends Exchange {
         //       tradeID => '42582',
         //       date => '2020-06-16 09:47:50',
         //       rate => '0.000079980000',
-        //       $amount => '75215.00000000',
+        //       amount => '75215.00000000',
         //       total => '6.01569570',
         //       $fee => '0.00095000',
         //       $feeDisplay => '0.26636100 TRX (0.07125%)',
@@ -662,34 +675,25 @@ class poloniex extends Exchange {
         $fee = null;
         $priceString = $this->safe_string($trade, 'rate');
         $amountString = $this->safe_string($trade, 'amount');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = null;
         $costString = $this->safe_string($trade, 'total');
-        if ($costString === null) {
-            $costString = Precise::string_mul($priceString, $amountString);
-            $cost = $this->parse_number($costString);
-        } else {
-            $cost = $this->parse_number($costString);
-        }
         $feeDisplay = $this->safe_string($trade, 'feeDisplay');
         if ($feeDisplay !== null) {
             $parts = explode(' ', $feeDisplay);
-            $feeCost = $this->safe_number($parts, 0);
-            if ($feeCost !== null) {
+            $feeCostString = $this->safe_string($parts, 0);
+            if ($feeCostString !== null) {
                 $feeCurrencyId = $this->safe_string($parts, 1);
                 $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
-                $feeRate = $this->safe_string($parts, 2);
-                if ($feeRate !== null) {
-                    $feeRate = str_replace('(', '', $feeRate);
-                    $feeRateParts = explode('%', $feeRate);
-                    $feeRate = $this->safe_string($feeRateParts, 0);
-                    $feeRate = floatval($feeRate) / 100;
+                $feeRateString = $this->safe_string($parts, 2);
+                if ($feeRateString !== null) {
+                    $feeRateString = str_replace('(', '', $feeRateString);
+                    $feeRateParts = explode('%', $feeRateString);
+                    $feeRateString = $this->safe_string($feeRateParts, 0);
+                    $feeRateString = Precise::string_div($feeRateString, '100');
                 }
                 $fee = array(
-                    'cost' => $feeCost,
+                    'cost' => $feeCostString,
                     'currency' => $feeCurrencyCode,
-                    'rate' => $feeRate,
+                    'rate' => $feeRateString,
                 );
             }
         } else {
@@ -699,9 +703,9 @@ class poloniex extends Exchange {
                 $feeBase = ($side === 'buy') ? $amountString : $costString;
                 $feeRateString = Precise::string_div($feeCostString, $feeBase);
                 $fee = array(
-                    'cost' => $this->parse_number($feeCostString),
+                    'cost' => $feeCostString,
                     'currency' => $feeCurrencyCode,
-                    'rate' => $this->parse_number($feeRateString),
+                    'rate' => $feeRateString,
                 );
             }
         }
@@ -710,7 +714,7 @@ class poloniex extends Exchange {
         if ($takerAdjustment !== null) {
             $takerOrMaker = 'taker';
         }
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -720,11 +724,11 @@ class poloniex extends Exchange {
             'type' => 'limit',
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => $costString,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
