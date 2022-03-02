@@ -544,44 +544,40 @@ class blockchaincom(Exchange):
         #         "timestamp":1634559249687
         #     }
         #
-        id = self.safe_string(trade, 'exOrdId')
-        order = self.safe_string(trade, 'tradeId')
+        orderId = self.safe_string(trade, 'exOrdId')
+        tradeId = self.safe_string(trade, 'tradeId')
         side = self.safe_string(trade, 'side').lower()
         marketId = self.safe_string(trade, 'symbol')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'qty')
-        costString = Precise.string_mul(priceString, amountString)
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(costString)
         timestamp = self.safe_integer(trade, 'timestamp')
         datetime = self.iso8601(timestamp)
         market = self.safe_market(marketId, market, '-')
         symbol = market['symbol']
         fee = None
-        feeCost = self.safe_number(trade, 'fee')
-        if feeCost is not None:
+        feeCostString = self.safe_string(trade, 'fee')
+        if feeCostString is not None:
             feeCurrency = None
             if side == 'buy':
                 feeCurrency = market['base']
             elif side == 'sell':
                 feeCurrency = market['quote']
-            fee = {'cost': feeCost, 'currency': feeCurrency}
-        return {
-            'id': id,
+            fee = {'cost': feeCostString, 'currency': feeCurrency}
+        return self.safe_trade({
+            'id': tradeId,
             'timestamp': timestamp,
             'datetime': datetime,
             'symbol': symbol,
-            'order': order,
+            'order': orderId,
             'type': None,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-            'info': order,
-        }
+            'info': trade,
+        }, market)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()

@@ -569,46 +569,42 @@ class blockchaincom extends Exchange {
         //         "timestamp":1634559249687
         //     }
         //
-        $id = $this->safe_string($trade, 'exOrdId');
-        $order = $this->safe_string($trade, 'tradeId');
+        $orderId = $this->safe_string($trade, 'exOrdId');
+        $tradeId = $this->safe_string($trade, 'tradeId');
         $side = strtolower($this->safe_string($trade, 'side'));
         $marketId = $this->safe_string($trade, 'symbol');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'qty');
-        $costString = Precise::string_mul($priceString, $amountString);
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number($costString);
         $timestamp = $this->safe_integer($trade, 'timestamp');
         $datetime = $this->iso8601($timestamp);
         $market = $this->safe_market($marketId, $market, '-');
         $symbol = $market['symbol'];
         $fee = null;
-        $feeCost = $this->safe_number($trade, 'fee');
-        if ($feeCost !== null) {
+        $feeCostString = $this->safe_string($trade, 'fee');
+        if ($feeCostString !== null) {
             $feeCurrency = null;
             if ($side === 'buy') {
                 $feeCurrency = $market['base'];
             } else if ($side === 'sell') {
                 $feeCurrency = $market['quote'];
             }
-            $fee = array( 'cost' => $feeCost, 'currency' => $feeCurrency );
+            $fee = array( 'cost' => $feeCostString, 'currency' => $feeCurrency );
         }
-        return array(
-            'id' => $id,
+        return $this->safe_trade(array(
+            'id' => $tradeId,
             'timestamp' => $timestamp,
             'datetime' => $datetime,
             'symbol' => $symbol,
-            'order' => $order,
+            'order' => $orderId,
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-            'info' => $order,
-        );
+            'info' => $trade,
+        ), $market);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
