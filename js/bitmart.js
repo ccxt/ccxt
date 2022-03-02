@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { ArgumentsRequired, AuthenticationError } = require ('ccxt/js/base/errors');
-const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -15,6 +15,7 @@ module.exports = class bitmart extends ccxt.bitmart {
                 'ws': true,
                 'watchTicker': true,
                 'watchOrderBook': true,
+                'watchOrders': true,
                 'watchTrades': true,
                 'watchOHLCV': true,
             },
@@ -32,7 +33,7 @@ module.exports = class bitmart extends ccxt.bitmart {
                     'depth': 'depth5', // depth5, depth400
                 },
                 'ws': {
-                    'inflate': false,
+                    'inflate': true,
                 },
                 'timeframes': {
                     '1m': '1m',
@@ -72,7 +73,7 @@ module.exports = class bitmart extends ccxt.bitmart {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const url = this.implodeHostname (this.urls['api']['ws']['private']);
-        const messageHash = market['type'] + '/' + channel + ':' + market['id'];
+        const messageHash = channel + ':' + market['id'];
         await this.authenticate ();
         const request = {
             'op': 'subscribe',
@@ -103,11 +104,51 @@ module.exports = class bitmart extends ccxt.bitmart {
             throw new ArgumentsRequired (this.id + ' watchOrders supports spot markets only');
         }
         const channel = 'spot/user/order';
-        const orders = await this.subscribe (channel, symbol, params);
+        const orders = await this.subscribePrivate (channel, symbol, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    handleOrders (client, message) {
+        //
+        // {
+        //     "data":[
+        //         {
+        //             "symbol":"BTC_USDT",
+        //             "side":"buy",
+        //             "type":"market",
+        //             "notional":"",
+        //             "size":"1.0000000000",
+        //             "ms_t":"1609926028000",
+        //             "price":"46100.0000000000",s
+        //             "filled_notional":"46100.0000000000",
+        //             "filled_size":"1.0000000000",
+        //             "margin_trading":"0",
+        //             "state":"2",
+        //             "order_id":"2147857398",
+        //             "order_type":"0",
+        //             "last_fill_time":"1609926039226",
+        //             "last_fill_price":"46100.00000",
+        //             "last_fill_count":"1.00000"
+        //         }
+        //     ],
+        //     "table":"spot/user/order"
+        // }
+        //
+        const channel = this.safeString (message, 'channel');
+        const order = this.safeValue (message, 'data', {});
+        const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+        if (this.orders === undefined) {
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const stored = this.orders;
+        const symbol = this.safeString (order, 'symbol');
+        const market = this.market (symbol);
+        const parsed = this.parseWsOrder (order, market);
+        stored.append (parsed);
+        client.resolve (this.orders, channel);
     }
 
     handleTrade (client, message) {
@@ -337,9 +378,8 @@ module.exports = class bitmart extends ccxt.bitmart {
     }
 
     async authenticate (params = {}) {
-        this.options['ws']['inflate'] = false;
         this.checkRequiredCredentials ();
-        const url = this.getUrl ();
+        const url = this.implodeHostname (this.urls['api']['ws']['private']);
         const messageHash = 'login';
         const client = this.client (url);
         let future = this.safeValue (client.subscriptions, messageHash);
@@ -367,8 +407,6 @@ module.exports = class bitmart extends ccxt.bitmart {
         //
         //     {"event":"subscribe","channel":"spot/depth:BTC-USDT"}
         //
-        // const channel = this.safeString (message, 'channel');
-        // client.subscriptions[channel] = message;
         return message;
     }
 
@@ -435,6 +473,8 @@ module.exports = class bitmart extends ccxt.bitmart {
         //         ]
         //     }
         //
+        //     { data: '', table: 'spot/user/order' }
+        //
         const table = this.safeString (message, 'table');
         if (table === undefined) {
             const event = this.safeString (message, 'event');
@@ -466,6 +506,10 @@ module.exports = class bitmart extends ccxt.bitmart {
             let method = this.safeValue (methods, name);
             if (name.indexOf ('kline') >= 0) {
                 method = this.handleOHLCV;
+            }
+            const privateName = this.safeString (parts, 2);
+            if (privateName === 'order') {
+                method = this.handleOrders;
             }
             if (method === undefined) {
                 return message;
