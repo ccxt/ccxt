@@ -51,6 +51,8 @@ module.exports = class bitget extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': true,
                 'fetchWithdrawals': false,
                 'setLeverage': true,
                 'setMarginMode': true,
@@ -1332,6 +1334,84 @@ module.exports = class bitget extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicSpotGetPublicProduct (this.extend (request, params));
+        //
+        //     {
+        //         code: '00000',
+        //         msg: 'success',
+        //         requestTime: '1646255374000',
+        //         data: {
+        //           symbol: 'ethusdt_SPBL',
+        //           symbolName: null,
+        //           baseCoin: 'ETH',
+        //           quoteCoin: 'USDT',
+        //           minTradeAmount: '0',
+        //           maxTradeAmount: '0',
+        //           takerFeeRate: '0.002',
+        //           makerFeeRate: '0.002',
+        //           priceScale: '2',
+        //           quantityScale: '4',
+        //           status: 'online'
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTradingFee (data, market);
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicSpotGetPublicProducts (params);
+        //
+        //     {
+        //         code: '00000',
+        //         msg: 'success',
+        //         requestTime: '1646255662391',
+        //         data: [
+        //           {
+        //             symbol: 'ALPHAUSDT_SPBL',
+        //             symbolName: 'ALPHAUSDT',
+        //             baseCoin: 'ALPHA',
+        //             quoteCoin: 'USDT',
+        //             minTradeAmount: '2',
+        //             maxTradeAmount: '0',
+        //             takerFeeRate: '0.001',
+        //             makerFeeRate: '0.001',
+        //             priceScale: '4',
+        //             quantityScale: '4',
+        //             status: 'online'
+        //           },
+        //           ...
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const tradingFees = {};
+        for (let i = 0; i < data.length; i++) {
+            const feeInfo = data[i];
+            const fee = this.parseTradingFee (feeInfo);
+            const symbol = fee['symbol'];
+            tradingFees[symbol] = fee;
+        }
+        return tradingFees;
+    }
+
+    parseTradingFee (data, market = undefined) {
+        const marketId = this.safeString (data, 'symbol');
+        return {
+            'info': data,
+            'symbol': this.safeSymbol (marketId, market),
+            'maker': this.safeNumber (data, 'makerFeeRate'),
+            'taker': this.safeNumber (data, 'takerFeeRate'),
+        };
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m') {
