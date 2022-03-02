@@ -2595,7 +2595,7 @@ class gateio(Exchange):
         multipleFeeCurrencies = numFeeCurrencies > 1
         status = self.parse_order_status(rawStatus)
         return self.safe_order({
-            'id': self.safe_number(order, 'id'),
+            'id': self.safe_string(order, 'id'),
             'clientOrderId': self.safe_string(order, 'text'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

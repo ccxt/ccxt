@@ -1344,6 +1344,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 1
      
    * - UK
+     - .. image:: https://user-images.githubusercontent.com/1294454/155840500-1ea4fdf0-47c0-4daa-9597-c6c1cd51b9ec.jpg
+          :target: https://www.lykke.com
+          :alt: lykke2
+     
+     - lykke2
+     - `Lykke <https://www.lykke.com>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://hft-apiv2.lykke.com/swagger/ui/index.html
+          :alt: API Version 2
+     
+   * - UK
      - .. image:: https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg
           :target: https://tidex.com/exchange/?ref=57f5638d9cd7
           :alt: tidex

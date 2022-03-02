@@ -18,7 +18,7 @@ class blockchaincom extends Exchange {
             'secret' => null,
             'name' => 'Blockchain.com',
             'countries' => array( 'LX' ),
-            'rateLimit' => 1000,
+            'rateLimit' => 500, // prev 1000
             'version' => 'v3',
             'has' => array(
                 'CORS' => false,
@@ -82,38 +82,38 @@ class blockchaincom extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'tickers', // fetchTickers
-                        'tickers/{symbol}', // fetchTicker
-                        'symbols', // fetchMarkets
-                        'symbols/{symbol}', // fetchMarket
-                        'l2/{symbol}', // fetchL2OrderBook
-                        'l3/{symbol}', // fetchL3OrderBook
+                        'tickers' => 1, // fetchTickers
+                        'tickers/{symbol}' => 1, // fetchTicker
+                        'symbols' => 1, // fetchMarkets
+                        'symbols/{symbol}' => 1, // fetchMarket
+                        'l2/{symbol}' => 1, // fetchL2OrderBook
+                        'l3/{symbol}' => 1, // fetchL3OrderBook
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'fees', // fetchFees
-                        'orders', // fetchOpenOrders, fetchClosedOrders
-                        'orders/{orderId}', // fetchOrder(id)
-                        'trades',
-                        'fills', // fetchMyTrades
-                        'deposits', // fetchDeposits
-                        'deposits/{depositId}', // fetchDeposit
-                        'accounts', // fetchBalance
-                        'accounts/{account}/{currency}',
-                        'whitelist', // fetchWithdrawalWhitelist
-                        'whitelist/{currency}', // fetchWithdrawalWhitelistByCurrency
-                        'withdrawals', // fetchWithdrawalWhitelist
-                        'withdrawals/{withdrawalId}', // fetchWithdrawalById
+                        'fees' => 1, // fetchFees
+                        'orders' => 1, // fetchOpenOrders, fetchClosedOrders
+                        'orders/{orderId}' => 1, // fetchOrder(id)
+                        'trades' => 1,
+                        'fills' => 1, // fetchMyTrades
+                        'deposits' => 1, // fetchDeposits
+                        'deposits/{depositId}' => 1, // fetchDeposit
+                        'accounts' => 1, // fetchBalance
+                        'accounts/{account}/{currency}' => 1,
+                        'whitelist' => 1, // fetchWithdrawalWhitelist
+                        'whitelist/{currency}' => 1, // fetchWithdrawalWhitelistByCurrency
+                        'withdrawals' => 1, // fetchWithdrawalWhitelist
+                        'withdrawals/{withdrawalId}' => 1, // fetchWithdrawalById
                     ),
                     'post' => array(
-                        'orders', // createOrder
-                        'deposits/{currency}', // fetchDepositAddress by currency (only crypto supported)
-                        'withdrawals', // withdraw
+                        'orders' => 1, // createOrder
+                        'deposits/{currency}' => 1, // fetchDepositAddress by currency (only crypto supported)
+                        'withdrawals' => 1, // withdraw
                     ),
                     'delete' => array(
-                        'orders', // cancelOrders
-                        'orders/{orderId}', // cancelOrder
+                        'orders' => 1, // cancelOrders
+                        'orders/{orderId}' => 1, // cancelOrder
                     ),
                 ),
             ),
@@ -570,46 +570,42 @@ class blockchaincom extends Exchange {
         //         "timestamp":1634559249687
         //     }
         //
-        $id = $this->safe_string($trade, 'exOrdId');
-        $order = $this->safe_string($trade, 'tradeId');
+        $orderId = $this->safe_string($trade, 'exOrdId');
+        $tradeId = $this->safe_string($trade, 'tradeId');
         $side = strtolower($this->safe_string($trade, 'side'));
         $marketId = $this->safe_string($trade, 'symbol');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'qty');
-        $costString = Precise::string_mul($priceString, $amountString);
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number($costString);
         $timestamp = $this->safe_integer($trade, 'timestamp');
         $datetime = $this->iso8601($timestamp);
         $market = $this->safe_market($marketId, $market, '-');
         $symbol = $market['symbol'];
         $fee = null;
-        $feeCost = $this->safe_number($trade, 'fee');
-        if ($feeCost !== null) {
+        $feeCostString = $this->safe_string($trade, 'fee');
+        if ($feeCostString !== null) {
             $feeCurrency = null;
             if ($side === 'buy') {
                 $feeCurrency = $market['base'];
             } else if ($side === 'sell') {
                 $feeCurrency = $market['quote'];
             }
-            $fee = array( 'cost' => $feeCost, 'currency' => $feeCurrency );
+            $fee = array( 'cost' => $feeCostString, 'currency' => $feeCurrency );
         }
-        return array(
-            'id' => $id,
+        return $this->safe_trade(array(
+            'id' => $tradeId,
             'timestamp' => $timestamp,
             'datetime' => $datetime,
             'symbol' => $symbol,
-            'order' => $order,
+            'order' => $orderId,
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-            'info' => $order,
-        );
+            'info' => $trade,
+        ), $market);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {

@@ -51,7 +51,7 @@ Exchanges
 
 
 
-The CCXT library currently supports the following 113 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 114 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -1175,6 +1175,18 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://hft-api.lykke.com/swagger/ui/
           :alt: API Version 1
+     
+     - 
+     - 
+   * - .. image:: https://user-images.githubusercontent.com/1294454/155840500-1ea4fdf0-47c0-4daa-9597-c6c1cd51b9ec.jpg
+          :target: https://www.lykke.com
+          :alt: lykke2
+     
+     - lykke2
+     - `Lykke <https://www.lykke.com>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://hft-apiv2.lykke.com/swagger/ui/index.html
+          :alt: API Version 2
      
      - 
      - 
@@ -4767,7 +4779,7 @@ Most of methods returning orders within ccxt unified API will usually yield an o
        'datetime':          '2017-08-17 12:42:48.000', // ISO8601 datetime of 'timestamp' with milliseconds
        'timestamp':          1502962946216, // order placing/opening Unix timestamp in milliseconds
        'lastTradeTimestamp': 1502962956216, // Unix timestamp of the most recent trade on this order
-       'status':      'open',        // 'open', 'closed', 'canceled', 'expired'
+       'status':      'open',        // 'open', 'closed', 'canceled', 'expired', 'rejected'
        'symbol':      'ETH/BTC',     // symbol
        'type':        'limit',       // 'market', 'limit'
        'timeInForce': 'GTC',         // 'GTC', 'IOC', 'FOK', 'PO'

@@ -58,6 +58,7 @@ class zb(Exchange):
                 'fetchDeposits': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
+                'fetchFundingRates': True,
                 'fetchMarkets': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -1938,9 +1939,21 @@ class zb(Exchange):
 
     def parse_funding_rate(self, contract, market=None):
         #
+        # fetchFundingRate
+        #
         #     {
         #         "fundingRate": "0.0001",
         #         "nextCalculateTime": "2022-02-19 00:00:00"
+        #     }
+        #
+        # fetchFundingRates
+        #
+        #     {
+        #         "symbol": "BTC_USDT",
+        #         "markPrice": "43254.42",
+        #         "indexPrice": "43278.61",
+        #         "lastFundingRate": "0.0001",
+        #         "nextFundingTime": "1646121600000"
         #     }
         #
         marketId = self.safe_string(contract, 'symbol')
@@ -1950,8 +1963,8 @@ class zb(Exchange):
         return {
             'info': contract,
             'symbol': symbol,
-            'markPrice': None,
-            'indexPrice': None,
+            'markPrice': self.safe_string(contract, 'markPrice'),
+            'indexPrice': self.safe_string(contract, 'indexPrice'),
             'interestRate': None,
             'estimatedSettlePrice': None,
             'timestamp': None,
@@ -1962,10 +1975,32 @@ class zb(Exchange):
             'nextFundingRate': None,
             'nextFundingTimestamp': self.parse8601(nextFundingDatetime),
             'nextFundingDatetime': nextFundingDatetime,
-            'previousFundingRate': None,
+            'previousFundingRate': self.safe_string(contract, 'lastFundingRate'),
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
         }
+
+    async def fetch_funding_rates(self, symbols, params={}):
+        await self.load_markets()
+        response = await self.contractV2PublicGetPremiumIndex(params)
+        #
+        #     {
+        #         "code": 10000,
+        #         "data": [
+        #             {
+        #                 "symbol": "BTC_USDT",
+        #                 "markPrice": "43254.42",
+        #                 "indexPrice": "43278.61",
+        #                 "lastFundingRate": "0.0001",
+        #                 "nextFundingTime": "1646121600000"
+        #             },
+        #         ],
+        #         "desc":"操作成功"
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        result = self.parse_funding_rates(data)
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)

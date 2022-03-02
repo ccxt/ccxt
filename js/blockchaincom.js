@@ -15,7 +15,7 @@ module.exports = class blockchaincom extends Exchange {
             'secret': undefined,
             'name': 'Blockchain.com',
             'countries': [ 'LX' ],
-            'rateLimit': 1000,
+            'rateLimit': 500, // prev 1000
             'version': 'v3',
             'has': {
                 'CORS': false,
@@ -78,40 +78,40 @@ module.exports = class blockchaincom extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'tickers', // fetchTickers
-                        'tickers/{symbol}', // fetchTicker
-                        'symbols', // fetchMarkets
-                        'symbols/{symbol}', // fetchMarket
-                        'l2/{symbol}', // fetchL2OrderBook
-                        'l3/{symbol}', // fetchL3OrderBook
-                    ],
+                    'get': {
+                        'tickers': 1, // fetchTickers
+                        'tickers/{symbol}': 1, // fetchTicker
+                        'symbols': 1, // fetchMarkets
+                        'symbols/{symbol}': 1, // fetchMarket
+                        'l2/{symbol}': 1, // fetchL2OrderBook
+                        'l3/{symbol}': 1, // fetchL3OrderBook
+                    },
                 },
                 'private': {
-                    'get': [
-                        'fees', // fetchFees
-                        'orders', // fetchOpenOrders, fetchClosedOrders
-                        'orders/{orderId}', // fetchOrder(id)
-                        'trades',
-                        'fills', // fetchMyTrades
-                        'deposits', // fetchDeposits
-                        'deposits/{depositId}', // fetchDeposit
-                        'accounts', // fetchBalance
-                        'accounts/{account}/{currency}',
-                        'whitelist', // fetchWithdrawalWhitelist
-                        'whitelist/{currency}', // fetchWithdrawalWhitelistByCurrency
-                        'withdrawals', // fetchWithdrawalWhitelist
-                        'withdrawals/{withdrawalId}', // fetchWithdrawalById
-                    ],
-                    'post': [
-                        'orders', // createOrder
-                        'deposits/{currency}', // fetchDepositAddress by currency (only crypto supported)
-                        'withdrawals', // withdraw
-                    ],
-                    'delete': [
-                        'orders', // cancelOrders
-                        'orders/{orderId}', // cancelOrder
-                    ],
+                    'get': {
+                        'fees': 1, // fetchFees
+                        'orders': 1, // fetchOpenOrders, fetchClosedOrders
+                        'orders/{orderId}': 1, // fetchOrder(id)
+                        'trades': 1,
+                        'fills': 1, // fetchMyTrades
+                        'deposits': 1, // fetchDeposits
+                        'deposits/{depositId}': 1, // fetchDeposit
+                        'accounts': 1, // fetchBalance
+                        'accounts/{account}/{currency}': 1,
+                        'whitelist': 1, // fetchWithdrawalWhitelist
+                        'whitelist/{currency}': 1, // fetchWithdrawalWhitelistByCurrency
+                        'withdrawals': 1, // fetchWithdrawalWhitelist
+                        'withdrawals/{withdrawalId}': 1, // fetchWithdrawalById
+                    },
+                    'post': {
+                        'orders': 1, // createOrder
+                        'deposits/{currency}': 1, // fetchDepositAddress by currency (only crypto supported)
+                        'withdrawals': 1, // withdraw
+                    },
+                    'delete': {
+                        'orders': 1, // cancelOrders
+                        'orders/{orderId}': 1, // cancelOrder
+                    },
                 },
             },
             'fees': {
@@ -573,46 +573,42 @@ module.exports = class blockchaincom extends Exchange {
         //         "timestamp":1634559249687
         //     }
         //
-        const id = this.safeString (trade, 'exOrdId');
-        const order = this.safeString (trade, 'tradeId');
+        const orderId = this.safeString (trade, 'exOrdId');
+        const tradeId = this.safeString (trade, 'tradeId');
         const side = this.safeString (trade, 'side').toLowerCase ();
         const marketId = this.safeString (trade, 'symbol');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'qty');
-        const costString = Precise.stringMul (priceString, amountString);
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (costString);
         const timestamp = this.safeInteger (trade, 'timestamp');
         const datetime = this.iso8601 (timestamp);
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'fee');
-        if (feeCost !== undefined) {
+        const feeCostString = this.safeString (trade, 'fee');
+        if (feeCostString !== undefined) {
             let feeCurrency = undefined;
             if (side === 'buy') {
                 feeCurrency = market['base'];
             } else if (side === 'sell') {
                 feeCurrency = market['quote'];
             }
-            fee = { 'cost': feeCost, 'currency': feeCurrency };
+            fee = { 'cost': feeCostString, 'currency': feeCurrency };
         }
-        return {
-            'id': id,
+        return this.safeTrade ({
+            'id': tradeId,
             'timestamp': timestamp,
             'datetime': datetime,
             'symbol': symbol,
-            'order': order,
+            'order': orderId,
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-            'info': order,
-        };
+            'info': trade,
+        }, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
