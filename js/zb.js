@@ -1475,11 +1475,26 @@ module.exports = class zb extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
+        const market = this.market (symbol);
+        const swap = market['swap'];
         const request = {
-            'id': id.toString (),
-            'currency': this.marketId (symbol),
+            // 'currency': this.marketId (symbol), // only applicable to SPOT
+            // 'id': id.toString (), // only applicable to SPOT
+            // 'symbol': this.marketId (symbol), // only applicable to SWAP
+            // 'orderId': id.toString (), // only applicable to SWAP
+            // 'clientOrderId': params['clientOrderId'], // only applicable to SWAP
         };
-        const response = await this.spotV1PrivateGetGetOrder (this.extend (request, params));
+        const marketIdField = swap ? 'symbol' : 'currency';
+        request[marketIdField] = this.marketId (symbol);
+        const orderIdField = swap ? 'orderId' : 'id';
+        request[orderIdField] = id.toString ();
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'spotV1PrivateGetGetOrder',
+            'swap': 'contractV2PrivateGetTradeGetOrder',
+        });
+        let response = await this[method] (this.extend (request, params));
+        //
+        // Spot
         //
         //     {
         //         'total_amount': 0.01,
@@ -1493,7 +1508,44 @@ module.exports = class zb extends Exchange {
         //         'currency': 'eth_usdt'
         //     }
         //
-        return this.parseOrder (response, undefined);
+        // Swap
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": {
+        //             "action": 1,
+        //             "amount": "0.002",
+        //             "availableAmount": "0.002",
+        //             "availableValue": "60",
+        //             "avgPrice": "0",
+        //             "canCancel": true,
+        //             "cancelStatus": 20,
+        //             "createTime": "1646185684379",
+        //             "entrustType": 1,
+        //             "id": "6904603200733782016",
+        //             "leverage": 2,
+        //             "margin": "30",
+        //             "marketId": "100",
+        //             "modifyTime": "1646185684416",
+        //             "price": "30000",
+        //             "priority": 0,
+        //             "showStatus": 1,
+        //             "side": 1,
+        //             "sourceType": 4,
+        //             "status": 12,
+        //             "tradeAmount": "0",
+        //             "tradeValue": "0",
+        //             "type": 1,
+        //             "userId": "6896693805014120448",
+        //             "value": "60"
+        //         },
+        //         "desc":"操作成功"
+        //     }
+        //
+        if (swap) {
+            response = this.safeValue (response, 'data', {});
+        }
+        return this.parseOrder (response, market);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1751,6 +1803,36 @@ module.exports = class zb extends Exchange {
         //         useZbFee: false
         //     },
         //
+        // fetchOrder Swap
+        //
+        //     {
+        //         "action": 1,
+        //         "amount": "0.002",
+        //         "availableAmount": "0.002",
+        //         "availableValue": "60",
+        //         "avgPrice": "0",
+        //         "canCancel": true,
+        //         "cancelStatus": 20,
+        //         "createTime": "1646185684379",
+        //         "entrustType": 1,
+        //         "id": "6904603200733782016",
+        //         "leverage": 2,
+        //         "margin": "30",
+        //         "marketId": "100",
+        //         "modifyTime": "1646185684416",
+        //         "price": "30000",
+        //         "priority": 0,
+        //         "showStatus": 1,
+        //         "side": 1,
+        //         "sourceType": 4,
+        //         "status": 12,
+        //         "tradeAmount": "0",
+        //         "tradeValue": "0",
+        //         "type": 1,
+        //         "userId": "6896693805014120448",
+        //         "value": "60"
+        //     },
+        //
         // Spot
         //
         //     {
@@ -1772,19 +1854,28 @@ module.exports = class zb extends Exchange {
         //         price: 30000
         //     }
         //
-        const orderId = market['swap'] ? this.safeValue (order, 'orderId') : this.safeValue (order, 'id');
+        let orderId = market['swap'] ? this.safeValue (order, 'orderId') : this.safeValue (order, 'id');
+        if (orderId === undefined) {
+            orderId = this.safeValue (order, 'id');
+        }
         let side = this.safeInteger (order, 'type');
         if (side === undefined) {
             side = undefined;
         } else {
             side = (side === 1) ? 'buy' : 'sell';
         }
-        const timestamp = this.safeInteger (order, 'trade_date');
+        let timestamp = this.safeInteger (order, 'trade_date');
+        if (timestamp === undefined) {
+            timestamp = this.safeInteger (order, 'createTime');
+        }
         const marketId = this.safeString (order, 'currency');
         market = this.safeMarket (marketId, market, '_');
         const price = this.safeString (order, 'price');
-        const filled = this.safeString (order, 'trade_amount');
-        const amount = this.safeString (order, 'total_amount');
+        const filled = market['swap'] ? this.safeString (order, 'tradeAmount') : this.safeString (order, 'trade_amount');
+        let amount = this.safeString (order, 'total_amount');
+        if (amount === undefined) {
+            amount = this.safeString (order, 'amount');
+        }
         const cost = this.safeString (order, 'trade_money');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const timeInForce = this.safeString (order, 'timeInForce');
@@ -1807,7 +1898,7 @@ module.exports = class zb extends Exchange {
         return this.safeOrder ({
             'info': order,
             'id': orderId,
-            'clientOrderId': undefined,
+            'clientOrderId': this.safeString (order, 'userId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -1818,7 +1909,7 @@ module.exports = class zb extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
-            'average': undefined,
+            'average': this.safeString (order, 'avgPrice'),
             'cost': cost,
             'amount': amount,
             'filled': filled,
