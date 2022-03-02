@@ -458,6 +458,11 @@ module.exports = class blockchaincom extends Exchange {
             'clOrdId': clientOrderId,
         };
         params = this.omit (params, [ 'clientOrderId', 'clOrdId' ]);
+        let priceIsRequired = false;
+        const stopPriceIsRequired = false;
+        if (type === 'limit') {
+            priceIsRequired = true;
+        }
         const stopPrice = this.safeValue2 (params, 'stopPx', 'stopPrice');
         if (stopPrice !== undefined) {
             request['stopPx'] = this.priceToPrecision (symbol, stopPrice);
@@ -468,6 +473,44 @@ module.exports = class blockchaincom extends Exchange {
                 request['ordType'] = 'STOP';
             }
             params = this.omit (params, [ 'price', 'stopPx', 'stopPrice' ]);
+        }
+        const response = await this.privatePostOrders (this.extend (request, params));
+        return this.parseOrder (response, market);
+    }
+
+    async createOrder2 (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const orderType = this.safeString (params, 'ordType', type);
+        const uppercaseOrderType = orderType.toUpperCase ();
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clOrdId', this.uuid16 ());
+        params = this.omit (params, [ 'ordType', 'clientOrderId', 'clOrdId' ]);
+        const request = {
+            // 'stopPx' : limit price
+            // 'timeInForce' : "GTC" for Good Till Cancel, "IOC" for Immediate or Cancel, "FOK" for Fill or Kill, "GTD" Good Till Date
+            // 'expireDate' : expiry date in the format YYYYMMDD
+            // 'minQty' : The minimum quantity required for an IOC fill
+            'ordType': uppercaseOrderType,
+            'symbol': market['id'],
+            'side': side.toUpperCase (),
+            'orderQty': this.amountToPrecision (symbol, amount),
+            'clOrdId': clientOrderId,
+        };
+        const stopPrice = this.safeValue2 (params, 'stopPx', 'stopPrice');
+        params = this.omit (params, [ 'stopPx', 'stopPrice' ]);
+        let priceRequired = false;
+        let stopPriceRequired = false;
+        if (uppercaseOrderType === 'LIMIT' || uppercaseOrderType === 'STOPLIMIT') {
+            priceRequired = true;
+        }
+        if (uppercaseOrderType === 'STOP' || uppercaseOrderType === 'STOPLIMIT') {
+            stopPriceRequired = true;
+        }
+        if (priceRequired) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        if (stopPriceRequired) {
+            request['stopPx'] = this.priceToPrecision (symbol, stopPrice);
         }
         const response = await this.privatePostOrders (this.extend (request, params));
         return this.parseOrder (response, market);
