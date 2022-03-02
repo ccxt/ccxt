@@ -2460,7 +2460,7 @@ module.exports = class zb extends Exchange {
             const entry = list[i];
             const fundingType = this.safeNumber (entry, 'type');
             const timestamp = this.safeString (entry, 'createTime');
-            if (fundingType === 3 || fundingType === 4 ) {
+            if (fundingType === 3 || fundingType === 4) {
                 result.push ({
                     'info': entry,
                     'symbol': this.safeSymbol (this.safeString (entry, 'symbol')),
