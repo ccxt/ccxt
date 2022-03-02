@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -431,26 +432,43 @@ class blockchaincom(Exchange):
         return result
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
-        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clOrdId', self.uuid16())
         self.load_markets()
         market = self.market(symbol)
+        orderType = self.safe_string(params, 'ordType', type)
+        uppercaseOrderType = orderType.upper()
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clOrdId', self.uuid16())
+        params = self.omit(params, ['ordType', 'clientOrderId', 'clOrdId'])
         request = {
             # 'stopPx' : limit price
             # 'timeInForce' : "GTC" for Good Till Cancel, "IOC" for Immediate or Cancel, "FOK" for Fill or Kill, "GTD" Good Till Date
             # 'expireDate' : expiry date in the format YYYYMMDD
             # 'minQty' : The minimum quantity required for an IOC fill
+            'ordType': uppercaseOrderType,
             'symbol': market['id'],
             'side': side.upper(),
             'orderQty': self.amount_to_precision(symbol, amount),
-            'ordType': type.upper(),  # LIMIT, MARKET, STOP, STOPLIMIT
             'clOrdId': clientOrderId,
         }
-        params = self.omit(params, ['clientOrderId', 'clOrdId'])
-        if request['ordType'] == 'LIMIT':
+        stopPrice = self.safe_value_2(params, 'stopPx', 'stopPrice')
+        params = self.omit(params, ['stopPx', 'stopPrice'])
+        if uppercaseOrderType == 'STOP' or uppercaseOrderType == 'LIMIT':
+            if stopPrice is None:
+                raise ArgumentsRequired(self.id + ' createOrder() requires a stopPx or stopPrice param for a ' + uppercaseOrderType + ' order')
+        if stopPrice is not None:
+            if uppercaseOrderType == 'MARKET':
+                request['ordType'] = 'STOP'
+            elif uppercaseOrderType == 'LIMIT':
+                request['ordType'] = 'STOPLIMIT'
+        priceRequired = False
+        stopPriceRequired = False
+        if request['ordType'] == 'LIMIT' or request['ordType'] == 'STOPLIMIT':
+            priceRequired = True
+        if request['ordType'] == 'STOP' or request['ordType'] == 'STOPLIMIT':
+            stopPriceRequired = True
+        if priceRequired:
             request['price'] = self.price_to_precision(symbol, price)
-        if request['ordType'] == 'STOPLIMIT':
-            request['price'] = self.price_to_precision(symbol, price)
-            request['stopPx'] = self.price_to_precision(symbol, price)
+        if stopPriceRequired:
+            request['stopPx'] = self.price_to_precision(symbol, stopPrice)
         response = self.privatePostOrders(self.extend(request, params))
         return self.parse_order(response, market)
 
