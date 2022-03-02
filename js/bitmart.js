@@ -147,9 +147,8 @@ module.exports = class bitmart extends ccxt.bitmart {
             }
             const stored = this.orders;
             const marketIds = [];
-            const parsed = this.parseOrders (orders);
-            for (let i = 0; i < parsed.length; i++) {
-                const order = parsed[i];
+            for (let i = 0; i < orders.length; i++) {
+                const order = this.parseWsOrder (orders[i]);
                 stored.append (order);
                 const symbol = order['symbol'];
                 const market = this.market (symbol);
