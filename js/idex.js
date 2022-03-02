@@ -523,9 +523,9 @@ module.exports = class idex extends Exchange {
     async fetchTradingFees (params = {}) {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
-        const nonce1 = this.uuidv1 ();
+        const nonce = this.uuidv1 ();
         const request = {
-            'nonce': nonce1,
+            'nonce': nonce,
         };
         let response = undefined;
         response = await this.privateGetUser (this.extend (request, params));
