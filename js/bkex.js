@@ -569,18 +569,26 @@ module.exports = class bkex extends Exchange {
         const timestamp = this.safeTimestamp (trade, 'ts');
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
-        const id = this.safeString (trade, 'tid');
+        const side = this.parseOrderSide (this.safeString (trade, 'side'));
+        const amount = this.safeNumber (trade, 'volume');
+        const price = this.safeNumber (trade, 'price');
+        const type = undefined;
+        const takerOrMaker = undefined;
+        let id = this.safeString (trade, 'tid');
+        if (id === undefined) {
+            id = this.syntheticTradeId (market, timestamp, side, amount, price, type, takerOrMaker);
+        }
         return this.safeTrade ({
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'order': undefined,
-            'type': undefined,
-            'side': this.parseOrderSide (this.safeString (trade, 'side')),
-            'takerOrMaker': undefined,
-            'price': this.safeNumber (trade, 'price'),
-            'amount': this.safeString (trade, 'volume'),
+            'type': type,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': price,
+            'amount': amount,
             'cost': undefined,
             'fee': undefined,
             'info': trade,
@@ -593,6 +601,71 @@ module.exports = class bkex extends Exchange {
             'S': 'sell',
         };
         return this.safeString (sides, side, side);
+    }
+
+    syntheticTradeId (market = undefined, timestamp = undefined, side = undefined, amount = undefined, price = undefined, orderType = undefined, takerOrMaker = undefined) {
+        // TODO: can be unified method? this approach is being used by multiple exchanges (mexc, woo-coinsbit, dydx, ...)
+        let id = '';
+        if (timestamp !== undefined) {
+            id = this.numberToString (timestamp) + '-' + this.safeString (market, 'id', '_');
+            if (side !== undefined) {
+                id += '-' + side;
+            }
+            if (orderType !== undefined) {
+                id += '-' + orderType;
+            }
+            if (takerOrMaker !== undefined) {
+                id += '-' + takerOrMaker;
+            }
+            if (amount !== undefined) {
+                id += '-' + this.numberToString (amount);
+            }
+            if (price !== undefined) {
+                id += '-' + this.numberToString (price);
+            }
+        }
+        return id;
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const query = this.omit (params, 'type');
+        const response = await this.privateGetUAccountBalance (query);
+        // {
+        //     "code": "0",
+        //     "data": {
+        //       "WALLET": [
+        //         {
+        //           "available": "0.221212121000000000",
+        //           "currency": "PHX",
+        //           "frozen": "0E-18",
+        //           "total": 0.221212121
+        //         },
+        //         {
+        //           "available": "44.959577229600000000",
+        //           "currency": "USDT",
+        //           "frozen": "0E-18",
+        //           "total": 44.9595772296
+        //         }
+        //       ]
+        //     },
+        //     "msg": "success",
+        //     "status": 0
+        // }
+        const balances = this.safeValue (response, 'data');
+        const wallets = this.safeValue (balances, 'WALLET');
+        const result = { 'info': wallets };
+        for (let i = 0; i < wallets.length; i++) {
+            const wallet = wallets[i];
+            const currencyId = wallet['currency'];
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeNumber (wallet, 'available');
+            account['used'] = this.safeNumber (wallet, 'frozen');
+            account['total'] = this.safeNumber (wallet, 'total');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
