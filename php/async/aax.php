@@ -23,7 +23,6 @@ class aax extends Exchange {
             'rateLimit' => 500,
             'version' => 'v2',
             'hostname' => 'aaxpro.com', // aax.com
-            'certified' => true,
             'pro' => true,
             'has' => array(
                 'CORS' => null,
