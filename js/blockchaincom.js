@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, ArgumentsRequired } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -441,44 +441,6 @@ module.exports = class blockchaincom extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clOrdId', this.uuid16 ());
-        await this.loadMarkets ();
-        const orderType = this.safeString (params, 'ordType', type);
-        const uppercaseOrderType = orderType.toUpperCase ();
-        const market = this.market (symbol);
-        const request = {
-            // 'stopPx' : limit price
-            // 'timeInForce' : "GTC" for Good Till Cancel, "IOC" for Immediate or Cancel, "FOK" for Fill or Kill, "GTD" Good Till Date
-            // 'expireDate' : expiry date in the format YYYYMMDD
-            // 'minQty' : The minimum quantity required for an IOC fill
-            'symbol': market['id'],
-            'side': side.toUpperCase (),
-            'orderQty': this.amountToPrecision (symbol, amount),
-            'ordType': uppercaseOrderType, // LIMIT, MARKET, STOP, STOPLIMIT
-            'clOrdId': clientOrderId,
-        };
-        params = this.omit (params, [ 'clientOrderId', 'clOrdId' ]);
-        let priceIsRequired = false;
-        const stopPriceIsRequired = false;
-        if (type === 'limit') {
-            priceIsRequired = true;
-        }
-        const stopPrice = this.safeValue2 (params, 'stopPx', 'stopPrice');
-        if (stopPrice !== undefined) {
-            request['stopPx'] = this.priceToPrecision (symbol, stopPrice);
-            if (type === 'limit') {
-                request['price'] = this.priceToPrecision (symbol, price);
-                request['ordType'] = 'STOPLIMIT';
-            } else if (type === 'market') {
-                request['ordType'] = 'STOP';
-            }
-            params = this.omit (params, [ 'price', 'stopPx', 'stopPrice' ]);
-        }
-        const response = await this.privatePostOrders (this.extend (request, params));
-        return this.parseOrder (response, market);
-    }
-
-    async createOrder2 (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const orderType = this.safeString (params, 'ordType', type);
@@ -498,12 +460,24 @@ module.exports = class blockchaincom extends Exchange {
         };
         const stopPrice = this.safeValue2 (params, 'stopPx', 'stopPrice');
         params = this.omit (params, [ 'stopPx', 'stopPrice' ]);
+        if (uppercaseOrderType === 'STOP' || uppercaseOrderType === 'LIMIT') {
+            if (stopPrice === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPx or stopPrice param for a ' + uppercaseOrderType + ' order');
+            }
+        }
+        if (stopPrice !== undefined) {
+            if (uppercaseOrderType === 'MARKET') {
+                request['ordType'] = 'STOP';
+            } else if (uppercaseOrderType === 'LIMIT') {
+                request['ordType'] = 'STOPLIMIT';
+            }
+        }
         let priceRequired = false;
         let stopPriceRequired = false;
-        if (uppercaseOrderType === 'LIMIT' || uppercaseOrderType === 'STOPLIMIT') {
+        if (request['ordType'] === 'LIMIT' || request['ordType'] === 'STOPLIMIT') {
             priceRequired = true;
         }
-        if (uppercaseOrderType === 'STOP' || uppercaseOrderType === 'STOPLIMIT') {
+        if (request['ordType'] === 'STOP' || request['ordType'] === 'STOPLIMIT') {
             stopPriceRequired = true;
         }
         if (priceRequired) {
