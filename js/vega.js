@@ -433,10 +433,28 @@ module.exports = class vega extends Exchange {
             'symbol': symbol,
             'base': base,
             'quote': quote,
-            'taker': 0.0011,
-            'maker': 0.0009,
-            'decimalPlaces': decimalPlaces,
-            'baseId': 'USD',
+            // 'taker': 0.0011,
+            // 'maker': 0.0009,
+            // 'decimalPlaces': decimalPlaces,
+            'baseId': base,
+            'quoteId': quote,
+            'active': true,
+            'precision': decimalPlaces,
+            'limits': {
+                // 'amount': {
+                //     'min': Math.pow (10, -precision['amount']),
+                //     'max': undefined,
+                // },
+                // 'price': {
+                //     'min': Math.pow (10, -precision['price']),
+                //     'max': undefined,
+                // },
+                // 'cost': {
+                //     'min': undefined,
+                //     'max': undefined,
+                // },
+            },
+            'info': market,
         };
     }
 
