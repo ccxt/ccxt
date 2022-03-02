@@ -2450,7 +2450,7 @@ module.exports = class zb extends Exchange {
 
     async modifyMarginHelper (symbol, amount, type, params = {}) {
         if (params['positionsId'] === undefined) {
-            throw new ArgumentsRequired (this.id + ' addMargin() requires a positionsId argument in the params');
+            throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a positionsId argument in the params');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
