@@ -34,7 +34,7 @@ module.exports = class bkex extends Exchange {
                 'deposit': undefined,
                 'editOrder': undefined,
                 'fetchAccounts': undefined,
-                'fetchBalance': undefined,
+                'fetchBalance': true,
                 'fetchBidsAsks': undefined,
                 'fetchBorrowRate': undefined,
                 'fetchBorrowRateHistory': undefined,
@@ -68,7 +68,7 @@ module.exports = class bkex extends Exchange {
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': undefined,
                 'fetchOrder': undefined,
-                'fetchOrderBook': undefined,
+                'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
                 'fetchOrders': undefined,
                 'fetchOrderTrades': undefined,
@@ -80,7 +80,7 @@ module.exports = class bkex extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
-                'fetchTrades': undefined,
+                'fetchTrades': true,
                 'fetchTradingFee': undefined,
                 'fetchTradingFees': undefined,
                 'fetchTradingLimits': undefined,
@@ -426,6 +426,7 @@ module.exports = class bkex extends Exchange {
             'symbol': symbolsString,
         };
         return await this.publicGetQTickers (this.extend (request, params));
+        //
         // {
         //     "code": "0",
         //     "data": [
@@ -444,6 +445,7 @@ module.exports = class bkex extends Exchange {
         //     "msg": "success",
         //     "status": 0
         // }
+        //
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -548,6 +550,7 @@ module.exports = class bkex extends Exchange {
             request['size'] = Math.min (limit, 50);
         }
         const response = await this.publicGetQDeals (this.extend (request, params));
+        //
         // {
         //     "code": "0",
         //     "data": [
@@ -562,6 +565,7 @@ module.exports = class bkex extends Exchange {
         //     "msg": "success",
         //     "status": 0
         // }
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -631,6 +635,7 @@ module.exports = class bkex extends Exchange {
         await this.loadMarkets ();
         const query = this.omit (params, 'type');
         const response = await this.privateGetUAccountBalance (query);
+        //
         // {
         //     "code": "0",
         //     "data": {
@@ -652,6 +657,7 @@ module.exports = class bkex extends Exchange {
         //     "msg": "success",
         //     "status": 0
         // }
+        //
         const balances = this.safeValue (response, 'data');
         const wallets = this.safeValue (balances, 'WALLET');
         const result = { 'info': wallets };
@@ -668,19 +674,58 @@ module.exports = class bkex extends Exchange {
         return this.safeBalance (result);
     }
 
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privateGetUWalletAddress (this.extend (request, params));
+        // NOTE: You can only retrieve addresses of already generated wallets - so should already have generated that COIN deposit address in UI. Otherwise, it seems from API you can't create/obtain addresses for those coins.
+        //
+        // {
+        //     "code": "0",
+        //     "data": [
+        //       {
+        //         "currency": "BTC",
+        //         "address": "1m4k2yUKTSrX6SM9FGgvwMyxQbYtRVi2N",
+        //         "memo": ""
+        //       }
+        //     ],
+        //     "msg": "success",
+        //     "status": 0
+        // }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseDepositAddress (data, currency);
+    }
+
+    parseDepositAddress (data, currency = undefined) {
+        const depositObject = this.safeValue (data, 0);
+        const address = this.safeString (depositObject, 'address');
+        const tag = this.safeString (depositObject, 'memo');
+        const currencyId = this.safeString (depositObject, 'currency');
+        currency = this.safeCurrency (currencyId, currency);
+        return {
+            'currency': currency['code'],
+            'address': address,
+            'tag': tag,
+            'network': undefined,
+            'info': data,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.version + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
-        if (api === 'public') {
+        if (method === 'GET') {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
-        } else {
+        }
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             const query = this.urlencode (params);
-            if (method !== 'GET') {
-                body = query;
-            }
             const signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha256');
             headers = {
                 'Cache-Control': 'no-cache',
@@ -688,6 +733,9 @@ module.exports = class bkex extends Exchange {
                 'X_ACCESS_KEY': this.apiKey,
                 'X_SIGNATURE': signature,
             };
+            if (method !== 'GET') {
+                body = query;
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
