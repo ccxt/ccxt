@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, BadRequest, ArgumentsRequired, InsufficientFunds } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -25,12 +25,12 @@ module.exports = class bkex extends Exchange {
                 'option': undefined,
                 'addMargin': undefined,
                 'cancelAllOrders': undefined,
-                'cancelOrder': undefined,
+                'cancelOrder': true,
                 'cancelOrders': undefined,
                 'createDepositAddress': undefined,
                 'createLimitOrder': undefined,
                 'createMarketOrder': undefined,
-                'createOrder': undefined,
+                'createOrder': true,
                 'deposit': undefined,
                 'editOrder': undefined,
                 'fetchAccounts': undefined,
@@ -45,10 +45,10 @@ module.exports = class bkex extends Exchange {
                 'fetchClosedOrders': undefined,
                 'fetchCurrencies': true,
                 'fetchDeposit': undefined,
-                'fetchDepositAddress': undefined,
+                'fetchDepositAddress': true,
                 'fetchDepositAddresses': undefined,
                 'fetchDepositAddressesByNetwork': undefined,
-                'fetchDeposits': undefined,
+                'fetchDeposits': true,
                 'fetchFundingFee': undefined,
                 'fetchFundingFees': undefined,
                 'fetchFundingHistory': undefined,
@@ -66,7 +66,7 @@ module.exports = class bkex extends Exchange {
                 'fetchMyTrades': undefined,
                 'fetchOHLCV': true,
                 'fetchOpenOrder': undefined,
-                'fetchOpenOrders': undefined,
+                'fetchOpenOrders': true,
                 'fetchOrder': undefined,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
@@ -87,7 +87,7 @@ module.exports = class bkex extends Exchange {
                 'fetchTransactions': undefined,
                 'fetchTransfers': undefined,
                 'fetchWithdrawal': undefined,
-                'fetchWithdrawals': undefined,
+                'fetchWithdrawals': true,
                 'loadMarkets': true,
                 'privateAPI': true,
                 'publicAPI': true,
@@ -212,8 +212,10 @@ module.exports = class bkex extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    '1005': InsufficientFunds,
                 },
                 'broad': {
+                    'Not Enough balance': InsufficientFunds,
                 },
             },
         });
@@ -566,18 +568,19 @@ module.exports = class bkex extends Exchange {
         //     "status": 0
         // }
         //
-        return this.parseTrades (response, market, since, limit);
+        const trades = this.safeValue (response, 'data');
+        return this.parseTrades (trades, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.safeTimestamp (trade, 'ts');
+        const timestamp = this.safeInteger (trade, 'ts');
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
-        const side = this.parseOrderSide (this.safeString (trade, 'side'));
+        const side = this.parseTradeSide (this.safeString (trade, 'direction'));
         const amount = this.safeNumber (trade, 'volume');
         const price = this.safeNumber (trade, 'price');
         const type = undefined;
-        const takerOrMaker = undefined;
+        const takerOrMaker = 'taker';
         let id = this.safeString (trade, 'tid');
         if (id === undefined) {
             id = this.syntheticTradeId (market, timestamp, side, amount, price, type, takerOrMaker);
@@ -599,7 +602,7 @@ module.exports = class bkex extends Exchange {
         }, market);
     }
 
-    parseOrderSide (side) {
+    parseTradeSide (side) {
         const sides = {
             'B': 'buy',
             'S': 'sell',
@@ -863,20 +866,214 @@ module.exports = class bkex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const direction = side === 'buy' ? 'BID' : 'ASK';
+        const request = {
+            'symbol': market['id'],
+            'type': type.toUpperCase (),
+            'volume': this.amountToPrecision (symbol, amount),
+            'direction': direction,
+        };
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const response = await this.privatePostUOrderCreate (this.extend (request, params));
+        //
+        // {
+        //     "code": "0",
+        //     "data": "2022030302410146630023187",
+        //     "msg": "Create Order Successfully",
+        //     "status": 0
+        // }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseOrder (data, market);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        const request = {
+            'orderId': id,
+        };
+        const response = await this.privatePostUOrderCancel (this.extend (request, params));
+        //
+        // {
+        //     "code": "0",
+        //     "data": "2022030303032700030025325",
+        //     "status": 0
+        // }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseOrder (data, market);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['size'] = limit; // Todo: id api-docs, 'size' is incorrectly required to be in Uppercase
+        }
+        const response = await this.privateGetUOrderOpenOrders (this.extend (request, params));
+        //
+        // {
+        //     "code": "0",
+        //     "data": {
+        //       "data": [
+        //         {
+        //           "createdTime": "1646248301418",
+        //           "dealVolume": "0E-18",
+        //           "direction": "BID",
+        //           "frozenVolumeByOrder": "2.421300000000000000",
+        //           "id": "2022030303114141830007699",
+        //           "price": "0.150000000000000000",
+        //           "source": "WALLET",
+        //           "status": "0",
+        //           "symbol": "BKK_USDT",
+        //           "totalVolume": "16.142000000000000000",
+        //           "type": "LIMIT"
+        //         }
+        //       ],
+        //       "pageRequest": {
+        //         "asc": false,
+        //         "orderBy": "id",
+        //         "page": "1",
+        //         "size": 10
+        //       },
+        //       "total": 1
+        //     },
+        //     "msg": "success",
+        //     "status": 0
+        // }
+        //
+        const result = this.safeValue (response, 'data');
+        const innerData = this.safeValue (result, 'data');
+        return this.parseOrders (innerData, market, since, limit, params);
+    }
+
+    parseOrder (order, market = undefined) {
+        let id = undefined;
+        let timestamp = undefined;
+        let side = undefined;
+        let price = undefined;
+        let amount = undefined;
+        let filled = undefined;
+        let status = undefined;
+        let stopPrice = undefined;
+        let cost = undefined;
+        let type = undefined;
+        if (typeof order === 'string') {
+            // createOrder, cancelOrder
+            id = order;
+            market = this.safeMarket (undefined, market);
+        } else {
+            //
+            // fetchOpenOrders
+            //
+            //  {
+            //       "createdTime": "1646248301418",
+            //       "dealVolume": "0E-18",
+            //       "direction": "BID",
+            //       "frozenVolumeByOrder": "2.421300000000000000",
+            //       "id": "2022030303114141830007699",
+            //       "price": "0.150000000000000000",
+            //       "source": "WALLET",
+            //       "status": "0",
+            //       "symbol": "BKK_USDT",
+            //       "totalVolume": "16.142000000000000000",
+            //       "type": "LIMIT"
+            //       "stopPrice":  "0.14",            // present only for stop order
+            //       "operator":  ">="                // present only for stop order
+            //  }
+            //
+            timestamp = this.safeInteger (order, 'createdTime');
+            filled = this.safeNumber (order, 'dealVolume');
+            side = this.parseOrderSide (this.safeString (order, 'direction'));
+            cost = this.safeNumber (order, 'frozenVolumeByOrder');
+            id = this.safeString (order, 'id');
+            price = this.safeNumber (order, 'price');
+            status = this.parseOrderStatus (this.safeString (order, 'status'));
+            const marketId = this.safeString (order, 'symbol');
+            market = this.safeMarket (marketId, market);
+            amount = this.safeNumber (order, 'totalVolume');
+            type = this.parseOrderType (this.safeString (order, 'type'));
+            stopPrice = this.safeNumber (order, 'stopPrice');
+        }
+        return this.safeOrder ({
+            'id': id,
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': status,
+            'symbol': market['symbol'],
+            'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'stopPrice': stopPrice,
+            'average': undefined,
+            'amount': amount,
+            'filled': filled,
+            'remaining': undefined,
+            'cost': cost,
+            'trades': undefined,
+            'fee': undefined,
+            'info': order,
+        }, market);
+    }
+
+    parseOrderSide (side) {
+        const sides = {
+            'BID': 'buy',
+            'ASK': 'sell',
+        };
+        return this.safeString (sides, side, side);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            '0': 'open',
+            '1': 'closed',
+            '2': 'canceled',
+            '3': 'open',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderType (status) {
+        const statuses = {
+            'MARKET': 'market',
+            'LIMIT': 'limit',
+            'LIMIT_MAKER': 'stop-limit',
+            'STOP_LIMIT': 'stop-limit',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.version + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
-        if (method === 'GET') {
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
+        const keysLength = Object.keys (params).length;
+        let paramsSortedEncoded = undefined;
+        if (keysLength > 0) {
+            paramsSortedEncoded = this.urlencode (this.keysort (params));
+            if (method === 'GET') {
+                url += '?' + paramsSortedEncoded;
             }
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            const query = this.urlencode (params);
-            // const queryArray = query.split ('&');
-            // const sortedQuery = this.sortBy (queryArray, 0).join ('&');
-            const signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha256');
+            const signature = this.hmac (this.encode (paramsSortedEncoded), this.encode (this.secret), 'sha256');
             headers = {
                 'Cache-Control': 'no-cache',
                 'Content-type': 'application/x-www-form-urlencoded',
@@ -884,7 +1081,7 @@ module.exports = class bkex extends Exchange {
                 'X_SIGNATURE': signature,
             };
             if (method !== 'GET') {
-                body = query;
+                body = paramsSortedEncoded;
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -904,7 +1101,18 @@ module.exports = class bkex extends Exchange {
         //      "data": [...],
         //   }
         //
-        // error
+        //
+        // action error
+        //
+        //   {
+        //     "code":1005,
+        //     "msg":"BKK:Not Enough balance",
+        //     "status":0
+        //   }
+        //
+        //
+        // HTTP error
+        //
         //   {
         //      "timestamp": "1646041085490",
         //      "status": "403",
@@ -912,6 +1120,7 @@ module.exports = class bkex extends Exchange {
         //      "message": "签名错误",
         //      "path": "/whatever/incorrect/path"
         //   }
+        //
         const message = this.safeValue (response, 'msg');
         if (message === 'success') {
             return;
