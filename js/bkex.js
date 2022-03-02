@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, BadRequest } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -421,20 +421,11 @@ module.exports = class bkex extends Exchange {
         ];
     }
 
-    async fetchTickersHelper (symbols, params = {}) {
-        await this.loadMarkets ();
-        const request = {};
-        let market = undefined;
-        if (symbols !== undefined) {
-            const marketIds = [];
-            for (let i = 0; i < symbols.length; i++) {
-                market = this.market (symbols[i]);
-                marketIds.push (market['id']);
-            }
-            request['symbol'] = marketIds.join (',');
-        }
-        const response = await this.publicGetQTickers (this.extend (request, params));
-        return [ response, market ];
+    async fetchTickersHelper (symbolsString, params = {}) {
+        const request = {
+            'symbol': symbolsString,
+        };
+        return await this.publicGetQTickers (this.extend (request, params));
         // {
         //     "code": "0",
         //     "data": [
@@ -456,14 +447,31 @@ module.exports = class bkex extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
-        const [ response, market ] = await this.fetchTickersHelper ([ symbol ], params);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const response = await this.fetchTickersHelper (market['id'], params);
         const tickers = this.safeValue (response, 'data');
         const ticker = this.safeValue (tickers, 0);
         return this.parseTicker (ticker, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
-        const [ response ] = await this.fetchTickersHelper (symbols, params);
+        await this.loadMarkets ();
+        let marketIdsString = undefined;
+        if (symbols !== undefined) {
+            if (!Array.isArray (symbols)) {
+                throw new BadRequest (this.id + ' fetchTickers() symbols argument should be an array');
+            }
+        }
+        if (symbols !== undefined) {
+            const marketIds = [];
+            for (let i = 0; i < symbols.length; i++) {
+                const market = this.market (symbols[i]);
+                marketIds.push (market['id']);
+            }
+            marketIdsString = marketIds.join (',');
+        }
+        const response = await this.fetchTickersHelper (marketIdsString, params);
         const tickers = this.safeValue (response, 'data');
         return this.parseTickers (tickers, symbols, params);
     }
@@ -528,6 +536,63 @@ module.exports = class bkex extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         return this.parseOrderBook (data, symbol, undefined, 'bid', 'ask');
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['size'] = Math.min (limit, 50);
+        }
+        const response = await this.publicGetQDeals (this.extend (request, params));
+        // {
+        //     "code": "0",
+        //     "data": [
+        //       {
+        //         "direction": "S",
+        //         "price": "43930.63",
+        //         "symbol": "BTC_USDT",
+        //         "ts": "1646224171992",
+        //         "volume": 0.030653
+        //       }, // first item is most recent
+        //     ],
+        //     "msg": "success",
+        //     "status": 0
+        // }
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    parseTrade (trade, market = undefined) {
+        const timestamp = this.safeTimestamp (trade, 'ts');
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const id = this.safeString (trade, 'tid');
+        return this.safeTrade ({
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'order': undefined,
+            'type': undefined,
+            'side': this.parseOrderSide (this.safeString (trade, 'side')),
+            'takerOrMaker': undefined,
+            'price': this.safeNumber (trade, 'price'),
+            'amount': this.safeString (trade, 'volume'),
+            'cost': undefined,
+            'fee': undefined,
+            'info': trade,
+        }, market);
+    }
+
+    parseOrderSide (side) {
+        const sides = {
+            'B': 'buy',
+            'S': 'sell',
+        };
+        return this.safeString (sides, side, side);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
