@@ -141,30 +141,27 @@ module.exports = class coinmate extends Exchange {
                     'taker': 0.25 / 100,
                     'tiers': {
                         'taker': [
-                            [ 0, 0.35 / 100 ],
-                            [ 10000, 0.23 / 100 ],
-                            [ 100000, 0.21 / 100 ],
-                            [ 250000, 0.20 / 100 ],
-                            [ 500000, 0.15 / 100 ],
-                            [ 1000000, 0.13 / 100 ],
-                            [ 3000000, 0.10 / 100 ],
-                            [ 15000000, 0.05 / 100 ],
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0035') ],
+                            [ this.parseNumber ('10000'), this.parseNumber ('0.0023') ],
+                            [ this.parseNumber ('100000'), this.parseNumber ('0.0021') ],
+                            [ this.parseNumber ('250000'), this.parseNumber ('0.0020') ],
+                            [ this.parseNumber ('500000'), this.parseNumber ('0.0015') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.0013') ],
+                            [ this.parseNumber ('3000000'), this.parseNumber ('0.0010') ],
+                            [ this.parseNumber ('15000000'), this.parseNumber ('0.0005') ],
                         ],
                         'maker': [
-                            [ 0, 0.3 / 100 ],
-                            [ 10000, 0.11 / 100 ],
-                            [ 100000, 0.10 / 100 ],
-                            [ 250000, 0.08 / 100 ],
-                            [ 500000, 0.05 / 100 ],
-                            [ 1000000, 0.03 / 100 ],
-                            [ 3000000, 0.02 / 100 ],
-                            [ 15000000, 0 ],
+                            [ this.parseNumber ('0'), this.parseNumber ('0.003') ],
+                            [ this.parseNumber ('10000'), this.parseNumber ('0.0011') ],
+                            [ this.parseNumber ('100000'), this.parseNumber ('0.0010') ],
+                            [ this.parseNumber ('250000'), this.parseNumber ('0.0008') ],
+                            [ this.parseNumber ('500000'), this.parseNumber ('0.0005') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.0003') ],
+                            [ this.parseNumber ('3000000'), this.parseNumber ('0.0002') ],
+                            [ this.parseNumber ('15000000'), this.parseNumber ('0') ],
                         ],
                     },
                 },
-            },
-            'options': {
-                'promotionalMarkets': [ 'ETH/EUR', 'ETH/CZK', 'ETH/BTC', 'XRP/EUR', 'XRP/CZK', 'XRP/BTC', 'DASH/EUR', 'DASH/CZK', 'DASH/BTC', 'BCH/EUR', 'BCH/CZK', 'BCH/BTC' ],
             },
             'exceptions': {
                 'exact': {
@@ -212,12 +209,6 @@ module.exports = class coinmate extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const promotionalMarkets = this.safeValue (this.options, 'promotionalMarkets', []);
-            let fees = this.safeValue (this.fees, 'trading');
-            if (this.inArray (symbol, promotionalMarkets)) {
-                const promotionalFees = this.safeValue (this.fees, 'promotional', {});
-                fees = this.safeValue (promotionalFees, 'trading', fees);
-            }
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -237,8 +228,6 @@ module.exports = class coinmate extends Exchange {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'taker': this.safeNumber (fees, 'taker'),
-                'maker': this.safeNumber (fees, 'maker'),
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
