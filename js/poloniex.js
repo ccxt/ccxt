@@ -621,6 +621,19 @@ module.exports = class poloniex extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
+        // fetchTrades
+        //
+        //      {
+        //          globalTradeID: "667563407",
+        //          tradeID: "1984256",
+        //          date: "2022-03-01 20:06:06",
+        //          type: "buy",
+        //          rate: "0.13361871",
+        //          amount: "28.40841257",
+        //          total: "3.79589544",
+        //          orderNumber: "159992152911"
+        //      }
+        //
         // fetchMyTrades
         //
         //     {
@@ -659,34 +672,25 @@ module.exports = class poloniex extends Exchange {
         let fee = undefined;
         const priceString = this.safeString (trade, 'rate');
         const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        let cost = undefined;
-        let costString = this.safeString (trade, 'total');
-        if (costString === undefined) {
-            costString = Precise.stringMul (priceString, amountString);
-            cost = this.parseNumber (costString);
-        } else {
-            cost = this.parseNumber (costString);
-        }
+        const costString = this.safeString (trade, 'total');
         const feeDisplay = this.safeString (trade, 'feeDisplay');
         if (feeDisplay !== undefined) {
             const parts = feeDisplay.split (' ');
-            const feeCost = this.safeNumber (parts, 0);
-            if (feeCost !== undefined) {
+            const feeCostString = this.safeString (parts, 0);
+            if (feeCostString !== undefined) {
                 const feeCurrencyId = this.safeString (parts, 1);
                 const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
-                let feeRate = this.safeString (parts, 2);
-                if (feeRate !== undefined) {
-                    feeRate = feeRate.replace ('(', '');
-                    const feeRateParts = feeRate.split ('%');
-                    feeRate = this.safeString (feeRateParts, 0);
-                    feeRate = parseFloat (feeRate) / 100;
+                let feeRateString = this.safeString (parts, 2);
+                if (feeRateString !== undefined) {
+                    feeRateString = feeRateString.replace ('(', '');
+                    const feeRateParts = feeRateString.split ('%');
+                    feeRateString = this.safeString (feeRateParts, 0);
+                    feeRateString = Precise.stringDiv (feeRateString, '100');
                 }
                 fee = {
-                    'cost': feeCost,
+                    'cost': feeCostString,
                     'currency': feeCurrencyCode,
-                    'rate': feeRate,
+                    'rate': feeRateString,
                 };
             }
         } else {
@@ -696,9 +700,9 @@ module.exports = class poloniex extends Exchange {
                 const feeBase = (side === 'buy') ? amountString : costString;
                 const feeRateString = Precise.stringDiv (feeCostString, feeBase);
                 fee = {
-                    'cost': this.parseNumber (feeCostString),
+                    'cost': feeCostString,
                     'currency': feeCurrencyCode,
-                    'rate': this.parseNumber (feeRateString),
+                    'rate': feeRateString,
                 };
             }
         }
@@ -707,7 +711,7 @@ module.exports = class poloniex extends Exchange {
         if (takerAdjustment !== undefined) {
             takerOrMaker = 'taker';
         }
-        return {
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -717,11 +721,11 @@ module.exports = class poloniex extends Exchange {
             'type': 'limit',
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
