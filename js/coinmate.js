@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, RateLimitExceeded, InsufficientFunds, AuthenticationError } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -52,6 +53,8 @@ module.exports = class coinmate extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': false,
                 'fetchTransactions': true,
                 'reduceMargin': false,
                 'setLeverage': false,
@@ -138,7 +141,7 @@ module.exports = class coinmate extends Exchange {
                     'taker': 0.25 / 100,
                     'tiers': {
                         'taker': [
-                            [ 0, 0.25 / 100 ],
+                            [ 0, 0.35 / 100 ],
                             [ 10000, 0.23 / 100 ],
                             [ 100000, 0.21 / 100 ],
                             [ 250000, 0.20 / 100 ],
@@ -148,43 +151,15 @@ module.exports = class coinmate extends Exchange {
                             [ 15000000, 0.05 / 100 ],
                         ],
                         'maker': [
-                            [ 0, 0.12 / 100 ],
+                            [ 0, 0.3 / 100 ],
                             [ 10000, 0.11 / 100 ],
-                            [ 1000000, 0.10 / 100 ],
+                            [ 100000, 0.10 / 100 ],
                             [ 250000, 0.08 / 100 ],
                             [ 500000, 0.05 / 100 ],
                             [ 1000000, 0.03 / 100 ],
                             [ 3000000, 0.02 / 100 ],
                             [ 15000000, 0 ],
                         ],
-                    },
-                },
-                'promotional': {
-                    'trading': {
-                        'maker': 0.05 / 100,
-                        'taker': 0.15 / 100,
-                        'tiers': {
-                            'taker': [
-                                [ 0, 0.15 / 100 ],
-                                [ 10000, 0.14 / 100 ],
-                                [ 100000, 0.13 / 100 ],
-                                [ 250000, 0.12 / 100 ],
-                                [ 500000, 0.11 / 100 ],
-                                [ 1000000, 0.1 / 100 ],
-                                [ 3000000, 0.08 / 100 ],
-                                [ 15000000, 0.05 / 100 ],
-                            ],
-                            'maker': [
-                                [ 0, 0.05 / 100 ],
-                                [ 10000, 0.04 / 100 ],
-                                [ 1000000, 0.03 / 100 ],
-                                [ 250000, 0.02 / 100 ],
-                                [ 500000, 0 ],
-                                [ 1000000, 0 ],
-                                [ 3000000, 0 ],
-                                [ 15000000, 0 ],
-                            ],
-                        },
                     },
                 },
             },
@@ -574,6 +549,35 @@ module.exports = class coinmate extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'currencyPair': market['id'],
+        };
+        const response = await this.privatePostTraderFees (this.extend (request, params));
+        //
+        //     {
+        //         error: false,
+        //         errorMessage: null,
+        //         data: { maker: '0.3', taker: '0.35', timestamp: '1646253217815' }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const makerString = this.safeString (data, 'maker');
+        const takerString = this.safeString (data, 'taker');
+        const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
+        const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
+        return {
+            'info': data,
+            'symbol': symbol,
+            'maker': maker,
+            'taker': taker,
+            'percentage': true,
+            'tierBased': true,
+        };
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
