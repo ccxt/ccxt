@@ -51,6 +51,7 @@ module.exports = class zb extends Exchange {
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
                 'setLeverage': true,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -2444,6 +2445,77 @@ module.exports = class zb extends Exchange {
             result.push (this.parsePosition (positions[i]));
         }
         return result;
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        let side = undefined;
+        if (fromAccount === 'spot' || toAccount === 'futures') {
+            side = 1;
+        } else {
+            side = 0;
+        }
+        const request = {
+            'currencyName': currency,
+            'amount': amount,
+            // 'clientId': params['clientId'], // "2sdfsdfsdf232342"
+            'side': side, // 1：Deposit (zb account -> futures account)，0：Withdrawal (futures account -> zb account)
+        };
+        const response = await this.contractV2PrivatePostFundTransferFund (this.extend (request, params));
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": "2sdfsdfsdf232342",
+        //         "desc": "Success"
+        //     }
+        //
+        const timestamp = this.milliseconds ();
+        const transfer = {};
+        transfer['id'] = this.safeValue (response, 'data');
+        transfer['timestamp'] = timestamp;
+        transfer['datetime'] = this.iso8601 (timestamp);
+        transfer['currency'] = currency;
+        transfer['amount'] = amount;
+        transfer['fromAccount'] = fromAccount;
+        transfer['toAccount'] = toAccount;
+        transfer['status'] = this.safeValue (response, 'desc');
+        return this.parseTransfer (transfer, currency);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //     {
+        //         "id": "2sdfsdfsdf232342",
+        //         "timestamp": "",
+        //         "datetime": "",
+        //         "currency": "USDT",
+        //         "amount": "10",
+        //         "fromAccount": "futures account",
+        //         "toAccount": "zb account",
+        //         "status": "Success",
+        //     }
+        //
+        const id = this.safeString (transfer, 'id');
+        const timestamp = this.safeInteger (transfer, 'timestamp');
+        const datetime = this.safeString (transfer, 'datetime');
+        const currencyId = this.safeString (transfer, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const amount = this.safeNumber (transfer, 'amount');
+        const fromAccount = this.safeString (transfer, 'fromAccount');
+        const toAccount = this.safeString (transfer, 'toAccount');
+        const status = this.safeString (transfer, 'status');
+        return {
+            'info': transfer,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'currency': code,
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': status,
+        };
     }
 
     nonce () {
