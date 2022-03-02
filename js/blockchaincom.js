@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, ArgumentsRequired } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -441,27 +441,50 @@ module.exports = class blockchaincom extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clOrdId', this.uuid16 ());
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const orderType = this.safeString (params, 'ordType', type);
+        const uppercaseOrderType = orderType.toUpperCase ();
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clOrdId', this.uuid16 ());
+        params = this.omit (params, [ 'ordType', 'clientOrderId', 'clOrdId' ]);
         const request = {
             // 'stopPx' : limit price
             // 'timeInForce' : "GTC" for Good Till Cancel, "IOC" for Immediate or Cancel, "FOK" for Fill or Kill, "GTD" Good Till Date
             // 'expireDate' : expiry date in the format YYYYMMDD
             // 'minQty' : The minimum quantity required for an IOC fill
+            'ordType': uppercaseOrderType,
             'symbol': market['id'],
             'side': side.toUpperCase (),
             'orderQty': this.amountToPrecision (symbol, amount),
-            'ordType': type.toUpperCase (), // LIMIT, MARKET, STOP, STOPLIMIT
             'clOrdId': clientOrderId,
         };
-        params = this.omit (params, [ 'clientOrderId', 'clOrdId' ]);
-        if (request['ordType'] === 'LIMIT') {
+        const stopPrice = this.safeValue2 (params, 'stopPx', 'stopPrice');
+        params = this.omit (params, [ 'stopPx', 'stopPrice' ]);
+        if (uppercaseOrderType === 'STOP' || uppercaseOrderType === 'LIMIT') {
+            if (stopPrice === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPx or stopPrice param for a ' + uppercaseOrderType + ' order');
+            }
+        }
+        if (stopPrice !== undefined) {
+            if (uppercaseOrderType === 'MARKET') {
+                request['ordType'] = 'STOP';
+            } else if (uppercaseOrderType === 'LIMIT') {
+                request['ordType'] = 'STOPLIMIT';
+            }
+        }
+        let priceRequired = false;
+        let stopPriceRequired = false;
+        if (request['ordType'] === 'LIMIT' || request['ordType'] === 'STOPLIMIT') {
+            priceRequired = true;
+        }
+        if (request['ordType'] === 'STOP' || request['ordType'] === 'STOPLIMIT') {
+            stopPriceRequired = true;
+        }
+        if (priceRequired) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        if (request['ordType'] === 'STOPLIMIT') {
-            request['price'] = this.priceToPrecision (symbol, price);
-            request['stopPx'] = this.priceToPrecision (symbol, price);
+        if (stopPriceRequired) {
+            request['stopPx'] = this.priceToPrecision (symbol, stopPrice);
         }
         const response = await this.privatePostOrders (this.extend (request, params));
         return this.parseOrder (response, market);
