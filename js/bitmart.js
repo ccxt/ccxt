@@ -122,7 +122,7 @@ module.exports = class bitmart extends ccxt.bitmart {
         //             "notional":"",
         //             "size":"1.0000000000",
         //             "ms_t":"1609926028000",
-        //             "price":"46100.0000000000",s
+        //             "price":"46100.0000000000",
         //             "filled_notional":"46100.0000000000",
         //             "filled_size":"1.0000000000",
         //             "margin_trading":"0",
@@ -137,18 +137,88 @@ module.exports = class bitmart extends ccxt.bitmart {
         //     "table":"spot/user/order"
         // }
         //
-        const channel = this.safeString (message, 'channel');
-        const order = this.safeValue (message, 'data', {});
-        const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-        if (this.orders === undefined) {
-            this.orders = new ArrayCacheBySymbolById (limit);
+        const channel = this.safeString (message, 'table');
+        const orders = this.safeValue (message, 'data', []);
+        const ordersLength = orders.length;
+        if (ordersLength > 0) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            if (this.orders === undefined) {
+                this.orders = new ArrayCacheBySymbolById (limit);
+            }
+            const stored = this.orders;
+            const marketIds = [];
+            const parsed = this.parseOrders (orders);
+            for (let i = 0; i < parsed.length; i++) {
+                const order = parsed[i];
+                stored.append (order);
+                const symbol = order['symbol'];
+                const market = this.market (symbol);
+                marketIds.push (market['id']);
+            }
+            for (let i = 0; i < marketIds.length; i++) {
+                const messageHash = channel + ':' + marketIds[i];
+                client.resolve (this.orders, messageHash);
+            }
         }
-        const stored = this.orders;
-        const symbol = this.safeString (order, 'symbol');
-        const market = this.market (symbol);
-        const parsed = this.parseWsOrder (order, market);
-        stored.append (parsed);
-        client.resolve (this.orders, channel);
+    }
+
+    parseWsOrder (order, market = undefined) {
+        //
+        //   {
+        //       "symbol":"BTC_USDT",
+        //       "side":"buy",
+        //       "type":"market",
+        //       "notional":"",
+        //       "size":"1.0000000000",
+        //       "ms_t":"1609926028000",
+        //       "price":"46100.0000000000",
+        //       "filled_notional":"46100.0000000000",
+        //       "filled_size":"1.0000000000",
+        //       "margin_trading":"0",
+        //       "state":"2",
+        //       "order_id":"2147857398",
+        //       "order_type":"0",
+        //       "last_fill_time":"1609926039226",s
+        //       "last_fill_price":"46100.00000",
+        //       "last_fill_count":"1.00000"
+        //    }
+        //
+        const id = this.safeString (order, 'order_id');
+        const clientOrderId = this.safeString (order, 'clientOid');
+        const price = this.safeString (order, 'price');
+        const filled = this.safeString (order, 'filled_size');
+        const amount = this.safeString (order, 'size');
+        const type = this.safeString (order, 'type');
+        const rawState = this.safeString (order, 'state');
+        const status = this.parseWsOrderStatus (rawState);
+        const timestamp = this.safeInteger (order, 'ms_t');
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const side = this.safeStringLower (order, 'side');
+        return this.safeOrder ({
+            'info': order,
+            'symbol': symbol,
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastTradeTimestamp': timestamp,
+            'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'stopPrice': undefined,
+            'amount': amount,
+            'cost': undefined,
+            'average': undefined,
+            'filled': filled,
+            'remaining': undefined,
+            'status': status,
+            'fee': undefined,
+            'trades': undefined,
+        }, market);
     }
 
     handleTrade (client, message) {
