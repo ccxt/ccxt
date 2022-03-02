@@ -253,10 +253,12 @@ module.exports = class Client {
         // if we use onmessage we get MessageEvent objects
         // MessageEvent {isTrusted: true, data: "{"e":"depthUpdate","E":1581358737706,"s":"ETHBTC",…"0.06200000"]],"a":[["0.02261300","0.00000000"]]}", origin: "wss://stream.binance.com:9443", lastEventId: "", source: null, …}
         message = message.data
-        if (this.gunzip) {
-            message = gunzip (message)
-        } else if (this.inflate) {
-            message = inflate (message)
+        if (message.byteLength !== undefined) {
+            if (this.gunzip) {
+                message = gunzip (message)
+            } else if (this.inflate) {
+                message = inflate (message)
+            }
         }
         try {
             if (message instanceof Buffer) {
