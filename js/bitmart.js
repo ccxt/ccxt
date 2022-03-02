@@ -587,8 +587,4 @@ module.exports = class bitmart extends ccxt.bitmart {
             }
         }
     }
-
-    getUrl () {
-        return this.implodeHostname (this.urls['api']['private']);
-    }
 };
