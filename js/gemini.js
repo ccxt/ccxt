@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrder, InvalidNonce, InsufficientFunds, AuthenticationError, PermissionDenied, NotSupported, OnMaintenance, RateLimitExceeded, ExchangeNotAvailable } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -65,6 +66,8 @@ module.exports = class gemini extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': undefined,
                 'reduceMargin': false,
@@ -710,6 +713,58 @@ module.exports = class gemini extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostV1Notionalvolume (params);
+        //
+        //      {
+        //          "web_maker_fee_bps": 25,
+        //          "web_taker_fee_bps": 35,
+        //          "web_auction_fee_bps": 25,
+        //          "api_maker_fee_bps": 10,
+        //          "api_taker_fee_bps": 35,
+        //          "api_auction_fee_bps": 20,
+        //          "fix_maker_fee_bps": 10,
+        //          "fix_taker_fee_bps": 35,
+        //          "fix_auction_fee_bps": 20,
+        //          "block_maker_fee_bps": 0,
+        //          "block_taker_fee_bps": 50,
+        //          "notional_30d_volume": 150.00,
+        //          "last_updated_ms": 1551371446000,
+        //          "date": "2019-02-28",
+        //          "notional_1d_volume": [
+        //              {
+        //                  "date": "2019-02-22",
+        //                  "notional_volume": 75.00
+        //              },
+        //              {
+        //                  "date": "2019-02-14",
+        //                  "notional_volume": 75.00
+        //              }
+        //          ]
+        //     }
+        //
+        const makerBps = this.safeString (response, 'api_maker_fee_bps');
+        const takerBps = this.safeString (response, 'api_taker_fee_bps');
+        const makerString = Precise.stringDiv (makerBps, '10000');
+        const takerString = Precise.stringDiv (takerBps, '10000');
+        const maker = this.parseNumber (makerString);
+        const taker = this.parseNumber (takerString);
+        const result = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': true,
+                'tierBased': true,
+            };
+        }
+        return result;
     }
 
     async fetchBalance (params = {}) {
