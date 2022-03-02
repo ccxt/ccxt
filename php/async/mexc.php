@@ -70,6 +70,8 @@ class mexc extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
                 'setLeverage' => true,
@@ -1071,6 +1073,52 @@ class mexc extends Exchange {
             'cost' => $costString,
             'fee' => $fee,
         ), $market);
+    }
+
+    public function fetch_trading_fees($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->spotPublicGetMarketSymbols ($params);
+        //
+        //     {
+        //         "code":200,
+        //         "data":array(
+        //             array(
+        //                 "symbol":"DFD_USDT",
+        //                 "state":"ENABLED",
+        //                 "countDownMark":1,
+        //                 "vcoinName":"DFD",
+        //                 "vcoinStatus":1,
+        //                 "price_scale":4,
+        //                 "quantity_scale":2,
+        //                 "min_amount":"5", // not an amount = cost
+        //                 "max_amount":"5000000",
+        //                 "maker_fee_rate":"0.002",
+        //                 "taker_fee_rate":"0.002",
+        //                 "limited":true,
+        //                 "etf_mark":0,
+        //                 "symbol_partition":"ASSESS"
+        //             ),
+        //             ...
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $result = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $fee = $data[$i];
+            $marketId = $this->safe_string($fee, 'symbol');
+            $market = $this->safe_market($marketId, null, '_');
+            $symbol = $market['symbol'];
+            $result[$symbol] = array(
+                'info' => $fee,
+                'symbol' => $symbol,
+                'maker' => $this->safe_number($fee, 'maker_fee_rate'),
+                'taker' => $this->safe_number($fee, 'taker_fee_rate'),
+                'percentage' => true,
+                'tierBased' => false,
+            );
+        }
+        return $result;
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {

@@ -79,6 +79,8 @@ class mexc(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
                 'setLeverage': True,
@@ -1043,6 +1045,50 @@ class mexc(Exchange):
             'cost': costString,
             'fee': fee,
         }, market)
+
+    async def fetch_trading_fees(self, params={}):
+        await self.load_markets()
+        response = await self.spotPublicGetMarketSymbols(params)
+        #
+        #     {
+        #         "code":200,
+        #         "data":[
+        #             {
+        #                 "symbol":"DFD_USDT",
+        #                 "state":"ENABLED",
+        #                 "countDownMark":1,
+        #                 "vcoinName":"DFD",
+        #                 "vcoinStatus":1,
+        #                 "price_scale":4,
+        #                 "quantity_scale":2,
+        #                 "min_amount":"5",  # not an amount = cost
+        #                 "max_amount":"5000000",
+        #                 "maker_fee_rate":"0.002",
+        #                 "taker_fee_rate":"0.002",
+        #                 "limited":true,
+        #                 "etf_mark":0,
+        #                 "symbol_partition":"ASSESS"
+        #             },
+        #             ...
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        result = {}
+        for i in range(0, len(data)):
+            fee = data[i]
+            marketId = self.safe_string(fee, 'symbol')
+            market = self.safe_market(marketId, None, '_')
+            symbol = market['symbol']
+            result[symbol] = {
+                'info': fee,
+                'symbol': symbol,
+                'maker': self.safe_number(fee, 'maker_fee_rate'),
+                'taker': self.safe_number(fee, 'taker_fee_rate'),
+                'percentage': True,
+                'tierBased': False,
+            }
+        return result
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
