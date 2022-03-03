@@ -11,16 +11,16 @@
 
 function bisectLeft(array, x) {
     let low = 0
-    let high = array.length
-    while (low < high) {
+    let high = array.length - 1
+    while (low <= high) {
         const mid = (low + high) >>> 1;
         if (array[mid] - x < 0) low = mid + 1;
-        else high = mid;
+        else high = mid - 1;
     }
     return low;
 }
 
-const SIZE = 8192
+const SIZE = 1024
 const SEED = new Float64Array (new Array (SIZE).fill (Number.MAX_VALUE))
 
 class OrderBookSide extends Array {
@@ -64,6 +64,13 @@ class OrderBookSide extends Array {
                 const innerIndex = this.side ? this.length - index - 1: index;
                 this.copyWithin (index + 1, index, this.length)
                 this[index] = delta
+                // in the rare case of very large orderbooks being sent
+                if (this.length > this.index.length - 1) {
+                    const existing = Array.from (this.index)
+                    existing.length = this.length * 2
+                    existing.fill (Number.MAX_VALUE, this.index.length)
+                    this.index = new Float64Array (existing)
+                }
             }
         } else if (this.index[index] == index_price) {
             this.index.copyWithin (index, index + 1, this.length)
@@ -222,6 +229,13 @@ class IndexedOrderBookSide extends Array  {
             const innerIndex = this.side ? this.length - index - 1: index;
             this.copyWithin (index + 1, index, this.length)
             this[index] = delta
+            // in the rare case of very large orderbooks being sent
+            if (this.length > this.index.length - 1) {
+                const existing = Array.from (this.index)
+                existing.length = this.length * 2
+                existing.fill (Number.MAX_VALUE, this.index.length)
+                this.index = new Float64Array (existing)
+            }
         } else if (this.hashmap.has (id)) {
             const old_price = this.hashmap.get (id)
             const index = bisectLeft (this.index, old_price)
