@@ -98,8 +98,8 @@ module.exports = class krakenfu extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': -0.0002,
-                    'taker': 0.00075,
+                    'maker': this.parseNumber ('-0.0002'),
+                    'taker': this.parseNumber ('0.00075'),
                 },
             },
             'exceptions': {
