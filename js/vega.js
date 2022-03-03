@@ -118,7 +118,7 @@ module.exports = class vega extends Exchange {
             let market = null;
             for (let j = 0; j < markets.length; j++) {
                 const m = markets[j];
-                if (m.id === this.safeString (marketData, 'market')) {
+                if (m['id'] === this.safeString (marketData, 'market')) {
                     market = m;
                     break;
                 }
