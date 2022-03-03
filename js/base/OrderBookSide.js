@@ -4,7 +4,7 @@
 
 // ----------------------------------------------------------------------------
 //
-// Upto 10x speed improvement previous version
+// Upto 10x faster after initializing memory for the floating point array
 // Author: github.com/frosty00
 // Email: carlo.revelli@berkeley.edu
 //
@@ -20,16 +20,16 @@ function bisectLeft(array, x) {
     return low;
 }
 
-const SIZE = 10000
-const start = new Array (SIZE).fill (Number.MAX_VALUE)
+const SIZE = 4096
+const SEED = new Float64Array (new Array (SIZE).fill (Number.MAX_VALUE))
 
 class OrderBookSide extends Array {
     constructor (deltas = [], depth = undefined) {
-        super (deltas.length)
+        super ()
         // a string-keyed dictionary of price levels / ids / indices
         Object.defineProperty (this, 'index', {
             __proto__: null, // make it invisible
-            value: new Float64Array (start),
+            value: new Float64Array (SEED),
             writable: true,
         })
         Object.defineProperty (this, 'depth', {
@@ -37,28 +37,25 @@ class OrderBookSide extends Array {
             value: depth || Number.MAX_SAFE_INTEGER,
             writable: true,
         })
-        Object.defineProperty (this, 'prevLength', {
+        Object.defineProperty (this, 'hidden', {
             __proto__: null, // make it invisible
-            value: null,
+            value: new Map (),
             writable: true,
         })
         // sort upon initiation
+        this.length = 0
         for (let i = 0; i < deltas.length; i++) {
-            this.length = i
             this.storeArray (deltas[i].slice ())  // slice is muy importante
         }
     }
 
     storeArray (delta) {
-        if (this.prevLength) {
-            this.length = this.prevLength
-        }
         const price = delta[0]
         const size = delta[1]
         const index_price = this.side ? -price : price
         const index = bisectLeft (this.index, index_price)
         if (size) {
-            if (index < this.index.length && this.index[index] == index_price) {
+            if (index < this.length && this.index[index] == index_price) {
                 this[index][1] = size
             } else {
                 this.length++
@@ -83,14 +80,29 @@ class OrderBookSide extends Array {
 
     // replace stored orders with new values
     limit (n = undefined) {
+        if (n === undefined) {
+            if (this.hidden.size) {
+                const end = this.length + this.hidden.size
+                for (let i = this.length; i < end; i++) {
+                    this.push (this.hidden.get (this.index[i]))
+                }
+                this.hidden.clear ()
+            }
+        } else {
+            if (n < this.length) {
+                // we store some hidden stuff for when the book is temporarily limited to the user
+                for (let i = n; i < this.length; i++) {
+                    this.hidden.set (this.index[i], this[i])
+                }
+                this.length = n
+            }
+            this.length = Math.min (n, this.length)
+        }
         if (this.length > this.depth) {
             for (let i = this.depth; i < this.length; i++) {
                 this.index[i] = Number.MAX_VALUE
             }
             this.length = this.depth
-        }
-        if (n !== undefined) {
-            this.length = Math.min (n, this.length)
         }
     }
 }
@@ -106,16 +118,15 @@ class CountedOrderBookSide extends OrderBookSide {
     }
 
     storeArray (delta) {
-        if (this.prevLength) {
-            this.length = this.prevLength
-        }
         const price = delta[0]
         const size = delta[1]
+        const count = delta[2]
         const index_price = this.side ? -price : price
         const index = bisectLeft (this.index, index_price)
         if (size && count) {
-            if (index < this.index.length && this.index[index] == index_price) {
+            if (index < this.length && this.index[index] == index_price) {
                 this[index][1] = size
+                this[index][2] = count
             } else {
                 this.length++
                 this.index.copyWithin (index + 1, index, this.length)
@@ -138,7 +149,7 @@ class CountedOrderBookSide extends OrderBookSide {
 
 class IndexedOrderBookSide extends Array  {
     constructor (deltas = [], depth = Number.MAX_SAFE_INTEGER) {
-        super (deltas, depth)
+        super (deltas.length)
         // a string-keyed dictionary of price levels / ids / indices
         Object.defineProperty (this, 'hashmap', {
             __proto__: null, // make it invisible
@@ -147,7 +158,7 @@ class IndexedOrderBookSide extends Array  {
         })
         Object.defineProperty (this, 'index', {
             __proto__: null, // make it invisible
-            value: new Float64Array (start),
+            value: new Float64Array (SEED),
             writable: true,
         })
         Object.defineProperty (this, 'depth', {
@@ -155,9 +166,9 @@ class IndexedOrderBookSide extends Array  {
             value: depth || Number.MAX_SAFE_INTEGER,
             writable: true,
         })
-        Object.defineProperty (this, 'prevLength', {
+        Object.defineProperty (this, 'hidden', {
             __proto__: null, // make it invisible
-            value: null,
+            value: new Map (),
             writable: true,
         })
         // sort upon initiation
@@ -195,8 +206,10 @@ class IndexedOrderBookSide extends Array  {
                 } else {
                     // remove old price from index
                     const old_index = bisectLeft (this.index, old_price)
-                    this.index[old_index] = Number.MAX_VALUE
+                    this.index.copyWithin (old_index, old_index + 1, this.length)
+                    this.index[this.length - 1] = Number.MAX_VALUE
                     this.copyWithin (old_index, old_index + 1, this.length)
+                    this.length--
                 }
             }
             // insert new price level
@@ -222,15 +235,30 @@ class IndexedOrderBookSide extends Array  {
 
     // replace stored orders with new values
     limit (n = undefined) {
+        if (n === undefined) {
+            if (this.hidden.size) {
+                const end = this.length + this.hidden.size
+                for (let i = this.length; i < end; i++) {
+                    this.push (this.hidden.get (this.index[i]))
+                }
+                this.hidden.clear ()
+            }
+        } else {
+            if (n < this.length) {
+                // we store some hidden stuff for when the book is temporarily limited to the user
+                for (let i = n; i < this.length; i++) {
+                    this.hidden.set (this.index[i], this[i])
+                }
+                this.length = n
+            }
+            this.length = Math.min (n, this.length)
+        }
         if (this.length > this.depth) {
             for (let i = this.depth; i < this.length; i++) {
                 this.hashmap.delete (this.index[i])
                 this.index[i] = Number.MAX_VALUE
             }
             this.length = this.depth
-        }
-        if (n !== undefined) {
-            this.length = Math.min (n, this.length)
         }
     }
 }
