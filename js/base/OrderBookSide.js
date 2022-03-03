@@ -3,9 +3,11 @@
 'use strict';
 
 // ----------------------------------------------------------------------------
-// one half-side of an orderbook (bids or asks)
-// overwrites absolute volumes at price levels
-// this class stores scalar order sizes indexed by price
+//
+// Over 40x speed improvement previous version
+// Author: github.com/frosty00
+// Email: carlo.revelli@berkeley.edu
+//
 
 function bisectLeft(array, x) {
     let low = 0
@@ -18,19 +20,11 @@ function bisectLeft(array, x) {
     return low;
 }
 
-function comp (x, y) {
-    return x - y
-}
-
-const LIMIT_BY_KEY = 0
-const LIMIT_BY_VALUE_PRICE_KEY = 1
-const LIMIT_BY_VALUE_INDEX_KEY = 2
-
 const SIZE = 10000
 const start = new Array (SIZE).fill (Number.MAX_VALUE)
 
 class OrderBookSide extends Array {
-    constructor (deltas = [], depth = undefined, limitType = LIMIT_BY_KEY) {
+    constructor (deltas = [], depth = undefined) {
         super (deltas.length)
         // a string-keyed dictionary of price levels / ids / indices
         Object.defineProperty (this, 'index', {
@@ -49,7 +43,10 @@ class OrderBookSide extends Array {
             writable: true,
         })
         // sort upon initiation
-        this.sort (this.compare)
+        for (let i = 0; i < deltas.length; i++) {
+            this.length = i
+            this.storeArray (deltas[i].slice ())  // slice is muy importante
+        }
     }
 
     storeArray (delta) {
@@ -59,18 +56,23 @@ class OrderBookSide extends Array {
         const price = delta[0]
         const size = delta[1]
         const index_price = this.side ? -price : price
-        const index = bisectLeft (this.index, price)
+        const index = bisectLeft (this.index, index_price)
         if (size) {
             if (index < this.index.length && this.index[index] == index_price) {
                 this[index][1] = size
             } else {
+                this.length++
+                this.index.copyWithin (index + 1, index, this.length)
                 this.index[index] = index_price
+                const innerIndex = this.side ? this.length - index - 1: index;
                 this.copyWithin (index + 1, index, this.length)
                 this[index] = delta
             }
         } else {
-            this.index[index] = Number.MAX_VALUE
+            this.index.copyWithin (index, index + 1, this.length)
+            this.index[this.length - 1] = Number.MAX_VALUE
             this.copyWithin (index, index + 1, this.length)
+            this.length--
         }
     }
 
@@ -99,24 +101,34 @@ class OrderBookSide extends Array {
 // this class stores vector arrays of values indexed by price
 
 class CountedOrderBookSide extends OrderBookSide {
-    constructor (deltas = [], depth = Number.MAX_SAFE_INTEGER) {
-        super (deltas, depth, LIMIT_BY_VALUE_PRICE_KEY)
-    }
-
     store (price, size, count) {
-        if (count && size) {
-            this.index.set (price, [ price, size, count ])
-        } else {
-            this.index.delete (price)
-        }
+        this.storeArray ([ price, size, count ])
     }
 
     storeArray (delta) {
-        const [ price, size, count ] = delta
-        if (count && size) {
-            this.index.set (price, delta)
+        if (this.prevLength) {
+            this.length = this.prevLength
+        }
+        const price = delta[0]
+        const size = delta[1]
+        const index_price = this.side ? -price : price
+        const index = bisectLeft (this.index, index_price)
+        if (size && count) {
+            if (index < this.index.length && this.index[index] == index_price) {
+                this[index][1] = size
+            } else {
+                this.length++
+                this.index.copyWithin (index + 1, index, this.length)
+                this.index[index] = index_price
+                const innerIndex = this.side ? this.length - index - 1: index;
+                this.copyWithin (index + 1, index, this.length)
+                this[index] = delta
+            }
         } else {
-            this.index.delete (price)
+            this.index.copyWithin (index, index + 1, this.length)
+            this.index[this.length - 1] = Number.MAX_VALUE
+            this.copyWithin (index, index + 1, this.length)
+            this.length--
         }
     }
 }
@@ -124,102 +136,101 @@ class CountedOrderBookSide extends OrderBookSide {
 // ----------------------------------------------------------------------------
 // stores vector arrays indexed by id (3rd value in a bidask delta array)
 
-class IndexedOrderBookSide extends OrderBookSide {
+class IndexedOrderBookSide extends Array  {
     constructor (deltas = [], depth = Number.MAX_SAFE_INTEGER) {
-        super (deltas, depth, LIMIT_BY_VALUE_INDEX_KEY)
+        super (deltas, depth)
+        // a string-keyed dictionary of price levels / ids / indices
+        Object.defineProperty (this, 'hashmap', {
+            __proto__: null, // make it invisible
+            value: new Map (),
+            writable: true,
+        })
+        Object.defineProperty (this, 'index', {
+            __proto__: null, // make it invisible
+            value: new Float64Array (start),
+            writable: true,
+        })
+        Object.defineProperty (this, 'depth', {
+            __proto__: null, // make it invisible
+            value: depth || Number.MAX_SAFE_INTEGER,
+            writable: true,
+        })
+        Object.defineProperty (this, 'prevLength', {
+            __proto__: null, // make it invisible
+            value: null,
+            writable: true,
+        })
+        // sort upon initiation
+        for (let i = 0; i < deltas.length; i++) {
+            this.length = i
+            this.storeArray (deltas[i].slice ())  // slice is muy importante
+        }
     }
 
     store (price, size, id) {
-        if (size) {
-            const stored = this.index.get (id)
-            if (stored) {
-                stored[0] = price || stored[0]
-                stored[1] = size
-                return
-            }
-            this.index.set (id, [ price, size, id ])
-        } else {
-            this.index.delete (id)
-        }
-    }
-
-    storeArray (delta) {
-        const [ price, size, id ] = delta
-        if (size) {
-            const stored = this.index.get (id)
-            if (stored) {
-                stored[0] = price || stored[0]
-                stored[1] = size
-                return
-            }
-            this.index.set (id, delta)
-        } else {
-            this.index.delete (id)
-        }
-    }
-}
-
-// ----------------------------------------------------------------------------
-// adjusts the volumes by positive or negative relative changes or differences
-
-class IncrementalOrderBookSide extends OrderBookSide {
-    constructor (deltas = [], depth = Number.MAX_SAFE_INTEGER) {
-        super (deltas, depth, LIMIT_BY_KEY)
-    }
-
-    store (price, size) {
-        size = (this.index.get (price) || 0) + size
-        if (size <= 0) {
-            this.index.delete (price)
-        } else {
-            this.index.set (price, size)
-        }
+        this.storeArray([ price, size, id ])
     }
 
     storeArray (delta) {
         const price = delta[0]
-            , size = (this.index.get (price) || 0) + delta[1]
-        if (size <= 0) {
-            this.index.delete (price)
+        const size = delta[1]
+        const id = delta[2]
+        let index_price
+        if (price !== undefined) {
+            index_price = this.side ? -price : price
         } else {
-            this.index.set (price, size)
+            index_price = undefined
         }
-    }
-}
-
-// ----------------------------------------------------------------------------
-// incremental and indexed (2 in 1)
-class IncrementalIndexedOrderBookSide extends IndexedOrderBookSide {
-    store (price, size, id) {
         if (size) {
-            const stored = this.index.get (id)
-            if (stored) {
-                if (size + stored[1] >= 0) {
-                    stored[0] = price || stored[0]
-                    stored[1] = size + stored[1]
+            if (this.hashmap.has (id)) {
+                const old_price = this.hashmap.get (id)
+                index_price = index_price || old_price
+                // in case price is not sent
+                delta[0] = Math.abs (index_price)
+                if (index_price === old_price) {
+                    const index = bisectLeft (this.index, index_price)
+                    this.index[index] = index_price
+                    this[index] = delta
                     return
+                } else {
+                    // remove old price from index
+                    const old_index = bisectLeft (this.index, old_price)
+                    this.index[old_index] = Number.MAX_VALUE
+                    this.copyWithin (old_index, old_index + 1, this.length)
                 }
             }
-            this.index.set (id, [ price, size, id ])
-        } else {
-            this.index.delete (id)
+            // insert new price level
+            this.hashmap.set (id, index_price)
+            const index = bisectLeft (this.index, index_price)
+            // insert new price level into index
+            this.length++
+            this.index.copyWithin (index + 1, index, this.length)
+            this.index[index] = index_price
+            const innerIndex = this.side ? this.length - index - 1: index;
+            this.copyWithin (index + 1, index, this.length)
+            this[index] = delta
+        } else if (this.hashmap.has (id)) {
+            const old_price = this.hashmap.get (id)
+            const index = bisectLeft (this.index, old_price)
+            this.index.copyWithin (index, index + 1, this.length)
+            this.index[this.length - 1] = Number.MAX_VALUE
+            this.copyWithin (index, index + 1, this.length)
+            this.hashmap.delete (id)
+            this.length--
         }
     }
 
-    storeArray (delta) {
-        const [ price, size, id ] = delta
-        if (size) {
-            const stored = this.index.get (id)
-            if (stored) {
-                if (size + stored[1] >= 0) {
-                    stored[0] = price || stored[0]
-                    stored[1] = size + stored[1]
-                    return
-                }
+    // replace stored orders with new values
+    limit (n = undefined) {
+        if (this.length > this.depth) {
+            for (let i = this.depth; i < this.length; i++) {
+                this.hashmap.delete (this.index[i])
+                this.index[i] = Number.MAX_VALUE
             }
-            this.index.set (id, [ price, size, id ])
-        } else {
-            this.index.delete (id)
+            this.length = this.depth
+        }
+        if (n !== undefined) {
+            this.length = Math.min (n, this.length)
         }
     }
 }
@@ -227,16 +238,12 @@ class IncrementalIndexedOrderBookSide extends IndexedOrderBookSide {
 // ----------------------------------------------------------------------------
 // a more elegant syntax is possible here, but native inheritance is portable
 
-class Asks extends OrderBookSide { compare (a, b) { return a[0] - b[0] }}
-class Bids extends OrderBookSide { compare (a, b) { return b[0] - a[0] }}
-class CountedAsks extends CountedOrderBookSide { compare (a, b) { return a[0] - b[0] }}
-class CountedBids extends CountedOrderBookSide { compare (a, b) { return b[0] - a[0] }}
-class IndexedAsks extends IndexedOrderBookSide { compare (a, b) { return a[0] - b[0] }}
-class IndexedBids extends IndexedOrderBookSide { compare (a, b) { return b[0] - a[0] }}
-class IncrementalAsks extends IncrementalOrderBookSide { compare (a, b) { return a[0] - b[0] }}
-class IncrementalBids extends IncrementalOrderBookSide { compare (a, b) { return b[0] - a[0] }}
-class IncrementalIndexedAsks extends IncrementalIndexedOrderBookSide { compare (a, b) { return a[0] - b[0] }}
-class IncrementalIndexedBids extends IncrementalIndexedOrderBookSide { compare (a, b) { return b[0] - a[0] }}
+class Asks extends OrderBookSide { get side () { return false }}
+class Bids extends OrderBookSide { get side () { return true }}
+class CountedAsks extends CountedOrderBookSide { get side () { return false }}
+class CountedBids extends CountedOrderBookSide { get side () { return true }}
+class IndexedAsks extends IndexedOrderBookSide { get side () { return false }}
+class IndexedBids extends IndexedOrderBookSide { get side () { return true }}
 
 // ----------------------------------------------------------------------------
 
@@ -257,18 +264,4 @@ module.exports = {
     IndexedBids,
     IndexedOrderBookSide,
 
-    // incremental
-    IncrementalAsks,
-    IncrementalBids,
-    IncrementalOrderBookSide,
-
-    // order-id + incremental
-    IncrementalIndexedAsks,
-    IncrementalIndexedBids,
-    IncrementalIndexedOrderBookSide,
-
-    // limit type constants
-    LIMIT_BY_KEY,
-    LIMIT_BY_VALUE_PRICE_KEY,
-    LIMIT_BY_VALUE_INDEX_KEY,
 }
