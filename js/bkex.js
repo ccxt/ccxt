@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, ArgumentsRequired, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, BadRequest, ArgumentsRequired, InsufficientFunds, InvalidOrder } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -26,7 +26,7 @@ module.exports = class bkex extends Exchange {
                 'addMargin': undefined,
                 'cancelAllOrders': undefined,
                 'cancelOrder': true,
-                'cancelOrders': undefined,
+                'cancelOrders': true,
                 'createDepositAddress': undefined,
                 'createLimitOrder': undefined,
                 'createMarketOrder': undefined,
@@ -42,7 +42,7 @@ module.exports = class bkex extends Exchange {
                 'fetchBorrowRatesPerSymbol': undefined,
                 'fetchCanceledOrders': undefined,
                 'fetchClosedOrder': undefined,
-                'fetchClosedOrders': undefined,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': true,
@@ -67,7 +67,7 @@ module.exports = class bkex extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
-                'fetchOrder': undefined,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
                 'fetchOrders': undefined,
@@ -216,6 +216,8 @@ module.exports = class bkex extends Exchange {
                 },
                 'broad': {
                     'Not Enough balance': InsufficientFunds,
+                    'Order does not exist': InvalidOrder,
+                    'System busy, please try again later': BadRequest, // in my tests, this was thrown mostly when request was bad, not the problem of exchange. It is easily reproduced in 'cancelOrders'
                 },
             },
         });
@@ -894,7 +896,6 @@ module.exports = class bkex extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
         const request = {
             'orderId': id,
         };
@@ -907,7 +908,33 @@ module.exports = class bkex extends Exchange {
         // }
         //
         const data = this.safeValue (response, 'data');
+        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
         return this.parseOrder (data, market);
+    }
+
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        if (!Array.isArray (ids)) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() ids argument should be an array');
+        }
+        await this.loadMarkets ();
+        const orderIds = ids.join (',');
+        const request = {
+            'orders': orderIds,
+        };
+        const response = await this.privatePostUOrderBatchCancel (this.extend (request, params));
+        // {
+        //     "code": 0,
+        //     "msg": "success",
+        //     "data": {
+        //        "success": 2,
+        //        "fail": 0,
+        //        "results": ["2019062312313131231"," 2019063123131312313"]
+        //     }
+        // }
+        const data = this.safeValue (response, 'data');
+        const results = this.safeValue (data, 'results');
+        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        return this.parseOrders (results, market, undefined, undefined, params);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -959,9 +986,96 @@ module.exports = class bkex extends Exchange {
         return this.parseOrders (innerData, market, since, limit, params);
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        const request = {
+            'orderId': id,
+        };
+        const response = await this.privateGetUOrderOpenOrderDetail (this.extend (request, params));
+        //
+        // {
+        //     "code": "0",
+        //     "data": {
+        //       "createdTime": "1646248301418",
+        //       "dealAvgPrice": "0",
+        //       "dealVolume": "0E-18",
+        //       "direction": "BID",
+        //       "frozenVolumeByOrder": "2.421300000000000000",
+        //       "id": "2022030303114141830002452",
+        //       "price": "0.150000000000000000",
+        //       "source": "WALLET",
+        //       "status": "0",
+        //       "symbol": "BKK_USDT",
+        //       "totalVolume": "16.142000000000000000",
+        //       "type": "LIMIT",
+        //       "updateTime": 1646248301418
+        //     },
+        //     "msg": "success",
+        //     "status": 0
+        // }
+        //
+        const data = this.safeValue (response, 'data');
+        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        return this.parseOrder (data, market);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['size'] = limit; // Todo: id api-docs, 'size' is incorrectly required to be in Uppercase
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const response = await this.privateGetUOrderHistoryOrders (this.extend (request, params));
+        //
+        // {
+        //     "code": "0",
+        //     "data": {
+        //       "data": [
+        //         {
+        //           "createdTime": "1646247807000",
+        //           "dealAvgPrice": "0",
+        //           "dealVolume": "0",
+        //           "direction": "BID",
+        //           "frozenVolumeByOrder": "1.65",
+        //           "id": "2022030303032700030025943",
+        //           "price": "0.15",
+        //           "source": "WALLET",
+        //           "status": "2",
+        //           "symbol": "BKK_USDT",
+        //           "totalVolume": "11",
+        //           "type": "LIMIT",
+        //           "updateTime": 1646247852558
+        //         },
+        //       ],
+        //       "pageRequest": {
+        //         "asc": false,
+        //         "orderBy": "id",
+        //         "page": "1",
+        //         "size": 10
+        //       },
+        //       "total": 6
+        //     },
+        //     "msg": "success",
+        //     "status": 0
+        // }
+        //
+        const result = this.safeValue (response, 'data');
+        const innerData = this.safeValue (result, 'data');
+        return this.parseOrders (innerData, market, since, limit, params);
+    }
+
     parseOrder (order, market = undefined) {
         let id = undefined;
         let timestamp = undefined;
+        let updateTime = undefined;
         let side = undefined;
         let price = undefined;
         let amount = undefined;
@@ -970,10 +1084,12 @@ module.exports = class bkex extends Exchange {
         let stopPrice = undefined;
         let cost = undefined;
         let type = undefined;
+        let average = undefined;
         if (typeof order === 'string') {
-            // createOrder, cancelOrder
+            // createOrder, cancelOrder, cancelOrders
             id = order;
             market = this.safeMarket (undefined, market);
+            // status = 'success';
         } else {
             //
             // fetchOpenOrders
@@ -990,11 +1106,14 @@ module.exports = class bkex extends Exchange {
             //       "symbol": "BKK_USDT",
             //       "totalVolume": "16.142000000000000000",
             //       "type": "LIMIT"
-            //       "stopPrice":  "0.14",            // present only for stop order
-            //       "operator":  ">="                // present only for stop order
+            //       "stopPrice":  "0.14",            // present only for 'stop' order types
+            //       "operator":  ">="                // present only for 'stop' order types
+            //       "dealAvgPrice": "0",             // only present in 'fetchOrder' & 'fetchClosedOrders'
+            //       "updateTime": 1646248301418      // only present in 'fetchOrder' & 'fetchClosedOrders'
             //  }
             //
             timestamp = this.safeInteger (order, 'createdTime');
+            updateTime = this.safeInteger (order, 'updateTime');
             filled = this.safeNumber (order, 'dealVolume');
             side = this.parseOrderSide (this.safeString (order, 'direction'));
             cost = this.safeNumber (order, 'frozenVolumeByOrder');
@@ -1006,13 +1125,14 @@ module.exports = class bkex extends Exchange {
             amount = this.safeNumber (order, 'totalVolume');
             type = this.parseOrderType (this.safeString (order, 'type'));
             stopPrice = this.safeNumber (order, 'stopPrice');
+            average = this.safeNumber (order, 'dealAvgPrice');
         }
         return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': updateTime,
             'status': status,
             'symbol': market['symbol'],
             'type': type,
@@ -1021,7 +1141,7 @@ module.exports = class bkex extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
-            'average': undefined,
+            'average': average,
             'amount': amount,
             'filled': filled,
             'remaining': undefined,
