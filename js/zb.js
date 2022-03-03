@@ -70,7 +70,7 @@ module.exports = class zb extends Exchange {
             },
             'exceptions': {
                 'ws': {
-                    //  '1000': ExchangeError, // The call is successful.
+                    // '1000': ExchangeError, // The call is successful.
                     '1001': ExchangeError, // General error prompt
                     '1002': ExchangeError, // Internal Error
                     '1003': AuthenticationError, // Fail to verify
@@ -1175,12 +1175,12 @@ module.exports = class zb extends Exchange {
             limit = 1000;
         }
         const request = {
-        //     'market': market['id'], // SPOT
-        //     'symbol': market['id'], // SWAP
-        //     'type': this.timeframes[timeframe], // SPOT
-        //     'period': this.timeframes[timeframe], // SWAP might need to change data type
-        //     'limit': limit, // SPOT
-        //     'size': limit, // SWAP
+            // 'market': market['id'], // SPOT
+            // 'symbol': market['id'], // SWAP
+            // 'type': this.timeframes[timeframe], // SPOT
+            // 'period': this.timeframes[timeframe], // SWAP might need to change data type
+            // 'limit': limit, // SPOT
+            // 'size': limit, // SWAP
         };
         const marketIdField = swap ? 'symbol' : 'market';
         request[marketIdField] = market['id'];
