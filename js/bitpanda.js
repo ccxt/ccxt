@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, ArgumentsRequired, OrderNotFound, InsufficientFunds, ExchangeNotAvailable, DDoSProtection, InvalidAddress, InvalidOrder } = require ('./base/errors');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -63,6 +64,7 @@ module.exports = class bitpanda extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchWithdrawals': true,
                 'privateAPI': true,
@@ -424,43 +426,22 @@ module.exports = class bitpanda extends Exchange {
         //         }
         //     ]
         //
-        const feeGroupsById = this.indexBy (response, 'fee_group_id');
-        const feeGroupId = this.safeValue (this.options, 'fee_group_id', 'default');
-        const feeGroup = this.safeValue (feeGroupsById, feeGroupId, {});
-        const feeTiers = this.safeValue (feeGroup, 'fee_tiers');
+        const first = this.safeValue (response, 0, {});
+        const feeTiers = this.safeValue (first, 'fee_tiers');
+        const tiers = this.parseFeeTiers (feeTiers);
+        const firstTier = this.safeValue (feeTiers, 0, {});
         const result = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
-            const fee = {
-                'info': feeGroup,
+            result[symbol] = {
+                'info': first,
                 'symbol': symbol,
-                'maker': undefined,
-                'taker': undefined,
+                'maker': this.safeNumber (firstTier, 'maker_fee'),
+                'taker': this.safeNumber (firstTier, 'taker_fee'),
                 'percentage': true,
                 'tierBased': true,
+                'tiers': tiers,
             };
-            const takerFees = [];
-            const makerFees = [];
-            for (let i = 0; i < feeTiers.length; i++) {
-                const tier = feeTiers[i];
-                const volume = this.safeNumber (tier, 'volume');
-                let taker = this.safeNumber (tier, 'taker_fee');
-                let maker = this.safeNumber (tier, 'maker_fee');
-                taker /= 100;
-                maker /= 100;
-                takerFees.push ([ volume, taker ]);
-                makerFees.push ([ volume, maker ]);
-                if (i === 0) {
-                    fee['taker'] = taker;
-                    fee['maker'] = maker;
-                }
-            }
-            const tiers = {
-                'taker': takerFees,
-                'maker': makerFees,
-            };
-            fee['tiers'] = tiers;
-            result[symbol] = fee;
         }
         return result;
     }
@@ -490,32 +471,45 @@ module.exports = class bitpanda extends Exchange {
         //     }
         //
         const activeFeeTier = this.safeValue (response, 'active_fee_tier', {});
-        const result = {
-            'info': response,
-            'maker': this.safeNumber (activeFeeTier, 'maker_fee'),
-            'taker': this.safeNumber (activeFeeTier, 'taker_fee'),
-            'percentage': true,
-            'tierBased': true,
-        };
+        let makerFee = this.safeString (activeFeeTier, 'maker_fee');
+        let takerFee = this.safeString (activeFeeTier, 'taker_fee');
+        makerFee = Precise.stringDiv (makerFee, '100');
+        takerFee = Precise.stringDiv (takerFee, '100');
         const feeTiers = this.safeValue (response, 'fee_tiers');
+        const result = {};
+        const tiers = this.parseFeeTiers (feeTiers);
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': this.parseNumber (makerFee),
+                'taker': this.parseNumber (takerFee),
+                'percentage': true,
+                'tierBased': true,
+                'tiers': tiers,
+            };
+        }
+        return result;
+    }
+
+    parseFeeTiers (feeTiers, market = undefined) {
         const takerFees = [];
         const makerFees = [];
         for (let i = 0; i < feeTiers.length; i++) {
             const tier = feeTiers[i];
             const volume = this.safeNumber (tier, 'volume');
-            let taker = this.safeNumber (tier, 'taker_fee');
-            let maker = this.safeNumber (tier, 'maker_fee');
-            taker /= 100;
-            maker /= 100;
-            takerFees.push ([ volume, taker ]);
-            makerFees.push ([ volume, maker ]);
+            let taker = this.safeString (tier, 'taker_fee');
+            let maker = this.safeString (tier, 'maker_fee');
+            maker = Precise.stringDiv (maker, '100');
+            taker = Precise.stringDiv (taker, '100');
+            makerFees.push ([ volume, this.parseNumber (maker) ]);
+            takerFees.push ([ volume, this.parseNumber (taker) ]);
         }
-        const tiers = {
-            'taker': takerFees,
+        return {
             'maker': makerFees,
+            'taker': takerFees,
         };
-        result['tiers'] = tiers;
-        return result;
     }
 
     parseTicker (ticker, market = undefined) {

@@ -7,6 +7,7 @@ namespace ccxt;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
 use \ccxt\InsufficientFunds;
 
 class blockchaincom extends Exchange {
@@ -443,27 +444,50 @@ class blockchaincom extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clOrdId', $this->uuid16());
         $this->load_markets();
         $market = $this->market($symbol);
+        $orderType = $this->safe_string($params, 'ordType', $type);
+        $uppercaseOrderType = strtoupper($orderType);
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clOrdId', $this->uuid16());
+        $params = $this->omit($params, array( 'ordType', 'clientOrderId', 'clOrdId' ));
         $request = array(
             // 'stopPx' : limit $price
             // 'timeInForce' : "GTC" for Good Till Cancel, "IOC" for Immediate or Cancel, "FOK" for Fill or Kill, "GTD" Good Till Date
             // 'expireDate' : expiry date in the format YYYYMMDD
             // 'minQty' : The minimum quantity required for an IOC fill
+            'ordType' => $uppercaseOrderType,
             'symbol' => $market['id'],
             'side' => strtoupper($side),
             'orderQty' => $this->amount_to_precision($symbol, $amount),
-            'ordType' => strtoupper($type), // LIMIT, MARKET, STOP, STOPLIMIT
             'clOrdId' => $clientOrderId,
         );
-        $params = $this->omit($params, array( 'clientOrderId', 'clOrdId' ));
-        if ($request['ordType'] === 'LIMIT') {
+        $stopPrice = $this->safe_value_2($params, 'stopPx', 'stopPrice');
+        $params = $this->omit($params, array( 'stopPx', 'stopPrice' ));
+        if ($uppercaseOrderType === 'STOP' || $uppercaseOrderType === 'LIMIT') {
+            if ($stopPrice === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a stopPx or $stopPrice param for a ' . $uppercaseOrderType . ' order');
+            }
+        }
+        if ($stopPrice !== null) {
+            if ($uppercaseOrderType === 'MARKET') {
+                $request['ordType'] = 'STOP';
+            } else if ($uppercaseOrderType === 'LIMIT') {
+                $request['ordType'] = 'STOPLIMIT';
+            }
+        }
+        $priceRequired = false;
+        $stopPriceRequired = false;
+        if ($request['ordType'] === 'LIMIT' || $request['ordType'] === 'STOPLIMIT') {
+            $priceRequired = true;
+        }
+        if ($request['ordType'] === 'STOP' || $request['ordType'] === 'STOPLIMIT') {
+            $stopPriceRequired = true;
+        }
+        if ($priceRequired) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        if ($request['ordType'] === 'STOPLIMIT') {
-            $request['price'] = $this->price_to_precision($symbol, $price);
-            $request['stopPx'] = $this->price_to_precision($symbol, $price);
+        if ($stopPriceRequired) {
+            $request['stopPx'] = $this->price_to_precision($symbol, $stopPrice);
         }
         $response = $this->privatePostOrders (array_merge($request, $params));
         return $this->parse_order($response, $market);
@@ -582,12 +606,7 @@ class blockchaincom extends Exchange {
         $fee = null;
         $feeCostString = $this->safe_string($trade, 'fee');
         if ($feeCostString !== null) {
-            $feeCurrency = null;
-            if ($side === 'buy') {
-                $feeCurrency = $market['base'];
-            } else if ($side === 'sell') {
-                $feeCurrency = $market['quote'];
-            }
+            $feeCurrency = $market['quote'];
             $fee = array( 'cost' => $feeCostString, 'currency' => $feeCurrency );
         }
         return $this->safe_trade(array(

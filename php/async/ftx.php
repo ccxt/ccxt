@@ -86,6 +86,7 @@ class ftx extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => false,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
@@ -1136,11 +1137,21 @@ class ftx extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        return array(
-            'info' => $response,
-            'maker' => $this->safe_number($result, 'makerFee'),
-            'taker' => $this->safe_number($result, 'takerFee'),
-        );
+        $maker = $this->safe_number($result, 'makerFee');
+        $taker = $this->safe_number($result, 'takerFee');
+        $tradingFees = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $tradingFees[$symbol] = array(
+                'info' => $response,
+                'symbol' => $symbol,
+                'maker' => $maker,
+                'taker' => $taker,
+                'percentage' => true,
+                'tierBased' => true,
+            );
+        }
+        return $tradingFees;
     }
 
     public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
