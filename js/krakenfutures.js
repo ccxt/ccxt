@@ -652,16 +652,16 @@ module.exports = class krakenfu extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         /**
-            @param {string} symbol: CCXT market symbol
-            @param {string} type: One of 'limit', 'market', 'post' (post-only limit order), 'take_profit' (take_profit order)
-            @param {string} side: buy or sell
-            @param {integer} amount: Contract quantity
-            @param {float} price: Limit order price
-            @param {float} params.stopPrice: The stop price associated with a stop or take profit order. Required if orderType is stp or take_profit. Must not have more than 2 decimal places. Note that for stop orders, limitPrice denotes the worst price at which the stop or take_profit order can get filled at. If no limitPrice is provided the stop or take_profit order will trigger a market order.
-            @param {string} params.triggerSignal: If placing a stp or take_profit, the signal used for trigger. One of: 'mark', 'index', 'last' (market price)
-            @param {string} params.cliOrdId: UUID - The order identity that is specified from the user. It must be globally unique.
-            @param {boolean} params.reduceOnly: Set as true if you wish the order to only reduce an existing position. Any order which increases an existing position will be rejected. Default false.
-        */
+         * @param {string} symbol: CCXT market symbol
+         * @param {string} type: One of 'limit', 'market', 'post' (post-only limit order), 'take_profit' (take_profit order)
+         * @param {string} side: buy or sell
+         * @param {integer} amount: Contract quantity
+         * @param {float} price: Limit order price
+         * @param {float} params.stopPrice: The stop price associated with a stop or take profit order. Required if orderType is stp or take_profit. Must not have more than 2 decimal places. Note that for stop orders, limitPrice denotes the worst price at which the stop or take_profit order can get filled at. If no limitPrice is provided the stop or take_profit order will trigger a market order.
+         * @param {string} params.triggerSignal: If placing a stp or take_profit, the signal used for trigger. One of: 'mark', 'index', 'last' (market price)
+         * @param {string} params.cliOrdId: UUID - The order identity that is specified from the user. It must be globally unique.
+         * @param {boolean} params.reduceOnly: Set as true if you wish the order to only reduce an existing position. Any order which increases an existing position will be rejected. Default false.
+         */
         await this.loadMarkets ();
         type = this.safeString (params, 'orderType', type);
         const timeInForce = this.safeString (params, 'timeInForce');
@@ -778,6 +778,7 @@ module.exports = class krakenfu extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         // The returned orderEvents are yet again in entirely different format, what a mess
+        // TODO
         throw new NotSupported (this.id + ' fetchOrders not supprted yet');
         // await this.loadMarkets ();
         // let market = undefined;
@@ -1321,6 +1322,83 @@ module.exports = class krakenfu extends Exchange {
         }
         const sorted = this.sortBy (result, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
+    async fetchPositions (symbols = undefined, params = {}) {
+        /**
+         * Fetches current contract trading positions
+         * @param {[string]} symbols: List of CCXT symbols
+         * @param {dict} params: Not used by krakenfutures
+         * @return: Parsed exchange response for positions
+         */
+        await this.loadMarkets ();
+        const request = {};
+        const response = await this.privateGetOpenpositions (request);
+        //
+        //    {
+        //        result: 'success',
+        //        openPositions: [
+        //            {
+        //                side: 'long',
+        //                symbol: 'pi_xrpusd',
+        //                price: '0.7533',
+        //                fillTime: '2022-03-03T22:51:16.566Z',
+        //                size: '230',
+        //                unrealizedFunding: '-0.001878596918214635'
+        //            }
+        //        ],
+        //        serverTime: '2022-03-03T22:51:16.566Z'
+        //    }
+        //
+        const result = this.parsePositions (response);
+        return this.filterByArray (result, 'symbol', symbols, false);
+    }
+
+    parsePositions (response) {
+        const result = [];
+        const positions = this.safeValue (response, 'openPositions');
+        for (let i = 0; i < positions.length; i++) {
+            const position = this.parsePosition (positions[i]);
+            result.push (position);
+        }
+        return result;
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        //    {
+        //        side: 'long',
+        //        symbol: 'pi_xrpusd',
+        //        price: '0.7533',
+        //        fillTime: '2022-03-03T22:51:16.566Z',
+        //        size: '230',
+        //        unrealizedFunding: '-0.001878596918214635'
+        //    }
+        //
+        const datetime = this.safeString (position, 'fillTime');
+        return {
+            'info': position,
+            'symbol': this.safeCurrencyCode (this.safeString (position, 'symbol')),
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'entryPrice': this.safeNumber (position, 'price'),
+            'notional': undefined,
+            'leverage': undefined,
+            'unrealizedPnl': undefined,
+            'contracts': undefined,
+            'contractSize': this.safeNumber (market, 'contractSize'),
+            'marginRatio': undefined,
+            'liquidationPrice': undefined,
+            'markPrice': undefined,
+            'collateral': this.safeString (position, 'size'),
+            'marginType': 'cross',
+            'side': this.safeString (position, 'side'),
+            'percentage': undefined,
+        };
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
