@@ -112,7 +112,7 @@ module.exports = class vega extends Exchange {
         const response = await this.publicGetMarketsData (params);
         const data = this.safeValue (response, 'marketsData', {});
         // parse
-        const result = [];
+        const result = {};
         for (let i = 0; i < data.length; i++) {
             const marketData = data[i];
             let market = null;
@@ -124,9 +124,11 @@ module.exports = class vega extends Exchange {
                 }
             }
             const parsedMarket = this.parseMarket (market);
-            result.push (this.parseMarketData (marketData, parsedMarket));
+            const ticker = this.parseMarketData (marketData, parsedMarket);
+            const symbol = ticker['symbol'];
+            result[symbol] = ticker;
         }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
