@@ -79,6 +79,7 @@ class OrderBook {
     }
 
     reset (snapshot = {}) {
+        return
         this.asks.index.length = 0
         if (snapshot.asks) {
             //this.asks = snapshot.asks
