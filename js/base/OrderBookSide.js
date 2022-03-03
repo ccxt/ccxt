@@ -20,7 +20,7 @@ function bisectLeft(array, x) {
     return low;
 }
 
-const SIZE = 4096
+const SIZE = 4098
 const SEED = new Float64Array (new Array (SIZE).fill (Number.MAX_VALUE))
 
 class OrderBookSide extends Array {
