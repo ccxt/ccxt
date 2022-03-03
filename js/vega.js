@@ -95,10 +95,11 @@ module.exports = class vega extends Exchange {
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetAssets (params);
         const data = this.safeValue (response, 'assets');
-        const result = [];
+        const result = {};
         for (let i = 0; i < data.length; i++) {
             const asset = data[i];
-            result.push (this.parseAsset (asset));
+            const formated = this.parseAsset (asset);
+            result[formated.symbol] = formated;
         }
         return result;
     }
