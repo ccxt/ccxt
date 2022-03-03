@@ -11,6 +11,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.precise import Precise
 
 
 class coinmate(Exchange):
@@ -59,6 +60,8 @@ class coinmate(Exchange):
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': False,
                 'fetchTransactions': True,
                 'reduceMargin': False,
                 'setLeverage': False,
@@ -145,58 +148,27 @@ class coinmate(Exchange):
                     'taker': 0.25 / 100,
                     'tiers': {
                         'taker': [
-                            [0, 0.25 / 100],
-                            [10000, 0.23 / 100],
-                            [100000, 0.21 / 100],
-                            [250000, 0.20 / 100],
-                            [500000, 0.15 / 100],
-                            [1000000, 0.13 / 100],
-                            [3000000, 0.10 / 100],
-                            [15000000, 0.05 / 100],
+                            [self.parse_number('0'), self.parse_number('0.0035')],
+                            [self.parse_number('10000'), self.parse_number('0.0023')],
+                            [self.parse_number('100000'), self.parse_number('0.0021')],
+                            [self.parse_number('250000'), self.parse_number('0.0020')],
+                            [self.parse_number('500000'), self.parse_number('0.0015')],
+                            [self.parse_number('1000000'), self.parse_number('0.0013')],
+                            [self.parse_number('3000000'), self.parse_number('0.0010')],
+                            [self.parse_number('15000000'), self.parse_number('0.0005')],
                         ],
                         'maker': [
-                            [0, 0.12 / 100],
-                            [10000, 0.11 / 100],
-                            [1000000, 0.10 / 100],
-                            [250000, 0.08 / 100],
-                            [500000, 0.05 / 100],
-                            [1000000, 0.03 / 100],
-                            [3000000, 0.02 / 100],
-                            [15000000, 0],
+                            [self.parse_number('0'), self.parse_number('0.003')],
+                            [self.parse_number('10000'), self.parse_number('0.0011')],
+                            [self.parse_number('100000'), self.parse_number('0.0010')],
+                            [self.parse_number('250000'), self.parse_number('0.0008')],
+                            [self.parse_number('500000'), self.parse_number('0.0005')],
+                            [self.parse_number('1000000'), self.parse_number('0.0003')],
+                            [self.parse_number('3000000'), self.parse_number('0.0002')],
+                            [self.parse_number('15000000'), self.parse_number('0')],
                         ],
                     },
                 },
-                'promotional': {
-                    'trading': {
-                        'maker': 0.05 / 100,
-                        'taker': 0.15 / 100,
-                        'tiers': {
-                            'taker': [
-                                [0, 0.15 / 100],
-                                [10000, 0.14 / 100],
-                                [100000, 0.13 / 100],
-                                [250000, 0.12 / 100],
-                                [500000, 0.11 / 100],
-                                [1000000, 0.1 / 100],
-                                [3000000, 0.08 / 100],
-                                [15000000, 0.05 / 100],
-                            ],
-                            'maker': [
-                                [0, 0.05 / 100],
-                                [10000, 0.04 / 100],
-                                [1000000, 0.03 / 100],
-                                [250000, 0.02 / 100],
-                                [500000, 0],
-                                [1000000, 0],
-                                [3000000, 0],
-                                [15000000, 0],
-                            ],
-                        },
-                    },
-                },
-            },
-            'options': {
-                'promotionalMarkets': ['ETH/EUR', 'ETH/CZK', 'ETH/BTC', 'XRP/EUR', 'XRP/CZK', 'XRP/BTC', 'DASH/EUR', 'DASH/CZK', 'DASH/BTC', 'BCH/EUR', 'BCH/CZK', 'BCH/BTC'],
             },
             'exceptions': {
                 'exact': {
@@ -243,11 +215,6 @@ class coinmate(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            promotionalMarkets = self.safe_value(self.options, 'promotionalMarkets', [])
-            fees = self.safe_value(self.fees, 'trading')
-            if self.in_array(symbol, promotionalMarkets):
-                promotionalFees = self.safe_value(self.fees, 'promotional', {})
-                fees = self.safe_value(promotionalFees, 'trading', fees)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -267,8 +234,6 @@ class coinmate(Exchange):
                 'contract': False,
                 'linear': None,
                 'inverse': None,
-                'taker': self.safe_number(fees, 'taker'),
-                'maker': self.safe_number(fees, 'maker'),
                 'contractSize': None,
                 'expiry': None,
                 'expiryDatetime': None,
@@ -560,6 +525,34 @@ class coinmate(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
+
+    async def fetch_trading_fee(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'currencyPair': market['id'],
+        }
+        response = await self.privatePostTraderFees(self.extend(request, params))
+        #
+        #     {
+        #         error: False,
+        #         errorMessage: null,
+        #         data: {maker: '0.3', taker: '0.35', timestamp: '1646253217815'}
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        makerString = self.safe_string(data, 'maker')
+        takerString = self.safe_string(data, 'taker')
+        maker = self.parse_number(Precise.string_div(makerString, '100'))
+        taker = self.parse_number(Precise.string_div(takerString, '100'))
+        return {
+            'info': data,
+            'symbol': symbol,
+            'maker': maker,
+            'taker': taker,
+            'percentage': True,
+            'tierBased': True,
+        }
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         response = await self.privatePostOpenOrders(self.extend({}, params))
