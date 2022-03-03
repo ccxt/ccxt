@@ -2455,8 +2455,9 @@ module.exports = class zb extends Exchange {
         } else {
             side = 0;
         }
+        const currency = this.currency (code);
         const request = {
-            'currencyName': code,
+            'currencyName': currency['id'],
             'amount': amount,
             'clientId': this.safeString (params, 'clientId'), // "2sdfsdfsdf232342"
             'side': side, // 1：Deposit (zb account -> futures account)，0：Withdrawal (futures account -> zb account)
