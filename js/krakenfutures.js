@@ -29,6 +29,7 @@ module.exports = class krakenfu extends Exchange {
                 'editOrder': true,
                 'fetchFundingRateHistory': true,
                 'fetchIndexOHLCV': false,
+                'fetchLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
@@ -1399,6 +1400,119 @@ module.exports = class krakenfu extends Exchange {
             'side': this.safeString (position, 'side'),
             'percentage': undefined,
         };
+    }
+
+    async fetchLeverageTiers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetInstruments (params);
+        //
+        //    {
+        //        "result": "success",
+        //        "instruments": [
+        //            {
+        //                "symbol": "fi_ethusd_180928",
+        //                "type": "futures_inverse",                      // futures_vanilla  // spot index
+        //                "underlying": "rr_ethusd",
+        //                "lastTradingTime": "2018-09-28T15:00:00.000Z",
+        //                "tickSize": 0.1,
+        //                "contractSize": 1,
+        //                "tradeable": true,
+        //                "marginLevels": [
+        //                    {
+        //                        "contracts":0,
+        //                        "initialMargin":0.02,
+        //                        "maintenanceMargin":0.01
+        //                    },
+        //                    {
+        //                        "contracts":250000,
+        //                        "initialMargin":0.04,
+        //                        "maintenanceMargin":0.02
+        //                    },
+        //                    ...
+        //                ],
+        //                "isin": "GB00JVMLMP88",
+        //                "retailMarginLevels": [
+        //                    {
+        //                        "contracts": 0,
+        //                        "initialMargin": 0.5,
+        //                        "maintenanceMargin": 0.25
+        //                    }
+        //                ],
+        //                "tags": [],
+        //            },
+        //            {
+        //                "symbol": "in_xbtusd",
+        //                "type": "spot index",
+        //                "tradeable":false
+        //            }
+        //        ]
+        //        "serverTime": "2018-07-19T11:32:39.433Z"
+        //    }
+        //
+        const data = this.safeValue (response, 'instruments');
+        return this.parseLeverageTiers (data, symbols, 'symbol');
+    }
+
+    parseMarketLeverageTiers (info, market = undefined) {
+        /**
+            @param info: Exchange market response for 1 market
+            {
+                "symbol": "fi_ethusd_180928",
+                "type": "futures_inverse",                      // futures_vanilla  // spot index
+                "underlying": "rr_ethusd",
+                "lastTradingTime": "2018-09-28T15:00:00.000Z",
+                "tickSize": 0.1,
+                "contractSize": 1,
+                "tradeable": true,
+                "marginLevels": [
+                    {
+                        "contracts":0,
+                        "initialMargin":0.02,
+                        "maintenanceMargin":0.01
+                    },
+                    {
+                        "contracts":250000,
+                        "initialMargin":0.04,
+                        "maintenanceMargin":0.02
+                    },
+                    ...
+                ],
+                "isin": "GB00JVMLMP88",
+                "retailMarginLevels": [
+                    {
+                        "contracts": 0,
+                        "initialMargin": 0.5,
+                        "maintenanceMargin": 0.25
+                    }
+                ],
+                "tags": [],
+            }
+            @param market: CCXT market
+        */
+        const marginLevels = this.safeValue (info, 'marginLevels');
+        const id = this.safeString (info, 'symbol');
+        market = this.safeMarket (id, market);
+        const tiers = [];
+        for (let i = 0; i < marginLevels.length; i++) {
+            const tier = marginLevels[i];
+            const initialMargin = this.safeString (tier, 'initialMargin');
+            const notionalFloor = this.safeNumber (tier, 'contracts');
+            if (i !== 0) {
+                const tiersLength = tiers.length;
+                const previousTier = tiers[tiersLength - 1];
+                previousTier['notionalCap'] = notionalFloor;
+            }
+            tiers.push ({
+                'tier': this.sum (i, 1),
+                'currency': market['quote'],
+                'notionalFloor': notionalFloor,
+                'notionalCap': undefined,
+                'maintenanceMarginRate': this.safeNumber (tier, 'maintenanceMargin'),
+                'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMargin)),
+                'info': tier,
+            });
+        }
+        return tiers;
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
