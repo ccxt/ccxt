@@ -334,7 +334,7 @@ module.exports = class cex extends Exchange {
             const baseCcyPrecision = this.safeString (baseCurrency, 'precision', '8');
             const baseCcyScale = this.safeString (baseCurrency, 'scale', '0');
             result.push ({
-                'id': baseId + ':' + quoteId,
+                'id': baseId + '/' + quoteId,
                 'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
