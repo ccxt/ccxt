@@ -43,15 +43,19 @@ class OrderBookSide extends Array {
             value: depth || Number.MAX_SAFE_INTEGER,
             writable: true,
         })
-        Object.defineProperty (this, 'limitType', {
+        Object.defineProperty (this, 'prevLength', {
             __proto__: null, // make it invisible
-            value: limitType,
+            value: null,
             writable: true,
         })
+        // sort upon initiation
         this.sort (this.compare)
     }
 
     storeArray (delta) {
+        if (this.prevLength) {
+            this.length = this.prevLength
+        }
         const price = delta[0]
         const size = delta[1]
         const index_price = this.side ? -price : price
@@ -65,7 +69,8 @@ class OrderBookSide extends Array {
                 this[index] = delta
             }
         } else {
-
+            this.index[index] = Number.MAX_VALUE
+            this.copyWithin (index, index + 1, this.length)
         }
     }
 
@@ -76,29 +81,15 @@ class OrderBookSide extends Array {
 
     // replace stored orders with new values
     limit (n = undefined) {
-        return
-        n = n || Number.MAX_SAFE_INTEGER
-        const elements = (this.limitType === LIMIT_BY_KEY) ? this.index.entries () : this.index.values ()
-        const array = Array.from (elements).sort (this.compare)
-        const threshold = Math.min (this.depth, array.length)
-        this.index = new Map ()
-        for (let i = 0; i < threshold; i++) {
-            this[i] = array[i];
-            const price = array[i][0]
-            if (this.limitType === LIMIT_BY_KEY) {
-                const size = array[i][1]
-                this.index.set (price, size)
-            } else {
-                const last = array[i][2]
-                if (this.limitType === LIMIT_BY_VALUE_PRICE_KEY) {
-                    this.index.set (price, array[i])
-                } else {
-                    this.index.set (last, array[i])
-                }
+        if (this.length > this.depth) {
+            for (let i = this.depth; i < this.length; i++) {
+                this.index[i] = Number.MAX_VALUE
             }
+            this.length = this.depth
         }
-        this.length = Math.min (threshold, n);
-        return this
+        if (n !== undefined) {
+            this.length = Math.min (n, this.length)
+        }
     }
 }
 
