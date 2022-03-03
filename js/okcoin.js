@@ -2761,8 +2761,8 @@ module.exports = class okcoin extends Exchange {
         // or a negative number (transaction fee deduction)
         // therefore we need to invert the fee
         // more about it https://github.com/ccxt/ccxt/issues/5909
-        if ((feeCostFirstString !== undefined) && (feeCostFirstString !== 0)) {
-            if ((feeCostSecondString !== undefined) && (feeCostSecondString !== 0)) {
+        if ((feeCostFirstString !== undefined) && (feeCostFirstString !== '0')) {
+            if ((feeCostSecondString !== undefined) && (feeCostSecondString !== '0')) {
                 fees = [
                     {
                         'cost': Precise.stringNeg (feeCostFirstString),
@@ -2779,7 +2779,7 @@ module.exports = class okcoin extends Exchange {
                     'currency': feeCurrencyCodeFirst,
                 };
             }
-        } else if ((feeCostSecondString !== undefined) && (feeCostSecondString !== 0)) {
+        } else if ((feeCostSecondString !== undefined) && (feeCostSecondString !== '0')) {
             fee = {
                 'cost': Precise.stringNeg (feeCostSecondString),
                 'currency': feeCurrencyCodeSecond,
