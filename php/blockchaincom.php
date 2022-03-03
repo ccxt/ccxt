@@ -606,12 +606,7 @@ class blockchaincom extends Exchange {
         $fee = null;
         $feeCostString = $this->safe_string($trade, 'fee');
         if ($feeCostString !== null) {
-            $feeCurrency = null;
-            if ($side === 'buy') {
-                $feeCurrency = $market['base'];
-            } else if ($side === 'sell') {
-                $feeCurrency = $market['quote'];
-            }
+            $feeCurrency = $market['quote'];
             $fee = array( 'cost' => $feeCostString, 'currency' => $feeCurrency );
         }
         return $this->safe_trade(array(
