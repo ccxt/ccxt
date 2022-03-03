@@ -255,7 +255,9 @@ class IndexedOrderBookSide extends Array  {
         }
         if (this.length > this.depth) {
             for (let i = this.depth; i < this.length; i++) {
+                // only difference from OrderBookSide.limit
                 this.hashmap.delete (this.index[i])
+                // end diff
                 this.index[i] = Number.MAX_VALUE
             }
             this.length = this.depth
