@@ -2449,7 +2449,6 @@ module.exports = class zb extends Exchange {
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets ();
-        const currency = this.currency (code);
         let side = undefined;
         if (fromAccount === 'spot' || toAccount === 'future') {
             side = 1;
@@ -2457,7 +2456,7 @@ module.exports = class zb extends Exchange {
             side = 0;
         }
         const request = {
-            'currencyName': currency,
+            'currencyName': code,
             'amount': amount,
             'clientId': this.safeString (params, 'clientId'), // "2sdfsdfsdf232342"
             'side': side, // 1：Deposit (zb account -> futures account)，0：Withdrawal (futures account -> zb account)
@@ -2472,16 +2471,16 @@ module.exports = class zb extends Exchange {
         //
         const timestamp = this.milliseconds ();
         const transfer = {
-            'id': this.safeValue (response, 'data'),
+            'id': this.safeString (response, 'data'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'currency': currency,
+            'currency': code,
             'amount': amount,
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': this.safeValue (response, 'desc'),
+            'status': this.safeInteger (response, 'code'),
         };
-        return this.parseTransfer (transfer, currency);
+        return this.parseTransfer (transfer, code);
     }
 
     parseTransfer (transfer, currency = undefined) {
@@ -2494,7 +2493,7 @@ module.exports = class zb extends Exchange {
         //         "amount": "10",
         //         "fromAccount": "futures account",
         //         "toAccount": "zb account",
-        //         "status": "Success",
+        //         "status": 10000,
         //     }
         //
         const currencyId = this.safeString (transfer, 'currency');
