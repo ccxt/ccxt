@@ -1175,12 +1175,13 @@ module.exports = class zb extends Exchange {
             limit = 1000;
         }
         const request = {
-            // 'market': market['id'], // SPOT
-            // 'symbol': market['id'], // SWAP
-            // 'type': this.timeframes[timeframe], // SPOT
-            // 'period': this.timeframes[timeframe], // SWAP might need to change data type
-            // 'limit': limit, // SPOT
-            // 'size': limit, // SWAP
+            // 'market': market['id'], // spot
+            // 'symbol': market['id'], // swap
+            // 'type': this.timeframes[timeframe], // spot
+            // 'period': this.timeframes[timeframe], // swap might need to change data type
+            // 'since': since, // spot only
+            // 'limit': limit, // spot only
+            // 'size': limit, // swap
         };
         const marketIdField = swap ? 'symbol' : 'market';
         request[marketIdField] = market['id'];
