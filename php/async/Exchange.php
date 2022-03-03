@@ -348,11 +348,13 @@ class Exchange extends \ccxt\Exchange {
     }
     
     public function sleep($milliseconds) {
-        $promise = new React\Promise\Promise(function() use ($milliseconds) {
-            static::get_loop()->addTimer($milliseconds / 1000, function () {
-                \React\Promise\resolve();
+        $time = $milliseconds / 1000;
+        $loop = $this->get_loop();
+        $timer = null;
+        return new React\Promise\Promise(function ($resolve) use ($loop, $time, &$timer) {
+            $timer = $loop->addTimer($time, function () use ($resolve) {
+                $resolve(null);
             });
         });
-        return $promise;
     }
 }
