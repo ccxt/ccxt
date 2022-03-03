@@ -3,9 +3,22 @@
 'use strict';
 
 // ----------------------------------------------------------------------------
+// binary insert optimizations by Carlo Revelli
+// carlo.revelli@berkeley.edu
 // one half-side of an orderbook (bids or asks)
 // overwrites absolute volumes at price levels
 // this class stores scalar order sizes indexed by price
+
+function bisectLeft(array, x) {
+    let low = 0
+    let high = array.length
+    while (low < high) {
+        const mid = (low + high) >>> 1;
+        if (array[mid] - x < 0) low = mid + 1;
+        else high = mid;
+    }
+    return low;
+}
 
 const LIMIT_BY_KEY = 0
 const LIMIT_BY_VALUE_PRICE_KEY = 1
@@ -17,7 +30,7 @@ class OrderBookSide extends Array {
         // a string-keyed dictionary of price levels / ids / indices
         Object.defineProperty (this, 'index', {
             __proto__: null, // make it invisible
-            value: new Map (),
+            value: [],
             writable: true,
         })
         Object.defineProperty (this, 'depth', {
@@ -35,46 +48,32 @@ class OrderBookSide extends Array {
         }
     }
 
-    store (price, size) {
+    storeArray (delta) {
+        const price = delta[0]
+        const size = delta[1]
+        const index_price = this.side ? -price : price
+        const index = bisectLeft (this.index, index_price)
         if (size) {
-            this.index.set (price, size) // absolute volume at price level)
-        } else {
-            this.index.delete (price) // purge zero values
+            if (index < this.index.length && this.index[index] === index_price) {
+                this[index][1] = size
+            } else {
+                this.index.splice (index, 0, index_price)
+                this.splice (index, 0, delta)
+            }
+        } else if (index < this.index.length && this.index[index] === index_price) {
+            this.index.splice (index, 1)
+            this.splice (index, 1)
         }
     }
 
     // index an incoming delta in the string-price-keyed dictionary
-    storeArray (delta) {
-        // const [ price, size ] = delta
-        const price = delta[0]
-        const size = delta[1]
-        this.store (price, size)
+    store (price, size) {
+        this.storeArray ([ price, size ])
     }
 
     // replace stored orders with new values
     limit (n = undefined) {
-        n = n || Number.MAX_SAFE_INTEGER
-        const elements = (this.limitType === LIMIT_BY_KEY) ? this.index.entries () : this.index.values ()
-        const array = Array.from (elements).sort (this.compare)
-        const threshold = Math.min (this.depth, array.length)
-        this.index = new Map ()
-        for (let i = 0; i < threshold; i++) {
-            this[i] = array[i];
-            const price = array[i][0]
-            if (this.limitType === LIMIT_BY_KEY) {
-                const size = array[i][1]
-                this.index.set (price, size)
-            } else {
-                const last = array[i][2]
-                if (this.limitType === LIMIT_BY_VALUE_PRICE_KEY) {
-                    this.index.set (price, array[i])
-                } else {
-                    this.index.set (last, array[i])
-                }
-            }
-        }
-        this.length = Math.min (threshold, n);
-        return this
+        return
     }
 }
 
@@ -89,19 +88,25 @@ class CountedOrderBookSide extends OrderBookSide {
     }
 
     store (price, size, count) {
-        if (count && size) {
-            this.index.set (price, [ price, size, count ])
-        } else {
-            this.index.delete (price)
-        }
+        this.storeArray ([ price, size, count ])
     }
 
     storeArray (delta) {
-        const [ price, size, count ] = delta
-        if (count && size) {
-            this.index.set (price, delta)
-        } else {
-            this.index.delete (price)
+        const price = delta[0]
+        const size = delta[1]
+        const count = delta[2]
+        const index_price = this.side ? -price : price
+        const index = bisectLeft (this.index, index_price)
+        if (size && count) {
+            if (index < this.index.length && this.index[index] === index_price) {
+                this[index][1] = size
+            } else {
+                this.index.splice (index, 0, index_price)
+                this.splice (index, 0, delta)
+            }
+        } else if (index < this.index.length && this.index[index] === index_price) {
+            this.index.splice (index, 1)
+            this.splice (index, 1)
         }
     }
 }

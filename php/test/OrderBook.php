@@ -322,65 +322,65 @@ assert (equals ($countedOrderBook, $storedCountedOrderbookTarget));
 
 // --------------------------------------------------------------------------------------------------------------------
 
-$incrementalOrderBook = new IncrementalOrderBook ($incrementalOrderBookInput);
-$limitedIncrementalOrderBook = new IncrementalOrderBook ($incrementalOrderBookInput, 5);
-$incrementalOrderBook->limit ();
-assert (equals ($incrementalOrderBook, $incremetalOrderBookTarget));
+// $incrementalOrderBook = new IncrementalOrderBook ($incrementalOrderBookInput);
+// $limitedIncrementalOrderBook = new IncrementalOrderBook ($incrementalOrderBookInput, 5);
+// $incrementalOrderBook->limit ();
+// assert (equals ($incrementalOrderBook, $incremetalOrderBookTarget));
 
-$incrementalOrderBook->limit (5);
-$limitedIncrementalOrderBook->limit ();
-assert (equals ($incrementalOrderBook, $limitedIncremetalOrderBookTarget));
-assert (equals ($limitedIncrementalOrderBook, $limitedIncremetalOrderBookTarget));
-$incrementalOrderBook->limit ();
-assert (equals ($incrementalOrderBook, $incremetalOrderBookTarget));
+// $incrementalOrderBook->limit (5);
+// $limitedIncrementalOrderBook->limit ();
+// assert (equals ($incrementalOrderBook, $limitedIncremetalOrderBookTarget));
+// assert (equals ($limitedIncrementalOrderBook, $limitedIncremetalOrderBookTarget));
+// $incrementalOrderBook->limit ();
+// assert (equals ($incrementalOrderBook, $incremetalOrderBookTarget));
 
-$bids = $incrementalOrderBook['bids'];
-$bids->store (3, 3);
-$incrementalOrderBook->limit ();
-assert (equals ($incrementalOrderBook, $storedIncremetalOrderBookTarget));
-$bids->store (3, 7);
-$incrementalOrderBook->limit ();
-assert (equals ($incrementalOrderBook, $doubleStoredIncremetalOrderBookTarget));
-$bids->store (17, 0);
-assert (equals ($incrementalOrderBook, $doubleStoredIncremetalOrderBookTarget));
-$incrementalOrderBook = new IncrementalOrderBook ($incrementalOrderBookInput);
-$asks = $incrementalOrderBook['asks'];
-$asks->store (15.5, -10);
-$incrementalOrderBook->limit ();
-assert (equals ($incrementalOrderBook, $negativeStoredIncremetalOrderBookTarget));
+// $bids = $incrementalOrderBook['bids'];
+// $bids->store (3, 3);
+// $incrementalOrderBook->limit ();
+// assert (equals ($incrementalOrderBook, $storedIncremetalOrderBookTarget));
+// $bids->store (3, 7);
+// $incrementalOrderBook->limit ();
+// assert (equals ($incrementalOrderBook, $doubleStoredIncremetalOrderBookTarget));
+// $bids->store (17, 0);
+// assert (equals ($incrementalOrderBook, $doubleStoredIncremetalOrderBookTarget));
+// $incrementalOrderBook = new IncrementalOrderBook ($incrementalOrderBookInput);
+// $asks = $incrementalOrderBook['asks'];
+// $asks->store (15.5, -10);
+// $incrementalOrderBook->limit ();
+// assert (equals ($incrementalOrderBook, $negativeStoredIncremetalOrderBookTarget));
 
 // --------------------------------------------------------------------------------------------------------------------
 
-$incrementalIndexedOrderBook = new IncrementalIndexedOrderBook ($indexedOrderBookInput);
-$limitedIncrementalIndexedOrderBook = new IncrementalIndexedOrderBook ($indexedOrderBookInput, 5);
-$incrementalIndexedOrderBook->limit ();
-assert (equals ($incrementalIndexedOrderBook, $incrementalIndexedOrderBookTarget));
+// $incrementalIndexedOrderBook = new IncrementalIndexedOrderBook ($indexedOrderBookInput);
+// $limitedIncrementalIndexedOrderBook = new IncrementalIndexedOrderBook ($indexedOrderBookInput, 5);
+// $incrementalIndexedOrderBook->limit ();
+// assert (equals ($incrementalIndexedOrderBook, $incrementalIndexedOrderBookTarget));
 
-$incrementalIndexedOrderBook->limit (5);
-$limitedIncrementalIndexedOrderBook->limit ();
-assert (equals ($incrementalIndexedOrderBook, $limitedIncrementalIndexedOrderBookTarget));
-assert (equals ($limitedIncrementalIndexedOrderBook, $limitedIncrementalIndexedOrderBookTarget));
-$incrementalIndexedOrderBook->limit ();
-assert (equals ($incrementalIndexedOrderBook, $incrementalIndexedOrderBookTarget));
+// $incrementalIndexedOrderBook->limit (5);
+// $limitedIncrementalIndexedOrderBook->limit ();
+// assert (equals ($incrementalIndexedOrderBook, $limitedIncrementalIndexedOrderBookTarget));
+// assert (equals ($limitedIncrementalIndexedOrderBook, $limitedIncrementalIndexedOrderBookTarget));
+// $incrementalIndexedOrderBook->limit ();
+// assert (equals ($incrementalIndexedOrderBook, $incrementalIndexedOrderBookTarget));
 
-$bids = $incrementalIndexedOrderBook['bids'];
-$bids->store (5, 0, 'xxyy');
-$incrementalIndexedOrderBook->limit ();
-assert (equals ($incrementalIndexedOrderBook, $incrementalIndexedOrderBookTarget));
+// $bids = $incrementalIndexedOrderBook['bids'];
+// $bids->store (5, 0, 'xxyy');
+// $incrementalIndexedOrderBook->limit ();
+// assert (equals ($incrementalIndexedOrderBook, $incrementalIndexedOrderBookTarget));
 
-$bids->store (10.0, 3, '1234');  // price does match merge size
-$incrementalIndexedOrderBook->limit ();
-assert (equals ($incrementalIndexedOrderBook, $storedIncrementalIndexedOrderBookTarget));
+// $bids->store (10.0, 3, '1234');  // price does match merge size
+// $incrementalIndexedOrderBook->limit ();
+// assert (equals ($incrementalIndexedOrderBook, $storedIncrementalIndexedOrderBookTarget));
 
-$bids->store (0, 0, '1234');
-$incrementalIndexedOrderBook->limit ();
-assert (equals ($incrementalIndexedOrderBook, $incrementalIndexedOrderBookDeletedTarget));
+// $bids->store (0, 0, '1234');
+// $incrementalIndexedOrderBook->limit ();
+// assert (equals ($incrementalIndexedOrderBook, $incrementalIndexedOrderBookDeletedTarget));
 
-$incrementalIndexedOrderBook = new IncrementalIndexedOrderBook ($indexedOrderBookInput);
-$bids = $incrementalIndexedOrderBook['bids'];
-$bids->store (10.2, 3, '1234');  // price does not match merge size
-$incrementalIndexedOrderBook->limit ();
-assert (equals ($incrementalIndexedOrderBook, $anotherStoredIncrementalIndexedOrderBookTarget));
+// $incrementalIndexedOrderBook = new IncrementalIndexedOrderBook ($indexedOrderBookInput);
+// $bids = $incrementalIndexedOrderBook['bids'];
+// $bids->store (10.2, 3, '1234');  // price does not match merge size
+// $incrementalIndexedOrderBook->limit ();
+// assert (equals ($incrementalIndexedOrderBook, $anotherStoredIncrementalIndexedOrderBookTarget));
 
 // --------------------------------------------------------------------------------------------------------------------
 
