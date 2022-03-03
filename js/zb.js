@@ -1146,31 +1146,74 @@ module.exports = class zb extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined) {
-        return [
-            this.safeInteger (ohlcv, 0),
-            this.safeNumber (ohlcv, 1),
-            this.safeNumber (ohlcv, 2),
-            this.safeNumber (ohlcv, 3),
-            this.safeNumber (ohlcv, 4),
-            this.safeNumber (ohlcv, 5),
-        ];
+        if (market['swap']) {
+            return [
+                this.safeInteger (ohlcv, 5),
+                this.safeNumber (ohlcv, 0),
+                this.safeNumber (ohlcv, 1),
+                this.safeNumber (ohlcv, 2),
+                this.safeNumber (ohlcv, 3),
+                this.safeNumber (ohlcv, 4),
+            ];
+        } else {
+            return [
+                this.safeInteger (ohlcv, 0),
+                this.safeNumber (ohlcv, 1),
+                this.safeNumber (ohlcv, 2),
+                this.safeNumber (ohlcv, 3),
+                this.safeNumber (ohlcv, 4),
+                this.safeNumber (ohlcv, 5),
+            ];
+        }
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const swap = market['swap'];
         if (limit === undefined) {
             limit = 1000;
         }
         const request = {
-            'market': market['id'],
-            'type': this.timeframes[timeframe],
-            'limit': limit,
+        //     'market': market['id'], // SPOT
+        //     'symbol': market['id'], // SWAP
+        //     'type': this.timeframes[timeframe], // SPOT
+        //     'period': this.timeframes[timeframe], // SWAP might need to change data type
+        //     'limit': limit, // SPOT
+        //     'size': limit, // SWAP
         };
+        const marketIdField = swap ? 'symbol' : 'market';
+        request[marketIdField] = market['id'];
+        const periodField = swap ? 'period' : 'type';
+        request[periodField] = this.timeframes[timeframe];
+        const sizeField = swap ? 'size' : 'limit';
+        request[sizeField] = limit;
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'spotV1PublicGetKline',
+            'swap': 'contractV1PublicGetKCline',
+        });
         if (since !== undefined) {
             request['since'] = since;
         }
-        const response = await this.spotV1PublicGetKline (this.extend (request, params));
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // Spot
+        //
+        //     {
+        //         "symbol": "BTC",
+        //         "data": [
+        //             [1645091400000,43183.24,43187.49,43145.92,43182.28,0.9110],
+        //             [1645091460000,43182.18,43183.15,43182.06,43183.15,1.4393],
+        //             [1645091520000,43182.11,43240.1,43182.11,43240.1,0.3802]
+        //         ],
+        //         "moneyType": "USDT"
+        //     }
+        //
+        // Swap
+        //
         const data = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
