@@ -210,14 +210,14 @@ module.exports = class vega extends Exchange {
         const expiresAt = this.safeValue (params, 'expiresAt');
         const reference = this.uuid ();
         const orderSubmission = {
-            'marketId': market.id,
+            'marketId': market['id'],
             'size': amount,
             'side': 'SIDE_' + side,
             'type': 'TYPE_' + type,
             'reference': reference,
         };
         if (price) {
-            orderSubmission.price = price * Math.pow (10, market.decimalPlaces);
+            orderSubmission.price = price * Math.pow (10, market['precision']);
         }
         if (type === 'MARKET') {
             orderSubmission.timeInForce = 'TIME_IN_FORCE_IOC';
@@ -247,12 +247,12 @@ module.exports = class vega extends Exchange {
         const market = this.market (symbol);
         const price = this.safeString (params, 'price');
         const orderAmendment = {
-            'market_id': market.id,
+            'market_id': market['id'],
             'order_id': id,
         };
         if (price) {
             orderAmendment.price = {
-                'value': this.parseNumber (price) * Math.pow (10, market.decimalPlaces),
+                'value': this.parseNumber (price) * Math.pow (10, market['precision']),
             };
         }
         return await this.privatePostCommand ({
@@ -273,7 +273,7 @@ module.exports = class vega extends Exchange {
         const activeKey = this.apiKey;
         const market = this.market (symbol);
         const orderCancellation = {
-            'market_id': market.id,
+            'market_id': market['id'],
             'order_id': id,
         };
         return await this.privatePostCommand ({
@@ -565,41 +565,21 @@ module.exports = class vega extends Exchange {
         const bidVolume = this.safeNumber (marketData, 'bestBidVolume');
         const high = this.safeNumber (marketData, 'bestOfferPrice');
         const askVolume = this.safeNumber (marketData, 'bestOfferVolume');
-        // const timestamp = this.safeNumber (marketData, 'bestStaticBidPrice');
-        // const timestamp = this.safeNumber (marketData, 'bestStaticBidVolume');
-        // const timestamp = this.safeNumber (marketData, 'bestStaticOfferPrice');
-        // const timestamp = this.safeNumber (marketData, 'bestStaticOfferVolume');
-        // const timestamp = this.safeNumber (marketData, 'midPrice');
-        // const timestamp = this.safeNumber (marketData, 'staticMidPrice');
-        // const timestamp = this.safeNumber (marketData, 'market');
         const timestamp = this.safeNumber (marketData, 'timestamp'); // nano seconds
-        // const timestamp = this.safeNumber (marketData, 'openInterest');
-        // const timestamp = this.safeNumber (marketData, 'auctionEnd');
-        // const timestamp = this.safeNumber (marketData, 'auctionStart');
-        // const timestamp = this.safeNumber (marketData, 'indicativePrice');
-        // const timestamp = this.safeNumber (marketData, 'indicativeVolume');
-        // const timestamp = this.safeNumber (marketData, 'marketTradingMode');
-        // const timestamp = this.safeNumber (marketData, 'trigger');
-        // const timestamp = this.safeNumber (marketData, 'extensionTrigger');
-        // const timestamp = this.safeNumber (marketData, 'targetStake');
-        // const timestamp = this.safeNumber (marketData, 'suppliedStake');
-        // const timestamp = this.safeValue (marketData, 'priceMonitoringBounds');
-        // const timestamp = this.safeNumber (marketData, 'marketValueProxy');
-        // const timestamp = this.safeValue (marketData, 'liquidityProviderFeeShare');
         const ask = bid;
-        const open = ask;
-        const close = ask;
+        const open = bid;
+        const close = bid;
         const last = bid;
-        const previousClose = ask;
-        const vwap = ask;
-        const symbol = market.symbol;
-        const info = {};
+        const previousClose = undefined;
+        const vwap = undefined;
+        const symbol = market['symbol'];
+        const info = market;
         const datetime = this.iso8601 (timestamp / 1000);
-        const percentage = 10;
+        const percentage = undefined;
         const change = last - open;
         const average = (last + open) / 2;
-        const baseVolume = 1;
-        const quoteVolume = 1;
+        const baseVolume = undefined;
+        const quoteVolume = undefined;
         return {
             'symbol': symbol,
             'info': info,
