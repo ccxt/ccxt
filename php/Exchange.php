@@ -3700,4 +3700,8 @@ class Exchange {
             throw new NotSupported($this->id + 'fetch_market_leverage_tiers() is not supported yet');
         }
     }
+
+    public function sleep($milliseconds) {
+        sleep($milliseconds / 1000);
+    }
 }
