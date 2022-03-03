@@ -346,4 +346,13 @@ class Exchange extends \ccxt\Exchange {
             throw new NotSupported($this->id + 'fetch_market_leverage_tiers() is not supported yet');
         }
     }
+    
+    public function sleep($milliseconds) {
+        $promise = new React\Promise\Promise(function() use ($milliseconds) {
+            static::get_loop()->addTimer($milliseconds / 1000, function () {
+                \React\Promise\resolve();
+            });
+        });
+        return $promise;
+    }
 }
