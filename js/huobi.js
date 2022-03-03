@@ -408,18 +408,14 @@ module.exports = class huobi extends ccxt.huobi {
         //         "ts":1645023376098
         //      }
         const tick = this.safeValue (message, 'tick', {});
-        const seqNum = this.safeInteger (tick, 'seqNum');
+        const seqNum = this.safeInteger2 (tick, 'seqNum', 'id');
         const prevSeqNum = this.safeInteger (tick, 'prevSeqNum');
-        if (prevSeqNum === undefined || ((prevSeqNum <= orderbook['nonce']) && (seqNum > orderbook['nonce']))) {
+        if ((prevSeqNum === undefined || prevSeqNum <= orderbook['nonce']) && (seqNum > orderbook['nonce'])) {
             const asks = this.safeValue (tick, 'asks', []);
             const bids = this.safeValue (tick, 'bids', []);
             this.handleDeltas (orderbook['asks'], asks);
             this.handleDeltas (orderbook['bids'], bids);
-            if (seqNum !== undefined) {
-                orderbook['nonce'] = seqNum;
-            } else {
-                orderbook['nonce'] = this.safeInteger (tick, 'mrid');
-            }
+            orderbook['nonce'] = seqNum;
             const timestamp = this.safeInteger (message, 'ts');
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
