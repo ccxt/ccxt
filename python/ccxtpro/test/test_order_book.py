@@ -11,7 +11,7 @@ sys.path.append(root)
 
 # ----------------------------------------------------------------------------
 
-from ccxtpro.base.order_book import OrderBook, IndexedOrderBook, CountedOrderBook # noqa: F402
+from ccxtpro.base.order_book import OrderBook, IndexedOrderBook, CountedOrderBook  # noqa: F402
 
 
 def equals(a, b):
