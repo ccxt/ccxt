@@ -2451,7 +2451,7 @@ module.exports = class zb extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         let side = undefined;
-        if (fromAccount === 'spot' || toAccount === 'futures') {
+        if (fromAccount === 'spot' || toAccount === 'future') {
             side = 1;
         } else {
             side = 0;
@@ -2459,7 +2459,7 @@ module.exports = class zb extends Exchange {
         const request = {
             'currencyName': currency,
             'amount': amount,
-            // 'clientId': params['clientId'], // "2sdfsdfsdf232342"
+            'clientId': this.safeString (params, 'clientId'), // "2sdfsdfsdf232342"
             'side': side, // 1：Deposit (zb account -> futures account)，0：Withdrawal (futures account -> zb account)
         };
         const response = await this.contractV2PrivatePostFundTransferFund (this.extend (request, params));
@@ -2471,15 +2471,16 @@ module.exports = class zb extends Exchange {
         //     }
         //
         const timestamp = this.milliseconds ();
-        const transfer = {};
-        transfer['id'] = this.safeValue (response, 'data');
-        transfer['timestamp'] = timestamp;
-        transfer['datetime'] = this.iso8601 (timestamp);
-        transfer['currency'] = currency;
-        transfer['amount'] = amount;
-        transfer['fromAccount'] = fromAccount;
-        transfer['toAccount'] = toAccount;
-        transfer['status'] = this.safeValue (response, 'desc');
+        const transfer = {
+            'id': this.safeValue (response, 'data'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': currency,
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': this.safeValue (response, 'desc'),
+        };
         return this.parseTransfer (transfer, currency);
     }
 
@@ -2496,25 +2497,17 @@ module.exports = class zb extends Exchange {
         //         "status": "Success",
         //     }
         //
-        const id = this.safeString (transfer, 'id');
-        const timestamp = this.safeInteger (transfer, 'timestamp');
-        const datetime = this.safeString (transfer, 'datetime');
         const currencyId = this.safeString (transfer, 'currency');
-        const code = this.safeCurrencyCode (currencyId, currency);
-        const amount = this.safeNumber (transfer, 'amount');
-        const fromAccount = this.safeString (transfer, 'fromAccount');
-        const toAccount = this.safeString (transfer, 'toAccount');
-        const status = this.safeString (transfer, 'status');
         return {
             'info': transfer,
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': datetime,
-            'currency': code,
-            'amount': amount,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-            'status': status,
+            'id': this.safeString (transfer, 'id'),
+            'timestamp': this.safeInteger (transfer, 'timestamp'),
+            'datetime': this.safeString (transfer, 'datetime'),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': this.safeString (transfer, 'fromAccount'),
+            'toAccount': this.safeString (transfer, 'toAccount'),
+            'status': this.safeString (transfer, 'status'),
         };
     }
 
