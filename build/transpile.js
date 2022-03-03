@@ -141,7 +141,7 @@ class CCXTProTranspiler extends Transpiler {
         const phpFile = './php/test/OrderBook.php'
         const pyImports = [
             '',
-            'from ccxtpro.base.order_book import OrderBook, IndexedOrderBook, CountedOrderBook, IncrementalOrderBook, IncrementalIndexedOrderBook  # noqa: F402',
+            'from ccxtpro.base.order_book import OrderBook, IndexedOrderBook, CountedOrderBook # noqa: F402',
             '',
         ].join ('\n')
         this.transpileTest (jsFile, pyFile, phpFile, pyImports)

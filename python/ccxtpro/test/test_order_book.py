@@ -11,7 +11,7 @@ sys.path.append(root)
 
 # ----------------------------------------------------------------------------
 
-from ccxtpro.base.order_book import OrderBook, IndexedOrderBook, CountedOrderBook, IncrementalOrderBook, IncrementalIndexedOrderBook  # noqa: F402
+from ccxtpro.base.order_book import OrderBook, IndexedOrderBook, CountedOrderBook # noqa: F402
 
 
 def equals(a, b):
@@ -255,15 +255,19 @@ orderBook.limit(5)
 limited.limit()
 assert equals(orderBook, limitedOrderBookTarget)
 assert equals(limited, limitedOrderBookTarget)
+
 orderBook.limit()
 assert equals(orderBook, orderBookTarget)
 
 bids = orderBook['bids']
 bids.store(1000, 0)
 orderBook.limit()
+
 assert equals(orderBook, orderBookTarget)
+
 bids.store(3, 4)
 orderBook.limit()
+
 assert equals(orderBook, storeBid)
 bids.store(3, 0)
 orderBook.limit()
