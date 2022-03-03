@@ -99,7 +99,7 @@ module.exports = class vega extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const asset = data[i];
             const formated = this.parseAsset (asset);
-            result[formated.code] = formated;
+            result[formated['code']] = formated;
         }
         return result;
     }
