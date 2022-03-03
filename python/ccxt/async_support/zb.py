@@ -46,6 +46,7 @@ class zb(Exchange):
                 'swap': None,  # has but unimplemented
                 'future': None,
                 'option': None,
+                'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createMarketOrder': None,
@@ -71,6 +72,7 @@ class zb(Exchange):
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': True,
                 'setLeverage': True,
                 'withdraw': True,
             },
@@ -2469,6 +2471,83 @@ class zb(Exchange):
         for i in range(0, len(positions)):
             result.append(self.parse_position(positions[i]))
         return result
+
+    async def modify_margin_helper(self, symbol, amount, type, params={}):
+        if params['positionsId'] is None:
+            raise ArgumentsRequired(self.id + ' modifyMarginHelper() requires a positionsId argument in the params')
+        await self.load_markets()
+        market = self.market(symbol)
+        amount = self.amount_to_precision(symbol, amount)
+        position = self.safe_string(params, 'positionsId')
+        request = {
+            'positionsId': position,
+            'amount': amount,
+            'type': type,  # 1 increase, 0 reduce
+            'futuresAccountType': 1,  # 1: USDT Perpetual Futures
+        }
+        response = await self.contractV2PrivatePostPositionsUpdateMargin(self.extend(request, params))
+        #
+        #     {
+        #         "code": 10000,
+        #         "data": {
+        #             "amount": "0.002",
+        #             "appendAmount": "0",
+        #             "avgPrice": "43927.23",
+        #             "bankruptcyPrice": "41730.86",
+        #             "createTime": "1646208695609",
+        #             "freezeAmount": "0",
+        #             "id": "6900781818669377576",
+        #             "keyMark": "6896693805014120448-100-1-",
+        #             "lastAppendAmount": "0",
+        #             "lastTime": "1646209235505",
+        #             "leverage": 20,
+        #             "liquidateLevel": 1,
+        #             "liquidatePrice": "41898.46",
+        #             "maintainMargin": "0",
+        #             "margin": "4.392723",
+        #             "marginAppendCount": 0,
+        #             "marginBalance": "0",
+        #             "marginMode": 1,
+        #             "marginRate": "0",
+        #             "marketId": "100",
+        #             "marketName": "BTC_USDT",
+        #             "modifyTime": "1646209235505",
+        #             "nominalValue": "87.88828",
+        #             "originAppendAmount": "0",
+        #             "originId": "6904699716827818029",
+        #             "positionsMode": 2,
+        #             "sellerCurrencyId": "1",
+        #             "side": 1,
+        #             "status": 1,
+        #             "unrealizedPnl": "0.03382",
+        #             "usable": True,
+        #             "userId": "6896693805014120448"
+        #         },
+        #         "desc":"操作成功"
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        side = 'add' if (type == 1) else 'reduce'
+        errorCode = self.safe_integer(data, 'status')
+        status = 'ok' if (errorCode == 1) else 'failed'
+        return {
+            'info': response,
+            'type': side,
+            'amount': amount,
+            'code': market['quote'],
+            'symbol': market['symbol'],
+            'status': status,
+        }
+
+    async def reduce_margin(self, symbol, amount, params={}):
+        if params['positionsId'] is None:
+            raise ArgumentsRequired(self.id + ' reduceMargin() requires a positionsId argument in the params')
+        return await self.modify_margin_helper(symbol, amount, 0, params)
+
+    async def add_margin(self, symbol, amount, params={}):
+        if params['positionsId'] is None:
+            raise ArgumentsRequired(self.id + ' addMargin() requires a positionsId argument in the params')
+        return await self.modify_margin_helper(symbol, amount, 1, params)
 
     def nonce(self):
         return self.milliseconds()

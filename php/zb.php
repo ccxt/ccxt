@@ -33,6 +33,7 @@ class zb extends Exchange {
                 'swap' => null, // has but unimplemented
                 'future' => null,
                 'option' => null,
+                'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createMarketOrder' => null,
@@ -58,6 +59,7 @@ class zb extends Exchange {
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => true,
                 'setLeverage' => true,
                 'withdraw' => true,
             ),
@@ -2575,6 +2577,89 @@ class zb extends Exchange {
             $result[] = $this->parse_position($positions[$i]);
         }
         return $result;
+    }
+
+    public function modify_margin_helper($symbol, $amount, $type, $params = array ()) {
+        if ($params['positionsId'] === null) {
+            throw new ArgumentsRequired($this->id . ' modifyMarginHelper() requires a positionsId argument in the params');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $amount = $this->amount_to_precision($symbol, $amount);
+        $position = $this->safe_string($params, 'positionsId');
+        $request = array(
+            'positionsId' => $position,
+            'amount' => $amount,
+            'type' => $type, // 1 increase, 0 reduce
+            'futuresAccountType' => 1, // 1 => USDT Perpetual Futures
+        );
+        $response = $this->contractV2PrivatePostPositionsUpdateMargin (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 10000,
+        //         "data" => array(
+        //             "amount" => "0.002",
+        //             "appendAmount" => "0",
+        //             "avgPrice" => "43927.23",
+        //             "bankruptcyPrice" => "41730.86",
+        //             "createTime" => "1646208695609",
+        //             "freezeAmount" => "0",
+        //             "id" => "6900781818669377576",
+        //             "keyMark" => "6896693805014120448-100-1-",
+        //             "lastAppendAmount" => "0",
+        //             "lastTime" => "1646209235505",
+        //             "leverage" => 20,
+        //             "liquidateLevel" => 1,
+        //             "liquidatePrice" => "41898.46",
+        //             "maintainMargin" => "0",
+        //             "margin" => "4.392723",
+        //             "marginAppendCount" => 0,
+        //             "marginBalance" => "0",
+        //             "marginMode" => 1,
+        //             "marginRate" => "0",
+        //             "marketId" => "100",
+        //             "marketName" => "BTC_USDT",
+        //             "modifyTime" => "1646209235505",
+        //             "nominalValue" => "87.88828",
+        //             "originAppendAmount" => "0",
+        //             "originId" => "6904699716827818029",
+        //             "positionsMode" => 2,
+        //             "sellerCurrencyId" => "1",
+        //             "side" => 1,
+        //             "status" => 1,
+        //             "unrealizedPnl" => "0.03382",
+        //             "usable" => true,
+        //             "userId" => "6896693805014120448"
+        //         ),
+        //         "desc":"操作成功"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $side = ($type === 1) ? 'add' : 'reduce';
+        $errorCode = $this->safe_integer($data, 'status');
+        $status = ($errorCode === 1) ? 'ok' : 'failed';
+        return array(
+            'info' => $response,
+            'type' => $side,
+            'amount' => $amount,
+            'code' => $market['quote'],
+            'symbol' => $market['symbol'],
+            'status' => $status,
+        );
+    }
+
+    public function reduce_margin($symbol, $amount, $params = array ()) {
+        if ($params['positionsId'] === null) {
+            throw new ArgumentsRequired($this->id . ' reduceMargin() requires a positionsId argument in the params');
+        }
+        return $this->modify_margin_helper($symbol, $amount, 0, $params);
+    }
+
+    public function add_margin($symbol, $amount, $params = array ()) {
+        if ($params['positionsId'] === null) {
+            throw new ArgumentsRequired($this->id . ' addMargin() requires a positionsId argument in the params');
+        }
+        return $this->modify_margin_helper($symbol, $amount, 1, $params);
     }
 
     public function nonce() {
