@@ -248,9 +248,9 @@ let asks = undefined;
 
 // --------------------------------------------------------------------------------------------------------------------
 
+for (let i = 0; i < 100000; i++) {
 const orderBook = new OrderBook (orderBookInput);
 const limited = new OrderBook (orderBookInput, 5);
-for (let i = 0; i < 100000; i++) {
 orderBook.limit ();
 // assert (equals (orderBook, orderBookTarget));
 

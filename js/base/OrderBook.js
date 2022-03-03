@@ -79,18 +79,17 @@ class OrderBook {
     }
 
     reset (snapshot = {}) {
-        return
-        this.asks.index.length = 0
+        this.asks.index.clear ()
         if (snapshot.asks) {
-            //this.asks = snapshot.asks
-            //for (let i = 0; i < snapshot.asks.length; i++) {
-            //    this.asks.storeArray (snapshot.asks[i])
-            //}
+            for (let i = 0; i < snapshot.asks.length; i++) {
+                this.asks.storeArray (snapshot.asks[i])
+            }
         }
-        this.bids.index.length = 0
+        this.bids.index.clear ()
         if (snapshot.bids) {
-            //this.bids.index
-
+            for (let i = 0; i < snapshot.bids.length; i++) {
+                this.bids.storeArray (snapshot.bids[i])
+            }
         }
         this.nonce = snapshot.nonce
         this.timestamp = snapshot.timestamp

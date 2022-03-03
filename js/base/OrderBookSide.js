@@ -4,7 +4,7 @@
 
 // ----------------------------------------------------------------------------
 //
-// Over 40x speed improvement previous version
+// Upto 10x speed improvement previous version
 // Author: github.com/frosty00
 // Email: carlo.revelli@berkeley.edu
 //
@@ -68,7 +68,7 @@ class OrderBookSide extends Array {
                 this.copyWithin (index + 1, index, this.length)
                 this[index] = delta
             }
-        } else {
+        } else if (this.index[index] == index_price) {
             this.index.copyWithin (index, index + 1, this.length)
             this.index[this.length - 1] = Number.MAX_VALUE
             this.copyWithin (index, index + 1, this.length)
@@ -124,7 +124,7 @@ class CountedOrderBookSide extends OrderBookSide {
                 this.copyWithin (index + 1, index, this.length)
                 this[index] = delta
             }
-        } else {
+        } else if (this.index[index] == index_price) {
             this.index.copyWithin (index, index + 1, this.length)
             this.index[this.length - 1] = Number.MAX_VALUE
             this.copyWithin (index, index + 1, this.length)
