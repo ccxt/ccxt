@@ -156,8 +156,8 @@ module.exports = class woo extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'maker': 0.2 / 100,
-                    'taker': 0.5 / 100,
+                    'maker': this.parseNumber ('0.0002'),
+                    'taker': this.parseNumber ('0.0005'),
                 },
             },
             'options': {
@@ -489,31 +489,36 @@ module.exports = class woo extends Exchange {
         const response = await this.v1PrivateGetClientInfo (params);
         //
         //     {
-        //         "success": true,
-        //         "application": {
-        //             "application_id": "8935820a-6600-4c2c-9bc3-f017d89aa173",
-        //             "account": "CLIENT_ACCOUNT_01",
-        //             "leverage": 5,
-        //             "taker_fee_rate": 0,
-        //             "maker_fee_rate": 0,
-        //             "interest_rate": 0,
-        //             "alias": "CLIENT_ACCOUNT_01",
-        //             "otpauth": false
+        //         "application":{
+        //             "id":45585,
+        //             "leverage":3.00,
+        //             "otpauth":false,
+        //             "alias":"email@address.com",
+        //             "application_id":"c2cc4d74-c8cb-4e10-84db-af2089b8c68a",
+        //             "account":"email@address.com",
+        //             "account_mode":"PURE_SPOT",
+        //             "taker_fee_rate":5.00,
+        //             "maker_fee_rate":2.00,
+        //             "interest_rate":0.00,
+        //             "futures_leverage":1.00,
+        //             "futures_taker_fee_rate":5.00,
+        //             "futures_maker_fee_rate":2.00
         //         },
-        //         "margin_rate": 1000
+        //         "margin_rate":1000,
+        //         "success":true
         //     }
         //
         const application = this.safeValue (response, 'application', {});
-        const maker = this.safeNumber (application, 'maker_fee_rate');
-        const taker = this.safeNumber (application, 'taker_fee_rate');
+        const maker = this.safeString (application, 'maker_fee_rate');
+        const taker = this.safeString (application, 'taker_fee_rate');
         const result = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
-                'maker': maker,
-                'taker': taker,
+                'maker': this.parseNumber (Precise.stringDiv (maker, '10000')),
+                'taker': this.parseNumber (Precise.stringDiv (taker, '10000')),
                 'percentage': true,
                 'tierBased': true,
             };
