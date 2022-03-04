@@ -11,9 +11,9 @@ module.exports = class tidex2 extends Exchange {
             'countries': [ 'UK' ],
             'rateLimit': 2000,
             'version': '3',
-            'userAgent': this.userAgents['chrome'],
+            'userAgent': undefined,
             'has': {
-                'CORS': undefined,
+                'CORS': false,
                 'spot': true,
                 'margin': false,
                 'swap': false,
@@ -875,12 +875,13 @@ module.exports = class tidex2 extends Exchange {
             const nonce = this.nonce ();
             body = this.urlencode (this.extend ({
                 'nonce': nonce,
-                'request': path,
+                // 'request': path,
+                'method': path,
             }, query));
             const signature = this.hmac (this.encode (body), this.encode (this.secret), 'sha512');
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Key': this.apiKey,
+                'X-Api-Key': this.apiKey,
                 'Sign': signature,
             };
         } else if (api === 'public') {
