@@ -82,61 +82,43 @@ module.exports = class okcoin extends ccxt.okcoin {
 
     handleOrders (client, message, subscription = undefined) {
         //
-        //     {
-        //         "arg":{
-        //             "channel":"orders",
-        //             "instType":"SPOT"
-        //         },
-        //         "data":[
-        //             {
-        //                 "accFillSz":"0",
-        //                 "amendResult":"",
-        //                 "avgPx":"",
-        //                 "cTime":"1634548275191",
-        //                 "category":"normal",
-        //                 "ccy":"",
-        //                 "clOrdId":"e847386590ce4dBC330547db94a08ba0",
-        //                 "code":"0",
-        //                 "execType":"",
-        //                 "fee":"0",
-        //                 "feeCcy":"USDT",
-        //                 "fillFee":"0",
-        //                 "fillFeeCcy":"",
-        //                 "fillNotionalUsd":"",
-        //                 "fillPx":"",
-        //                 "fillSz":"0",
-        //                 "fillTime":"",
-        //                 "instId":"ETH-USDT",
-        //                 "instType":"SPOT",
-        //                 "lever":"",
-        //                 "msg":"",
-        //                 "notionalUsd":"451.4516256",
-        //                 "ordId":"370257534141235201",
-        //                 "ordType":"limit",
-        //                 "pnl":"0",
-        //                 "posSide":"",
-        //                 "px":"60000",
-        //                 "rebate":"0",
-        //                 "rebateCcy":"ETH",
-        //                 "reqId":"",
-        //                 "side":"sell",
-        //                 "slOrdPx":"",
-        //                 "slTriggerPx":"",
-        //                 "state":"live",
-        //                 "sz":"0.007526",
-        //                 "tag":"",
-        //                 "tdMode":"cash",
-        //                 "tgtCcy":"",
-        //                 "tpOrdPx":"",
-        //                 "tpTriggerPx":"",
-        //                 "tradeId":"",
-        //                 "uTime":"1634548275191"
-        //             }
-        //         ]
-        //     }
+        // {
+        //     table: 'spot/order',
+        //     data: [
+        //       {
+        //         client_oid: '',
+        //         created_at: '2022-03-04T16:44:58.530Z',
+        //         event_code: '0',
+        //         event_message: '',
+        //         fee: '',
+        //         fee_currency: '',
+        //         filled_notional: '0',
+        //         filled_size: '0',
+        //         instrument_id: 'LTC-USD',
+        //         last_amend_result: '',
+        //         last_fill_id: '0',
+        //         last_fill_px: '0',
+        //         last_fill_qty: '0',
+        //         last_fill_time: '1970-01-01T00:00:00.000Z',
+        //         last_request_id: '',
+        //         margin_trading: '1',
+        //         notional: '',
+        //         order_id: '8629537900471296',
+        //         order_type: '0',
+        //         price: '1500',
+        //         rebate: '',
+        //         rebate_currency: '',
+        //         side: 'sell',
+        //         size: '0.0133',
+        //         state: '0',
+        //         status: 'open',
+        //         timestamp: '2022-03-04T16:44:58.530Z',
+        //         type: 'limit'
+        //       }
+        //     ]
+        //   }
         //
-        const arg = this.safeValue (message, 'arg', {});
-        const channel = this.safeString (arg, 'channel');
+        const table = this.safeString (message, 'table');
         const orders = this.safeValue (message, 'data', []);
         const ordersLength = orders.length;
         if (ordersLength > 0) {
@@ -154,9 +136,8 @@ module.exports = class okcoin extends ccxt.okcoin {
                 const market = this.market (symbol);
                 marketIds.push (market['id']);
             }
-            client.resolve (this.orders, channel);
             for (let i = 0; i < marketIds.length; i++) {
-                const messageHash = channel + ':' + marketIds[i];
+                const messageHash = table + ':' + marketIds[i];
                 client.resolve (this.orders, messageHash);
             }
         }
@@ -716,7 +697,7 @@ module.exports = class okcoin extends ccxt.okcoin {
                 'trade': this.handleTrade,
                 'account': this.handleBalance,
                 'margin_account': this.handleBalance,
-                'order': this.handleOrder,
+                'order': this.handleOrders,
                 // ...
             };
             let method = this.safeValue (methods, name);
