@@ -43,6 +43,8 @@ class zaif(Exchange):
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
                 'withdraw': True,
             },
             'urls': {
