@@ -980,7 +980,15 @@ module.exports = class bitmex extends Exchange {
                 result[symbol] = ticker;
             }
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        const uniformSymbols = [];
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = this.market (symbol);
+                uniformSymbols.push (market['symbol']);
+            }
+        }
+        return this.filterByArray (result, 'symbol', uniformSymbols);
     }
 
     parseTicker (ticker, market = undefined) {
