@@ -32,6 +32,7 @@ module.exports = class okcoin extends ccxt.okcoin {
             },
             'options': {
                 'fetchMarkets': [ 'spot' ],
+                'watchOrders': 'order', // or algo_order
                 'watchOrderBook': {
                     'limit': 400, // max
                     'type': 'spot', // margin
@@ -73,7 +74,8 @@ module.exports = class okcoin extends ccxt.okcoin {
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.authenticate ();
-        const trades = await this.subscribe ('order', symbol, params);
+        const orderType = this.safeString (this.options, 'watchOrders', 'order');
+        const trades = await this.subscribe (orderType, symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -585,6 +587,7 @@ module.exports = class okcoin extends ccxt.okcoin {
         //
         //     { event: 'error', message: 'Invalid sign', errorCode: 30013 }
         //     {"event":"error","message":"Unrecognized request: {\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\"}","errorCode":30039}
+        //     { event: 'error', message: "Channel spot/order doesn't exist", errorCode: 30040 }
         //
         const errorCode = this.safeString (message, 'errorCode');
         try {
