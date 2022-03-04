@@ -62,6 +62,8 @@ module.exports = class woo extends Exchange {
                 'fetchTickers': false,
                 'fetchTime': false,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': true,
                 'fetchTransactions': true,
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
@@ -480,6 +482,43 @@ module.exports = class woo extends Exchange {
             };
         }
         return fee;
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetClientInfo (params);
+        //
+        //     {
+        //         "success": true,
+        //         "application": {
+        //             "application_id": "8935820a-6600-4c2c-9bc3-f017d89aa173",
+        //             "account": "CLIENT_ACCOUNT_01",
+        //             "leverage": 5,
+        //             "taker_fee_rate": 0,
+        //             "maker_fee_rate": 0,
+        //             "interest_rate": 0,
+        //             "alias": "CLIENT_ACCOUNT_01",
+        //             "otpauth": false
+        //         },
+        //         "margin_rate": 1000
+        //     }
+        //
+        const application = this.safeValue (response, 'application', {});
+        const maker = this.safeNumber (application, 'maker_fee_rate');
+        const taker = this.safeNumber (application, 'taker_fee_rate');
+        const result = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': true,
+                'tierBased': true,
+            };
+        }
+        return result;
     }
 
     async fetchCurrencies (params = {}) {
