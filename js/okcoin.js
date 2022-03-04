@@ -4,7 +4,7 @@
 
 const ccxt = require ('ccxt');
 const { ArgumentsRequired, AuthenticationError } = require ('ccxt/js/base/errors');
-const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
+const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -69,6 +69,97 @@ module.exports = class okcoin extends ccxt.okcoin {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.authenticate ();
+        const trades = await this.subscribe ('order', symbol, params);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    handleOrders (client, message, subscription = undefined) {
+        //
+        //     {
+        //         "arg":{
+        //             "channel":"orders",
+        //             "instType":"SPOT"
+        //         },
+        //         "data":[
+        //             {
+        //                 "accFillSz":"0",
+        //                 "amendResult":"",
+        //                 "avgPx":"",
+        //                 "cTime":"1634548275191",
+        //                 "category":"normal",
+        //                 "ccy":"",
+        //                 "clOrdId":"e847386590ce4dBC330547db94a08ba0",
+        //                 "code":"0",
+        //                 "execType":"",
+        //                 "fee":"0",
+        //                 "feeCcy":"USDT",
+        //                 "fillFee":"0",
+        //                 "fillFeeCcy":"",
+        //                 "fillNotionalUsd":"",
+        //                 "fillPx":"",
+        //                 "fillSz":"0",
+        //                 "fillTime":"",
+        //                 "instId":"ETH-USDT",
+        //                 "instType":"SPOT",
+        //                 "lever":"",
+        //                 "msg":"",
+        //                 "notionalUsd":"451.4516256",
+        //                 "ordId":"370257534141235201",
+        //                 "ordType":"limit",
+        //                 "pnl":"0",
+        //                 "posSide":"",
+        //                 "px":"60000",
+        //                 "rebate":"0",
+        //                 "rebateCcy":"ETH",
+        //                 "reqId":"",
+        //                 "side":"sell",
+        //                 "slOrdPx":"",
+        //                 "slTriggerPx":"",
+        //                 "state":"live",
+        //                 "sz":"0.007526",
+        //                 "tag":"",
+        //                 "tdMode":"cash",
+        //                 "tgtCcy":"",
+        //                 "tpOrdPx":"",
+        //                 "tpTriggerPx":"",
+        //                 "tradeId":"",
+        //                 "uTime":"1634548275191"
+        //             }
+        //         ]
+        //     }
+        //
+        const arg = this.safeValue (message, 'arg', {});
+        const channel = this.safeString (arg, 'channel');
+        const orders = this.safeValue (message, 'data', []);
+        const ordersLength = orders.length;
+        if (ordersLength > 0) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            if (this.orders === undefined) {
+                this.orders = new ArrayCacheBySymbolById (limit);
+            }
+            const stored = this.orders;
+            const marketIds = [];
+            const parsed = this.parseOrders (orders);
+            for (let i = 0; i < parsed.length; i++) {
+                const order = parsed[i];
+                stored.append (order);
+                const symbol = order['symbol'];
+                const market = this.market (symbol);
+                marketIds.push (market['id']);
+            }
+            client.resolve (this.orders, channel);
+            for (let i = 0; i < marketIds.length; i++) {
+                const messageHash = channel + ':' + marketIds[i];
+                client.resolve (this.orders, messageHash);
+            }
+        }
     }
 
     async watchTicker (symbol, params = {}) {
@@ -563,6 +654,36 @@ module.exports = class okcoin extends ccxt.okcoin {
         //             }
         //         ]
         //     }
+        // {
+        //     "table":"spot/order",
+        //     "data":[
+        //         {
+        //             "client_oid":"",
+        //             "filled_notional":"0",
+        //             "filled_size":"0",
+        //             "instrument_id":"ETC-USDT",
+        //             "last_fill_px":"0",
+        //             "last_fill_qty":"0",
+        //             "last_fill_time":"1970-01-01T00:00:00.000Z",
+        //             "margin_trading":"1",
+        //             "notional":"",
+        //             "order_id":"3576398568830976",
+        //             "order_type":"0",
+        //             "price":"5.826",
+        //             "side":"buy",
+        //             "size":"0.1",
+        //             "state":"0",
+        //             "status":"open",
+        //             "fee_currency":"ETC",
+        //             "fee":"-0.01",
+        //             "rebate_currency":"open",
+        //             "rebate":"0.05",
+        //             "timestamp":"2019-09-24T06:45:11.394Z",
+        //             "type":"limit",
+        //             "created_at":"2019-09-24T06:45:11.394Z"
+        //         }
+        //     ]
+        // }
         //
         if (message === 'pong') {
             return this.handlePong (client, message);
@@ -595,6 +716,7 @@ module.exports = class okcoin extends ccxt.okcoin {
                 'trade': this.handleTrade,
                 'account': this.handleBalance,
                 'margin_account': this.handleBalance,
+                'order': this.handleOrder,
                 // ...
             };
             let method = this.safeValue (methods, name);
