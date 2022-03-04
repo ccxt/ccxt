@@ -308,7 +308,7 @@ module.exports = class huobi extends ccxt.huobi {
     }
 
     async watchOrderBookSnapshot (client, message, subscription) {
-        // quick-fix to avoid getting outdate snapshots
+        // quick-fix to avoid getting outdated snapshots
         await this.sleep (1000);
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
