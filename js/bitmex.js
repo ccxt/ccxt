@@ -1778,7 +1778,8 @@ module.exports = class bitmex extends Exchange {
             }
         }
         const url = this.urls['api'][api] + query;
-        if (this.apiKey && this.secret) {
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
             let auth = method + query;
             let expires = this.safeInteger (this.options, 'api-expires');
             headers = {
