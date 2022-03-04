@@ -35,9 +35,10 @@ module.exports = class zb extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
                 'fetchDeposits': true,
-                'fetchFundingHistory': true,
+                'fetchFundingHistory': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
+                'fetchLedger': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -2411,8 +2412,12 @@ module.exports = class zb extends Exchange {
         return result;
     }
 
-    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchLedger() requires a code argument');
+        }
         await this.loadMarkets ();
+        const currency = this.currency (code);
         const request = {
             'futuresAccountType': 1,
             // 'currencyId': '11',
@@ -2420,8 +2425,8 @@ module.exports = class zb extends Exchange {
             // 'endTime': this.milliseconds (),
             // 'pageNum': 1,
         };
-        if (symbol !== undefined) {
-            request['currencyName'] = symbol; // 'USDT'
+        if (code !== undefined) {
+            request['currencyName'] = currency['id'];
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -2459,14 +2464,37 @@ module.exports = class zb extends Exchange {
         for (let i = 0; i < list.length; i++) {
             const entry = list[i];
             const timestamp = this.safeString (entry, 'createTime');
+            let direction = undefined;
+            const changeDirection = this.safeNumber (entry, 'isIn');
+            if (changeDirection === 1) {
+                direction = 'increase';
+            } else {
+                direction = 'reduce';
+            }
+            let fee = undefined;
+            const feeCost = this.safeNumber (entry, 'fee');
+            if (feeCost !== undefined) {
+                fee = {
+                    'cost': feeCost,
+                    'currency': this.safeCurrencyCode (this.safeString (entry, 'unit')),
+                };
+            }
             result.push ({
                 'info': entry,
-                'symbol': this.safeSymbol (this.safeString (entry, 'symbol')),
-                'code': this.safeCurrencyCode (this.safeString (entry, 'unit')),
+                'id': this.safeString (entry, 'id'),
+                'direction': direction,
+                'account': this.safeString (entry, 'userId'),
+                'referenceId': undefined,
+                'referenceAccount': undefined,
+                'type': this.safeInteger (entry, 'type'),
+                'currency': this.safeCurrencyCode (this.safeString (entry, 'unit')),
+                'amount': this.safeNumber (entry, 'changeAmount'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
-                'id': this.safeString (entry, 'id'),
-                'amount': this.safeNumber (entry, 'changeAmount'),
+                'before': this.safeNumber (entry, 'beforeAmount'),
+                'after': this.safeNumber (entry, 'available'),
+                'status': this.safeString (response, 'code'),
+                'fee': fee,
             });
         }
         return result;
