@@ -61,6 +61,9 @@ module.exports = class huobi extends ccxt.huobi {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
                 'api': 'api', // or api-aws for clients hosted on AWS
+                'watchOrderBookSnapshot': {
+                    'delay': 1000,
+                },
                 'ws': {
                     'gunzip': true,
                 },
@@ -309,7 +312,11 @@ module.exports = class huobi extends ccxt.huobi {
 
     async watchOrderBookSnapshot (client, message, subscription) {
         // quick-fix to avoid getting outdated snapshots
-        await this.sleep (1000);
+        const options = this.safeValue (this.options, 'watchOrderBookSnapshot', {});
+        const delay = this.safeInteger (options, 'delay');
+        if (delay !== undefined) {
+            await this.sleep (delay);
+        }
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         const params = this.safeValue (subscription, 'params');
