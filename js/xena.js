@@ -46,7 +46,7 @@ module.exports = class xena extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFees': false,
+                'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchWithdrawals': true,
                 'withdraw': true,
