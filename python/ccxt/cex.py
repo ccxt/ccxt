@@ -64,6 +64,8 @@ class cex(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -512,12 +514,13 @@ class cex(Exchange):
             'currencies': '/'.join(currencies),
         }
         response = self.publicGetTickersCurrencies(self.extend(request, params))
-        tickers = response['data']
+        tickers = self.safe_value(response, 'data', [])
         result = {}
         for t in range(0, len(tickers)):
             ticker = tickers[t]
-            symbol = ticker['pair'].replace(':', '/')
-            market = self.markets[symbol]
+            marketId = self.safe_string(ticker, 'pair')
+            market = self.safe_market(marketId, None, ':')
+            symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array(result, 'symbol', symbols)
 
@@ -573,6 +576,39 @@ class cex(Exchange):
         }
         response = self.publicGetTradeHistoryPair(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
+
+    def fetch_trading_fees(self, params={}):
+        self.load_markets()
+        response = self.privatePostGetMyfee(params)
+        #
+        #      {
+        #          e: 'get_myfee',
+        #          ok: 'ok',
+        #          data: {
+        #            'BTC:USD': {buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: '0.15'},
+        #            'ETH:USD': {buy: '0.25', sell: '0.25', buyMaker: '0.15', sellMaker: '0.15'},
+        #            ..
+        #          }
+        #      }
+        #
+        data = self.safe_value(response, 'data', {})
+        result = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            market = self.market(symbol)
+            fee = self.safe_value(data, market['id'], {})
+            makerString = self.safe_string(fee, 'buyMaker')
+            takerString = self.safe_string(fee, 'buy')
+            maker = self.parse_number(Precise.string_div(makerString, '100'))
+            taker = self.parse_number(Precise.string_div(takerString, '100'))
+            result[symbol] = {
+                'info': fee,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': True,
+            }
+        return result
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         # for market buy it requires the amount of quote currency to spend
