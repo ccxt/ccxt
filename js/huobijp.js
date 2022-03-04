@@ -1197,20 +1197,16 @@ module.exports = class huobijp extends Exchange {
         }
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
-        const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (order, 'created-at');
         const clientOrderId = this.safeString (order, 'client-order-id');
         const amount = this.safeString (order, 'amount');
         const filled = this.safeString2 (order, 'filled-amount', 'field-amount'); // typo in their API, filled amount
         const price = this.safeString (order, 'price');
         const cost = this.safeString2 (order, 'filled-cash-amount', 'field-cash-amount'); // same typo
-        const feeCost = this.safeNumber2 (order, 'filled-fees', 'field-fees'); // typo in their API, filled fees
+        const feeCost = this.safeString2 (order, 'filled-fees', 'field-fees'); // typo in their API, filled fees
         let fee = undefined;
         if (feeCost !== undefined) {
-            let feeCurrency = undefined;
-            if (market !== undefined) {
-                feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
-            }
+            const feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
@@ -1223,7 +1219,7 @@ module.exports = class huobijp extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,

@@ -74,6 +74,8 @@ class cdax(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
                 'fetchTradingLimits': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
@@ -1094,7 +1096,6 @@ class cdax(Exchange):
             type = self.safe_string(parts, 1)
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
-        symbol = market['symbol']
         timestamp = self.safe_integer(order, 'created-at')
         clientOrderId = self.safe_string(order, 'client-order-id')
         filledString = self.safe_string_2(order, 'filled-amount', 'field-amount')  # typo in their API, filled amount
@@ -1106,9 +1107,7 @@ class cdax(Exchange):
         feeCostString = self.safe_string_2(order, 'filled-fees', 'field-fees')  # typo in their API, filled fees
         fee = None
         if feeCostString is not None:
-            feeCurrency = None
-            if market is not None:
-                feeCurrency = market['quote'] if (side == 'sell') else market['base']
+            feeCurrency = market['quote'] if (side == 'sell') else market['base']
             fee = {
                 'cost': feeCostString,
                 'currency': feeCurrency,
@@ -1120,7 +1119,7 @@ class cdax(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': None,
             'postOnly': None,

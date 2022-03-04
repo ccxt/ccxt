@@ -85,6 +85,8 @@ class coinbase(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': None,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
                 'fetchTransactions': None,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,

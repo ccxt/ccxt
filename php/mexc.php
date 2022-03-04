@@ -8,7 +8,6 @@ namespace ccxt;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
 use \ccxt\InvalidAddress;
 use \ccxt\InvalidOrder;
 use \ccxt\OrderNotFound;
@@ -52,6 +51,7 @@ class mexc extends Exchange {
                 'fetchIsolatedPositions' => null,
                 'fetchLeverage' => null,
                 'fetchLeverageTiers' => true,
+                'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
@@ -69,6 +69,8 @@ class mexc extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
                 'setLeverage' => true,
@@ -271,7 +273,7 @@ class mexc extends Exchange {
                     '401' => '\\ccxt\\AuthenticationError', // Invalid signature, fail to pass the validation
                     '403' => '\\ccxt\\PermissionDenied', // array("msg":"no permission to access the endpoint","code":403)
                     '429' => '\\ccxt\\RateLimitExceeded', // too many requests, rate limit rule is violated
-                    '1000' => '\\ccxt\\PermissionDenied', // array("success":false,"code":1000,"message":"Please open contract account first!")
+                    '1000' => '\\ccxt\\AccountNotEnabled', // array("success":false,"code":1000,"message":"Please open contract account first!")
                     '1002' => '\\ccxt\\InvalidOrder', // array("success":false,"code":1002,"message":"Contract not allow place order!")
                     '10072' => '\\ccxt\\AuthenticationError', // Invalid access key
                     '10073' => '\\ccxt\\AuthenticationError', // Invalid request time
@@ -1072,6 +1074,52 @@ class mexc extends Exchange {
         ), $market);
     }
 
+    public function fetch_trading_fees($params = array ()) {
+        $this->load_markets();
+        $response = $this->spotPublicGetMarketSymbols ($params);
+        //
+        //     {
+        //         "code":200,
+        //         "data":array(
+        //             array(
+        //                 "symbol":"DFD_USDT",
+        //                 "state":"ENABLED",
+        //                 "countDownMark":1,
+        //                 "vcoinName":"DFD",
+        //                 "vcoinStatus":1,
+        //                 "price_scale":4,
+        //                 "quantity_scale":2,
+        //                 "min_amount":"5", // not an amount = cost
+        //                 "max_amount":"5000000",
+        //                 "maker_fee_rate":"0.002",
+        //                 "taker_fee_rate":"0.002",
+        //                 "limited":true,
+        //                 "etf_mark":0,
+        //                 "symbol_partition":"ASSESS"
+        //             ),
+        //             ...
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $result = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $fee = $data[$i];
+            $marketId = $this->safe_string($fee, 'symbol');
+            $market = $this->safe_market($marketId, null, '_');
+            $symbol = $market['symbol'];
+            $result[$symbol] = array(
+                'info' => $fee,
+                'symbol' => $symbol,
+                'maker' => $this->safe_number($fee, 'maker_fee_rate'),
+                'taker' => $this->safe_number($fee, 'taker_fee_rate'),
+                'percentage' => true,
+                'tierBased' => false,
+            );
+        }
+        return $result;
+    }
+
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1868,6 +1916,7 @@ class mexc extends Exchange {
         $amount = $this->safe_string($order, 'quantity');
         $remaining = $this->safe_string($order, 'remain_quantity');
         $filled = $this->safe_string($order, 'deal_quantity');
+        $cost = $this->safe_string($order, 'deal_amount');
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $side = null;
@@ -1901,7 +1950,7 @@ class mexc extends Exchange {
             'stopPrice' => null,
             'average' => null,
             'amount' => $amount,
-            'cost' => null,
+            'cost' => $cost,
             'filled' => $filled,
             'remaining' => $remaining,
             'fee' => null,
@@ -2468,16 +2517,8 @@ class mexc extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function fetch_leverage_tiers($symbol = null, $params = array ()) {
+    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
         $this->load_markets();
-        $symbolDefined = ($symbol !== null);
-        $market = null;
-        if ($symbolDefined) {
-            $market = $this->market($symbol);
-            if (!$market['contract']) {
-                throw new BadRequest($this->id . ' fetchLeverageTiers() supports contract markets only');
-            }
-        }
         $response = $this->contractPublicGetDetail ($params);
         //
         //     {
@@ -2485,77 +2526,114 @@ class mexc extends Exchange {
         //         "code":0,
         //         "data":[
         //             array(
-        //                 "symbol":"BTC_USDT",
-        //                 "displayName":"BTC_USDT永续",
-        //                 "displayNameEn":"BTC_USDT SWAP",
-        //                 "positionOpenType":3,
-        //                 "baseCoin":"BTC",
-        //                 "quoteCoin":"USDT",
-        //                 "settleCoin":"USDT",
-        //                 "contractSize":0.0001,
-        //                 "minLeverage":1,
-        //                 "maxLeverage":125,
-        //                 "priceScale":2,
-        //                 "volScale":0,
-        //                 "amountScale":4,
-        //                 "priceUnit":0.5,
-        //                 "volUnit":1,
-        //                 "minVol":1,
-        //                 "maxVol":1000000,
-        //                 "bidLimitPriceRate":0.1,
-        //                 "askLimitPriceRate":0.1,
-        //                 "takerFeeRate":0.0006,
-        //                 "makerFeeRate":0.0002,
-        //                 "maintenanceMarginRate":0.004,
-        //                 "initialMarginRate":0.008,
-        //                 "riskBaseVol":10000,
-        //                 "riskIncrVol":200000,
-        //                 "riskIncrMmr":0.004,
-        //                 "riskIncrImr":0.004,
-        //                 "riskLevelLimit":5,
-        //                 "priceCoefficientVariation":0.1,
-        //                 "indexOrigin":["BINANCE","GATEIO","HUOBI","MXC"],
-        //                 "state":0, // 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
-        //                 "isNew":false,
-        //                 "isHot":true,
-        //                 "isHidden":false
+        //                 "symbol" => "BTC_USDT",
+        //                 "displayName" => "BTC_USDT永续",
+        //                 "displayNameEn" => "BTC_USDT SWAP",
+        //                 "positionOpenType" => 3,
+        //                 "baseCoin" => "BTC",
+        //                 "quoteCoin" => "USDT",
+        //                 "settleCoin" => "USDT",
+        //                 "contractSize" => 0.0001,
+        //                 "minLeverage" => 1,
+        //                 "maxLeverage" => 125,
+        //                 "priceScale" => 2,
+        //                 "volScale" => 0,
+        //                 "amountScale" => 4,
+        //                 "priceUnit" => 0.5,
+        //                 "volUnit" => 1,
+        //                 "minVol" => 1,
+        //                 "maxVol" => 1000000,
+        //                 "bidLimitPriceRate" => 0.1,
+        //                 "askLimitPriceRate" => 0.1,
+        //                 "takerFeeRate" => 0.0006,
+        //                 "makerFeeRate" => 0.0002,
+        //                 "maintenanceMarginRate" => 0.004,
+        //                 "initialMarginRate" => 0.008,
+        //                 "riskBaseVol" => 10000,
+        //                 "riskIncrVol" => 200000,
+        //                 "riskIncrMmr" => 0.004,
+        //                 "riskIncrImr" => 0.004,
+        //                 "riskLevelLimit" => 5,
+        //                 "priceCoefficientVariation" => 0.1,
+        //                 "indexOrigin" => ["BINANCE","GATEIO","HUOBI","MXC"],
+        //                 "state" => 0, // 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
+        //                 "isNew" => false,
+        //                 "isHot" => true,
+        //                 "isHidden" => false
         //             ),
         //             ...
         //         ]
         //     }
         //
-        $result = array();
         $data = $this->safe_value($response, 'data');
-        for ($i = 0; $i < count($data); $i++) {
-            $item = $data[$i];
-            $maintenanceMarginRate = $this->safe_string($item, 'maintenanceMarginRate');
-            $initialMarginRate = $this->safe_string($item, 'initialMarginRate');
-            $maxVol = $this->safe_string($item, 'maxVol');
-            $riskIncrVol = $this->safe_string($item, 'riskIncrVol');
-            $riskIncrMmr = $this->safe_string($item, 'riskIncrMmr');
-            $riskIncrImr = $this->safe_string($item, 'riskIncrImr');
-            $floor = '0';
-            $tiers = array();
-            $quoteId = $this->safe_string($item, 'quoteCoin');
-            while (Precise::string_lt($floor, $maxVol)) {
-                $cap = Precise::string_add($floor, $riskIncrVol);
-                $tiers[] = array(
-                    'tier' => $this->parse_number(Precise::string_div($cap, $riskIncrVol)),
-                    'notionalCurrency' => $this->safe_currency_code($quoteId),
-                    'notionalFloor' => $this->parse_number($floor),
-                    'notionalCap' => $this->parse_number($cap),
-                    'maintenanceMarginRate' => $this->parse_number($maintenanceMarginRate),
-                    'maxLeverage' => $this->parse_number(Precise::string_div('1', $initialMarginRate)),
-                    'info' => $item,
-                );
-                $initialMarginRate = Precise::string_add($initialMarginRate, $riskIncrImr);
-                $maintenanceMarginRate = Precise::string_add($maintenanceMarginRate, $riskIncrMmr);
-                $floor = $cap;
+        return $this->parse_leverage_tiers($data, $symbols, 'symbol');
+    }
+
+    public function parse_market_leverage_tiers($info, $market) {
+        /**
+            @param $info => Exchange response for 1 $market
+            {
+                "symbol" => "BTC_USDT",
+                "displayName" => "BTC_USDT永续",
+                "displayNameEn" => "BTC_USDT SWAP",
+                "positionOpenType" => 3,
+                "baseCoin" => "BTC",
+                "quoteCoin" => "USDT",
+                "settleCoin" => "USDT",
+                "contractSize" => 0.0001,
+                "minLeverage" => 1,
+                "maxLeverage" => 125,
+                "priceScale" => 2,
+                "volScale" => 0,
+                "amountScale" => 4,
+                "priceUnit" => 0.5,
+                "volUnit" => 1,
+                "minVol" => 1,
+                "maxVol" => 1000000,
+                "bidLimitPriceRate" => 0.1,
+                "askLimitPriceRate" => 0.1,
+                "takerFeeRate" => 0.0006,
+                "makerFeeRate" => 0.0002,
+                "maintenanceMarginRate" => 0.004,
+                "initialMarginRate" => 0.008,
+                "riskBaseVol" => 10000,
+                "riskIncrVol" => 200000,
+                "riskIncrMmr" => 0.004,
+                "riskIncrImr" => 0.004,
+                "riskLevelLimit" => 5,
+                "priceCoefficientVariation" => 0.1,
+                "indexOrigin" => ["BINANCE","GATEIO","HUOBI","MXC"],
+                "state" => 0, // 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
+                "isNew" => false,
+                "isHot" => true,
+                "isHidden" => false
             }
-            $id = $this->safe_string($item, 'symbol');
-            $ccxtSymbol = $this->safe_symbol($id);
-            $result[$ccxtSymbol] = $tiers;
+            @param $market => CCXT $market
+         */
+        $maintenanceMarginRate = $this->safe_string($info, 'maintenanceMarginRate');
+        $initialMarginRate = $this->safe_string($info, 'initialMarginRate');
+        $maxVol = $this->safe_string($info, 'maxVol');
+        $riskIncrVol = $this->safe_string($info, 'riskIncrVol');
+        $riskIncrMmr = $this->safe_string($info, 'riskIncrMmr');
+        $riskIncrImr = $this->safe_string($info, 'riskIncrImr');
+        $floor = '0';
+        $tiers = array();
+        $quoteId = $this->safe_string($info, 'quoteCoin');
+        while (Precise::string_lt($floor, $maxVol)) {
+            $cap = Precise::string_add($floor, $riskIncrVol);
+            $tiers[] = array(
+                'tier' => $this->parse_number(Precise::string_div($cap, $riskIncrVol)),
+                'currency' => $this->safe_currency_code($quoteId),
+                'notionalFloor' => $this->parse_number($floor),
+                'notionalCap' => $this->parse_number($cap),
+                'maintenanceMarginRate' => $this->parse_number($maintenanceMarginRate),
+                'maxLeverage' => $this->parse_number(Precise::string_div('1', $initialMarginRate)),
+                'info' => $info,
+            );
+            $initialMarginRate = Precise::string_add($initialMarginRate, $riskIncrImr);
+            $maintenanceMarginRate = Precise::string_add($maintenanceMarginRate, $riskIncrMmr);
+            $floor = $cap;
         }
-        return $symbolDefined ? $this->safe_value($result, $symbol) : $result;
+        return $tiers;
     }
 }

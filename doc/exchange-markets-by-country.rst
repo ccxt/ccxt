@@ -233,17 +233,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 2
      
    * - Cayman Islands
-     - .. image:: https://user-images.githubusercontent.com/1294454/61511972-24c39f00-aa01-11e9-9f7c-471f1d6e5214.jpg
-          :target: https://latoken.com/invite?r=mvgp2djk
-          :alt: latoken1
-     
-     - latoken1
-     - `Latoken <https://latoken.com/invite?r=mvgp2djk>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://api.latoken.com
-          :alt: API Version 1
-     
-   * - Cayman Islands
      - .. image:: https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg
           :target: https://referral.woo.org/BAJS6oNmZb3vi3RGA
           :alt: woo
@@ -1042,9 +1031,9 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
      - bitget
      - `Bitget <https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j>`__
-     - .. image:: https://img.shields.io/badge/3-lightgray
+     - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://bitgetlimited.github.io/apidoc/en/swap
-          :alt: API Version 3
+          :alt: API Version 1
      
    * - Singapore
      - .. image:: https://user-images.githubusercontent.com/1294454/139516488-243a830d-05dd-446b-91c6-c1f18fe30c63.jpg
@@ -1234,17 +1223,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version *
      
    * - Switzerland
-     - .. image:: https://user-images.githubusercontent.com/1294454/34487620-3139a7b0-efe6-11e7-90f5-e520cef74451.jpg
-          :target: https://www.lykke.com
-          :alt: lykke
-     
-     - lykke
-     - `Lykke <https://www.lykke.com>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://hft-api.lykke.com/swagger/ui/
-          :alt: API Version 1
-     
-   * - Switzerland
      - .. image:: https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg
           :target: https://waves.exchange
           :alt: wavesexchange
@@ -1353,6 +1331,17 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://www.luno.com/en/api
           :alt: API Version 1
+     
+   * - UK
+     - .. image:: https://user-images.githubusercontent.com/1294454/155840500-1ea4fdf0-47c0-4daa-9597-c6c1cd51b9ec.jpg
+          :target: https://www.lykke.com
+          :alt: lykke
+     
+     - lykke
+     - `Lykke <https://www.lykke.com>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://hft-apiv2.lykke.com/swagger/ui/index.html
+          :alt: API Version 2
      
    * - UK
      - .. image:: https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg

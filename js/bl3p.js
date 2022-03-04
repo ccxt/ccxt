@@ -211,32 +211,24 @@ module.exports = class bl3p extends Exchange {
     parseTrade (trade, market = undefined) {
         const id = this.safeString (trade, 'trade_id');
         const timestamp = this.safeInteger (trade, 'date');
-        let priceString = this.safeString (trade, 'price_int');
-        priceString = Precise.stringDiv (priceString, '100000');
-        let amountString = this.safeString (trade, 'amount_int');
-        amountString = Precise.stringDiv (amountString, '100000000');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        return {
+        const price = this.safeString (trade, 'price_int');
+        const amount = this.safeString (trade, 'amount_int');
+        market = this.safeMarket (undefined, market);
+        return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': undefined,
             'side': undefined,
             'order': undefined,
             'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': Precise.stringDiv (price, '100000'),
+            'amount': Precise.stringDiv (amount, '100000000'),
+            'cost': undefined,
             'fee': undefined,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {

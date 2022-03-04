@@ -64,6 +64,8 @@ class cdax extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
                 'fetchTradingLimits' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
@@ -1108,7 +1110,7 @@ class cdax extends Exchange {
     public function parse_order($order, $market = null) {
         //
         //     {                  $id =>  13997833014,
-        //                    $symbol => "ethbtc",
+        //                    symbol => "ethbtc",
         //              'account-id' =>  3398321,
         //                    amount => "0.045000000000000000",
         //                     price => "0.034014000000000000",
@@ -1123,7 +1125,7 @@ class cdax extends Exchange {
         //             'canceled-at' =>  0                      }
         //
         //     {                  $id =>  20395337822,
-        //                    $symbol => "ethbtc",
+        //                    symbol => "ethbtc",
         //              'account-id' =>  5685075,
         //                    amount => "0.001000000000000000",
         //                     price => "0.0",
@@ -1149,7 +1151,6 @@ class cdax extends Exchange {
         }
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($order, 'created-at');
         $clientOrderId = $this->safe_string($order, 'client-$order-id');
         $filledString = $this->safe_string_2($order, 'filled-amount', 'field-amount'); // typo in their API, filled amount
@@ -1162,10 +1163,7 @@ class cdax extends Exchange {
         $feeCostString = $this->safe_string_2($order, 'filled-fees', 'field-fees'); // typo in their API, filled fees
         $fee = null;
         if ($feeCostString !== null) {
-            $feeCurrency = null;
-            if ($market !== null) {
-                $feeCurrency = ($side === 'sell') ? $market['quote'] : $market['base'];
-            }
+            $feeCurrency = ($side === 'sell') ? $market['quote'] : $market['base'];
             $fee = array(
                 'cost' => $feeCostString,
                 'currency' => $feeCurrency,
@@ -1178,7 +1176,7 @@ class cdax extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => $type,
             'timeInForce' => null,
             'postOnly' => null,

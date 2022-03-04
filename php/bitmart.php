@@ -54,6 +54,8 @@ class bitmart extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
@@ -543,7 +545,7 @@ class bitmart extends Exchange {
             $quoteId = mb_substr($id, -4);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $splitId = $id->split ($id, '_');
+            $splitId = explode('_', $id);
             $splitIdEnding = $this->safe_string($splitId, 1);
             $settle = 'USDT';
             $symbol = $base . '/' . $quote . ':' . $settle;
@@ -1009,13 +1011,13 @@ class bitmart extends Exchange {
         $costString = $this->safe_string_2($trade, 'amount', 'notional');
         $orderId = $this->safe_integer($trade, 'order_id');
         $marketId = $this->safe_string_2($trade, 'contract_id', 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market, '_');
+        $market = $this->safe_market($marketId, $market, '_');
         $feeCostString = $this->safe_string($trade, 'fees');
         $fee = null;
         if ($feeCostString !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'fee_coin_name');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
-            if (($feeCurrencyCode === null) && ($market !== null)) {
+            if ($feeCurrencyCode === null) {
                 $feeCurrencyCode = ($side === 'buy') ? $market['base'] : $market['quote'];
             }
             $fee = array(
@@ -1029,7 +1031,7 @@ class bitmart extends Exchange {
             'order' => $orderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => $type,
             'side' => $side,
             'price' => $priceString,

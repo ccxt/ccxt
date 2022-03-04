@@ -317,10 +317,7 @@ module.exports = class bit2c extends Exchange {
         const timestamp = this.safeInteger (order, 'created');
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'amount');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (undefined, market);
         let side = this.safeValue (order, 'type');
         if (side === 0) {
             side = 'buy';
@@ -336,7 +333,7 @@ module.exports = class bit2c extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'status': status,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': undefined,
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -425,16 +422,13 @@ module.exports = class bit2c extends Exchange {
                 }
             }
         }
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (undefined, market);
         return this.safeTrade ({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': orderId,
             'type': undefined,
             'side': side,

@@ -347,24 +347,24 @@ class luno extends Exchange {
             $side = 'buy';
         }
         $marketId = $this->safe_string($order, 'pair');
-        $symbol = $this->safe_symbol($marketId, $market);
+        $market = $this->safe_market($marketId, $market);
         $price = $this->safe_string($order, 'limit_price');
         $amount = $this->safe_string($order, 'limit_volume');
         $quoteFee = $this->safe_number($order, 'fee_counter');
         $baseFee = $this->safe_number($order, 'fee_base');
         $filled = $this->safe_string($order, 'base');
         $cost = $this->safe_string($order, 'counter');
-        $fee = array( 'currency' => null );
-        if ($quoteFee) {
-            $fee['cost'] = $quoteFee;
-            if ($market !== null) {
-                $fee['currency'] = $market['quote'];
-            }
-        } else {
-            $fee['cost'] = $baseFee;
-            if ($market !== null) {
-                $fee['currency'] = $market['base'];
-            }
+        $fee = null;
+        if ($quoteFee !== null) {
+            $fee = array(
+                'cost' => $quoteFee,
+                'currency' => $market['quote'],
+            );
+        } else if ($baseFee !== null) {
+            $fee = array(
+                'cost' => $baseFee,
+                'currency' => $market['base'],
+            );
         }
         $id = $this->safe_string($order, 'order_id');
         return $this->safe_order(array(
@@ -374,7 +374,7 @@ class luno extends Exchange {
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
             'status' => $status,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => null,
             'timeInForce' => null,
             'postOnly' => null,

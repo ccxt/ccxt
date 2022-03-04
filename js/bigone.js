@@ -40,6 +40,8 @@ module.exports = class bigone extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
                 'fetchWithdrawals': true,
                 'withdraw': true,
             },
@@ -464,7 +466,7 @@ module.exports = class bigone extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
         const marketId = this.safeString (trade, 'asset_pair_name');
-        const symbol = this.safeSymbol (marketId, market, '-');
+        market = this.safeMarket (marketId, market, '-');
         let side = this.safeString (trade, 'side');
         const takerSide = this.safeString (trade, 'taker_side');
         let takerOrMaker = undefined;
@@ -499,7 +501,7 @@ module.exports = class bigone extends Exchange {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': orderId,
             'type': 'limit',
             'side': side,
@@ -511,7 +513,7 @@ module.exports = class bigone extends Exchange {
         };
         let makerCurrencyCode = undefined;
         let takerCurrencyCode = undefined;
-        if ((market !== undefined) && (takerOrMaker !== undefined)) {
+        if (takerOrMaker !== undefined) {
             if (side === 'buy') {
                 if (takerOrMaker === 'maker') {
                     makerCurrencyCode = market['base'];

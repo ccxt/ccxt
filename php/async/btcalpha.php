@@ -59,6 +59,8 @@ class btcalpha extends Exchange {
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => null,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
@@ -256,13 +258,8 @@ class btcalpha extends Exchange {
         //          "my_side" => "buy"
         //      }
         //
-        $symbol = null;
-        if ($market === null) {
-            $market = $this->safe_value($this->markets_by_id, $trade['pair']);
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($trade, 'pair');
+        $market = $this->safe_market($marketId, $market, '_');
         $timestamp = $this->safe_timestamp($trade, 'timestamp');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
@@ -273,7 +270,7 @@ class btcalpha extends Exchange {
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'order' => $id,
             'type' => 'limit',
             'side' => $side,

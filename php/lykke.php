@@ -6,6 +6,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use \ccxt\ExchangeError;
 
 class lykke extends Exchange {
 
@@ -13,9 +14,11 @@ class lykke extends Exchange {
         return $this->deep_extend(parent::describe (), array(
             'id' => 'lykke',
             'name' => 'Lykke',
-            'countries' => array( 'CH' ),
-            'version' => 'v1', // v2 - https://lykkecity.github.io/Trading-API/
-            'rateLimit' => 200,
+            'countries' => array( 'UK' ),
+            'version' => '2',
+            // 300 requests per minute per method => 60000ms / 300 = 200 (/api/orders/*)
+            // 120 requests per minute per method => ( 60000ms / rateLimit ) / 120 = cost = 2.5 (/api/*)
+            'rateLimit' => 200, // TODO => optim\ize https://lykkecity.github.io/Trading-API/#request-rate-limits
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -26,15 +29,22 @@ class lykke extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'editOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
                 'fetchClosedOrders' => true,
+                'fetchCurrencies' => true,
+                'fetchDepositAddress' => true,
+                'fetchDeposits' => false,
+                'fetchFundingFees' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
-                'fetchLeverage' => false,
-                'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -42,100 +52,74 @@ class lykke extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrders' => true,
+                'fetchOrders' => false,
+                'fetchOrderTrades' => false,
+                'fetchPositions' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTime' => false,
                 'fetchTrades' => true,
-            ),
-            'timeframes' => array(
-                '1m' => 'Minute',
-                '5m' => 'Min5',
-                '15m' => 'Min15',
-                '30m' => 'Min30',
-                '1h' => 'Hour',
-                '4h' => 'Hour4',
-                '6h' => 'Hour6',
-                '12h' => 'Hour12',
-                '1d' => 'Day',
-                '1w' => 'Week',
-                '1M' => 'Month',
+                'fetchTradingFees' => false,
+                'fetchTransactions' => true,
+                'fetchWithdrawals' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'withdraw' => true,
             ),
             'requiredCredentials' => array(
                 'apiKey' => true,
                 'secret' => false,
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/34487620-3139a7b0-efe6-11e7-90f5-e520cef74451.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/1294454/155840500-1ea4fdf0-47c0-4daa-9597-c6c1cd51b9ec.jpg',
                 'api' => array(
-                    'mobile' => 'https://public-api.lykke.com/api',
-                    'public' => 'https://hft-api.lykke.com/api',
-                    'private' => 'https://hft-api.lykke.com/api',
-                ),
-                'test' => array(
-                    'mobile' => 'https://public-api.lykke.com/api',
-                    'public' => 'https://hft-service-dev.lykkex.net/api',
-                    'private' => 'https://hft-service-dev.lykkex.net/api',
+                    'public' => 'https://hft-apiv2.lykke.com/api',
+                    'private' => 'https://hft-apiv2.lykke.com/api',
                 ),
                 'www' => 'https://www.lykke.com',
                 'doc' => array(
-                    'https://hft-api.lykke.com/swagger/ui/',
-                    'https://www.lykke.com/lykke_api',
+                    'https://hft-apiv2.lykke.com/swagger/ui/index.html',
+                    'https://lykkecity.github.io/Trading-API',
                 ),
-                'fees' => 'https://www.lykke.com/trading-conditions',
+                'fees' => 'https://support.lykke.com/hc/en-us/articles/115002141125-What-are-the-fees-and-charges-', // zero fee
             ),
             'api' => array(
-                'mobile' => array(
-                    'get' => array(
-                        'AssetPairs/rate',
-                        'AssetPairs/rate/{assetPairId}',
-                        'AssetPairs/dictionary/{market}',
-                        'Assets/dictionary',
-                        'Candles/history/{market}/available',
-                        'Candles/history/{market}/{assetPair}/{period}/{type}/{from}/{to}',
-                        'Company/ownershipStructure',
-                        'Company/registrationsCount',
-                        'IsAlive',
-                        'Market',
-                        'Market/{market}',
-                        'Market/capitalization/{market}',
-                        'OrderBook',
-                        'OrderBook/{assetPairId}',
-                        'Trades/{AssetPairId}',
-                        'Trades/Last/{assetPair}/{n}',
-                    ),
-                    'post' => array(
-                        'AssetPairs/rate/history',
-                        'AssetPairs/rate/history/{assetPairId}',
-                    ),
-                ),
                 'public' => array(
                     'get' => array(
-                        'AssetPairs',
-                        'AssetPairs/{id}',
-                        'IsAlive',
-                        'OrderBooks',
-                        'OrderBooks/{AssetPairId}',
+                        'assetpairs' => 2.5,
+                        'assetpairs/{id}' => 2.5,
+                        'assets' => 2.5,
+                        'assets/{id}' => 2.5,
+                        'isalive' => 2.5,
+                        'orderbooks' => 2.5,
+                        'tickers' => 2.5,
+                        'prices' => 2.5,
+                        'trades/public/{assetPairId}' => 2.5,
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'Orders',
-                        'Orders/{id}',
-                        'Wallets',
-                        'History/trades',
+                        'balance' => 2.5,
+                        'trades' => 2.5,
+                        'trades/order/{orderId}' => 2.5,
+                        'orders/active' => 1,
+                        'orders/closed' => 1,
+                        'orders/{orderId}' => 1,
+                        'operations' => 2.5,
+                        'operations/deposits/addresses' => 2.5,
+                        'operations/deposits/addresses/{assetId}' => 2.5,
                     ),
                     'post' => array(
-                        'Orders/limit',
-                        'Orders/market',
-                        'Orders/{id}/Cancel',
-                        'Orders/v2/market',
-                        'Orders/v2/limit',
-                        'Orders/stoplimit',
-                        'Orders/bulk',
+                        'orders/limit' => 1,
+                        'orders/market' => 1,
+                        'orders/bulk' => 1,
+                        'operations/withdrawals' => 2.5,
+                        'operations/deposits/addresses' => 2.5,
                     ),
                     'delete' => array(
-                        'Orders',
-                        'Orders/{id}',
+                        'orders' => 1,
+                        'orders/{orderId}' => 1,
                     ),
                 ),
             ),
@@ -143,79 +127,425 @@ class lykke extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.0, // as of 7 Feb 2018, see https://github.com/ccxt/ccxt/issues/1863
-                    'taker' => 0.0, // https://www.lykke.com/cp/wallet-fees-and-limits
+                    'maker' => 0, // https://support.lykke.com/hc/en-us/articles/115002141125-What-are-the-fees-and-min-amounts-
+                    'taker' => 0,
                 ),
-                'funding' => array(
-                    'tierBased' => false,
-                    'percentage' => false,
-                    'withdraw' => array(
-                        'BTC' => 0.001,
-                    ),
-                    'deposit' => array(
-                        'BTC' => 0,
-                    ),
+            ),
+            'exceptions' => array(
+                'exact' => array(
+                    '1001' => '\\ccxt\\ExchangeError',
+                    '1100' => '\\ccxt\\ExchangeError',
+                    '1101' => '\\ccxt\\ExchangeError',
+                    '2000' => '\\ccxt\\BadRequest',
+                    '2001' => '\\ccxt\\InsufficientFunds',
+                    '2202' => '\\ccxt\\DuplicateOrderId',
+                    '2003' => '\\ccxt\\ExchangeError',
+                    '2004' => '\\ccxt\\NotSupported',
+                    '2005' => '\\ccxt\\ExchangeError',
+                    '2006' => '\\ccxt\\InsufficientFunds',
+                    '2007' => '\\ccxt\\InsufficientFunds',
+                    '2008' => '\\ccxt\\InsufficientFunds',
+                    '2009' => '\\ccxt\\ExchangeError',
+                    '2010' => '\\ccxt\\InsufficientFunds',
+                    '2011' => '\\ccxt\\InvalidOrder',
+                    '2012' => '\\ccxt\\InvalidOrder',
+                    '2013' => '\\ccxt\\InvalidOrder',
+                    '2014' => '\\ccxt\\InvalidOrder',
+                    '2015' => '\\ccxt\\InvalidOrder',
+                    '2016' => '\\ccxt\\InvalidOrder',
+                    '2017' => '\\ccxt\\InvalidOrder',
+                    '2018' => '\\ccxt\\InvalidOrder',
+                    '2019' => '\\ccxt\\InvalidOrder',
+                    '2020' => '\\ccxt\\InvalidOrder',
+                    '2021' => '\\ccxt\\InvalidOrder',
+                    '2022' => '\\ccxt\\InvalidOrder',
+                    '2023' => '\\ccxt\\ExchangeError',
                 ),
+                'broad' => array(),
             ),
             'commonCurrencies' => array(
-                'CAN' => 'CanYaCoin',
-                'XPD' => 'Lykke XPD',
             ),
         ));
+    }
+
+    public function fetch_currencies($params = array ()) {
+        $response = $this->publicGetAssets ($params);
+        $currencies = $this->safe_value($response, 'payload', array());
+        //
+        //     {
+        //         "payload":array(
+        //             {
+        //                 "assetId":"115a60c2-0da1-40f9-a7f2-41da723b9074",
+        //                 "name":"Monaco Token",
+        //                 "symbol":"MCO",
+        //                 "accuracy":6,
+        //                 "multiplierPower":8,
+        //                 "assetAddress":"",
+        //                 "blockchainIntegrationLayerId":"",
+        //                 "blockchain":"ethereum",
+        //                 "type":"erc20Token",
+        //                 "isTradable":true,
+        //                 "isTrusted":true,
+        //                 "kycNeeded":false,
+        //                 "blockchainWithdrawal":true,
+        //                 "cashoutMinimalAmount":0.1,
+        //                 "lowVolumeAmount":null,
+        //                 "lykkeEntityId":"LYKKE NL",
+        //                 "siriusAssetId":0,
+        //                 "siriusBlockchainId":null,
+        //                 "blockchainIntegrationType":"none",
+        //                 "blockchainDepositEnabled":false,
+        //                 "isDisabled":false
+        //             }
+        //         ),
+        //         "error":null
+        //     }
+        //
+        $result = array();
+        for ($i = 0; $i < count($currencies); $i++) {
+            $currency = $currencies[$i];
+            $id = $this->safe_string($currency, 'assetId');
+            $code = $this->safe_string($currency, 'symbol');
+            $name = $this->safe_string($currency, 'name');
+            $type = $this->safe_string($currency, 'type');
+            $deposit = $this->safe_value($currency, 'blockchainDepositEnabled');
+            $withdraw = $this->safe_value($currency, 'blockchainWithdrawal');
+            $isDisabled = $this->safe_value($currency, 'isDisabled');
+            $active = !$isDisabled;
+            $result[$code] = array(
+                'id' => $id,
+                'code' => $code,
+                'info' => $currency,
+                'type' => $type,
+                'name' => $name,
+                'active' => $active,
+                'deposit' => $deposit,
+                'withdraw' => $withdraw,
+                'fee' => null,
+                'precision' => $this->safe_integer($currency, 'accuracy'),
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_value($currency, 'cashoutMinimalAmount'),
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => $this->safe_value($currency, 'lowVolumeAmount'),
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_markets($params = array ()) {
+        $response = $this->publicGetAssetpairs ($params);
+        $markets = $this->safe_value($response, 'payload', array());
+        //
+        //     {
+        //         "payload":array(
+        //             {
+        //                 "assetPairId":"AAVEBTC",
+        //                 "baseAssetId":"c9e55548-dae5-44fc-bebd-e72249cb19f3",
+        //                 "quoteAssetId":"BTC",
+        //                 "name":"AAVE/BTC",
+        //                 "priceAccuracy":6,
+        //                 "baseAssetAccuracy":6,
+        //                 "quoteAssetAccuracy":8,
+        //                 "minVolume":0.001,
+        //                 "minOppositeVolume":0.0001
+        //             }
+        //         ),
+        //         "error":null
+        //     }
+        //
+        $result = array();
+        for ($i = 0; $i < count($markets); $i++) {
+            $market = $markets[$i];
+            $id = $this->safe_string($market, 'assetPairId');
+            $name = $this->safe_string($market, 'name');
+            $baseAssetId = $this->safe_string($market, 'baseAssetId');
+            $quoteAssetId = $this->safe_string($market, 'quoteAssetId');
+            list($baseId, $quoteId) = explode('/', $name);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
+            $symbol = $base . '/' . $quote;
+            $precision = array(
+                'price' => $this->safe_integer($market, 'priceAccuracy'),
+                'amount' => $this->safe_integer($market, 'baseAssetAccuracy'),
+            );
+            $result[] = array(
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'baseId' => $baseAssetId,
+                'quoteId' => $quoteAssetId,
+                'settle' => null,
+                'settleId' => null,
+                'type' => 'spot',
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'contract' => false,
+                'active' => true,
+                'info' => $market,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => $precision,
+                'limits' => array(
+                    'amount' => array(
+                        'min' => $this->safe_number($market, 'minVolume'),
+                        'max' => null,
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => $this->safe_number($market, 'minOppositeVolume'),
+                        'max' => null,
+                    ),
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        return $result;
+    }
+
+    public function parse_ticker($ticker, $market = null) {
+        //
+        // fetchTickers
+        //
+        //     publicGetTickers
+        //
+        //     {
+        //         "assetPairId":"BTCUSD",
+        //         "volumeBase":2.56905016,
+        //         "volumeQuote":95653.8730,
+        //         "priceChange":-0.0367945778541765034194707584,
+        //         "lastPrice":36840.0,
+        //         "high":38371.645,
+        //         "low":35903.356,
+        //         "timestamp":1643295740729
+        //     }
+        //
+        // fetchTicker
+        //
+        //     publicGetTickers
+        //
+        //     {
+        //         "assetPairId":"BTCUSD",
+        //         "volumeBase":2.56905016,
+        //         "volumeQuote":95653.8730,
+        //         "priceChange":-0.0367945778541765034194707584,
+        //         "lastPrice":36840.0,
+        //         "high":38371.645,
+        //         "low":35903.356,
+        //         "timestamp":1643295740729
+        //     }
+        //
+        //     publicGetPrices
+        //
+        //     {
+        //         "assetPairId":"BTCUSD",
+        //         "bid":36181.521,
+        //         "ask":36244.492,
+        //         "timestamp":1643305510990
+        //     }
+        //
+        $timestamp = $this->safe_integer($ticker, 'timestamp');
+        $marketId = $this->safe_string($ticker, 'assetPairId');
+        $market = $this->safe_market($marketId, $market);
+        $close = $this->safe_string($ticker, 'lastPrice');
+        return $this->safe_ticker(array(
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'bid'),
+            'bidVolume' => null,
+            'ask' => $this->safe_string($ticker, 'ask'),
+            'askVolume' => null,
+            'vwap' => null,
+            'open' => null,
+            'close' => $close,
+            'last' => $close,
+            'previousClose' => null,
+            'change' => $this->safe_string($ticker, 'priceChange'),
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => $this->safe_string($ticker, 'volumeBase'),
+            'quoteVolume' => $this->safe_string($ticker, 'volumeQuote'),
+            'info' => $ticker,
+        ), $market, false);
+    }
+
+    public function fetch_ticker($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'assetPairIds' => $market['id'],
+        );
+        // publicGetTickers or publicGetPrices
+        $method = $this->safe_string($this->options, 'fetchTickerMethod', 'publicGetTickers');
+        $response = $this->$method (array_merge($request, $params));
+        $ticker = $this->safe_value($response, 'payload', array());
+        //
+        // publicGetTickers
+        //
+        //     {
+        //         "payload":array(
+        //             {
+        //                 "assetPairId":"BTCUSD",
+        //                 "volumeBase":0.78056880,
+        //                 "volumeQuote":29782.5169,
+        //                 "priceChange":0.0436602362590968619931324699,
+        //                 "lastPrice":38626.885,
+        //                 "high":38742.896,
+        //                 "low":36872.498,
+        //                 "timestamp":1643687822840
+        //             }
+        //         ),
+        //         "error":null
+        //     }
+        //
+        // publicGetPrices
+        //
+        //     {
+        //         "payload":array(
+        //             {
+        //                 "assetPairId":"BTCUSD",
+        //                 "bid":38597.936,
+        //                 "ask":38640.311,
+        //                 "timestamp":1643688350847
+        //             }
+        //         ),
+        //         "error":null
+        //     }
+        //
+        return $this->parse_ticker($this->safe_value($ticker, 0, array()), $market);
+    }
+
+    public function fetch_tickers($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->publicGetTickers ($params);
+        $tickers = $this->safe_value($response, 'payload', array());
+        //
+        //     {
+        //         "payload":array(
+        //             {
+        //                 "assetPairId":"BTCUSD",
+        //                 "volumeBase":0.78056880,
+        //                 "volumeQuote":29782.5169,
+        //                 "priceChange":0.0436602362590968619931324699,
+        //                 "lastPrice":38626.885,
+        //                 "high":38742.896,
+        //                 "low":36872.498,
+        //                 "timestamp":1643687822840
+        //             }
+        //         ),
+        //         "error":null
+        //     }
+        //
+        return $this->parse_tickers($tickers, $symbols);
+    }
+
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            'assetPairId' => $this->market_id($symbol),
+        );
+        if ($limit !== null) {
+            $request['depth'] = $limit; // default 0
+        }
+        $response = $this->publicGetOrderbooks (array_merge($request, $params));
+        $payload = $this->safe_value($response, 'payload', array());
+        //
+        //     {
+        //         "payload":array(
+        //             {
+        //                 assetPairId => 'BTCUSD',
+        //                 $timestamp => '1643298038203',
+        //                 bids => array(
+        //                     {
+        //                         "v":0.59034382,
+        //                         "p":36665.329
+        //                     }
+        //                 ),
+        //                 asks => array(
+        //                     {
+        //                         "v":-0.003,
+        //                         "p":36729.686
+        //                     }
+        //                 )
+        //             }
+        //         ),
+        //         "error":null
+        //     }
+        //
+        $orderbook = $this->safe_value($payload, 0, array());
+        $timestamp = $this->safe_string($orderbook, 'timestamp');
+        return $this->parse_order_book($orderbook, $symbol, $timestamp, 'bids', 'asks', 'p', 'v');
     }
 
     public function parse_trade($trade, $market) {
         //
         //  public fetchTrades
         //
-        //   {
-        //     "id" => "d5983ab8-e9ec-48c9-bdd0-1b18f8e80a71",
-        //     "assetPairId" => "BTCUSD",
-        //     "dateTime" => "2019-05-15T06:52:02.147Z",
-        //     "volume" => 0.00019681,
-        //     "index" => 0,
-        //     "price" => 8023.333,
-        //     "action" => "Buy"
-        //   }
+        //     {
+        //         "id":"71df1f0c-be4e-4d45-b809-c108fad5f2a8",
+        //         "assetPairId":"BTCUSD",
+        //         "timestamp":1643345958414,
+        //         "volume":0.00010996,
+        //         "price":37205.723,
+        //         "side":"buy"
+        //      }
         //
         //  private fetchMyTrades
-        //     array(
-        //         Id => '3500b83c-9963-4349-b3ee-b3e503073cea',
-        //         OrderId => '83b50feb-8615-4dc6-b606-8a4168ecd708',
-        //         DateTime => '2020-05-19T11:17:39.31+00:00',
-        //         Timestamp => '2020-05-19T11:17:39.31+00:00',
-        //         State => null,
-        //         Amount => -0.004,
-        //         BaseVolume => -0.004,
-        //         QuotingVolume => 39.3898,
-        //         Asset => 'BTC',
-        //         BaseAssetId => 'BTC',
-        //         QuotingAssetId => 'USD',
-        //         AssetPair => 'BTCUSD',
-        //         AssetPairId => 'BTCUSD',
-        //         Price => 9847.427,
-        //         Fee => array( Amount => null, Type => 'Unknown', FeeAssetId => null )
-        //     ),
-        $marketId = $this->safe_string($trade, 'AssetPairId');
-        $symbol = $this->safe_symbol($marketId, $market);
-        $id = $this->safe_string_2($trade, 'id', 'Id');
-        $orderId = $this->safe_string($trade, 'OrderId');
-        $timestamp = $this->parse8601($this->safe_string_2($trade, 'dateTime', 'DateTime'));
-        $priceString = $this->safe_string_2($trade, 'price', 'Price');
-        $amountString = $this->safe_string_2($trade, 'volume', 'Amount');
-        $side = $this->safe_string_lower($trade, 'action');
-        if ($side === null) {
-            $side = ($amountString[0] === '-') ? 'sell' : 'buy';
+        //         {
+        //             "id":"813a3ffa-1c4b-45cb-b13f-1c077ea2748b",
+        //             "timestamp":1644155923357,
+        //             "assetPairId":"BCHEUR",
+        //             "orderId":"1b367978-7e4f-454b-b870-64040d484443",
+        //             "role":"Taker",
+        //             "side":"sell",
+        //             "price":280.569,
+        //             "baseVolume":0.01,
+        //             "quoteVolume":2.8056,
+        //             "baseAssetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
+        //             "quoteAssetId":"EUR",
+        //             "fee":null
+        //         }
+        //
+        $marketId = $this->safe_string($trade, 'assetPairId');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
+        $id = $this->safe_string_2($trade, 'id', 'id');
+        $orderId = $this->safe_string($trade, 'orderId');
+        $timestamp = $this->safe_integer($trade, 'timestamp');
+        $price = $this->safe_string_2($trade, 'price', 'price');
+        $amount = $this->safe_string_2($trade, 'volume', 'amount');
+        if ($amount === null) {
+            $amount = $this->safe_string_2($trade, 'baseVolume', 'amount');
         }
-        $amountString = Precise::string_abs($amountString);
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
+        $side = $this->safe_string_lower($trade, 'side');
         $fee = array(
-            'cost' => 0, // There are no fees for trading. https://www.lykke.com/wallet-fees-and-limits/
+            'cost' => $this->parse_number('0'), // There are no fees for trading.
             'currency' => $market['quote'],
         );
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -227,50 +557,62 @@ class lykke extends Exchange {
             'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
-        if ($limit === null) {
-            $limit = 100;
-        }
         $request = array(
-            'AssetPairId' => $market['id'],
-            'skip' => 0,
-            'take' => $limit,
+            'assetPairId' => $market['id'],
+            // 'offset' => 0,
         );
-        $response = $this->mobileGetTradesAssetPairId (array_merge($request, $params));
-        return $this->parse_trades($response, $market, $since, $limit);
-    }
-
-    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
-        $request = array();
-        $market = null;
         if ($limit !== null) {
-            $request['take'] = $limit; // How many maximum items have to be returned, max 1000 default 100.
+            $request['take'] = $limit;
         }
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['assetPairId'] = $market['id'];
-        }
-        $response = $this->privateGetHistoryTrades (array_merge($request, $params));
-        return $this->parse_trades($response, $market, $since, $limit);
+        $response = $this->publicGetTradesPublicAssetPairId (array_merge($request, $params));
+        $result = $this->safe_value($response, 'payload', array());
+        //
+        //     {
+        //         "payload":array(
+        //             {
+        //                 "id":"71df1f0c-be4e-4d45-b809-c108fad5f2a8",
+        //                 "assetPairId":"BTCUSD",
+        //                 "timestamp":1643345958414,
+        //                 "volume":0.00010996,
+        //                 "price":37205.723,
+        //                 "side":"buy"
+        //             }
+        //         ),
+        //         "error":null
+        //     }
+        //
+        return $this->parse_trades($result, $market, $since, $limit);
     }
 
     public function parse_balance($response) {
+        //
+        //     array(
+        //         {
+        //             "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
+        //             "available":0.1,
+        //             "reserved":0.0,
+        //             "timestamp":1644146723620
+        //         }
+        //     )
+        //
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
-            $currencyId = $this->safe_string($balance, 'AssetId');
+            $currencyId = $this->safe_string($balance, 'assetId');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['total'] = $this->safe_string($balance, 'Balance');
-            $account['used'] = $this->safe_string($balance, 'Reserved');
+            $free = $this->safe_string($balance, 'available');
+            $used = $this->safe_string($balance, 'reserved');
+            $account['free'] = $free;
+            $account['used'] = $used;
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
@@ -278,55 +620,132 @@ class lykke extends Exchange {
 
     public function fetch_balance($params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetWallets ($params);
-        return $this->parse_balance($response);
+        $response = $this->privateGetBalance ($params);
+        $payload = $this->safe_value($response, 'payload', array());
+        //
+        //     {
+        //         "payload":array(
+        //             {
+        //                 "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
+        //                 "available":0.1,
+        //                 "reserved":0.0,
+        //                 "timestamp":1644146723620
+        //             }
+        //         ),
+        //         "error":null
+        //     }
+        //
+        return $this->parse_balance($payload);
     }
 
-    public function cancel_order($id, $symbol = null, $params = array ()) {
-        $request = array( 'id' => $id );
-        return $this->privateDeleteOrdersId (array_merge($request, $params));
+    public function parse_order_status($status) {
+        $statuses = array(
+            'Open' => 'open',
+            'Pending' => 'open',
+            'InOrderBook' => 'open',
+            'Processing' => 'open',
+            'Matched' => 'closed',
+            'Cancelled' => 'canceled',
+            'Rejected' => 'rejected',
+            'Replaced' => 'canceled',
+            'Placed' => 'open',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
-    public function cancel_all_orders($symbol = null, $params = array ()) {
-        $this->load_markets();
-        $request = array();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['assetPairId'] = $market['id'];
-        }
-        return $this->privateDeleteOrders (array_merge($request, $params));
+    public function parse_order($order, $market = null) {
+        //
+        //     {
+        //         "id":"1b367978-7e4f-454b-b870-64040d484443",
+        //         "timestamp":1644155923357,
+        //         "lastTradeTimestamp":1644155923357,
+        //         "status":"Matched",
+        //         "assetPairId":"BCHEUR",
+        //         "type":"Market",
+        //         "side":"Sell",
+        //         "price":280.569,
+        //         "volume":0.01,
+        //         "filledVolume":0.01,
+        //         "remainingVolume":0.0,
+        //         "cost":2.80569
+        //     }
+        //
+        $id = $this->safe_string($order, 'id');
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
+        $marketId = $this->safe_string($order, 'assetPairId');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $type = $this->safe_string_lower($order, 'type');
+        $lastTradeTimestamp = $this->safe_integer($order, 'lastTradeTimestamp');
+        $timestamp = $this->safe_integer($order, 'timestamp');
+        $price = $this->safe_string($order, 'price');
+        $side = $this->safe_string_lower($order, 'side');
+        $amount = $this->safe_string($order, 'volume');
+        $remaining = $this->safe_string($order, 'remainingVolume');
+        $filled = $this->safe_string($order, 'filledVolume');
+        $cost = $this->safe_string($order, 'cost');
+        return $this->safe_order(array(
+            'info' => $order,
+            'id' => $id,
+            'clientOrderId' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'lastTradeTimestamp' => $lastTradeTimestamp,
+            'symbol' => $symbol,
+            'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
+            'side' => $side,
+            'price' => $price,
+            'stopPrice' => null,
+            'amount' => $amount,
+            'cost' => $cost,
+            'average' => null,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'status' => $status,
+            'fee' => null,
+            'trades' => null,
+        ), $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $query = array(
-            'AssetPairId' => $market['id'],
-            'OrderAction' => $this->capitalize($side),
-            'Volume' => $amount,
-            'Asset' => $market['baseId'],
+            'assetPairId' => $market['id'],
+            'side' => $this->capitalize($side),
+            'volume' => floatval($this->amount_to_precision($symbol, $amount)),
         );
         if ($type === 'limit') {
-            $query['Price'] = $price;
+            $query['price'] = floatval($this->price_to_precision($symbol, $amount));
         }
-        $method = 'privatePostOrdersV2' . $this->capitalize($type);
+        $method = 'privatePostOrders' . $this->capitalize($type);
         $result = $this->$method (array_merge($query, $params));
         //
         // $market
         //
-        //     {
-        //         "Price" => 0
-        //     }
+        //         {
+        //             "payload":array(
+        //                 "orderId":"2b98ec26-8410-49b6-9f37-1fb2150e2299",
+        //                 "price":280.699
+        //             ),
+        //             "error":null
+        //         }
         //
         // limit
         //
-        //     {
-        //         "Id":"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-        //     }
+        //         {
+        //             "payload":array(
+        //                 "orderId":"27be8802-30be-40ca-bf40-ec886b309c5b"
+        //             ),
+        //             "error":null
+        //         }
         //
-        $id = $this->safe_string($result, 'Id');
-        $price = $this->safe_number($result, 'Price');
+        $payload = $this->safe_value($result, 'payload');
+        $id = $this->safe_string($payload, 'orderId');
+        if ($type === 'market') {
+            $price = $this->safe_number($payload, 'price');
+        }
         return array(
             'id' => $id,
             'info' => $result,
@@ -349,292 +768,345 @@ class lykke extends Exchange {
         );
     }
 
-    public function fetch_markets($params = array ()) {
-        $markets = $this->publicGetAssetPairs ();
-        //
-        //    array(
-        //        array(
-        //            Id => "AEBTC",
-        //            Name => "AE/BTC",
-        //            Accuracy =>  6,
-        //            InvertedAccuracy =>  8,
-        //            BaseAssetId => "6f75280b-a005-4016-a3d8-03dc644e8912",
-        //            QuotingAssetId => "BTC",
-        //            MinVolume =>  0.4,
-        //            MinInvertedVolume =>  0.0001
-        //        ),
-        //        ...
-        //    )
-        //
-        $result = array();
-        for ($i = 0; $i < count($markets); $i++) {
-            $market = $markets[$i];
-            $id = $this->safe_string($market, 'Id');
-            $name = $this->safe_string($market, 'Name');
-            list($baseId, $quoteId) = explode('/', $name);
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $pricePrecision = $this->safe_string($market, 'Accuracy');
-            $priceLimit = $this->parse_precision($pricePrecision);
-            $result[] = array(
-                'id' => $id,
-                'symbol' => $base . '/' . $quote,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => null,
-                'baseId' => null,
-                'quoteId' => null,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
-                'margin' => null,
-                'swap' => false,
-                'future' => false,
-                'option' => false,
-                'active' => true,
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
-                'contractSize' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => $this->safe_integer($market, 'InvertedAccuracy'),
-                    'price' => intval($pricePrecision),
-                ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'amount' => array(
-                        'min' => $this->safe_number($market, 'MinVolume'),
-                        'max' => null,
-                    ),
-                    'price' => array(
-                        'min' => $this->parse_number($priceLimit),
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => $this->safe_number($market, 'MinInvertedVolume'),
-                        'max' => null,
-                    ),
-                ),
-                'info' => $market,
-            );
-        }
-        return $result;
-    }
-
-    public function parse_ticker($ticker, $market = null) {
-        // {
-        //     "assetPair":"ADAUSD",
-        //     "volume24H":264.6398,
-        //     "lastPrice":1.29535,
-        //     "bid":1.28805,
-        //     "ask":1.29074
-        // }
-        $timestamp = $this->milliseconds();
-        $marketId = $this->safe_string($ticker, 'assetPair');
-        $market = $this->safe_market($marketId, $market);
-        $close = $this->safe_string($ticker, 'lastPrice');
-        return $this->safe_ticker(array(
-            'symbol' => $market['symbol'],
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'high' => null,
-            'low' => null,
-            'bid' => $this->safe_string($ticker, 'bid'),
-            'bidVolume' => null,
-            'ask' => $this->safe_string($ticker, 'ask'),
-            'askVolume' => null,
-            'vwap' => null,
-            'open' => null,
-            'close' => $close,
-            'last' => $close,
-            'previousClose' => null,
-            'change' => null,
-            'percentage' => null,
-            'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => $this->safe_string($ticker, 'volume24H'),
-            'info' => $ticker,
-        ), $market, false);
-    }
-
-    public function fetch_ticker($symbol, $params = array ()) {
-        $this->load_markets();
-        $market = $this->market($symbol);
+    public function cancel_order($id, $symbol = null, $params = array ()) {
         $request = array(
-            'market' => $market['id'],
+            'orderId' => $id,
         );
-        $ticker = $this->mobileGetMarketMarket (array_merge($request, $params));
-        // {
-        //     "assetPair":"ADAUSD",
-        //     "volume24H":264.6398,
-        //     "lastPrice":1.29535,
-        //     "bid":1.28805,
-        //     "ask":1.29074
-        // }
-        return $this->parse_ticker($ticker, $market);
-    }
-
-    public function parse_order_status($status) {
-        $statuses = array(
-            'Open' => 'open',
-            'Pending' => 'open',
-            'InOrderBook' => 'open',
-            'Processing' => 'open',
-            'Matched' => 'closed',
-            'Cancelled' => 'canceled',
-            'Rejected' => 'rejected',
-            'Replaced' => 'canceled',
-            'Placed' => 'open',
-        );
-        return $this->safe_string($statuses, $status, $status);
-    }
-
-    public function parse_order($order, $market = null) {
         //
         //     {
-        //         "Id" => "string",
-        //         "Status" => "Unknown",
-        //         "AssetPairId" => "string",
-        //         "Volume" => 0,
-        //         "Price" => 0,
-        //         "RemainingVolume" => 0,
-        //         "LastMatchTime" => "2020-03-26T20:58:50.710Z",
-        //         "CreatedAt" => "2020-03-26T20:58:50.710Z",
-        //         "Type" => "Unknown",
-        //         "LowerLimitPrice" => 0,
-        //         "LowerPrice" => 0,
-        //         "UpperLimitPrice" => 0,
-        //         "UpperPrice" => 0
+        //         "payload":null,
+        //         "error":null
         //     }
         //
-        $status = $this->parse_order_status($this->safe_string($order, 'Status'));
-        $marketId = $this->safe_string($order, 'AssetPairId');
-        $symbol = $this->safe_symbol($marketId, $market);
-        $lastTradeTimestamp = $this->parse8601($this->safe_string($order, 'LastMatchTime'));
-        $timestamp = null;
-        if ((is_array($order) && array_key_exists('Registered', $order)) && ($order['Registered'])) {
-            $timestamp = $this->parse8601($order['Registered']);
-        } else if ((is_array($order) && array_key_exists('CreatedAt', $order)) && ($order['CreatedAt'])) {
-            $timestamp = $this->parse8601($order['CreatedAt']);
+        return $this->privateDeleteOrdersOrderId (array_merge($request, $params));
+    }
+
+    public function cancel_all_orders($symbol = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            // 'side' => 'Buy',
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['assetPairId'] = $market['id'];
         }
-        $price = $this->safe_string($order, 'Price');
-        $side = null;
-        $amount = $this->safe_string($order, 'Volume');
-        $isAmountLessThanZero = Precise::string_lt($amount, '0');
-        if ($isAmountLessThanZero) {
-            $side = 'sell';
-            $amount = Precise::string_abs($amount);
-        } else {
-            $side = 'buy';
-        }
-        $remaining = Precise::string_abs($this->safe_string($order, 'RemainingVolume'));
-        $id = $this->safe_string($order, 'Id');
-        return $this->safe_order(array(
-            'info' => $order,
-            'id' => $id,
-            'clientOrderId' => null,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => $lastTradeTimestamp,
-            'symbol' => $symbol,
-            'type' => null,
-            'timeInForce' => null,
-            'postOnly' => null,
-            'side' => $side,
-            'price' => $price,
-            'stopPrice' => null,
-            'cost' => null,
-            'average' => null,
-            'amount' => $amount,
-            'filled' => null,
-            'remaining' => $remaining,
-            'status' => $status,
-            'fee' => null,
-            'trades' => null,
-        ), $market);
+        //
+        //     {
+        //         "payload":null,
+        //         "error":null
+        //     }
+        //
+        return $this->privateDeleteOrders (array_merge($request, $params));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $request = array(
-            'id' => $id,
+            'orderId' => $id,
         );
-        $response = $this->privateGetOrdersId (array_merge($request, $params));
-        return $this->parse_order($response);
+        $response = $this->privateGetOrdersOrderId (array_merge($request, $params));
+        $payload = $this->safe_value($response, 'payload');
+        //
+        //     {
+        //         "payload":array(
+        //             "id":"1b367978-7e4f-454b-b870-64040d484443",
+        //             "timestamp":1644155923357,
+        //             "lastTradeTimestamp":1644155923357,
+        //             "status":"Matched",
+        //             "assetPairId":"BCHEUR",
+        //             "type":"Market",
+        //             "side":"Sell",
+        //             "price":280.569,
+        //             "volume":0.01,
+        //             "filledVolume":0.01,
+        //             "remainingVolume":0.0,
+        //             "cost":2.80569
+        //         ),
+        //         "error":null
+        //     }
+        //
+        return $this->parse_order($payload);
     }
 
-    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetOrders ($params);
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        return $this->parse_orders($response, $market, $since, $limit);
-    }
-
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $request = array(
-            'status' => 'InOrderBook',
+            // 'offset' => 0,
+            // 'take' => 1,
         );
-        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        if ($limit !== null) {
+            $request['take'] = $limit;
+        }
+        $response = $this->privateGetOrdersActive (array_merge($request, $params));
+        $payload = $this->safe_value($response, 'payload');
+        //
+        //     {
+        //         "payload":array(
+        //             {
+        //                 "id":"b26f58f5-8542-4b4c-9815-91562b523cc3",
+        //                 "timestamp":1644157177155,
+        //                 "lastTradeTimestamp":null,
+        //                 "status":"Placed",
+        //                 "assetPairId":"BCHEUR",
+        //                 "type":"Limit",
+        //                 "side":"Sell",
+        //                 "price":666.666,
+        //                 "volume":0.01,
+        //                 "filledVolume":0.00,
+        //                 "remainingVolume":0.01,
+        //                 "cost":0.00000
+        //             }
+        //         ),
+        //         "error":null
+        //     }
+        //
+        return $this->parse_orders($payload, $market, $since, $limit);
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
         $request = array(
-            'status' => 'Matched',
+            // 'offset' => 0,
+            // 'take' => 1,
         );
-        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        if ($limit !== null) {
+            $request['take'] = $limit;
+        }
+        $response = $this->privateGetOrdersClosed (array_merge($request, $params));
+        $payload = $this->safe_value($response, 'payload');
+        //
+        //     {
+        //         "payload":array(
+        //             {
+        //                 "id":"1b367978-7e4f-454b-b870-64040d484443",
+        //                 "timestamp":1644155923357,
+        //                 "lastTradeTimestamp":1644155923357,
+        //                 "status":"Matched",
+        //                 "assetPairId":"BCHEUR",
+        //                 "type":"Market",
+        //                 "side":"Sell",
+        //                 "price":280.569,
+        //                 "volume":0.01,
+        //                 "filledVolume":0.01,
+        //                 "remainingVolume":0.0,
+        //                 "cost":2.80569
+        //             }
+        //         ),
+        //         "error":null
+        //     }
+        //
+        return $this->parse_orders($payload, $market, $since, $limit);
     }
 
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->publicGetOrderBooksAssetPairId (array_merge(array(
-            'AssetPairId' => $this->market_id($symbol),
-        ), $params));
-        $orderbook = array(
-            'timestamp' => null,
-            'bids' => array(),
-            'asks' => array(),
+        $request = array(
+            // 'side' => 'buy',
+            // 'offset' => 0,
+            // 'take' => 1,
+            // 'to' => 0,
         );
-        $timestamp = null;
-        for ($i = 0; $i < count($response); $i++) {
-            $side = $response[$i];
-            if ($side['IsBuy']) {
-                $orderbook['bids'] = $this->array_concat($orderbook['bids'], $side['Prices']);
-            } else {
-                $orderbook['asks'] = $this->array_concat($orderbook['asks'], $side['Prices']);
-            }
-            $sideTimestamp = $this->parse8601($side['Timestamp']);
-            $timestamp = ($timestamp === null) ? $sideTimestamp : max ($timestamp, $sideTimestamp);
+        $market = null;
+        if ($limit !== null) {
+            $request['take'] = $limit; // How many maximum items have to be returned, max 1000 default 100.
         }
-        return $this->parse_order_book($orderbook, $symbol, $timestamp, 'bids', 'asks', 'Price', 'Volume');
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['assetPairId'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['from'] = $since;
+        }
+        $response = $this->privateGetTrades (array_merge($request, $params));
+        $payload = $this->safe_value($response, 'payload');
+        //
+        //     {
+        //         "payload":array(
+        //             {
+        //                 "id":"813a3ffa-1c4b-45cb-b13f-1c077ea2748b",
+        //                 "timestamp":1644155923357,
+        //                 "assetPairId":"BCHEUR",
+        //                 "orderId":"1b367978-7e4f-454b-b870-64040d484443",
+        //                 "role":"Taker",
+        //                 "side":"sell",
+        //                 "price":280.569,
+        //                 "baseVolume":0.01,
+        //                 "quoteVolume":2.8056,
+        //                 "baseAssetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
+        //                 "quoteAssetId":"EUR",
+        //                 "fee":null
+        //             }
+        //         ),
+        //         "error":null
+        //     }
+        //
+        return $this->parse_trades($payload, $market, $since, $limit);
     }
 
     public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1) {
-        $price = $this->safe_number($bidask, $priceKey);
-        $amount = $this->safe_number($bidask, $amountKey);
-        if ($amount < 0) {
-            $amount = -$amount;
+        $price = $this->safe_string($bidask, $priceKey);
+        $amount = Precise::string_abs($this->safe_string($bidask, $amountKey));
+        return array( $this->parse_number($price), $this->parse_number($amount) );
+    }
+
+    public function fetch_deposit_address($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'assetId' => $this->safe_string($currency, 'id'),
+        );
+        $response = $this->privateGetOperationsDepositsAddressesAssetId (array_merge($request, $params));
+        //
+        //     {
+        //         "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
+        //         "symbol":"BCH",
+        //         "address":null,
+        //         "baseAddress":null,
+        //         "addressExtension":null,
+        //         "state":"Active"
+        //     }
+        //
+        $address = $this->safe_string($response, 'baseAddress');
+        $tag = $this->safe_string($response, 'addressExtension');
+        $this->check_address($address);
+        return array(
+            'currency' => $code,
+            'address' => $address,
+            'tag' => $tag,
+            'network' => null,
+            'info' => $response,
+        );
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        // withdraw
+        //     "3035b1ad-2005-4587-a986-1f7966be78e0"
+        //
+        // fetchTransactions
+        //     {
+        //         "operationId":"787201c8-f1cc-45c0-aec1-fa06eeea426b",
+        //         "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
+        //         "totalVolume":0.1,
+        //         "fee":0.0,
+        //         "type":"deposit",
+        //         "timestamp":1644146723620
+        //     }
+        //
+        $id = null;
+        $assetId = null;
+        $code = null;
+        $amount = null;
+        $fee = null;
+        $type = null;
+        $timestamp = null;
+        if (gettype($transaction) === 'string') {
+            $id = $transaction;
+        } else {
+            $id = $this->safe_string($transaction, 'operationId');
+            $assetId = $this->safe_string($transaction, 'assetId');
+            $code = $this->safe_currency_code($assetId, $currency);
+            $amount = $this->safe_number($transaction, 'totalVolume');
+            $type = $this->safe_string($transaction, 'type');
+            $timestamp = $this->safe_integer($transaction, 'timestamp');
+            $feeCost = $this->safe_number($transaction, 'fee');
+            $fee = array(
+                'currency' => $code,
+                'cost' => $feeCost,
+            );
         }
-        return array( $price, $amount );
+        return array(
+            'info' => $transaction,
+            'id' => $id,
+            'txid' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'network' => null,
+            'addressFrom' => null,
+            'address' => null,
+            'addressTo' => null,
+            'tagFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'type' => $type,
+            'amount' => $amount,
+            'currency' => $code,
+            'status' => null,
+            'updated' => null,
+            'fee' => $fee,
+        );
+    }
+
+    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array(
+            // 'offset' => 0,
+            // 'take' => 1,
+        );
+        if ($limit !== null) {
+            $request['take'] = $limit;
+        }
+        $response = $this->privateGetOperations (array_merge($request, $params));
+        $payload = $this->safe_value($response, 'payload', array());
+        //
+        //     {
+        //         "payload":array(
+        //             {
+        //                 "operationId":"787201c8-f1cc-45c0-aec1-fa06eeea426b",
+        //                 "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
+        //                 "totalVolume":0.1,
+        //                 "fee":0.0,
+        //                 "type":"deposit",
+        //                 "timestamp":1644146723620
+        //             }
+        //         ),
+        //         "error":null
+        //     }
+        //
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        return $this->parse_transactions($payload, $currency, $since, $limit);
+    }
+
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->load_markets();
+        $this->check_address($address);
+        $currency = $this->currency($code);
+        $request = array(
+            'assetId' => $currency['id'],
+            'volume' => floatval($this->currency_to_precision($code, $amount)),
+            'destinationAddress' => $address,
+            // 'destinationAddressExtension' => $tag,
+        );
+        if ($tag !== null) {
+            $request['destinationAddressExtension'] = $tag;
+        }
+        $response = $this->privatePostOperationsWithdrawals (array_merge($request, $params));
+        //
+        //     "3035b1ad-2005-4587-a986-1f7966be78e0"
+        //
+        return $this->parse_transaction($response, $currency);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        if ($api === 'mobile') {
-            if ($query) {
-                $url .= '?' . $this->urlencode($query);
-            }
-        } else if ($api === 'public') {
+        $headers = array(
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/json',
+        );
+        if ($api === 'public') {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
@@ -645,17 +1117,31 @@ class lykke extends Exchange {
                 }
             }
             $this->check_required_credentials();
-            $headers = array(
-                'api-key' => $this->apiKey,
-                'Accept' => 'application/json',
-                'Content-Type' => 'application/json',
-            );
+            $headers['Authorization'] = 'Bearer ' . $this->apiKey;
             if ($method === 'POST') {
                 if ($params) {
                     $body = $this->json($params);
                 }
             }
+            if ($path === 'operations/withdrawals') {
+                $headers['X-Request-ID'] = $this->uuid();
+            }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if ($response === null) {
+            return;
+        }
+        $error = $this->safe_value($response, 'error', array());
+        $errorCode = $this->safe_string($error, 'code');
+        if (($errorCode !== null) && ($errorCode !== '0')) {
+            $feedback = $this->id . ' ' . $body;
+            $message = $this->safe_string($error, 'message');
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
+            throw new ExchangeError($feedback);
+        }
     }
 }

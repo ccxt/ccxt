@@ -21,6 +21,7 @@ declare module 'ccxt' {
     export class ArgumentsRequired extends ExchangeError {}
     export class BadRequest extends ExchangeError {}
     export class BadSymbol extends BadRequest {}
+    export class MarginModeAlreadySet extends BadRequest {}
     export class BadResponse extends ExchangeError {}
     export class NullResponse extends BadResponse {}
     export class InsufficientFunds extends ExchangeError {}
@@ -526,7 +527,6 @@ declare module 'ccxt' {
     export class kucoinfutures extends kucoin {}
     export class kuna extends Exchange {}
     export class latoken extends Exchange {}
-    export class latoken1 extends Exchange {}
     export class lbank extends Exchange {}
     export class liquid extends Exchange {}
     export class luno extends Exchange {}
@@ -648,7 +648,6 @@ declare module 'ccxt' {
         | 'kucoinfutures'
         | 'kuna'
         | 'latoken'
-        | 'latoken1'
         | 'lbank'
         | 'liquid'
         | 'luno'

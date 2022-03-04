@@ -26,6 +26,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class gemini(Exchange):
@@ -86,6 +87,8 @@ class gemini(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': None,
                 'reduceMargin': False,
@@ -543,30 +546,26 @@ class gemini(Exchange):
         timestamp = self.safe_integer(volume, 'timestamp')
         symbol = None
         marketId = self.safe_string_lower(ticker, 'pair')
+        market = self.safe_market(marketId, market)
         baseId = None
         quoteId = None
         base = None
         quote = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
+        if (marketId is not None) and (market is None):
+            idLength = len(marketId) - 0
+            if idLength == 7:
+                baseId = marketId[0:4]
+                quoteId = marketId[4:7]
             else:
-                idLength = len(marketId) - 0
-                if idLength == 7:
-                    baseId = marketId[0:4]
-                    quoteId = marketId[4:7]
-                else:
-                    baseId = marketId[0:3]
-                    quoteId = marketId[3:6]
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
+                baseId = marketId[0:3]
+                quoteId = marketId[3:6]
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            symbol = base + '/' + quote
         if (symbol is None) and (market is not None):
             symbol = market['symbol']
-            baseId = market['baseId'].upper()
-            quoteId = market['quoteId'].upper()
-            base = market['base']
-            quote = market['quote']
+            baseId = self.safe_string_upper(market, 'baseId')
+            quoteId = self.safe_string_upper(market, 'quoteId')
         price = self.safe_string(ticker, 'price')
         last = self.safe_string_2(ticker, 'last', 'close', price)
         percentage = self.safe_string(ticker, 'percentChange24h')
@@ -711,6 +710,56 @@ class gemini(Exchange):
             account['total'] = self.safe_string(balance, 'amount')
             result[code] = account
         return self.safe_balance(result)
+
+    async def fetch_trading_fees(self, params={}):
+        await self.load_markets()
+        response = await self.privatePostV1Notionalvolume(params)
+        #
+        #      {
+        #          "web_maker_fee_bps": 25,
+        #          "web_taker_fee_bps": 35,
+        #          "web_auction_fee_bps": 25,
+        #          "api_maker_fee_bps": 10,
+        #          "api_taker_fee_bps": 35,
+        #          "api_auction_fee_bps": 20,
+        #          "fix_maker_fee_bps": 10,
+        #          "fix_taker_fee_bps": 35,
+        #          "fix_auction_fee_bps": 20,
+        #          "block_maker_fee_bps": 0,
+        #          "block_taker_fee_bps": 50,
+        #          "notional_30d_volume": 150.00,
+        #          "last_updated_ms": 1551371446000,
+        #          "date": "2019-02-28",
+        #          "notional_1d_volume": [
+        #              {
+        #                  "date": "2019-02-22",
+        #                  "notional_volume": 75.00
+        #              },
+        #              {
+        #                  "date": "2019-02-14",
+        #                  "notional_volume": 75.00
+        #              }
+        #          ]
+        #     }
+        #
+        makerBps = self.safe_string(response, 'api_maker_fee_bps')
+        takerBps = self.safe_string(response, 'api_taker_fee_bps')
+        makerString = Precise.string_div(makerBps, '10000')
+        takerString = Precise.string_div(takerBps, '10000')
+        maker = self.parse_number(makerString)
+        taker = self.parse_number(takerString)
+        result = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': True,
+                'tierBased': True,
+            }
+        return result
 
     async def fetch_balance(self, params={}):
         await self.load_markets()

@@ -579,7 +579,7 @@ module.exports = class eqonex extends Exchange {
         let priceString = undefined;
         let amountString = undefined;
         let fee = undefined;
-        let symbol = undefined;
+        let marketId = undefined;
         if (Array.isArray (trade)) {
             id = this.safeString (trade, 3);
             priceString = this.convertFromScale (this.safeString (trade, 0), market['precision']['price']);
@@ -594,8 +594,7 @@ module.exports = class eqonex extends Exchange {
         } else {
             id = this.safeString (trade, 'execId');
             timestamp = this.safeInteger (trade, 'time');
-            const marketId = this.safeString (trade, 'symbol');
-            symbol = this.safeSymbol (marketId, market);
+            marketId = this.safeString (trade, 'symbol');
             orderId = this.safeString (trade, 'orderId');
             side = this.safeStringLower (trade, 'side');
             type = this.parseOrderType (this.safeString (trade, 'ordType'));
@@ -612,15 +611,13 @@ module.exports = class eqonex extends Exchange {
                 };
             }
         }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (marketId, market);
         return this.safeTrade ({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': orderId,
             'type': type,
             'side': side,

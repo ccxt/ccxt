@@ -51,7 +51,8 @@ module.exports = class kucoinfutures extends kucoin {
                 'fetchIndexOHLCV': false,
                 'fetchL3OrderBook': true,
                 'fetchLedger': true,
-                'fetchLeverageTiers': true,
+                'fetchLeverageTiers': false,
+                'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -1470,7 +1471,7 @@ module.exports = class kucoinfutures extends kucoin {
         //      }
         //
         const marketId = this.safeString (trade, 'symbol');
-        const symbol = this.safeSymbol (marketId, market, '-');
+        market = this.safeMarket (marketId, market, '-');
         const id = this.safeString2 (trade, 'tradeId', 'id');
         const orderId = this.safeString (trade, 'orderId');
         const takerOrMaker = this.safeString (trade, 'liquidity');
@@ -1493,9 +1494,7 @@ module.exports = class kucoinfutures extends kucoin {
             const feeCurrencyId = this.safeString (trade, 'feeCurrency');
             let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
             if (feeCurrency === undefined) {
-                if (market !== undefined) {
-                    feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
-                }
+                feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
             }
             fee = {
                 'cost': feeCostString,
@@ -1509,12 +1508,9 @@ module.exports = class kucoinfutures extends kucoin {
         }
         let costString = this.safeString2 (trade, 'funds', 'value');
         if (costString === undefined) {
-            market = this.market (symbol);
             const contractSize = this.safeString (market, 'contractSize');
             const contractCost = Precise.stringMul (priceString, amountString);
-            if (contractSize && contractCost) {
-                costString = Precise.stringMul (contractCost, contractSize);
-            }
+            costString = Precise.stringMul (contractCost, contractSize);
         }
         return this.safeTrade ({
             'info': trade,
@@ -1522,7 +1518,7 @@ module.exports = class kucoinfutures extends kucoin {
             'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'takerOrMaker': takerOrMaker,
             'side': side,
@@ -1633,11 +1629,8 @@ module.exports = class kucoinfutures extends kucoin {
         throw new BadRequest (this.id + ' has no method fetchLedger');
     }
 
-    async fetchLeverageTiers (symbol = undefined, params = {}) {
+    async fetchMarketLeverageTiers (symbol, params = {}) {
         await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchLeverageTiers() requires a symbol argument');
-        }
         const market = this.market (symbol);
         if (!market['contract']) {
             throw new BadRequest (this.id + ' fetchLeverageTiers() supports contract markets only');
@@ -1664,17 +1657,29 @@ module.exports = class kucoinfutures extends kucoin {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const tiers = {};
-        for (let i = 0; i < data.length; i++) {
-            const tier = data[i];
-            const symbol = this.safeSymbol (this.safeString (tier, 'symbol'));
-            if (!(symbol in tiers)) {
-                tiers[symbol] = [];
+        return this.parseMarketLeverageTiers (data, market);
+    }
+
+    parseMarketLeverageTiers (info, market) {
+        /**
+            @param info: Exchange market response for 1 market
+            {
+                "symbol": "ETHUSDTM",
+                "level": 1,
+                "maxRiskLimit": 300000,
+                "minRiskLimit": 0,
+                "maxLeverage": 100,
+                "initialMargin": 0.0100000000,
+                "maintainMargin": 0.0050000000
             }
-            const market = this.market (symbol);
-            tiers[symbol].push ({
+            @param market: CCXT market
+        */
+        const tiers = [];
+        for (let i = 0; i < info.length; i++) {
+            const tier = info[i];
+            tiers.push ({
                 'tier': this.safeNumber (tier, 'level'),
-                'notionalCurrency': market['base'],
+                'currency': market['base'],
                 'notionalFloor': this.safeNumber (tier, 'minRiskLimit'),
                 'notionalCap': this.safeNumber (tier, 'maxRiskLimit'),
                 'maintenanceMarginRate': this.safeNumber (tier, 'maintainMargin'),

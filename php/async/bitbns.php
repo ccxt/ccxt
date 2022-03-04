@@ -51,6 +51,8 @@ class bitbns extends Exchange {
                 'fetchTicker' => 'emulated',
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
                 'fetchWithdrawals' => true,
             ),
             'timeframes' => array(

@@ -40,7 +40,6 @@ class okx extends Exchange {
                 'createReduceOnlyOrder' => null,
                 'deposit' => null,
                 'fetchAccounts' => true,
-                'fetchAllTradingFees' => null,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
                 'fetchBorrowRate' => true,
@@ -69,7 +68,8 @@ class okx extends Exchange {
                 'fetchLedger' => true,
                 'fetchLedgerEntry' => null,
                 'fetchLeverage' => true,
-                'fetchLeverageTiers' => true,
+                'fetchLeverageTiers' => false,
+                'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMyBuys' => null,
@@ -101,7 +101,6 @@ class okx extends Exchange {
                 'fetchWithdrawal' => null,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => null,
-                'loadLeverageBrackets' => null,
                 'reduceMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
@@ -865,7 +864,8 @@ class okx extends Exchange {
             'spot' => $spot,
             'margin' => $spot && (Precise::string_gt($maxLeverage, '1')),
             'swap' => $swap,
-            'futures' => $futures,
+            'future' => $futures,
+            'futures' => $futures, // deprecated
             'option' => $option,
             'active' => true,
             'contract' => $contract,
@@ -4061,11 +4061,8 @@ class okx extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 
-    public function fetch_leverage_tiers($symbol = null, $params = array ()) {
+    public function fetch_market_leverage_tiers($symbol, $params = array ()) {
         $this->load_markets();
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchLeverageTiers() requires a $symbol argument');
-        }
         $market = $this->market($symbol);
         $type = $market['spot'] ? 'MARGIN' : strtoupper($market['type']);
         $uly = $this->safe_string($market['info'], 'uly');
@@ -4103,12 +4100,36 @@ class okx extends Exchange {
         //    }
         //
         $data = $this->safe_value($response, 'data');
-        $brackets = array();
-        for ($i = 0; $i < count($data); $i++) {
-            $tier = $data[$i];
-            $brackets[] = array(
+        return $this->parse_market_leverage_tiers($data, $market);
+    }
+
+    public function parse_market_leverage_tiers($info, $market = null) {
+        /**
+            @param $info => Exchange response for 1 $market
+            array(
+                array(
+                    "baseMaxLoan" => "500",
+                    "imr" => "0.1",
+                    "instId" => "ETH-USDT",
+                    "maxLever" => "10",
+                    "maxSz" => "500",
+                    "minSz" => "0",
+                    "mmr" => "0.03",
+                    "optMgnFactor" => "0",
+                    "quoteMaxLoan" => "200000",
+                    "tier" => "1",
+                    "uly" => ""
+                ),
+                ...
+            )
+            @param $market => CCXT $market
+        */
+        $tiers = array();
+        for ($i = 0; $i < count($info); $i++) {
+            $tier = $info[$i];
+            $tiers[] = array(
                 'tier' => $this->safe_integer($tier, 'tier'),
-                'notionalCurrency' => $market['quote'],
+                'currency' => $market['quote'],
                 'notionalFloor' => $this->safe_number($tier, 'minSz'),
                 'notionalCap' => $this->safe_number($tier, 'maxSz'),
                 'maintenanceMarginRate' => $this->safe_number($tier, 'mmr'),
@@ -4116,9 +4137,7 @@ class okx extends Exchange {
                 'info' => $tier,
             );
         }
-        $result = array();
-        $result[$symbol] = $brackets;
-        return $result;
+        return $tiers;
     }
 
     public function set_sandbox_mode($enable) {

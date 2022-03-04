@@ -81,6 +81,7 @@ module.exports = class ftx extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': false,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
@@ -338,7 +339,7 @@ module.exports = class ftx extends Exchange {
                     'Invalid parameter': BadRequest, // {"error":"Invalid parameter start_time","success":false}
                     'The requested URL was not found on the server': BadRequest,
                     'No such coin': BadRequest,
-                    'No such subaccount': BadRequest,
+                    'No such subaccount': AuthenticationError,
                     'No such future': BadSymbol,
                     'No such market': BadSymbol,
                     'Do not send more than': RateLimitExceeded,
@@ -612,8 +613,8 @@ module.exports = class ftx extends Exchange {
                 'option': option,
                 'active': this.safeValue (market, 'enabled'),
                 'contract': contract,
-                'linear': true,
-                'inverse': false,
+                'linear': contract ? true : undefined,
+                'inverse': contract ? false : undefined,
                 'contractSize': this.parseNumber ('1'),
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
@@ -1131,11 +1132,21 @@ module.exports = class ftx extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        return {
-            'info': response,
-            'maker': this.safeNumber (result, 'makerFee'),
-            'taker': this.safeNumber (result, 'takerFee'),
-        };
+        const maker = this.safeNumber (result, 'makerFee');
+        const taker = this.safeNumber (result, 'takerFee');
+        const tradingFees = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            tradingFees[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': true,
+                'tierBased': true,
+            };
+        }
+        return tradingFees;
     }
 
     async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1359,20 +1370,13 @@ module.exports = class ftx extends Exchange {
                 status = 'canceled';
             }
         }
-        let symbol = undefined;
         const marketId = this.safeString (order, 'market');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                // support for delisted market ids
-                // https://github.com/ccxt/ccxt/issues/7113
-                symbol = marketId;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
+        market = this.safeMarket (marketId, market);
+        let symbol = market['symbol'];
+        if (symbol === undefined) {
+            // support for delisted market ids
+            // https://github.com/ccxt/ccxt/issues/7113
+            symbol = marketId;
         }
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'type');

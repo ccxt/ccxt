@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.73.53';
+$version = '1.74.92';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.73.53';
+    const VERSION = '1.74.92';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -143,7 +143,6 @@ class Exchange {
         'kucoinfutures',
         'kuna',
         'latoken',
-        'latoken1',
         'lbank',
         'liquid',
         'luno',
@@ -375,6 +374,8 @@ class Exchange {
         'fetchBorrowRate' => 'fetch_borrow_rate',
         'handleMarketTypeAndParams' => 'handle_market_type_and_params',
         'loadTimeDifference' => 'load_time_difference',
+        'parseLeverageTiers' => 'parse_leverage_tiers',
+        'fetchMarketLeverageTiers' => 'fetch_market_leverage_tiers',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -1224,6 +1225,7 @@ class Exchange {
             'fetchLedger' => null,
             'fetchLedgerEntry' => null,
             'fetchLeverageTiers' => null,
+            'fetchMarketLeverageTiers' => null,
             'fetchMarkets' => true,
             'fetchMarkOHLCV' => null,
             'fetchMyTrades' => null,
@@ -1251,7 +1253,6 @@ class Exchange {
             'fetchTransfers' => null,
             'fetchWithdrawal' => null,
             'fetchWithdrawals' => null,
-            'loadLeverageBrackets' => null,
             'loadMarkets' => true,
             'reduceMargin' => null,
             'setLeverage' => null,
@@ -1796,8 +1797,36 @@ class Exchange {
         $values = is_array($markets) ? array_values($markets) : array();
         for ($i = 0; $i < count($values); $i++) {
             $values[$i] = array_replace_recursive(
+                array(
+                    'id' => null,
+                    'symbol' => null,
+                    'base' => null,
+                    'quote' => null,
+                    'baseId' => null,
+                    'quoteId' => null,
+                    'active' => null,
+                    'type' => null,
+                    'linear' => null,
+                    'inverse' => null,
+                    'spot' => false,
+                    'swap' => false,
+                    'future' => false,
+                    'option' => false,
+                    'margin' => false,
+                    'contract' => false,
+                    'contractSize' => null,
+                    'expiry' => null,
+                    'expiryDatetime' => null,
+                    'optionType' => null,
+                    'strike' => null,
+                    'settle' => null,
+                    'settleId' => null,
+                    'precision' => $this->precision,
+                    'limits' => $this->limits,
+                    'info' => null,
+
+                ),
                 $this->fees['trading'],
-                array('precision' => $this->precision, 'limits' => $this->limits),
                 $values[$i]
             );
         }
@@ -3638,5 +3667,41 @@ class Exchange {
         $after = $this->milliseconds();
         $this->options['timeDifference'] = $after - $server_time;
         return $this->options['timeDifference'];
+    }
+
+    public function parse_leverage_tiers($response, $symbols, $market_id_key){
+        $tiers = array();
+        for ($i = 0; $i < count($response); $i++){
+            $item = $response[$i];
+            $id = $this->safe_string($item, $market_id_key);
+            $market = $this->safe_market($id);
+            $symbol = $market['symbol'];
+            $symbols_length = 0;
+            if ($symbols !== null){
+                $symbols_length = count($symbols);
+            }
+            $contract = $this->safe_value($market, 'contract', false);
+            if ($contract && ($symbols_length === 0 || in_array($symbol, $symbols))){
+                $tiers[$symbol] = $this->parse_market_leverage_tiers($item, $market);
+            }
+        }
+        return $tiers;
+    }
+
+    public function fetch_market_leverage_tiers($symbol, $params = array()) {
+        if ($this->has['fetchLeverageTiers']) {
+            $market = $this->market($symbol);
+            if (!$market['contract']) {
+                throw new BadRequest($this->id + ' fetchLeverageTiers() supports contract markets only');
+            }
+            $tiers = $this->fetch_leverage_tiers(array($symbol));
+            return $this->safe_value($tiers, $symbol);
+        } else {
+            throw new NotSupported($this->id + 'fetch_market_leverage_tiers() is not supported yet');
+        }
+    }
+
+    public function sleep($milliseconds) {
+        sleep($milliseconds / 1000);
     }
 }

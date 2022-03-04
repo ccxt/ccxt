@@ -618,7 +618,7 @@ class coinbasepro extends Exchange {
     public function parse_trade($trade, $market = null) {
         //
         //     {
-        //         $type => 'match',
+        //         type => 'match',
         //         trade_id => 82047307,
         //         maker_order_id => '0f358725-2134-435e-be11-753912a326e0',
         //         taker_order_id => '252b7002-87a3-425c-ac73-f5b9e23f3caf',
@@ -640,29 +640,26 @@ class coinbasepro extends Exchange {
         //
         $timestamp = $this->parse8601($this->safe_string_2($trade, 'time', 'created_at'));
         $marketId = $this->safe_string($trade, 'product_id');
-        $symbol = $this->safe_symbol($marketId, $market, '-');
+        $market = $this->safe_market($marketId, $market, '-');
         $feeRate = null;
-        $feeCurrency = null;
         $takerOrMaker = null;
         $cost = null;
-        if ($market !== null) {
-            $feeCurrencyId = $this->safe_string_lower($market, 'quoteId');
+        $feeCurrencyId = $this->safe_string_lower($market, 'quoteId');
+        if ($feeCurrencyId !== null) {
             $costField = $feeCurrencyId . '_value';
-            $cost = $this->safe_number($trade, $costField);
-            $feeCurrency = $market['quote'];
+            $cost = $this->safe_string($trade, $costField);
             $liquidity = $this->safe_string($trade, 'liquidity');
             if ($liquidity !== null) {
                 $takerOrMaker = ($liquidity === 'T') ? 'taker' : 'maker';
-                $feeRate = $market[$takerOrMaker];
+                $feeRate = $this->safe_string($market, $takerOrMaker);
             }
         }
-        $feeCost = $this->safe_number_2($trade, 'fill_fees', 'fee');
+        $feeCost = $this->safe_string_2($trade, 'fill_fees', 'fee');
         $fee = array(
             'cost' => $feeCost,
-            'currency' => $feeCurrency,
+            'currency' => $market['quote'],
             'rate' => $feeRate,
         );
-        $type = null;
         $id = $this->safe_string($trade, 'trade_id');
         $side = ($trade['side'] === 'buy') ? 'sell' : 'buy';
         $orderId = $this->safe_string($trade, 'order_id');
@@ -672,28 +669,23 @@ class coinbasepro extends Exchange {
         if (($orderId !== null) || (($makerOrderId !== null) && ($takerOrderId !== null))) {
             $side = ($trade['side'] === 'buy') ? 'buy' : 'sell';
         }
-        $priceString = $this->safe_string($trade, 'price');
-        $amountString = $this->safe_string($trade, 'size');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        if ($cost === null) {
-            $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
-        }
-        return array(
+        $price = $this->safe_string($trade, 'price');
+        $amount = $this->safe_string($trade, 'size');
+        return $this->safe_trade(array(
             'id' => $id,
             'order' => $orderId,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
-            'type' => $type,
+            'symbol' => $market['symbol'],
+            'type' => null,
             'takerOrMaker' => $takerOrMaker,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
             'fee' => $fee,
             'cost' => $cost,
-        );
+        ), $market);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -836,13 +828,9 @@ class coinbasepro extends Exchange {
         $feeCost = $this->safe_number($order, 'fill_fees');
         $fee = null;
         if ($feeCost !== null) {
-            $feeCurrencyCode = null;
-            if ($market !== null) {
-                $feeCurrencyCode = $market['quote'];
-            }
             $fee = array(
                 'cost' => $feeCost,
-                'currency' => $feeCurrencyCode,
+                'currency' => $market['quote'],
                 'rate' => null,
             );
         }

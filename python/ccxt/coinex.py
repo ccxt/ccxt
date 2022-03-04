@@ -46,6 +46,8 @@ class coinex(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
             },
@@ -483,6 +485,74 @@ class coinex(Exchange):
         #
         return self.parse_trades(response['data'], market, since, limit)
 
+    def fetch_trading_fee(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'market': market['id'],
+        }
+        response = self.publicGetMarketDetail(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #           "name": "BTCUSDC",
+        #           "min_amount": "0.0005",
+        #           "maker_fee_rate": "0.002",
+        #           "taker_fee_rate": "0.002",
+        #           "pricing_name": "USDC",
+        #           "pricing_decimal": 2,
+        #           "trading_name": "BTC",
+        #           "trading_decimal": 8
+        #         },
+        #         "message": "OK"
+        #      }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_trading_fee(data)
+
+    def fetch_trading_fees(self, params={}):
+        self.load_markets()
+        response = self.publicGetMarketInfo(params)
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "WAVESBTC": {
+        #                 "name": "WAVESBTC",
+        #                 "min_amount": "1",
+        #                 "maker_fee_rate": "0.001",
+        #                 "taker_fee_rate": "0.001",
+        #                 "pricing_name": "BTC",
+        #                 "pricing_decimal": 8,
+        #                 "trading_name": "WAVES",
+        #                 "trading_decimal": 8
+        #             }
+        #             ...
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        result = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            market = self.market(symbol)
+            fee = self.safe_value(data, market['id'], {})
+            result[symbol] = self.parse_trading_fee(fee, market)
+        return result
+
+    def parse_trading_fee(self, fee, market=None):
+        marketId = self.safe_value(fee, 'name')
+        symbol = self.safe_symbol(marketId, market)
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': self.safe_number(fee, 'maker_fee_rate'),
+            'taker': self.safe_number(fee, 'taker_fee_rate'),
+            'percentage': True,
+            'tierBased': True,
+        }
+
     def parse_ohlcv(self, ohlcv, market=None):
         #
         #     [
@@ -685,15 +755,12 @@ class coinex(Exchange):
         filledString = self.safe_string(order, 'deal_amount')
         averageString = self.safe_string(order, 'avg_price')
         remainingString = self.safe_string(order, 'left')
-        symbol = None
         marketId = self.safe_string(order, 'market')
         market = self.safe_market(marketId, market)
         feeCurrencyId = self.safe_string(order, 'fee_asset')
         feeCurrency = self.safe_currency_code(feeCurrencyId)
-        if market is not None:
-            symbol = market['symbol']
-            if feeCurrency is None:
-                feeCurrency = market['quote']
+        if feeCurrency is None:
+            feeCurrency = market['quote']
         status = self.parse_order_status(self.safe_string(order, 'status'))
         type = self.safe_string(order, 'order_type')
         side = self.safe_string(order, 'type')
@@ -704,7 +771,7 @@ class coinex(Exchange):
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
             'status': status,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': None,
             'postOnly': None,

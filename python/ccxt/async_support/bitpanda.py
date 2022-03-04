@@ -15,6 +15,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.precise import Precise
 
 
 class bitpanda(Exchange):
@@ -74,6 +75,7 @@ class bitpanda(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchWithdrawals': True,
                 'privateAPI': True,
@@ -427,41 +429,22 @@ class bitpanda(Exchange):
         #         }
         #     ]
         #
-        feeGroupsById = self.index_by(response, 'fee_group_id')
-        feeGroupId = self.safe_value(self.options, 'fee_group_id', 'default')
-        feeGroup = self.safe_value(feeGroupsById, feeGroupId, {})
-        feeTiers = self.safe_value(feeGroup, 'fee_tiers')
+        first = self.safe_value(response, 0, {})
+        feeTiers = self.safe_value(first, 'fee_tiers')
+        tiers = self.parse_fee_tiers(feeTiers)
+        firstTier = self.safe_value(feeTiers, 0, {})
         result = {}
         for i in range(0, len(self.symbols)):
             symbol = self.symbols[i]
-            fee = {
-                'info': feeGroup,
+            result[symbol] = {
+                'info': first,
                 'symbol': symbol,
-                'maker': None,
-                'taker': None,
+                'maker': self.safe_number(firstTier, 'maker_fee'),
+                'taker': self.safe_number(firstTier, 'taker_fee'),
                 'percentage': True,
                 'tierBased': True,
+                'tiers': tiers,
             }
-            takerFees = []
-            makerFees = []
-            for i in range(0, len(feeTiers)):
-                tier = feeTiers[i]
-                volume = self.safe_number(tier, 'volume')
-                taker = self.safe_number(tier, 'taker_fee')
-                maker = self.safe_number(tier, 'maker_fee')
-                taker /= 100
-                maker /= 100
-                takerFees.append([volume, taker])
-                makerFees.append([volume, maker])
-                if i == 0:
-                    fee['taker'] = taker
-                    fee['maker'] = maker
-            tiers = {
-                'taker': takerFees,
-                'maker': makerFees,
-            }
-            fee['tiers'] = tiers
-            result[symbol] = fee
         return result
 
     async def fetch_private_trading_fees(self, params={}):
@@ -489,31 +472,42 @@ class bitpanda(Exchange):
         #     }
         #
         activeFeeTier = self.safe_value(response, 'active_fee_tier', {})
-        result = {
-            'info': response,
-            'maker': self.safe_number(activeFeeTier, 'maker_fee'),
-            'taker': self.safe_number(activeFeeTier, 'taker_fee'),
-            'percentage': True,
-            'tierBased': True,
-        }
+        makerFee = self.safe_string(activeFeeTier, 'maker_fee')
+        takerFee = self.safe_string(activeFeeTier, 'taker_fee')
+        makerFee = Precise.string_div(makerFee, '100')
+        takerFee = Precise.string_div(takerFee, '100')
         feeTiers = self.safe_value(response, 'fee_tiers')
+        result = {}
+        tiers = self.parse_fee_tiers(feeTiers)
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': self.parse_number(makerFee),
+                'taker': self.parse_number(takerFee),
+                'percentage': True,
+                'tierBased': True,
+                'tiers': tiers,
+            }
+        return result
+
+    def parse_fee_tiers(self, feeTiers, market=None):
         takerFees = []
         makerFees = []
         for i in range(0, len(feeTiers)):
             tier = feeTiers[i]
             volume = self.safe_number(tier, 'volume')
-            taker = self.safe_number(tier, 'taker_fee')
-            maker = self.safe_number(tier, 'maker_fee')
-            taker /= 100
-            maker /= 100
-            takerFees.append([volume, taker])
-            makerFees.append([volume, maker])
-        tiers = {
-            'taker': takerFees,
+            taker = self.safe_string(tier, 'taker_fee')
+            maker = self.safe_string(tier, 'maker_fee')
+            maker = Precise.string_div(maker, '100')
+            taker = Precise.string_div(taker, '100')
+            makerFees.append([volume, self.parse_number(maker)])
+            takerFees.append([volume, self.parse_number(taker)])
+        return {
             'maker': makerFees,
+            'taker': takerFees,
         }
-        result['tiers'] = tiers
-        return result
 
     def parse_ticker(self, ticker, market=None):
         #

@@ -59,6 +59,8 @@ class btcalpha(Exchange):
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': None,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
@@ -248,11 +250,8 @@ class btcalpha(Exchange):
         #          "my_side": "buy"
         #      }
         #
-        symbol = None
-        if market is None:
-            market = self.safe_value(self.markets_by_id, trade['pair'])
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(trade, 'pair')
+        market = self.safe_market(marketId, market, '_')
         timestamp = self.safe_timestamp(trade, 'timestamp')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
@@ -263,7 +262,7 @@ class btcalpha(Exchange):
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': id,
             'type': 'limit',
             'side': side,

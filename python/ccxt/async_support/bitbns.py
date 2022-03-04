@@ -55,6 +55,8 @@ class bitbns(Exchange):
                 'fetchTicker': 'emulated',
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
                 'fetchWithdrawals': True,
             },
             'timeframes': {

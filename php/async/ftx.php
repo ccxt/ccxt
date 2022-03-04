@@ -86,6 +86,7 @@ class ftx extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => false,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
@@ -343,7 +344,7 @@ class ftx extends Exchange {
                     'Invalid parameter' => '\\ccxt\\BadRequest', // array("error":"Invalid parameter start_time","success":false)
                     'The requested URL was not found on the server' => '\\ccxt\\BadRequest',
                     'No such coin' => '\\ccxt\\BadRequest',
-                    'No such subaccount' => '\\ccxt\\BadRequest',
+                    'No such subaccount' => '\\ccxt\\AuthenticationError',
                     'No such future' => '\\ccxt\\BadSymbol',
                     'No such market' => '\\ccxt\\BadSymbol',
                     'Do not send more than' => '\\ccxt\\RateLimitExceeded',
@@ -617,8 +618,8 @@ class ftx extends Exchange {
                 'option' => $option,
                 'active' => $this->safe_value($market, 'enabled'),
                 'contract' => $contract,
-                'linear' => true,
-                'inverse' => false,
+                'linear' => $contract ? true : null,
+                'inverse' => $contract ? false : null,
                 'contractSize' => $this->parse_number('1'),
                 'expiry' => $expiry,
                 'expiryDatetime' => $this->iso8601($expiry),
@@ -1136,11 +1137,21 @@ class ftx extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        return array(
-            'info' => $response,
-            'maker' => $this->safe_number($result, 'makerFee'),
-            'taker' => $this->safe_number($result, 'takerFee'),
-        );
+        $maker = $this->safe_number($result, 'makerFee');
+        $taker = $this->safe_number($result, 'takerFee');
+        $tradingFees = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $tradingFees[$symbol] = array(
+                'info' => $response,
+                'symbol' => $symbol,
+                'maker' => $maker,
+                'taker' => $taker,
+                'percentage' => true,
+                'tierBased' => true,
+            );
+        }
+        return $tradingFees;
     }
 
     public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1364,20 +1375,13 @@ class ftx extends Exchange {
                 $status = 'canceled';
             }
         }
-        $symbol = null;
         $marketId = $this->safe_string($order, 'market');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                // support for delisted $market ids
-                // https://github.com/ccxt/ccxt/issues/7113
-                $symbol = $marketId;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
+        if ($symbol === null) {
+            // support for delisted $market ids
+            // https://github.com/ccxt/ccxt/issues/7113
+            $symbol = $marketId;
         }
         $side = $this->safe_string($order, 'side');
         $type = $this->safe_string($order, 'type');

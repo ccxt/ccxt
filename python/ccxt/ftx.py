@@ -103,6 +103,7 @@ class ftx(Exchange):
                 'fetchTickers': True,
                 'fetchTime': False,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
@@ -360,7 +361,7 @@ class ftx(Exchange):
                     'Invalid parameter': BadRequest,  # {"error":"Invalid parameter start_time","success":false}
                     'The requested URL was not found on the server': BadRequest,
                     'No such coin': BadRequest,
-                    'No such subaccount': BadRequest,
+                    'No such subaccount': AuthenticationError,
                     'No such future': BadSymbol,
                     'No such market': BadSymbol,
                     'Do not send more than': RateLimitExceeded,
@@ -627,8 +628,8 @@ class ftx(Exchange):
                 'option': option,
                 'active': self.safe_value(market, 'enabled'),
                 'contract': contract,
-                'linear': True,
-                'inverse': False,
+                'linear': True if contract else None,
+                'inverse': False if contract else None,
                 'contractSize': self.parse_number('1'),
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
@@ -1122,11 +1123,20 @@ class ftx(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        return {
-            'info': response,
-            'maker': self.safe_number(result, 'makerFee'),
-            'taker': self.safe_number(result, 'takerFee'),
-        }
+        maker = self.safe_number(result, 'makerFee')
+        taker = self.safe_number(result, 'takerFee')
+        tradingFees = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            tradingFees[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': True,
+                'tierBased': True,
+            }
+        return tradingFees
 
     def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
         #
@@ -1338,18 +1348,13 @@ class ftx(Exchange):
             remaining = Precise.string_sub(amount, filled)
             if Precise.string_gt(remaining, '0'):
                 status = 'canceled'
-        symbol = None
         marketId = self.safe_string(order, 'market')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                # support for delisted market ids
-                # https://github.com/ccxt/ccxt/issues/7113
-                symbol = marketId
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        if symbol is None:
+            # support for delisted market ids
+            # https://github.com/ccxt/ccxt/issues/7113
+            symbol = marketId
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'type')
         average = self.safe_string(order, 'avgFillPrice')

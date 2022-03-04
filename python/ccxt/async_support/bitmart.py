@@ -73,6 +73,8 @@ class bitmart(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
                 'fetchWithdrawals': True,
                 'withdraw': True,
             },
@@ -554,7 +556,7 @@ class bitmart(Exchange):
             quoteId = id[-4:]
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            splitId = id.split(id, '_')
+            splitId = id.split('_')
             splitIdEnding = self.safe_string(splitId, 1)
             settle = 'USDT'
             symbol = base + '/' + quote + ':' + settle
@@ -996,13 +998,13 @@ class bitmart(Exchange):
         costString = self.safe_string_2(trade, 'amount', 'notional')
         orderId = self.safe_integer(trade, 'order_id')
         marketId = self.safe_string_2(trade, 'contract_id', 'symbol')
-        symbol = self.safe_symbol(marketId, market, '_')
+        market = self.safe_market(marketId, market, '_')
         feeCostString = self.safe_string(trade, 'fees')
         fee = None
         if feeCostString is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_coin_name')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
-            if (feeCurrencyCode is None) and (market is not None):
+            if feeCurrencyCode is None:
                 feeCurrencyCode = market['base'] if (side == 'buy') else market['quote']
             fee = {
                 'cost': feeCostString,
@@ -1014,7 +1016,7 @@ class bitmart(Exchange):
             'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
             'price': priceString,

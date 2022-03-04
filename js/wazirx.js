@@ -592,7 +592,8 @@ module.exports = class wazirx extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (!(type === 'limit') || (type === 'stop_limit')) {
+        type = type.toLowerCase ();
+        if ((type !== 'limit') && (type !== 'stop_limit')) {
             throw new ExchangeError (this.id + ' createOrder() supports limit and stop_limit orders only');
         }
         if (price === undefined) {

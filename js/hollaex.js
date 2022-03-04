@@ -575,11 +575,9 @@ module.exports = class hollaex extends Exchange {
         const feeCostString = this.safeString (trade, 'fee');
         let fee = undefined;
         if (feeCostString !== undefined) {
-            const quote = market['quote'];
-            const feeCurrencyCode = (market !== undefined) ? market['quote'] : quote;
             fee = {
                 'cost': feeCostString,
-                'currency': feeCurrencyCode,
+                'currency': market['quote'],
             };
         }
         return this.safeTrade ({
@@ -942,7 +940,7 @@ module.exports = class hollaex extends Exchange {
             const convertedPrice = parseFloat (this.priceToPrecision (symbol, price));
             request['price'] = this.normalizeNumberIfNeeded (convertedPrice);
         }
-        const stopPrice = this.safeFloat2 (params, 'stopPrice', 'stop');
+        const stopPrice = this.safeNumber2 (params, 'stopPrice', 'stop');
         if (stopPrice !== undefined) {
             request['stop'] = this.normalizeNumberIfNeeded (parseFloat (this.priceToPrecision (symbol, stopPrice)));
             params = this.omit (params, [ 'stopPrice', 'stop' ]);

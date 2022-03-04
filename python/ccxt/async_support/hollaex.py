@@ -567,11 +567,9 @@ class hollaex(Exchange):
         feeCostString = self.safe_string(trade, 'fee')
         fee = None
         if feeCostString is not None:
-            quote = market['quote']
-            feeCurrencyCode = market['quote'] if (market is not None) else quote
             fee = {
                 'cost': feeCostString,
-                'currency': feeCurrencyCode,
+                'currency': market['quote'],
             }
         return self.safe_trade({
             'info': trade,
@@ -912,7 +910,7 @@ class hollaex(Exchange):
         if type != 'market':
             convertedPrice = float(self.price_to_precision(symbol, price))
             request['price'] = self.normalize_number_if_needed(convertedPrice)
-        stopPrice = self.safe_float_2(params, 'stopPrice', 'stop')
+        stopPrice = self.safe_number_2(params, 'stopPrice', 'stop')
         if stopPrice is not None:
             request['stop'] = self.normalize_number_if_needed(float(self.price_to_precision(symbol, stopPrice)))
             params = self.omit(params, ['stopPrice', 'stop'])

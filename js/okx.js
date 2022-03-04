@@ -35,7 +35,6 @@ module.exports = class okx extends Exchange {
                 'createReduceOnlyOrder': undefined,
                 'deposit': undefined,
                 'fetchAccounts': true,
-                'fetchAllTradingFees': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
                 'fetchBorrowRate': true,
@@ -64,7 +63,8 @@ module.exports = class okx extends Exchange {
                 'fetchLedger': true,
                 'fetchLedgerEntry': undefined,
                 'fetchLeverage': true,
-                'fetchLeverageTiers': true,
+                'fetchLeverageTiers': false,
+                'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyBuys': undefined,
@@ -96,7 +96,6 @@ module.exports = class okx extends Exchange {
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': undefined,
-                'loadLeverageBrackets': undefined,
                 'reduceMargin': true,
                 'setLeverage': true,
                 'setMarginMode': true,
@@ -860,7 +859,8 @@ module.exports = class okx extends Exchange {
             'spot': spot,
             'margin': spot && (Precise.stringGt (maxLeverage, '1')),
             'swap': swap,
-            'futures': futures,
+            'future': futures,
+            'futures': futures, // deprecated
             'option': option,
             'active': true,
             'contract': contract,
@@ -4056,11 +4056,8 @@ module.exports = class okx extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
-    async fetchLeverageTiers (symbol = undefined, params = {}) {
+    async fetchMarketLeverageTiers (symbol, params = {}) {
         await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchLeverageTiers() requires a symbol argument');
-        }
         const market = this.market (symbol);
         const type = market['spot'] ? 'MARGIN' : market['type'].toUpperCase ();
         const uly = this.safeString (market['info'], 'uly');
@@ -4098,12 +4095,36 @@ module.exports = class okx extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const brackets = [];
-        for (let i = 0; i < data.length; i++) {
-            const tier = data[i];
-            brackets.push ({
+        return this.parseMarketLeverageTiers (data, market);
+    }
+
+    parseMarketLeverageTiers (info, market = undefined) {
+        /**
+            @param info: Exchange response for 1 market
+            [
+                {
+                    "baseMaxLoan": "500",
+                    "imr": "0.1",
+                    "instId": "ETH-USDT",
+                    "maxLever": "10",
+                    "maxSz": "500",
+                    "minSz": "0",
+                    "mmr": "0.03",
+                    "optMgnFactor": "0",
+                    "quoteMaxLoan": "200000",
+                    "tier": "1",
+                    "uly": ""
+                },
+                ...
+            ]
+            @param market: CCXT market
+        */
+        const tiers = [];
+        for (let i = 0; i < info.length; i++) {
+            const tier = info[i];
+            tiers.push ({
                 'tier': this.safeInteger (tier, 'tier'),
-                'notionalCurrency': market['quote'],
+                'currency': market['quote'],
                 'notionalFloor': this.safeNumber (tier, 'minSz'),
                 'notionalCap': this.safeNumber (tier, 'maxSz'),
                 'maintenanceMarginRate': this.safeNumber (tier, 'mmr'),
@@ -4111,9 +4132,7 @@ module.exports = class okx extends Exchange {
                 'info': tier,
             });
         }
-        const result = {};
-        result[symbol] = brackets;
-        return result;
+        return tiers;
     }
 
     setSandboxMode (enable) {

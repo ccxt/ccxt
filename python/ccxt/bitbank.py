@@ -60,6 +60,8 @@ class bitbank(Exchange):
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
@@ -322,6 +324,55 @@ class bitbank(Exchange):
         data = self.safe_value(response, 'data', {})
         trades = self.safe_value(data, 'transactions', [])
         return self.parse_trades(trades, market, since, limit)
+
+    def fetch_trading_fees(self, params={}):
+        self.load_markets()
+        response = self.marketsGetSpotPairs(params)
+        #
+        #     {
+        #         success: '1',
+        #         data: {
+        #           pairs: [
+        #             {
+        #               name: 'btc_jpy',
+        #               base_asset: 'btc',
+        #               quote_asset: 'jpy',
+        #               maker_fee_rate_base: '0',
+        #               taker_fee_rate_base: '0',
+        #               maker_fee_rate_quote: '-0.0002',
+        #               taker_fee_rate_quote: '0.0012',
+        #               unit_amount: '0.0001',
+        #               limit_max_amount: '1000',
+        #               market_max_amount: '10',
+        #               market_allowance_rate: '0.2',
+        #               price_digits: '0',
+        #               amount_digits: '4',
+        #               is_enabled: True,
+        #               stop_order: False,
+        #               stop_order_and_cancel: False
+        #             },
+        #             ...
+        #           ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        pairs = self.safe_value(data, 'pairs', [])
+        result = {}
+        for i in range(0, len(pairs)):
+            pair = pairs[i]
+            marketId = self.safe_string(pair, 'name')
+            market = self.safe_market(marketId)
+            symbol = market['symbol']
+            result[symbol] = {
+                'info': pair,
+                'symbol': symbol,
+                'maker': self.safe_number(pair, 'maker_fee_rate_quote'),
+                'taker': self.safe_number(pair, 'taker_fee_rate_quote'),
+                'percentage': True,
+                'tierBased': False,
+            }
+        return result
 
     def parse_ohlcv(self, ohlcv, market=None):
         #

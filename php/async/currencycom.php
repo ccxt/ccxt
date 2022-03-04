@@ -19,7 +19,7 @@ class currencycom extends Exchange {
             'id' => 'currencycom',
             'name' => 'Currency.com',
             'countries' => array( 'BY' ), // Belarus
-            'rateLimit' => 500,
+            'rateLimit' => 100,
             'certified' => true,
             'pro' => true,
             'version' => 'v2',
@@ -51,12 +51,12 @@ class currencycom extends Exchange {
                 'fetchCanceledOrders' => null,
                 'fetchClosedOrder' => null,
                 'fetchClosedOrders' => null,
-                'fetchCurrencies' => null,
+                'fetchCurrencies' => true,
                 'fetchDeposit' => null,
-                'fetchDepositAddress' => null,
-                'fetchDepositAddresses' => null,
-                'fetchDepositAddressesByNetwork' => null,
-                'fetchDeposits' => null,
+                'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
+                'fetchDeposits' => true,
                 'fetchFundingFee' => null,
                 'fetchFundingFees' => null,
                 'fetchFundingHistory' => false,
@@ -65,9 +65,10 @@ class currencycom extends Exchange {
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchL2OrderBook' => true,
-                'fetchLedger' => null,
-                'fetchLedgerEntry' => null,
-                'fetchLeverageTiers' => null,
+                'fetchLedger' => true,
+                'fetchLedgerEntry' => false,
+                'fetchLeverage' => true,
+                'fetchLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -80,20 +81,20 @@ class currencycom extends Exchange {
                 'fetchOrders' => null,
                 'fetchOrderTrades' => null,
                 'fetchPosition' => null,
-                'fetchPositions' => null,
+                'fetchPositions' => true,
                 'fetchPositionsRisk' => null,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
-                'fetchTradingFee' => null,
+                'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTradingLimits' => null,
-                'fetchTransactions' => null,
+                'fetchTransactions' => true,
                 'fetchTransfers' => null,
                 'fetchWithdrawal' => null,
-                'fetchWithdrawals' => null,
+                'fetchWithdrawals' => true,
                 'reduceMargin' => null,
                 'setLeverage' => null,
                 'setMarginMode' => null,
@@ -113,15 +114,17 @@ class currencycom extends Exchange {
                 '1d' => '1d',
                 '1w' => '1w',
             ),
+            'hostname' => 'backend.currency.com',
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/83718672-36745c00-a63e-11ea-81a9-677b1f789a4d.jpg',
                 'api' => array(
-                    'public' => 'https://api-adapter.backend.currency.com/api',
-                    'private' => 'https://api-adapter.backend.currency.com/api',
+                    'public' => 'https://api-adapter.{hostname}/api',
+                    'private' => 'https://api-adapter.{hostname}/api',
+                    'marketcap' => 'https://marketcap.{hostname}/api',
                 ),
                 'test' => array(
-                    'public' => 'https://demo-api-adapter.backend.currency.com/api',
-                    'private' => 'https://demo-api-adapter.backend.currency.com/api',
+                    'public' => 'https://demo-api-adapter.{hostname}/api',
+                    'private' => 'https://demo-api-adapter.{hostname}/api',
                 ),
                 'www' => 'https://www.currency.com',
                 'referral' => 'https://currency.com/trading/signup?c=362jaimv&pid=referral',
@@ -130,63 +133,85 @@ class currencycom extends Exchange {
                 ),
                 'fees' => 'https://currency.com/fees-charges',
             ),
+            // rate-limits are described at => https://currency.com/api-get-started
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'v1/time',
-                        'v2/time',
-                        'v1/exchangeInfo',
-                        'v2/exchangeInfo',
-                        'v1/depth',
-                        'v2/depth',
-                        'v1/aggTrades',
-                        'v2/aggTrades',
-                        'v1/klines',
-                        'v2/klines',
-                        'v1/ticker/24hr',
-                        'v2/ticker/24hr',
+                        'v1/time' => 1,
+                        'v2/time' => 1,
+                        'v1/exchangeInfo' => 1,
+                        'v2/exchangeInfo' => 1,
+                        'v1/depth' => 1,
+                        'v2/depth' => 1,
+                        'v1/aggTrades' => 1,
+                        'v2/aggTrades' => 1,
+                        'v1/klines' => 1,
+                        'v2/klines' => 1,
+                        'v1/ticker/24hr' => 1,
+                        'v2/ticker/24hr' => 1,
+                    ),
+                ),
+                'marketcap' => array(
+                    'get' => array(
+                        'v1/assets' => 1,
+                        'v1/candles' => 1,
+                        'v1/orderbook' => 1,
+                        'v1/summary' => 1,
+                        'v1/ticker' => 1,
+                        'v1/token/assets' => 1,
+                        'v1/token/orderbook' => 1,
+                        'v1/token/summary' => 1,
+                        'v1/token/ticker' => 1,
+                        'v1/token/trades' => 1,
+                        'v1/token_crypto/OHLC' => 1,
+                        'v1/token_crypto/assets' => 1,
+                        'v1/token_crypto/orderbook' => 1,
+                        'v1/token_crypto/summary' => 1,
+                        'v1/token_crypto/ticker' => 1,
+                        'v1/token_crypto/trades' => 1,
+                        'v1/trades' => 1,
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'v1/account',
-                        'v2/account',
-                        'v1/currencies',
-                        'v2/currencies',
-                        'v1/deposits',
-                        'v2/deposits',
-                        'v1/depositAddress',
-                        'v2/depositAddress',
-                        'v1/ledger',
-                        'v2/ledger',
-                        'v1/leverageSettings',
-                        'v2/leverageSettings',
-                        'v1/myTrades',
-                        'v2/myTrades',
-                        'v1/openOrders',
-                        'v2/openOrders',
-                        'v1/tradingPositions',
-                        'v2/tradingPositions',
-                        'v1/tradingPositionsHistory',
-                        'v2/tradingPositionsHistory',
-                        'v1/transactions',
-                        'v2/transactions',
-                        'v1/withdrawals',
-                        'v2/withdrawals',
+                        'v1/account' => 1,
+                        'v2/account' => 1,
+                        'v1/currencies' => 1,
+                        'v2/currencies' => 1,
+                        'v1/deposits' => 1,
+                        'v2/deposits' => 1,
+                        'v1/depositAddress' => 1,
+                        'v2/depositAddress' => 1,
+                        'v1/ledger' => 1,
+                        'v2/ledger' => 1,
+                        'v1/leverageSettings' => 1,
+                        'v2/leverageSettings' => 1,
+                        'v1/myTrades' => 1,
+                        'v2/myTrades' => 1,
+                        'v1/openOrders' => 1,
+                        'v2/openOrders' => 1,
+                        'v1/tradingPositions' => 1,
+                        'v2/tradingPositions' => 1,
+                        'v1/tradingPositionsHistory' => 1,
+                        'v2/tradingPositionsHistory' => 1,
+                        'v1/transactions' => 1,
+                        'v2/transactions' => 1,
+                        'v1/withdrawals' => 1,
+                        'v2/withdrawals' => 1,
                     ),
                     'post' => array(
-                        'v1/order',
-                        'v2/order',
-                        'v1/updateTradingPosition',
-                        'v2/updateTradingPosition',
-                        'v1/updateTradingOrder',
-                        'v2/updateTradingOrder',
-                        'v1/closeTradingPosition',
-                        'v2/closeTradingPosition',
+                        'v1/order' => 1,
+                        'v2/order' => 1,
+                        'v1/updateTradingPosition' => 1,
+                        'v2/updateTradingPosition' => 1,
+                        'v1/updateTradingOrder' => 1,
+                        'v2/updateTradingOrder' => 1,
+                        'v1/closeTradingPosition' => 1,
+                        'v2/closeTradingPosition' => 1,
                     ),
                     'delete' => array(
-                        'v1/order',
-                        'v2/order',
+                        'v1/order' => 1,
+                        'v2/order' => 1,
                     ),
                 ),
             ),
@@ -221,6 +246,7 @@ class currencycom extends Exchange {
                     'Order would trigger immediately.' => '\\ccxt\\InvalidOrder',
                     'Account has insufficient balance for requested action.' => '\\ccxt\\InsufficientFunds',
                     'Rest API trading is not enabled.' => '\\ccxt\\ExchangeNotAvailable',
+                    'Only leverage symbol allowed here:' => '\\ccxt\\BadSymbol', // when you fetchLeverage for non-leverage symbols, like 'BTC/USDT' instead of 'BTC/USDT_LEVERAGE' => array("code":"-1128","msg":"Only leverage symbol allowed here => BTC/USDT")
                 ),
                 'exact' => array(
                     '-1000' => '\\ccxt\\ExchangeNotAvailable', // array("code":-1000,"msg":"An unknown error occured while processing the request.")
@@ -266,6 +292,74 @@ class currencycom extends Exchange {
         //     }
         //
         return $this->safe_integer($response, 'serverTime');
+    }
+
+    public function fetch_currencies($params = array ()) {
+        // requires authentication
+        if (!$this->check_required_credentials(false)) {
+            return null;
+        }
+        $response = yield $this->privateGetV2Currencies ($params);
+        //
+        //     array(
+        //         array(
+        //             "name" => "Euro",
+        //             "displaySymbol" => "EUR.cx",
+        //             "precision" => "2",
+        //             "type" => "FIAT",
+        //             "minWithdrawal" => "90.0",
+        //             "maxWithdrawal" => "1.0E+8",
+        //             "commissionMin" => "0.02", // some instruments do not have this property
+        //             "commissionPercent" => "1.5", // some instruments do not have this property
+        //             "minDeposit" => "90.0",
+        //         ),
+        //         array(
+        //             name => "Bitcoin",
+        //             displaySymbol => "BTC",
+        //             $precision => "8",
+        //             type => "CRYPTO", // only a few major currencies have this value, others like USDT have a value of "TOKEN"
+        //             minWithdrawal => "0.00020",
+        //             commissionFixed => "0.00010",
+        //             minDeposit => "0.00010",
+        //         ),
+        //     )
+        //
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $currency = $response[$i];
+            $id = $this->safe_string($currency, 'displaySymbol');
+            $code = $this->safe_currency_code($id);
+            $fee = $this->safe_number($currency, 'commissionFixed');
+            $precision = $this->safe_integer($currency, 'precision');
+            $result[$code] = array(
+                'id' => $id,
+                'code' => $code,
+                'address' => $this->safe_string($currency, 'baseAddress'),
+                'type' => $this->safe_string_lower($currency, 'type'),
+                'name' => $this->safe_string($currency, 'name'),
+                'active' => null,
+                'deposit' => null,
+                'withdraw' => null,
+                'fee' => $fee,
+                'precision' => $precision,
+                'limits' => array(
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => $this->safe_number($currency, 'minWithdrawal'),
+                        'max' => $this->safe_number($currency, 'maxWithdrawal'),
+                    ),
+                    'deposit' => array(
+                        'min' => $this->safe_number($currency, 'minDeposit'),
+                        'max' => null,
+                    ),
+                ),
+                'info' => $currency,
+            );
+        }
+        return $result;
     }
 
     public function fetch_markets($params = array ()) {
@@ -513,11 +607,35 @@ class currencycom extends Exchange {
     public function fetch_trading_fees($params = array ()) {
         yield $this->load_markets();
         $response = yield $this->privateGetV2Account ($params);
-        return array(
-            'info' => $response,
-            'maker' => $this->safe_number($response, 'makerCommission'),
-            'taker' => $this->safe_number($response, 'takerCommission'),
-        );
+        //
+        //    {
+        //        makerCommission => '0.20',
+        //        takerCommission => '0.20',
+        //        buyerCommission => '0.20',
+        //        sellerCommission => '0.20',
+        //        canTrade => true,
+        //        canWithdraw => true,
+        //        canDeposit => true,
+        //        updateTime => '1645738976',
+        //        userId => '-1924114235',
+        //        balances => array()
+        //    }
+        //
+        $makerFee = $this->safe_number($response, 'makerCommission');
+        $takerFee = $this->safe_number($response, 'takerCommission');
+        $result = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $result[$symbol] = array(
+                'info' => $response,
+                'symbol' => $symbol,
+                'maker' => $makerFee,
+                'taker' => $takerFee,
+                'percentage' => true,
+                'tierBased' => false,
+            );
+        }
+        return $result;
     }
 
     public function parse_balance($response, $type = null) {
@@ -807,11 +925,11 @@ class currencycom extends Exchange {
         // fetchTrades (public aggregate trades)
         //
         //     {
-        //         "a":1658318071,
-        //         "p":"0.02476",
-        //         "q":"0.0",
-        //         "T":1591001423382,
-        //         "m":false
+        //         "a":"1658318071",    // Aggregate tradeId
+        //         "p":"0.02476",       // Price
+        //         "q":"0.0",           // Official doc says => "Quantity (should be ignored)"
+        //         "T":"1591001423382", // Epoch $timestamp in MS
+        //         "m":false            // Was the buyer the maker
         //     }
         //
         // createOrder fills (private)
@@ -846,14 +964,13 @@ class currencycom extends Exchange {
         $id = $this->safe_string_2($trade, 'a', 'id');
         $side = null;
         $orderId = $this->safe_string($trade, 'orderId');
+        $takerOrMaker = null;
         if (is_array($trade) && array_key_exists('m', $trade)) {
-            $side = $trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
-        } else if (is_array($trade) && array_key_exists('isBuyerMaker', $trade)) {
-            $side = $trade['isBuyerMaker'] ? 'sell' : 'buy';
-        } else {
-            if (is_array($trade) && array_key_exists('isBuyer', $trade)) {
-                $side = ($trade['isBuyer']) ? 'buy' : 'sell'; // this is a true $side
-            }
+            $side = $trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally [TODO => needs reason to be mentioned]
+            $takerOrMaker = 'taker'; // in public trades, it's always taker
+        } else if (is_array($trade) && array_key_exists('isBuyer', $trade)) {
+            $side = ($trade['isBuyer']) ? 'buy' : 'sell'; // this is a true $side
+            $takerOrMaker = $trade['isMaker'] ? 'maker' : 'taker';
         }
         $fee = null;
         if (is_array($trade) && array_key_exists('commission', $trade)) {
@@ -862,19 +979,14 @@ class currencycom extends Exchange {
                 'currency' => $this->safe_currency_code($this->safe_string($trade, 'commissionAsset')),
             );
         }
-        $takerOrMaker = null;
-        if (is_array($trade) && array_key_exists('isMaker', $trade)) {
-            $takerOrMaker = $trade['isMaker'] ? 'maker' : 'taker';
-        }
         $marketId = $this->safe_string($trade, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         return $this->safe_trade(array(
-            'info' => $trade,
+            'id' => $id,
+            'order' => $orderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
-            'id' => $id,
-            'order' => $orderId,
             'type' => null,
             'takerOrMaker' => $takerOrMaker,
             'side' => $side,
@@ -882,6 +994,7 @@ class currencycom extends Exchange {
             'amount' => $amountString,
             'cost' => null,
             'fee' => $fee,
+            'info' => $trade,
         ), $market);
     }
 
@@ -900,15 +1013,15 @@ class currencycom extends Exchange {
         }
         $response = yield $this->publicGetV2AggTrades (array_merge($request, $params));
         //
+        // array(
         //     array(
-        //         {
-        //             "a":1658318071,
-        //             "p":"0.02476",
-        //             "q":"0.0",
-        //             "T":1591001423382,
-        //             "m":false
-        //         }
-        //     )
+        //         "a":"1658318071",    // Aggregate tradeId
+        //         "p":"0.02476",       // Price
+        //         "q":"0.0",           // Official doc says => "Quantity (should be ignored)"
+        //         "T":"1591001423382", // Epoch timestamp in MS
+        //         "m":false            // Was the buyer the maker
+        //     ),
+        // )
         //
         return $this->parse_trades($response, $market, $since, $limit);
     }
@@ -1169,6 +1282,242 @@ class currencycom extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        return yield $this->fetch_transactions_by_method('privateGetV2Deposits', $code, $since, $limit, $params);
+    }
+
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        return yield $this->fetch_transactions_by_method('privateGetV2Withdrawals', $code, $since, $limit, $params);
+    }
+
+    public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
+        return yield $this->fetch_transactions_by_method('privateGetV2Transactions', $code, $since, $limit, $params);
+    }
+
+    public function fetch_transactions_by_method($method, $code = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $request = array();
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        //     array(
+        //       array(
+        //         "id" => "616769213",
+        //         "balance" => "2.088",
+        //         "amount" => "1.304",   // negative for 'withdrawal'
+        //         "currency" => "CAKE",
+        //         "type" => "deposit",
+        //         "timestamp" => "1645282121023",
+        //         "paymentMethod" => "BLOCKCHAIN",
+        //         "blockchainTransactionHash" => "0x57c68c1f2ae74d5eda5a2a00516361d241a5c9e1ee95bf32573523857c38c112",
+        //         "status" => "PROCESSED",
+        //         "commission" => "0.14", // this property only exists in withdrawal
+        //       ),
+        //     )
+        //
+        return $this->parse_transactions($response, $currency, $since, $limit, $params);
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        $id = $this->safe_string($transaction, 'id');
+        $txHash = $this->safe_string($transaction, 'blockchainTransactionHash');
+        $amount = $this->safe_number($transaction, 'amount');
+        $timestamp = $this->safe_integer($transaction, 'timestamp');
+        $currencyId = $this->safe_string($transaction, 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $state = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
+        $type = $this->parse_transaction_type($this->safe_string($transaction, 'type'));
+        $feeCost = $this->safe_string($transaction, 'commission');
+        $fee = null;
+        if ($feeCost !== null) {
+            $fee = array( 'currency' => $code, 'cost' => $feeCost );
+        }
+        $result = array(
+            'id' => $id,
+            'txid' => $txHash,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'network' => null,
+            'addressFrom' => null,
+            'address' => null,
+            'addressTo' => null,
+            'tagFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'type' => $type,
+            'amount' => $amount,
+            'currency' => $code,
+            'status' => $state,
+            'updated' => null,
+            'comment' => null,
+            'fee' => $fee,
+            'info' => $transaction,
+        );
+        return $result;
+    }
+
+    public function parse_transaction_status($status) {
+        $statuses = array(
+            'APPROVAL' => 'pending',
+            'PROCESSED' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transaction_type($type) {
+        $types = array(
+            'deposit' => 'deposit',
+            'withdrawal' => 'withdrawal',
+        );
+        return $this->safe_string($types, $type, $type);
+    }
+
+    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $request = array();
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = yield $this->privateGetV2Ledger (array_merge($request, $params));
+        // in the below example, first item expresses withdrawal/deposit type, second example expresses trade
+        //
+        // array(
+        //     array(
+        //       "id" => "619031398",
+        //       "balance" => "0.0",
+        //       "amount" => "-1.088",
+        //       "currency" => "CAKE",
+        //       "type" => "withdrawal",
+        //       "timestamp" => "1645460496425",
+        //       "commission" => "0.13",
+        //       "paymentMethod" => "BLOCKCHAIN", // present in withdrawal/deposit
+        //       "blockchainTransactionHash" => "0x400ac905557c3d34638b1c60eba110b3ee0f97f4eb0f7318015ab76e7f16b7d6", // present in withdrawal/deposit
+        //       "status" => "PROCESSED"
+        //     ),
+        //     array(
+        //       "id" => "619031034",
+        //       "balance" => "8.17223588",
+        //       "amount" => "-0.01326294",
+        //       "currency" => "USD",
+        //       "type" => "exchange_commission",
+        //       "timestamp" => "1645460461235",
+        //       "commission" => "0.01326294",
+        //       "status" => "PROCESSED"
+        //     ),
+        // )
+        //
+        return $this->parse_ledger($response, $currency, $since, $limit);
+    }
+
+    public function parse_ledger_entry($item, $currency = null) {
+        $id = $this->safe_string($item, 'id');
+        $amountString = $this->safe_string($item, 'amount');
+        $amount = Precise::string_abs($amountString);
+        $timestamp = $this->safe_integer($item, 'timestamp');
+        $currencyId = $this->safe_string($item, 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $feeCost = $this->safe_string($item, 'commission');
+        $fee = null;
+        if ($feeCost !== null) {
+            $fee = array( 'currency' => $code, 'cost' => $feeCost );
+        }
+        $direction = Precise::string_lt($amountString, '0') ? 'out' : 'in';
+        $result = array(
+            'id' => $id,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'direction' => $direction,
+            'account' => null,
+            'referenceId' => $this->safe_string($item, 'blockchainTransactionHash'),
+            'referenceAccount' => null,
+            'type' => $this->parse_ledger_entry_type($this->safe_string($item, 'type')),
+            'currency' => $code,
+            'amount' => $amount,
+            'before' => null,
+            'after' => $this->safe_string($item, 'balance'),
+            'status' => $this->parse_ledger_entry_status($this->safe_string($item, 'status')),
+            'fee' => $fee,
+            'info' => $item,
+        );
+        return $result;
+    }
+
+    public function parse_ledger_entry_status($status) {
+        $statuses = array(
+            'APPROVAL' => 'pending',
+            'PROCESSED' => 'ok',
+            'CANCELLED' => 'canceled',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_ledger_entry_type($type) {
+        $types = array(
+            'deposit' => 'transaction',
+            'withdrawal' => 'transaction',
+            'exchange_commission' => 'fee',
+        );
+        return $this->safe_string($types, $type, $type);
+    }
+
+    public function fetch_leverage($symbol, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = yield $this->privateGetV2LeverageSettings (array_merge($request, $params));
+        //
+        // {
+        //     "values" => array( 1, 2, 5, 10, ),
+        //     "value" => "10",
+        // }
+        //
+        return $this->safe_number($response, 'value');
+    }
+
+    public function fetch_deposit_address($code, $params = array ()) {
+        yield $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'coin' => $currency['id'],
+        );
+        $response = yield $this->privateGetV2DepositAddress (array_merge($request, $params));
+        //
+        //     array( "address":"0x97d64eb014ac779194991e7264f01c74c90327f0" )
+        //
+        return $this->parse_deposit_address($response, $currency);
+    }
+
+    public function parse_deposit_address($depositAddress, $currency = null) {
+        $address = $this->safe_string($depositAddress, 'address');
+        $this->check_address($address);
+        $currency = $this->safe_currency(null, $currency);
+        return array(
+            'currency' => $currency['code'],
+            'address' => $address,
+            'tag' => null,
+            'network' => null,
+            'info' => $depositAddress,
+        );
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($path === 'historicalTrades') {
@@ -1198,7 +1547,92 @@ class currencycom extends Exchange {
                 $url .= '?' . $this->urlencode($params);
             }
         }
+        $url = $this->implode_hostname($url);
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function fetch_positions($symbols = null, $params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->privateGetV2TradingPositions ($params);
+        //
+        // {
+        //     "positions" => array(
+        //       {
+        //         "accountId" => "109698017416453793",
+        //         "id" => "00a18490-0079-54c4-0000-0000803e73d3",
+        //         "instrumentId" => "45463225268524228",
+        //         "orderId" => "00a18490-0079-54c4-0000-0000803e73d2",
+        //         "openQuantity" => "13.6",
+        //         "openPrice" => "0.75724",
+        //         "closeQuantity" => "0.0",
+        //         "closePrice" => "0",
+        //         "rpl" => "-0.007723848",
+        //         "rplConverted" => "0",
+        //         "upl" => "-0.006664",
+        //         "uplConverted" => "-0.006664",
+        //         "swap" => "0",
+        //         "swapConverted" => "0",
+        //         "fee" => "-0.007723848",
+        //         "dividend" => "0",
+        //         "margin" => "0.2",
+        //         "state" => "ACTIVE",
+        //         "currency" => "USD",
+        //         "createdTimestamp" => "1645473877236",
+        //         "openTimestamp" => "1645473877193",
+        //         "type" => "NET",
+        //         "cost" => "2.0583600",
+        //         "symbol" => "XRP/USD_LEVERAGE"
+        //       }
+        //     )
+        // }
+        //
+        $data = $this->safe_value($response, 'positions', array());
+        return $this->parse_positions($data);
+    }
+
+    public function parse_positions($positions) {
+        $result = array();
+        for ($i = 0; $i < count($positions); $i++) {
+            $result[] = $this->parse_position($positions[$i]);
+        }
+        return $result;
+    }
+
+    public function parse_position($position, $market = null) {
+        $market = $this->safe_market($this->safe_string($position, 'symbol'), $market);
+        $symbol = $market['symbol'];
+        $timestamp = $this->safe_number($position, 'createdTimestamp');
+        $quantityRaw = $this->safe_string($position, 'openQuantity');
+        $side = Precise::string_gt($quantityRaw, '0') ? 'long' : 'short';
+        $quantity = Precise::string_abs($quantityRaw);
+        $entryPrice = $this->safe_number($position, 'openPrice');
+        $unrealizedProfit = $this->safe_number($position, 'upl');
+        $marginCoeff = $this->safe_string($position, 'margin');
+        $leverage = Precise::string_div('1', $marginCoeff);
+        return array(
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'contracts' => $this->parse_number($quantity),
+            'contractSize' => null,
+            'entryPrice' => $entryPrice,
+            'collateral' => null,
+            'side' => $side,
+            // 'realizedProfit' => $this->safe_number($position, 'rpl'),
+            'unrealizedProfit' => $unrealizedProfit,
+            'leverage' => $leverage,
+            'percentage' => null,
+            'marginType' => null,
+            'notional' => null,
+            'markPrice' => null,
+            'liquidationPrice' => null,
+            'initialMargin' => null,
+            'initialMarginPercentage' => null,
+            'maintenanceMargin' => $this->parse_number($marginCoeff),
+            'maintenanceMarginPercentage' => null,
+            'marginRatio' => null,
+            'info' => $position,
+        );
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

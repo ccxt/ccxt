@@ -19,7 +19,6 @@ module.exports = class aax extends Exchange {
             'rateLimit': 500,
             'version': 'v2',
             'hostname': 'aaxpro.com', // aax.com
-            'certified': true,
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -38,7 +37,6 @@ module.exports = class aax extends Exchange {
                 'deposit': undefined,
                 'editOrder': true,
                 'fetchAccounts': undefined,
-                'fetchAllTradingFees': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
                 'fetchBorrowRate': false,
@@ -89,15 +87,14 @@ module.exports = class aax extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFee': undefined,
-                'fetchTradingFees': undefined,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
                 'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
                 'fetchTransfers': undefined,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': undefined,
-                'loadLeverageBrackets': undefined,
                 'reduceMargin': undefined,
                 'setLeverage': true,
                 'setMarginMode': false,
@@ -764,7 +761,6 @@ module.exports = class aax extends Exchange {
         id = this.safeString (trade, 'i', id);
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
         let priceString = this.safeString2 (trade, 'p', 'filledPrice');
         const amountString = this.safeString2 (trade, 'q', 'filledQty');
         const orderId = this.safeString (trade, 'orderID');
@@ -788,12 +784,10 @@ module.exports = class aax extends Exchange {
         const feeCost = this.safeString (trade, 'commission');
         if (feeCost !== undefined) {
             let feeCurrency = undefined;
-            if (market !== undefined) {
-                if (side === 'buy') {
-                    feeCurrency = market['base'];
-                } else if (side === 'sell') {
-                    feeCurrency = market['quote'];
-                }
+            if (side === 'buy') {
+                feeCurrency = market['base'];
+            } else if (side === 'sell') {
+                feeCurrency = market['quote'];
             }
             fee = {
                 'currency': feeCurrency,
@@ -805,7 +799,7 @@ module.exports = class aax extends Exchange {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': orderType,
             'side': side,
             'order': orderId,
@@ -1738,7 +1732,6 @@ module.exports = class aax extends Exchange {
         const clientOrderId = this.safeString (order, 'clOrdID');
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
         const price = this.safeString (order, 'price');
         const stopPrice = this.safeNumber (order, 'stopPrice');
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
@@ -1759,12 +1752,10 @@ module.exports = class aax extends Exchange {
         const feeCost = this.safeNumber (order, 'commission');
         if (feeCost !== undefined) {
             let feeCurrency = undefined;
-            if (market !== undefined) {
-                if (side === 'buy') {
-                    feeCurrency = market['base'];
-                } else if (side === 'sell') {
-                    feeCurrency = market['quote'];
-                }
+            if (side === 'buy') {
+                feeCurrency = market['base'];
+            } else if (side === 'sell') {
+                feeCurrency = market['quote'];
             }
             fee = {
                 'currency': feeCurrency,
@@ -1779,7 +1770,7 @@ module.exports = class aax extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,

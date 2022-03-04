@@ -59,6 +59,8 @@ module.exports = class cdax extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
                 'fetchTradingLimits': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
@@ -1144,7 +1146,6 @@ module.exports = class cdax extends Exchange {
         }
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
         const timestamp = this.safeInteger (order, 'created-at');
         const clientOrderId = this.safeString (order, 'client-order-id');
         const filledString = this.safeString2 (order, 'filled-amount', 'field-amount'); // typo in their API, filled amount
@@ -1157,10 +1158,7 @@ module.exports = class cdax extends Exchange {
         const feeCostString = this.safeString2 (order, 'filled-fees', 'field-fees'); // typo in their API, filled fees
         let fee = undefined;
         if (feeCostString !== undefined) {
-            let feeCurrency = undefined;
-            if (market !== undefined) {
-                feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
-            }
+            const feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
             fee = {
                 'cost': feeCostString,
                 'currency': feeCurrency,
@@ -1173,7 +1171,7 @@ module.exports = class cdax extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,

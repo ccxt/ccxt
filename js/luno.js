@@ -345,24 +345,24 @@ module.exports = class luno extends Exchange {
             side = 'buy';
         }
         const marketId = this.safeString (order, 'pair');
-        const symbol = this.safeSymbol (marketId, market);
+        market = this.safeMarket (marketId, market);
         const price = this.safeString (order, 'limit_price');
         const amount = this.safeString (order, 'limit_volume');
         const quoteFee = this.safeNumber (order, 'fee_counter');
         const baseFee = this.safeNumber (order, 'fee_base');
         const filled = this.safeString (order, 'base');
         const cost = this.safeString (order, 'counter');
-        const fee = { 'currency': undefined };
-        if (quoteFee) {
-            fee['cost'] = quoteFee;
-            if (market !== undefined) {
-                fee['currency'] = market['quote'];
-            }
-        } else {
-            fee['cost'] = baseFee;
-            if (market !== undefined) {
-                fee['currency'] = market['base'];
-            }
+        let fee = undefined;
+        if (quoteFee !== undefined) {
+            fee = {
+                'cost': quoteFee,
+                'currency': market['quote'],
+            };
+        } else if (baseFee !== undefined) {
+            fee = {
+                'cost': baseFee,
+                'currency': market['base'],
+            };
         }
         const id = this.safeString (order, 'order_id');
         return this.safeOrder ({
@@ -372,7 +372,7 @@ module.exports = class luno extends Exchange {
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
             'status': status,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': undefined,
             'timeInForce': undefined,
             'postOnly': undefined,

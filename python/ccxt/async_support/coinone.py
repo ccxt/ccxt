@@ -356,7 +356,7 @@ class coinone(Exchange):
         #     }
         #
         timestamp = self.safe_timestamp(trade, 'timestamp')
-        symbol = market['symbol'] if (market is not None) else None
+        market = self.safe_market(None, market)
         is_ask = self.safe_string(trade, 'is_ask')
         side = self.safe_string(trade, 'type')
         if is_ask is not None:
@@ -378,9 +378,7 @@ class coinone(Exchange):
             feeCostString = Precise.string_abs(feeCostString)
             feeRateString = self.safe_string(trade, 'feeRate')
             feeRateString = Precise.string_abs(feeRateString)
-            feeCurrencyCode = None
-            if market is not None:
-                feeCurrencyCode = market['quote'] if (side == 'sell') else market['base']
+            feeCurrencyCode = market['quote'] if (side == 'sell') else market['base']
             fee = {
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,
@@ -392,7 +390,7 @@ class coinone(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'order': orderId,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': None,
             'side': side,
             'takerOrMaker': None,

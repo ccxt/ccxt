@@ -52,6 +52,8 @@ class coincheck(Exchange):
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'setLeverage': False,
@@ -359,8 +361,7 @@ class coincheck(Exchange):
                 quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
         if symbol is None:
-            if market is not None:
-                symbol = market['symbol']
+            symbol = self.safe_symbol(None, market)
         takerOrMaker = None
         amountString = None
         costString = None
@@ -453,6 +454,44 @@ class coincheck(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
+
+    async def fetch_trading_fees(self, params={}):
+        await self.load_markets()
+        response = await self.privateGetAccounts(params)
+        #
+        #     {
+        #         success: True,
+        #         id: '7487995',
+        #         email: 'some@email.com',
+        #         identity_status: 'identity_pending',
+        #         bitcoin_address: null,
+        #         lending_leverage: '4',
+        #         taker_fee: '0.0',
+        #         maker_fee: '0.0',
+        #         exchange_fees: {
+        #           btc_jpy: {taker_fee: '0.0', maker_fee: '0.0'},
+        #           etc_jpy: {taker_fee: '0.0', maker_fee: '0.0'},
+        #           fct_jpy: {taker_fee: '0.0', maker_fee: '0.0'},
+        #           mona_jpy: {taker_fee: '0.0', maker_fee: '0.0'},
+        #           plt_jpy: {taker_fee: '0.0', maker_fee: '0.0'}
+        #         }
+        #     }
+        #
+        fees = self.safe_value(response, 'exchange_fees', {})
+        result = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            market = self.market(symbol)
+            fee = self.safe_value(fees, market['id'], {})
+            result[symbol] = {
+                'info': fee,
+                'symbol': symbol,
+                'maker': self.safe_number(fee, 'maker_fee'),
+                'taker': self.safe_number(fee, 'taker_fee'),
+                'percentage': True,
+                'tierBased': False,
+            }
+        return result
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

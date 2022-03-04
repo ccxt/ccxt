@@ -65,6 +65,8 @@ module.exports = class kucoin extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': undefined,
                 'fetchWithdrawals': true,
                 'transfer': true,
                 'withdraw': true,
@@ -129,6 +131,7 @@ module.exports = class kucoin extends Exchange {
                         'accounts/ledgers': 3.333, // 18/3s = 6/s => cost = 20 / 6 = 3.333
                         'accounts/{accountId}/holds': 1,
                         'accounts/transferable': 1,
+                        'base-fee': 1,
                         'sub/user': 1,
                         'sub-accounts': 1,
                         'sub-accounts/{subUserId}': 1,
@@ -159,6 +162,7 @@ module.exports = class kucoin extends Exchange {
                         'stop-order/{orderId}': 1,
                         'stop-order': 1,
                         'stop-order/queryOrderByClientOid': 1,
+                        'trade-fees': 1.3333, // 45/3s = 15/s => cost = 20 / 15 = 1.333
                     },
                     'post': {
                         'accounts': 1,
@@ -1598,7 +1602,7 @@ module.exports = class kucoin extends Exchange {
         //     }
         //
         const marketId = this.safeString (trade, 'symbol');
-        const symbol = this.safeSymbol (marketId, market, '-');
+        market = this.safeMarket (marketId, market, '-');
         const id = this.safeString2 (trade, 'tradeId', 'id');
         const orderId = this.safeString (trade, 'orderId');
         const takerOrMaker = this.safeString (trade, 'liquidity');
@@ -1621,9 +1625,7 @@ module.exports = class kucoin extends Exchange {
             const feeCurrencyId = this.safeString (trade, 'feeCurrency');
             let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
             if (feeCurrency === undefined) {
-                if (market !== undefined) {
-                    feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
-                }
+                feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
             }
             fee = {
                 'cost': feeCostString,
@@ -1642,7 +1644,7 @@ module.exports = class kucoin extends Exchange {
             'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'takerOrMaker': takerOrMaker,
             'side': side,
@@ -1651,6 +1653,36 @@ module.exports = class kucoin extends Exchange {
             'cost': costString,
             'fee': fee,
         }, market);
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbols': market['id'],
+        };
+        const response = await this.privateGetTradeFees (this.extend (request, params));
+        //
+        //     {
+        //         code: '200000',
+        //         data: [
+        //           {
+        //             symbol: 'BTC-USDT',
+        //             takerFeeRate: '0.001',
+        //             makerFeeRate: '0.001'
+        //           }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const first = this.safeValue (data, 0);
+        const marketId = this.safeString (first, 'symbol');
+        return {
+            'info': response,
+            'symbol': this.safeSymbol (marketId, market),
+            'maker': this.safeNumber (first, 'makerFeeRate'),
+            'taker': this.safeNumber (first, 'takerFeeRate'),
+        };
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {

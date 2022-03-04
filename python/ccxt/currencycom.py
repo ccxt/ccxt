@@ -8,6 +8,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -25,7 +26,7 @@ class currencycom(Exchange):
             'id': 'currencycom',
             'name': 'Currency.com',
             'countries': ['BY'],  # Belarus
-            'rateLimit': 500,
+            'rateLimit': 100,
             'certified': True,
             'pro': True,
             'version': 'v2',
@@ -57,12 +58,12 @@ class currencycom(Exchange):
                 'fetchCanceledOrders': None,
                 'fetchClosedOrder': None,
                 'fetchClosedOrders': None,
-                'fetchCurrencies': None,
+                'fetchCurrencies': True,
                 'fetchDeposit': None,
-                'fetchDepositAddress': None,
-                'fetchDepositAddresses': None,
-                'fetchDepositAddressesByNetwork': None,
-                'fetchDeposits': None,
+                'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
+                'fetchDeposits': True,
                 'fetchFundingFee': None,
                 'fetchFundingFees': None,
                 'fetchFundingHistory': False,
@@ -71,9 +72,10 @@ class currencycom(Exchange):
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
                 'fetchL2OrderBook': True,
-                'fetchLedger': None,
-                'fetchLedgerEntry': None,
-                'fetchLeverageTiers': None,
+                'fetchLedger': True,
+                'fetchLedgerEntry': False,
+                'fetchLeverage': True,
+                'fetchLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -86,20 +88,20 @@ class currencycom(Exchange):
                 'fetchOrders': None,
                 'fetchOrderTrades': None,
                 'fetchPosition': None,
-                'fetchPositions': None,
+                'fetchPositions': True,
                 'fetchPositionsRisk': None,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'fetchTradingFee': None,
+                'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTradingLimits': None,
-                'fetchTransactions': None,
+                'fetchTransactions': True,
                 'fetchTransfers': None,
                 'fetchWithdrawal': None,
-                'fetchWithdrawals': None,
+                'fetchWithdrawals': True,
                 'reduceMargin': None,
                 'setLeverage': None,
                 'setMarginMode': None,
@@ -119,15 +121,17 @@ class currencycom(Exchange):
                 '1d': '1d',
                 '1w': '1w',
             },
+            'hostname': 'backend.currency.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/83718672-36745c00-a63e-11ea-81a9-677b1f789a4d.jpg',
                 'api': {
-                    'public': 'https://api-adapter.backend.currency.com/api',
-                    'private': 'https://api-adapter.backend.currency.com/api',
+                    'public': 'https://api-adapter.{hostname}/api',
+                    'private': 'https://api-adapter.{hostname}/api',
+                    'marketcap': 'https://marketcap.{hostname}/api',
                 },
                 'test': {
-                    'public': 'https://demo-api-adapter.backend.currency.com/api',
-                    'private': 'https://demo-api-adapter.backend.currency.com/api',
+                    'public': 'https://demo-api-adapter.{hostname}/api',
+                    'private': 'https://demo-api-adapter.{hostname}/api',
                 },
                 'www': 'https://www.currency.com',
                 'referral': 'https://currency.com/trading/signup?c=362jaimv&pid=referral',
@@ -136,64 +140,86 @@ class currencycom(Exchange):
                 ],
                 'fees': 'https://currency.com/fees-charges',
             },
+            # rate-limits are described at: https://currency.com/api-get-started
             'api': {
                 'public': {
-                    'get': [
-                        'v1/time',
-                        'v2/time',
-                        'v1/exchangeInfo',
-                        'v2/exchangeInfo',
-                        'v1/depth',
-                        'v2/depth',
-                        'v1/aggTrades',
-                        'v2/aggTrades',
-                        'v1/klines',
-                        'v2/klines',
-                        'v1/ticker/24hr',
-                        'v2/ticker/24hr',
-                    ],
+                    'get': {
+                        'v1/time': 1,
+                        'v2/time': 1,
+                        'v1/exchangeInfo': 1,
+                        'v2/exchangeInfo': 1,
+                        'v1/depth': 1,
+                        'v2/depth': 1,
+                        'v1/aggTrades': 1,
+                        'v2/aggTrades': 1,
+                        'v1/klines': 1,
+                        'v2/klines': 1,
+                        'v1/ticker/24hr': 1,
+                        'v2/ticker/24hr': 1,
+                    },
+                },
+                'marketcap': {
+                    'get': {
+                        'v1/assets': 1,
+                        'v1/candles': 1,
+                        'v1/orderbook': 1,
+                        'v1/summary': 1,
+                        'v1/ticker': 1,
+                        'v1/token/assets': 1,
+                        'v1/token/orderbook': 1,
+                        'v1/token/summary': 1,
+                        'v1/token/ticker': 1,
+                        'v1/token/trades': 1,
+                        'v1/token_crypto/OHLC': 1,
+                        'v1/token_crypto/assets': 1,
+                        'v1/token_crypto/orderbook': 1,
+                        'v1/token_crypto/summary': 1,
+                        'v1/token_crypto/ticker': 1,
+                        'v1/token_crypto/trades': 1,
+                        'v1/trades': 1,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'v1/account',
-                        'v2/account',
-                        'v1/currencies',
-                        'v2/currencies',
-                        'v1/deposits',
-                        'v2/deposits',
-                        'v1/depositAddress',
-                        'v2/depositAddress',
-                        'v1/ledger',
-                        'v2/ledger',
-                        'v1/leverageSettings',
-                        'v2/leverageSettings',
-                        'v1/myTrades',
-                        'v2/myTrades',
-                        'v1/openOrders',
-                        'v2/openOrders',
-                        'v1/tradingPositions',
-                        'v2/tradingPositions',
-                        'v1/tradingPositionsHistory',
-                        'v2/tradingPositionsHistory',
-                        'v1/transactions',
-                        'v2/transactions',
-                        'v1/withdrawals',
-                        'v2/withdrawals',
-                    ],
-                    'post': [
-                        'v1/order',
-                        'v2/order',
-                        'v1/updateTradingPosition',
-                        'v2/updateTradingPosition',
-                        'v1/updateTradingOrder',
-                        'v2/updateTradingOrder',
-                        'v1/closeTradingPosition',
-                        'v2/closeTradingPosition',
-                    ],
-                    'delete': [
-                        'v1/order',
-                        'v2/order',
-                    ],
+                    'get': {
+                        'v1/account': 1,
+                        'v2/account': 1,
+                        'v1/currencies': 1,
+                        'v2/currencies': 1,
+                        'v1/deposits': 1,
+                        'v2/deposits': 1,
+                        'v1/depositAddress': 1,
+                        'v2/depositAddress': 1,
+                        'v1/ledger': 1,
+                        'v2/ledger': 1,
+                        'v1/leverageSettings': 1,
+                        'v2/leverageSettings': 1,
+                        'v1/myTrades': 1,
+                        'v2/myTrades': 1,
+                        'v1/openOrders': 1,
+                        'v2/openOrders': 1,
+                        'v1/tradingPositions': 1,
+                        'v2/tradingPositions': 1,
+                        'v1/tradingPositionsHistory': 1,
+                        'v2/tradingPositionsHistory': 1,
+                        'v1/transactions': 1,
+                        'v2/transactions': 1,
+                        'v1/withdrawals': 1,
+                        'v2/withdrawals': 1,
+                    },
+                    'post': {
+                        'v1/order': 1,
+                        'v2/order': 1,
+                        'v1/updateTradingPosition': 1,
+                        'v2/updateTradingPosition': 1,
+                        'v1/updateTradingOrder': 1,
+                        'v2/updateTradingOrder': 1,
+                        'v1/closeTradingPosition': 1,
+                        'v2/closeTradingPosition': 1,
+                    },
+                    'delete': {
+                        'v1/order': 1,
+                        'v2/order': 1,
+                    },
                 },
             },
             'fees': {
@@ -227,6 +253,7 @@ class currencycom(Exchange):
                     'Order would trigger immediately.': InvalidOrder,
                     'Account has insufficient balance for requested action.': InsufficientFunds,
                     'Rest API trading is not enabled.': ExchangeNotAvailable,
+                    'Only leverage symbol allowed here:': BadSymbol,  # when you fetchLeverage for non-leverage symbols, like 'BTC/USDT' instead of 'BTC/USDT_LEVERAGE': {"code":"-1128","msg":"Only leverage symbol allowed here: BTC/USDT"}
                 },
                 'exact': {
                     '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
@@ -270,6 +297,71 @@ class currencycom(Exchange):
         #     }
         #
         return self.safe_integer(response, 'serverTime')
+
+    def fetch_currencies(self, params={}):
+        # requires authentication
+        if not self.check_required_credentials(False):
+            return None
+        response = self.privateGetV2Currencies(params)
+        #
+        #     [
+        #         {
+        #             "name": "Euro",
+        #             "displaySymbol": "EUR.cx",
+        #             "precision": "2",
+        #             "type": "FIAT",
+        #             "minWithdrawal": "90.0",
+        #             "maxWithdrawal": "1.0E+8",
+        #             "commissionMin": "0.02",  # some instruments do not have self property
+        #             "commissionPercent": "1.5",  # some instruments do not have self property
+        #             "minDeposit": "90.0",
+        #         },
+        #         {
+        #             name: "Bitcoin",
+        #             displaySymbol: "BTC",
+        #             precision: "8",
+        #             type: "CRYPTO",  # only a few major currencies have self value, others like USDT have a value of "TOKEN"
+        #             minWithdrawal: "0.00020",
+        #             commissionFixed: "0.00010",
+        #             minDeposit: "0.00010",
+        #         },
+        #     ]
+        #
+        result = {}
+        for i in range(0, len(response)):
+            currency = response[i]
+            id = self.safe_string(currency, 'displaySymbol')
+            code = self.safe_currency_code(id)
+            fee = self.safe_number(currency, 'commissionFixed')
+            precision = self.safe_integer(currency, 'precision')
+            result[code] = {
+                'id': id,
+                'code': code,
+                'address': self.safe_string(currency, 'baseAddress'),
+                'type': self.safe_string_lower(currency, 'type'),
+                'name': self.safe_string(currency, 'name'),
+                'active': None,
+                'deposit': None,
+                'withdraw': None,
+                'fee': fee,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': self.safe_number(currency, 'minWithdrawal'),
+                        'max': self.safe_number(currency, 'maxWithdrawal'),
+                    },
+                    'deposit': {
+                        'min': self.safe_number(currency, 'minDeposit'),
+                        'max': None,
+                    },
+                },
+                'info': currency,
+            }
+        return result
 
     def fetch_markets(self, params={}):
         response = self.publicGetV2ExchangeInfo(params)
@@ -504,11 +596,34 @@ class currencycom(Exchange):
     def fetch_trading_fees(self, params={}):
         self.load_markets()
         response = self.privateGetV2Account(params)
-        return {
-            'info': response,
-            'maker': self.safe_number(response, 'makerCommission'),
-            'taker': self.safe_number(response, 'takerCommission'),
-        }
+        #
+        #    {
+        #        makerCommission: '0.20',
+        #        takerCommission: '0.20',
+        #        buyerCommission: '0.20',
+        #        sellerCommission: '0.20',
+        #        canTrade: True,
+        #        canWithdraw: True,
+        #        canDeposit: True,
+        #        updateTime: '1645738976',
+        #        userId: '-1924114235',
+        #        balances: []
+        #    }
+        #
+        makerFee = self.safe_number(response, 'makerCommission')
+        takerFee = self.safe_number(response, 'takerCommission')
+        result = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': makerFee,
+                'taker': takerFee,
+                'percentage': True,
+                'tierBased': False,
+            }
+        return result
 
     def parse_balance(self, response, type=None):
         #
@@ -785,11 +900,11 @@ class currencycom(Exchange):
         # fetchTrades(public aggregate trades)
         #
         #     {
-        #         "a":1658318071,
-        #         "p":"0.02476",
-        #         "q":"0.0",
-        #         "T":1591001423382,
-        #         "m":false
+        #         "a":"1658318071",    # Aggregate tradeId
+        #         "p":"0.02476",       # Price
+        #         "q":"0.0",           # Official doc says: "Quantity(should be ignored)"
+        #         "T":"1591001423382",  # Epoch timestamp in MS
+        #         "m":false            # Was the buyer the maker
         #     }
         #
         # createOrder fills(private)
@@ -824,31 +939,27 @@ class currencycom(Exchange):
         id = self.safe_string_2(trade, 'a', 'id')
         side = None
         orderId = self.safe_string(trade, 'orderId')
+        takerOrMaker = None
         if 'm' in trade:
-            side = 'sell' if trade['m'] else 'buy'  # self is reversed intentionally
-        elif 'isBuyerMaker' in trade:
-            side = 'sell' if trade['isBuyerMaker'] else 'buy'
-        else:
-            if 'isBuyer' in trade:
-                side = 'buy' if (trade['isBuyer']) else 'sell'  # self is a True side
+            side = 'sell' if trade['m'] else 'buy'  # self is reversed intentionally [TODO: needs reason to be mentioned]
+            takerOrMaker = 'taker'  # in public trades, it's always taker
+        elif 'isBuyer' in trade:
+            side = 'buy' if (trade['isBuyer']) else 'sell'  # self is a True side
+            takerOrMaker = 'maker' if trade['isMaker'] else 'taker'
         fee = None
         if 'commission' in trade:
             fee = {
                 'cost': self.safe_string(trade, 'commission'),
                 'currency': self.safe_currency_code(self.safe_string(trade, 'commissionAsset')),
             }
-        takerOrMaker = None
-        if 'isMaker' in trade:
-            takerOrMaker = 'maker' if trade['isMaker'] else 'taker'
         marketId = self.safe_string(trade, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         return self.safe_trade({
-            'info': trade,
+            'id': id,
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': id,
-            'order': orderId,
             'type': None,
             'takerOrMaker': takerOrMaker,
             'side': side,
@@ -856,6 +967,7 @@ class currencycom(Exchange):
             'amount': amountString,
             'cost': None,
             'fee': fee,
+            'info': trade,
         }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -871,15 +983,15 @@ class currencycom(Exchange):
             request['startTime'] = since
         response = self.publicGetV2AggTrades(self.extend(request, params))
         #
-        #     [
-        #         {
-        #             "a":1658318071,
-        #             "p":"0.02476",
-        #             "q":"0.0",
-        #             "T":1591001423382,
-        #             "m":false
-        #         }
-        #     ]
+        # [
+        #     {
+        #         "a":"1658318071",    # Aggregate tradeId
+        #         "p":"0.02476",       # Price
+        #         "q":"0.0",           # Official doc says: "Quantity(should be ignored)"
+        #         "T":"1591001423382",  # Epoch timestamp in MS
+        #         "m":false            # Was the buyer the maker
+        #     },
+        # ]
         #
         return self.parse_trades(response, market, since, limit)
 
@@ -1124,6 +1236,220 @@ class currencycom(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
+    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        return self.fetch_transactions_by_method('privateGetV2Deposits', code, since, limit, params)
+
+    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        return self.fetch_transactions_by_method('privateGetV2Withdrawals', code, since, limit, params)
+
+    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        return self.fetch_transactions_by_method('privateGetV2Transactions', code, since, limit, params)
+
+    def fetch_transactions_by_method(self, method, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {}
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        #     [
+        #       {
+        #         "id": "616769213",
+        #         "balance": "2.088",
+        #         "amount": "1.304",   # negative for 'withdrawal'
+        #         "currency": "CAKE",
+        #         "type": "deposit",
+        #         "timestamp": "1645282121023",
+        #         "paymentMethod": "BLOCKCHAIN",
+        #         "blockchainTransactionHash": "0x57c68c1f2ae74d5eda5a2a00516361d241a5c9e1ee95bf32573523857c38c112",
+        #         "status": "PROCESSED",
+        #         "commission": "0.14",  # self property only exists in withdrawal
+        #       },
+        #     ]
+        #
+        return self.parse_transactions(response, currency, since, limit, params)
+
+    def parse_transaction(self, transaction, currency=None):
+        id = self.safe_string(transaction, 'id')
+        txHash = self.safe_string(transaction, 'blockchainTransactionHash')
+        amount = self.safe_number(transaction, 'amount')
+        timestamp = self.safe_integer(transaction, 'timestamp')
+        currencyId = self.safe_string(transaction, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
+        state = self.parse_transaction_status(self.safe_string(transaction, 'state'))
+        type = self.parse_transaction_type(self.safe_string(transaction, 'type'))
+        feeCost = self.safe_string(transaction, 'commission')
+        fee = None
+        if feeCost is not None:
+            fee = {'currency': code, 'cost': feeCost}
+        result = {
+            'id': id,
+            'txid': txHash,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'network': None,
+            'addressFrom': None,
+            'address': None,
+            'addressTo': None,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': state,
+            'updated': None,
+            'comment': None,
+            'fee': fee,
+            'info': transaction,
+        }
+        return result
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            'APPROVAL': 'pending',
+            'PROCESSED': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction_type(self, type):
+        types = {
+            'deposit': 'deposit',
+            'withdrawal': 'withdrawal',
+        }
+        return self.safe_string(types, type, type)
+
+    def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {}
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = self.privateGetV2Ledger(self.extend(request, params))
+        # in the below example, first item expresses withdrawal/deposit type, second example expresses trade
+        #
+        # [
+        #     {
+        #       "id": "619031398",
+        #       "balance": "0.0",
+        #       "amount": "-1.088",
+        #       "currency": "CAKE",
+        #       "type": "withdrawal",
+        #       "timestamp": "1645460496425",
+        #       "commission": "0.13",
+        #       "paymentMethod": "BLOCKCHAIN",  # present in withdrawal/deposit
+        #       "blockchainTransactionHash": "0x400ac905557c3d34638b1c60eba110b3ee0f97f4eb0f7318015ab76e7f16b7d6",  # present in withdrawal/deposit
+        #       "status": "PROCESSED"
+        #     },
+        #     {
+        #       "id": "619031034",
+        #       "balance": "8.17223588",
+        #       "amount": "-0.01326294",
+        #       "currency": "USD",
+        #       "type": "exchange_commission",
+        #       "timestamp": "1645460461235",
+        #       "commission": "0.01326294",
+        #       "status": "PROCESSED"
+        #     },
+        # ]
+        #
+        return self.parse_ledger(response, currency, since, limit)
+
+    def parse_ledger_entry(self, item, currency=None):
+        id = self.safe_string(item, 'id')
+        amountString = self.safe_string(item, 'amount')
+        amount = Precise.string_abs(amountString)
+        timestamp = self.safe_integer(item, 'timestamp')
+        currencyId = self.safe_string(item, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
+        feeCost = self.safe_string(item, 'commission')
+        fee = None
+        if feeCost is not None:
+            fee = {'currency': code, 'cost': feeCost}
+        direction = 'out' if Precise.string_lt(amountString, '0') else 'in'
+        result = {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'direction': direction,
+            'account': None,
+            'referenceId': self.safe_string(item, 'blockchainTransactionHash'),
+            'referenceAccount': None,
+            'type': self.parse_ledger_entry_type(self.safe_string(item, 'type')),
+            'currency': code,
+            'amount': amount,
+            'before': None,
+            'after': self.safe_string(item, 'balance'),
+            'status': self.parse_ledger_entry_status(self.safe_string(item, 'status')),
+            'fee': fee,
+            'info': item,
+        }
+        return result
+
+    def parse_ledger_entry_status(self, status):
+        statuses = {
+            'APPROVAL': 'pending',
+            'PROCESSED': 'ok',
+            'CANCELLED': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_ledger_entry_type(self, type):
+        types = {
+            'deposit': 'transaction',
+            'withdrawal': 'transaction',
+            'exchange_commission': 'fee',
+        }
+        return self.safe_string(types, type, type)
+
+    def fetch_leverage(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.privateGetV2LeverageSettings(self.extend(request, params))
+        #
+        # {
+        #     "values": [1, 2, 5, 10,],
+        #     "value": "10",
+        # }
+        #
+        return self.safe_number(response, 'value')
+
+    def fetch_deposit_address(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'coin': currency['id'],
+        }
+        response = self.privateGetV2DepositAddress(self.extend(request, params))
+        #
+        #     {"address":"0x97d64eb014ac779194991e7264f01c74c90327f0"}
+        #
+        return self.parse_deposit_address(response, currency)
+
+    def parse_deposit_address(self, depositAddress, currency=None):
+        address = self.safe_string(depositAddress, 'address')
+        self.check_address(address)
+        currency = self.safe_currency(None, currency)
+        return {
+            'currency': currency['code'],
+            'address': address,
+            'tag': None,
+            'network': None,
+            'info': depositAddress,
+        }
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/' + path
         if path == 'historicalTrades':
@@ -1149,7 +1475,88 @@ class currencycom(Exchange):
         else:
             if params:
                 url += '?' + self.urlencode(params)
+        url = self.implode_hostname(url)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def fetch_positions(self, symbols=None, params={}):
+        self.load_markets()
+        response = self.privateGetV2TradingPositions(params)
+        #
+        # {
+        #     "positions": [
+        #       {
+        #         "accountId": "109698017416453793",
+        #         "id": "00a18490-0079-54c4-0000-0000803e73d3",
+        #         "instrumentId": "45463225268524228",
+        #         "orderId": "00a18490-0079-54c4-0000-0000803e73d2",
+        #         "openQuantity": "13.6",
+        #         "openPrice": "0.75724",
+        #         "closeQuantity": "0.0",
+        #         "closePrice": "0",
+        #         "rpl": "-0.007723848",
+        #         "rplConverted": "0",
+        #         "upl": "-0.006664",
+        #         "uplConverted": "-0.006664",
+        #         "swap": "0",
+        #         "swapConverted": "0",
+        #         "fee": "-0.007723848",
+        #         "dividend": "0",
+        #         "margin": "0.2",
+        #         "state": "ACTIVE",
+        #         "currency": "USD",
+        #         "createdTimestamp": "1645473877236",
+        #         "openTimestamp": "1645473877193",
+        #         "type": "NET",
+        #         "cost": "2.0583600",
+        #         "symbol": "XRP/USD_LEVERAGE"
+        #       }
+        #     ]
+        # }
+        #
+        data = self.safe_value(response, 'positions', [])
+        return self.parse_positions(data)
+
+    def parse_positions(self, positions):
+        result = []
+        for i in range(0, len(positions)):
+            result.append(self.parse_position(positions[i]))
+        return result
+
+    def parse_position(self, position, market=None):
+        market = self.safe_market(self.safe_string(position, 'symbol'), market)
+        symbol = market['symbol']
+        timestamp = self.safe_number(position, 'createdTimestamp')
+        quantityRaw = self.safe_string(position, 'openQuantity')
+        side = 'long' if Precise.string_gt(quantityRaw, '0') else 'short'
+        quantity = Precise.string_abs(quantityRaw)
+        entryPrice = self.safe_number(position, 'openPrice')
+        unrealizedProfit = self.safe_number(position, 'upl')
+        marginCoeff = self.safe_string(position, 'margin')
+        leverage = Precise.string_div('1', marginCoeff)
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'contracts': self.parse_number(quantity),
+            'contractSize': None,
+            'entryPrice': entryPrice,
+            'collateral': None,
+            'side': side,
+            # 'realizedProfit': self.safe_number(position, 'rpl'),
+            'unrealizedProfit': unrealizedProfit,
+            'leverage': leverage,
+            'percentage': None,
+            'marginType': None,
+            'notional': None,
+            'markPrice': None,
+            'liquidationPrice': None,
+            'initialMargin': None,
+            'initialMarginPercentage': None,
+            'maintenanceMargin': self.parse_number(marginCoeff),
+            'maintenanceMarginPercentage': None,
+            'marginRatio': None,
+            'info': position,
+        }
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if (httpCode == 418) or (httpCode == 429):

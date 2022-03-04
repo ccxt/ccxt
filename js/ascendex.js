@@ -44,6 +44,7 @@ module.exports = class ascendex extends Exchange {
                 'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchOHLCV': true,
@@ -58,6 +59,8 @@ module.exports = class ascendex extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
@@ -153,6 +156,7 @@ module.exports = class ascendex extends Exchange {
                                 'futures/risk',
                                 'futures/funding-payments',
                                 'order/hist',
+                                'spot/fee',
                             ],
                             'post': [
                                 'futures/transfer/deposit',
@@ -968,15 +972,12 @@ module.exports = class ascendex extends Exchange {
         const buyerIsMaker = this.safeValue (trade, 'bm', false);
         const makerOrTaker = buyerIsMaker ? 'maker' : 'taker';
         const side = buyerIsMaker ? 'buy' : 'sell';
-        let symbol = undefined;
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (undefined, market);
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'id': undefined,
             'order': undefined,
             'type': undefined,
@@ -1168,6 +1169,49 @@ module.exports = class ascendex extends Exchange {
             'fee': fee,
             'trades': undefined,
         }, market);
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const account = this.safeValue (this.accounts, 0, {});
+        const accountGroup = this.safeString (account, 'id');
+        const request = {
+            'account-group': accountGroup,
+        };
+        const response = await this.v1PrivateAccountGroupGetSpotFee (this.extend (request, params));
+        //
+        //      {
+        //         code: '0',
+        //         data: {
+        //           domain: 'spot',
+        //           userUID: 'U1479576458',
+        //           vipLevel: '0',
+        //           fees: [
+        //             { symbol: 'HT/USDT', fee: { taker: '0.001', maker: '0.001' } },
+        //             { symbol: 'LAMB/BTC', fee: { taker: '0.002', maker: '0.002' } },
+        //             { symbol: 'STOS/USDT', fee: { taker: '0.002', maker: '0.002' } },
+        //             ...
+        //           ]
+        //         }
+        //      }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const fees = this.safeValue (data, 'fees', []);
+        const result = {};
+        for (let i = 0; i < fees.length; i++) {
+            const fee = fees[i];
+            const marketId = this.safeString (fee, 'symbol');
+            const symbol = this.safeSymbol (marketId, undefined, '/');
+            const takerMaker = this.safeValue (fee, 'fee', {});
+            result[symbol] = {
+                'info': fee,
+                'symbol': symbol,
+                'maker': this.safeNumber (takerMaker, 'maker'),
+                'taker': this.safeNumber (takerMaker, 'taker'),
+            };
+        }
+        return result;
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -2268,16 +2312,8 @@ module.exports = class ascendex extends Exchange {
         return await this.v2PrivateAccountGroupPostFuturesMarginType (this.extend (request, params));
     }
 
-    async fetchLeverageTiers (symbol = undefined, params = {}) {
+    async fetchLeverageTiers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const tiers = {};
-        const symbolDefined = (symbol !== undefined);
-        if (symbolDefined) {
-            const market = this.market (symbol);
-            if (!market['contract']) {
-                throw new BadRequest (this.id + ' fetchLeverageTiers() supports contract markets only');
-            }
-        }
         const response = await this.v2PublicGetFuturesContract (params);
         //
         //     {
@@ -2308,34 +2344,53 @@ module.exports = class ascendex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        for (let i = 0; i < data.length; i++) {
-            const item = data[i];
-            const marginRequirements = this.safeValue (item, 'marginRequirements');
-            const id = this.safeString (item, 'symbol');
-            const market = this.market (id);
-            const brackets = [];
-            for (let j = 0; j < marginRequirements.length; j++) {
-                const bracket = marginRequirements[j];
-                const initialMarginRate = this.safeString (bracket, 'initialMarginRate');
-                brackets.push ({
-                    'tier': this.sum (j, 1),
-                    'notionalCurrency': market['quote'],
-                    'notionalFloor': this.safeNumber (bracket, 'positionNotionalLowerBound'),
-                    'notionalCap': this.safeNumber (bracket, 'positionNotionalUpperBound'),
-                    'maintenanceMarginRate': this.safeNumber (bracket, 'maintenanceMarginRate'),
-                    'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRate)),
-                    'info': bracket,
-                });
+        return this.parseLeverageTiers (data, symbols, 'symbol');
+    }
+
+    parseMarketLeverageTiers (info, market = undefined) {
+        /**
+            @param info: Exchange market response for 1 market
+            {
+                "symbol":"BTC-PERP",
+                "status":"Normal",
+                "displayName":"BTCUSDT",
+                "settlementAsset":"USDT",
+                "underlying":"BTC/USDT",
+                "tradingStartTime":1579701600000,
+                "priceFilter":{"minPrice":"1","maxPrice":"1000000","tickSize":"1"},
+                "lotSizeFilter":{"minQty":"0.0001","maxQty":"1000000000","lotSize":"0.0001"},
+                "commissionType":"Quote",
+                "commissionReserveRate":"0.001",
+                "marketOrderPriceMarkup":"0.03",
+                "marginRequirements":[
+                    {"positionNotionalLowerBound":"0","positionNotionalUpperBound":"50000","initialMarginRate":"0.01","maintenanceMarginRate":"0.006"},
+                    {"positionNotionalLowerBound":"50000","positionNotionalUpperBound":"200000","initialMarginRate":"0.02","maintenanceMarginRate":"0.012"},
+                    {"positionNotionalLowerBound":"200000","positionNotionalUpperBound":"2000000","initialMarginRate":"0.04","maintenanceMarginRate":"0.024"},
+                    {"positionNotionalLowerBound":"2000000","positionNotionalUpperBound":"20000000","initialMarginRate":"0.1","maintenanceMarginRate":"0.06"},
+                    {"positionNotionalLowerBound":"20000000","positionNotionalUpperBound":"40000000","initialMarginRate":"0.2","maintenanceMarginRate":"0.12"},
+                    {"positionNotionalLowerBound":"40000000","positionNotionalUpperBound":"1000000000","initialMarginRate":"0.333333","maintenanceMarginRate":"0.2"}
+                ]
             }
-            tiers[market['symbol']] = brackets;
+            @param market: CCXT market
+        */
+        const marginRequirements = this.safeValue (info, 'marginRequirements');
+        const id = this.safeString (info, 'symbol');
+        market = this.safeMarket (id, market);
+        const tiers = [];
+        for (let i = 0; i < marginRequirements.length; i++) {
+            const tier = marginRequirements[i];
+            const initialMarginRate = this.safeString (tier, 'initialMarginRate');
+            tiers.push ({
+                'tier': this.sum (i, 1),
+                'currency': market['quote'],
+                'notionalFloor': this.safeNumber (tier, 'positionNotionalLowerBound'),
+                'notionalCap': this.safeNumber (tier, 'positionNotionalUpperBound'),
+                'maintenanceMarginRate': this.safeNumber (tier, 'maintenanceMarginRate'),
+                'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRate)),
+                'info': tier,
+            });
         }
-        if (symbolDefined) {
-            const result = {};
-            result[symbol] = this.safeValue (tiers, symbol);
-            return result;
-        } else {
-            return tiers;
-        }
+        return tiers;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -2362,6 +2417,9 @@ module.exports = class ascendex extends Exchange {
         url += request;
         if ((version === 'v1') && (request === 'cash/balance') || (request === 'margin/balance')) {
             request = 'balance';
+        }
+        if ((version === 'v1') && (request === 'spot/fee')) {
+            request = 'fee';
         }
         if (request.indexOf ('subuser') >= 0) {
             const parts = request.split ('/');

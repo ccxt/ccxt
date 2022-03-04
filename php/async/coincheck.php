@@ -52,6 +52,8 @@ class coincheck extends Exchange {
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
@@ -374,9 +376,7 @@ class coincheck extends Exchange {
             }
         }
         if ($symbol === null) {
-            if ($market !== null) {
-                $symbol = $market['symbol'];
-            }
+            $symbol = $this->safe_symbol(null, $market);
         }
         $takerOrMaker = null;
         $amountString = null;
@@ -476,6 +476,46 @@ class coincheck extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
+    }
+
+    public function fetch_trading_fees($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->privateGetAccounts ($params);
+        //
+        //     {
+        //         success => true,
+        //         id => '7487995',
+        //         email => 'some@email.com',
+        //         identity_status => 'identity_pending',
+        //         bitcoin_address => null,
+        //         lending_leverage => '4',
+        //         taker_fee => '0.0',
+        //         maker_fee => '0.0',
+        //         exchange_fees => {
+        //           btc_jpy => array( taker_fee => '0.0', maker_fee => '0.0' ),
+        //           etc_jpy => array( taker_fee => '0.0', maker_fee => '0.0' ),
+        //           fct_jpy => array( taker_fee => '0.0', maker_fee => '0.0' ),
+        //           mona_jpy => array( taker_fee => '0.0', maker_fee => '0.0' ),
+        //           plt_jpy => array( taker_fee => '0.0', maker_fee => '0.0' )
+        //         }
+        //     }
+        //
+        $fees = $this->safe_value($response, 'exchange_fees', array());
+        $result = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $market = $this->market($symbol);
+            $fee = $this->safe_value($fees, $market['id'], array());
+            $result[$symbol] = array(
+                'info' => $fee,
+                'symbol' => $symbol,
+                'maker' => $this->safe_number($fee, 'maker_fee'),
+                'taker' => $this->safe_number($fee, 'taker_fee'),
+                'percentage' => true,
+                'tierBased' => false,
+            );
+        }
+        return $result;
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
