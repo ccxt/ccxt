@@ -54,19 +54,20 @@ module.exports = class zb extends Exchange {
                 'withdraw': true,
             },
             'timeframes': {
-                '1m': '1min',
-                '3m': '3min',
-                '5m': '5min',
-                '15m': '15min',
-                '30m': '30min',
-                '1h': '1hour',
-                '2h': '2hour',
-                '4h': '4hour',
-                '6h': '6hour',
-                '12h': '12hour',
-                '1d': '1day',
-                '3d': '3day',
-                '1w': '1week',
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '1d',
+                '3d': '3d',
+                '5d': '5d',
+                '1w': '1w',
             },
             'exceptions': {
                 'ws': {
@@ -289,7 +290,7 @@ module.exports = class zb extends Exchange {
                     '9999': ExchangeError, // Unknown error
                 },
                 'broad': {
-                    '提币地址有误，请先添加提币地址。': InvalidAddress, // {"code":1001,"message":"提币地址有误，请先添加提币地址。"}
+                    '提币地址有误, 请先添加提币地址。': InvalidAddress, // {"code":1001,"message":"提币地址有误，请先添加提币地址。"}
                     '资金不足,无法划账': InsufficientFunds, // {"code":1001,"message":"资金不足,无法划账"}
                     '响应超时': RequestTimeout, // {"code":1001,"message":"响应超时"}
                 },
@@ -399,7 +400,7 @@ module.exports = class zb extends Exchange {
                                 'fundingRate',
                                 'indexKline',
                                 'indexPrice',
-                                'kCline',
+                                'kline',
                                 'markKline',
                                 'markPrice',
                                 'ticker',
@@ -453,6 +454,35 @@ module.exports = class zb extends Exchange {
                                 'trade/updateOrderAlgo',
                             ],
                         },
+                    },
+                },
+            },
+            'options': {
+                'timeframes': {
+                    'spot': {
+                        '1m': '1min',
+                        '3m': '3min',
+                        '5m': '5min',
+                        '15m': '15min',
+                        '30m': '30min',
+                        '1h': '1hour',
+                        '2h': '2hour',
+                        '4h': '4hour',
+                        '6h': '6hour',
+                        '12h': '12hour',
+                        '1d': '1day',
+                        '3d': '3day',
+                        '1w': '1week',
+                    },
+                    'swap': {
+                        '1m': '1M',
+                        '5m': '5M',
+                        '15m': '15M',
+                        '30m': '30M',
+                        '1h': '1H',
+                        '6h': '6H',
+                        '1d': '1D',
+                        '5d': '5D',
                     },
                 },
             },
@@ -1171,27 +1201,33 @@ module.exports = class zb extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const swap = market['swap'];
+        const options = this.safeValue (this.options, 'timeframes', {});
+        const timeframes = this.safeValue (options, market['type'], {});
+        const timeframeValue = this.safeString (timeframes, timeframe);
+        if (timeframeValue === undefined) {
+            throw new NotSupported (this.id + ' fetchOHLCV() does not support ' + timeframe + ' timeframe for ' + market['type'] + ' markets');
+        }
         if (limit === undefined) {
             limit = 1000;
         }
         const request = {
-            // 'market': market['id'], // spot
-            // 'symbol': market['id'], // swap
-            // 'type': this.timeframes[timeframe], // spot
-            // 'period': this.timeframes[timeframe], // swap might need to change data type
+            // 'market': market['id'], // spot only
+            // 'symbol': market['id'], // swap only
+            // 'type': timeframeValue, // spot only
+            // 'period': timeframeValue, // swap only
             // 'since': since, // spot only
             // 'limit': limit, // spot only
-            // 'size': limit, // swap
+            // 'size': limit, // swap only
         };
         const marketIdField = swap ? 'symbol' : 'market';
         request[marketIdField] = market['id'];
         const periodField = swap ? 'period' : 'type';
-        request[periodField] = this.timeframes[timeframe];
+        request[periodField] = timeframeValue;
         const sizeField = swap ? 'size' : 'limit';
         request[sizeField] = limit;
         const method = this.getSupportedMapping (market['type'], {
             'spot': 'spotV1PublicGetKline',
-            'swap': 'contractV1PublicGetKCline',
+            'swap': 'contractV1PublicGetKline',
         });
         if (since !== undefined) {
             request['since'] = since;
@@ -1214,6 +1250,16 @@ module.exports = class zb extends Exchange {
         //     }
         //
         // Swap
+        //
+        //     {
+        //         "code": 10000,
+        //         "desc": "操作成功",
+        //         "data": [
+        //             [41433.44,41433.44,41405.88,41408.75,21.368,1646366460],
+        //             [41409.25,41423.74,41408.8,41423.42,9.828,1646366520],
+        //             [41423.96,41429.39,41369.98,41370.31,123.104,1646366580]
+        //         ]
+        //     }
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
