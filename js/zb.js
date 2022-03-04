@@ -2596,22 +2596,6 @@ module.exports = class zb extends Exchange {
             request['pageSize'] = limit;
         }
         const response = await this.contractV2PrivateGetFundGetBill (this.extend (request, params));
-
-    async modifyMarginHelper (symbol, amount, type, params = {}) {
-        if (params['positionsId'] === undefined) {
-            throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a positionsId argument in the params');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        amount = this.amountToPrecision (symbol, amount);
-        const position = this.safeString (params, 'positionsId');
-        const request = {
-            'positionsId': position,
-            'amount': amount,
-            'type': type, // 1 increase, 0 reduce
-            'futuresAccountType': 1, // 1: USDT Perpetual Futures
-        };
-        const response = await this.contractV2PrivatePostPositionsUpdateMargin (this.extend (request, params));
         //
         //     {
         //         "code": 10000,
@@ -2675,6 +2659,27 @@ module.exports = class zb extends Exchange {
             });
         }
         return result;
+    }
+
+    async modifyMarginHelper (symbol, amount, type, params = {}) {
+        if (params['positionsId'] === undefined) {
+            throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a positionsId argument in the params');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        amount = this.amountToPrecision (symbol, amount);
+        const position = this.safeString (params, 'positionsId');
+        const request = {
+            'positionsId': position,
+            'amount': amount,
+            'type': type, // 1 increase, 0 reduce
+            'futuresAccountType': 1, // 1: USDT Perpetual Futures
+        };
+        const response = await this.contractV2PrivatePostPositionsUpdateMargin (this.extend (request, params));
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": {
         //             "amount": "0.002",
         //             "appendAmount": "0",
         //             "avgPrice": "43927.23",
