@@ -54,20 +54,31 @@ module.exports = class zb extends Exchange {
                 'withdraw': true,
             },
             'timeframes': {
-                '1m': '1m',
-                '3m': '3m',
-                '5m': '5m',
-                '15m': '15m',
-                '30m': '30m',
-                '1h': '1h',
-                '2h': '2h',
-                '4h': '4h',
-                '6h': '6h',
-                '12h': '12h',
-                '1d': '1d',
-                '3d': '3d',
-                '5d': '5d',
-                '1w': '1w',
+                'spot': {
+                    '1m': '1min',
+                    '3m': '3min',
+                    '5m': '5min',
+                    '15m': '15min',
+                    '30m': '30min',
+                    '1h': '1hour',
+                    '2h': '2hour',
+                    '4h': '4hour',
+                    '6h': '6hour',
+                    '12h': '12hour',
+                    '1d': '1day',
+                    '3d': '3day',
+                    '1w': '1week',
+                },
+                'swap': {
+                    '1m': '1M',
+                    '5m': '5M',
+                    '15m': '15M',
+                    '30m': '30M',
+                    '1h': '1H',
+                    '6h': '6H',
+                    '1d': '1D',
+                    '5d': '5D',
+                },
             },
             'exceptions': {
                 'ws': {
@@ -454,35 +465,6 @@ module.exports = class zb extends Exchange {
                                 'trade/updateOrderAlgo',
                             ],
                         },
-                    },
-                },
-            },
-            'options': {
-                'timeframes': {
-                    'spot': {
-                        '1m': '1min',
-                        '3m': '3min',
-                        '5m': '5min',
-                        '15m': '15min',
-                        '30m': '30min',
-                        '1h': '1hour',
-                        '2h': '2hour',
-                        '4h': '4hour',
-                        '6h': '6hour',
-                        '12h': '12hour',
-                        '1d': '1day',
-                        '3d': '3day',
-                        '1w': '1week',
-                    },
-                    'swap': {
-                        '1m': '1M',
-                        '5m': '5M',
-                        '15m': '15M',
-                        '30m': '30M',
-                        '1h': '1H',
-                        '6h': '6H',
-                        '1d': '1D',
-                        '5d': '5D',
                     },
                 },
             },
@@ -1201,8 +1183,7 @@ module.exports = class zb extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const swap = market['swap'];
-        const options = this.safeValue (this.options, 'timeframes', {});
-        const timeframes = this.safeValue (options, market['type'], {});
+        const timeframes = this.safeValue (this.timeframes, market['type'], {});
         const timeframeValue = this.safeString (timeframes, timeframe);
         if (timeframeValue === undefined) {
             throw new NotSupported (this.id + ' fetchOHLCV() does not support ' + timeframe + ' timeframe for ' + market['type'] + ' markets');
