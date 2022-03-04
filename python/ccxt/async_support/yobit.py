@@ -77,6 +77,8 @@ class yobit(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
                 'fetchTransactions': None,
                 'fetchWithdrawals': None,
                 'reduceMargin': False,
@@ -582,6 +584,49 @@ class yobit(Exchange):
             if numElements == 0:
                 return []
         return self.parse_trades(response[market['id']], market, since, limit)
+
+    async def fetch_trading_fees(self, params={}):
+        await self.load_markets()
+        response = await self.publicGetInfo(params)
+        #
+        #     {
+        #         "server_time":1615856752,
+        #         "pairs":{
+        #             "ltc_btc":{
+        #                 "decimal_places":8,
+        #                 "min_price":0.00000001,
+        #                 "max_price":10000,
+        #                 "min_amount":0.0001,
+        #                 "min_total":0.0001,
+        #                 "hidden":0,
+        #                 "fee":0.2,
+        #                 "fee_buyer":0.2,
+        #                 "fee_seller":0.2
+        #             },
+        #             ...
+        #         },
+        #     }
+        #
+        pairs = self.safe_value(response, 'pairs')
+        marketIds = list(pairs.keys())
+        result = {}
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            pair = self.safe_value(pairs, marketId, {})
+            symbol = self.safe_symbol(marketId, None, '_')
+            takerString = self.safe_string(pair, 'fee_buyer')
+            makerString = self.safe_string(pair, 'fee_seller')
+            taker = self.parse_number(Precise.string_div(takerString, '100'))
+            maker = self.parse_number(Precise.string_div(makerString, '100'))
+            result[symbol] = {
+                'info': pair,
+                'symbol': symbol,
+                'taker': taker,
+                'maker': maker,
+                'percentage': True,
+                'tierBased': False,
+            }
+        return result
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':
