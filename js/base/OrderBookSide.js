@@ -141,6 +141,13 @@ class CountedOrderBookSide extends OrderBookSide {
                 const innerIndex = this.side ? this.length - index - 1: index;
                 this.copyWithin (index + 1, index, this.length)
                 this[index] = delta
+                // in the rare case of very large orderbooks being sent
+                if (this.length > this.index.length - 1) {
+                    const existing = Array.from (this.index)
+                    existing.length = this.length * 2
+                    existing.fill (Number.MAX_VALUE, this.index.length)
+                    this.index = new Float64Array (existing)
+                }
             }
         } else if (this.index[index] == index_price) {
             this.index.copyWithin (index, index + 1, this.length)
