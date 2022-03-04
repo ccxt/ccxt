@@ -34,6 +34,7 @@ class zb extends Exchange {
                 'swap' => null, // has but unimplemented
                 'future' => null,
                 'option' => null,
+                'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createMarketOrder' => null,
@@ -46,6 +47,7 @@ class zb extends Exchange {
                 'fetchDeposits' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
+                'fetchFundingRates' => true,
                 'fetchMarkets' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -58,6 +60,7 @@ class zb extends Exchange {
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => true,
                 'setLeverage' => true,
                 'withdraw' => true,
             ),
@@ -1423,12 +1426,44 @@ class zb extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+        }
         yield $this->load_markets();
+        $market = $this->market($symbol);
+        $swap = $market['swap'];
         $request = array(
-            'id' => (string) $id,
-            'currency' => $this->market_id($symbol),
+            // 'currency' => $this->market_id($symbol), // only applicable to SPOT
+            // 'id' => (string) $id, // only applicable to SPOT
+            // 'symbol' => $this->market_id($symbol), // only applicable to SWAP
+            // 'orderId' => (string) $id, // only applicable to SWAP
+            // 'clientOrderId' => $params['clientOrderId'], // only applicable to SWAP
         );
-        return yield $this->spotV1PrivateGetCancelOrder (array_merge($request, $params));
+        $marketIdField = $swap ? 'symbol' : 'currency';
+        $request[$marketIdField] = $this->market_id($symbol);
+        $orderIdField = $swap ? 'orderId' : 'id';
+        $request[$orderIdField] = (string) $id;
+        $method = $this->get_supported_mapping($market['type'], array(
+            'spot' => 'spotV1PrivateGetCancelOrder',
+            'swap' => 'contractV2PrivatePostTradeCancelOrder',
+        ));
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        // Spot
+        //
+        //     {
+        //         "code" => 1000,
+        //         "message" => "Success。"
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         "code" => 10007,
+        //         "desc" => "orderId与clientOrderId选填1个"
+        //     }
+        //
+        return $this->parse_order($response, $market);
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
@@ -1451,11 +1486,26 @@ class zb extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
         yield $this->load_markets();
+        $market = $this->market($symbol);
+        $swap = $market['swap'];
         $request = array(
-            'id' => (string) $id,
-            'currency' => $this->market_id($symbol),
+            // 'currency' => $this->market_id($symbol), // only applicable to SPOT
+            // 'id' => (string) $id, // only applicable to SPOT
+            // 'symbol' => $this->market_id($symbol), // only applicable to SWAP
+            // 'orderId' => (string) $id, // only applicable to SWAP
+            // 'clientOrderId' => $params['clientOrderId'], // only applicable to SWAP
         );
-        $response = yield $this->spotV1PrivateGetGetOrder (array_merge($request, $params));
+        $marketIdField = $swap ? 'symbol' : 'currency';
+        $request[$marketIdField] = $this->market_id($symbol);
+        $orderIdField = $swap ? 'orderId' : 'id';
+        $request[$orderIdField] = (string) $id;
+        $method = $this->get_supported_mapping($market['type'], array(
+            'spot' => 'spotV1PrivateGetGetOrder',
+            'swap' => 'contractV2PrivateGetTradeGetOrder',
+        ));
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        // Spot
         //
         //     {
         //         'total_amount' => 0.01,
@@ -1469,7 +1519,44 @@ class zb extends Exchange {
         //         'currency' => 'eth_usdt'
         //     }
         //
-        return $this->parse_order($response, null);
+        // Swap
+        //
+        //     {
+        //         "code" => 10000,
+        //         "data" => array(
+        //             "action" => 1,
+        //             "amount" => "0.002",
+        //             "availableAmount" => "0.002",
+        //             "availableValue" => "60",
+        //             "avgPrice" => "0",
+        //             "canCancel" => true,
+        //             "cancelStatus" => 20,
+        //             "createTime" => "1646185684379",
+        //             "entrustType" => 1,
+        //             "id" => "6904603200733782016",
+        //             "leverage" => 2,
+        //             "margin" => "30",
+        //             "marketId" => "100",
+        //             "modifyTime" => "1646185684416",
+        //             "price" => "30000",
+        //             "priority" => 0,
+        //             "showStatus" => 1,
+        //             "side" => 1,
+        //             "sourceType" => 4,
+        //             "status" => 12,
+        //             "tradeAmount" => "0",
+        //             "tradeValue" => "0",
+        //             "type" => 1,
+        //             "userId" => "6896693805014120448",
+        //             "value" => "60"
+        //         ),
+        //         "desc":"操作成功"
+        //     }
+        //
+        if ($swap) {
+            $response = $this->safe_value($response, 'data', array());
+        }
+        return $this->parse_order($response, $market);
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1727,6 +1814,36 @@ class zb extends Exchange {
         //         useZbFee => false
         //     ),
         //
+        // fetchOrder Swap
+        //
+        //     array(
+        //         "action" => 1,
+        //         "amount" => "0.002",
+        //         "availableAmount" => "0.002",
+        //         "availableValue" => "60",
+        //         "avgPrice" => "0",
+        //         "canCancel" => true,
+        //         "cancelStatus" => 20,
+        //         "createTime" => "1646185684379",
+        //         "entrustType" => 1,
+        //         "id" => "6904603200733782016",
+        //         "leverage" => 2,
+        //         "margin" => "30",
+        //         "marketId" => "100",
+        //         "modifyTime" => "1646185684416",
+        //         "price" => "30000",
+        //         "priority" => 0,
+        //         "showStatus" => 1,
+        //         "side" => 1,
+        //         "sourceType" => 4,
+        //         "status" => 12,
+        //         "tradeAmount" => "0",
+        //         "tradeValue" => "0",
+        //         "type" => 1,
+        //         "userId" => "6896693805014120448",
+        //         "value" => "60"
+        //     ),
+        //
         // Spot
         //
         //     {
@@ -1749,6 +1866,9 @@ class zb extends Exchange {
         //     }
         //
         $orderId = $market['swap'] ? $this->safe_value($order, 'orderId') : $this->safe_value($order, 'id');
+        if ($orderId === null) {
+            $orderId = $this->safe_value($order, 'id');
+        }
         $side = $this->safe_integer($order, 'type');
         if ($side === null) {
             $side = null;
@@ -1756,11 +1876,17 @@ class zb extends Exchange {
             $side = ($side === 1) ? 'buy' : 'sell';
         }
         $timestamp = $this->safe_integer($order, 'trade_date');
+        if ($timestamp === null) {
+            $timestamp = $this->safe_integer($order, 'createTime');
+        }
         $marketId = $this->safe_string($order, 'currency');
         $market = $this->safe_market($marketId, $market, '_');
         $price = $this->safe_string($order, 'price');
-        $filled = $this->safe_string($order, 'trade_amount');
+        $filled = $market['swap'] ? $this->safe_string($order, 'tradeAmount') : $this->safe_string($order, 'trade_amount');
         $amount = $this->safe_string($order, 'total_amount');
+        if ($amount === null) {
+            $amount = $this->safe_string($order, 'amount');
+        }
         $cost = $this->safe_string($order, 'trade_money');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $timeInForce = $this->safe_string($order, 'timeInForce');
@@ -1783,7 +1909,7 @@ class zb extends Exchange {
         return $this->safe_order(array(
             'info' => $order,
             'id' => $orderId,
-            'clientOrderId' => null,
+            'clientOrderId' => $this->safe_string($order, 'userId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
@@ -1794,7 +1920,7 @@ class zb extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
-            'average' => null,
+            'average' => $this->safe_string($order, 'avgPrice'),
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
@@ -2022,9 +2148,21 @@ class zb extends Exchange {
 
     public function parse_funding_rate($contract, $market = null) {
         //
+        // fetchFundingRate
+        //
         //     {
         //         "fundingRate" => "0.0001",
         //         "nextCalculateTime" => "2022-02-19 00:00:00"
+        //     }
+        //
+        // fetchFundingRates
+        //
+        //     {
+        //         "symbol" => "BTC_USDT",
+        //         "markPrice" => "43254.42",
+        //         "indexPrice" => "43278.61",
+        //         "lastFundingRate" => "0.0001",
+        //         "nextFundingTime" => "1646121600000"
         //     }
         //
         $marketId = $this->safe_string($contract, 'symbol');
@@ -2034,8 +2172,8 @@ class zb extends Exchange {
         return array(
             'info' => $contract,
             'symbol' => $symbol,
-            'markPrice' => null,
-            'indexPrice' => null,
+            'markPrice' => $this->safe_string($contract, 'markPrice'),
+            'indexPrice' => $this->safe_string($contract, 'indexPrice'),
             'interestRate' => null,
             'estimatedSettlePrice' => null,
             'timestamp' => null,
@@ -2046,10 +2184,33 @@ class zb extends Exchange {
             'nextFundingRate' => null,
             'nextFundingTimestamp' => $this->parse8601($nextFundingDatetime),
             'nextFundingDatetime' => $nextFundingDatetime,
-            'previousFundingRate' => null,
+            'previousFundingRate' => $this->safe_string($contract, 'lastFundingRate'),
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
         );
+    }
+
+    public function fetch_funding_rates($symbols, $params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->contractV2PublicGetPremiumIndex ($params);
+        //
+        //     {
+        //         "code" => 10000,
+        //         "data" => array(
+        //             array(
+        //                 "symbol" => "BTC_USDT",
+        //                 "markPrice" => "43254.42",
+        //                 "indexPrice" => "43278.61",
+        //                 "lastFundingRate" => "0.0001",
+        //                 "nextFundingTime" => "1646121600000"
+        //             ),
+        //         ),
+        //         "desc":"操作成功"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $result = $this->parse_funding_rates($data);
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
@@ -2417,6 +2578,89 @@ class zb extends Exchange {
             $result[] = $this->parse_position($positions[$i]);
         }
         return $result;
+    }
+
+    public function modify_margin_helper($symbol, $amount, $type, $params = array ()) {
+        if ($params['positionsId'] === null) {
+            throw new ArgumentsRequired($this->id . ' modifyMarginHelper() requires a positionsId argument in the params');
+        }
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $amount = $this->amount_to_precision($symbol, $amount);
+        $position = $this->safe_string($params, 'positionsId');
+        $request = array(
+            'positionsId' => $position,
+            'amount' => $amount,
+            'type' => $type, // 1 increase, 0 reduce
+            'futuresAccountType' => 1, // 1 => USDT Perpetual Futures
+        );
+        $response = yield $this->contractV2PrivatePostPositionsUpdateMargin (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 10000,
+        //         "data" => array(
+        //             "amount" => "0.002",
+        //             "appendAmount" => "0",
+        //             "avgPrice" => "43927.23",
+        //             "bankruptcyPrice" => "41730.86",
+        //             "createTime" => "1646208695609",
+        //             "freezeAmount" => "0",
+        //             "id" => "6900781818669377576",
+        //             "keyMark" => "6896693805014120448-100-1-",
+        //             "lastAppendAmount" => "0",
+        //             "lastTime" => "1646209235505",
+        //             "leverage" => 20,
+        //             "liquidateLevel" => 1,
+        //             "liquidatePrice" => "41898.46",
+        //             "maintainMargin" => "0",
+        //             "margin" => "4.392723",
+        //             "marginAppendCount" => 0,
+        //             "marginBalance" => "0",
+        //             "marginMode" => 1,
+        //             "marginRate" => "0",
+        //             "marketId" => "100",
+        //             "marketName" => "BTC_USDT",
+        //             "modifyTime" => "1646209235505",
+        //             "nominalValue" => "87.88828",
+        //             "originAppendAmount" => "0",
+        //             "originId" => "6904699716827818029",
+        //             "positionsMode" => 2,
+        //             "sellerCurrencyId" => "1",
+        //             "side" => 1,
+        //             "status" => 1,
+        //             "unrealizedPnl" => "0.03382",
+        //             "usable" => true,
+        //             "userId" => "6896693805014120448"
+        //         ),
+        //         "desc":"操作成功"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $side = ($type === 1) ? 'add' : 'reduce';
+        $errorCode = $this->safe_integer($data, 'status');
+        $status = ($errorCode === 1) ? 'ok' : 'failed';
+        return array(
+            'info' => $response,
+            'type' => $side,
+            'amount' => $amount,
+            'code' => $market['quote'],
+            'symbol' => $market['symbol'],
+            'status' => $status,
+        );
+    }
+
+    public function reduce_margin($symbol, $amount, $params = array ()) {
+        if ($params['positionsId'] === null) {
+            throw new ArgumentsRequired($this->id . ' reduceMargin() requires a positionsId argument in the params');
+        }
+        return yield $this->modify_margin_helper($symbol, $amount, 0, $params);
+    }
+
+    public function add_margin($symbol, $amount, $params = array ()) {
+        if ($params['positionsId'] === null) {
+            throw new ArgumentsRequired($this->id . ' addMargin() requires a positionsId argument in the params');
+        }
+        return yield $this->modify_margin_helper($symbol, $amount, 1, $params);
     }
 
     public function nonce() {

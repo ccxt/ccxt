@@ -53,6 +53,8 @@ class bitget extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => true,
+                'fetchTradingFees' => true,
                 'fetchWithdrawals' => false,
                 'setLeverage' => true,
                 'setMarginMode' => true,
@@ -1334,6 +1336,84 @@ class bitget extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_trades($data, $market, $since, $limit);
+    }
+
+    public function fetch_trading_fee($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->publicSpotGetPublicProduct (array_merge($request, $params));
+        //
+        //     {
+        //         code => '00000',
+        //         msg => 'success',
+        //         requestTime => '1646255374000',
+        //         $data => {
+        //           $symbol => 'ethusdt_SPBL',
+        //           symbolName => null,
+        //           baseCoin => 'ETH',
+        //           quoteCoin => 'USDT',
+        //           minTradeAmount => '0',
+        //           maxTradeAmount => '0',
+        //           takerFeeRate => '0.002',
+        //           makerFeeRate => '0.002',
+        //           priceScale => '2',
+        //           quantityScale => '4',
+        //           status => 'online'
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_trading_fee($data, $market);
+    }
+
+    public function fetch_trading_fees($params = array ()) {
+        $this->load_markets();
+        $response = $this->publicSpotGetPublicProducts ($params);
+        //
+        //     {
+        //         code => '00000',
+        //         msg => 'success',
+        //         requestTime => '1646255662391',
+        //         $data => array(
+        //           array(
+        //             $symbol => 'ALPHAUSDT_SPBL',
+        //             symbolName => 'ALPHAUSDT',
+        //             baseCoin => 'ALPHA',
+        //             quoteCoin => 'USDT',
+        //             minTradeAmount => '2',
+        //             maxTradeAmount => '0',
+        //             takerFeeRate => '0.001',
+        //             makerFeeRate => '0.001',
+        //             priceScale => '4',
+        //             quantityScale => '4',
+        //             status => 'online'
+        //           ),
+        //           ...
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $result = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $feeInfo = $data[$i];
+            $fee = $this->parse_trading_fee($feeInfo);
+            $symbol = $fee['symbol'];
+            $result[$symbol] = $fee;
+        }
+        return $result;
+    }
+
+    public function parse_trading_fee($data, $market = null) {
+        $marketId = $this->safe_string($data, 'symbol');
+        return array(
+            'info' => $data,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'maker' => $this->safe_number($data, 'makerFeeRate'),
+            'taker' => $this->safe_number($data, 'takerFeeRate'),
+        );
     }
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m') {

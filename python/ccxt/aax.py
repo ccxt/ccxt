@@ -38,7 +38,6 @@ class aax(Exchange):
             'rateLimit': 500,
             'version': 'v2',
             'hostname': 'aaxpro.com',  # aax.com
-            'certified': True,
             'pro': True,
             'has': {
                 'CORS': None,

@@ -103,6 +103,7 @@ class ftx(Exchange):
                 'fetchTickers': True,
                 'fetchTime': False,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
@@ -1122,11 +1123,20 @@ class ftx(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        return {
-            'info': response,
-            'maker': self.safe_number(result, 'makerFee'),
-            'taker': self.safe_number(result, 'takerFee'),
-        }
+        maker = self.safe_number(result, 'makerFee')
+        taker = self.safe_number(result, 'takerFee')
+        tradingFees = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            tradingFees[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': True,
+                'tierBased': True,
+            }
+        return tradingFees
 
     def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
         #

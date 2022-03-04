@@ -25,6 +25,7 @@ module.exports = class zb extends Exchange {
                 'swap': undefined, // has but unimplemented
                 'future': undefined,
                 'option': undefined,
+                'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createMarketOrder': undefined,
@@ -39,6 +40,7 @@ module.exports = class zb extends Exchange {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchLedger': true,
+                'fetchFundingRates': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -51,6 +53,7 @@ module.exports = class zb extends Exchange {
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': true,
                 'setLeverage': true,
                 'withdraw': true,
             },
@@ -1416,12 +1419,44 @@ module.exports = class zb extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
         await this.loadMarkets ();
+        const market = this.market (symbol);
+        const swap = market['swap'];
         const request = {
-            'id': id.toString (),
-            'currency': this.marketId (symbol),
+            // 'currency': this.marketId (symbol), // only applicable to SPOT
+            // 'id': id.toString (), // only applicable to SPOT
+            // 'symbol': this.marketId (symbol), // only applicable to SWAP
+            // 'orderId': id.toString (), // only applicable to SWAP
+            // 'clientOrderId': params['clientOrderId'], // only applicable to SWAP
         };
-        return await this.spotV1PrivateGetCancelOrder (this.extend (request, params));
+        const marketIdField = swap ? 'symbol' : 'currency';
+        request[marketIdField] = this.marketId (symbol);
+        const orderIdField = swap ? 'orderId' : 'id';
+        request[orderIdField] = id.toString ();
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'spotV1PrivateGetCancelOrder',
+            'swap': 'contractV2PrivatePostTradeCancelOrder',
+        });
+        const response = await this[method] (this.extend (request, params));
+        //
+        // Spot
+        //
+        //     {
+        //         "code": 1000,
+        //         "message": "Success。"
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         "code": 10007,
+        //         "desc": "orderId与clientOrderId选填1个"
+        //     }
+        //
+        return this.parseOrder (response, market);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -1444,11 +1479,26 @@ module.exports = class zb extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
+        const market = this.market (symbol);
+        const swap = market['swap'];
         const request = {
-            'id': id.toString (),
-            'currency': this.marketId (symbol),
+            // 'currency': this.marketId (symbol), // only applicable to SPOT
+            // 'id': id.toString (), // only applicable to SPOT
+            // 'symbol': this.marketId (symbol), // only applicable to SWAP
+            // 'orderId': id.toString (), // only applicable to SWAP
+            // 'clientOrderId': params['clientOrderId'], // only applicable to SWAP
         };
-        const response = await this.spotV1PrivateGetGetOrder (this.extend (request, params));
+        const marketIdField = swap ? 'symbol' : 'currency';
+        request[marketIdField] = this.marketId (symbol);
+        const orderIdField = swap ? 'orderId' : 'id';
+        request[orderIdField] = id.toString ();
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'spotV1PrivateGetGetOrder',
+            'swap': 'contractV2PrivateGetTradeGetOrder',
+        });
+        let response = await this[method] (this.extend (request, params));
+        //
+        // Spot
         //
         //     {
         //         'total_amount': 0.01,
@@ -1462,7 +1512,44 @@ module.exports = class zb extends Exchange {
         //         'currency': 'eth_usdt'
         //     }
         //
-        return this.parseOrder (response, undefined);
+        // Swap
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": {
+        //             "action": 1,
+        //             "amount": "0.002",
+        //             "availableAmount": "0.002",
+        //             "availableValue": "60",
+        //             "avgPrice": "0",
+        //             "canCancel": true,
+        //             "cancelStatus": 20,
+        //             "createTime": "1646185684379",
+        //             "entrustType": 1,
+        //             "id": "6904603200733782016",
+        //             "leverage": 2,
+        //             "margin": "30",
+        //             "marketId": "100",
+        //             "modifyTime": "1646185684416",
+        //             "price": "30000",
+        //             "priority": 0,
+        //             "showStatus": 1,
+        //             "side": 1,
+        //             "sourceType": 4,
+        //             "status": 12,
+        //             "tradeAmount": "0",
+        //             "tradeValue": "0",
+        //             "type": 1,
+        //             "userId": "6896693805014120448",
+        //             "value": "60"
+        //         },
+        //         "desc":"操作成功"
+        //     }
+        //
+        if (swap) {
+            response = this.safeValue (response, 'data', {});
+        }
+        return this.parseOrder (response, market);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1720,6 +1807,36 @@ module.exports = class zb extends Exchange {
         //         useZbFee: false
         //     },
         //
+        // fetchOrder Swap
+        //
+        //     {
+        //         "action": 1,
+        //         "amount": "0.002",
+        //         "availableAmount": "0.002",
+        //         "availableValue": "60",
+        //         "avgPrice": "0",
+        //         "canCancel": true,
+        //         "cancelStatus": 20,
+        //         "createTime": "1646185684379",
+        //         "entrustType": 1,
+        //         "id": "6904603200733782016",
+        //         "leverage": 2,
+        //         "margin": "30",
+        //         "marketId": "100",
+        //         "modifyTime": "1646185684416",
+        //         "price": "30000",
+        //         "priority": 0,
+        //         "showStatus": 1,
+        //         "side": 1,
+        //         "sourceType": 4,
+        //         "status": 12,
+        //         "tradeAmount": "0",
+        //         "tradeValue": "0",
+        //         "type": 1,
+        //         "userId": "6896693805014120448",
+        //         "value": "60"
+        //     },
+        //
         // Spot
         //
         //     {
@@ -1741,19 +1858,28 @@ module.exports = class zb extends Exchange {
         //         price: 30000
         //     }
         //
-        const orderId = market['swap'] ? this.safeValue (order, 'orderId') : this.safeValue (order, 'id');
+        let orderId = market['swap'] ? this.safeValue (order, 'orderId') : this.safeValue (order, 'id');
+        if (orderId === undefined) {
+            orderId = this.safeValue (order, 'id');
+        }
         let side = this.safeInteger (order, 'type');
         if (side === undefined) {
             side = undefined;
         } else {
             side = (side === 1) ? 'buy' : 'sell';
         }
-        const timestamp = this.safeInteger (order, 'trade_date');
+        let timestamp = this.safeInteger (order, 'trade_date');
+        if (timestamp === undefined) {
+            timestamp = this.safeInteger (order, 'createTime');
+        }
         const marketId = this.safeString (order, 'currency');
         market = this.safeMarket (marketId, market, '_');
         const price = this.safeString (order, 'price');
-        const filled = this.safeString (order, 'trade_amount');
-        const amount = this.safeString (order, 'total_amount');
+        const filled = market['swap'] ? this.safeString (order, 'tradeAmount') : this.safeString (order, 'trade_amount');
+        let amount = this.safeString (order, 'total_amount');
+        if (amount === undefined) {
+            amount = this.safeString (order, 'amount');
+        }
         const cost = this.safeString (order, 'trade_money');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const timeInForce = this.safeString (order, 'timeInForce');
@@ -1776,7 +1902,7 @@ module.exports = class zb extends Exchange {
         return this.safeOrder ({
             'info': order,
             'id': orderId,
-            'clientOrderId': undefined,
+            'clientOrderId': this.safeString (order, 'userId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -1787,7 +1913,7 @@ module.exports = class zb extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
-            'average': undefined,
+            'average': this.safeString (order, 'avgPrice'),
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -2015,9 +2141,21 @@ module.exports = class zb extends Exchange {
 
     parseFundingRate (contract, market = undefined) {
         //
+        // fetchFundingRate
+        //
         //     {
         //         "fundingRate": "0.0001",
         //         "nextCalculateTime": "2022-02-19 00:00:00"
+        //     }
+        //
+        // fetchFundingRates
+        //
+        //     {
+        //         "symbol": "BTC_USDT",
+        //         "markPrice": "43254.42",
+        //         "indexPrice": "43278.61",
+        //         "lastFundingRate": "0.0001",
+        //         "nextFundingTime": "1646121600000"
         //     }
         //
         const marketId = this.safeString (contract, 'symbol');
@@ -2027,8 +2165,8 @@ module.exports = class zb extends Exchange {
         return {
             'info': contract,
             'symbol': symbol,
-            'markPrice': undefined,
-            'indexPrice': undefined,
+            'markPrice': this.safeString (contract, 'markPrice'),
+            'indexPrice': this.safeString (contract, 'indexPrice'),
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
@@ -2039,10 +2177,33 @@ module.exports = class zb extends Exchange {
             'nextFundingRate': undefined,
             'nextFundingTimestamp': this.parse8601 (nextFundingDatetime),
             'nextFundingDatetime': nextFundingDatetime,
-            'previousFundingRate': undefined,
+            'previousFundingRate': this.safeString (contract, 'lastFundingRate'),
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
         };
+    }
+
+    async fetchFundingRates (symbols, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.contractV2PublicGetPremiumIndex (params);
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": [
+        //             {
+        //                 "symbol": "BTC_USDT",
+        //                 "markPrice": "43254.42",
+        //                 "indexPrice": "43278.61",
+        //                 "lastFundingRate": "0.0001",
+        //                 "nextFundingTime": "1646121600000"
+        //             },
+        //         ],
+        //         "desc":"操作成功"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const result = this.parseFundingRates (data);
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -2435,6 +2596,22 @@ module.exports = class zb extends Exchange {
             request['pageSize'] = limit;
         }
         const response = await this.contractV2PrivateGetFundGetBill (this.extend (request, params));
+
+    async modifyMarginHelper (symbol, amount, type, params = {}) {
+        if (params['positionsId'] === undefined) {
+            throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a positionsId argument in the params');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        amount = this.amountToPrecision (symbol, amount);
+        const position = this.safeString (params, 'positionsId');
+        const request = {
+            'positionsId': position,
+            'amount': amount,
+            'type': type, // 1 increase, 0 reduce
+            'futuresAccountType': 1, // 1: USDT Perpetual Futures
+        };
+        const response = await this.contractV2PrivatePostPositionsUpdateMargin (this.extend (request, params));
         //
         //     {
         //         "code": 10000,
@@ -2498,6 +2675,68 @@ module.exports = class zb extends Exchange {
             });
         }
         return result;
+        //             "amount": "0.002",
+        //             "appendAmount": "0",
+        //             "avgPrice": "43927.23",
+        //             "bankruptcyPrice": "41730.86",
+        //             "createTime": "1646208695609",
+        //             "freezeAmount": "0",
+        //             "id": "6900781818669377576",
+        //             "keyMark": "6896693805014120448-100-1-",
+        //             "lastAppendAmount": "0",
+        //             "lastTime": "1646209235505",
+        //             "leverage": 20,
+        //             "liquidateLevel": 1,
+        //             "liquidatePrice": "41898.46",
+        //             "maintainMargin": "0",
+        //             "margin": "4.392723",
+        //             "marginAppendCount": 0,
+        //             "marginBalance": "0",
+        //             "marginMode": 1,
+        //             "marginRate": "0",
+        //             "marketId": "100",
+        //             "marketName": "BTC_USDT",
+        //             "modifyTime": "1646209235505",
+        //             "nominalValue": "87.88828",
+        //             "originAppendAmount": "0",
+        //             "originId": "6904699716827818029",
+        //             "positionsMode": 2,
+        //             "sellerCurrencyId": "1",
+        //             "side": 1,
+        //             "status": 1,
+        //             "unrealizedPnl": "0.03382",
+        //             "usable": true,
+        //             "userId": "6896693805014120448"
+        //         },
+        //         "desc":"操作成功"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const side = (type === 1) ? 'add' : 'reduce';
+        const errorCode = this.safeInteger (data, 'status');
+        const status = (errorCode === 1) ? 'ok' : 'failed';
+        return {
+            'info': response,
+            'type': side,
+            'amount': amount,
+            'code': market['quote'],
+            'symbol': market['symbol'],
+            'status': status,
+        };
+    }
+
+    async reduceMargin (symbol, amount, params = {}) {
+        if (params['positionsId'] === undefined) {
+            throw new ArgumentsRequired (this.id + ' reduceMargin() requires a positionsId argument in the params');
+        }
+        return await this.modifyMarginHelper (symbol, amount, 0, params);
+    }
+
+    async addMargin (symbol, amount, params = {}) {
+        if (params['positionsId'] === undefined) {
+            throw new ArgumentsRequired (this.id + ' addMargin() requires a positionsId argument in the params');
+        }
+        return await this.modifyMarginHelper (symbol, amount, 1, params);
     }
 
     nonce () {
