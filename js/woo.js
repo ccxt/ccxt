@@ -486,7 +486,7 @@ module.exports = class woo extends Exchange {
 
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetClientInfo (params);
+        const response = await this.v1PrivateGetClientInfo (params);
         //
         //     {
         //         "success": true,
