@@ -48,6 +48,7 @@ module.exports = class krakenfu extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg',
                 'api': {
                     'charts': 'https://futures.kraken.com/api/charts/',
+                    'history': 'https://futures.kraken.com/api/history/',
                     'public': 'https://futures.kraken.com/derivatives/api/',
                     'private': 'https://futures.kraken.com/derivatives/api/',
                 },
@@ -94,6 +95,26 @@ module.exports = class krakenfu extends Exchange {
                         '{price_type}/{symbol}/{interval}',
                     ],
                 },
+                'history': {
+                    'get': [
+                        'orders',
+                        'executions',
+                        'triggers',
+                        'accountlogcsv',
+                        'market/{symbol}/orders', // public
+                        'market/{symbol}/executions', // public
+                    ],
+                },
+                'feeschedules': {
+                    'get': [
+                        'volumes',
+                    ],
+                },
+                'withdrawal': {
+                    'post': [
+
+                    ],
+                },
             },
             'fees': {
                 'trading': {
@@ -138,6 +159,14 @@ module.exports = class krakenfu extends Exchange {
                     'charts': {
                         'GET': {
                             '{price_type}/{symbol}/{interval}': 'v1',
+                        },
+                    },
+                    'history': {
+                        'GET': {
+                            'orders': 'v2',
+                            'executions': 'v2',
+                            'triggers': 'v2',
+                            'accountlogcsv': 'v2',
                         },
                     },
                 },
@@ -778,8 +807,6 @@ module.exports = class krakenfu extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // The returned orderEvents are yet again in entirely different format, what a mess
-        // TODO
         throw new NotSupported (this.id + ' fetchOrders not supprted yet');
         // await this.loadMarkets ();
         // let market = undefined;
@@ -1607,7 +1634,7 @@ module.exports = class krakenfu extends Exchange {
             query += '?' + postData;
         }
         const url = this.urls['api'][api] + query;
-        if (api === 'private') {
+        if (api === 'private' || api === 'history') {
             const nonce = ''; // this.nonce ();
             const auth = postData + nonce + '/api/' + endpoint; // 1
             const hash = this.hash (this.encode (auth), 'sha256', 'binary'); // 2
