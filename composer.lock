@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "cf8d0dae799243156d9bca4ac9d688e6",
+    "content-hash": "6962bfc7de958e96ba1e4b8a2cfc23bf",
     "packages": [
         {
             "name": "ccxt/ccxt",
-            "version": "1.74.67",
+            "version": "1.74.92",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "ad7428e9d348d1a9a5c5a0aedaac1b52aad932ab"
+                "reference": "e2b4c78cb4b89e1b16080240aef8e6fa3bf76b60"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/ad7428e9d348d1a9a5c5a0aedaac1b52aad932ab",
-                "reference": "ad7428e9d348d1a9a5c5a0aedaac1b52aad932ab",
+                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/e2b4c78cb4b89e1b16080240aef8e6fa3bf76b60",
+                "reference": "e2b4c78cb4b89e1b16080240aef8e6fa3bf76b60",
                 "shasum": ""
             },
             "require": {
@@ -280,7 +280,7 @@
             ],
             "support": {
                 "issues": "https://github.com/ccxt/ccxt/issues",
-                "source": "https://github.com/ccxt/ccxt/tree/1.74.67"
+                "source": "https://github.com/ccxt/ccxt/tree/1.74.92"
             },
             "funding": [
                 {
@@ -288,7 +288,7 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2022-03-02T19:29:47+00:00"
+            "time": "2022-03-04T16:29:49+00:00"
         },
         {
             "name": "evenement/evenement",
@@ -1822,7 +1822,7 @@
         },
         {
             "name": "symfony/polyfill-mbstring",
-            "version": "v1.24.0",
+            "version": "v1.25.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-mbstring.git",
@@ -1885,7 +1885,7 @@
                 "shim"
             ],
             "support": {
-                "source": "https://github.com/symfony/polyfill-mbstring/tree/v1.24.0"
+                "source": "https://github.com/symfony/polyfill-mbstring/tree/v1.25.0"
             },
             "funding": [
                 {
