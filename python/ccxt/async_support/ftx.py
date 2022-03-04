@@ -361,7 +361,7 @@ class ftx(Exchange):
                     'Invalid parameter': BadRequest,  # {"error":"Invalid parameter start_time","success":false}
                     'The requested URL was not found on the server': BadRequest,
                     'No such coin': BadRequest,
-                    'No such subaccount': BadRequest,
+                    'No such subaccount': AuthenticationError,
                     'No such future': BadSymbol,
                     'No such market': BadSymbol,
                     'Do not send more than': RateLimitExceeded,
