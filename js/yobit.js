@@ -59,6 +59,7 @@ module.exports = class yobit extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactions': undefined,
                 'fetchWithdrawals': undefined,
