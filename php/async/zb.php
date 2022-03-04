@@ -65,23 +65,24 @@ class zb extends Exchange {
                 'withdraw' => true,
             ),
             'timeframes' => array(
-                '1m' => '1min',
-                '3m' => '3min',
-                '5m' => '5min',
-                '15m' => '15min',
-                '30m' => '30min',
-                '1h' => '1hour',
-                '2h' => '2hour',
-                '4h' => '4hour',
-                '6h' => '6hour',
-                '12h' => '12hour',
-                '1d' => '1day',
-                '3d' => '3day',
-                '1w' => '1week',
+                '1m' => '1m',
+                '3m' => '3m',
+                '5m' => '5m',
+                '15m' => '15m',
+                '30m' => '30m',
+                '1h' => '1h',
+                '2h' => '2h',
+                '4h' => '4h',
+                '6h' => '6h',
+                '12h' => '12h',
+                '1d' => '1d',
+                '3d' => '3d',
+                '5d' => '5d',
+                '1w' => '1w',
             ),
             'exceptions' => array(
                 'ws' => array(
-                    //  '1000' => '\\ccxt\\ExchangeError', // The call is successful.
+                    // '1000' => '\\ccxt\\ExchangeError', // The call is successful.
                     '1001' => '\\ccxt\\ExchangeError', // General error prompt
                     '1002' => '\\ccxt\\ExchangeError', // Internal Error
                     '1003' => '\\ccxt\\AuthenticationError', // Fail to verify
@@ -300,7 +301,7 @@ class zb extends Exchange {
                     '9999' => '\\ccxt\\ExchangeError', // Unknown error
                 ),
                 'broad' => array(
-                    '提币地址有误，请先添加提币地址。' => '\\ccxt\\InvalidAddress', // array("code":1001,"message":"提币地址有误，请先添加提币地址。")
+                    '提币地址有误, 请先添加提币地址。' => '\\ccxt\\InvalidAddress', // array("code":1001,"message":"提币地址有误，请先添加提币地址。")
                     '资金不足,无法划账' => '\\ccxt\\InsufficientFunds', // array("code":1001,"message":"资金不足,无法划账")
                     '响应超时' => '\\ccxt\\RequestTimeout', // array("code":1001,"message":"响应超时")
                 ),
@@ -410,7 +411,7 @@ class zb extends Exchange {
                                 'fundingRate',
                                 'indexKline',
                                 'indexPrice',
-                                'kCline',
+                                'kline',
                                 'markKline',
                                 'markPrice',
                                 'ticker',
@@ -481,6 +482,35 @@ class zb extends Exchange {
                 'ENT' => 'ENTCash',
                 'BCHABC' => 'BCHABC', // conflict with BCH / BCHA
                 'BCHSV' => 'BCHSV', // conflict with BCH / BSV
+            ),
+            'options' => array(
+                'timeframes' => array(
+                    'spot' => array(
+                        '1m' => '1min',
+                        '3m' => '3min',
+                        '5m' => '5min',
+                        '15m' => '15min',
+                        '30m' => '30min',
+                        '1h' => '1hour',
+                        '2h' => '2hour',
+                        '4h' => '4hour',
+                        '6h' => '6hour',
+                        '12h' => '12hour',
+                        '1d' => '1day',
+                        '3d' => '3day',
+                        '1w' => '1week',
+                    ),
+                    'swap' => array(
+                        '1m' => '1M',
+                        '5m' => '5M',
+                        '15m' => '15M',
+                        '30m' => '30M',
+                        '1h' => '1H',
+                        '6h' => '6H',
+                        '1d' => '1D',
+                        '5d' => '5D',
+                    ),
+                ),
             ),
         ));
     }
@@ -1157,31 +1187,91 @@ class zb extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
-        return array(
-            $this->safe_integer($ohlcv, 0),
-            $this->safe_number($ohlcv, 1),
-            $this->safe_number($ohlcv, 2),
-            $this->safe_number($ohlcv, 3),
-            $this->safe_number($ohlcv, 4),
-            $this->safe_number($ohlcv, 5),
-        );
+        if ($market['swap']) {
+            return array(
+                $this->safe_integer($ohlcv, 5),
+                $this->safe_number($ohlcv, 0),
+                $this->safe_number($ohlcv, 1),
+                $this->safe_number($ohlcv, 2),
+                $this->safe_number($ohlcv, 3),
+                $this->safe_number($ohlcv, 4),
+            );
+        } else {
+            return array(
+                $this->safe_integer($ohlcv, 0),
+                $this->safe_number($ohlcv, 1),
+                $this->safe_number($ohlcv, 2),
+                $this->safe_number($ohlcv, 3),
+                $this->safe_number($ohlcv, 4),
+                $this->safe_number($ohlcv, 5),
+            );
+        }
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
+        $swap = $market['swap'];
+        $options = $this->safe_value($this->options, 'timeframes', array());
+        $timeframes = $this->safe_value($options, $market['type'], array());
+        $timeframeValue = $this->safe_string($timeframes, $timeframe);
+        if ($timeframeValue === null) {
+            throw new NotSupported($this->id . ' fetchOHLCV() does not support ' . $timeframe . ' $timeframe for ' . $market['type'] . ' markets');
+        }
         if ($limit === null) {
             $limit = 1000;
         }
         $request = array(
-            'market' => $market['id'],
-            'type' => $this->timeframes[$timeframe],
-            'limit' => $limit,
+            // 'market' => $market['id'], // spot only
+            // 'symbol' => $market['id'], // $swap only
+            // 'type' => $timeframeValue, // spot only
+            // 'period' => $timeframeValue, // $swap only
+            // 'since' => $since, // spot only
+            // 'limit' => $limit, // spot only
+            // 'size' => $limit, // $swap only
         );
+        $marketIdField = $swap ? 'symbol' : 'market';
+        $request[$marketIdField] = $market['id'];
+        $periodField = $swap ? 'period' : 'type';
+        $request[$periodField] = $timeframeValue;
+        $sizeField = $swap ? 'size' : 'limit';
+        $request[$sizeField] = $limit;
+        $method = $this->get_supported_mapping($market['type'], array(
+            'spot' => 'spotV1PublicGetKline',
+            'swap' => 'contractV1PublicGetKline',
+        ));
         if ($since !== null) {
             $request['since'] = $since;
         }
-        $response = yield $this->spotV1PublicGetKline (array_merge($request, $params));
+        if ($limit !== null) {
+            $request['size'] = $limit;
+        }
+        $response = yield $this->$method (array_merge($request, $params));
+        //
+        // Spot
+        //
+        //     {
+        //         "symbol" => "BTC",
+        //         "data" => [
+        //             [1645091400000,43183.24,43187.49,43145.92,43182.28,0.9110],
+        //             [1645091460000,43182.18,43183.15,43182.06,43183.15,1.4393],
+        //             [1645091520000,43182.11,43240.1,43182.11,43240.1,0.3802]
+        //         ],
+        //         "moneyType" => "USDT"
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         "code" => 10000,
+        //         "desc" => "操作成功",
+        //         "data" => [
+        //             [41433.44,41433.44,41405.88,41408.75,21.368,1646366460],
+        //             [41409.25,41423.74,41408.8,41423.42,9.828,1646366520],
+        //             [41423.96,41429.39,41369.98,41370.31,123.104,1646366580]
+        //         ]
+        //     }
+        //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
