@@ -2634,6 +2634,7 @@ module.exports = class zb extends Exchange {
             'toAccount': this.safeString (transfer, 'toAccount'),
             'status': this.safeString (transfer, 'status'),
         };
+    }
 
     async modifyMarginHelper (symbol, amount, type, params = {}) {
         if (params['positionsId'] === undefined) {
@@ -2716,7 +2717,6 @@ module.exports = class zb extends Exchange {
             throw new ArgumentsRequired (this.id + ' addMargin() requires a positionsId argument in the params');
         }
         return await this.modifyMarginHelper (symbol, amount, 1, params);
-
     }
 
     nonce () {
