@@ -683,7 +683,7 @@ module.exports = class krakenfu extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @param {string} symbol: CCXT market symbol
-         * @param {string} type: One of 'limit', 'market', 'post' (post-only limit order), 'take_profit' (take_profit order)
+         * @param {string} type: One of 'limit', 'market', 'take_profit' (take_profit order)
          * @param {string} side: buy or sell
          * @param {integer} amount: Contract quantity
          * @param {float} price: Limit order price
@@ -691,16 +691,20 @@ module.exports = class krakenfu extends Exchange {
          * @param {string} params.triggerSignal: If placing a stp or take_profit, the signal used for trigger. One of: 'mark', 'index', 'last' (market price)
          * @param {string} params.cliOrdId: UUID - The order identity that is specified from the user. It must be globally unique.
          * @param {boolean} params.reduceOnly: Set as true if you wish the order to only reduce an existing position. Any order which increases an existing position will be rejected. Default false.
+         * @param {boolean} params.postOnly: Set as true if you wish to make a postOnly order. Default false.
          */
         await this.loadMarkets ();
         type = this.safeString (params, 'orderType', type);
         const timeInForce = this.safeString (params, 'timeInForce');
         const stopPrice = this.safeString (params, 'stopPrice');
+        const postOnly = this.safeString (params, 'postOnly');
         if ((type === 'stp' || type === 'take_profit') && stopPrice === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder requires params.stopPrice when type is ' + type);
         }
         if (stopPrice !== undefined) {
             type = 'stp';
+        } else if (postOnly) {
+            type = 'postOnly';
         } else if (timeInForce === 'ioc') {
             type = 'ioc';
         } else if (type === 'limit') {
@@ -833,6 +837,8 @@ module.exports = class krakenfu extends Exchange {
         const map = {
             'lmt': 'limit',
             'mkt': 'market',
+            'postonly': 'limit',
+            'ioc': 'market',
         };
         return this.safeString (map, orderType, orderType);
     }
@@ -1103,19 +1109,18 @@ module.exports = class krakenfu extends Exchange {
                     executions.push (item);
                 }
                 // Final order (after placement / editing / execution / canceling)
-                if (('new' in item) || ('order' in item) || ('orderTrigger' in item)) {
-                    details = this.safeValue2 (item, 'new', 'order');
-                    if (details === undefined) {
-                        details = item['orderTrigger'];
-                    }
+                const orderTrigger = this.safeValue (item, 'orderTrigger');
+                details = this.safeValue2 (item, 'new', 'order', orderTrigger);
+                if (details !== undefined) {
                     isPrior = false;
                     fixed = true;
-                } else if ((('orderPriorEdit' in item) || ('orderPriorExecution' in item)) && (!fixed) && (details === undefined)) {
+                } else if (!fixed) {
+                    const orderPriorExecution = this.safeValue (item, 'orderPriorExecution');
                     details = this.safeValue2 (item, 'orderPriorExecution', 'orderPriorEdit');
-                    if ('orderPriorExecution' in item) {
-                        price = this.safeFloat (item['orderPriorExecution'], 'limitPrice');
+                    price = this.safeFloat (orderPriorExecution, 'limitPrice');
+                    if (details !== undefined) {
+                        isPrior = true;
                     }
-                    isPrior = true;
                 }
             }
             trades = this.parseTrades (executions);
@@ -1131,49 +1136,42 @@ module.exports = class krakenfu extends Exchange {
         // but will be fixed below
         let status = this.parseOrderStatus (statusId);
         let isClosed = this.inArray (status, [ 'canceled', 'rejected', 'closed' ]);
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        } else {
-            const marketId = this.safeString (details, 'symbol');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            }
-        }
+        const marketId = this.safeString (details, 'symbol');
+        market = this.safeMarket (marketId, market);
         const timestamp = this.parse8601 (this.safeString2 (details, 'timestamp', 'receivedTime'));
-        const lastTradeTimestamp = undefined;
         if (price === undefined) {
             price = this.safeFloat (details, 'limitPrice');
         }
-        let amount = this.safeFloat (details, 'quantity');
-        let filled = this.safeFloat2 (details, 'filledSize', 'filled', 0.0);
-        let remaining = this.safeFloat (details, 'unfilledSize');
+        let amount = this.safeString (details, 'quantity');
+        let filled = this.safeString2 (details, 'filledSize', 'filled', '0.0');
+        let remaining = this.safeString (details, 'unfilledSize');
         let average = undefined;
-        let filled2 = 0.0;
+        let filled2 = '0.0';
         if (trades.length > 0) {
-            let vwapSum = 0.0;
+            let vwapSum = '0.0';
             for (let i = 0; i < trades.length; i++) {
                 const trade = trades[i];
-                filled2 += trade['amount'];
-                vwapSum += trade['amount'] * trade['price'];
+                const tradeAmount = this.safeString (trade, 'amount');
+                const tradePrice = this.safeString (trade, 'price');
+                filled2 = Precise.stringAdd (filled2, tradeAmount);
+                vwapSum = Precise.stringAdd (vwapSum, Precise.stringMul (tradeAmount, tradePrice));
             }
-            average = vwapSum / filled2;
-            if ((amount !== undefined) && (!isClosed) && isPrior && (filled2 >= amount)) {
+            average = Precise.stringDiv (vwapSum, filled2);
+            if ((amount !== undefined) && (!isClosed) && isPrior && Precise.stringGe (filled2, amount)) {
                 status = 'closed';
                 isClosed = true;
             }
             if (isPrior) {
-                filled = filled + filled2;
+                filled = Precise.stringAdd (filled, filled2);
             } else {
-                filled = Math.max (filled, filled2);
+                filled = Precise.stringMax (filled, filled2);
             }
         }
         if (remaining === undefined) {
             if (isPrior) {
                 if (amount !== undefined) {
                     // remaining amount before execution minus executed amount
-                    remaining = amount - filled2;
+                    remaining = Precise.stringSub (amount, filled2);
                 }
             } else {
                 remaining = amount;
@@ -1181,45 +1179,53 @@ module.exports = class krakenfu extends Exchange {
         }
         // if fetchOpenOrders are parsed
         if ((amount === undefined) && (!isPrior) && (remaining !== undefined)) {
-            amount = filled + remaining;
+            amount = Precise.stringAdd (filled, remaining);
         }
         let cost = undefined;
         if ((filled !== undefined) && (market !== undefined)) {
             const whichPrice = (average !== undefined) ? average : price;
             if (whichPrice !== undefined) {
                 if (market['linear']) {
-                    cost = filled * whichPrice; // in quote
+                    cost = Precise.stringMul (filled, whichPrice); // in quote
                 } else {
-                    cost = filled / whichPrice; // in base
+                    cost = Precise.stringDiv (filled, whichPrice); // in base
                 }
-                cost *= market['lotSize'];
+                // cost = Precise.stringMul (cost, market['lotSize']); // TODO: What is lotSize supposed to be
             }
         }
         let id = this.safeString2 (order, 'order_id', 'orderId');
         if (id === undefined) {
             id = this.safeString2 (details, 'orderId', 'uid');
         }
-        const type = this.parseOrderType (this.safeStringLower2 (details, 'type', 'orderType'));
-        const side = this.safeString (details, 'side');
-        return {
+        const type = this.safeStringLower2 (details, 'type', 'orderType');
+        let timeInForce = 'gtc';
+        if (type === 'ioc' || this.parseOrderType (type) === 'market') {
+            timeInForce = 'ioc';
+        }
+        return this.safeOrder ({
+            'info': order,
             'id': id,
+            'clientOrderId': this.safeString2 (details, 'clientOrderId', 'clientId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
+            'lastTradeTimestamp': undefined,
+            'symbol': this.safeString (market, 'symbol'),
+            'type': this.parseOrderType (type),
+            'timeInForce': timeInForce,
+            'postOnly': type === 'postonly',
+            'side': this.safeString (details, 'side'),
             'price': price,
+            'stopPrice': this.safeNumber (details, 'triggerPrice'),
             'amount': amount,
-            'cost': cost,
-            'average': average,
-            'filled': filled,
-            'remaining': remaining,
+            'cost': this.parseNumber (cost),
+            'average': this.parseNumber (average),
+            'filled': this.parseNumber (filled),
+            'remaining': this.parseNumber (remaining),
             'status': status,
             'fee': undefined,
+            'fees': undefined,
             'trades': trades,
-            'info': order,
-        };
+        });
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
