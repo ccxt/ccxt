@@ -1,12 +1,10 @@
 'use strict';
 
 //  ---------------------------------------------------------------------------
-
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, NotSupported, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } = require ('./base/errors');
+const { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } = require ('./base/errors');
 const Precise = require ('./base/Precise');
-
 //  ---------------------------------------------------------------------------
 
 module.exports = class krakenfu extends Exchange {
@@ -36,9 +34,9 @@ module.exports = class krakenfu extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchFundingHistory': undefined,
-                'fetchFundingRate': undefined,
+                'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': undefined,
+                'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedPositions': false,
                 'fetchLeverageTiers': true,
@@ -47,15 +45,18 @@ module.exports = class krakenfu extends Exchange {
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchClosedOrders': undefined, // https://support.kraken.com/hc/en-us/articles/360058243651-Historical-orders
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
-                'fetchOrders': true,
+                'fetchOrders': false,
+                'fetchOrder': false,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'setLeverage': false,
                 'setMarginMode': false,
+                'transfer': undefined, // https://support.kraken.com/hc/en-us/articles/360028105972-Withdrawal-to-Spot-Wallet // https://support.kraken.com/hc/en-us/articles/360022635852-Transfer
             },
             'urls': {
                 'test': {
@@ -67,6 +68,7 @@ module.exports = class krakenfu extends Exchange {
                 'api': {
                     'charts': 'https://futures.kraken.com/api/charts/',
                     'history': 'https://futures.kraken.com/api/history/',
+                    'feeschedules': 'https://futures.kraken.com/api/feeschedules/',
                     'public': 'https://futures.kraken.com/derivatives/api/',
                     'private': 'https://futures.kraken.com/derivatives/api/',
                 },
@@ -126,11 +128,6 @@ module.exports = class krakenfu extends Exchange {
                 'feeschedules': {
                     'get': [
                         'volumes',
-                    ],
-                },
-                'withdrawal': {
-                    'post': [
-
                     ],
                 },
             },
@@ -828,19 +825,6 @@ module.exports = class krakenfu extends Exchange {
         return response;
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchOrders not supprted yet');
-        // await this.loadMarkets ();
-        // let market = undefined;
-        // const request = {};
-        // if (symbol !== undefined) {
-        //     market = this.market (symbol);
-        //     request['symbol'] = market['id'];
-        // }
-        // const response = await this.privateGetRecentorders (this.extend (request, params));
-        // return this.parseOrders ([ response ], market, since, limit);
-    }
-
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
@@ -855,7 +839,7 @@ module.exports = class krakenfu extends Exchange {
         const map = {
             'lmt': 'limit',
             'mkt': 'market',
-            'postonly': 'limit',
+            'post': 'limit',
             'ioc': 'market',
         };
         return this.safeString (map, orderType, orderType);
@@ -1135,7 +1119,7 @@ module.exports = class krakenfu extends Exchange {
                 } else if (!fixed) {
                     const orderPriorExecution = this.safeValue (item, 'orderPriorExecution');
                     details = this.safeValue2 (item, 'orderPriorExecution', 'orderPriorEdit');
-                    price = this.safeFloat (orderPriorExecution, 'limitPrice');
+                    price = this.safeString (orderPriorExecution, 'limitPrice');
                     if (details !== undefined) {
                         isPrior = true;
                     }
@@ -1158,7 +1142,7 @@ module.exports = class krakenfu extends Exchange {
         market = this.safeMarket (marketId, market);
         const timestamp = this.parse8601 (this.safeString2 (details, 'timestamp', 'receivedTime'));
         if (price === undefined) {
-            price = this.safeFloat (details, 'limitPrice');
+            price = this.safeString (details, 'limitPrice');
         }
         let amount = this.safeString (details, 'quantity');
         let filled = this.safeString2 (details, 'filledSize', 'filled', '0.0');
@@ -1230,9 +1214,9 @@ module.exports = class krakenfu extends Exchange {
             'symbol': this.safeString (market, 'symbol'),
             'type': this.parseOrderType (type),
             'timeInForce': timeInForce,
-            'postOnly': type === 'postonly',
+            'postOnly': type === 'post',
             'side': this.safeString (details, 'side'),
-            'price': price,
+            'price': this.parseNumber (price),
             'stopPrice': this.safeNumber (details, 'triggerPrice'),
             'amount': amount,
             'cost': this.parseNumber (cost),
