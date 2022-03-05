@@ -2573,6 +2573,105 @@ module.exports = class zb extends Exchange {
         return result;
     }
 
+    parseLedgerEntryType (type) {
+        const types = {
+            '1': 'realized pnl',
+            '2': 'commission',
+            '3': 'funding fee subtract',
+            '4': 'funding fee addition',
+            '5': 'insurance clear',
+            '6': 'transfer in',
+            '7': 'transfer out',
+            '8': 'margin addition',
+            '9': 'margin subtraction',
+            '10': 'commission addition',
+            '11': 'bill type freeze',
+            '12': 'bill type unfreeze',
+            '13': 'system take over margin',
+            '14': 'transfer',
+            '15': 'realized pnl collection',
+            '16': 'funding fee collection',
+            '17': 'recommender return commission',
+            '18': 'by level subtract positions',
+            '19': 'system add',
+            '20': 'system subtract',
+            '23': 'trading competition take over fund',
+            '24': 'trading contest tickets',
+            '25': 'return of trading contest tickets',
+            '26': 'experience expired recall',
+            '50': 'test register gift',
+            '51': 'register gift',
+            '52': 'deposit gift',
+            '53': 'trading volume gift',
+            '54': 'awards gift',
+            '55': 'trading volume gift',
+            '56': 'awards gift expire',
+            '201': 'open positions',
+            '202': 'close positions',
+            '203': 'take over positions',
+            '204': 'trading competition take over positions',
+            '205': 'one way open long',
+            '206': 'one way open short',
+            '207': 'one way close long',
+            '208': 'one way close short',
+            '301': 'coupon deduction service charge',
+            '302': 'experience deduction',
+            '303': 'experience expired',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        //
+        //     [
+        //         {
+        //             "type": 3,
+        //             "changeAmount": "0.00434664",
+        //             "isIn": 0,
+        //             "beforeAmount": "30.53353135",
+        //             "beforeFreezeAmount": "21.547",
+        //             "createTime": "1646121604997",
+        //             "available": "30.52918471",
+        //             "unit": "usdt",
+        //             "symbol": "BTC_USDT"
+        //         },
+        //     ],
+        //
+        const timestamp = this.safeString (item, 'createTime');
+        let direction = undefined;
+        const changeDirection = this.safeNumber (item, 'isIn');
+        if (changeDirection === 1) {
+            direction = 'increase';
+        } else {
+            direction = 'reduce';
+        }
+        let fee = undefined;
+        const feeCost = this.safeNumber (item, 'fee');
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': this.safeCurrencyCode (this.safeString (item, 'unit')),
+            };
+        }
+        return {
+            'id': this.safeString (item, 'id'),
+            'info': item,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'direction': direction,
+            'account': this.safeString (item, 'userId'),
+            'referenceId': undefined,
+            'referenceAccount': undefined,
+            'type': this.parseLedgerEntryType (this.safeInteger (item, 'type')),
+            'currency': this.safeCurrencyCode (this.safeString (item, 'unit')),
+            'amount': this.safeNumber (item, 'changeAmount'),
+            'before': this.safeNumber (item, 'beforeAmount'),
+            'after': this.safeNumber (item, 'available'),
+            'status': undefined,
+            'fee': fee,
+        };
+    }
+
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchLedger() requires a code argument');
@@ -2621,44 +2720,7 @@ module.exports = class zb extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const list = this.safeValue (data, 'list', []);
-        const result = [];
-        for (let i = 0; i < list.length; i++) {
-            const entry = list[i];
-            const timestamp = this.safeString (entry, 'createTime');
-            let direction = undefined;
-            const changeDirection = this.safeNumber (entry, 'isIn');
-            if (changeDirection === 1) {
-                direction = 'increase';
-            } else {
-                direction = 'reduce';
-            }
-            let fee = undefined;
-            const feeCost = this.safeNumber (entry, 'fee');
-            if (feeCost !== undefined) {
-                fee = {
-                    'cost': feeCost,
-                    'currency': this.safeCurrencyCode (this.safeString (entry, 'unit')),
-                };
-            }
-            result.push ({
-                'info': entry,
-                'id': this.safeString (entry, 'id'),
-                'direction': direction,
-                'account': this.safeString (entry, 'userId'),
-                'referenceId': undefined,
-                'referenceAccount': undefined,
-                'type': this.safeInteger (entry, 'type'),
-                'currency': this.safeCurrencyCode (this.safeString (entry, 'unit')),
-                'amount': this.safeNumber (entry, 'changeAmount'),
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'before': this.safeNumber (entry, 'beforeAmount'),
-                'after': this.safeNumber (entry, 'available'),
-                'status': this.safeString (response, 'code'),
-                'fee': fee,
-            });
-        }
-        return result;
+        return this.parseLedger (list, currency, since, limit);
     }
 
     async modifyMarginHelper (symbol, amount, type, params = {}) {
