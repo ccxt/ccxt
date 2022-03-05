@@ -161,85 +161,6 @@ class IndexedOrderBookSide(OrderBookSide):
         self.storeArray([price, size, order_id])
 
 # -----------------------------------------------------------------------------
-# adjusts the volumes by positive or negative relative changes or differences
-
-
-class IncrementalOrderBookSide(OrderBookSide):
-    def __init__(self, deltas=[], depth=None):
-        super(IncrementalOrderBookSide, self).__init__(deltas, depth)
-
-    def storeArray(self, delta):
-        price = delta[0]
-        size = delta[1]
-        index_price = -price if self.side else price
-        index = bisect.bisect_left(self._index, index_price)
-        index_exists = index < len(self._index) and self._index[index] == index_price
-        if index_exists:
-            size += self[index][1]
-        if size > 0:
-            if index_exists:
-                self[index][1] = size
-            else:
-                self._index.insert(index, index_price)
-                self.insert(index, delta)
-        elif index < len(self._index) and self._index[index] == index_price:
-            del self._index[index]
-            del self[index]
-
-# -----------------------------------------------------------------------------
-# incremental and indexed (2 in 1)
-
-
-class IncrementalIndexedOrderBookSide(IndexedOrderBookSide):
-    def storeArray(self, delta):
-        price = delta[0]
-        if price is not None:
-            index_price = -price if self.side else price
-        else:
-            index_price = None
-        size = delta[1]
-        order_id = delta[2]
-
-        old_price = None
-        index = None
-        contains_index = order_id in self._hashmap
-        if size > 0 and contains_index:
-            # handling for incremental stuff
-            old_price = self._hashmap[order_id]
-            index_price = index_price or old_price
-            index = bisect.bisect_left(self._index, index_price)
-            size += self[index][1]
-            # update the order if price is not defined
-            delta[0] = abs(index_price)
-            # incremental
-            delta[1] = size
-
-        if size > 0:
-            if contains_index:
-                # matches if price is not defined or if price matches
-                if index_price == old_price:
-                    # just overwrite the old index
-                    self._index[index] = index_price
-                    self[index] = delta
-                    return
-                else:
-                    # remove old price level
-                    old_index = bisect.bisect_left(self._index, old_price)
-                    del self._index[old_index]
-                    del self[old_index]
-            # insert new price level
-            self._hashmap[order_id] = index_price
-            index = bisect.bisect_left(self._index, index_price)
-            self._index.insert(index, index_price)
-            self.insert(index, delta)
-        elif contains_index:
-            old_price = self._hashmap[order_id]
-            index = bisect.bisect_left(self._index, old_price)
-            del self._index[index]
-            del self[index]
-            del self._hashmap[order_id]
-
-# -----------------------------------------------------------------------------
 # a more elegant syntax is possible here, but native inheritance is portable
 
 class Asks(OrderBookSide): side = False                                     # noqa
@@ -248,7 +169,3 @@ class CountedAsks(CountedOrderBookSide): side = False                       # no
 class CountedBids(CountedOrderBookSide): side = True                        # noqa
 class IndexedAsks(IndexedOrderBookSide): side = False                       # noqa
 class IndexedBids(IndexedOrderBookSide): side = True                        # noqa
-class IncrementalAsks(IncrementalOrderBookSide): side = False               # noqa
-class IncrementalBids(IncrementalOrderBookSide): side = True                # noqa
-class IncrementalIndexedAsks(IncrementalIndexedOrderBookSide): side = False # noqa
-class IncrementalIndexedBids(IncrementalIndexedOrderBookSide): side = True  # noqa
