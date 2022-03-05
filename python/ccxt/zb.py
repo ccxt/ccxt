@@ -1172,14 +1172,25 @@ class zb(Exchange):
 
     def parse_ohlcv(self, ohlcv, market=None):
         if market['swap']:
-            return [
-                self.safe_integer(ohlcv, 5),
-                self.safe_number(ohlcv, 0),
-                self.safe_number(ohlcv, 1),
-                self.safe_number(ohlcv, 2),
-                self.safe_number(ohlcv, 3),
-                self.safe_number(ohlcv, 4),
-            ]
+            ohlcvLength = len(ohlcv)
+            if ohlcvLength > 5:
+                return [
+                    self.safe_integer(ohlcv, 5),
+                    self.safe_number(ohlcv, 0),
+                    self.safe_number(ohlcv, 1),
+                    self.safe_number(ohlcv, 2),
+                    self.safe_number(ohlcv, 3),
+                    self.safe_number(ohlcv, 4),
+                ]
+            else:
+                return [
+                    self.safe_integer(ohlcv, 4),
+                    self.safe_number(ohlcv, 0),
+                    self.safe_number(ohlcv, 1),
+                    self.safe_number(ohlcv, 2),
+                    self.safe_number(ohlcv, 3),
+                    None,
+                ]
         else:
             return [
                 self.safe_integer(ohlcv, 0),
@@ -1247,6 +1258,74 @@ class zb(Exchange):
         #             [41433.44,41433.44,41405.88,41408.75,21.368,1646366460],
         #             [41409.25,41423.74,41408.8,41423.42,9.828,1646366520],
         #             [41423.96,41429.39,41369.98,41370.31,123.104,1646366580]
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
+
+    def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        options = self.safe_value(self.options, 'timeframes', {})
+        timeframes = self.safe_value(options, market['type'], {})
+        timeframeValue = self.safe_string(timeframes, timeframe)
+        if timeframeValue is None:
+            raise NotSupported(self.id + ' fetchMarkOHLCV() does not support ' + timeframe + ' timeframe for ' + market['type'] + ' markets')
+        if limit is None:
+            limit = 1000
+        request = {
+            'symbol': market['id'],
+            'period': timeframeValue,
+            'size': limit,
+        }
+        if since is not None:
+            request['since'] = since
+        if limit is not None:
+            request['size'] = limit
+        response = self.contractV1PublicGetMarkKline(self.extend(request, params))
+        #
+        #     {
+        #         "code": 10000,
+        #         "desc": "操作成功",
+        #         "data": [
+        #             [41603.39,41603.39,41591.59,41600.81,1646381760],
+        #             [41600.36,41605.75,41587.69,41601.97,1646381820],
+        #             [41601.97,41601.97,41562.62,41593.96,1646381880]
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
+
+    def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        options = self.safe_value(self.options, 'timeframes', {})
+        timeframes = self.safe_value(options, market['type'], {})
+        timeframeValue = self.safe_string(timeframes, timeframe)
+        if timeframeValue is None:
+            raise NotSupported(self.id + ' fetchIndexOHLCV() does not support ' + timeframe + ' timeframe for ' + market['type'] + ' markets')
+        if limit is None:
+            limit = 1000
+        request = {
+            'symbol': market['id'],
+            'period': timeframeValue,
+            'size': limit,
+        }
+        if since is not None:
+            request['since'] = since
+        if limit is not None:
+            request['size'] = limit
+        response = self.contractV1PublicGetIndexKline(self.extend(request, params))
+        #
+        #     {
+        #         "code": 10000,
+        #         "desc": "操作成功",
+        #         "data": [
+        #             [41697.53,41722.29,41689.16,41689.16,1646381640],
+        #             [41690.1,41691.73,41611.61,41611.61,1646381700],
+        #             [41611.61,41619.49,41594.87,41594.87,1646381760]
         #         ]
         #     }
         #

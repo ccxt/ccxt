@@ -1188,14 +1188,26 @@ class zb extends Exchange {
 
     public function parse_ohlcv($ohlcv, $market = null) {
         if ($market['swap']) {
-            return array(
-                $this->safe_integer($ohlcv, 5),
-                $this->safe_number($ohlcv, 0),
-                $this->safe_number($ohlcv, 1),
-                $this->safe_number($ohlcv, 2),
-                $this->safe_number($ohlcv, 3),
-                $this->safe_number($ohlcv, 4),
-            );
+            $ohlcvLength = is_array($ohlcv) ? count($ohlcv) : 0;
+            if ($ohlcvLength > 5) {
+                return array(
+                    $this->safe_integer($ohlcv, 5),
+                    $this->safe_number($ohlcv, 0),
+                    $this->safe_number($ohlcv, 1),
+                    $this->safe_number($ohlcv, 2),
+                    $this->safe_number($ohlcv, 3),
+                    $this->safe_number($ohlcv, 4),
+                );
+            } else {
+                return array(
+                    $this->safe_integer($ohlcv, 4),
+                    $this->safe_number($ohlcv, 0),
+                    $this->safe_number($ohlcv, 1),
+                    $this->safe_number($ohlcv, 2),
+                    $this->safe_number($ohlcv, 3),
+                    null,
+                );
+            }
         } else {
             return array(
                 $this->safe_integer($ohlcv, 0),
@@ -1269,6 +1281,84 @@ class zb extends Exchange {
         //             [41433.44,41433.44,41405.88,41408.75,21.368,1646366460],
         //             [41409.25,41423.74,41408.8,41423.42,9.828,1646366520],
         //             [41423.96,41429.39,41369.98,41370.31,123.104,1646366580]
+        //         ]
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+    }
+
+    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $options = $this->safe_value($this->options, 'timeframes', array());
+        $timeframes = $this->safe_value($options, $market['type'], array());
+        $timeframeValue = $this->safe_string($timeframes, $timeframe);
+        if ($timeframeValue === null) {
+            throw new NotSupported($this->id . ' fetchMarkOHLCV() does not support ' . $timeframe . ' $timeframe for ' . $market['type'] . ' markets');
+        }
+        if ($limit === null) {
+            $limit = 1000;
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'period' => $timeframeValue,
+            'size' => $limit,
+        );
+        if ($since !== null) {
+            $request['since'] = $since;
+        }
+        if ($limit !== null) {
+            $request['size'] = $limit;
+        }
+        $response = yield $this->contractV1PublicGetMarkKline (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 10000,
+        //         "desc" => "操作成功",
+        //         "data" => [
+        //             [41603.39,41603.39,41591.59,41600.81,1646381760],
+        //             [41600.36,41605.75,41587.69,41601.97,1646381820],
+        //             [41601.97,41601.97,41562.62,41593.96,1646381880]
+        //         ]
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+    }
+
+    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $options = $this->safe_value($this->options, 'timeframes', array());
+        $timeframes = $this->safe_value($options, $market['type'], array());
+        $timeframeValue = $this->safe_string($timeframes, $timeframe);
+        if ($timeframeValue === null) {
+            throw new NotSupported($this->id . ' fetchIndexOHLCV() does not support ' . $timeframe . ' $timeframe for ' . $market['type'] . ' markets');
+        }
+        if ($limit === null) {
+            $limit = 1000;
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'period' => $timeframeValue,
+            'size' => $limit,
+        );
+        if ($since !== null) {
+            $request['since'] = $since;
+        }
+        if ($limit !== null) {
+            $request['size'] = $limit;
+        }
+        $response = yield $this->contractV1PublicGetIndexKline (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 10000,
+        //         "desc" => "操作成功",
+        //         "data" => [
+        //             [41697.53,41722.29,41689.16,41689.16,1646381640],
+        //             [41690.1,41691.73,41611.61,41611.61,1646381700],
+        //             [41611.61,41619.49,41594.87,41594.87,1646381760]
         //         ]
         //     }
         //
