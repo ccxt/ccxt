@@ -222,44 +222,45 @@ module.exports = class oanda extends Exchange {
     async fetchMarkets (params = {}) {
         // possible 'type' param: 'CURRENCY', 'CFD', 'METAL'
         const response = await this.privateGetAccountsAccountIDInstruments (params);
-        // {
-        //     instruments: [
-        //       {
-        //         name: 'GBP_CAD',
-        //         type: 'CURRENCY',
-        //         displayName: 'GBP/CAD',
-        //         pipLocation: '-4',
-        //         displayPrecision: '5',
-        //         tradeUnitsPrecision: '0',
-        //         minimumTradeSize: '1',
-        //         maximumTrailingStopDistance: '1.00000',
-        //         minimumTrailingStopDistance: '0.00050',
-        //         maximumPositionSize: '0',
-        //         maximumOrderUnits: '100000000',
-        //         marginRate: '0.0333',
-        //         guaranteedStopLossOrderMode: 'ALLOWED',
-        //         minimumGuaranteedStopLossDistance: '0.0010',
-        //         guaranteedStopLossOrderExecutionPremium: '0.00050',
-        //         guaranteedStopLossOrderLevelRestriction: { volume: '1000000', priceRange: '0.00250' },
-        //         tags: [ { type: 'ASSET_CLASS', name: 'CURRENCY' } ],
-        //         financing: {
-        //              longRate: '-0.0105',
-        //              shortRate: '-0.0145',
-        //              financingDaysOfWeek: [
-        //                  { dayOfWeek: 'MONDAY', daysCharged: '1' },
-        //                  { dayOfWeek: 'TUESDAY', daysCharged: '1' },
-        //                  { dayOfWeek: 'WEDNESDAY', daysCharged: '3' },
-        //                  { dayOfWeek: 'THURSDAY', daysCharged: '1' },
-        //                  { dayOfWeek: 'FRIDAY', daysCharged: '1' },
-        //                  { dayOfWeek: 'SATURDAY', daysCharged: '0' },
-        //                  { dayOfWeek: 'SUNDAY', daysCharged: '0' }
-        //              ]
-        //          }
-        //       },
-        //       ...
-        //     ]
-        //     lastTransactionID: '3'
-        // }
+        //
+        //     {
+        //         instruments: [
+        //             {
+        //                 name: 'GBP_CAD',
+        //                 type: 'CURRENCY',
+        //                 displayName: 'GBP/CAD',
+        //                 pipLocation: '-4',
+        //                 displayPrecision: '5',
+        //                 tradeUnitsPrecision: '0',
+        //                 minimumTradeSize: '1',
+        //                 maximumTrailingStopDistance: '1.00000',
+        //                 minimumTrailingStopDistance: '0.00050',
+        //                 maximumPositionSize: '0',
+        //                 maximumOrderUnits: '100000000',
+        //                 marginRate: '0.0333',
+        //                 guaranteedStopLossOrderMode: 'ALLOWED',
+        //                 minimumGuaranteedStopLossDistance: '0.0010',
+        //                 guaranteedStopLossOrderExecutionPremium: '0.00050',
+        //                 guaranteedStopLossOrderLevelRestriction: { volume: '1000000', priceRange: '0.00250' },
+        //                 tags: [ { type: 'ASSET_CLASS', name: 'CURRENCY' } ],
+        //                 financing: {
+        //                     longRate: '-0.0105',
+        //                     shortRate: '-0.0145',
+        //                     financingDaysOfWeek: [
+        //                         { dayOfWeek: 'MONDAY', daysCharged: '1' },
+        //                         { dayOfWeek: 'TUESDAY', daysCharged: '1' },
+        //                         { dayOfWeek: 'WEDNESDAY', daysCharged: '3' },
+        //                         { dayOfWeek: 'THURSDAY', daysCharged: '1' },
+        //                         { dayOfWeek: 'FRIDAY', daysCharged: '1' },
+        //                         { dayOfWeek: 'SATURDAY', daysCharged: '0' },
+        //                         { dayOfWeek: 'SUNDAY', daysCharged: '0' }
+        //                     ]
+        //                 }
+        //             },
+        //         ]
+        //         lastTransactionID: '3'
+        //     }
+        //
         const data = this.safeValue (response, 'instruments');
         const result = [];
         for (let i = 0; i < data.length; i++) {
@@ -342,21 +343,20 @@ module.exports = class oanda extends Exchange {
         }
         const response = await this.privateGetInstrumentsInstrumentCandles (this.extend (request, params));
         //
-        // {
-        //     instrument: 'GBP_USD',
-        //     granularity: 'S5',
-        //     candles: [
-        //       {
-        //         complete: true, // might be false to last current bar
-        //         volume: '1',
-        //         time: '2022-02-02T14:13:40.000000000Z',
-        //         bid: { o: '1.35594', h: '1.35595', l: '1.35590', c: '1.35591' }, // if 'B' flag used
-        //         mid: { o: '1.35600', h: '1.35602', l: '1.35596', c: '1.35598' }, // if 'M' flag used
-        //         ask: { o: '1.35607', h: '1.35608', l: '1.35602', c: '1.35604' }  // if 'A' flag used
-        //       },
-        //       ...
-        //     ]
-        // }
+        //     {
+        //         instrument: 'GBP_USD',
+        //         granularity: 'S5',
+        //         candles: [
+        //             {
+        //                 complete: true, // might be false to last current bar
+        //                 volume: '1',
+        //                 time: '2022-02-02T14:13:40.000000000Z',
+        //                 bid: { o: '1.35594', h: '1.35595', l: '1.35590', c: '1.35591' }, // if 'B' flag used
+        //                 mid: { o: '1.35600', h: '1.35602', l: '1.35596', c: '1.35598' }, // if 'M' flag used
+        //                 ask: { o: '1.35607', h: '1.35608', l: '1.35602', c: '1.35604' }  // if 'A' flag used
+        //             },
+        //         ]
+        //     }
         //
         const data = this.safeValue (response, 'candles', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
@@ -397,33 +397,19 @@ module.exports = class oanda extends Exchange {
         };
         const response = await this.privateGetInstrumentsInstrumentOrderBook (this.extend (request, params));
         //
-        // {
-        //     orderBook: {
-        //       instrument: 'GBP_USD',
-        //       time: '2022-02-02T15:40:00Z',
-        //       unixTime: '1643816400',
-        //       price: '1.35683',
-        //       bucketWidth: '0.00050',
-        //       buckets: [
-        //          ...
-        //          {
-        //              price: '1.29150',
-        //              longCountPercent: '0.0063',
-        //              shortCountPercent: '0.0000'
-        //          },
-        //          {
-        //              price: '1.29300',
-        //              longCountPercent: '0.0063',
-        //              shortCountPercent: '0.0000'
-        //          },
-        //          {
-        //              price: '1.29350',
-        //              longCountPercent: '0.0000',
-        //              shortCountPercent: '0.0063'
-        //          },
-        //          ..
-        //       ]
-        // }
+        //     {
+        //         orderBook: {
+        //         instrument: 'GBP_USD',
+        //         time: '2022-02-02T15:40:00Z',
+        //         unixTime: '1643816400',
+        //         price: '1.35683',
+        //         bucketWidth: '0.00050',
+        //         buckets: [
+        //             { price: '1.29150', longCountPercent: '0.0063', shortCountPercent: '0.0000' },
+        //             { price: '1.29300', longCountPercent: '0.0063', shortCountPercent: '0.0000' },
+        //             { price: '1.29350', longCountPercent: '0.0000', shortCountPercent: '0.0063' },
+        //         ]
+        //     }
         //
         const orderbookObject = this.safeValue (response, 'orderBook');
         const timestamp = this.safeTimestamp (orderbookObject, 'unixTime');
@@ -481,70 +467,70 @@ module.exports = class oanda extends Exchange {
         const [ market, request ] = this.buildOrderRequest (symbol, type, side, amount, price, params);
         const response = await this.privatePostAccountsAccountIDOrders (this.extend (request, params));
         //
-        // {
-        //   orderCreateTransaction: {
-        //     id: '13',
-        //     accountID: '001-004-1234567-001',
-        //     userID: '1234567',
-        //     batchID: '13',
-        //     requestID: '132995756821489501',
-        //     time: '2022-02-03T11:38:15.490811234Z',
-        //     type: 'LIMIT_ORDER',
-        //     instrument: 'USD_JPY',
-        //     units: '-1',
-        //     price: '101.000',
-        //     timeInForce: 'GTC',
-        //     triggerCondition: 'DEFAULT',
-        //     partialFill: 'DEFAULT',
-        //     positionFill: 'DEFAULT',
-        //     reason: 'CLIENT_ORDER'
-        //   },
-        //   .................. Note: if order crosses orderBook, then the response has 'orderFillTransaction' too
-        //   orderFillTransaction: {
-        //     id: '14',
-        //     accountID: '001-004-1234567-001',
-        //     userID: '1234567',
-        //     batchID: '13',
-        //     requestID: '132995756821489501',
-        //     time: '2022-02-03T11:38:15.490811234Z',
-        //     type: 'ORDER_FILL',
-        //     orderID: '13',
-        //     instrument: 'USD_JPY',
-        //     units: '-1',
-        //     requestedUnits: '-1',
-        //     price: '114.824',
-        //     pl: '0.0000',
-        //     quotePL: '0',
-        //     financing: '0.0000',
-        //     baseFinancing: '0',
-        //     commission: '0.0000',
-        //     accountBalance: '20.0000',
-        //     gainQuoteHomeConversionFactor: '0.008664945317',
-        //     lossQuoteHomeConversionFactor: '0.008752030194',
-        //     guaranteedExecutionFee: '0.0000',
-        //     quoteGuaranteedExecutionFee: '0',
-        //     halfSpreadCost: '0.0001',
-        //     fullVWAP: '114.824',
-        //     reason: 'LIMIT_ORDER',
-        //     tradeOpened: [Object],
-        //     fullPrice: [Object],
-        //     homeConversionFactors: [Object]
-        //   },
-        //   .................. Note: if order is rejected, then the response has 'orderCancelTransaction' too
-        //   orderCancelTransaction: {
-        //     id: '69',
-        //     accountID: '001-004-1234567-001',
-        //     userID: '1234567',
-        //     batchID: '68',
-        //     requestID: '24910396909826154',
-        //     time: '2022-02-06T07:55:40.491081947Z',
-        //     type: 'ORDER_CANCEL',
-        //     orderID: '68',
-        //     reason: 'MARKET_HALTED'
-        //   },
-        //   relatedTransactionIDs: [ '13', '14' ],
-        //   lastTransactionID: '14'
-        // }
+        //     {
+        //         orderCreateTransaction: {
+        //             id: '13',
+        //             accountID: '001-004-1234567-001',
+        //             userID: '1234567',
+        //             batchID: '13',
+        //             requestID: '132995756821489501',
+        //             time: '2022-02-03T11:38:15.490811234Z',
+        //             type: 'LIMIT_ORDER',
+        //             instrument: 'USD_JPY',
+        //             units: '-1',
+        //             price: '101.000',
+        //             timeInForce: 'GTC',
+        //             triggerCondition: 'DEFAULT',
+        //             partialFill: 'DEFAULT',
+        //             positionFill: 'DEFAULT',
+        //             reason: 'CLIENT_ORDER'
+        //         },
+        //         // .................. Note: if order crosses orderBook, then the response has 'orderFillTransaction' too
+        //         orderFillTransaction: {
+        //             id: '14',
+        //             accountID: '001-004-1234567-001',
+        //             userID: '1234567',
+        //             batchID: '13',
+        //             requestID: '132995756821489501',
+        //             time: '2022-02-03T11:38:15.490811234Z',
+        //             type: 'ORDER_FILL',
+        //             orderID: '13',
+        //             instrument: 'USD_JPY',
+        //             units: '-1',
+        //             requestedUnits: '-1',
+        //             price: '114.824',
+        //             pl: '0.0000',
+        //             quotePL: '0',
+        //             financing: '0.0000',
+        //             baseFinancing: '0',
+        //             commission: '0.0000',
+        //             accountBalance: '20.0000',
+        //             gainQuoteHomeConversionFactor: '0.008664945317',
+        //             lossQuoteHomeConversionFactor: '0.008752030194',
+        //             guaranteedExecutionFee: '0.0000',
+        //             quoteGuaranteedExecutionFee: '0',
+        //             halfSpreadCost: '0.0001',
+        //             fullVWAP: '114.824',
+        //             reason: 'LIMIT_ORDER',
+        //             tradeOpened: [Object],
+        //             fullPrice: [Object],
+        //             homeConversionFactors: [Object]
+        //         },
+        //         // .................. Note: if order is rejected, then the response has 'orderCancelTransaction' too
+        //         orderCancelTransaction: {
+        //             id: '69',
+        //             accountID: '001-004-1234567-001',
+        //             userID: '1234567',
+        //             batchID: '68',
+        //             requestID: '24910396909826154',
+        //             time: '2022-02-06T07:55:40.491081947Z',
+        //             type: 'ORDER_CANCEL',
+        //             orderID: '68',
+        //             reason: 'MARKET_HALTED'
+        //         },
+        //         relatedTransactionIDs: [ '13', '14' ],
+        //         lastTransactionID: '14'
+        //     }
         //
         return this.parseOrder (response, market);
     }
@@ -554,40 +540,42 @@ module.exports = class oanda extends Exchange {
         const [ market, request ] = this.buildOrderRequest (symbol, type, side, amount, price, params);
         request['orderSpecifier'] = id;
         const response = await this.privatePutAccountsAccountIDOrdersOrderSpecifier (this.extend (request, params));
-        // {
-        //     orderCancelTransaction: {
-        //       id: '43',
-        //       accountID: '001-004-1234567-001',
-        //       userID: '1234567',
-        //       batchID: '43',
-        //       requestID: '114981813471441232',
-        //       time: '2022-02-04T17:46:54.522571338Z',
-        //       type: 'ORDER_CANCEL',
-        //       orderID: '42',
-        //       replacedByOrderID: '44',
-        //       reason: 'CLIENT_REQUEST_REPLACED'
-        //     },
-        //     orderCreateTransaction: {
-        //       id: '44',
-        //       accountID: '001-004-1234567-001',
-        //       userID: '1234567',
-        //       batchID: '43',
-        //       requestID: '114981813471441232',
-        //       time: '2022-02-04T17:46:54.522571338Z',
-        //       type: 'LIMIT_ORDER',
-        //       instrument: 'EUR_USD',
-        //       units: '1',
-        //       price: '0.98700',
-        //       timeInForce: 'GTC',
-        //       triggerCondition: 'DEFAULT',
-        //       partialFill: 'DEFAULT',
-        //       positionFill: 'DEFAULT',
-        //       reason: 'REPLACEMENT',
-        //       replacesOrderID: '42'
-        //     },
-        //     relatedTransactionIDs: [ '43', '44' ],
-        //     lastTransactionID: '44'
-        // }
+        //
+        //     {
+        //         orderCancelTransaction: {
+        //             id: '43',
+        //             accountID: '001-004-1234567-001',
+        //             userID: '1234567',
+        //             batchID: '43',
+        //             requestID: '114981813471441232',
+        //             time: '2022-02-04T17:46:54.522571338Z',
+        //             type: 'ORDER_CANCEL',
+        //             orderID: '42',
+        //             replacedByOrderID: '44',
+        //             reason: 'CLIENT_REQUEST_REPLACED'
+        //         },
+        //         orderCreateTransaction: {
+        //             id: '44',
+        //             accountID: '001-004-1234567-001',
+        //             userID: '1234567',
+        //             batchID: '43',
+        //             requestID: '114981813471441232',
+        //             time: '2022-02-04T17:46:54.522571338Z',
+        //             type: 'LIMIT_ORDER',
+        //             instrument: 'EUR_USD',
+        //             units: '1',
+        //             price: '0.98700',
+        //             timeInForce: 'GTC',
+        //             triggerCondition: 'DEFAULT',
+        //             partialFill: 'DEFAULT',
+        //             positionFill: 'DEFAULT',
+        //             reason: 'REPLACEMENT',
+        //             replacesOrderID: '42'
+        //         },
+        //         relatedTransactionIDs: [ '43', '44' ],
+        //         lastTransactionID: '44'
+        //     }
+        //
         return this.parseOrder (response, market);
     }
 
@@ -597,21 +585,23 @@ module.exports = class oanda extends Exchange {
             'orderSpecifier': id,
         };
         const response = await this.privatePutAccountsAccountIDOrdersOrderSpecifierCancel (this.extend (request, params));
-        // {
-        //     orderCancelTransaction: {
-        //       id: '51',
-        //       accountID: '001-004-1234567-001',
-        //       userID: '1234567',
-        //       batchID: '51',
-        //       requestID: '78953047329468193',
-        //       time: '2022-02-04T17:58:18.182828031Z',
-        //       type: 'ORDER_CANCEL',
-        //       orderID: '50',
-        //       reason: 'CLIENT_REQUEST'
-        //     },
-        //     relatedTransactionIDs: [ '51' ],
-        //     lastTransactionID: '51'
-        // }
+        //
+        //     {
+        //         orderCancelTransaction: {
+        //           id: '51',
+        //           accountID: '001-004-1234567-001',
+        //           userID: '1234567',
+        //           batchID: '51',
+        //           requestID: '78953047329468193',
+        //           time: '2022-02-04T17:58:18.182828031Z',
+        //           type: 'ORDER_CANCEL',
+        //           orderID: '50',
+        //           reason: 'CLIENT_REQUEST'
+        //         },
+        //         relatedTransactionIDs: [ '51' ],
+        //         lastTransactionID: '51'
+        //     }
+        //
         return this.parseOrder (response);
     }
 
@@ -621,22 +611,24 @@ module.exports = class oanda extends Exchange {
             'orderSpecifier': id,
         };
         const response = await this.privateGetAccountsAccountIDOrdersOrderSpecifier (this.extend (request, params));
-        // {
-        //     order: {
-        //       id: '17',
-        //       createTime: '2022-02-03T10:39:02.123450098Z',
-        //       type: 'MARKET',
-        //       instrument: 'USD_JPY',
-        //       units: '1',
-        //       timeInForce: 'FOK',
-        //       positionFill: 'REDUCE_ONLY',
-        //       state: 'FILLED',
-        //       fillingTransactionID: '18',
-        //       filledTime: '2022-02-03T10:39:02.123450098Z',
-        //       tradeClosedIDs: [ '10' ]
-        //     },
-        //     lastTransactionID: '42'
-        // }
+        //
+        //     {
+        //         order: {
+        //           id: '17',
+        //           createTime: '2022-02-03T10:39:02.123450098Z',
+        //           type: 'MARKET',
+        //           instrument: 'USD_JPY',
+        //           units: '1',
+        //           timeInForce: 'FOK',
+        //           positionFill: 'REDUCE_ONLY',
+        //           state: 'FILLED',
+        //           fillingTransactionID: '18',
+        //           filledTime: '2022-02-03T10:39:02.123450098Z',
+        //           tradeClosedIDs: [ '10' ]
+        //         },
+        //         lastTransactionID: '42'
+        //     }
+        //
         const order = this.safeValue (response, 'order', {});
         return this.parseOrder (order);
     }
@@ -724,7 +716,7 @@ module.exports = class oanda extends Exchange {
         let price = undefined;
         let timeInForce = undefined;
         let amountRaw = undefined;
-        let amountAbs = undefined;
+        let amount = undefined;
         let filled = undefined;
         let remaining = undefined;
         let status = undefined;
@@ -742,9 +734,9 @@ module.exports = class oanda extends Exchange {
             timestamp = this.parseDate (this.safeString (orderCreateTransaction, 'time'));
             price = this.safeString (orderCreateTransaction, 'price');
             timeInForce = this.parseTimeInForce (this.safeString (orderCreateTransaction, 'timeInForce'));
-            amountRaw = this.safeString (orderCreateTransaction, 'units');
-            amountAbs = Precise.stringAbs (amountRaw);
-            side = Precise.stringGt (amountRaw, '0') ? 'buy' : 'sell';
+            amount = this.safeString (orderCreateTransaction, 'units');
+            side = Precise.stringGt (amount, '0') ? 'buy' : 'sell';
+            amount = Precise.stringAbs (amount);
             type = this.parseOrderTransactionType (this.safeString (orderCreateTransaction, 'type'));
             let tempStatus = undefined;
             // depending the last key, we find out the order status.
@@ -769,19 +761,17 @@ module.exports = class oanda extends Exchange {
             timestamp = this.parseDate (this.safeString (chosenOrder, 'createTime'));
             price = this.safeString (chosenOrder, 'price');
             timeInForce = this.parseTimeInForce (this.safeString (chosenOrder, 'timeInForce'));
-            amountRaw = this.safeString (chosenOrder, 'units');
-            amountAbs = Precise.stringAbs (amountRaw);
+            amount = Precise.stringAbs (this.safeString (chosenOrder, 'units'));
             side = Precise.stringGt (amountRaw, '0') ? 'buy' : 'sell';
             type = this.parseOrderType (this.safeString (chosenOrder, 'type'));
             const state = this.safeString (chosenOrder, 'state');
             status = this.parseOrderStatus (state);
             if (state === 'FILLED') {
-                filled = amountAbs;
+                filled = amount;
             } else if (state === 'PENDING' || state === 'TRIGGERED') {
-                remaining = amountAbs;
+                remaining = amount;
             }
         }
-        const safeSymbol = this.safeSymbol (marketId, market);
         return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
@@ -791,13 +781,13 @@ module.exports = class oanda extends Exchange {
             'status': status,
             'type': type,
             'side': side,
-            'symbol': safeSymbol,
+            'symbol': this.safeSymbol (marketId, market),
             'timeInForce': timeInForce,
             'postOnly': undefined,
             'price': price,
             'stopPrice': undefined,
             'average': undefined,
-            'amount': amountAbs,
+            'amount': amount,
             'filled': filled,
             'remaining': remaining,
             'cost': undefined,
@@ -807,7 +797,7 @@ module.exports = class oanda extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status, parseBackward = false) {
+    parseOrderStatus (status) {
         let statuses = {
             'PENDING': 'open',
             'FILLED': 'closed',
@@ -815,57 +805,45 @@ module.exports = class oanda extends Exchange {
             'CANCELLED': 'canceled',
             'REJECTED': 'rejected',
         };
-        if (parseBackward) {
-            statuses = this.changeKeyValue (statuses);
-        }
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (status, parseBackward = false) {
+    parseOrderType (status) {
         let statuses = {
             'MARKET': 'market',
             'LIMIT': 'limit',
             'STOP': 'stop',
-            // 'GUARANTEED_STOP_LOSS': 'stop-limit', // TO_DO ?
-            'STOP_LOSS': 'stop-loss',
-            'TAKE_PROFIT': 'take-profit',
-            'MARKET_IF_TOUCHED': 'mit',
+            // 'GUARANTEED_STOP_LOSS': 'stop-limit',
+            // 'STOP_LOSS': 'stop-loss',
+            // 'TAKE_PROFIT': 'take-profit',
+            // 'MARKET_IF_TOUCHED': 'mit',
         };
-        if (parseBackward) {
-            statuses = this.changeKeyValue (statuses);
-        }
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderTransactionType (status, parseBackward = false) {
+    parseOrderTransactionType (status) {
         let statuses = {
             'MARKET_ORDER': 'market',
             'LIMIT_ORDER': 'limit',
             'STOP_ORDER': 'stop',
-            // 'GUARANTEED_STOP_LOSS_ORDER': 'stop-limit', // TO_DO ?
-            'STOP_LOSS_ORDER': 'stop-loss',
-            'TAKE_PROFIT_ORDER': 'take-profit',
-            'MARKET_IF_TOUCHED_ORDER': 'mit',
+            // 'GUARANTEED_STOP_LOSS_ORDER': 'stop-limit',
+            // 'STOP_LOSS_ORDER': 'stop-loss',
+            // 'TAKE_PROFIT_ORDER': 'take-profit',
+            // 'MARKET_IF_TOUCHED_ORDER': 'mit',
             // statuses
             'ORDER_CANCEL': 'cancel',
             'ORDER_FILL': 'close',
         };
-        if (parseBackward) {
-            statuses = this.changeKeyValue (statuses);
-        }
         return this.safeString (statuses, status, status);
     }
 
-    parseTimeInForce (timeInForce, parseBackward = false) {
+    parseTimeInForce (timeInForce) {
         let statuses = {
             'GTC': 'GTC',
             'IOC': 'IOC',
             'FOK': 'FOK',
             'GTD': 'GTD',
         };
-        if (parseBackward) {
-            statuses = this.changeKeyValue (statuses);
-        }
         return this.safeString (statuses, timeInForce, timeInForce);
     }
 
@@ -886,31 +864,27 @@ module.exports = class oanda extends Exchange {
         return result;
     }
 
-    parsePosition (position, market = undefined, symbols = undefined) {
-        // fetchPositions :
+    parsePosition (position, market = undefined) {
         //
-        //  {
-        //    id: '54',
-        //    instrument: 'EUR_USD',
-        //    price: '1.14531',
-        //    openTime: '2022-02-04T18:47:36.387316038Z',
-        //    initialUnits: '2',
-        //    state: 'OPEN',
-        //    currentUnits: '2',
-        //    realizedPL: '0.0000',
-        //    financing: '0.0000',
-        //    dividendAdjustment: '0.0000',
-        //    unrealizedPL: '-0.0003',
-        //    marginUsed: '0.2290'
-        //  }
+        // fetchPositions
+        //
+        //     {
+        //         id: '54',
+        //         instrument: 'EUR_USD',
+        //         price: '1.14531',
+        //         openTime: '2022-02-04T18:47:36.387316038Z',
+        //         initialUnits: '2',
+        //         state: 'OPEN',
+        //         currentUnits: '2',
+        //         realizedPL: '0.0000',
+        //         financing: '0.0000',
+        //         dividendAdjustment: '0.0000',
+        //         unrealizedPL: '-0.0003',
+        //         marginUsed: '0.2290'
+        //     }
+        //
         const marketId = this.safeString (position, 'instrument');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
-        if (symbols !== undefined) {
-            if (symbols.indexOf (symbol) < 0) {
-                return undefined;
-            }
-        }
+        market = this.safeMarket (marketId, market, '_');
         const date = this.safeString (position, 'openTime');
         const timestamp = this.parseDate (date);
         const initialSize = this.safeString (position, 'initialUnits');
@@ -919,7 +893,7 @@ module.exports = class oanda extends Exchange {
         // TODO: i am not sure if the margin values are correctly structured by me
         return {
             'id': this.safeString (position, 'id'),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'initialMargin': undefined,
@@ -945,16 +919,13 @@ module.exports = class oanda extends Exchange {
         };
     }
 
-    parsePositionStatus (status, parseBackward = false) {
+    parsePositionStatus (status) {
         let statuses = {
             'ALL': 'all',
             'OPEN': 'open',
             'CLOSED': 'closed',
             'CLOSE_WHEN_TRADEABLE': 'unknown',
         };
-        if (parseBackward) {
-            statuses = this.changeKeyValue (statuses);
-        }
         return this.safeString (statuses, status, status);
     }
 
@@ -1187,44 +1158,46 @@ module.exports = class oanda extends Exchange {
 
     async fetchAccountDetails (params) {
         const response = await this.privateGetAccountsAccountIDSummary (params);
-        // {
-        //     account: {
-        //       guaranteedStopLossOrderMode: 'ALLOWED',
-        //       hedgingEnabled: false,
-        //       id: '001-004-1234567-001',
-        //       createdTime: '2017-06-19T18:08:13.242573669Z',
-        //       currency: 'USD',
-        //       createdByUserID: '1234567',
-        //       alias: 'Primary',
-        //       marginRate: '332333',
-        //       lastTransactionID: '74',
-        //       balance: '19.9947',
-        //       openTradeCount: '0',
-        //       openPositionCount: '0',
-        //       pendingOrderCount: '0',
-        //       pl: '-0.0053',
-        //       resettablePL: '-0.0053',
-        //       resettablePLTime: '2017-06-19T18:08:13.242573669Z',
-        //       financing: '0.0000',
-        //       commission: '0.0000',
-        //       dividendAdjustment: '0',
-        //       guaranteedExecutionFees: '0.0000',
-        //       unrealizedPL: '0.0000',
-        //       NAV: '19.9947',
-        //       marginUsed: '0.0000',
-        //       marginAvailable: '19.9947',
-        //       positionValue: '0.0000',
-        //       marginCloseoutUnrealizedPL: '0.0000',
-        //       marginCloseoutNAV: '19.9947',
-        //       marginCloseoutMarginUsed: '0.0000',
-        //       marginCloseoutPositionValue: '0.0000',
-        //       marginCloseoutPercent: '0.00000',
-        //       withdrawalLimit: '19.9947',
-        //       marginCallMarginUsed: '0.0000',
-        //       marginCallPercent: '0.00000'
-        //     },
-        //     lastTransactionID: '74'
-        // }
+        //
+        //     {
+        //         account: {
+        //             guaranteedStopLossOrderMode: 'ALLOWED',
+        //             hedgingEnabled: false,
+        //             id: '001-004-1234567-001',
+        //             createdTime: '2017-06-19T18:08:13.242573669Z',
+        //             currency: 'USD',
+        //             createdByUserID: '1234567',
+        //             alias: 'Primary',
+        //             marginRate: '332333',
+        //             lastTransactionID: '74',
+        //             balance: '19.9947',
+        //             openTradeCount: '0',
+        //             openPositionCount: '0',
+        //             pendingOrderCount: '0',
+        //             pl: '-0.0053',
+        //             resettablePL: '-0.0053',
+        //             resettablePLTime: '2017-06-19T18:08:13.242573669Z',
+        //             financing: '0.0000',
+        //             commission: '0.0000',
+        //             dividendAdjustment: '0',
+        //             guaranteedExecutionFees: '0.0000',
+        //             unrealizedPL: '0.0000',
+        //             NAV: '19.9947',
+        //             marginUsed: '0.0000',
+        //             marginAvailable: '19.9947',
+        //             positionValue: '0.0000',
+        //             marginCloseoutUnrealizedPL: '0.0000',
+        //             marginCloseoutNAV: '19.9947',
+        //             marginCloseoutMarginUsed: '0.0000',
+        //             marginCloseoutPositionValue: '0.0000',
+        //             marginCloseoutPercent: '0.00000',
+        //             withdrawalLimit: '19.9947',
+        //             marginCallMarginUsed: '0.0000',
+        //             marginCallPercent: '0.00000'
+        //         },
+        //         lastTransactionID: '74'
+        //     }
+        //
         return this.safeValue (response, 'account', {});
     }
 
@@ -1365,34 +1338,33 @@ module.exports = class oanda extends Exchange {
             'instruments': ids.join (','),
         };
         const response = await this.privateGetAccountsAccountIDPricing (this.extend (request, params));
-        // {
-        //     time: '2022-02-04T22:01:37.508039596Z',
-        //     prices: [
-        //       {
-        //         type: 'PRICE',
-        //         time: '2022-02-04T21:58:01.634671962Z',
-        //         bids: [
-        //            { price: '1.14508', liquidity: '1000000' },
-        //            { price: '1.14507', liquidity: '2000000' },
-        //            { price: '1.14506', liquidity: '2000000' },
-        //            { price: '1.14504', liquidity: '5000000' }
-        //         ],
-        //         asks: [
-        //            { price: '1.14525', liquidity: '1000000' },
-        //            { price: '1.14527', liquidity: '2000000' },
-        //            { price: '1.14528', liquidity: '2000000' },
-        //            { price: '1.14529', liquidity: '5000000' }
-        //         ],
-        //         closeoutBid: '1.14504',
-        //         closeoutAsk: '1.14529',
-        //         status: 'non-tradeable',
-        //         tradeable: false,
-        //         quoteHomeConversionFactors: { positiveUnits: '1.00000000', negativeUnits: '1.00000000' },
-        //         instrument: 'EUR_USD'
-        //       },
-        //       ...
-        //     ]
-        // }
+        //
+        //     {
+        //         time: '2022-02-04T22:01:37.508039596Z',
+        //         prices: [
+        //             {
+        //                 type: 'PRICE',
+        //                 time: '2022-02-04T21:58:01.634671962Z',
+        //                 bids: [
+        //                     { price: '1.14508', liquidity: '1000000' },
+        //                     { price: '1.14507', liquidity: '2000000' },
+        //                     { price: '1.14506', liquidity: '2000000' },
+        //                 ],
+        //                 asks: [
+        //                     { price: '1.14525', liquidity: '1000000' },
+        //                     { price: '1.14527', liquidity: '2000000' },
+        //                     { price: '1.14528', liquidity: '2000000' },
+        //                 ],
+        //                 closeoutBid: '1.14504',
+        //                 closeoutAsk: '1.14529',
+        //                 status: 'non-tradeable',
+        //                 tradeable: false,
+        //                 quoteHomeConversionFactors: { positiveUnits: '1.00000000', negativeUnits: '1.00000000' },
+        //                 instrument: 'EUR_USD'
+        //             },
+        //         ]
+        //     }
+        //
         const prices = this.safeValue (response, 'prices', []);
         return this.parseTickers (prices, symbols, params);
     }
@@ -1400,7 +1372,6 @@ module.exports = class oanda extends Exchange {
     parseTicker (ticker, market = undefined) {
         const marketId = this.safeString (ticker, 'instrument');
         market = this.safeMarket (marketId, market);
-        const symbol = this.safeSymbol (marketId, market);
         // const status = this.safeString (ticker, 'status') === 'tradeable';
         const date = this.safeString (ticker, 'time');
         const timestamp = this.parseDate (date);
@@ -1413,7 +1384,7 @@ module.exports = class oanda extends Exchange {
         const askPrice = this.safeNumber (askBestObject, 'price');
         const askVolume = this.safeNumber (askBestObject, 'liquidity');
         return this.safeTicker ({
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
@@ -1515,10 +1486,8 @@ module.exports = class oanda extends Exchange {
         const timestamp = this.parseDate (date);
         const amountStr = this.safeString2 (trade, 'units', 'initialUnits');
         const side = Precise.stringGt (amountStr, '0') ? 'buy' : 'sell';
-        const amountNum = this.parseNumber (Precise.stringAbs (amountStr));
         const marketId = this.safeString (trade, 'instrument');
         market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
         let type = this.safeString (trade, 'type');
         if (type !== undefined) {
             type = this.parseOrderType (type);
@@ -1535,13 +1504,13 @@ module.exports = class oanda extends Exchange {
             'id': this.safeString (trade, 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': this.safeString2 (trade, 'orderID', 'batchID'),
             'type': type,
             'takerOrMaker': undefined,
             'side': side,
             'price': this.safeNumber2 (trade, 'price', 'averageClosePrice'),
-            'amount': amountNum,
+            'amount': this.parseNumber (Precise.stringAbs (amountStr)),
             'cost': undefined,
             'fee': fee,
             'info': trade,
@@ -1553,19 +1522,21 @@ module.exports = class oanda extends Exchange {
             'marginRate': leverage,
         };
         const response = this.privatePatchAccountsAccountIDConfiguration (this.extend (request, params));
-        // {
-        //     clientConfigureTransaction: {
-        //       id: '4',
-        //       accountID: '001-002-1234567-001',
-        //       userID: '1234567',
-        //       batchID: '4',
-        //       requestID: '9456734987654321',
-        //       time: '2022-02-02T08:22:56.543732155Z',
-        //       type: 'CLIENT_CONFIGURE',
-        //       marginRate: '2'
-        //     },
-        //     lastTransactionID: '4'
-        // }
+        //
+        //     {
+        //         clientConfigureTransaction: {
+        //             id: '4',
+        //             accountID: '001-002-1234567-001',
+        //             userID: '1234567',
+        //             batchID: '4',
+        //             requestID: '9456734987654321',
+        //             time: '2022-02-02T08:22:56.543732155Z',
+        //             type: 'CLIENT_CONFIGURE',
+        //             marginRate: '2'
+        //         },
+        //         lastTransactionID: '4'
+        //     }
+        //
         return response;
     }
 
