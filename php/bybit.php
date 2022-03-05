@@ -59,6 +59,8 @@ class bybit extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
                 'fetchTransactions' => null,
                 'fetchWithdrawals' => true,
                 'setLeverage' => true,

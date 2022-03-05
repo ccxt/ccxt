@@ -57,6 +57,8 @@ class xena(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
                 'fetchWithdrawals': True,
                 'withdraw': True,
             },
@@ -72,7 +74,7 @@ class xena(Exchange):
                 },
                 'www': 'https://xena.exchange',
                 'doc': 'https://support.xena.exchange/support/solutions/44000808700',
-                'fees': 'https://trading.xena.exchange/en/platform-specification/fee-schedule',
+                'fees': 'https://trading.xena.exchange/en/contracts/terms-and-condition',
             },
             'timeframes': {
                 '1m': '1m',

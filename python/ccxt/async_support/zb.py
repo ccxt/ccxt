@@ -77,23 +77,24 @@ class zb(Exchange):
                 'withdraw': True,
             },
             'timeframes': {
-                '1m': '1min',
-                '3m': '3min',
-                '5m': '5min',
-                '15m': '15min',
-                '30m': '30min',
-                '1h': '1hour',
-                '2h': '2hour',
-                '4h': '4hour',
-                '6h': '6hour',
-                '12h': '12hour',
-                '1d': '1day',
-                '3d': '3day',
-                '1w': '1week',
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '1d',
+                '3d': '3d',
+                '5d': '5d',
+                '1w': '1w',
             },
             'exceptions': {
                 'ws': {
-                    #  '1000': ExchangeError,  # The call is successful.
+                    # '1000': ExchangeError,  # The call is successful.
                     '1001': ExchangeError,  # General error prompt
                     '1002': ExchangeError,  # Internal Error
                     '1003': AuthenticationError,  # Fail to verify
@@ -312,7 +313,7 @@ class zb(Exchange):
                     '9999': ExchangeError,  # Unknown error
                 },
                 'broad': {
-                    '提币地址有误，请先添加提币地址。': InvalidAddress,  # {"code":1001,"message":"提币地址有误，请先添加提币地址。"}
+                    '提币地址有误, 请先添加提币地址。': InvalidAddress,  # {"code":1001,"message":"提币地址有误，请先添加提币地址。"}
                     '资金不足,无法划账': InsufficientFunds,  # {"code":1001,"message":"资金不足,无法划账"}
                     '响应超时': RequestTimeout,  # {"code":1001,"message":"响应超时"}
                 },
@@ -422,7 +423,7 @@ class zb(Exchange):
                                 'fundingRate',
                                 'indexKline',
                                 'indexPrice',
-                                'kCline',
+                                'kline',
                                 'markKline',
                                 'markPrice',
                                 'ticker',
@@ -493,6 +494,35 @@ class zb(Exchange):
                 'ENT': 'ENTCash',
                 'BCHABC': 'BCHABC',  # conflict with BCH / BCHA
                 'BCHSV': 'BCHSV',  # conflict with BCH / BSV
+            },
+            'options': {
+                'timeframes': {
+                    'spot': {
+                        '1m': '1min',
+                        '3m': '3min',
+                        '5m': '5min',
+                        '15m': '15min',
+                        '30m': '30min',
+                        '1h': '1hour',
+                        '2h': '2hour',
+                        '4h': '4hour',
+                        '6h': '6hour',
+                        '12h': '12hour',
+                        '1d': '1day',
+                        '3d': '3day',
+                        '1w': '1week',
+                    },
+                    'swap': {
+                        '1m': '1M',
+                        '5m': '5M',
+                        '15m': '15M',
+                        '30m': '30M',
+                        '1h': '1H',
+                        '6h': '6H',
+                        '1d': '1D',
+                        '5d': '5D',
+                    },
+                },
             },
         })
 
@@ -1141,28 +1171,164 @@ class zb(Exchange):
         }, market, False)
 
     def parse_ohlcv(self, ohlcv, market=None):
-        return [
-            self.safe_integer(ohlcv, 0),
-            self.safe_number(ohlcv, 1),
-            self.safe_number(ohlcv, 2),
-            self.safe_number(ohlcv, 3),
-            self.safe_number(ohlcv, 4),
-            self.safe_number(ohlcv, 5),
-        ]
+        if market['swap']:
+            ohlcvLength = len(ohlcv)
+            if ohlcvLength > 5:
+                return [
+                    self.safe_integer(ohlcv, 5),
+                    self.safe_number(ohlcv, 0),
+                    self.safe_number(ohlcv, 1),
+                    self.safe_number(ohlcv, 2),
+                    self.safe_number(ohlcv, 3),
+                    self.safe_number(ohlcv, 4),
+                ]
+            else:
+                return [
+                    self.safe_integer(ohlcv, 4),
+                    self.safe_number(ohlcv, 0),
+                    self.safe_number(ohlcv, 1),
+                    self.safe_number(ohlcv, 2),
+                    self.safe_number(ohlcv, 3),
+                    None,
+                ]
+        else:
+            return [
+                self.safe_integer(ohlcv, 0),
+                self.safe_number(ohlcv, 1),
+                self.safe_number(ohlcv, 2),
+                self.safe_number(ohlcv, 3),
+                self.safe_number(ohlcv, 4),
+                self.safe_number(ohlcv, 5),
+            ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        swap = market['swap']
+        options = self.safe_value(self.options, 'timeframes', {})
+        timeframes = self.safe_value(options, market['type'], {})
+        timeframeValue = self.safe_string(timeframes, timeframe)
+        if timeframeValue is None:
+            raise NotSupported(self.id + ' fetchOHLCV() does not support ' + timeframe + ' timeframe for ' + market['type'] + ' markets')
         if limit is None:
             limit = 1000
         request = {
-            'market': market['id'],
-            'type': self.timeframes[timeframe],
-            'limit': limit,
+            # 'market': market['id'],  # spot only
+            # 'symbol': market['id'],  # swap only
+            # 'type': timeframeValue,  # spot only
+            # 'period': timeframeValue,  # swap only
+            # 'since': since,  # spot only
+            # 'limit': limit,  # spot only
+            # 'size': limit,  # swap only
+        }
+        marketIdField = 'symbol' if swap else 'market'
+        request[marketIdField] = market['id']
+        periodField = 'period' if swap else 'type'
+        request[periodField] = timeframeValue
+        sizeField = 'size' if swap else 'limit'
+        request[sizeField] = limit
+        method = self.get_supported_mapping(market['type'], {
+            'spot': 'spotV1PublicGetKline',
+            'swap': 'contractV1PublicGetKline',
+        })
+        if since is not None:
+            request['since'] = since
+        if limit is not None:
+            request['size'] = limit
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # Spot
+        #
+        #     {
+        #         "symbol": "BTC",
+        #         "data": [
+        #             [1645091400000,43183.24,43187.49,43145.92,43182.28,0.9110],
+        #             [1645091460000,43182.18,43183.15,43182.06,43183.15,1.4393],
+        #             [1645091520000,43182.11,43240.1,43182.11,43240.1,0.3802]
+        #         ],
+        #         "moneyType": "USDT"
+        #     }
+        #
+        # Swap
+        #
+        #     {
+        #         "code": 10000,
+        #         "desc": "操作成功",
+        #         "data": [
+        #             [41433.44,41433.44,41405.88,41408.75,21.368,1646366460],
+        #             [41409.25,41423.74,41408.8,41423.42,9.828,1646366520],
+        #             [41423.96,41429.39,41369.98,41370.31,123.104,1646366580]
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
+
+    async def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        options = self.safe_value(self.options, 'timeframes', {})
+        timeframes = self.safe_value(options, market['type'], {})
+        timeframeValue = self.safe_string(timeframes, timeframe)
+        if timeframeValue is None:
+            raise NotSupported(self.id + ' fetchMarkOHLCV() does not support ' + timeframe + ' timeframe for ' + market['type'] + ' markets')
+        if limit is None:
+            limit = 1000
+        request = {
+            'symbol': market['id'],
+            'period': timeframeValue,
+            'size': limit,
         }
         if since is not None:
             request['since'] = since
-        response = await self.spotV1PublicGetKline(self.extend(request, params))
+        if limit is not None:
+            request['size'] = limit
+        response = await self.contractV1PublicGetMarkKline(self.extend(request, params))
+        #
+        #     {
+        #         "code": 10000,
+        #         "desc": "操作成功",
+        #         "data": [
+        #             [41603.39,41603.39,41591.59,41600.81,1646381760],
+        #             [41600.36,41605.75,41587.69,41601.97,1646381820],
+        #             [41601.97,41601.97,41562.62,41593.96,1646381880]
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
+
+    async def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        options = self.safe_value(self.options, 'timeframes', {})
+        timeframes = self.safe_value(options, market['type'], {})
+        timeframeValue = self.safe_string(timeframes, timeframe)
+        if timeframeValue is None:
+            raise NotSupported(self.id + ' fetchIndexOHLCV() does not support ' + timeframe + ' timeframe for ' + market['type'] + ' markets')
+        if limit is None:
+            limit = 1000
+        request = {
+            'symbol': market['id'],
+            'period': timeframeValue,
+            'size': limit,
+        }
+        if since is not None:
+            request['since'] = since
+        if limit is not None:
+            request['size'] = limit
+        response = await self.contractV1PublicGetIndexKline(self.extend(request, params))
+        #
+        #     {
+        #         "code": 10000,
+        #         "desc": "操作成功",
+        #         "data": [
+        #             [41697.53,41722.29,41689.16,41689.16,1646381640],
+        #             [41690.1,41691.73,41611.61,41611.61,1646381700],
+        #             [41611.61,41619.49,41594.87,41594.87,1646381760]
+        #         ]
+        #     }
+        #
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 

@@ -55,26 +55,28 @@ module.exports = class zb extends Exchange {
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'setLeverage': true,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
-                '1m': '1min',
-                '3m': '3min',
-                '5m': '5min',
-                '15m': '15min',
-                '30m': '30min',
-                '1h': '1hour',
-                '2h': '2hour',
-                '4h': '4hour',
-                '6h': '6hour',
-                '12h': '12hour',
-                '1d': '1day',
-                '3d': '3day',
-                '1w': '1week',
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '1d',
+                '3d': '3d',
+                '5d': '5d',
+                '1w': '1w',
             },
             'exceptions': {
                 'ws': {
-                    //  '1000': ExchangeError, // The call is successful.
+                    // '1000': ExchangeError, // The call is successful.
                     '1001': ExchangeError, // General error prompt
                     '1002': ExchangeError, // Internal Error
                     '1003': AuthenticationError, // Fail to verify
@@ -293,7 +295,7 @@ module.exports = class zb extends Exchange {
                     '9999': ExchangeError, // Unknown error
                 },
                 'broad': {
-                    '提币地址有误，请先添加提币地址。': InvalidAddress, // {"code":1001,"message":"提币地址有误，请先添加提币地址。"}
+                    '提币地址有误, 请先添加提币地址。': InvalidAddress, // {"code":1001,"message":"提币地址有误，请先添加提币地址。"}
                     '资金不足,无法划账': InsufficientFunds, // {"code":1001,"message":"资金不足,无法划账"}
                     '响应超时': RequestTimeout, // {"code":1001,"message":"响应超时"}
                 },
@@ -403,7 +405,7 @@ module.exports = class zb extends Exchange {
                                 'fundingRate',
                                 'indexKline',
                                 'indexPrice',
-                                'kCline',
+                                'kline',
                                 'markKline',
                                 'markPrice',
                                 'ticker',
@@ -474,6 +476,35 @@ module.exports = class zb extends Exchange {
                 'ENT': 'ENTCash',
                 'BCHABC': 'BCHABC', // conflict with BCH / BCHA
                 'BCHSV': 'BCHSV', // conflict with BCH / BSV
+            },
+            'options': {
+                'timeframes': {
+                    'spot': {
+                        '1m': '1min',
+                        '3m': '3min',
+                        '5m': '5min',
+                        '15m': '15min',
+                        '30m': '30min',
+                        '1h': '1hour',
+                        '2h': '2hour',
+                        '4h': '4hour',
+                        '6h': '6hour',
+                        '12h': '12hour',
+                        '1d': '1day',
+                        '3d': '3day',
+                        '1w': '1week',
+                    },
+                    'swap': {
+                        '1m': '1M',
+                        '5m': '5M',
+                        '15m': '15M',
+                        '30m': '30M',
+                        '1h': '1H',
+                        '6h': '6H',
+                        '1d': '1D',
+                        '5d': '5D',
+                    },
+                },
             },
         });
     }
@@ -1150,31 +1181,181 @@ module.exports = class zb extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined) {
-        return [
-            this.safeInteger (ohlcv, 0),
-            this.safeNumber (ohlcv, 1),
-            this.safeNumber (ohlcv, 2),
-            this.safeNumber (ohlcv, 3),
-            this.safeNumber (ohlcv, 4),
-            this.safeNumber (ohlcv, 5),
-        ];
+        if (market['swap']) {
+            const ohlcvLength = ohlcv.length;
+            if (ohlcvLength > 5) {
+                return [
+                    this.safeInteger (ohlcv, 5),
+                    this.safeNumber (ohlcv, 0),
+                    this.safeNumber (ohlcv, 1),
+                    this.safeNumber (ohlcv, 2),
+                    this.safeNumber (ohlcv, 3),
+                    this.safeNumber (ohlcv, 4),
+                ];
+            } else {
+                return [
+                    this.safeInteger (ohlcv, 4),
+                    this.safeNumber (ohlcv, 0),
+                    this.safeNumber (ohlcv, 1),
+                    this.safeNumber (ohlcv, 2),
+                    this.safeNumber (ohlcv, 3),
+                    undefined,
+                ];
+            }
+        } else {
+            return [
+                this.safeInteger (ohlcv, 0),
+                this.safeNumber (ohlcv, 1),
+                this.safeNumber (ohlcv, 2),
+                this.safeNumber (ohlcv, 3),
+                this.safeNumber (ohlcv, 4),
+                this.safeNumber (ohlcv, 5),
+            ];
+        }
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const swap = market['swap'];
+        const options = this.safeValue (this.options, 'timeframes', {});
+        const timeframes = this.safeValue (options, market['type'], {});
+        const timeframeValue = this.safeString (timeframes, timeframe);
+        if (timeframeValue === undefined) {
+            throw new NotSupported (this.id + ' fetchOHLCV() does not support ' + timeframe + ' timeframe for ' + market['type'] + ' markets');
+        }
         if (limit === undefined) {
             limit = 1000;
         }
         const request = {
-            'market': market['id'],
-            'type': this.timeframes[timeframe],
-            'limit': limit,
+            // 'market': market['id'], // spot only
+            // 'symbol': market['id'], // swap only
+            // 'type': timeframeValue, // spot only
+            // 'period': timeframeValue, // swap only
+            // 'since': since, // spot only
+            // 'limit': limit, // spot only
+            // 'size': limit, // swap only
+        };
+        const marketIdField = swap ? 'symbol' : 'market';
+        request[marketIdField] = market['id'];
+        const periodField = swap ? 'period' : 'type';
+        request[periodField] = timeframeValue;
+        const sizeField = swap ? 'size' : 'limit';
+        request[sizeField] = limit;
+        const method = this.getSupportedMapping (market['type'], {
+            'spot': 'spotV1PublicGetKline',
+            'swap': 'contractV1PublicGetKline',
+        });
+        if (since !== undefined) {
+            request['since'] = since;
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // Spot
+        //
+        //     {
+        //         "symbol": "BTC",
+        //         "data": [
+        //             [1645091400000,43183.24,43187.49,43145.92,43182.28,0.9110],
+        //             [1645091460000,43182.18,43183.15,43182.06,43183.15,1.4393],
+        //             [1645091520000,43182.11,43240.1,43182.11,43240.1,0.3802]
+        //         ],
+        //         "moneyType": "USDT"
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         "code": 10000,
+        //         "desc": "操作成功",
+        //         "data": [
+        //             [41433.44,41433.44,41405.88,41408.75,21.368,1646366460],
+        //             [41409.25,41423.74,41408.8,41423.42,9.828,1646366520],
+        //             [41423.96,41429.39,41369.98,41370.31,123.104,1646366580]
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const options = this.safeValue (this.options, 'timeframes', {});
+        const timeframes = this.safeValue (options, market['type'], {});
+        const timeframeValue = this.safeString (timeframes, timeframe);
+        if (timeframeValue === undefined) {
+            throw new NotSupported (this.id + ' fetchMarkOHLCV() does not support ' + timeframe + ' timeframe for ' + market['type'] + ' markets');
+        }
+        if (limit === undefined) {
+            limit = 1000;
+        }
+        const request = {
+            'symbol': market['id'],
+            'period': timeframeValue,
+            'size': limit,
         };
         if (since !== undefined) {
             request['since'] = since;
         }
-        const response = await this.spotV1PublicGetKline (this.extend (request, params));
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        const response = await this.contractV1PublicGetMarkKline (this.extend (request, params));
+        //
+        //     {
+        //         "code": 10000,
+        //         "desc": "操作成功",
+        //         "data": [
+        //             [41603.39,41603.39,41591.59,41600.81,1646381760],
+        //             [41600.36,41605.75,41587.69,41601.97,1646381820],
+        //             [41601.97,41601.97,41562.62,41593.96,1646381880]
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const options = this.safeValue (this.options, 'timeframes', {});
+        const timeframes = this.safeValue (options, market['type'], {});
+        const timeframeValue = this.safeString (timeframes, timeframe);
+        if (timeframeValue === undefined) {
+            throw new NotSupported (this.id + ' fetchIndexOHLCV() does not support ' + timeframe + ' timeframe for ' + market['type'] + ' markets');
+        }
+        if (limit === undefined) {
+            limit = 1000;
+        }
+        const request = {
+            'symbol': market['id'],
+            'period': timeframeValue,
+            'size': limit,
+        };
+        if (since !== undefined) {
+            request['since'] = since;
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        const response = await this.contractV1PublicGetIndexKline (this.extend (request, params));
+        //
+        //     {
+        //         "code": 10000,
+        //         "desc": "操作成功",
+        //         "data": [
+        //             [41697.53,41722.29,41689.16,41689.16,1646381640],
+        //             [41690.1,41691.73,41611.61,41611.61,1646381700],
+        //             [41611.61,41619.49,41594.87,41594.87,1646381760]
+        //         ]
+        //     }
+        //
         const data = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
@@ -2721,6 +2902,70 @@ module.exports = class zb extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const list = this.safeValue (data, 'list', []);
         return this.parseLedger (list, currency, since, limit);
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        let side = undefined;
+        if (fromAccount === 'spot' || toAccount === 'future') {
+            side = 1;
+        } else {
+            side = 0;
+        }
+        const currency = this.currency (code);
+        const request = {
+            'currencyName': currency['id'],
+            'amount': amount,
+            'clientId': this.safeString (params, 'clientId'), // "2sdfsdfsdf232342"
+            'side': side, // 1：Deposit (zb account -> futures account)，0：Withdrawal (futures account -> zb account)
+        };
+        const response = await this.contractV2PrivatePostFundTransferFund (this.extend (request, params));
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": "2sdfsdfsdf232342",
+        //         "desc": "Success"
+        //     }
+        //
+        const timestamp = this.milliseconds ();
+        const transfer = {
+            'id': this.safeString (response, 'data'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': code,
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': this.safeInteger (response, 'code'),
+        };
+        return this.parseTransfer (transfer, code);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //     {
+        //         "id": "2sdfsdfsdf232342",
+        //         "timestamp": "",
+        //         "datetime": "",
+        //         "currency": "USDT",
+        //         "amount": "10",
+        //         "fromAccount": "futures account",
+        //         "toAccount": "zb account",
+        //         "status": 10000,
+        //     }
+        //
+        const currencyId = this.safeString (transfer, 'currency');
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'id'),
+            'timestamp': this.safeInteger (transfer, 'timestamp'),
+            'datetime': this.safeString (transfer, 'datetime'),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': this.safeString (transfer, 'fromAccount'),
+            'toAccount': this.safeString (transfer, 'toAccount'),
+            'status': this.safeString (transfer, 'status'),
+        };
     }
 
     async modifyMarginHelper (symbol, amount, type, params = {}) {

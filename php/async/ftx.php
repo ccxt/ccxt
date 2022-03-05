@@ -344,7 +344,7 @@ class ftx extends Exchange {
                     'Invalid parameter' => '\\ccxt\\BadRequest', // array("error":"Invalid parameter start_time","success":false)
                     'The requested URL was not found on the server' => '\\ccxt\\BadRequest',
                     'No such coin' => '\\ccxt\\BadRequest',
-                    'No such subaccount' => '\\ccxt\\BadRequest',
+                    'No such subaccount' => '\\ccxt\\AuthenticationError',
                     'No such future' => '\\ccxt\\BadSymbol',
                     'No such market' => '\\ccxt\\BadSymbol',
                     'Do not send more than' => '\\ccxt\\RateLimitExceeded',

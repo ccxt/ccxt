@@ -54,6 +54,8 @@ class xena extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
@@ -69,7 +71,7 @@ class xena extends Exchange {
                 ),
                 'www' => 'https://xena.exchange',
                 'doc' => 'https://support.xena.exchange/support/solutions/44000808700',
-                'fees' => 'https://trading.xena.exchange/en/platform-specification/fee-schedule',
+                'fees' => 'https://trading.xena.exchange/en/contracts/terms-and-condition',
             ),
             'timeframes' => array(
                 '1m' => '1m',
