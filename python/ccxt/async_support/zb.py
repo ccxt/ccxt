@@ -74,6 +74,7 @@ class zb(Exchange):
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
                 'setLeverage': True,
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -2637,6 +2638,67 @@ class zb(Exchange):
         for i in range(0, len(positions)):
             result.append(self.parse_position(positions[i]))
         return result
+
+    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        await self.load_markets()
+        side = None
+        if fromAccount == 'spot' or toAccount == 'future':
+            side = 1
+        else:
+            side = 0
+        currency = self.currency(code)
+        request = {
+            'currencyName': currency['id'],
+            'amount': amount,
+            'clientId': self.safe_string(params, 'clientId'),  # "2sdfsdfsdf232342"
+            'side': side,  # 1：Deposit(zb account -> futures account)，0：Withdrawal(futures account -> zb account)
+        }
+        response = await self.contractV2PrivatePostFundTransferFund(self.extend(request, params))
+        #
+        #     {
+        #         "code": 10000,
+        #         "data": "2sdfsdfsdf232342",
+        #         "desc": "Success"
+        #     }
+        #
+        timestamp = self.milliseconds()
+        transfer = {
+            'id': self.safe_string(response, 'data'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': code,
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': self.safe_integer(response, 'code'),
+        }
+        return self.parse_transfer(transfer, code)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #         "id": "2sdfsdfsdf232342",
+        #         "timestamp": "",
+        #         "datetime": "",
+        #         "currency": "USDT",
+        #         "amount": "10",
+        #         "fromAccount": "futures account",
+        #         "toAccount": "zb account",
+        #         "status": 10000,
+        #     }
+        #
+        currencyId = self.safe_string(transfer, 'currency')
+        return {
+            'info': transfer,
+            'id': self.safe_string(transfer, 'id'),
+            'timestamp': self.safe_integer(transfer, 'timestamp'),
+            'datetime': self.safe_string(transfer, 'datetime'),
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.safe_number(transfer, 'amount'),
+            'fromAccount': self.safe_string(transfer, 'fromAccount'),
+            'toAccount': self.safe_string(transfer, 'toAccount'),
+            'status': self.safe_string(transfer, 'status'),
+        }
 
     async def modify_margin_helper(self, symbol, amount, type, params={}):
         if params['positionsId'] is None:
