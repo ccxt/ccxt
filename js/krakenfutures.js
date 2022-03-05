@@ -66,9 +66,11 @@ module.exports = class krakenfu extends Exchange {
                 },
                 'logo': 'https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg',
                 'api': {
-                    'v1': 'https://futures.kraken.com/api/',
-                    'v2': 'https://futures.kraken.com/api/',
-                    'default': 'https://futures.kraken.com/derivatives/api/',
+                    'charts': 'https://futures.kraken.com/api/charts/',
+                    'history': 'https://futures.kraken.com/api/history/',
+                    'feeschedules': 'https://futures.kraken.com/api/feeschedules/',
+                    'public': 'https://futures.kraken.com/derivatives/api/v3',
+                    'private': 'https://futures.kraken.com/derivatives/api/v3',
                 },
                 'www': 'https://futures.kraken.com/',
                 'doc': [
@@ -85,9 +87,6 @@ module.exports = class krakenfu extends Exchange {
                         'tickers',
                         'history',
                         'historicalfundingrates',
-                        'history/{version}/market/{symbol}/orders',
-                        'history/{version}/market/{symbol}/executions',
-                        'charts/{version}/{price_type}/{symbol}/{interval}',
                     ],
                 },
                 'private': {
@@ -99,11 +98,6 @@ module.exports = class krakenfu extends Exchange {
                         'recentorders',
                         'fills',
                         'transfers',
-                        'history/{version}/orders',
-                        'history/{version}/executions',
-                        'history/{version}/triggers',
-                        'history/{version}/accountlogcsv',
-                        'feeschedules/volumes',
                     ],
                     'post': [
                         'sendorder',
@@ -114,6 +108,26 @@ module.exports = class krakenfu extends Exchange {
                         'cancelallorders',
                         'cancelallordersafter',
                         'withdrawal',                              // for futures wallet -> kraken spot wallet
+                    ],
+                },
+                'charts': {
+                    'get': [
+                        '{price_type}/{symbol}/{interval}',
+                    ],
+                },
+                'history': {
+                    'get': [
+                        'orders',
+                        'executions',
+                        'triggers',
+                        'accountlogcsv',
+                        'market/{symbol}/orders',
+                        'market/{symbol}/executions',
+                    ],
+                },
+                'feeschedules': {
+                    'get': [
+                        'volumes',
                     ],
                 },
             },
@@ -147,6 +161,16 @@ module.exports = class krakenfu extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'access': {
+                    'history': {
+                        'GET': {
+                            'orders': 'private',
+                            'executions': 'private',
+                            'triggers': 'private',
+                            'accountlogcsv': 'private',
+                        },
+                    },
+                },
                 'symbol': {
                     'quoteIds': [ 'USD', 'XBT' ],
                     'reversed': false,
@@ -155,17 +179,19 @@ module.exports = class krakenfu extends Exchange {
                     'public': {
                         'GET': {
                             'historicalfundingrates': 'v4',
-                            'charts/{version}/{price_type}/{symbol}/{interval}': 'v1',
-                            'history/{version}/market/{symbol}/orders': 'v2',
-                            'history/{version}/market/{symbol}/executions': 'v2',
                         },
                     },
-                    'private': {
+                    'charts': {
                         'GET': {
-                            'history/{version}/orders': 'v2',
-                            'history/{version}/executions': 'v2',
-                            'history/{version}/triggers': 'v2',
-                            'history/{version}/accountlogcsv': 'v2',
+                            '{price_type}/{symbol}/{interval}': 'v1',
+                        },
+                    },
+                    'history': {
+                        'GET': {
+                            'orders': 'v2',
+                            'executions': 'v2',
+                            'triggers': 'v2',
+                            'accountlogcsv': 'v2',
                         },
                     },
                 },
@@ -495,7 +521,7 @@ module.exports = class krakenfu extends Exchange {
             request['to'] = this.seconds ();
             request['from'] = parseInt (request['to'] - (duration * limit));
         }
-        const response = await this.publicGetChartsVersionPriceTypeSymbolInterval (this.extend (request, params));
+        const response = await this.chartsGetPriceTypeSymbolInterval (this.extend (request, params));
         //
         //    {
         //        "candles": [
@@ -1616,7 +1642,10 @@ module.exports = class krakenfu extends Exchange {
         const defaultVersion = this.safeString (methodVersions, path, this.version);
         const version = this.safeString (params, 'version', defaultVersion);
         params = this.omit (params, 'version');
-        const endpoint = this.implodeParams (path, this.extend ({ 'version': version }, params));
+        const apiAccess = this.safeValue (this.options['access'], api, {});
+        const methodAccess = this.safeValue (apiAccess, method, {});
+        const access = this.safeString (methodAccess, path, 'public');
+        const endpoint = version + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
         let query = endpoint;
         let postData = '';
@@ -1624,12 +1653,8 @@ module.exports = class krakenfu extends Exchange {
             postData = this.urlencode (params);
             query += '?' + postData;
         }
-        let baseUrl = this.safeString (this.urls['api'], version);
-        if (baseUrl === undefined) {
-            baseUrl = this.urls['api']['default'] + version + '/';
-        }
-        const url = baseUrl + query;
-        if (api === 'private') {
+        const url = this.urls['api'][api] + query;
+        if (api === 'private' || access === 'private') {
             const nonce = ''; // this.nonce ();
             const auth = postData + nonce + '/api/' + endpoint; // 1
             const hash = this.hash (this.encode (auth), 'sha256', 'binary'); // 2
