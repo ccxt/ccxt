@@ -1179,14 +1179,26 @@ module.exports = class zb extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined) {
         if (market['swap']) {
-            return [
-                this.safeInteger (ohlcv, 5),
-                this.safeNumber (ohlcv, 0),
-                this.safeNumber (ohlcv, 1),
-                this.safeNumber (ohlcv, 2),
-                this.safeNumber (ohlcv, 3),
-                this.safeNumber (ohlcv, 4),
-            ];
+            const ohlcvLength = ohlcv.length;
+            if (ohlcvLength > 5) {
+                return [
+                    this.safeInteger (ohlcv, 5),
+                    this.safeNumber (ohlcv, 0),
+                    this.safeNumber (ohlcv, 1),
+                    this.safeNumber (ohlcv, 2),
+                    this.safeNumber (ohlcv, 3),
+                    this.safeNumber (ohlcv, 4),
+                ];
+            } else {
+                return [
+                    this.safeInteger (ohlcv, 4),
+                    this.safeNumber (ohlcv, 0),
+                    this.safeNumber (ohlcv, 1),
+                    this.safeNumber (ohlcv, 2),
+                    this.safeNumber (ohlcv, 3),
+                    undefined,
+                ];
+            }
         } else {
             return [
                 this.safeInteger (ohlcv, 0),
@@ -1260,6 +1272,84 @@ module.exports = class zb extends Exchange {
         //             [41433.44,41433.44,41405.88,41408.75,21.368,1646366460],
         //             [41409.25,41423.74,41408.8,41423.42,9.828,1646366520],
         //             [41423.96,41429.39,41369.98,41370.31,123.104,1646366580]
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const options = this.safeValue (this.options, 'timeframes', {});
+        const timeframes = this.safeValue (options, market['type'], {});
+        const timeframeValue = this.safeString (timeframes, timeframe);
+        if (timeframeValue === undefined) {
+            throw new NotSupported (this.id + ' fetchMarkOHLCV() does not support ' + timeframe + ' timeframe for ' + market['type'] + ' markets');
+        }
+        if (limit === undefined) {
+            limit = 1000;
+        }
+        const request = {
+            'symbol': market['id'],
+            'period': timeframeValue,
+            'size': limit,
+        };
+        if (since !== undefined) {
+            request['since'] = since;
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        const response = await this.contractV1PublicGetMarkKline (this.extend (request, params));
+        //
+        //     {
+        //         "code": 10000,
+        //         "desc": "操作成功",
+        //         "data": [
+        //             [41603.39,41603.39,41591.59,41600.81,1646381760],
+        //             [41600.36,41605.75,41587.69,41601.97,1646381820],
+        //             [41601.97,41601.97,41562.62,41593.96,1646381880]
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const options = this.safeValue (this.options, 'timeframes', {});
+        const timeframes = this.safeValue (options, market['type'], {});
+        const timeframeValue = this.safeString (timeframes, timeframe);
+        if (timeframeValue === undefined) {
+            throw new NotSupported (this.id + ' fetchIndexOHLCV() does not support ' + timeframe + ' timeframe for ' + market['type'] + ' markets');
+        }
+        if (limit === undefined) {
+            limit = 1000;
+        }
+        const request = {
+            'symbol': market['id'],
+            'period': timeframeValue,
+            'size': limit,
+        };
+        if (since !== undefined) {
+            request['since'] = since;
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        const response = await this.contractV1PublicGetIndexKline (this.extend (request, params));
+        //
+        //     {
+        //         "code": 10000,
+        //         "desc": "操作成功",
+        //         "data": [
+        //             [41697.53,41722.29,41689.16,41689.16,1646381640],
+        //             [41690.1,41691.73,41611.61,41611.61,1646381700],
+        //             [41611.61,41619.49,41594.87,41594.87,1646381760]
         //         ]
         //     }
         //
