@@ -162,7 +162,9 @@ php -f path/to/example.php # substitute for actual filename here
 
 https://www.youtube.com/watch?v=K-EZ9QXezZM
 
-[CCXTが便利な理由！CCXTライブラリをインストールしよう](https://ryota-trade.com/?p=476) – An article in Japanese on getting CCXT up and runining.
+[CCXTが便利な理由！CCXTライブラリをインストールしよう](https://ryota-trade.com/?p=476) – An article in Japanese on getting CCXT up and running.
+
+[如何通過CCXT下載比特幣歷史數據? How to download Bitcoin price data with CCXT](https://www.youtube.com/watch?v=Nozqu7WyCDw) – A video tutorial on how to download historical Bitcoin price data using CCXT.
 
 [暗号通貨自動売買 RSI CCXTとpythonで自動売買 プログラミング bitget](https://www.youtube.com/watch?v=BAqnx-XkA_8) – Automatic cryptocurrency trading with CCXT and Python
 

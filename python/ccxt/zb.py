@@ -57,9 +57,11 @@ class zb(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
+                'fetchLedger': True,
                 'fetchMarkets': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
@@ -74,6 +76,7 @@ class zb(Exchange):
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
                 'setLeverage': True,
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -2637,6 +2640,208 @@ class zb(Exchange):
         for i in range(0, len(positions)):
             result.append(self.parse_position(positions[i]))
         return result
+
+    def parse_ledger_entry_type(self, type):
+        types = {
+            '1': 'realized pnl',
+            '2': 'commission',
+            '3': 'funding fee subtract',
+            '4': 'funding fee addition',
+            '5': 'insurance clear',
+            '6': 'transfer in',
+            '7': 'transfer out',
+            '8': 'margin addition',
+            '9': 'margin subtraction',
+            '10': 'commission addition',
+            '11': 'bill type freeze',
+            '12': 'bill type unfreeze',
+            '13': 'system take over margin',
+            '14': 'transfer',
+            '15': 'realized pnl collection',
+            '16': 'funding fee collection',
+            '17': 'recommender return commission',
+            '18': 'by level subtract positions',
+            '19': 'system add',
+            '20': 'system subtract',
+            '23': 'trading competition take over fund',
+            '24': 'trading contest tickets',
+            '25': 'return of trading contest tickets',
+            '26': 'experience expired recall',
+            '50': 'test register gift',
+            '51': 'register gift',
+            '52': 'deposit gift',
+            '53': 'trading volume gift',
+            '54': 'awards gift',
+            '55': 'trading volume gift',
+            '56': 'awards gift expire',
+            '201': 'open positions',
+            '202': 'close positions',
+            '203': 'take over positions',
+            '204': 'trading competition take over positions',
+            '205': 'one way open long',
+            '206': 'one way open short',
+            '207': 'one way close long',
+            '208': 'one way close short',
+            '301': 'coupon deduction service charge',
+            '302': 'experience deduction',
+            '303': 'experience expired',
+        }
+        return self.safe_string(types, type, type)
+
+    def parse_ledger_entry(self, item, currency=None):
+        #
+        #     [
+        #         {
+        #             "type": 3,
+        #             "changeAmount": "0.00434664",
+        #             "isIn": 0,
+        #             "beforeAmount": "30.53353135",
+        #             "beforeFreezeAmount": "21.547",
+        #             "createTime": "1646121604997",
+        #             "available": "30.52918471",
+        #             "unit": "usdt",
+        #             "symbol": "BTC_USDT"
+        #         },
+        #     ],
+        #
+        timestamp = self.safe_string(item, 'createTime')
+        direction = None
+        changeDirection = self.safe_number(item, 'isIn')
+        if changeDirection == 1:
+            direction = 'increase'
+        else:
+            direction = 'reduce'
+        fee = None
+        feeCost = self.safe_number(item, 'fee')
+        if feeCost is not None:
+            fee = {
+                'cost': feeCost,
+                'currency': self.safe_currency_code(self.safe_string(item, 'unit')),
+            }
+        return {
+            'id': self.safe_string(item, 'id'),
+            'info': item,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'direction': direction,
+            'account': self.safe_string(item, 'userId'),
+            'referenceId': None,
+            'referenceAccount': None,
+            'type': self.parse_ledger_entry_type(self.safe_integer(item, 'type')),
+            'currency': self.safe_currency_code(self.safe_string(item, 'unit')),
+            'amount': self.safe_number(item, 'changeAmount'),
+            'before': self.safe_number(item, 'beforeAmount'),
+            'after': self.safe_number(item, 'available'),
+            'status': None,
+            'fee': fee,
+        }
+
+    def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchLedger() requires a code argument')
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'futuresAccountType': 1,
+            # 'currencyId': '11',
+            # 'type': 1,
+            # 'endTime': self.milliseconds(),
+            # 'pageNum': 1,
+        }
+        if code is not None:
+            request['currencyName'] = currency['id']
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['pageSize'] = limit
+        response = self.contractV2PrivateGetFundGetBill(self.extend(request, params))
+        #
+        #     {
+        #         "code": 10000,
+        #         "data": {
+        #             "list": [
+        #                 {
+        #                     "type": 3,
+        #                     "changeAmount": "0.00434664",
+        #                     "isIn": 0,
+        #                     "beforeAmount": "30.53353135",
+        #                     "beforeFreezeAmount": "21.547",
+        #                     "createTime": "1646121604997",
+        #                     "available": "30.52918471",
+        #                     "unit": "usdt",
+        #                     "symbol": "BTC_USDT"
+        #                 },
+        #             ],
+        #             "pageNum": 1,
+        #             "pageSize": 10
+        #         },
+        #         "desc": "操作成功"
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        list = self.safe_value(data, 'list', [])
+        return self.parse_ledger(list, currency, since, limit)
+
+    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        self.load_markets()
+        side = None
+        if fromAccount == 'spot' or toAccount == 'future':
+            side = 1
+        else:
+            side = 0
+        currency = self.currency(code)
+        request = {
+            'currencyName': currency['id'],
+            'amount': amount,
+            'clientId': self.safe_string(params, 'clientId'),  # "2sdfsdfsdf232342"
+            'side': side,  # 1：Deposit(zb account -> futures account)，0：Withdrawal(futures account -> zb account)
+        }
+        response = self.contractV2PrivatePostFundTransferFund(self.extend(request, params))
+        #
+        #     {
+        #         "code": 10000,
+        #         "data": "2sdfsdfsdf232342",
+        #         "desc": "Success"
+        #     }
+        #
+        timestamp = self.milliseconds()
+        transfer = {
+            'id': self.safe_string(response, 'data'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': code,
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': self.safe_integer(response, 'code'),
+        }
+        return self.parse_transfer(transfer, code)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #         "id": "2sdfsdfsdf232342",
+        #         "timestamp": "",
+        #         "datetime": "",
+        #         "currency": "USDT",
+        #         "amount": "10",
+        #         "fromAccount": "futures account",
+        #         "toAccount": "zb account",
+        #         "status": 10000,
+        #     }
+        #
+        currencyId = self.safe_string(transfer, 'currency')
+        return {
+            'info': transfer,
+            'id': self.safe_string(transfer, 'id'),
+            'timestamp': self.safe_integer(transfer, 'timestamp'),
+            'datetime': self.safe_string(transfer, 'datetime'),
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.safe_number(transfer, 'amount'),
+            'fromAccount': self.safe_string(transfer, 'fromAccount'),
+            'toAccount': self.safe_string(transfer, 'toAccount'),
+            'status': self.safe_string(transfer, 'status'),
+        }
 
     def modify_margin_helper(self, symbol, amount, type, params={}):
         if params['positionsId'] is None:
