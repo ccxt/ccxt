@@ -347,6 +347,9 @@ module.exports = class gateio extends Exchange {
                 'apiKey': true,
                 'secret': true,
             },
+            // 'headers': {
+            //     'X-Gate-Channel-Id': 'ccxt',
+            // },
             'options': {
                 'createOrder': {
                     'expiration': 86400, // for conditional orders
