@@ -62,6 +62,7 @@ class zb extends Exchange {
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
                 'setLeverage' => true,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -2758,6 +2759,70 @@ class zb extends Exchange {
             $result[] = $this->parse_position($positions[$i]);
         }
         return $result;
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        yield $this->load_markets();
+        $side = null;
+        if ($fromAccount === 'spot' || $toAccount === 'future') {
+            $side = 1;
+        } else {
+            $side = 0;
+        }
+        $currency = $this->currency($code);
+        $request = array(
+            'currencyName' => $currency['id'],
+            'amount' => $amount,
+            'clientId' => $this->safe_string($params, 'clientId'), // "2sdfsdfsdf232342"
+            'side' => $side, // 1：Deposit (zb account -> futures account)，0：Withdrawal (futures account -> zb account)
+        );
+        $response = yield $this->contractV2PrivatePostFundTransferFund (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 10000,
+        //         "data" => "2sdfsdfsdf232342",
+        //         "desc" => "Success"
+        //     }
+        //
+        $timestamp = $this->milliseconds();
+        $transfer = array(
+            'id' => $this->safe_string($response, 'data'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $code,
+            'amount' => $amount,
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+            'status' => $this->safe_integer($response, 'code'),
+        );
+        return $this->parse_transfer($transfer, $code);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //     {
+        //         "id" => "2sdfsdfsdf232342",
+        //         "timestamp" => "",
+        //         "datetime" => "",
+        //         "currency" => "USDT",
+        //         "amount" => "10",
+        //         "fromAccount" => "futures account",
+        //         "toAccount" => "zb account",
+        //         "status" => 10000,
+        //     }
+        //
+        $currencyId = $this->safe_string($transfer, 'currency');
+        return array(
+            'info' => $transfer,
+            'id' => $this->safe_string($transfer, 'id'),
+            'timestamp' => $this->safe_integer($transfer, 'timestamp'),
+            'datetime' => $this->safe_string($transfer, 'datetime'),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $this->safe_number($transfer, 'amount'),
+            'fromAccount' => $this->safe_string($transfer, 'fromAccount'),
+            'toAccount' => $this->safe_string($transfer, 'toAccount'),
+            'status' => $this->safe_string($transfer, 'status'),
+        );
     }
 
     public function modify_margin_helper($symbol, $amount, $type, $params = array ()) {
