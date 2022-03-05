@@ -1179,7 +1179,8 @@ module.exports = class zb extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined) {
         if (market['swap']) {
-            if (this.safeInteger (ohlcv, 5)) {
+            const ohlcvLength = ohlcv.length;
+            if (ohlcvLength > 5) {
                 return [
                     this.safeInteger (ohlcv, 5),
                     this.safeNumber (ohlcv, 0),
