@@ -84,6 +84,8 @@ class aax(Exchange):
                 'fetchLedger': None,
                 'fetchLedgerEntry': None,
                 'fetchLeverage': None,
+                'fetchLeverageTiers': True,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
                 'fetchMyBuys': None,
@@ -2205,6 +2207,92 @@ class aax(Exchange):
             'leverage': leverage,
         }
         return await self.privatePostFuturesPositionLeverage(self.extend(request, params))
+
+    async def fetch_leverage_tiers(self, symbols=None, params={}):
+        await self.load_markets()
+        response = await self.publicGetInstruments(params)
+        #
+        #     {
+        #         "code":1,
+        #         "message":"success",
+        #         "ts":1610159448962,
+        #         "data":[
+        #             {
+        #                 "tickSize":"0.01",
+        #                 "lotSize":"1",
+        #                 "base":"BTC",
+        #                 "quote":"USDT",
+        #                 "minQuantity":"1.0000000000",
+        #                 "maxQuantity":"30000",
+        #                 "minPrice":"0.0100000000",
+        #                 "maxPrice":"999999.0000000000",
+        #                 "status":"readOnly",
+        #                 "symbol":"BTCUSDTFP",
+        #                 "code":"FP",
+        #                 "takerFee":"0.00040",
+        #                 "makerFee":"0.00020",
+        #                 "multiplier":"0.001000000000",
+        #                 "mmRate":"0.00500",
+        #                 "imRate":"0.01000",
+        #                 "type":"futures",
+        #                 "settleType":"Vanilla",
+        #                 "settleCurrency":"USDT"
+        #             },
+        #             ...
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_leverage_tiers(data, symbols, 'symbol')
+
+    def parse_market_leverage_tiers(self, info, market):
+        '''
+            @param info: Exchange market response
+            {
+                "tickSize":"0.01",
+                "lotSize":"1",
+                "base":"BTC",
+                "quote":"USDT",
+                "minQuantity":"1.0000000000",
+                "maxQuantity":"30000",
+                "minPrice":"0.0100000000",
+                "maxPrice":"999999.0000000000",
+                "status":"readOnly",
+                "symbol":"BTCUSDTFP",
+                "code":"FP",
+                "takerFee":"0.00040",
+                "makerFee":"0.00020",
+                "multiplier":"0.001000000000",
+                "mmRate":"0.00500",
+                "imRate":"0.01000",
+                "type":"futures",
+                "settleType":"Vanilla",
+                "settleCurrency":"USDT"
+            @param market: CCXT Market
+       '''
+        maintenanceMarginRate = self.safe_string(info, 'mmRate')
+        initialMarginRate = self.safe_string(info, 'imRate')
+        maxVol = self.safe_string(info, 'maxQuantity')
+        riskIncrVol = maxVol  # TODO
+        riskIncrMmr = '0.0'  # TODO
+        riskIncrImr = '0.0'  # TODO
+        floor = '0'
+        tiers = []
+        while(Precise.string_lt(floor, maxVol)):
+            cap = Precise.string_add(floor, riskIncrVol)
+            tiers.append({
+                'tier': self.parse_number(Precise.string_div(cap, riskIncrVol)),
+                'currency': market['base'],
+                'notionalFloor': self.parse_number(floor),
+                'notionalCap': self.parse_number(cap),
+                'maintenanceMarginRate': self.parse_number(maintenanceMarginRate),
+                'maxLeverage': self.parse_number(Precise.string_div('1', initialMarginRate)),
+                'info': info,
+            })
+            maintenanceMarginRate = Precise.string_add(maintenanceMarginRate, riskIncrMmr)
+            initialMarginRate = Precise.string_add(initialMarginRate, riskIncrImr)
+            floor = cap
+        return tiers
 
     def nonce(self):
         return self.milliseconds()
