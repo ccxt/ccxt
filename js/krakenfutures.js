@@ -701,15 +701,15 @@ module.exports = class krakenfu extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @param {string} symbol: CCXT market symbol
-         * @param {string} type: One of 'limit', 'market', 'take_profit' (take_profit order)
+         * @param {string} type: One of 'limit', 'market', 'take_profit' (take_profit order - not unified)
          * @param {string} side: buy or sell
          * @param {integer} amount: Contract quantity
          * @param {float} price: Limit order price
-         * @param {float} params.stopPrice: The stop price associated with a stop or take profit order. Required if orderType is stp or take_profit. Must not have more than 2 decimal places. Note that for stop orders, limitPrice denotes the worst price at which the stop or take_profit order can get filled at. If no limitPrice is provided the stop or take_profit order will trigger a market order.
+         * @param {float} params.stopPrice: (Unified) The stop price associated with a stop or take profit order. Required if orderType is stp or take_profit. Must not have more than 2 decimal places. Note that for stop orders, limitPrice denotes the worst price at which the stop or take_profit order can get filled at. If no limitPrice is provided the stop or take_profit order will trigger a market order.
+         * @param {boolean} params.reduceOnly: (Unified) Set as true if you wish the order to only reduce an existing position. Any order which increases an existing position will be rejected. Default false.
+         * @param {boolean} params.postOnly: (Unified) Set as true if you wish to make a postOnly order. Default false.
          * @param {string} params.triggerSignal: If placing a stp or take_profit, the signal used for trigger. One of: 'mark', 'index', 'last' (market price)
          * @param {string} params.cliOrdId: UUID - The order identity that is specified from the user. It must be globally unique.
-         * @param {boolean} params.reduceOnly: Set as true if you wish the order to only reduce an existing position. Any order which increases an existing position will be rejected. Default false.
-         * @param {boolean} params.postOnly: Set as true if you wish to make a postOnly order. Default false.
          */
         await this.loadMarkets ();
         type = this.safeString (params, 'orderType', type);
