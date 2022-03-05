@@ -53,6 +53,7 @@ module.exports = class zb extends Exchange {
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'setLeverage': true,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -2749,6 +2750,70 @@ module.exports = class zb extends Exchange {
             result.push (this.parsePosition (positions[i]));
         }
         return result;
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        let side = undefined;
+        if (fromAccount === 'spot' || toAccount === 'future') {
+            side = 1;
+        } else {
+            side = 0;
+        }
+        const currency = this.currency (code);
+        const request = {
+            'currencyName': currency['id'],
+            'amount': amount,
+            'clientId': this.safeString (params, 'clientId'), // "2sdfsdfsdf232342"
+            'side': side, // 1：Deposit (zb account -> futures account)，0：Withdrawal (futures account -> zb account)
+        };
+        const response = await this.contractV2PrivatePostFundTransferFund (this.extend (request, params));
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": "2sdfsdfsdf232342",
+        //         "desc": "Success"
+        //     }
+        //
+        const timestamp = this.milliseconds ();
+        const transfer = {
+            'id': this.safeString (response, 'data'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': code,
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': this.safeInteger (response, 'code'),
+        };
+        return this.parseTransfer (transfer, code);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //     {
+        //         "id": "2sdfsdfsdf232342",
+        //         "timestamp": "",
+        //         "datetime": "",
+        //         "currency": "USDT",
+        //         "amount": "10",
+        //         "fromAccount": "futures account",
+        //         "toAccount": "zb account",
+        //         "status": 10000,
+        //     }
+        //
+        const currencyId = this.safeString (transfer, 'currency');
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'id'),
+            'timestamp': this.safeInteger (transfer, 'timestamp'),
+            'datetime': this.safeString (transfer, 'datetime'),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': this.safeString (transfer, 'fromAccount'),
+            'toAccount': this.safeString (transfer, 'toAccount'),
+            'status': this.safeString (transfer, 'status'),
+        };
     }
 
     async modifyMarginHelper (symbol, amount, type, params = {}) {
