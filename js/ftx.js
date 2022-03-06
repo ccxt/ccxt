@@ -596,6 +596,12 @@ module.exports = class ftx extends Exchange {
                 symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry, '');
             }
             // check if a market is a spot or future market
+            const sizeIncrement = this.safeString (market, 'sizeIncrement');
+            const minProvideSize = this.safeString (market, 'minProvideSize');
+            let minAmountString = sizeIncrement
+            if (minProvideSize !== undefined) {
+                minAmountString = Precise.stringGt (minProvideSize, sizeIncrement) ? sizeIncrement : minProvideSize;
+            }
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -621,7 +627,7 @@ module.exports = class ftx extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeNumber (market, 'sizeIncrement'),
+                    'amount': this.parseNumber (sizeIncrement),
                     'price': this.safeNumber (market, 'priceIncrement'),
                 },
                 'limits': {
@@ -630,7 +636,7 @@ module.exports = class ftx extends Exchange {
                         'max': this.parseNumber ('20'),
                     },
                     'amount': {
-                        'min': undefined,
+                        'min': this.parseNumber (minAmountString),
                         'max': undefined,
                     },
                     'price': {
