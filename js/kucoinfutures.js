@@ -51,7 +51,8 @@ module.exports = class kucoinfutures extends kucoin {
                 'fetchIndexOHLCV': false,
                 'fetchL3OrderBook': true,
                 'fetchLedger': true,
-                'fetchLeverageTiers': true,
+                'fetchLeverageTiers': false,
+                'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -1628,11 +1629,8 @@ module.exports = class kucoinfutures extends kucoin {
         throw new BadRequest (this.id + ' has no method fetchLedger');
     }
 
-    async fetchLeverageTiers (symbol = undefined, params = {}) {
+    async fetchMarketLeverageTiers (symbol, params = {}) {
         await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchLeverageTiers() requires a symbol argument');
-        }
         const market = this.market (symbol);
         if (!market['contract']) {
             throw new BadRequest (this.id + ' fetchLeverageTiers() supports contract markets only');
@@ -1659,15 +1657,27 @@ module.exports = class kucoinfutures extends kucoin {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const tiers = {};
-        for (let i = 0; i < data.length; i++) {
-            const tier = data[i];
-            const symbol = this.safeSymbol (this.safeString (tier, 'symbol'));
-            if (!(symbol in tiers)) {
-                tiers[symbol] = [];
+        return this.parseMarketLeverageTiers (data, market);
+    }
+
+    parseMarketLeverageTiers (info, market) {
+        /**
+            @param info: Exchange market response for 1 market
+            {
+                "symbol": "ETHUSDTM",
+                "level": 1,
+                "maxRiskLimit": 300000,
+                "minRiskLimit": 0,
+                "maxLeverage": 100,
+                "initialMargin": 0.0100000000,
+                "maintainMargin": 0.0050000000
             }
-            const market = this.market (symbol);
-            tiers[symbol].push ({
+            @param market: CCXT market
+        */
+        const tiers = [];
+        for (let i = 0; i < info.length; i++) {
+            const tier = info[i];
+            tiers.push ({
                 'tier': this.safeNumber (tier, 'level'),
                 'currency': market['base'],
                 'notionalFloor': this.safeNumber (tier, 'minRiskLimit'),

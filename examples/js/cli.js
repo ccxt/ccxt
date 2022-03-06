@@ -257,7 +257,7 @@ async function main () {
                     try {
                         const result = await exchange[methodName] (... args)
                         end = exchange.milliseconds ()
-                        console.log (exchange.iso8601 (end), 'iteration', i++, 'passed in', end - start, 'ms')
+                        console.log (exchange.iso8601 (end), 'iteration', i++, 'passed in', end - start, 'ms\n')
                         start = end
                         printHumanReadable (exchange, result)
                     } catch (e) {

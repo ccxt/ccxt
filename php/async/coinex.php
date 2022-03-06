@@ -40,6 +40,8 @@ class coinex extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => true,
+                'fetchTradingFees' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
@@ -489,6 +491,78 @@ class coinex extends Exchange {
         //      }
         //
         return $this->parse_trades($response['data'], $market, $since, $limit);
+    }
+
+    public function fetch_trading_fee($symbol, $params = array ()) {
+        yield $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+        );
+        $response = yield $this->publicGetMarketDetail (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => array(
+        //           "name" => "BTCUSDC",
+        //           "min_amount" => "0.0005",
+        //           "maker_fee_rate" => "0.002",
+        //           "taker_fee_rate" => "0.002",
+        //           "pricing_name" => "USDC",
+        //           "pricing_decimal" => 2,
+        //           "trading_name" => "BTC",
+        //           "trading_decimal" => 8
+        //         ),
+        //         "message" => "OK"
+        //      }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_trading_fee($data);
+    }
+
+    public function fetch_trading_fees($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->publicGetMarketInfo ($params);
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => {
+        //             "WAVESBTC" => {
+        //                 "name" => "WAVESBTC",
+        //                 "min_amount" => "1",
+        //                 "maker_fee_rate" => "0.001",
+        //                 "taker_fee_rate" => "0.001",
+        //                 "pricing_name" => "BTC",
+        //                 "pricing_decimal" => 8,
+        //                 "trading_name" => "WAVES",
+        //                 "trading_decimal" => 8
+        //             }
+        //             ...
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $result = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $market = $this->market($symbol);
+            $fee = $this->safe_value($data, $market['id'], array());
+            $result[$symbol] = $this->parse_trading_fee($fee, $market);
+        }
+        return $result;
+    }
+
+    public function parse_trading_fee($fee, $market = null) {
+        $marketId = $this->safe_value($fee, 'name');
+        $symbol = $this->safe_symbol($marketId, $market);
+        return array(
+            'info' => $fee,
+            'symbol' => $symbol,
+            'maker' => $this->safe_number($fee, 'maker_fee_rate'),
+            'taker' => $this->safe_number($fee, 'taker_fee_rate'),
+            'percentage' => true,
+            'tierBased' => true,
+        );
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {

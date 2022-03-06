@@ -81,6 +81,7 @@ module.exports = class ftx extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': false,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
@@ -338,7 +339,7 @@ module.exports = class ftx extends Exchange {
                     'Invalid parameter': BadRequest, // {"error":"Invalid parameter start_time","success":false}
                     'The requested URL was not found on the server': BadRequest,
                     'No such coin': BadRequest,
-                    'No such subaccount': BadRequest,
+                    'No such subaccount': AuthenticationError,
                     'No such future': BadSymbol,
                     'No such market': BadSymbol,
                     'Do not send more than': RateLimitExceeded,
@@ -595,6 +596,12 @@ module.exports = class ftx extends Exchange {
                 symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry, '');
             }
             // check if a market is a spot or future market
+            const sizeIncrement = this.safeString (market, 'sizeIncrement');
+            const minProvideSize = this.safeString (market, 'minProvideSize');
+            let minAmountString = sizeIncrement;
+            if (minProvideSize !== undefined) {
+                minAmountString = Precise.stringGt (minProvideSize, sizeIncrement) ? sizeIncrement : minProvideSize;
+            }
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -620,7 +627,7 @@ module.exports = class ftx extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeNumber (market, 'sizeIncrement'),
+                    'amount': this.parseNumber (sizeIncrement),
                     'price': this.safeNumber (market, 'priceIncrement'),
                 },
                 'limits': {
@@ -629,7 +636,7 @@ module.exports = class ftx extends Exchange {
                         'max': this.parseNumber ('20'),
                     },
                     'amount': {
-                        'min': undefined,
+                        'min': this.parseNumber (minAmountString),
                         'max': undefined,
                     },
                     'price': {
@@ -1131,11 +1138,21 @@ module.exports = class ftx extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        return {
-            'info': response,
-            'maker': this.safeNumber (result, 'makerFee'),
-            'taker': this.safeNumber (result, 'takerFee'),
-        };
+        const maker = this.safeNumber (result, 'makerFee');
+        const taker = this.safeNumber (result, 'takerFee');
+        const tradingFees = {};
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            tradingFees[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': maker,
+                'taker': taker,
+                'percentage': true,
+                'tierBased': true,
+            };
+        }
+        return tradingFees;
     }
 
     async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {

@@ -64,6 +64,8 @@ class woo extends Exchange {
                 'fetchTickers' => false,
                 'fetchTime' => false,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => true,
                 'fetchTransactions' => true,
                 'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
@@ -156,8 +158,8 @@ class woo extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
-                    'maker' => 0.2 / 100,
-                    'taker' => 0.5 / 100,
+                    'maker' => $this->parse_number('0.0002'),
+                    'taker' => $this->parse_number('0.0005'),
                 ),
             ),
             'options' => array(
@@ -482,6 +484,48 @@ class woo extends Exchange {
             );
         }
         return $fee;
+    }
+
+    public function fetch_trading_fees($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->v1PrivateGetClientInfo ($params);
+        //
+        //     {
+        //         "application":array(
+        //             "id":45585,
+        //             "leverage":3.00,
+        //             "otpauth":false,
+        //             "alias":"email@address.com",
+        //             "application_id":"c2cc4d74-c8cb-4e10-84db-af2089b8c68a",
+        //             "account":"email@address.com",
+        //             "account_mode":"PURE_SPOT",
+        //             "taker_fee_rate":5.00,
+        //             "maker_fee_rate":2.00,
+        //             "interest_rate":0.00,
+        //             "futures_leverage":1.00,
+        //             "futures_taker_fee_rate":5.00,
+        //             "futures_maker_fee_rate":2.00
+        //         ),
+        //         "margin_rate":1000,
+        //         "success":true
+        //     }
+        //
+        $application = $this->safe_value($response, 'application', array());
+        $maker = $this->safe_string($application, 'maker_fee_rate');
+        $taker = $this->safe_string($application, 'taker_fee_rate');
+        $result = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $result[$symbol] = array(
+                'info' => $response,
+                'symbol' => $symbol,
+                'maker' => $this->parse_number(Precise::string_div($maker, '10000')),
+                'taker' => $this->parse_number(Precise::string_div($taker, '10000')),
+                'percentage' => true,
+                'tierBased' => true,
+            );
+        }
+        return $result;
     }
 
     public function fetch_currencies($params = array ()) {

@@ -69,6 +69,8 @@ class woo(Exchange):
                 'fetchTickers': False,
                 'fetchTime': False,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
                 'fetchTransactions': True,
                 'fetchTransfers': True,
                 'fetchWithdrawals': True,
@@ -161,8 +163,8 @@ class woo(Exchange):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'maker': 0.2 / 100,
-                    'taker': 0.5 / 100,
+                    'maker': self.parse_number('0.0002'),
+                    'taker': self.parse_number('0.0005'),
                 },
             },
             'options': {
@@ -476,6 +478,46 @@ class woo(Exchange):
                 'currency': feeCurrencyCode,
             }
         return fee
+
+    def fetch_trading_fees(self, params={}):
+        self.load_markets()
+        response = self.v1PrivateGetClientInfo(params)
+        #
+        #     {
+        #         "application":{
+        #             "id":45585,
+        #             "leverage":3.00,
+        #             "otpauth":false,
+        #             "alias":"email@address.com",
+        #             "application_id":"c2cc4d74-c8cb-4e10-84db-af2089b8c68a",
+        #             "account":"email@address.com",
+        #             "account_mode":"PURE_SPOT",
+        #             "taker_fee_rate":5.00,
+        #             "maker_fee_rate":2.00,
+        #             "interest_rate":0.00,
+        #             "futures_leverage":1.00,
+        #             "futures_taker_fee_rate":5.00,
+        #             "futures_maker_fee_rate":2.00
+        #         },
+        #         "margin_rate":1000,
+        #         "success":true
+        #     }
+        #
+        application = self.safe_value(response, 'application', {})
+        maker = self.safe_string(application, 'maker_fee_rate')
+        taker = self.safe_string(application, 'taker_fee_rate')
+        result = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': self.parse_number(Precise.string_div(maker, '10000')),
+                'taker': self.parse_number(Precise.string_div(taker, '10000')),
+                'percentage': True,
+                'tierBased': True,
+            }
+        return result
 
     def fetch_currencies(self, params={}):
         method = None

@@ -10,6 +10,7 @@ error_hierarchy = {
             'ArgumentsRequired': {},
             'BadRequest': {
                 'BadSymbol': {},
+                'MarginModeAlreadySet': {},
             },
             'BadResponse': {
                 'NullResponse': {},
@@ -75,6 +76,10 @@ class BadRequest(ExchangeError):
 
 
 class BadSymbol(BadRequest):
+    pass
+
+
+class MarginModeAlreadySet(BadRequest):
     pass
 
 
@@ -169,6 +174,7 @@ __all__ = [
     'ArgumentsRequired',
     'BadRequest',
     'BadSymbol',
+    'MarginModeAlreadySet',
     'BadResponse',
     'NullResponse',
     'InsufficientFunds',

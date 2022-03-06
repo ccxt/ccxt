@@ -107,6 +107,7 @@ module.exports = class Exchange {
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
                 'fetchLeverageTiers': undefined,
+                'fetchMarketLeverageTiers': undefined,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': undefined,
                 'fetchMyTrades': undefined,
@@ -134,7 +135,6 @@ module.exports = class Exchange {
                 'fetchTransfers': undefined,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': undefined,
-                'loadLeverageBrackets': undefined,
                 'loadMarkets': true,
                 'reduceMargin': undefined,
                 'setLeverage': undefined,
@@ -2167,5 +2167,38 @@ module.exports = class Exchange {
         const after = this.milliseconds ();
         this.options['timeDifference'] = after - serverTime;
         return this.options['timeDifference'];
+    }
+
+    parseLeverageTiers (response, symbols, marketIdKey) {
+        const tiers = {};
+        for (let i = 0; i < response.length; i++) {
+            const item = response[i];
+            const id = this.safeString (item, marketIdKey);
+            const market = this.safeMarket (id);
+            const symbol = market['symbol'];
+            let symbolsLength = 0;
+            if (symbols !== undefined) {
+                symbolsLength = symbols.length;
+            }
+            const contract = this.safeValue (market, 'contract', false);
+            if (contract && (symbolsLength === 0 || symbols.includes (symbol))) {
+                tiers[symbol] = this.parseMarketLeverageTiers (item, market);
+            }
+        }
+        return tiers;
+    }
+
+    async fetchMarketLeverageTiers (symbol, params = {}) {
+        if (this.has['fetchLeverageTiers']) {
+            const market = await this.market (symbol);
+            if (!market['contract']) {
+                throw new BadSymbol (this.id + ' fetchLeverageTiers() supports contract markets only');
+            }
+            const tiers = await this.fetchLeverageTiers ([ symbol ]);
+            return this.safeValue (tiers, symbol);
+        } else {
+            throw new NotSupported (this.id + 'fetchMarketLeverageTiers() is not supported yet');
+        }
+
     }
 }

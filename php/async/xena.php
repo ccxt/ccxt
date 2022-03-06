@@ -8,7 +8,6 @@ namespace ccxt\async;
 use Exception; // a common import
 use \ccxt\ExchangeError;
 use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
 use \ccxt\BadSymbol;
 use \ccxt\InvalidOrder;
 use \ccxt\Precise;
@@ -45,7 +44,8 @@ class xena extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchLedger' => true,
-                'fetchLeverageTiers' => 'emulated',
+                'fetchLeverageTiers' => true,
+                'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -55,6 +55,8 @@ class xena extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
@@ -70,7 +72,7 @@ class xena extends Exchange {
                 ),
                 'www' => 'https://xena.exchange',
                 'doc' => 'https://support.xena.exchange/support/solutions/44000808700',
-                'fees' => 'https://trading.xena.exchange/en/platform-specification/fee-schedule',
+                'fees' => 'https://trading.xena.exchange/en/contracts/terms-and-condition',
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -1697,16 +1699,8 @@ class xena extends Exchange {
         return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
-    public function fetch_leverage_tiers($symbol = null, $params = array ()) {
+    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
         yield $this->load_markets();
-        $symbolDefined = $symbol !== null;
-        if ($symbolDefined) {
-            $market = $this->market($symbol);
-            if (!$market['contract']) {
-                throw new BadRequest($this->id . ' fetchLeverageTiers $symbol supports contract markets only');
-            }
-        }
-        $result = array();
         $response = yield $this->publicGetCommonInstruments ($params);
         //
         //    array(
@@ -1781,42 +1775,105 @@ class xena extends Exchange {
         //           ...
         //        )
         //
-        for ($i = 0; $i < count($response); $i++) {
-            $item = $response[$i];
-            $margin = $this->safe_value($item, 'margin');
-            $rates = $this->safe_value($margin, 'rates');
-            $floor = 0;
-            $id = $this->safe_string($item, 'symbol');
-            $market = $this->market($id);
-            if ($market['contract']) {
-                if ($rates !== null) {
-                    $tiers = array();
-                    for ($j = 0; $j < count($rates); $j++) {
-                        $tier = $rates[$j];
-                        $cap = $this->safe_number($tier, 'maxVolume');
-                        $initialRate = $this->safe_string($tier, 'initialRate');
-                        $tiers[] = array(
-                            'tier' => $this->sum($j, 1),
-                            'currency' => $market['base'],
-                            'notionalFloor' => $floor,
-                            'notionalCap' => $cap,
-                            'maintenanceMarginRate' => $this->safe_number($tier, 'maintenanceRate'),
-                            'maxLeverage' => $this->parse_number(Precise::string_div('1', $initialRate)),
-                            'info' => $tier,
-                        );
-                        $floor = $cap;
+        return $this->parse_leverage_tiers($response, $symbols, 'symbol');
+    }
+
+    public function parse_market_leverage_tiers($info, $market) {
+        /**
+            @param $info => Exchange $market response for 1 $market
+            {
+                "id" => "XBTUSD_3M_240622",
+                "type" => "Margin",
+                "marginType" => "XenaFuture",
+                "symbol" => "XBTUSD_3M_240622",
+                "baseCurrency" => "BTC",
+                "quoteCurrency" => "USD",
+                "settlCurrency" => "USDC",
+                "tickSize" => 0,
+                "minOrderQuantity" => "0.0001",
+                "orderQtyStep" => "0.0001",
+                "limitOrderMaxDistance" => "10",
+                "priceInputMask" => "00000.0",
+                "enabled" => true,
+                "liquidationMaxDistance" => "0.01",
+                "contractValue" => "1",
+                "contractCurrency" => "BTC",
+                "lotSize" => "1",
+                "maxOrderQty" => "10",
+                "maxPosVolume" => "200",
+                "mark" => ".XBTUSD_3M_240622",
+                "underlying" => ".BTC3_TWAP",
+                "openInterest" => ".XBTUSD_3M_240622_OpenInterest",
+                "addUvmToFreeMargin" => "ProfitAndLoss",
+                "margin" => {
+                    "netting" => "PositionsAndOrders",
+                    "rates" => array(
+                        array( "maxVolume" => "10", "initialRate" => "0.05", "maintenanceRate" => "0.025" ),
+                        array( "maxVolume" => "20", "initialRate" => "0.1", "maintenanceRate" => "0.05" ),
+                        array( "maxVolume" => "30", "initialRate" => "0.2", "maintenanceRate" => "0.1" ),
+                        array( "maxVolume" => "40", "initialRate" => "0.3", "maintenanceRate" => "0.15" ),
+                        array( "maxVolume" => "60", "initialRate" => "0.4", "maintenanceRate" => "0.2" ),
+                        array( "maxVolume" => "150", "initialRate" => "0.5", "maintenanceRate" => "0.25" ),
+                        array( "maxVolume" => "200", "initialRate" => "1", "maintenanceRate" => "0.5" )
+                    ),
+                    "rateMultipliers" => array(
+                        "LimitBuy" => "1",
+                        "LimitSell" => "1",
+                        "Long" => "1",
+                        "MarketBuy" => "1",
+                        "MarketSell" => "1",
+                        "Short" => "1",
+                        "StopBuy" => "0",
+                        "StopSell" => "0"
                     }
-                    $result[$market['symbol']] = $tiers;
-                }
+                ),
+                "clearing" => array( "enabled" => true, "index" => ".XBTUSD_3M_240622" ),
+                "riskAdjustment" => array( "enabled" => true, "index" => ".RiskAdjustment_IR" ),
+                "expiration" => array( "enabled" => true, "index" => ".BTC3_TWAP" ),
+                "pricePrecision" => 1,
+                "priceRange" => array(
+                    "enabled" => true,
+                    "distance" => "0.2",
+                    "movingBoundary" => "0",
+                    "lowIndex" => ".XBTUSD_3M_240622_LOWRANGE",
+                    "highIndex" => ".XBTUSD_3M_240622_HIGHRANGE"
+                ),
+                "priceLimits" => array(
+                    "enabled" => true,
+                    "distance" => "0.5",
+                    "movingBoundary" => "0",
+                    "lowIndex" => ".XBTUSD_3M_240622_LOWLIMIT",
+                    "highIndex" => ".XBTUSD_3M_240622_HIGHLIMIT"
+                ),
+                "serie" => "XBTUSD",
+                "tradingStartDate" => "2021-12-31 07:00:00",
+                "expiryDate" => "2022-06-24 08:00:00"
+            }
+        */
+        $margin = $this->safe_value($info, 'margin');
+        $rates = $this->safe_value($margin, 'rates');
+        $floor = 0;
+        $id = $this->safe_string($info, 'symbol');
+        $market = $this->safe_market($id, $market);
+        $tiers = array();
+        if ($rates !== null) {
+            for ($j = 0; $j < count($rates); $j++) {
+                $tier = $rates[$j];
+                $cap = $this->safe_number($tier, 'maxVolume');
+                $initialRate = $this->safe_string($tier, 'initialRate');
+                $tiers[] = array(
+                    'tier' => $this->sum($j, 1),
+                    'currency' => $market['base'],
+                    'notionalFloor' => $floor,
+                    'notionalCap' => $cap,
+                    'maintenanceMarginRate' => $this->safe_number($tier, 'maintenanceRate'),
+                    'maxLeverage' => $this->parse_number(Precise::string_div('1', $initialRate)),
+                    'info' => $tier,
+                );
+                $floor = $cap;
             }
         }
-        if ($symbolDefined) {
-            $finalResult = array();
-            $finalResult[$symbol] = $this->safe_value($result, $symbol);
-            return $finalResult;
-        } else {
-            return $result;
-        }
+        return $tiers;
     }
 
     public function nonce() {

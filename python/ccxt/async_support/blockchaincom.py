@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -20,7 +21,7 @@ class blockchaincom(Exchange):
             'secret': None,
             'name': 'Blockchain.com',
             'countries': ['LX'],
-            'rateLimit': 1000,
+            'rateLimit': 500,  # prev 1000
             'version': 'v3',
             'has': {
                 'CORS': False,
@@ -57,6 +58,7 @@ class blockchaincom(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': False,
+                'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
@@ -82,40 +84,40 @@ class blockchaincom(Exchange):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'tickers',  # fetchTickers
-                        'tickers/{symbol}',  # fetchTicker
-                        'symbols',  # fetchMarkets
-                        'symbols/{symbol}',  # fetchMarket
-                        'l2/{symbol}',  # fetchL2OrderBook
-                        'l3/{symbol}',  # fetchL3OrderBook
-                    ],
+                    'get': {
+                        'tickers': 1,  # fetchTickers
+                        'tickers/{symbol}': 1,  # fetchTicker
+                        'symbols': 1,  # fetchMarkets
+                        'symbols/{symbol}': 1,  # fetchMarket
+                        'l2/{symbol}': 1,  # fetchL2OrderBook
+                        'l3/{symbol}': 1,  # fetchL3OrderBook
+                    },
                 },
                 'private': {
-                    'get': [
-                        'fees',  # fetchFees
-                        'orders',  # fetchOpenOrders, fetchClosedOrders
-                        'orders/{orderId}',  # fetchOrder(id)
-                        'trades',
-                        'fills',  # fetchMyTrades
-                        'deposits',  # fetchDeposits
-                        'deposits/{depositId}',  # fetchDeposit
-                        'accounts',  # fetchBalance
-                        'accounts/{account}/{currency}',
-                        'whitelist',  # fetchWithdrawalWhitelist
-                        'whitelist/{currency}',  # fetchWithdrawalWhitelistByCurrency
-                        'withdrawals',  # fetchWithdrawalWhitelist
-                        'withdrawals/{withdrawalId}',  # fetchWithdrawalById
-                    ],
-                    'post': [
-                        'orders',  # createOrder
-                        'deposits/{currency}',  # fetchDepositAddress by currency(only crypto supported)
-                        'withdrawals',  # withdraw
-                    ],
-                    'delete': [
-                        'orders',  # cancelOrders
-                        'orders/{orderId}',  # cancelOrder
-                    ],
+                    'get': {
+                        'fees': 1,  # fetchFees
+                        'orders': 1,  # fetchOpenOrders, fetchClosedOrders
+                        'orders/{orderId}': 1,  # fetchOrder(id)
+                        'trades': 1,
+                        'fills': 1,  # fetchMyTrades
+                        'deposits': 1,  # fetchDeposits
+                        'deposits/{depositId}': 1,  # fetchDeposit
+                        'accounts': 1,  # fetchBalance
+                        'accounts/{account}/{currency}': 1,
+                        'whitelist': 1,  # fetchWithdrawalWhitelist
+                        'whitelist/{currency}': 1,  # fetchWithdrawalWhitelistByCurrency
+                        'withdrawals': 1,  # fetchWithdrawalWhitelist
+                        'withdrawals/{withdrawalId}': 1,  # fetchWithdrawalById
+                    },
+                    'post': {
+                        'orders': 1,  # createOrder
+                        'deposits/{currency}': 1,  # fetchDepositAddress by currency(only crypto supported)
+                        'withdrawals': 1,  # withdraw
+                    },
+                    'delete': {
+                        'orders': 1,  # cancelOrders
+                        'orders/{orderId}': 1,  # cancelOrder
+                    },
                 },
             },
             'fees': {
@@ -430,26 +432,43 @@ class blockchaincom(Exchange):
         return result
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clOrdId', self.uuid16())
         await self.load_markets()
         market = self.market(symbol)
+        orderType = self.safe_string(params, 'ordType', type)
+        uppercaseOrderType = orderType.upper()
+        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clOrdId', self.uuid16())
+        params = self.omit(params, ['ordType', 'clientOrderId', 'clOrdId'])
         request = {
             # 'stopPx' : limit price
             # 'timeInForce' : "GTC" for Good Till Cancel, "IOC" for Immediate or Cancel, "FOK" for Fill or Kill, "GTD" Good Till Date
             # 'expireDate' : expiry date in the format YYYYMMDD
             # 'minQty' : The minimum quantity required for an IOC fill
+            'ordType': uppercaseOrderType,
             'symbol': market['id'],
             'side': side.upper(),
             'orderQty': self.amount_to_precision(symbol, amount),
-            'ordType': type.upper(),  # LIMIT, MARKET, STOP, STOPLIMIT
             'clOrdId': clientOrderId,
         }
-        params = self.omit(params, ['clientOrderId', 'clOrdId'])
-        if request['ordType'] == 'LIMIT':
+        stopPrice = self.safe_value_2(params, 'stopPx', 'stopPrice')
+        params = self.omit(params, ['stopPx', 'stopPrice'])
+        if uppercaseOrderType == 'STOP' or uppercaseOrderType == 'LIMIT':
+            if stopPrice is None:
+                raise ArgumentsRequired(self.id + ' createOrder() requires a stopPx or stopPrice param for a ' + uppercaseOrderType + ' order')
+        if stopPrice is not None:
+            if uppercaseOrderType == 'MARKET':
+                request['ordType'] = 'STOP'
+            elif uppercaseOrderType == 'LIMIT':
+                request['ordType'] = 'STOPLIMIT'
+        priceRequired = False
+        stopPriceRequired = False
+        if request['ordType'] == 'LIMIT' or request['ordType'] == 'STOPLIMIT':
+            priceRequired = True
+        if request['ordType'] == 'STOP' or request['ordType'] == 'STOPLIMIT':
+            stopPriceRequired = True
+        if priceRequired:
             request['price'] = self.price_to_precision(symbol, price)
-        if request['ordType'] == 'STOPLIMIT':
-            request['price'] = self.price_to_precision(symbol, price)
-            request['stopPx'] = self.price_to_precision(symbol, price)
+        if stopPriceRequired:
+            request['stopPx'] = self.price_to_precision(symbol, stopPrice)
         response = await self.privatePostOrders(self.extend(request, params))
         return self.parse_order(response, market)
 
@@ -480,6 +499,8 @@ class blockchaincom(Exchange):
         }
 
     async def fetch_trading_fees(self, params={}):
+        await self.load_markets()
+        response = await self.privateGetFees(params)
         #
         #     {
         #         makerRate: "0.002",
@@ -487,13 +508,18 @@ class blockchaincom(Exchange):
         #         volumeInUSD: "0.0"
         #     }
         #
-        await self.load_markets()
-        response = await self.privateGetFees()
-        return {
-            'maker': self.safe_number(response, 'makerRate'),
-            'taker': self.safe_number(response, 'takerRate'),
-            'info': response,
-        }
+        makerFee = self.safe_number(response, 'makerRate')
+        takerFee = self.safe_number(response, 'takerRate')
+        result = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': makerFee,
+                'taker': takerFee,
+            }
+        return result
 
     async def fetch_canceled_orders(self, symbol=None, since=None, limit=None, params={}):
         state = 'CANCELED'
@@ -536,44 +562,36 @@ class blockchaincom(Exchange):
         #         "timestamp":1634559249687
         #     }
         #
-        id = self.safe_string(trade, 'exOrdId')
-        order = self.safe_string(trade, 'tradeId')
+        orderId = self.safe_string(trade, 'exOrdId')
+        tradeId = self.safe_string(trade, 'tradeId')
         side = self.safe_string(trade, 'side').lower()
         marketId = self.safe_string(trade, 'symbol')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'qty')
-        costString = Precise.string_mul(priceString, amountString)
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(costString)
         timestamp = self.safe_integer(trade, 'timestamp')
         datetime = self.iso8601(timestamp)
         market = self.safe_market(marketId, market, '-')
         symbol = market['symbol']
         fee = None
-        feeCost = self.safe_number(trade, 'fee')
-        if feeCost is not None:
-            feeCurrency = None
-            if side == 'buy':
-                feeCurrency = market['base']
-            elif side == 'sell':
-                feeCurrency = market['quote']
-            fee = {'cost': feeCost, 'currency': feeCurrency}
-        return {
-            'id': id,
+        feeCostString = self.safe_string(trade, 'fee')
+        if feeCostString is not None:
+            feeCurrency = market['quote']
+            fee = {'cost': feeCostString, 'currency': feeCurrency}
+        return self.safe_trade({
+            'id': tradeId,
             'timestamp': timestamp,
             'datetime': datetime,
             'symbol': symbol,
-            'order': order,
+            'order': orderId,
             'type': None,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-            'info': order,
-        }
+            'info': trade,
+        }, market)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
