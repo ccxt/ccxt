@@ -740,6 +740,12 @@ class Exchange {
         return static::implode_params($url, array('hostname' => $this->hostname));
     }
 
+    public function resolve_path ($path, $params) {
+        $resolvedPath = $this->implode_params ($path, $params);
+        $params = $this->omit ($params, $this->extractParams ($path));
+        return [$resolvedPath, $params];
+    }
+
     public static function deep_extend() {
         //
         //     extend associative dictionaries only, replace everything else
@@ -1953,12 +1959,6 @@ class Exchange {
             $result[] = $this->parse_bid_ask($bidask, $price_key, $amount_key);
         }
         return $result;
-    }
-
-    public function resolve_path ($path, $params) {
-        $resolvedPath = $this->implode_params ($path, $params);
-        $params = $this->omit ($params, $this->extractParams ($path));
-        return [$resolvedPath, $params];
     }
 
     public function fetch_l2_order_book($symbol, $limit = null, $params = array()) {
