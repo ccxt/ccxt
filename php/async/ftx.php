@@ -484,8 +484,8 @@ class ftx extends Exchange {
         //         enabled =>  true,
         //         postOnly =>  false,
         //         priceIncrement => "1.0",
-        //         sizeIncrement => "0.0001",
-        //         minProvideSize => "0.001",
+        //         $sizeIncrement => "0.0001",
+        //         $minProvideSize => "0.001",
         //         last => "60397.0",
         //         bid => "60387.0",
         //         ask => "60388.0",
@@ -522,7 +522,7 @@ class ftx extends Exchange {
         //                enabled => true,
         //                postOnly => false,
         //                priceIncrement => "0.0001",
-        //                sizeIncrement => "1.0",
+        //                $sizeIncrement => "1.0",
         //                last => "2.5556",
         //                bid => "2.5555",
         //                ask => "2.5563",
@@ -601,6 +601,12 @@ class ftx extends Exchange {
                 $symbol = $base . '/' . $quote . ':' . $settle . '-' . $this->yymmdd($expiry, '');
             }
             // check if a $market is a $spot or $future $market
+            $sizeIncrement = $this->safe_string($market, 'sizeIncrement');
+            $minProvideSize = $this->safe_string($market, 'minProvideSize');
+            $minAmountString = $sizeIncrement;
+            if ($minProvideSize !== null) {
+                $minAmountString = Precise::string_gt($minProvideSize, $sizeIncrement) ? $sizeIncrement : $minProvideSize;
+            }
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -626,7 +632,7 @@ class ftx extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_number($market, 'sizeIncrement'),
+                    'amount' => $this->parse_number($sizeIncrement),
                     'price' => $this->safe_number($market, 'priceIncrement'),
                 ),
                 'limits' => array(
@@ -635,7 +641,7 @@ class ftx extends Exchange {
                         'max' => $this->parse_number('20'),
                     ),
                     'amount' => array(
-                        'min' => null,
+                        'min' => $this->parse_number($minAmountString),
                         'max' => null,
                     ),
                     'price' => array(
