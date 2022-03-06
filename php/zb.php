@@ -30,7 +30,7 @@ class zb extends Exchange {
                 'CORS' => null,
                 'spot' => true,
                 'margin' => null, // has but unimplemented
-                'swap' => null, // has but unimplemented
+                'swap' => true,
                 'future' => null,
                 'option' => null,
                 'addMargin' => true,
@@ -38,15 +38,21 @@ class zb extends Exchange {
                 'cancelOrder' => true,
                 'createMarketOrder' => null,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => true,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
+                'fetchLedger' => true,
+                'fetchLeverage' => false,
+                'fetchLeverageTiers' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -55,12 +61,16 @@ class zb extends Exchange {
                 'fetchOrders' => true,
                 'fetchPosition' => true,
                 'fetchPositions' => true,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
                 'setLeverage' => true,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -2758,6 +2768,156 @@ class zb extends Exchange {
             $result[] = $this->parse_position($positions[$i]);
         }
         return $result;
+    }
+
+    public function parse_ledger_entry_type($type) {
+        $types = array(
+            '1' => 'realized pnl',
+            '2' => 'commission',
+            '3' => 'funding fee subtract',
+            '4' => 'funding fee addition',
+            '5' => 'insurance clear',
+            '6' => 'transfer in',
+            '7' => 'transfer out',
+            '8' => 'margin addition',
+            '9' => 'margin subtraction',
+            '10' => 'commission addition',
+            '11' => 'bill $type freeze',
+            '12' => 'bill $type unfreeze',
+            '13' => 'system take over margin',
+            '14' => 'transfer',
+            '15' => 'realized pnl collection',
+            '16' => 'funding fee collection',
+            '17' => 'recommender return commission',
+            '18' => 'by level subtract positions',
+            '19' => 'system add',
+            '20' => 'system subtract',
+            '23' => 'trading competition take over fund',
+            '24' => 'trading contest tickets',
+            '25' => 'return of trading contest tickets',
+            '26' => 'experience expired recall',
+            '50' => 'test register gift',
+            '51' => 'register gift',
+            '52' => 'deposit gift',
+            '53' => 'trading volume gift',
+            '54' => 'awards gift',
+            '55' => 'trading volume gift',
+            '56' => 'awards gift expire',
+            '201' => 'open positions',
+            '202' => 'close positions',
+            '203' => 'take over positions',
+            '204' => 'trading competition take over positions',
+            '205' => 'one way open long',
+            '206' => 'one way open short',
+            '207' => 'one way close long',
+            '208' => 'one way close short',
+            '301' => 'coupon deduction service charge',
+            '302' => 'experience deduction',
+            '303' => 'experience expired',
+        );
+        return $this->safe_string($types, $type, $type);
+    }
+
+    public function parse_ledger_entry($item, $currency = null) {
+        //
+        //     array(
+        //         array(
+        //             "type" => 3,
+        //             "changeAmount" => "0.00434664",
+        //             "isIn" => 0,
+        //             "beforeAmount" => "30.53353135",
+        //             "beforeFreezeAmount" => "21.547",
+        //             "createTime" => "1646121604997",
+        //             "available" => "30.52918471",
+        //             "unit" => "usdt",
+        //             "symbol" => "BTC_USDT"
+        //         ),
+        //     ),
+        //
+        $timestamp = $this->safe_string($item, 'createTime');
+        $direction = null;
+        $changeDirection = $this->safe_number($item, 'isIn');
+        if ($changeDirection === 1) {
+            $direction = 'increase';
+        } else {
+            $direction = 'reduce';
+        }
+        $fee = null;
+        $feeCost = $this->safe_number($item, 'fee');
+        if ($feeCost !== null) {
+            $fee = array(
+                'cost' => $feeCost,
+                'currency' => $this->safe_currency_code($this->safe_string($item, 'unit')),
+            );
+        }
+        return array(
+            'id' => $this->safe_string($item, 'id'),
+            'info' => $item,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'direction' => $direction,
+            'account' => $this->safe_string($item, 'userId'),
+            'referenceId' => null,
+            'referenceAccount' => null,
+            'type' => $this->parse_ledger_entry_type($this->safe_integer($item, 'type')),
+            'currency' => $this->safe_currency_code($this->safe_string($item, 'unit')),
+            'amount' => $this->safe_number($item, 'changeAmount'),
+            'before' => $this->safe_number($item, 'beforeAmount'),
+            'after' => $this->safe_number($item, 'available'),
+            'status' => null,
+            'fee' => $fee,
+        );
+    }
+
+    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        if ($code === null) {
+            throw new ArgumentsRequired($this->id . ' fetchLedger() requires a $code argument');
+        }
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'futuresAccountType' => 1,
+            // 'currencyId' => '11',
+            // 'type' => 1,
+            // 'endTime' => $this->milliseconds(),
+            // 'pageNum' => 1,
+        );
+        if ($code !== null) {
+            $request['currencyName'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['pageSize'] = $limit;
+        }
+        $response = $this->contractV2PrivateGetFundGetBill (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 10000,
+        //         "data" => array(
+        //             "list" => array(
+        //                 array(
+        //                     "type" => 3,
+        //                     "changeAmount" => "0.00434664",
+        //                     "isIn" => 0,
+        //                     "beforeAmount" => "30.53353135",
+        //                     "beforeFreezeAmount" => "21.547",
+        //                     "createTime" => "1646121604997",
+        //                     "available" => "30.52918471",
+        //                     "unit" => "usdt",
+        //                     "symbol" => "BTC_USDT"
+        //                 ),
+        //             ),
+        //             "pageNum" => 1,
+        //             "pageSize" => 10
+        //         ),
+        //         "desc" => "操作成功"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $list = $this->safe_value($data, 'list', array());
+        return $this->parse_ledger($list, $currency, $since, $limit);
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
