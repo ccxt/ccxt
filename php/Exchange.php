@@ -1955,7 +1955,7 @@ class Exchange {
         return $result;
     }
 
-    public function resolvePath ($path, $params) {
+    public function resolve_path ($path, $params) {
         $resolvedPath = $this->implode_params ($path, $params);
         $params = $this->omit ($params, $this->extractParams ($path));
         return [$resolvedPath, $params];
