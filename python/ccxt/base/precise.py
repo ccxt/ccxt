@@ -194,6 +194,12 @@ class Precise:
         return Precise(string1).equals(Precise(string2))
 
     @staticmethod
+    def string_eq(string1, string2):
+        if string1 is None or string2 is None:
+            return None
+        return Precise(string1).equals(Precise(string2))
+
+    @staticmethod
     def string_min(string1, string2):
         if string1 is None or string2 is None:
             return None
