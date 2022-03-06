@@ -69,8 +69,8 @@ module.exports = class krakenfu extends Exchange {
                     'charts': 'https://futures.kraken.com/api/charts/',
                     'history': 'https://futures.kraken.com/api/history/',
                     'feeschedules': 'https://futures.kraken.com/api/feeschedules/',
-                    'public': 'https://futures.kraken.com/derivatives/api/v3',
-                    'private': 'https://futures.kraken.com/derivatives/api/v3',
+                    'public': 'https://futures.kraken.com/derivatives/api/',
+                    'private': 'https://futures.kraken.com/derivatives/api/',
                 },
                 'www': 'https://futures.kraken.com/',
                 'doc': [
