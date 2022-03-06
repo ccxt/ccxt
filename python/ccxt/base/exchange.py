@@ -992,9 +992,6 @@ class Exchange(object):
     def extract_params(string):
         return re.findall(r'{([\w-]+)}', string)
 
-    def implode_hostname(self, url):
-        return Exchange.implode_params(url, {'hostname': self.hostname})
-
     @staticmethod
     def implode_params(string, params):
         if isinstance(params, dict):
@@ -1002,6 +999,14 @@ class Exchange(object):
                 if not isinstance(params[key], list):
                     string = string.replace('{' + key + '}', str(params[key]))
         return string
+
+    def implode_hostname(self, url):
+        return Exchange.implode_params(url, {'hostname': self.hostname})
+
+    def resolve_path (self, path, params):
+        resolvedPath = self.implode_params (path, params)
+        params = self.omit (params, self.extractParams (path))
+        return [resolvedPath, params]
 
     @staticmethod
     def urlencode(params={}, doseq=False):
