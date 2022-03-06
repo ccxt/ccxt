@@ -4499,7 +4499,7 @@ module.exports = class binance extends Exchange {
         let liquidationPrice = undefined;
         const contractSize = this.safeValue (market, 'contractSize');
         const contractSizeString = this.numberToString (contractSize);
-        if (Precise.stringEq (notionalString, '0')) {
+        if (Precise.stringEquals (notionalString, '0')) {
             entryPrice = undefined;
         } else {
             side = Precise.stringLt (notionalString, '0') ? 'short' : 'long';
@@ -4713,7 +4713,7 @@ module.exports = class binance extends Exchange {
         const initialMargin = this.parseNumber (initialMarginString);
         let marginRatio = undefined;
         let percentage = undefined;
-        if (!Precise.stringEq (collateralString, '0')) {
+        if (!Precise.stringEquals (collateralString, '0')) {
             marginRatio = this.parseNumber (Precise.stringDiv (Precise.stringAdd (Precise.stringDiv (maintenanceMarginString, collateralString), '5e-5'), '1', 4));
             percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100'));
         }
