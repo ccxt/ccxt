@@ -233,6 +233,7 @@ class Transpiler {
             [ /Precise\.stringNeg\s/g, 'Precise.string_neg' ],
             [ /Precise\.stringMod\s/g, 'Precise.string_mod' ],
             [ /Precise\.stringEquals\s/g, 'Precise.string_equals' ],
+            [ /Precise\.stringEq\s/g, 'Precise.string_eq' ],
             [ /Precise\.stringMin\s/g, 'Precise.string_min' ],
             [ /Precise\.stringMax\s/g, 'Precise.string_max' ],
             [ /Precise\.stringGt\s/g, 'Precise.string_gt' ],
