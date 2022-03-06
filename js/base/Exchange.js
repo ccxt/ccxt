@@ -1063,6 +1063,13 @@ module.exports = class Exchange {
         return this.implodeParams (url, { 'hostname': this.hostname })
     }
 
+    resolvePath (path, params) {
+        return [
+            this.implodeParams (path, params),
+            this.omit (params, this.extractParams (path))
+        ];
+    }
+
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
         const price = this.safeNumber (bidask, priceKey)
         const amount = this.safeNumber (bidask, amountKey)

@@ -740,6 +740,13 @@ class Exchange {
         return static::implode_params($url, array('hostname' => $this->hostname));
     }
 
+    public function resolve_path($path, $params) {
+        return [
+            $this->implode_params($path, $params),
+            $this->omit($params, $this->extract_params($path))
+        ];
+    }
+
     public static function deep_extend() {
         //
         //     extend associative dictionaries only, replace everything else
