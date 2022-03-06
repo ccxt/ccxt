@@ -598,7 +598,7 @@ module.exports = class ftx extends Exchange {
             // check if a market is a spot or future market
             const sizeIncrement = this.safeString (market, 'sizeIncrement');
             const minProvideSize = this.safeString (market, 'minProvideSize');
-            let minAmountString = sizeIncrement
+            let minAmountString = sizeIncrement;
             if (minProvideSize !== undefined) {
                 minAmountString = Precise.stringGt (minProvideSize, sizeIncrement) ? sizeIncrement : minProvideSize;
             }
