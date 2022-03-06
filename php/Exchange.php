@@ -1955,6 +1955,12 @@ class Exchange {
         return $result;
     }
 
+    public function resolvePath ($path, $params) {
+        $resolvedPath = $this->implode_params ($path, $params);
+        $params = $this->omit ($params, $this->extractParams ($path));
+        return [$resolvedPath, $params];
+    }
+
     public function fetch_l2_order_book($symbol, $limit = null, $params = array()) {
         $orderbook = $this->fetch_order_book($symbol, $limit, $params);
         return array_merge($orderbook, array(
