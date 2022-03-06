@@ -1064,9 +1064,10 @@ module.exports = class Exchange {
     }
 
     resolvePath (path, params) {
-        const resolvedPath = this.implodeParams (path, params);
-        params = this.omit (params, this.extractParams (path));
-        return [resolvedPath, params];
+        return [
+            this.implodeParams (path, params),
+            this.omit (params, this.extractParams (path))
+        ];
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
