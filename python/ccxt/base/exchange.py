@@ -1003,10 +1003,11 @@ class Exchange(object):
     def implode_hostname(self, url):
         return Exchange.implode_params(url, {'hostname': self.hostname})
 
-    def resolve_path (self, path, params):
-        resolvedPath = self.implode_params (path, params)
-        params = self.omit (params, self.extractParams (path))
-        return [resolvedPath, params]
+    def resolve_path(self, path, params):
+        return [
+            self.implode_params(path, params),
+            self.omit(params, self.extract_params(path))
+        ]
 
     @staticmethod
     def urlencode(params={}, doseq=False):
