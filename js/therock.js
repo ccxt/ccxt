@@ -1227,7 +1227,7 @@ module.exports = class therock extends Exchange {
     async fetchTradingFee (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        let request = {
             'id': market['id'],
         };
         const response = await this.publicGetFundsId (this.extend (request, params));
@@ -1247,7 +1247,21 @@ module.exports = class therock extends Exchange {
         //         leverages: []
         //      }
         //
-        return this.parseTradingFee (response, market);
+        request = {
+            'id': market['quoteId'],
+        };
+        const discount = await this.privateGetDiscountsId (this.extend (request, params));
+        //
+        //     {
+        //         "currency":"BTC",
+        //         "discount":50.0,
+        //         "details": {
+        //           "personal_discount": 50.0,
+        //           "commissions_related_discount": 0.0
+        //         }
+        //      }
+        //
+        return this.parseTradingFee (response, discount, market);
     }
 
     async fetchTradingFees (params = {}) {
@@ -1274,23 +1288,47 @@ module.exports = class therock extends Exchange {
         //            ]
         //        }
         //
+        const discountsResponse = await this.privateGetDiscounts (params);
+        //
+        //        {
+        //            "discounts": [
+        //              {
+        //                "currency":"BTC",
+        //                "discount":50.0,
+        //                "details": {
+        //                  "personal_discount": 50.0,
+        //                  "commissions_related_discount": 0.0
+        //                }
+        //              }
+        //              ...
+        //            ]
+        //         }
+        //
         const funds = this.safeValue (response, 'funds', []);
+        const discounts = this.safeValue (discountsResponse, 'discounts', []);
         const result = {};
         for (let i = 0; i < funds.length; i++) {
             const fund = funds[i];
-            const fee = this.parseTradingFee (fund);
+            const marketId = this.safeString (fund, 'id');
+            const market = this.safeMarket (marketId);
+            const quoteId = this.safeValue (market, 'quoteId');
+            const discount = this.filterBy (discounts, 'currency', quoteId);
+            const fee = this.parseTradingFee (fund, discount, market);
             const symbol = fee['symbol'];
             result[symbol] = fee;
         }
         return result;
     }
 
-    parseTradingFee (fee, market = undefined) {
+    parseTradingFee (fee, discount = undefined, market = undefined) {
         const marketId = this.safeString (fee, 'id');
         const takerString = this.safeString (fee, 'buy_fee');
         const makerString = this.safeString (fee, 'sell_fee');
-        const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
-        const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
+        // TotalFee = (100 - discount) * fee / 10000
+        const discountString = this.safeString (discount, 'discount', '0');
+        const feePercentage = Precise.stringSub ('100', discountString);
+        const taker = this.parseNumber (Precise.stringDiv (Precise.stringMul (takerString, feePercentage), '10000'));
+        const maker = this.parseNumber (Precise.stringDiv (Precise.stringMul (makerString, feePercentage), '10000'));
         return {
             'info': fee,
             'symbol': this.safeSymbol (marketId, market),
