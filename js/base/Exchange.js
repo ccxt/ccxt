@@ -35,6 +35,7 @@ const { // eslint-disable-line object-curly-newline
     ExchangeError
     , BadSymbol
     , InvalidAddress
+    , InvalidOrder
     , NotSupported
     , AuthenticationError
     , DDoSProtection
@@ -2207,5 +2208,35 @@ module.exports = class Exchange {
             throw new NotSupported (this.id + 'fetchMarketLeverageTiers() is not supported yet');
         }
 
+    }
+
+    /**
+     * @param {string} type: Order type
+     * @param {string} timeInForce
+     * @param {boolean} exchangeSpecificOption: True if the exchange specific post only setting is set
+     * @param {dict} params: Exchange specific params
+     * @returns {boolean}: true if a post only order, false otherwise
+     */
+    isPostOnly (type, timeInForce, exchangeSpecificOption, params = {}) {
+        let postOnly = this.safeValue2 (params, 'postOnly', 'post_only', false);
+        params = this.omit (params, ['post_only', 'postOnly']);
+        const timeInForceUpper = timeInForce.toUpperCase ();
+        const typeLower = type.toLowerCase ();
+        const ioc = timeInForceUpper === 'IOC';
+        const timeInForcePostOnly = timeInForceUpper === 'PO';
+        const isMarket = typeLower === 'market';
+        postOnly = postOnly || typeLower === 'postonly' || timeInForcePostOnly || exchangeSpecificOption;
+        if (postOnly) {
+            if (ioc) {
+                throw new InvalidOrder (this.id + ' postOnly orders cannot have timeInForce equal to ' + timeInForce);
+            } else if (isMarket) {
+                throw new InvalidOrder (this.id + ' postOnly orders cannot have type ' + type);
+            } else {
+                timeInForce = timeInForcePostOnly ? undefined : timeInForce;
+                return ['limit', true, timeInForce, params];
+            }
+        } else {
+            return [type, false, timeInForce, params];
+        }
     }
 }

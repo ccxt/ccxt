@@ -16,6 +16,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidAddress
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import BadRequest
@@ -2805,3 +2806,23 @@ class Exchange(object):
             return self.safe_value(tiers, symbol)
         else:
             raise NotSupported(self.id + 'fetch_market_leverage_tiers() is not supported yet')
+
+    def is_post_only(self, type, time_in_force, exchange_specific_option, params={}):
+        post_only = self.safe_value2(params, 'postOnly', 'post_only', False)
+        params = self.omit(params, ['post_only', 'postOnly'])
+        time_in_force_upper = time_in_force.upper()
+        type_lower = type.lower()
+        ioc = time_in_force_upper == 'IOC'
+        time_in_force_post_only = time_in_force_upper == 'PO'
+        is_market = type_lower == 'market'
+        post_only = post_only or type_lower == 'postonly' or time_in_force_post_only or exchange_specific_option
+        if (post_only):
+            if (ioc):
+                raise InvalidOrder(self.id + ' postOnly orders cannot have timeInForce equal to ' + time_in_force)
+            elif (is_market):
+                raise InvalidOrder(self.id + ' postOnly orders cannot have type ' + type)
+            else:
+                time_in_force = None if time_in_force_post_only else time_in_force
+                return ['limit', True, time_in_force, params]
+        else:
+            return [type, False, time_in_force, params]

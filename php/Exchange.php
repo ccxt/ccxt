@@ -3712,4 +3712,27 @@ class Exchange {
     public function sleep($milliseconds) {
         sleep($milliseconds / 1000);
     }
+
+    public function is_post_only($type, $time_in_force, $exchange_specific_option, $params = array()){
+        $post_only = $this->safe_value2($params, 'postOnly', 'post_only', false);
+        $params = $this->omit($params, ['post_only', 'postOnly']);
+        $time_in_force_upper = $time_in_force.upper();
+        $type_upper = $type.lower();
+        $ioc = $time_in_force_upper === 'IOC';
+        $time_in_force_post_only = $time_in_force_upper === 'PO';
+        $is_market = $type_lower === 'market';
+        $post_only = $post_only || $type_lower === 'postonly' || $time_in_force_post_only || $exchange_specific_option;
+        if ($post_only) {
+            if ($ioc) {
+                throw new InvalidOrder($this->id + ' postOnly orders cannot have timeInForce equal to ' + $time_in_force);
+            } else if ($is_market) {
+                throw new InvalidOrder($this->id + ' postOnly orders cannot have type ' + $type);
+            } else {
+                $time_in_force = $time_in_force_post_only ? null : $time_in_force;
+                return ['limit', True, $time_in_force, $params];
+            }
+        } else {
+            return [$type, False, $time_in_force, $params];
+        }
+    }
 }
