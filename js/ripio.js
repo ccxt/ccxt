@@ -59,6 +59,8 @@ module.exports = class ripio extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': true,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -537,6 +539,59 @@ module.exports = class ripio extends Exchange {
         //     ]
         //
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetPair (params);
+        //
+        //      {
+        //          next: null,
+        //          previous: null,
+        //          results: [
+        //            {
+        //              base: 'BTC',
+        //              base_name: 'Bitcoin',
+        //              quote: 'USDC',
+        //              quote_name: 'USD Coin',
+        //              symbol: 'BTC_USDC',
+        //              fees: [
+        //                {
+        //                  traded_volume: '0.0',
+        //                  maker_fee: '0.0',
+        //                  taker_fee: '0.0',
+        //                  cancellation_fee: '0.0'
+        //                }
+        //              ],
+        //              country: 'ZZ',
+        //              enabled: true,
+        //              priority: '10',
+        //              min_amount: '0.0000100000',
+        //              price_tick: '0.000001',
+        //              min_value: '10',
+        //              limit_price_threshold: '25.00'
+        //            },
+        //            ...
+        //            ]
+        //      }
+        //
+        const results = this.safeValue (response, 'results', []);
+        const result = {};
+        for (let i = 0; i < results.length; i++) {
+            const pair = results[i];
+            const marketId = this.safeString (pair, 'symbol');
+            const symbol = this.safeSymbol (marketId, undefined, '_');
+            const fees = this.safeValue (pair, 'fees', []);
+            const fee = this.safeValue (fees, 0, {});
+            result[symbol] = {
+                'info': pair,
+                'symbol': symbol,
+                'maker': this.safeNumber (fee, 'maker_fee'),
+                'taker': this.safeNumber (fee, 'taker_fee'),
+                'tierBased': false,
+            };
+        }
+        return result;
     }
 
     parseBalance (response) {
