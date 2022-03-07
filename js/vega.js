@@ -562,16 +562,17 @@ module.exports = class vega extends Exchange {
         //     }
         //   ]
         // }
-        const bid = this.safeNumber (marketData, 'markPrice');
-        const low = this.safeNumber (marketData, 'bestBidPrice');
+
+        const bid = this.safeNumber (marketData, 'bestBidPrice');
+        const ask = this.safeNumber (marketData, 'bestOfferPrice');
         const bidVolume = this.safeNumber (marketData, 'bestBidVolume');
-        const high = this.safeNumber (marketData, 'bestOfferPrice');
         const askVolume = this.safeNumber (marketData, 'bestOfferVolume');
+        const last = this.safeNumber (marketData, 'markPrice');
         const timestamp = this.safeNumber (marketData, 'timestamp'); // nano seconds
-        const ask = bid;
-        const open = bid;
-        const close = bid;
-        const last = bid;
+        const high = undefined;
+        const low = undefined;
+        const open = undefined;
+        const close = undefined;
         const previousClose = undefined;
         const vwap = undefined;
         const symbol = market['symbol'];
@@ -579,7 +580,7 @@ module.exports = class vega extends Exchange {
         const datetime = this.iso8601 (timestamp / 1000);
         const percentage = undefined;
         const change = last - open;
-        const average = (last + open) / 2;
+        const average = undefined;
         const baseVolume = undefined;
         const quoteVolume = undefined;
         return {
