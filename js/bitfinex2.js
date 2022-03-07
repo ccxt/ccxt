@@ -462,29 +462,17 @@ module.exports = class bitfinex2 extends bitfinex {
             }
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            let symbol = base + '/' + quote;
+            const symbol = base + '/' + quote;
             baseId = this.getCurrencyId (baseId);
             quoteId = this.getCurrencyId (quoteId);
             const minOrderSizeString = this.safeString (market, 'minimum_order_size');
             const maxOrderSizeString = this.safeString (market, 'maximum_order_size');
-            let settle = undefined;
-            let linear = undefined;
-            let inverse = undefined;
-            let contractSize = undefined;
-            if (swap) {
-                // * Technically on bitfinex you can settle all markets in BTC or USDT, but CCXT doesn't have a way to handle multiple markets with the same id
-                settle = quote;
-                symbol = symbol + ':' + settle;
-                linear = true;
-                inverse = false;
-                contractSize = this.parseNumber ('1');
-            }
-            result.push ({
+            const parsedMarket = {
                 'id': 't' + id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': settle,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': undefined,
@@ -496,9 +484,9 @@ module.exports = class bitfinex2 extends bitfinex {
                 'option': false,
                 'active': true,
                 'contract': swap,
-                'linear': linear,
-                'inverse': inverse,
-                'contractSize': contractSize,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
@@ -526,7 +514,21 @@ module.exports = class bitfinex2 extends bitfinex {
                     },
                 },
                 'info': market,
-            });
+            };
+            if (swap) {
+                const settlementCurrencies = [ 'USDT' ]; // this.options['swap']['fetchMarkets']['settlementCurrencies'];
+                for (let j = 0; j < settlementCurrencies.length; j++) {
+                    const settle = settlementCurrencies[j];
+                    parsedMarket['settle'] = settle;
+                    parsedMarket['symbol'] = symbol + ':' + settle;
+                    parsedMarket['linear'] = quote === settle;
+                    parsedMarket['inverse'] = base === settle;
+                    parsedMarket['contractSize'] = this.parseNumber ('1');
+                    result.push (parsedMarket);
+                }
+            } else {
+                result.push (parsedMarket);
+            }
         }
         return result;
     }
