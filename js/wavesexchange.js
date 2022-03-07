@@ -828,9 +828,9 @@ module.exports = class wavesexchange extends Exchange {
         limit = Math.min (allowedCandles, limit);
         const duration = this.parseTimeframe (timeframe) * 1000;
         if (since === undefined) {
-            const currentTime = parseInt (this.milliseconds () / duration) * duration;
+            const durationRoundedTimestamp = parseInt (this.milliseconds () / duration) * duration;
             const delta = (limit - 1) * duration;
-            const timeStart = currentTime - delta;
+            const timeStart = durationRoundedTimestamp - delta;
             request['timeStart'] = timeStart.toString ();
         } else {
             request['timeStart'] = since.toString ();
@@ -862,7 +862,8 @@ module.exports = class wavesexchange extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const result = this.parseOHLCVs (data, market, timeframe, since, limit);
+        let result = this.parseOHLCVs (data, market, timeframe, since, limit);
+        result = this.filterFutureCandles (result);
         let lastClose = undefined;
         const length = result.length;
         for (let i = 0; i < result.length; i++) {
@@ -879,6 +880,19 @@ module.exports = class wavesexchange extends Exchange {
             lastClose = entry[4];
         }
         return result;
+    }
+
+    filterFutureCandles (result) {
+        const filtered_result = [];
+        const timestamp = this.milliseconds ();
+        for (let i = 0; i < result.length; i++) {
+            if (result[i][0] > timestamp) {
+                // Stop when getting data from the future
+                break;
+            }
+            filtered_result.push (result[i]);
+        }
+        return filtered_result;
     }
 
     parseOHLCV (ohlcv, market = undefined) {
