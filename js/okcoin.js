@@ -129,17 +129,18 @@ module.exports = class okcoin extends ccxt.okcoin {
                 this.orders = new ArrayCacheBySymbolById (limit);
             }
             const stored = this.orders;
-            const marketIds = [];
+            const marketIds = {};
             const parsed = this.parseOrders (orders);
             for (let i = 0; i < parsed.length; i++) {
                 const order = parsed[i];
                 stored.append (order);
                 const symbol = order['symbol'];
                 const market = this.market (symbol);
-                marketIds.push (market['id']);
+                marketIds[market['id']] = true;
             }
-            for (let i = 0; i < marketIds.length; i++) {
-                const messageHash = table + ':' + marketIds[i];
+            const keys = Object.keys (marketIds);
+            for (let i = 0; i < keys.length; i++) {
+                const messageHash = table + ':' + keys[i];
                 client.resolve (this.orders, messageHash);
             }
         }
