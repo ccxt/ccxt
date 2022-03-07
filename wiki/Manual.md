@@ -1548,7 +1548,6 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchL2OrderBook (symbol[, limit = undefined[, params]])`: Level 2 (price-aggregated) order book for a particular symbol.
 - `fetchTrades (symbol[, since[, [limit, [params]]]])`: Fetch recent trades for a particular trading symbol.
 - `fetchTicker (symbol)`: Fetch latest ticker data by trading symbol.
-- `fetchBalance ()`: Fetch Balance.
 - `createOrder (symbol, type, side, amount[, price[, params]])`
 - `createLimitBuyOrder (symbol, amount, price[, params])`
 - `createLimitSellOrder (symbol, amount, price[, params])`
@@ -1561,6 +1560,62 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchClosedOrders ([symbol[, since[, limit[, params]]]])`
 - `fetchMyTrades ([symbol[, since[, limit[, params]]]])`
 - ...
+
+<details>
+  <summary>`fetchBalance ([ params ])`</summary>
+
+  Fetch Balance from accounts 
+  ### Request
+  | Property | Required | Description |
+  | --- | --- | --- |
+  | params | (optional) | Params to override in request |
+  
+  ### Response
+| Property | Always | Description |
+| --- | --- | --- |
+| info | Yes | Response from exchange |
+| timestamp | Yes | Time of request in ms |
+| datetime | Yes | timestamp in ISO8601 |
+| free | Yes | balance free to use for each currenc. ``` { CURRENCY_CODE_1: 0, CURRENCY_CODE_2: 0, ... } ``` |
+| used | Yes | balance used in each currency  ``` { CURRENCY_CODE_1: 0, CURRENCY_CODE_2: 0, ... } ```|
+| total | Yes | total balance per currency ``` { CURRENCY_CODE_1: 0, CURRENCY_CODE_2: 0, ... } ``` |
+| CURRENCY_CODE | No | ``` { free: 0, used: 0, total: 0} ``` |
+
+ ### Example 
+ ```
+{
+  info: {
+    timestamp: '1646675040',
+    BTC: { available: '0.00000000', orders: '0.00000000' },
+    USD: { available: '0.00', orders: '0.00' },
+    ETH: { available: '0.00000000', orders: '0.00000000' },
+    ...
+  },
+  BTC: { free: 0, used: 0, total: 0 },
+  USD: { free: 0, used: 0, total: 0 },
+  ETH: { free: 0, used: 0, total: 0 },
+  ...
+  free: {
+    BTC: 0,
+    USD: 0,
+    ETH: 0,
+    ...
+  },
+  used: {
+    BTC: 0,
+    USD: 0,
+    ETH: 0,
+    ...
+  },
+  total: {
+    BTC: 0,
+    USD: 0,
+    ETH: 0,
+    ...
+  }
+ ```
+
+</details>
 
 ```text
 TODO: ADD LINKS ABOVE
