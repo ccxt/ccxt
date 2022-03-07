@@ -156,75 +156,6 @@ class IndexedOrderBookSide extends OrderBookSide {
 }
 
 // ----------------------------------------------------------------------------
-// adjusts the volumes by positive or negative relative changes or differences
-
-class IncrementalOrderBookSide extends OrderBookSide {
-    public function __construct($deltas = array(), $depth = PHP_INT_MAX) {
-        parent::__construct($deltas, $depth, LIMIT_BY_KEY);
-    }
-
-    public function store($price, $size, $id = null) {
-        $size = $this->index->get($price, 0) + $size;
-        if ($size <= 0) {
-            $this->index->remove($price, null);
-        } else {
-            $this->index->put($price, $size);
-        }
-    }
-
-    public function storeArray($delta) {
-        $price = $delta[0];
-        $size = $delta[1];
-        $size = $this->index->get($price, 0) + $size;
-        if ($size <= 0) {
-            $this->index->remove($price, null);
-        } else {
-            $this->index->put($price, $size);
-        }
-    }
-}
-
-// ----------------------------------------------------------------------------
-// incremental and indexed (2 in 1)
-
-class IncrementalIndexedOrderBookSide extends IndexedOrderBookSide {
-    public function store($price, $size, $id = null) {
-        if ($size) {
-            $stored = $this->index->get($id, null);
-            if ($stored) {
-                if ($size + $stored[1] >= 0) {
-                    $price = $price ? $price : $stored[0];
-                    $size = $size + $stored[1];
-                }
-            }
-            $this->index->put($id, array($price, $size, $id));
-        } else {
-            $this->index->remove($id, null);
-        }
-    }
-
-    public function storeArray($delta) {
-        $price = $delta[0];
-        $size = $delta[1];
-        $id = $delta[2];
-        if ($size) {
-            $stored = $this->index->get($id, null);
-            if ($stored) {
-                if ($size + $stored[1] >= 0) {
-                    $price = $price ? $price : $stored[0];
-                    $size = $size + $stored[1];
-                    $this->index->put($id, array($price, $size, $id));
-                    return;
-                }
-            }
-            $this->index->put($id, $delta);
-        } else {
-            $this->index->remove($id, null);
-        }
-    }
-}
-
-// ----------------------------------------------------------------------------
 // a more elegant syntax is possible here, but native inheritance is portable
 
 class Asks extends OrderBookSide { public static $side = false; }
@@ -233,9 +164,5 @@ class CountedAsks extends CountedOrderBookSide { public static $side = false; }
 class CountedBids extends CountedOrderBookSide { public static $side = true; }
 class IndexedAsks extends IndexedOrderBookSide { public static $side = false; }
 class IndexedBids extends IndexedOrderBookSide { public static $side = true; }
-class IncrementalAsks extends IncrementalOrderBookSide { public static $side = false; }
-class IncrementalBids extends IncrementalOrderBookSide { public static $side = true; }
-class IncrementalIndexedAsks extends IncrementalIndexedOrderBookSide { public static $side = false; }
-class IncrementalIndexedBids extends IncrementalIndexedOrderBookSide { public static $side = true; }
 
 // ----------------------------------------------------------------------------

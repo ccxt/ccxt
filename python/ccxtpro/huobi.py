@@ -63,6 +63,9 @@ class huobi(Exchange, ccxt.huobi):
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
                 'api': 'api',  # or api-aws for clients hosted on AWS
+                'watchOrderBookSnapshot': {
+                    'delay': 1000,
+                },
                 'ws': {
                     'gunzip': True,
                 },
@@ -291,6 +294,11 @@ class huobi(Exchange, ccxt.huobi):
         client.resolve(orderbook, messageHash)
 
     async def watch_order_book_snapshot(self, client, message, subscription):
+        # quick-fix to avoid getting outdated snapshots
+        options = self.safe_value(self.options, 'watchOrderBookSnapshot', {})
+        delay = self.safe_integer(options, 'delay')
+        if delay is not None:
+            await self.sleep(delay)
         symbol = self.safe_string(subscription, 'symbol')
         limit = self.safe_integer(subscription, 'limit')
         params = self.safe_value(subscription, 'params')
@@ -382,17 +390,14 @@ class huobi(Exchange, ccxt.huobi):
         #         "ts":1645023376098
         #      }
         tick = self.safe_value(message, 'tick', {})
-        seqNum = self.safe_integer(tick, 'seqNum')
+        seqNum = self.safe_integer_2(tick, 'seqNum', 'id')
         prevSeqNum = self.safe_integer(tick, 'prevSeqNum')
-        if prevSeqNum is None or ((prevSeqNum <= orderbook['nonce']) and (seqNum > orderbook['nonce'])):
+        if (prevSeqNum is None or prevSeqNum <= orderbook['nonce']) and (seqNum > orderbook['nonce']):
             asks = self.safe_value(tick, 'asks', [])
             bids = self.safe_value(tick, 'bids', [])
             self.handle_deltas(orderbook['asks'], asks)
             self.handle_deltas(orderbook['bids'], bids)
-            if seqNum is not None:
-                orderbook['nonce'] = seqNum
-            else:
-                orderbook['nonce'] = self.safe_integer(tick, 'mrid')
+            orderbook['nonce'] = seqNum
             timestamp = self.safe_integer(message, 'ts')
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)

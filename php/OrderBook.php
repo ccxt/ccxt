@@ -89,24 +89,3 @@ class IndexedOrderBook extends OrderBook {
     }
 }
 
-// ----------------------------------------------------------------------------
-// adjusts the volumes by positive or negative relative changes or differences
-
-class IncrementalOrderBook extends OrderBook {
-    public function __construct($snapshot = array(), $depth = null) {
-        $snapshot['asks'] = new IncrementalAsks(array_key_exists('asks', $snapshot) ? $snapshot['asks'] : array(), $depth);
-        $snapshot['bids'] = new IncrementalBids(array_key_exists('bids', $snapshot) ? $snapshot['bids'] : array(), $depth);
-        parent::__construct($snapshot);
-    }
-}
-
-// ----------------------------------------------------------------------------
-// incremental and indexed (2 in 1)
-
-class IncrementalIndexedOrderBook extends OrderBook {
-    public function __construct($snapshot = array(), $depth = null) {
-        $snapshot['asks'] = new IncrementalIndexedAsks(array_key_exists('asks', $snapshot) ? $snapshot['asks'] : array(), $depth);
-        $snapshot['bids'] = new IncrementalIndexedBids(array_key_exists('bids', $snapshot) ? $snapshot['bids'] : array(), $depth);
-        parent::__construct($snapshot);
-    }
-}
