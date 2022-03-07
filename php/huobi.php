@@ -83,23 +83,9 @@ class huobi extends \ccxt\async\huobi {
     public function watch_ticker($symbol, $params = array ()) {
         yield $this->load_markets();
         $market = $this->market($symbol);
-        // only supports a limit of 150 at this time
         $messageHash = 'market.' . $market['id'] . '.detail';
-        $api = $this->safe_string($this->options, 'api', 'api');
-        $hostname = array( 'hostname' => $this->hostname );
-        $url = $this->implode_params($this->urls['api']['ws'][$api]['spot']['public'], $hostname);
-        $requestId = $this->request_id();
-        $request = array(
-            'sub' => $messageHash,
-            'id' => $requestId,
-        );
-        $subscription = array(
-            'id' => $requestId,
-            'messageHash' => $messageHash,
-            'symbol' => $symbol,
-            'params' => $params,
-        );
-        return yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
+        $url = $this->get_url_by_market_type($market['type'], $market['linear']);
+        return yield $this->subscribe_public($url, $symbol, $messageHash, null, $params);
     }
 
     public function handle_ticker($client, $message) {
