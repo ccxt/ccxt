@@ -2977,7 +2977,6 @@ class Exchange {
             assert(false);
         }
         
-        $charArray = str_split($x);
         if ($roundingMode === ROUND) {
             $p = $lastDigitPos;
             $p2 = $p + 1;
@@ -2985,16 +2984,16 @@ class Exchange {
                 $p2++;
             }
             $carry = 0;
-            while ((($p >= 0) and ($p < $xlen) and ($charArray[$p] != '-')) or ($p2 >= 0)) {
+            while ((($p >= 0) and ($p < $xlen) and ($x[$p] != '-')) or ($p2 >= 0)) {
                 if ($p >= $xlen) {
                     break;
                 }
-                if (($p2 >= $xlen) or (ord($charArray[$p2]) - ord('0') + 10 * $carry < 5 )) {
+                if (($p2 >= $xlen) or (ord($x[$p2]) - ord('0') + 10 * $carry < 5 )) {
                     break;
                 }
                 $carry = 1;
                 if ($p == -1) {
-                    array_splice($charArray, $p+1, 0, chr(ord('0') + $carry));
+                    $x = chr(ord('0') + $carry) . $x;
                     $xlen++;
                     $p++;
                     $pointIndex++;
@@ -3002,8 +3001,8 @@ class Exchange {
                         $lastDigitPos++;
                     }
                     break;
-                } elseif (ord($charArray[$p]) - ord('0') + $carry <= 9) {
-                    $charArray[$p] = chr(ord($charArray[$p]) + $carry);
+                } elseif (ord($x[$p]) - ord('0') + $carry <= 9) {
+                    $x = substr($x,0,$p) . chr(ord($x[$p]) + $carry) . substr($x,$p+1);
                     if ($p < $firstDigitPos) {
                         $delta = $p - $firstDigitPos;
                         $firstDigitPos += $delta;
@@ -3013,14 +3012,14 @@ class Exchange {
                     }
                     break;
                 }
-                $charArray[$p] = '0';
+                $x = substr($x,0,$p) . '0' . substr($x,$p+1);
                 $p2 = $p;
                 $p--;
-                if (($p !== -1) and ($charArray[$p] === '.')) {
+                if (($p !== -1) and ($x[$p] === '.')) {
                     $p--;
                 }
-                if (($p === -1) or ($charArray[$p] === '-')) {
-                    array_splice($charArray, $p+1, 0, chr(ord('0') + $carry));
+                if (($p === -1) or ($x[$p] === '-')) {
+                    $x = substr($x,0,$p+1) . chr(ord('0') + $carry) . substr($x,$p+1);
                     $xlen++;
                     $p++;
                     $pointIndex++;
@@ -3030,25 +3029,25 @@ class Exchange {
                     break;
                 }
             }
-            if (($lastDigitPos < 0) or (($lastDigitPos < $xlen) and ($charArray[$lastDigitPos] == '-'))) {
+            if (($lastDigitPos < 0) or (($lastDigitPos < $xlen) and ($x[$lastDigitPos] == '-'))) {
                 return '0';
             }
             for ($p = $xlen; $p > $lastDigitPos; $p--) {
                 if ($p != $pointIndex) {
-                    $charArray[$p] = '0';
+                    $x = substr($x,0,$p) . '0' . substr($x,$p+1);
                 }
             }
         } elseif ($roundingMode === TRUNCATE) {
-            if (($lastDigitPos < 0) or (($lastDigitPos < $xlen) and ($charArray[$lastDigitPos] === '-'))) {
+            if (($lastDigitPos < 0) or (($lastDigitPos < $xlen) and ($x[$lastDigitPos] === '-'))) {
                 return '0';
             }
-            for ($p = $lastDigitPos+1; $p < $pointIndex; $p++) {
-                $charArray[$p] = '0';
+            if ($lastDigitPos+1<$pointIndex) {
+                $x = substr($x,0,$lastDigitPos+1) . str_repeat('0',$pointIndex-$lastDigitPos) . substr($x,$pointIndex);
             }
         } else {
             assert(false);
         }
-        $result = implode('', array_slice($charArray, 0, max($pointIndex, $lastDigitPos+1)));
+        $result = substr($x,0,max($pointIndex, $lastDigitPos+1));
         $resultlen = strlen($result);
         $hasDot = (false !== strpos($result, '.'));
         if ($paddingMode === NO_PADDING) {
