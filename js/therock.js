@@ -46,6 +46,8 @@ module.exports = class therock extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': true,
                 'fetchTransactions': 'emulated',
                 'fetchWithdrawals': true,
             },
@@ -62,6 +64,7 @@ module.exports = class therock extends Exchange {
                 'public': {
                     'get': [
                         'funds',
+                        'funds/{id}',
                         'funds/{id}/orderbook',
                         'funds/{id}/ticker',
                         'funds/{id}/trades',
@@ -1219,6 +1222,83 @@ module.exports = class therock extends Exchange {
         //                        last:    null                                                                   } }
         //
         return this.parseTrades (response['trades'], market, since, limit);
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'id': market['id'],
+        };
+        const response = await this.publicGetFundsId (this.extend (request, params));
+        //
+        //     {
+        //         id: 'ETHBTC',
+        //         description: 'Trade Ether with Bitcoin',
+        //         type: 'currency',
+        //         base_currency: 'BTC',
+        //         trade_currency: 'ETH',
+        //         buy_fee: '0.2',
+        //         sell_fee: '0.2',
+        //         minimum_price_offer: '0.00000001',
+        //         minimum_quantity_offer: '0.005',
+        //         base_currency_decimals: '8',
+        //         trade_currency_decimals: '3',
+        //         leverages: []
+        //      }
+        //
+        return this.parseTradingFee (response, market);
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetFunds (params);
+        //
+        //        {
+        //            funds: [
+        //                {
+        //                id: 'BTCEUR',
+        //                description: 'Trade Bitcoin with Euro',
+        //                type: 'currency',
+        //                base_currency: 'EUR',
+        //                trade_currency: 'BTC',
+        //                buy_fee: '0.2',
+        //                sell_fee: '0.2',
+        //                minimum_price_offer: '0.01',
+        //                minimum_quantity_offer: '0.0005',
+        //                base_currency_decimals: '2',
+        //                trade_currency_decimals: '4',
+        //                leverages: []
+        //                },
+        //               ...
+        //            ]
+        //        }
+        //
+        const funds = this.safeValue (response, 'funds', []);
+        const result = {};
+        for (let i = 0; i < funds.length; i++) {
+            const fund = funds[i];
+            const fee = this.parseTradingFee (fund);
+            const symbol = fee['symbol'];
+            result[symbol] = fee;
+        }
+        return result;
+    }
+
+    parseTradingFee (fee, market = undefined) {
+        const marketId = this.safeString (fee, 'id');
+        const takerString = this.safeString (fee, 'buy_fee');
+        const makerString = this.safeString (fee, 'sell_fee');
+        const taker = this.parseNumber (Precise.stringDiv (takerString, '100'));
+        const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
+        return {
+            'info': fee,
+            'symbol': this.safeSymbol (marketId, market),
+            'maker': maker,
+            'taker': taker,
+            'percentage': true,
+            'tierBased': true,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
