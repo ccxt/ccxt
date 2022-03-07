@@ -4,7 +4,7 @@ python:
   - "3.8"
 cache:
  directories:
-  - $HOME/.cache
+  - .cache
 
 before_install:
 - set -e
