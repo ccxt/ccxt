@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.74.91';
+$version = '1.75.12';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.74.91';
+    const VERSION = '1.75.12';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -303,6 +303,7 @@ class Exchange {
         'marketId' => 'market_id',
         'marketIds' => 'market_ids',
         'implodeHostname' => 'implode_hostname',
+        'resolvePath' => 'resolve_path',
         'parseBidAsk' => 'parse_bid_ask',
         'parseBidsAsks' => 'parse_bids_asks',
         'fetchL2OrderBook' => 'fetch_l2_order_book',
@@ -738,6 +739,13 @@ class Exchange {
 
     public function implode_hostname($url) {
         return static::implode_params($url, array('hostname' => $this->hostname));
+    }
+
+    public function resolve_path($path, $params) {
+        return [
+            $this->implode_params($path, $params),
+            $this->omit($params, $this->extract_params($path))
+        ];
     }
 
     public static function deep_extend() {
@@ -2521,7 +2529,7 @@ class Exchange {
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array()) {
         if (!$this->has['fetchTrades']) {
-            throw new NotSupported($this->$id . ' fetch_ohlcv() not supported yet');
+            throw new NotSupported($this->id . ' fetch_ohlcv() not supported yet');
         }
         $this->load_markets();
         $trades = $this->fetch_trades($symbol, $since, $limit, $params);

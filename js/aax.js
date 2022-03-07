@@ -65,6 +65,8 @@ module.exports = class aax extends Exchange {
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
                 'fetchLeverage': undefined,
+                'fetchLeverageTiers': true,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyBuys': undefined,
@@ -2298,6 +2300,96 @@ module.exports = class aax extends Exchange {
             'leverage': leverage,
         };
         return await this.privatePostFuturesPositionLeverage (this.extend (request, params));
+    }
+
+    async fetchLeverageTiers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetInstruments (params);
+        //
+        //     {
+        //         "code":1,
+        //         "message":"success",
+        //         "ts":1610159448962,
+        //         "data":[
+        //             {
+        //                 "tickSize":"0.01",
+        //                 "lotSize":"1",
+        //                 "base":"BTC",
+        //                 "quote":"USDT",
+        //                 "minQuantity":"1.0000000000",
+        //                 "maxQuantity":"30000",
+        //                 "minPrice":"0.0100000000",
+        //                 "maxPrice":"999999.0000000000",
+        //                 "status":"readOnly",
+        //                 "symbol":"BTCUSDTFP",
+        //                 "code":"FP",
+        //                 "takerFee":"0.00040",
+        //                 "makerFee":"0.00020",
+        //                 "multiplier":"0.001000000000",
+        //                 "mmRate":"0.00500",
+        //                 "imRate":"0.01000",
+        //                 "type":"futures",
+        //                 "settleType":"Vanilla",
+        //                 "settleCurrency":"USDT"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseLeverageTiers (data, symbols, 'symbol');
+    }
+
+    parseMarketLeverageTiers (info, market) {
+        /**
+            @param info: Exchange market response
+            {
+                "tickSize":"0.01",
+                "lotSize":"1",
+                "base":"BTC",
+                "quote":"USDT",
+                "minQuantity":"1.0000000000",
+                "maxQuantity":"30000",
+                "minPrice":"0.0100000000",
+                "maxPrice":"999999.0000000000",
+                "status":"readOnly",
+                "symbol":"BTCUSDTFP",
+                "code":"FP",
+                "takerFee":"0.00040",
+                "makerFee":"0.00020",
+                "multiplier":"0.001000000000",
+                "mmRate":"0.00500",
+                "imRate":"0.01000",
+                "type":"futures",
+                "settleType":"Vanilla",
+                "settleCurrency":"USDT"
+            }
+            @param market: CCXT Market
+        */
+        let maintenanceMarginRate = this.safeString (info, 'mmRate');
+        let initialMarginRate = this.safeString (info, 'imRate');
+        const maxVol = this.safeString (info, 'maxQuantity');
+        const riskIncrVol = maxVol; // TODO
+        const riskIncrMmr = '0.0'; // TODO
+        const riskIncrImr = '0.0'; // TODO
+        let floor = '0';
+        const tiers = [];
+        while (Precise.stringLt (floor, maxVol)) {
+            const cap = Precise.stringAdd (floor, riskIncrVol);
+            tiers.push ({
+                'tier': this.parseNumber (Precise.stringDiv (cap, riskIncrVol)),
+                'currency': market['base'],
+                'notionalFloor': this.parseNumber (floor),
+                'notionalCap': this.parseNumber (cap),
+                'maintenanceMarginRate': this.parseNumber (maintenanceMarginRate),
+                'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRate)),
+                'info': info,
+            });
+            maintenanceMarginRate = Precise.stringAdd (maintenanceMarginRate, riskIncrMmr);
+            initialMarginRate = Precise.stringAdd (initialMarginRate, riskIncrImr);
+            floor = cap;
+        }
+        return tiers;
     }
 
     nonce () {

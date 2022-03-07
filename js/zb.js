@@ -22,7 +22,7 @@ module.exports = class zb extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': undefined, // has but unimplemented
-                'swap': undefined, // has but unimplemented
+                'swap': true,
                 'future': undefined,
                 'option': undefined,
                 'addMargin': true,
@@ -30,15 +30,21 @@ module.exports = class zb extends Exchange {
                 'cancelOrder': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
+                'fetchLedger': true,
+                'fetchLeverage': false,
+                'fetchLeverageTiers': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -47,12 +53,17 @@ module.exports = class zb extends Exchange {
                 'fetchOrders': true,
                 'fetchPosition': true,
                 'fetchPositions': true,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'setLeverage': true,
+                'setMarginMode': false,
+                'setPositionMode': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -1179,14 +1190,26 @@ module.exports = class zb extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined) {
         if (market['swap']) {
-            return [
-                this.safeInteger (ohlcv, 5),
-                this.safeNumber (ohlcv, 0),
-                this.safeNumber (ohlcv, 1),
-                this.safeNumber (ohlcv, 2),
-                this.safeNumber (ohlcv, 3),
-                this.safeNumber (ohlcv, 4),
-            ];
+            const ohlcvLength = ohlcv.length;
+            if (ohlcvLength > 5) {
+                return [
+                    this.safeInteger (ohlcv, 5),
+                    this.safeNumber (ohlcv, 0),
+                    this.safeNumber (ohlcv, 1),
+                    this.safeNumber (ohlcv, 2),
+                    this.safeNumber (ohlcv, 3),
+                    this.safeNumber (ohlcv, 4),
+                ];
+            } else {
+                return [
+                    this.safeInteger (ohlcv, 4),
+                    this.safeNumber (ohlcv, 0),
+                    this.safeNumber (ohlcv, 1),
+                    this.safeNumber (ohlcv, 2),
+                    this.safeNumber (ohlcv, 3),
+                    undefined,
+                ];
+            }
         } else {
             return [
                 this.safeInteger (ohlcv, 0),
@@ -1260,6 +1283,84 @@ module.exports = class zb extends Exchange {
         //             [41433.44,41433.44,41405.88,41408.75,21.368,1646366460],
         //             [41409.25,41423.74,41408.8,41423.42,9.828,1646366520],
         //             [41423.96,41429.39,41369.98,41370.31,123.104,1646366580]
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const options = this.safeValue (this.options, 'timeframes', {});
+        const timeframes = this.safeValue (options, market['type'], {});
+        const timeframeValue = this.safeString (timeframes, timeframe);
+        if (timeframeValue === undefined) {
+            throw new NotSupported (this.id + ' fetchMarkOHLCV() does not support ' + timeframe + ' timeframe for ' + market['type'] + ' markets');
+        }
+        if (limit === undefined) {
+            limit = 1000;
+        }
+        const request = {
+            'symbol': market['id'],
+            'period': timeframeValue,
+            'size': limit,
+        };
+        if (since !== undefined) {
+            request['since'] = since;
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        const response = await this.contractV1PublicGetMarkKline (this.extend (request, params));
+        //
+        //     {
+        //         "code": 10000,
+        //         "desc": "操作成功",
+        //         "data": [
+        //             [41603.39,41603.39,41591.59,41600.81,1646381760],
+        //             [41600.36,41605.75,41587.69,41601.97,1646381820],
+        //             [41601.97,41601.97,41562.62,41593.96,1646381880]
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const options = this.safeValue (this.options, 'timeframes', {});
+        const timeframes = this.safeValue (options, market['type'], {});
+        const timeframeValue = this.safeString (timeframes, timeframe);
+        if (timeframeValue === undefined) {
+            throw new NotSupported (this.id + ' fetchIndexOHLCV() does not support ' + timeframe + ' timeframe for ' + market['type'] + ' markets');
+        }
+        if (limit === undefined) {
+            limit = 1000;
+        }
+        const request = {
+            'symbol': market['id'],
+            'period': timeframeValue,
+            'size': limit,
+        };
+        if (since !== undefined) {
+            request['since'] = since;
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        const response = await this.contractV1PublicGetIndexKline (this.extend (request, params));
+        //
+        //     {
+        //         "code": 10000,
+        //         "desc": "操作成功",
+        //         "data": [
+        //             [41697.53,41722.29,41689.16,41689.16,1646381640],
+        //             [41690.1,41691.73,41611.61,41611.61,1646381700],
+        //             [41611.61,41619.49,41594.87,41594.87,1646381760]
         //         ]
         //     }
         //
@@ -2659,6 +2760,220 @@ module.exports = class zb extends Exchange {
             result.push (this.parsePosition (positions[i]));
         }
         return result;
+    }
+
+    parseLedgerEntryType (type) {
+        const types = {
+            '1': 'realized pnl',
+            '2': 'commission',
+            '3': 'funding fee subtract',
+            '4': 'funding fee addition',
+            '5': 'insurance clear',
+            '6': 'transfer in',
+            '7': 'transfer out',
+            '8': 'margin addition',
+            '9': 'margin subtraction',
+            '10': 'commission addition',
+            '11': 'bill type freeze',
+            '12': 'bill type unfreeze',
+            '13': 'system take over margin',
+            '14': 'transfer',
+            '15': 'realized pnl collection',
+            '16': 'funding fee collection',
+            '17': 'recommender return commission',
+            '18': 'by level subtract positions',
+            '19': 'system add',
+            '20': 'system subtract',
+            '23': 'trading competition take over fund',
+            '24': 'trading contest tickets',
+            '25': 'return of trading contest tickets',
+            '26': 'experience expired recall',
+            '50': 'test register gift',
+            '51': 'register gift',
+            '52': 'deposit gift',
+            '53': 'trading volume gift',
+            '54': 'awards gift',
+            '55': 'trading volume gift',
+            '56': 'awards gift expire',
+            '201': 'open positions',
+            '202': 'close positions',
+            '203': 'take over positions',
+            '204': 'trading competition take over positions',
+            '205': 'one way open long',
+            '206': 'one way open short',
+            '207': 'one way close long',
+            '208': 'one way close short',
+            '301': 'coupon deduction service charge',
+            '302': 'experience deduction',
+            '303': 'experience expired',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        //
+        //     [
+        //         {
+        //             "type": 3,
+        //             "changeAmount": "0.00434664",
+        //             "isIn": 0,
+        //             "beforeAmount": "30.53353135",
+        //             "beforeFreezeAmount": "21.547",
+        //             "createTime": "1646121604997",
+        //             "available": "30.52918471",
+        //             "unit": "usdt",
+        //             "symbol": "BTC_USDT"
+        //         },
+        //     ],
+        //
+        const timestamp = this.safeString (item, 'createTime');
+        let direction = undefined;
+        const changeDirection = this.safeNumber (item, 'isIn');
+        if (changeDirection === 1) {
+            direction = 'increase';
+        } else {
+            direction = 'reduce';
+        }
+        let fee = undefined;
+        const feeCost = this.safeNumber (item, 'fee');
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': this.safeCurrencyCode (this.safeString (item, 'unit')),
+            };
+        }
+        return {
+            'id': this.safeString (item, 'id'),
+            'info': item,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'direction': direction,
+            'account': this.safeString (item, 'userId'),
+            'referenceId': undefined,
+            'referenceAccount': undefined,
+            'type': this.parseLedgerEntryType (this.safeInteger (item, 'type')),
+            'currency': this.safeCurrencyCode (this.safeString (item, 'unit')),
+            'amount': this.safeNumber (item, 'changeAmount'),
+            'before': this.safeNumber (item, 'beforeAmount'),
+            'after': this.safeNumber (item, 'available'),
+            'status': undefined,
+            'fee': fee,
+        };
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchLedger() requires a code argument');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'futuresAccountType': 1,
+            // 'currencyId': '11',
+            // 'type': 1,
+            // 'endTime': this.milliseconds (),
+            // 'pageNum': 1,
+        };
+        if (code !== undefined) {
+            request['currencyName'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        const response = await this.contractV2PrivateGetFundGetBill (this.extend (request, params));
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "type": 3,
+        //                     "changeAmount": "0.00434664",
+        //                     "isIn": 0,
+        //                     "beforeAmount": "30.53353135",
+        //                     "beforeFreezeAmount": "21.547",
+        //                     "createTime": "1646121604997",
+        //                     "available": "30.52918471",
+        //                     "unit": "usdt",
+        //                     "symbol": "BTC_USDT"
+        //                 },
+        //             ],
+        //             "pageNum": 1,
+        //             "pageSize": 10
+        //         },
+        //         "desc": "操作成功"
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const list = this.safeValue (data, 'list', []);
+        return this.parseLedger (list, currency, since, limit);
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets ();
+        let side = undefined;
+        if (fromAccount === 'spot' || toAccount === 'future') {
+            side = 1;
+        } else {
+            side = 0;
+        }
+        const currency = this.currency (code);
+        const request = {
+            'currencyName': currency['id'],
+            'amount': amount,
+            'clientId': this.safeString (params, 'clientId'), // "2sdfsdfsdf232342"
+            'side': side, // 1：Deposit (zb account -> futures account)，0：Withdrawal (futures account -> zb account)
+        };
+        const response = await this.contractV2PrivatePostFundTransferFund (this.extend (request, params));
+        //
+        //     {
+        //         "code": 10000,
+        //         "data": "2sdfsdfsdf232342",
+        //         "desc": "Success"
+        //     }
+        //
+        const timestamp = this.milliseconds ();
+        const transfer = {
+            'id': this.safeString (response, 'data'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': code,
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': this.safeInteger (response, 'code'),
+        };
+        return this.parseTransfer (transfer, code);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //     {
+        //         "id": "2sdfsdfsdf232342",
+        //         "timestamp": "",
+        //         "datetime": "",
+        //         "currency": "USDT",
+        //         "amount": "10",
+        //         "fromAccount": "futures account",
+        //         "toAccount": "zb account",
+        //         "status": 10000,
+        //     }
+        //
+        const currencyId = this.safeString (transfer, 'currency');
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'id'),
+            'timestamp': this.safeInteger (transfer, 'timestamp'),
+            'datetime': this.safeString (transfer, 'datetime'),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': this.safeString (transfer, 'fromAccount'),
+            'toAccount': this.safeString (transfer, 'toAccount'),
+            'status': this.safeString (transfer, 'status'),
+        };
     }
 
     async modifyMarginHelper (symbol, amount, type, params = {}) {

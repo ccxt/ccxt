@@ -30,7 +30,7 @@ class zb extends Exchange {
                 'CORS' => null,
                 'spot' => true,
                 'margin' => null, // has but unimplemented
-                'swap' => null, // has but unimplemented
+                'swap' => true,
                 'future' => null,
                 'option' => null,
                 'addMargin' => true,
@@ -38,15 +38,21 @@ class zb extends Exchange {
                 'cancelOrder' => true,
                 'createMarketOrder' => null,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => true,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
+                'fetchLedger' => true,
+                'fetchLeverage' => false,
+                'fetchLeverageTiers' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
@@ -55,32 +61,38 @@ class zb extends Exchange {
                 'fetchOrders' => true,
                 'fetchPosition' => true,
                 'fetchPositions' => true,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
                 'setLeverage' => true,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
-                '1m' => '1min',
-                '3m' => '3min',
-                '5m' => '5min',
-                '15m' => '15min',
-                '30m' => '30min',
-                '1h' => '1hour',
-                '2h' => '2hour',
-                '4h' => '4hour',
-                '6h' => '6hour',
-                '12h' => '12hour',
-                '1d' => '1day',
-                '3d' => '3day',
-                '1w' => '1week',
+                '1m' => '1m',
+                '3m' => '3m',
+                '5m' => '5m',
+                '15m' => '15m',
+                '30m' => '30m',
+                '1h' => '1h',
+                '2h' => '2h',
+                '4h' => '4h',
+                '6h' => '6h',
+                '12h' => '12h',
+                '1d' => '1d',
+                '3d' => '3d',
+                '5d' => '5d',
+                '1w' => '1w',
             ),
             'exceptions' => array(
                 'ws' => array(
-                    //  '1000' => '\\ccxt\\ExchangeError', // The call is successful.
+                    // '1000' => '\\ccxt\\ExchangeError', // The call is successful.
                     '1001' => '\\ccxt\\ExchangeError', // General error prompt
                     '1002' => '\\ccxt\\ExchangeError', // Internal Error
                     '1003' => '\\ccxt\\AuthenticationError', // Fail to verify
@@ -299,7 +311,7 @@ class zb extends Exchange {
                     '9999' => '\\ccxt\\ExchangeError', // Unknown error
                 ),
                 'broad' => array(
-                    '提币地址有误，请先添加提币地址。' => '\\ccxt\\InvalidAddress', // array("code":1001,"message":"提币地址有误，请先添加提币地址。")
+                    '提币地址有误, 请先添加提币地址。' => '\\ccxt\\InvalidAddress', // array("code":1001,"message":"提币地址有误，请先添加提币地址。")
                     '资金不足,无法划账' => '\\ccxt\\InsufficientFunds', // array("code":1001,"message":"资金不足,无法划账")
                     '响应超时' => '\\ccxt\\RequestTimeout', // array("code":1001,"message":"响应超时")
                 ),
@@ -409,7 +421,7 @@ class zb extends Exchange {
                                 'fundingRate',
                                 'indexKline',
                                 'indexPrice',
-                                'kCline',
+                                'kline',
                                 'markKline',
                                 'markPrice',
                                 'ticker',
@@ -480,6 +492,35 @@ class zb extends Exchange {
                 'ENT' => 'ENTCash',
                 'BCHABC' => 'BCHABC', // conflict with BCH / BCHA
                 'BCHSV' => 'BCHSV', // conflict with BCH / BSV
+            ),
+            'options' => array(
+                'timeframes' => array(
+                    'spot' => array(
+                        '1m' => '1min',
+                        '3m' => '3min',
+                        '5m' => '5min',
+                        '15m' => '15min',
+                        '30m' => '30min',
+                        '1h' => '1hour',
+                        '2h' => '2hour',
+                        '4h' => '4hour',
+                        '6h' => '6hour',
+                        '12h' => '12hour',
+                        '1d' => '1day',
+                        '3d' => '3day',
+                        '1w' => '1week',
+                    ),
+                    'swap' => array(
+                        '1m' => '1M',
+                        '5m' => '5M',
+                        '15m' => '15M',
+                        '30m' => '30M',
+                        '1h' => '1H',
+                        '6h' => '6H',
+                        '1d' => '1D',
+                        '5d' => '5D',
+                    ),
+                ),
             ),
         ));
     }
@@ -1156,31 +1197,181 @@ class zb extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
-        return array(
-            $this->safe_integer($ohlcv, 0),
-            $this->safe_number($ohlcv, 1),
-            $this->safe_number($ohlcv, 2),
-            $this->safe_number($ohlcv, 3),
-            $this->safe_number($ohlcv, 4),
-            $this->safe_number($ohlcv, 5),
-        );
+        if ($market['swap']) {
+            $ohlcvLength = is_array($ohlcv) ? count($ohlcv) : 0;
+            if ($ohlcvLength > 5) {
+                return array(
+                    $this->safe_integer($ohlcv, 5),
+                    $this->safe_number($ohlcv, 0),
+                    $this->safe_number($ohlcv, 1),
+                    $this->safe_number($ohlcv, 2),
+                    $this->safe_number($ohlcv, 3),
+                    $this->safe_number($ohlcv, 4),
+                );
+            } else {
+                return array(
+                    $this->safe_integer($ohlcv, 4),
+                    $this->safe_number($ohlcv, 0),
+                    $this->safe_number($ohlcv, 1),
+                    $this->safe_number($ohlcv, 2),
+                    $this->safe_number($ohlcv, 3),
+                    null,
+                );
+            }
+        } else {
+            return array(
+                $this->safe_integer($ohlcv, 0),
+                $this->safe_number($ohlcv, 1),
+                $this->safe_number($ohlcv, 2),
+                $this->safe_number($ohlcv, 3),
+                $this->safe_number($ohlcv, 4),
+                $this->safe_number($ohlcv, 5),
+            );
+        }
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
+        $swap = $market['swap'];
+        $options = $this->safe_value($this->options, 'timeframes', array());
+        $timeframes = $this->safe_value($options, $market['type'], array());
+        $timeframeValue = $this->safe_string($timeframes, $timeframe);
+        if ($timeframeValue === null) {
+            throw new NotSupported($this->id . ' fetchOHLCV() does not support ' . $timeframe . ' $timeframe for ' . $market['type'] . ' markets');
+        }
         if ($limit === null) {
             $limit = 1000;
         }
         $request = array(
-            'market' => $market['id'],
-            'type' => $this->timeframes[$timeframe],
-            'limit' => $limit,
+            // 'market' => $market['id'], // spot only
+            // 'symbol' => $market['id'], // $swap only
+            // 'type' => $timeframeValue, // spot only
+            // 'period' => $timeframeValue, // $swap only
+            // 'since' => $since, // spot only
+            // 'limit' => $limit, // spot only
+            // 'size' => $limit, // $swap only
+        );
+        $marketIdField = $swap ? 'symbol' : 'market';
+        $request[$marketIdField] = $market['id'];
+        $periodField = $swap ? 'period' : 'type';
+        $request[$periodField] = $timeframeValue;
+        $sizeField = $swap ? 'size' : 'limit';
+        $request[$sizeField] = $limit;
+        $method = $this->get_supported_mapping($market['type'], array(
+            'spot' => 'spotV1PublicGetKline',
+            'swap' => 'contractV1PublicGetKline',
+        ));
+        if ($since !== null) {
+            $request['since'] = $since;
+        }
+        if ($limit !== null) {
+            $request['size'] = $limit;
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // Spot
+        //
+        //     {
+        //         "symbol" => "BTC",
+        //         "data" => [
+        //             [1645091400000,43183.24,43187.49,43145.92,43182.28,0.9110],
+        //             [1645091460000,43182.18,43183.15,43182.06,43183.15,1.4393],
+        //             [1645091520000,43182.11,43240.1,43182.11,43240.1,0.3802]
+        //         ],
+        //         "moneyType" => "USDT"
+        //     }
+        //
+        // Swap
+        //
+        //     {
+        //         "code" => 10000,
+        //         "desc" => "操作成功",
+        //         "data" => [
+        //             [41433.44,41433.44,41405.88,41408.75,21.368,1646366460],
+        //             [41409.25,41423.74,41408.8,41423.42,9.828,1646366520],
+        //             [41423.96,41429.39,41369.98,41370.31,123.104,1646366580]
+        //         ]
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+    }
+
+    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $options = $this->safe_value($this->options, 'timeframes', array());
+        $timeframes = $this->safe_value($options, $market['type'], array());
+        $timeframeValue = $this->safe_string($timeframes, $timeframe);
+        if ($timeframeValue === null) {
+            throw new NotSupported($this->id . ' fetchMarkOHLCV() does not support ' . $timeframe . ' $timeframe for ' . $market['type'] . ' markets');
+        }
+        if ($limit === null) {
+            $limit = 1000;
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'period' => $timeframeValue,
+            'size' => $limit,
         );
         if ($since !== null) {
             $request['since'] = $since;
         }
-        $response = $this->spotV1PublicGetKline (array_merge($request, $params));
+        if ($limit !== null) {
+            $request['size'] = $limit;
+        }
+        $response = $this->contractV1PublicGetMarkKline (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 10000,
+        //         "desc" => "操作成功",
+        //         "data" => [
+        //             [41603.39,41603.39,41591.59,41600.81,1646381760],
+        //             [41600.36,41605.75,41587.69,41601.97,1646381820],
+        //             [41601.97,41601.97,41562.62,41593.96,1646381880]
+        //         ]
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+    }
+
+    public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $options = $this->safe_value($this->options, 'timeframes', array());
+        $timeframes = $this->safe_value($options, $market['type'], array());
+        $timeframeValue = $this->safe_string($timeframes, $timeframe);
+        if ($timeframeValue === null) {
+            throw new NotSupported($this->id . ' fetchIndexOHLCV() does not support ' . $timeframe . ' $timeframe for ' . $market['type'] . ' markets');
+        }
+        if ($limit === null) {
+            $limit = 1000;
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'period' => $timeframeValue,
+            'size' => $limit,
+        );
+        if ($since !== null) {
+            $request['since'] = $since;
+        }
+        if ($limit !== null) {
+            $request['size'] = $limit;
+        }
+        $response = $this->contractV1PublicGetIndexKline (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 10000,
+        //         "desc" => "操作成功",
+        //         "data" => [
+        //             [41697.53,41722.29,41689.16,41689.16,1646381640],
+        //             [41690.1,41691.73,41611.61,41611.61,1646381700],
+        //             [41611.61,41619.49,41594.87,41594.87,1646381760]
+        //         ]
+        //     }
+        //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
@@ -2577,6 +2768,220 @@ class zb extends Exchange {
             $result[] = $this->parse_position($positions[$i]);
         }
         return $result;
+    }
+
+    public function parse_ledger_entry_type($type) {
+        $types = array(
+            '1' => 'realized pnl',
+            '2' => 'commission',
+            '3' => 'funding fee subtract',
+            '4' => 'funding fee addition',
+            '5' => 'insurance clear',
+            '6' => 'transfer in',
+            '7' => 'transfer out',
+            '8' => 'margin addition',
+            '9' => 'margin subtraction',
+            '10' => 'commission addition',
+            '11' => 'bill $type freeze',
+            '12' => 'bill $type unfreeze',
+            '13' => 'system take over margin',
+            '14' => 'transfer',
+            '15' => 'realized pnl collection',
+            '16' => 'funding fee collection',
+            '17' => 'recommender return commission',
+            '18' => 'by level subtract positions',
+            '19' => 'system add',
+            '20' => 'system subtract',
+            '23' => 'trading competition take over fund',
+            '24' => 'trading contest tickets',
+            '25' => 'return of trading contest tickets',
+            '26' => 'experience expired recall',
+            '50' => 'test register gift',
+            '51' => 'register gift',
+            '52' => 'deposit gift',
+            '53' => 'trading volume gift',
+            '54' => 'awards gift',
+            '55' => 'trading volume gift',
+            '56' => 'awards gift expire',
+            '201' => 'open positions',
+            '202' => 'close positions',
+            '203' => 'take over positions',
+            '204' => 'trading competition take over positions',
+            '205' => 'one way open long',
+            '206' => 'one way open short',
+            '207' => 'one way close long',
+            '208' => 'one way close short',
+            '301' => 'coupon deduction service charge',
+            '302' => 'experience deduction',
+            '303' => 'experience expired',
+        );
+        return $this->safe_string($types, $type, $type);
+    }
+
+    public function parse_ledger_entry($item, $currency = null) {
+        //
+        //     array(
+        //         array(
+        //             "type" => 3,
+        //             "changeAmount" => "0.00434664",
+        //             "isIn" => 0,
+        //             "beforeAmount" => "30.53353135",
+        //             "beforeFreezeAmount" => "21.547",
+        //             "createTime" => "1646121604997",
+        //             "available" => "30.52918471",
+        //             "unit" => "usdt",
+        //             "symbol" => "BTC_USDT"
+        //         ),
+        //     ),
+        //
+        $timestamp = $this->safe_string($item, 'createTime');
+        $direction = null;
+        $changeDirection = $this->safe_number($item, 'isIn');
+        if ($changeDirection === 1) {
+            $direction = 'increase';
+        } else {
+            $direction = 'reduce';
+        }
+        $fee = null;
+        $feeCost = $this->safe_number($item, 'fee');
+        if ($feeCost !== null) {
+            $fee = array(
+                'cost' => $feeCost,
+                'currency' => $this->safe_currency_code($this->safe_string($item, 'unit')),
+            );
+        }
+        return array(
+            'id' => $this->safe_string($item, 'id'),
+            'info' => $item,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'direction' => $direction,
+            'account' => $this->safe_string($item, 'userId'),
+            'referenceId' => null,
+            'referenceAccount' => null,
+            'type' => $this->parse_ledger_entry_type($this->safe_integer($item, 'type')),
+            'currency' => $this->safe_currency_code($this->safe_string($item, 'unit')),
+            'amount' => $this->safe_number($item, 'changeAmount'),
+            'before' => $this->safe_number($item, 'beforeAmount'),
+            'after' => $this->safe_number($item, 'available'),
+            'status' => null,
+            'fee' => $fee,
+        );
+    }
+
+    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        if ($code === null) {
+            throw new ArgumentsRequired($this->id . ' fetchLedger() requires a $code argument');
+        }
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'futuresAccountType' => 1,
+            // 'currencyId' => '11',
+            // 'type' => 1,
+            // 'endTime' => $this->milliseconds(),
+            // 'pageNum' => 1,
+        );
+        if ($code !== null) {
+            $request['currencyName'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['pageSize'] = $limit;
+        }
+        $response = $this->contractV2PrivateGetFundGetBill (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 10000,
+        //         "data" => array(
+        //             "list" => array(
+        //                 array(
+        //                     "type" => 3,
+        //                     "changeAmount" => "0.00434664",
+        //                     "isIn" => 0,
+        //                     "beforeAmount" => "30.53353135",
+        //                     "beforeFreezeAmount" => "21.547",
+        //                     "createTime" => "1646121604997",
+        //                     "available" => "30.52918471",
+        //                     "unit" => "usdt",
+        //                     "symbol" => "BTC_USDT"
+        //                 ),
+        //             ),
+        //             "pageNum" => 1,
+        //             "pageSize" => 10
+        //         ),
+        //         "desc" => "操作成功"
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $list = $this->safe_value($data, 'list', array());
+        return $this->parse_ledger($list, $currency, $since, $limit);
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        $this->load_markets();
+        $side = null;
+        if ($fromAccount === 'spot' || $toAccount === 'future') {
+            $side = 1;
+        } else {
+            $side = 0;
+        }
+        $currency = $this->currency($code);
+        $request = array(
+            'currencyName' => $currency['id'],
+            'amount' => $amount,
+            'clientId' => $this->safe_string($params, 'clientId'), // "2sdfsdfsdf232342"
+            'side' => $side, // 1：Deposit (zb account -> futures account)，0：Withdrawal (futures account -> zb account)
+        );
+        $response = $this->contractV2PrivatePostFundTransferFund (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 10000,
+        //         "data" => "2sdfsdfsdf232342",
+        //         "desc" => "Success"
+        //     }
+        //
+        $timestamp = $this->milliseconds();
+        $transfer = array(
+            'id' => $this->safe_string($response, 'data'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $code,
+            'amount' => $amount,
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+            'status' => $this->safe_integer($response, 'code'),
+        );
+        return $this->parse_transfer($transfer, $code);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //     {
+        //         "id" => "2sdfsdfsdf232342",
+        //         "timestamp" => "",
+        //         "datetime" => "",
+        //         "currency" => "USDT",
+        //         "amount" => "10",
+        //         "fromAccount" => "futures account",
+        //         "toAccount" => "zb account",
+        //         "status" => 10000,
+        //     }
+        //
+        $currencyId = $this->safe_string($transfer, 'currency');
+        return array(
+            'info' => $transfer,
+            'id' => $this->safe_string($transfer, 'id'),
+            'timestamp' => $this->safe_integer($transfer, 'timestamp'),
+            'datetime' => $this->safe_string($transfer, 'datetime'),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $this->safe_number($transfer, 'amount'),
+            'fromAccount' => $this->safe_string($transfer, 'fromAccount'),
+            'toAccount' => $this->safe_string($transfer, 'toAccount'),
+            'status' => $this->safe_string($transfer, 'status'),
+        );
     }
 
     public function modify_margin_helper($symbol, $amount, $type, $params = array ()) {

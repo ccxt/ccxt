@@ -40,6 +40,8 @@ module.exports = class zaif extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
                 'withdraw': true,
             },
             'urls': {

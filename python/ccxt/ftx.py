@@ -611,6 +611,11 @@ class ftx(Exchange):
                     base = '-'.join(parsedId)
                 symbol = base + '/' + quote + ':' + settle + '-' + self.yymmdd(expiry, '')
             # check if a market is a spot or future market
+            sizeIncrement = self.safe_string(market, 'sizeIncrement')
+            minProvideSize = self.safe_string(market, 'minProvideSize')
+            minAmountString = sizeIncrement
+            if minProvideSize is not None:
+                minAmountString = sizeIncrement if Precise.string_gt(minProvideSize, sizeIncrement) else minProvideSize
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -636,7 +641,7 @@ class ftx(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_number(market, 'sizeIncrement'),
+                    'amount': self.parse_number(sizeIncrement),
                     'price': self.safe_number(market, 'priceIncrement'),
                 },
                 'limits': {
@@ -645,7 +650,7 @@ class ftx(Exchange):
                         'max': self.parse_number('20'),
                     },
                     'amount': {
-                        'min': None,
+                        'min': self.parse_number(minAmountString),
                         'max': None,
                     },
                     'price': {
