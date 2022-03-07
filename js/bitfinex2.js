@@ -516,7 +516,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'info': market,
             };
             if (swap) {
-                const settlementCurrencies = this.options['swap']['fetchMarkets']['settlementCurrencies'];
+                const settlementCurrencies = [ 'USDT' ]; // this.options['swap']['fetchMarkets']['settlementCurrencies'];
                 for (let j = 0; j < settlementCurrencies.length; j++) {
                     const settle = settlementCurrencies[j];
                     parsedMarket['settle'] = settle;
