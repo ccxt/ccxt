@@ -3,18 +3,21 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder, ArgumentsRequired } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+const { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder } = require ('./base/errors');
+// const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class lbank extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'lbank',
+            'id': 'lbank2',
             'name': 'LBank',
             'countries': [ 'CN' ],
             'version': 'v2',
+            // 50 per second for making and cancelling orders 1000ms / 50 = 20
+            // 20 per second for all other requests, cost = 50 / 20 = 2.5
+            'rateLimit': 20,
             'has': {
                 'CORS': false,
                 'spot': false,
@@ -85,27 +88,44 @@ module.exports = class lbank extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'currencyPairs',
-                        'ticker',
-                        'depth',
-                        'trades',
-                        'kline',
-                        'accuracy',
-                    ],
+                    'get': {
+                        'currencyPairs': 2.5, // returns available trading pairs (market ids)
+                        'accuracy': 2.5, // basic information of trading pairs (price, quantity accuraccy etc)
+                        'usdToCny': 2.5,
+                        'withdrawConfigs': 2.5, // withdrawal details for some symbol
+                        'timestamp': 2.5,
+                        'ticker/24h': 2.5, // recommended
+                        'ticker': 2.5,
+                        'depth': 2.5,
+                        'incrDepth': 2.5, // fetchOrderBook
+                        'trades': 2.5, // fetchTrades
+                        'kline': 2.5, // fetchOHLCV
+                    },
                 },
                 'private': {
-                    'post': [
-                        'user_info',
-                        'create_order',
-                        'cancel_order',
-                        'orders_info',
-                        'orders_info_history',
-                        'withdraw',
-                        'withdrawCancel',
-                        'withdraws',
-                        'withdrawConfigs',
-                    ],
+                    'post': {
+                        // account
+                        'user_info': 2.5, // fetchBalance
+                        'subscribe/get_key': 2.5,
+                        'subscribe/refresh_key': 2.5,
+                        'subscribe/destroy_key': 2.5,
+                        'get_deposit_address': 2.5, // fetchDepositAddress
+                        'deposit_history': 2.5, // fetchDeposits
+                        // order
+                        'create_order': 1, // createOrder
+                        'batch_create_order': 1,
+                        'cancel_order': 1, // cancelOrder
+                        'cancel_clientOrders': 1, // cancelOrder (By clOId)
+                        'orders_info': 2.5, // fetchOrder ***
+                        'orders_info_history': 2.5, // fetchOrders (only the last two days available) ***
+                        'order_transaction_detail': 2.5, // fetchOrder but somewhat slightly different data ***
+                        'transaction_history': 2.5, // fetchMyTrades ***
+                        'orders_info_no_deal': 2.5,
+                        // withdraw
+                        'withdraw': 2.5, // withdraw
+                        'withdrawCancel': 2.5,
+                        'withdraws': 2.5, // fetchWithdrawals
+                    },
                 },
             },
             'fees': {
