@@ -8,7 +8,7 @@ const { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder } = req
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class lbank extends Exchange {
+module.exports = class lbank2 extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'lbank2',
@@ -152,20 +152,20 @@ module.exports = class lbank extends Exchange {
         return response;
     }
 
-    sign2 (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
-        // every endpoint ends in ".do"
-        url += '.do';
-        if (api === 'public') {
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
-            }
-        } else {
-            this.checkRequiredCredentials ();
-            // const query =
-        }
-    }
+    // sign2 (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    //     const query = this.omit (params, this.extractParams (path));
+    //     let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
+    //     // every endpoint ends in ".do"
+    //     url += '.do';
+    //     if (api === 'public') {
+    //         if (Object.keys (query).length) {
+    //             url += '?' + this.urlencode (query);
+    //         }
+    //     } else {
+    //         this.checkRequiredCredentials ();
+    //         // const query =
+    //     }
+    // }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
