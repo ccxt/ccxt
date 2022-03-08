@@ -170,22 +170,8 @@ class huobi(Exchange, ccxt.huobi):
         market = self.market(symbol)
         interval = self.timeframes[timeframe]
         messageHash = 'market.' + market['id'] + '.kline.' + interval
-        api = self.safe_string(self.options, 'api', 'api')
-        hostname = {'hostname': self.hostname}
-        url = self.implode_params(self.urls['api']['ws'][api]['spot']['public'], hostname)
-        requestId = self.request_id()
-        request = {
-            'sub': messageHash,
-            'id': requestId,
-        }
-        subscription = {
-            'id': requestId,
-            'messageHash': messageHash,
-            'symbol': symbol,
-            'timeframe': timeframe,
-            'params': params,
-        }
-        ohlcv = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
+        url = self.get_url_by_market_type(market['type'], market['linear'])
+        ohlcv = await self.subscribe_public(url, symbol, messageHash, None, params)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)

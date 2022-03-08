@@ -180,22 +180,8 @@ class huobi extends \ccxt\async\huobi {
         $market = $this->market($symbol);
         $interval = $this->timeframes[$timeframe];
         $messageHash = 'market.' . $market['id'] . '.kline.' . $interval;
-        $api = $this->safe_string($this->options, 'api', 'api');
-        $hostname = array( 'hostname' => $this->hostname );
-        $url = $this->implode_params($this->urls['api']['ws'][$api]['spot']['public'], $hostname);
-        $requestId = $this->request_id();
-        $request = array(
-            'sub' => $messageHash,
-            'id' => $requestId,
-        );
-        $subscription = array(
-            'id' => $requestId,
-            'messageHash' => $messageHash,
-            'symbol' => $symbol,
-            'timeframe' => $timeframe,
-            'params' => $params,
-        );
-        $ohlcv = yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
+        $url = $this->get_url_by_market_type($market['type'], $market['linear']);
+        $ohlcv = yield $this->subscribe_public($url, $symbol, $messageHash, null, $params);
         if ($this->newUpdates) {
             $limit = $ohlcv->getLimit ($symbol, $limit);
         }
