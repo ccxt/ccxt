@@ -92,12 +92,12 @@ class patriotexchange(Exchange):
                 '1w': '1w',
             },
             'urls': {
-                'logo' => 'https://imgur.com/fPE1oCl',
-                'test' => '#',
-                'api' => 'https://api.patriotexchange.net',
-                'www' => 'https://patriotexchangeusa.com',
-                'doc' => 'https://patriotexchangeusa.com',
-                'referral' => 'https://trade.patriotexchange.net/signup?affiliation_code=0J2SEX',
+                'logo': 'https://imgur.com/fPE1oCl',
+                'test': '#',
+                'api': 'https://api.patriotexchange.net',
+                'www': 'https://patriotexchangeusa.com',
+                'doc': 'https://patriotexchangeusa.com',
+                'referral': 'https://trade.patriotexchange.net/signup?affiliation_code=0J2SEX',
             },
             'precisionMode': TICK_SIZE,
             'requiredCredentials': {
