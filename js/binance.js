@@ -2657,8 +2657,13 @@ module.exports = class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'createOrder', 'defaultType', 'spot');
         const marketType = this.safeString (params, 'type', defaultType);
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
-        const postOnly = this.safeValue (params, 'postOnly', false);
-        params = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId', 'postOnly' ]);
+        let timeInForce = this.safeString (params, 'timeInForce');
+        let postOnly = undefined;
+        [ type, postOnly, timeInForce, params ] = this.isPostOnly (type, timeInForce, timeInForce === 'GTX', params);
+        if (postOnly) {
+            timeInForce = 'GTX';
+        }
+        params = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'timeInForce' ]);
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         if (reduceOnly !== undefined) {
             if ((marketType !== 'future') && (marketType !== 'delivery')) {
@@ -2802,7 +2807,7 @@ module.exports = class binance extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         if (timeInForceIsRequired) {
-            request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+            request['timeInForce'] = (timeInForce === undefined) ? this.options['defaultTimeInForce'] : timeInForce; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (stopPriceIsRequired) {
             const stopPrice = this.safeNumber (params, 'stopPrice');
