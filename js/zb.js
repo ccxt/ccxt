@@ -3086,15 +3086,19 @@ module.exports = class zb extends Exchange {
         //
         const timestamp = this.milliseconds ();
         const data = this.safeValue (response, 'result');
-        const rate = this.safeValue (data, 0);
-        return {
-            'currency': this.safeCurrencyCode (this.safeString (rate, 'coinName')),
-            'rate': this.safeNumber (rate, 'interestRateOfDay'),
-            'period': this.safeNumber (rate, 'repaymentDay'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'info': rate,
-        };
+        const rates = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            rates.push ({
+                'currency': this.safeCurrencyCode (this.safeString (entry, 'coinName')),
+                'rate': this.safeNumber (entry, 'interestRateOfDay'),
+                'period': this.safeNumber (entry, 'repaymentDay'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'info': entry,
+            });
+        }
+        return rates;
     }
 
     nonce () {
