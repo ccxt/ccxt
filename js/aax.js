@@ -19,7 +19,6 @@ module.exports = class aax extends Exchange {
             'rateLimit': 500,
             'version': 'v2',
             'hostname': 'aaxpro.com', // aax.com
-            'certified': true,
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -38,7 +37,6 @@ module.exports = class aax extends Exchange {
                 'deposit': undefined,
                 'editOrder': true,
                 'fetchAccounts': undefined,
-                'fetchAllTradingFees': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
                 'fetchBorrowRate': false,
@@ -67,6 +65,8 @@ module.exports = class aax extends Exchange {
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
                 'fetchLeverage': undefined,
+                'fetchLeverageTiers': true,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyBuys': undefined,
@@ -89,15 +89,14 @@ module.exports = class aax extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFee': undefined,
-                'fetchTradingFees': undefined,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
                 'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
                 'fetchTransfers': undefined,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': undefined,
-                'loadLeverageBrackets': undefined,
                 'reduceMargin': undefined,
                 'setLeverage': true,
                 'setMarginMode': false,
@@ -764,7 +763,6 @@ module.exports = class aax extends Exchange {
         id = this.safeString (trade, 'i', id);
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
         let priceString = this.safeString2 (trade, 'p', 'filledPrice');
         const amountString = this.safeString2 (trade, 'q', 'filledQty');
         const orderId = this.safeString (trade, 'orderID');
@@ -788,12 +786,10 @@ module.exports = class aax extends Exchange {
         const feeCost = this.safeString (trade, 'commission');
         if (feeCost !== undefined) {
             let feeCurrency = undefined;
-            if (market !== undefined) {
-                if (side === 'buy') {
-                    feeCurrency = market['base'];
-                } else if (side === 'sell') {
-                    feeCurrency = market['quote'];
-                }
+            if (side === 'buy') {
+                feeCurrency = market['base'];
+            } else if (side === 'sell') {
+                feeCurrency = market['quote'];
             }
             fee = {
                 'currency': feeCurrency,
@@ -805,7 +801,7 @@ module.exports = class aax extends Exchange {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': orderType,
             'side': side,
             'order': orderId,
@@ -1738,7 +1734,6 @@ module.exports = class aax extends Exchange {
         const clientOrderId = this.safeString (order, 'clOrdID');
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
         const price = this.safeString (order, 'price');
         const stopPrice = this.safeNumber (order, 'stopPrice');
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
@@ -1759,12 +1754,10 @@ module.exports = class aax extends Exchange {
         const feeCost = this.safeNumber (order, 'commission');
         if (feeCost !== undefined) {
             let feeCurrency = undefined;
-            if (market !== undefined) {
-                if (side === 'buy') {
-                    feeCurrency = market['base'];
-                } else if (side === 'sell') {
-                    feeCurrency = market['quote'];
-                }
+            if (side === 'buy') {
+                feeCurrency = market['base'];
+            } else if (side === 'sell') {
+                feeCurrency = market['quote'];
             }
             fee = {
                 'currency': feeCurrency,
@@ -1779,7 +1772,7 @@ module.exports = class aax extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
@@ -2307,6 +2300,96 @@ module.exports = class aax extends Exchange {
             'leverage': leverage,
         };
         return await this.privatePostFuturesPositionLeverage (this.extend (request, params));
+    }
+
+    async fetchLeverageTiers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetInstruments (params);
+        //
+        //     {
+        //         "code":1,
+        //         "message":"success",
+        //         "ts":1610159448962,
+        //         "data":[
+        //             {
+        //                 "tickSize":"0.01",
+        //                 "lotSize":"1",
+        //                 "base":"BTC",
+        //                 "quote":"USDT",
+        //                 "minQuantity":"1.0000000000",
+        //                 "maxQuantity":"30000",
+        //                 "minPrice":"0.0100000000",
+        //                 "maxPrice":"999999.0000000000",
+        //                 "status":"readOnly",
+        //                 "symbol":"BTCUSDTFP",
+        //                 "code":"FP",
+        //                 "takerFee":"0.00040",
+        //                 "makerFee":"0.00020",
+        //                 "multiplier":"0.001000000000",
+        //                 "mmRate":"0.00500",
+        //                 "imRate":"0.01000",
+        //                 "type":"futures",
+        //                 "settleType":"Vanilla",
+        //                 "settleCurrency":"USDT"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseLeverageTiers (data, symbols, 'symbol');
+    }
+
+    parseMarketLeverageTiers (info, market) {
+        /**
+            @param info: Exchange market response
+            {
+                "tickSize":"0.01",
+                "lotSize":"1",
+                "base":"BTC",
+                "quote":"USDT",
+                "minQuantity":"1.0000000000",
+                "maxQuantity":"30000",
+                "minPrice":"0.0100000000",
+                "maxPrice":"999999.0000000000",
+                "status":"readOnly",
+                "symbol":"BTCUSDTFP",
+                "code":"FP",
+                "takerFee":"0.00040",
+                "makerFee":"0.00020",
+                "multiplier":"0.001000000000",
+                "mmRate":"0.00500",
+                "imRate":"0.01000",
+                "type":"futures",
+                "settleType":"Vanilla",
+                "settleCurrency":"USDT"
+            }
+            @param market: CCXT Market
+        */
+        let maintenanceMarginRate = this.safeString (info, 'mmRate');
+        let initialMarginRate = this.safeString (info, 'imRate');
+        const maxVol = this.safeString (info, 'maxQuantity');
+        const riskIncrVol = maxVol; // TODO
+        const riskIncrMmr = '0.0'; // TODO
+        const riskIncrImr = '0.0'; // TODO
+        let floor = '0';
+        const tiers = [];
+        while (Precise.stringLt (floor, maxVol)) {
+            const cap = Precise.stringAdd (floor, riskIncrVol);
+            tiers.push ({
+                'tier': this.parseNumber (Precise.stringDiv (cap, riskIncrVol)),
+                'currency': market['base'],
+                'notionalFloor': this.parseNumber (floor),
+                'notionalCap': this.parseNumber (cap),
+                'maintenanceMarginRate': this.parseNumber (maintenanceMarginRate),
+                'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRate)),
+                'info': info,
+            });
+            maintenanceMarginRate = Precise.stringAdd (maintenanceMarginRate, riskIncrMmr);
+            initialMarginRate = Precise.stringAdd (initialMarginRate, riskIncrImr);
+            floor = cap;
+        }
+        return tiers;
     }
 
     nonce () {

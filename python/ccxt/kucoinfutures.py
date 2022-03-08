@@ -62,7 +62,8 @@ class kucoinfutures(kucoin):
                 'fetchIndexOHLCV': False,
                 'fetchL3OrderBook': True,
                 'fetchLedger': True,
-                'fetchLeverageTiers': True,
+                'fetchLeverageTiers': False,
+                'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -1556,10 +1557,8 @@ class kucoinfutures(kucoin):
     def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         raise BadRequest(self.id + ' has no method fetchLedger')
 
-    def fetch_leverage_tiers(self, symbol=None, params={}):
+    def fetch_market_leverage_tiers(self, symbol, params={}):
         self.load_markets()
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchLeverageTiers() requires a symbol argument')
         market = self.market(symbol)
         if not market['contract']:
             raise BadRequest(self.id + ' fetchLeverageTiers() supports contract markets only')
@@ -1585,16 +1584,27 @@ class kucoinfutures(kucoin):
         #    }
         #
         data = self.safe_value(response, 'data')
-        tiers = {}
-        for i in range(0, len(data)):
-            tier = data[i]
-            symbol = self.safe_symbol(self.safe_string(tier, 'symbol'))
-            if not (symbol in tiers):
-                tiers[symbol] = []
-            market = self.market(symbol)
-            tiers[symbol].append({
+        return self.parse_market_leverage_tiers(data, market)
+
+    def parse_market_leverage_tiers(self, info, market):
+        '''
+            @param info: Exchange market response for 1 market
+            {
+                "symbol": "ETHUSDTM",
+                "level": 1,
+                "maxRiskLimit": 300000,
+                "minRiskLimit": 0,
+                "maxLeverage": 100,
+                "initialMargin": 0.0100000000,
+                "maintainMargin": 0.0050000000
+            @param market: CCXT market
+       '''
+        tiers = []
+        for i in range(0, len(info)):
+            tier = info[i]
+            tiers.append({
                 'tier': self.safe_number(tier, 'level'),
-                'notionalCurrency': market['base'],
+                'currency': market['base'],
                 'notionalFloor': self.safe_number(tier, 'minRiskLimit'),
                 'notionalCap': self.safe_number(tier, 'maxRiskLimit'),
                 'maintenanceMarginRate': self.safe_number(tier, 'maintainMargin'),

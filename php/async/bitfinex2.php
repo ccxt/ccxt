@@ -57,8 +57,8 @@ class bitfinex2 extends bitfinex {
                 'fetchStatus' => true,
                 'fetchTickers' => true,
                 'fetchTime' => false,
-                'fetchTradingFee' => null,
-                'fetchTradingFees' => null,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => true,
                 'fetchTransactions' => true,
                 'withdraw' => true,
             ),
@@ -319,6 +319,7 @@ class bitfinex2 extends bitfinex {
                     'EUR' => 'EUR',
                     'JPY' => 'JPY',
                     'GBP' => 'GBP',
+                    'CHN' => 'CHN',
                 ),
                 // actually the correct names unlike the v1
                 // we don't want to extend this with accountsByType in v1
@@ -1599,6 +1600,111 @@ class bitfinex2 extends bitfinex {
                 'rate' => null,
             ),
         );
+    }
+
+    public function fetch_trading_fees($params = array ()) {
+        yield $this->load_markets();
+        $response = yield $this->privatePostAuthRSummary ($params);
+        //
+        //      Response Spec:
+        //      array(
+        //         PLACEHOLDER,
+        //         PLACEHOLDER,
+        //         PLACEHOLDER,
+        //         PLACEHOLDER,
+        //         array(
+        //            array(
+        //             MAKER_FEE,
+        //             MAKER_FEE,
+        //             MAKER_FEE,
+        //             PLACEHOLDER,
+        //             PLACEHOLDER,
+        //             DERIV_REBATE
+        //            ),
+        //            array(
+        //             TAKER_FEE_TO_CRYPTO,
+        //             TAKER_FEE_TO_STABLE,
+        //             TAKER_FEE_TO_FIAT,
+        //             PLACEHOLDER,
+        //             PLACEHOLDER,
+        //             DERIV_TAKER_FEE
+        //            )
+        //         ),
+        //         PLACEHOLDER,
+        //         PLACEHOLDER,
+        //         PLACEHOLDER,
+        //         PLACEHOLDER,
+        //         {
+        //             LEO_LEV,
+        //             LEO_AMOUNT_AVG
+        //         }
+        //     )
+        //
+        //      Example $response:
+        //
+        //     array(
+        //         null,
+        //         null,
+        //         null,
+        //         null,
+        //         array(
+        //          array( 0.001, 0.001, 0.001, null, null, 0.0002 ),
+        //          array( 0.002, 0.002, 0.002, null, null, 0.00065 )
+        //         ),
+        //         array(
+        //          array(
+        //              {
+        //              curr => 'Total (USD)',
+        //              vol => '0',
+        //              vol_safe => '0',
+        //              vol_maker => '0',
+        //              vol_BFX => '0',
+        //              vol_BFX_safe => '0',
+        //              vol_BFX_maker => '0'
+        //              }
+        //          ),
+        //          array(),
+        //          0
+        //         ),
+        //         array( null, array(), 0 ),
+        //         null,
+        //         null,
+        //         array( leo_lev => '0', leo_amount_avg => '0' )
+        //     )
+        //
+        $result = array();
+        $fiat = $this->safe_value($this->options, 'fiat', array());
+        $feeData = $this->safe_value($response, 4, array());
+        $makerData = $this->safe_value($feeData, 0, array());
+        $takerData = $this->safe_value($feeData, 1, array());
+        $makerFee = $this->safe_number($makerData, 0);
+        $makerFeeFiat = $this->safe_number($makerData, 2);
+        $makerFeeDeriv = $this->safe_number($makerData, 5);
+        $takerFee = $this->safe_number($takerData, 0);
+        $takerFeeFiat = $this->safe_number($takerData, 2);
+        $takerFeeDeriv = $this->safe_number($takerData, 5);
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $market = $this->market($symbol);
+            $fee = array(
+                'info' => $response,
+                'symbol' => $symbol,
+                'percentage' => true,
+                'tierBased' => true,
+            );
+            if (is_array($fiat) && array_key_exists($market['quote'], $fiat)) {
+                $fee['maker'] = $makerFeeFiat;
+                $fee['taker'] = $takerFeeFiat;
+            } else if ($market['contract']) {
+                $fee['maker'] = $makerFeeDeriv;
+                $fee['taker'] = $takerFeeDeriv;
+            } else { // TODO check if stable coin
+                $fee['maker'] = $makerFee;
+                $fee['taker'] = $takerFee;
+            }
+            $result[$symbol] = $fee;
+        }
+        return $result;
     }
 
     public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {

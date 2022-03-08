@@ -71,6 +71,8 @@ class bytetrade(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'setLeverage': False,
@@ -588,12 +590,8 @@ class bytetrade(Exchange):
         side = self.safe_string(trade, 'side')
         datetime = self.iso8601(timestamp)  # self.safe_string(trade, 'datetime')
         order = self.safe_string(trade, 'order')
-        symbol = None
-        if market is None:
-            marketId = self.safe_string(trade, 'symbol')
-            market = self.safe_value(self.markets_by_id, marketId)
-        if market is not None:
-            symbol = market['symbol']
+        marketId = self.safe_string(trade, 'symbol')
+        market = self.safe_market(marketId, market)
         feeData = self.safe_value(trade, 'fee')
         feeCostString = self.safe_string(feeData, 'cost')
         feeRateString = self.safe_string(feeData, 'rate')
@@ -608,7 +606,7 @@ class bytetrade(Exchange):
             'info': trade,
             'timestamp': timestamp,
             'datetime': datetime,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'id': id,
             'order': order,
             'type': type,
@@ -632,6 +630,55 @@ class bytetrade(Exchange):
             request['limit'] = limit  # default = 100, maximum = 500
         response = self.marketGetTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
+
+    def fetch_trading_fees(self, params={}):
+        self.load_markets()
+        response = self.publicGetSymbols(params)
+        #
+        #     [
+        #         {
+        #             "symbol": "122406567911",
+        #             "name": "BTC/USDT",
+        #             "base": "32",
+        #             "quote": "57",
+        #             "marketStatus": 0,
+        #             "baseName": "BTC",
+        #             "quoteName": "USDT",
+        #             "active": True,
+        #             "maker": "0.0008",
+        #             "taker": "0.0008",
+        #             "precision": {
+        #                 "amount": 6,
+        #                 "price": 2,
+        #                 "minPrice":1
+        #             },
+        #             "limits": {
+        #                 "amount": {
+        #                     "min": "0.000001",
+        #                     "max": "-1"
+        #                 },
+        #                 "price": {
+        #                     "min": "0.01",
+        #                     "max": "-1"
+        #                 }
+        #             }
+        #        }
+        #        ...
+        #    ]
+        #
+        result = {}
+        for i in range(0, len(response)):
+            symbolInfo = response[i]
+            marketId = self.safe_string(symbolInfo, 'name')
+            symbol = self.safe_symbol(marketId)
+            result[symbol] = {
+                'info': symbolInfo,
+                'symbol': symbol,
+                'maker': self.safe_number(symbolInfo, 'maker'),
+                'taker': self.safe_number(symbolInfo, 'taker'),
+                'percentage': True,
+            }
+        return result
 
     def parse_order(self, order, market=None):
         status = self.safe_string(order, 'status')

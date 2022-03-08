@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } = require ('./base/errors');
 const { TRUNCATE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -35,7 +35,6 @@ module.exports = class binance extends Exchange {
                 'createReduceOnlyOrder': true,
                 'deposit': undefined,
                 'fetchAccounts': undefined,
-                'fetchAllTradingFees': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
                 'fetchBorrowRate': true,
@@ -64,6 +63,7 @@ module.exports = class binance extends Exchange {
                 'fetchLedger': undefined,
                 'fetchLeverage': undefined,
                 'fetchLeverageTiers': true,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyBuys': undefined,
@@ -94,7 +94,6 @@ module.exports = class binance extends Exchange {
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
-                'loadLeverageBrackets': true,
                 'reduceMargin': true,
                 'setLeverage': true,
                 'setMarginMode': true,
@@ -784,6 +783,12 @@ module.exports = class binance extends Exchange {
                 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery'
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
+                // not an error
+                // https://github.com/ccxt/ccxt/issues/11268
+                // https://github.com/ccxt/ccxt/pull/11624
+                // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
+                // binanceusdm
+                'throwMarginModeAlreadySet': false,
                 'fetchPositions': 'positionRisk', // or 'account'
                 'recvWindow': 5 * 1000, // 5 sec, binance default
                 'timeDifference': 0, // the difference between system clock and Binance clock
@@ -1919,7 +1924,7 @@ module.exports = class binance extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
+            request['limit'] = limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
         let method = 'publicGetDepth';
         if (market['linear']) {
@@ -2400,12 +2405,6 @@ module.exports = class binance extends Exchange {
         }
         let method = this.safeString (this.options, 'fetchTradesMethod', defaultMethod);
         if (method === 'publicGetAggTrades') {
-            if (since !== undefined) {
-                request['startTime'] = since;
-                // https://github.com/ccxt/ccxt/issues/6400
-                // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
-                request['endTime'] = this.sum (since, 3600000);
-            }
             if (type === 'future') {
                 method = 'fapiPublicGetAggTrades';
             } else if (type === 'delivery') {
@@ -2417,6 +2416,12 @@ module.exports = class binance extends Exchange {
             } else if (type === 'delivery') {
                 method = 'dapiPublicGetHistoricalTrades';
             }
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+            // https://github.com/ccxt/ccxt/issues/6400
+            // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
+            request['endTime'] = this.sum (since, 3600000);
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default = 500, maximum = 1000
@@ -2733,15 +2738,19 @@ module.exports = class binance extends Exchange {
         //     TRAILING_STOP_MARKET callbackRate
         //
         if (uppercaseType === 'MARKET') {
-            const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', false);
-            if (quoteOrderQty) {
-                const quoteOrderQty = this.safeNumber (params, 'quoteOrderQty');
-                const precision = market['precision']['price'];
-                if (quoteOrderQty !== undefined) {
-                    request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQty, TRUNCATE, precision, this.precisionMode);
-                    params = this.omit (params, 'quoteOrderQty');
-                } else if (price !== undefined) {
-                    request['quoteOrderQty'] = this.decimalToPrecision (amount * price, TRUNCATE, precision, this.precisionMode);
+            if (market['spot']) {
+                const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', false);
+                if (quoteOrderQty) {
+                    const quoteOrderQty = this.safeNumber (params, 'quoteOrderQty');
+                    const precision = market['precision']['price'];
+                    if (quoteOrderQty !== undefined) {
+                        request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQty, TRUNCATE, precision, this.precisionMode);
+                        params = this.omit (params, 'quoteOrderQty');
+                    } else if (price !== undefined) {
+                        request['quoteOrderQty'] = this.decimalToPrecision (amount * price, TRUNCATE, precision, this.precisionMode);
+                    } else {
+                        quantityIsRequired = true;
+                    }
                 } else {
                     quantityIsRequired = true;
                 }
@@ -4779,7 +4788,7 @@ module.exports = class binance extends Exchange {
         return this.options['leverageBrackets'];
     }
 
-    async fetchLeverageTiers (symbol = undefined, params = {}) {
+    async fetchLeverageTiers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchLeverageTiers', undefined, params);
         let method = undefined;
@@ -4809,38 +4818,46 @@ module.exports = class binance extends Exchange {
         //        }
         //    ]
         //
-        const leverageBrackets = {};
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const marketId = this.safeString (entry, 'symbol');
-            const safeSymbol = this.safeSymbol (marketId);
-            let market = { 'base': undefined };
-            if (safeSymbol in this.markets) {
-                market = this.market (safeSymbol);
+        return this.parseLeverageTiers (response, symbols, 'symbol');
+    }
+
+    parseMarketLeverageTiers (info, market) {
+        /**
+            @param info: Exchange response for 1 market
+            {
+                "symbol": "SUSHIUSDT",
+                "brackets": [
+                    {
+                        "bracket": 1,
+                        "initialLeverage": 50,
+                        "notionalCap": 50000,
+                        "notionalFloor": 0,
+                        "maintMarginRatio": 0.01,
+                        "cum": 0.0
+                    },
+                    ...
+                ]
             }
-            const brackets = this.safeValue (entry, 'brackets');
-            const result = [];
-            for (let j = 0; j < brackets.length; j++) {
-                const bracket = brackets[j];
-                result.push ({
-                    'tier': this.safeNumber (bracket, 'bracket'),
-                    'notionalCurrency': market['quote'],
-                    'notionalFloor': this.safeFloat2 (bracket, 'notionalFloor', 'qtyFloor'),
-                    'notionalCap': this.safeNumber (bracket, 'notionalCap'),
-                    'maintenanceMarginRate': this.safeNumber (bracket, 'maintMarginRatio'),
-                    'maxLeverage': this.safeNumber (bracket, 'initialLeverage'),
-                    'info': bracket,
-                });
-            }
-            leverageBrackets[safeSymbol] = result;
+            @param market: CCXT market
+        */
+        const marketId = this.safeString (info, 'symbol');
+        const safeSymbol = this.safeSymbol (marketId);
+        market = this.safeMarket (safeSymbol, market);
+        const brackets = this.safeValue (info, 'brackets');
+        const tiers = [];
+        for (let j = 0; j < brackets.length; j++) {
+            const bracket = brackets[j];
+            tiers.push ({
+                'tier': this.safeNumber (bracket, 'bracket'),
+                'currency': market['quote'],
+                'notionalFloor': this.safeFloat2 (bracket, 'notionalFloor', 'qtyFloor'),
+                'notionalCap': this.safeNumber (bracket, 'notionalCap'),
+                'maintenanceMarginRate': this.safeNumber (bracket, 'maintMarginRatio'),
+                'maxLeverage': this.safeNumber (bracket, 'initialLeverage'),
+                'info': bracket,
+            });
         }
-        if (symbol !== undefined) {
-            const result = {};
-            result[symbol] = this.safeValue (leverageBrackets, symbol);
-            return result;
-        } else {
-            return leverageBrackets;
-        }
+        return tiers;
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
@@ -5028,6 +5045,9 @@ module.exports = class binance extends Exchange {
     }
 
     async setMarginMode (marginType, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
+        }
         //
         // { "code": -4048 , "msg": "Margin type cannot be changed if there exists position." }
         //
@@ -5056,7 +5076,25 @@ module.exports = class binance extends Exchange {
             'symbol': market['id'],
             'marginType': marginType,
         };
-        return await this[method] (this.extend (request, params));
+        let response = undefined;
+        try {
+            response = await this[method] (this.extend (request, params));
+        } catch (e) {
+            // not an error
+            // https://github.com/ccxt/ccxt/issues/11268
+            // https://github.com/ccxt/ccxt/pull/11624
+            // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
+            // binanceusdm
+            if (e instanceof MarginModeAlreadySet) {
+                const throwMarginModeAlreadySet = this.safeValue (this.options, 'throwMarginModeAlreadySet', false);
+                if (throwMarginModeAlreadySet) {
+                    throw e;
+                } else {
+                    response = { 'code': -4046, 'msg': 'No need to change margin type.' };
+                }
+            }
+        }
+        return response;
     }
 
     async setPositionMode (hedged, symbol = undefined, params = {}) {
@@ -5212,15 +5250,15 @@ module.exports = class binance extends Exchange {
             if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
                 throw new DDoSProtection (this.id + ' temporary banned: ' + body);
             }
+            const feedback = this.id + ' ' + body;
             if (message === 'No need to change margin type.') {
                 // not an error
                 // https://github.com/ccxt/ccxt/issues/11268
                 // https://github.com/ccxt/ccxt/pull/11624
                 // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
                 // binanceusdm {"code":-4046,"msg":"No need to change margin type."}
-                return true;
+                throw new MarginModeAlreadySet (feedback);
             }
-            const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
             throw new ExchangeError (feedback);
         }

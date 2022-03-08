@@ -46,7 +46,8 @@ class xena(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchLedger': True,
-                'fetchLeverageTiers': 'emulated',
+                'fetchLeverageTiers': True,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -56,6 +57,8 @@ class xena(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
                 'fetchWithdrawals': True,
                 'withdraw': True,
             },
@@ -71,7 +74,7 @@ class xena(Exchange):
                 },
                 'www': 'https://xena.exchange',
                 'doc': 'https://support.xena.exchange/support/solutions/44000808700',
-                'fees': 'https://trading.xena.exchange/en/platform-specification/fee-schedule',
+                'fees': 'https://trading.xena.exchange/en/contracts/terms-and-condition',
             },
             'timeframes': {
                 '1m': '1m',
@@ -1606,14 +1609,8 @@ class xena(Exchange):
         #
         return self.parse_ledger(response, currency, since, limit)
 
-    def fetch_leverage_tiers(self, symbol=None, params={}):
+    def fetch_leverage_tiers(self, symbols=None, params={}):
         self.load_markets()
-        symbolDefined = symbol is not None
-        if symbolDefined:
-            market = self.market(symbol)
-            if not market['contract']:
-                raise BadRequest(self.id + ' fetchLeverageTiers symbol supports contract markets only')
-        result = {}
         response = self.publicGetCommonInstruments(params)
         #
         #    [
@@ -1688,37 +1685,100 @@ class xena(Exchange):
         #           ...
         #        ]
         #
-        for i in range(0, len(response)):
-            item = response[i]
-            margin = self.safe_value(item, 'margin')
-            rates = self.safe_value(margin, 'rates')
-            floor = 0
-            id = self.safe_string(item, 'symbol')
-            market = self.market(id)
-            if market['contract']:
-                if rates is not None:
-                    tiers = []
-                    for j in range(0, len(rates)):
-                        tier = rates[j]
-                        cap = self.safe_number(tier, 'maxVolume')
-                        initialRate = self.safe_string(tier, 'initialRate')
-                        tiers.append({
-                            'tier': self.sum(j, 1),
-                            'notionalCurrency': market['base'],
-                            'notionalFloor': floor,
-                            'notionalCap': cap,
-                            'maintenanceMarginRate': self.safe_number(tier, 'maintenanceRate'),
-                            'maxLeverage': self.parse_number(Precise.string_div('1', initialRate)),
-                            'info': tier,
-                        })
-                        floor = cap
-                    result[market['symbol']] = tiers
-        if symbolDefined:
-            finalResult = {}
-            finalResult[symbol] = self.safe_value(result, symbol)
-            return finalResult
-        else:
-            return result
+        return self.parse_leverage_tiers(response, symbols, 'symbol')
+
+    def parse_market_leverage_tiers(self, info, market):
+        '''
+            @param info: Exchange market response for 1 market
+            {
+                "id": "XBTUSD_3M_240622",
+                "type": "Margin",
+                "marginType": "XenaFuture",
+                "symbol": "XBTUSD_3M_240622",
+                "baseCurrency": "BTC",
+                "quoteCurrency": "USD",
+                "settlCurrency": "USDC",
+                "tickSize": 0,
+                "minOrderQuantity": "0.0001",
+                "orderQtyStep": "0.0001",
+                "limitOrderMaxDistance": "10",
+                "priceInputMask": "00000.0",
+                "enabled": True,
+                "liquidationMaxDistance": "0.01",
+                "contractValue": "1",
+                "contractCurrency": "BTC",
+                "lotSize": "1",
+                "maxOrderQty": "10",
+                "maxPosVolume": "200",
+                "mark": ".XBTUSD_3M_240622",
+                "underlying": ".BTC3_TWAP",
+                "openInterest": ".XBTUSD_3M_240622_OpenInterest",
+                "addUvmToFreeMargin": "ProfitAndLoss",
+                "margin": {
+                    "netting": "PositionsAndOrders",
+                    "rates": [
+                        {"maxVolume": "10", "initialRate": "0.05", "maintenanceRate": "0.025"},
+                        {"maxVolume": "20", "initialRate": "0.1", "maintenanceRate": "0.05"},
+                        {"maxVolume": "30", "initialRate": "0.2", "maintenanceRate": "0.1"},
+                        {"maxVolume": "40", "initialRate": "0.3", "maintenanceRate": "0.15"},
+                        {"maxVolume": "60", "initialRate": "0.4", "maintenanceRate": "0.2"},
+                        {"maxVolume": "150", "initialRate": "0.5", "maintenanceRate": "0.25"},
+                        {"maxVolume": "200", "initialRate": "1", "maintenanceRate": "0.5"}
+                    ],
+                    "rateMultipliers": {
+                        "LimitBuy": "1",
+                        "LimitSell": "1",
+                        "Long": "1",
+                        "MarketBuy": "1",
+                        "MarketSell": "1",
+                        "Short": "1",
+                        "StopBuy": "0",
+                        "StopSell": "0"
+                },
+                "clearing": {"enabled": True, "index": ".XBTUSD_3M_240622"},
+                "riskAdjustment": {"enabled": True, "index": ".RiskAdjustment_IR"},
+                "expiration": {"enabled": True, "index": ".BTC3_TWAP"},
+                "pricePrecision": 1,
+                "priceRange": {
+                    "enabled": True,
+                    "distance": "0.2",
+                    "movingBoundary": "0",
+                    "lowIndex": ".XBTUSD_3M_240622_LOWRANGE",
+                    "highIndex": ".XBTUSD_3M_240622_HIGHRANGE"
+                },
+                "priceLimits": {
+                    "enabled": True,
+                    "distance": "0.5",
+                    "movingBoundary": "0",
+                    "lowIndex": ".XBTUSD_3M_240622_LOWLIMIT",
+                    "highIndex": ".XBTUSD_3M_240622_HIGHLIMIT"
+                },
+                "serie": "XBTUSD",
+                "tradingStartDate": "2021-12-31 07:00:00",
+                "expiryDate": "2022-06-24 08:00:00"
+       '''
+        margin = self.safe_value(info, 'margin')
+        rates = self.safe_value(margin, 'rates')
+        floor = 0
+        id = self.safe_string(info, 'symbol')
+        market = self.safe_market(id, market)
+        tiers = []
+        if rates is not None:
+            for j in range(0, len(rates)):
+                tier = rates[j]
+                cap = self.safe_number(tier, 'maxVolume')
+                initialRate = self.safe_string(tier, 'initialRate')
+                tiers.append({
+                    'tier': self.sum(j, 1),
+                    'currency': market['base'],
+                    'notionalFloor': floor,
+                    'notionalCap': cap,
+                    'maintenanceMarginRate': self.safe_number(tier, 'maintenanceRate'),
+                    'maxLeverage': self.parse_number(Precise.string_div('1', initialRate)),
+                    'info': tier,
+                })
+                floor = cap
+        return tiers
 
     def nonce(self):
         return self.milliseconds()

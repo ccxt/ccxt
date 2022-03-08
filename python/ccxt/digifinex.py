@@ -658,7 +658,7 @@ class digifinex(Exchange):
         #         "fee": 0.096,
         #         "fee_currency": "USDT",
         #         "timestamp": 1499865549,
-        #         "side": "buy",
+        #         "side": "buy",  # or "side": "sell_market"
         #         "is_maker": True
         #     }
         #
@@ -666,6 +666,9 @@ class digifinex(Exchange):
         orderId = self.safe_string(trade, 'order_id')
         timestamp = self.safe_timestamp_2(trade, 'date', 'timestamp')
         side = self.safe_string_2(trade, 'type', 'side')
+        parts = side.split('_')
+        side = self.safe_string(parts, 0)
+        type = self.safe_string(parts, 1)
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
         marketId = self.safe_string(trade, 'symbol')
@@ -686,7 +689,7 @@ class digifinex(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'type': None,
+            'type': type,
             'order': orderId,
             'side': side,
             'price': priceString,
@@ -1306,14 +1309,13 @@ class digifinex(Exchange):
         return self.fetch_transactions_by_type('withdrawal', code, since, limit, params)
 
     def parse_transaction_status(self, status):
+        # deposit state includes: 1(in deposit), 2(to be confirmed), 3(successfully deposited), 4(stopped)
+        # withdrawal state includes: 1(application in progress), 2(to be confirmed), 3(completed), 4(rejected)
         statuses = {
-            '0': 'pending',  # Email Sent
-            '1': 'canceled',  # Cancelled(different from 1 = ok in deposits)
-            '2': 'pending',  # Awaiting Approval
-            '3': 'failed',  # Rejected
-            '4': 'pending',  # Processing
-            '5': 'failed',  # Failure
-            '6': 'ok',  # Completed
+            '1': 'pending',  # in Progress
+            '2': 'pending',  # to be confirmed
+            '3': 'ok',  # Completed
+            '4': 'failed',  # Rejected
         }
         return self.safe_string(statuses, status, status)
 

@@ -71,6 +71,8 @@ class gateio(Exchange):
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': True,
+                'fetchLeverageTiers': True,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
                 'fetchMyTrades': True,
@@ -85,6 +87,7 @@ class gateio(Exchange):
                 'fetchTickers': True,
                 'fetchTime': False,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchWithdrawals': True,
                 'setLeverage': True,
@@ -359,6 +362,9 @@ class gateio(Exchange):
                 'apiKey': True,
                 'secret': True,
             },
+            # 'headers': {
+            #     'X-Gate-Channel-Id': 'ccxt',
+            # },
             'options': {
                 'createOrder': {
                     'expiration': 86400,  # for conditional orders
@@ -771,6 +777,10 @@ class gateio(Exchange):
                     })
         else:
             response = getattr(self, method)(query)
+            spotMarkets = {}
+            if margin:
+                spotMarketsResponse = self.publicSpotGetCurrencyPairs(query)
+                spotMarkets = self.index_by(spotMarketsResponse, 'id')
             #
             #  Spot
             #      [
@@ -804,6 +814,8 @@ class gateio(Exchange):
             for i in range(0, len(response)):
                 market = response[i]
                 id = self.safe_string(market, 'id')
+                spotMarket = self.safe_value(spotMarkets, id)
+                market = self.deep_extend(spotMarket, market)
                 baseId, quoteId = id.split('_')
                 base = self.safe_currency_code(baseId)
                 quote = self.safe_currency_code(quoteId)
@@ -822,7 +834,7 @@ class gateio(Exchange):
                     'quoteId': quoteId,
                     'settleId': None,
                     'type': type,
-                    'spot': spot,
+                    'spot': True,
                     'margin': margin,
                     'swap': False,
                     'future': False,
@@ -846,7 +858,7 @@ class gateio(Exchange):
                     'limits': {
                         'leverage': {
                             'min': self.parse_number('1'),
-                            'max': self.safe_number(market, 'lever', 1),
+                            'max': self.safe_number(market, 'leverage', 1),
                         },
                         'amount': {
                             'min': None,
@@ -1182,6 +1194,36 @@ class gateio(Exchange):
             'address': address,
             'tag': tag,
             'network': None,
+        }
+
+    def fetch_trading_fee(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'currency_pair': market['id'],
+        }
+        response = self.privateWalletGetFee(self.extend(request, params))
+        #
+        #     {
+        #       "user_id": 1486602,
+        #       "taker_fee": "0.002",
+        #       "maker_fee": "0.002",
+        #       "gt_discount": True,
+        #       "gt_taker_fee": "0.0015",
+        #       "gt_maker_fee": "0.0015",
+        #       "loan_fee": "0.18",
+        #       "point_type": "0",
+        #       "futures_taker_fee": "0.0005",
+        #       "futures_maker_fee": "0"
+        #     }
+        #
+        taker = self.safe_number(response, 'taker_fee')
+        maker = self.safe_number(response, 'maker_fee')
+        return {
+            'info': response,
+            'symbol': symbol,
+            'maker': maker,
+            'taker': taker,
         }
 
     def fetch_trading_fees(self, params={}):
@@ -1847,32 +1889,55 @@ class gateio(Exchange):
             'future': 'privateDeliveryGetSettleMyTrades',
         })
         response = getattr(self, method)(self.extend(request, params))
-        # SPOT
-        # [{
-        #     id: "1851927191",
-        #     create_time: "1634333360",
-        #     create_time_ms: "1634333360359.901000",
-        #     currency_pair: "BTC_USDT",
-        #     side: "buy",
-        #     role: "taker",
-        #     amount: "0.0001",
-        #     price: "62547.51",
-        #     order_id: "93475897349",
-        #     fee: "2e-07",
-        #     fee_currency: "BTC",
-        #     point_fee: "0",
-        #     gt_fee: "0",
-        #   }]
-        # Perpetual Swap
-        # [{
-        #   size: "-13",
-        #   order_id: "79723658958",
-        #   id: "47612669",
-        #   role: "taker",
-        #   create_time: "1634600263.326",
-        #   contract: "BTC_USDT",
-        #   price: "61987.8",
-        # }]
+        #
+        # spot
+        #
+        #     [
+        #         {
+        #             "id":"2876130500",
+        #             "create_time":"1645464610",
+        #             "create_time_ms":"1645464610777.399200",
+        #             "currency_pair":"DOGE_USDT",
+        #             "side":"sell",
+        #             "role":"taker",
+        #             "amount":"10.97",
+        #             "price":"0.137384",
+        #             "order_id":"125924049993",
+        #             "fee":"0.00301420496",
+        #             "fee_currency":"USDT",
+        #             "point_fee":"0",
+        #             "gt_fee":"0"
+        #         }
+        #     ]
+        #
+        # perpetual swap
+        #
+        #     [
+        #         {
+        #             "size":-5,
+        #             "order_id":"130264979823",
+        #             "id":26884791,
+        #             "role":"taker",
+        #             "create_time":1645465199.5472,
+        #             "contract":"DOGE_USDT",
+        #             "price":"0.136888"
+        #         }
+        #     ]
+        #
+        # future
+        #
+        #     [
+        #         {
+        #             "id": 121234231,
+        #             "create_time": 1514764800.123,
+        #             "contract": "BTC_USDT",
+        #             "order_id": "21893289839",
+        #             "size": 100,
+        #             "price": "100.123",
+        #             "role": "taker"
+        #         }
+        #     ]
+        #
         return self.parse_trades(response, market, since, limit)
 
     def parse_trade(self, trade, market=None):
@@ -1899,26 +1964,49 @@ class gateio(Exchange):
         #         type: 'sell'
         #     }
         #
-        # private
+        # spot rest
         #
         #     {
-        #         "id": "218087755",
-        #         "create_time": "1578958740",
-        #         "create_time_ms": "1578958740122.710000",
-        #         "currency_pair": "BTC_USDT",
-        #         "side": "sell",
-        #         "role": "taker",
-        #         "amount": "0.0004",
-        #         "price": "8112.77",
-        #         "order_id": "8445563839",
-        #         "fee": "0.006490216",
-        #         "fee_currency": "USDT",
-        #         "point_fee": "0",
-        #         "gt_fee": "0"
+        #         "id":"2876130500",
+        #         "create_time":"1645464610",
+        #         "create_time_ms":"1645464610777.399200",
+        #         "currency_pair":"DOGE_USDT",
+        #         "side":"sell",
+        #         "role":"taker",
+        #         "amount":"10.97",
+        #         "price":"0.137384",
+        #         "order_id":"125924049993",
+        #         "fee":"0.00301420496",
+        #         "fee_currency":"USDT",
+        #         "point_fee":"0","gt_fee":"0"
+        #     }
+        #
+        # perpetual swap rest
+        #
+        #     {
+        #         "size":-5,
+        #         "order_id":"130264979823",
+        #         "id":26884791,
+        #         "role":"taker",
+        #         "create_time":1645465199.5472,
+        #         "contract":"DOGE_USDT",
+        #         "price":"0.136888"
+        #     }
+        #
+        # future rest
+        #
+        #     {
+        #         "id": 121234231,
+        #         "create_time": 1514764800.123,
+        #         "contract": "BTC_USDT",
+        #         "order_id": "21893289839",
+        #         "size": 100,
+        #         "price": "100.123",
+        #         "role": "taker"
         #     }
         #
         id = self.safe_string(trade, 'id')
-        timestamp = self.safe_timestamp(trade, 'time')
+        timestamp = self.safe_timestamp_2(trade, 'time', 'create_time')
         timestamp = self.safe_integer(trade, 'create_time_ms', timestamp)
         marketId = self.safe_string_2(trade, 'currency_pair', 'contract')
         symbol = self.safe_symbol(marketId, market)
@@ -2185,7 +2273,7 @@ class gateio(Exchange):
         else:
             if contract:
                 # contract conditional order
-                rule = 1 if (side == 'sell') else 2
+                rule = 1 if (side == 'buy') else 2
                 request = {
                     'initial': {
                         'contract': market['id'],
@@ -2221,7 +2309,7 @@ class gateio(Exchange):
                 params = self.omit(params, 'account')
                 defaultExpiration = self.safe_integer(options, 'expiration')
                 expiration = self.safe_integer(params, 'expiration', defaultExpiration)
-                rule = '>=' if (side == 'sell') else '<='
+                rule = '>=' if (side == 'buy') else '<='
                 triggerPrice = self.safe_value(trigger, 'price', stopPrice)
                 request = {
                     'trigger': {
@@ -2322,7 +2410,8 @@ class gateio(Exchange):
 
     def parse_order(self, order, market=None):
         #
-        # createOrder, spot
+        # SPOT
+        # createOrder/cancelOrder/fetchOrder
         #
         #     {
         #       "id": "62364648575",
@@ -2352,48 +2441,140 @@ class gateio(Exchange):
         #       "rebated_fee_currency": "USDT"
         #     }
         #
+        # SPOT TRIGGER ORDERS
+        # createOrder
+        #    {
+        #        "id":12604556
+        #    }
         #
-        id = self.safe_string(order, 'id')
-        clientOrderId = self.safe_string(order, 'text')
-        marketId = self.safe_string_2(order, 'currency_pair', 'contract')
-        symbol = self.safe_symbol(marketId, market)
-        timestamp = self.safe_timestamp(order, 'create_time')
-        timestamp = self.safe_integer(order, 'create_time_ms', timestamp)
-        lastTradeTimestamp = self.safe_timestamp(order, 'update_time')
-        lastTradeTimestamp = self.safe_integer(order, 'update_time_ms', lastTradeTimestamp)
-        amountRaw = self.safe_string_2(order, 'amount', 'size')
-        amount = Precise.string_abs(amountRaw)
-        price = self.safe_string(order, 'price')
-        remaining = self.safe_string(order, 'left')
-        # 'filled_total': same as fill_price(spots), not existing(swap)
-        cost = self.safe_string(order, 'filled_total')
-        rawStatus = None
-        side = None
-        average = None
-        contract = self.safe_value(market, 'contract')
-        if contract:
-            # fill price is the price per contract for swaps, but the cost for spot
-            average = self.safe_string(order, 'fill_price')
-            if amount:
-                side = 'buy' if Precise.string_gt(amountRaw, '0') else 'sell'
-            else:
-                side = None
-            rawStatus = self.safe_string(order, 'finish_as', 'open')
-        else:
-            # open, closed, cancelled - almost already ccxt unified!
-            rawStatus = self.safe_string(order, 'status')
-            side = self.safe_string(order, 'side')
-        status = self.parse_order_status(rawStatus)
-        timeInForce = self.safe_string_upper_2(order, 'time_in_force', 'tif')
+        # fetchOrder/cancelOrder
+        #    {
+        #        "market": "ADA_USDT",
+        #        "user":6392049,
+        #        "trigger": {
+        #            "price": "1.08",  # stopPrice
+        #            "rule": "\u003e=",
+        #            "expiration": 86400
+        #        },
+        #        "put": {
+        #            "type": "limit",
+        #            "side": "buy",
+        #            "price": "1.08",  # order price
+        #            "amount": "1.00000000000000000000",
+        #            "account": "normal",
+        #            "time_in_force": "gtc"
+        #        },
+        #        "id": 71639298,
+        #        "ctime": 1643945985,
+        #        "status": "open"
+        #    }
+        #
+        # FUTURE AND SWAP
+        # createOrder/cancelOrder/fetchOrder
+        #
+        #    {
+        #        "id": 123028481731,
+        #        "contract": "ADA_USDT",
+        #        "mkfr": "-0.00005",
+        #        "tkfr": "0.00048",
+        #        "tif": "ioc",
+        #        "is_reduce_only": False,
+        #        "create_time": 1643950262.68,
+        #        "finish_time": 1643950262.68,
+        #        "price": "0",
+        #        "size": 1,
+        #        "refr": "0",
+        #        "left":0,
+        #        "text": "api",
+        #        "fill_price": "1.05273",
+        #        "user":6329238,
+        #        "finish_as": "filled",
+        #        "status": "finished",
+        #        "is_liq": False,
+        #        "refu":0,
+        #        "is_close": False,
+        #        "iceberg": 0
+        #    }
+        #
+        # TRIGGER ORDERS(FUTURE AND SWAP)
+        #
+        # createOrder
+        #    {
+        #        "id":12604556
+        #    }
+        #
+        # fetchOrder/cancelOrder
+        #    {
+        #        "user": 6320300,
+        #        "trigger": {
+        #            "strategy_type": 0,
+        #            "price_type": 0,
+        #            "price": "1.03",  # stopPrice
+        #            "rule": 2,
+        #            "expiration": 0
+        #        },
+        #        "initial": {
+        #            "contract": "ADA_USDT",
+        #            "size":-1,
+        #            "price": "1.02",
+        #            "tif": "gtc",
+        #            "text":"",
+        #            "iceberg": 0,
+        #            "is_close": False,
+        #            "is_reduce_only": False,
+        #            "auto_size":""
+        #        },
+        #        "id": 126393906,
+        #        "trade_id": 0,
+        #        "status": "open",
+        #        "reason": "",
+        #        "create_time": 1643953482,
+        #        "finish_time": 1643953482,
+        #        "is_stop_order": False,
+        #        "stop_trigger": {
+        #            "rule": 0,
+        #            "trigger_price": "",
+        #            "order_price": ""
+        #        },
+        #        "me_order_id": 0,
+        #        "order_type":""
+        #    }
+        #
+        put = self.safe_value_2(order, 'put', 'initial')
+        trigger = self.safe_value(order, 'trigger')
+        contract = self.safe_string(put, 'contract')
+        type = self.safe_string(put, 'type')
+        timeInForce = self.safe_string_upper_2(put, 'time_in_force', 'tif')
+        amount = self.safe_string_2(put, 'amount', 'size')
+        side = self.safe_string(put, 'side')
+        price = self.safe_string(put, 'price')
+        contract = self.safe_string(order, 'contract', contract)
+        type = self.safe_string(order, 'type', type)
+        timeInForce = self.safe_string_upper_2(order, 'time_in_force', 'tif', timeInForce)
         if timeInForce == 'POC':
             timeInForce = 'PO'
-        type = self.safe_string(order, 'type')
-        if type is None:
-            # response for swaps doesn't include the type information
-            if timeInForce == 'PO' or timeInForce == 'GTC' or timeInForce == 'IOC' or timeInForce == 'FOK':
-                type = 'limit'
-            else:
-                type = 'market'
+        postOnly = (timeInForce == 'PO')
+        amount = self.safe_string_2(order, 'amount', 'size', amount)
+        side = self.safe_string(order, 'side', side)
+        price = self.safe_string(order, 'price', price)
+        remaining = self.safe_string(order, 'left')
+        filled = Precise.string_sub(amount, remaining)
+        cost = self.safe_number(order, 'filled_total')
+        rawStatus = None
+        if put:
+            remaining = amount
+            filled = '0'
+            cost = self.parse_number('0')
+        if contract:
+            isMarketOrder = Precise.string_equals(price, '0') and (timeInForce == 'IOC')
+            type = 'market' if isMarketOrder else 'limit'
+            side = 'buy' if Precise.string_gt(amount, '0') else 'sell'
+            rawStatus = self.safe_string(order, 'finish_as', 'open')
+        else:
+            rawStatus = self.safe_string(order, 'status')
+        timestamp = self.safe_timestamp_2(order, 'create_time', 'ctime')
+        exchangeSymbol = self.safe_string_2(order, 'currency_pair', 'market', contract)
+        # Everything below self(above return) is related to fees
         fees = []
         gtFee = self.safe_string(order, 'gt_fee')
         if gtFee:
@@ -2413,39 +2594,30 @@ class gateio(Exchange):
                 'currency': self.safe_currency_code(self.safe_string(order, 'rebated_fee_currency')),
                 'cost': Precise.string_neg(rebate),
             })
-        mkfr = self.safe_string(order, 'mkfr')
-        tkfr = self.safe_string(order, 'tkfr')
-        if mkfr:
-            fees.append({
-                'currency': self.safe_currency_code(self.safe_string(market, 'settleId')),
-                'cost': mkfr,
-            })
-        if tkfr:
-            fees.append({
-                'currency': self.safe_currency_code(self.safe_string(market, 'settleId')),
-                'cost': tkfr,
-            })
+        numFeeCurrencies = len(fees)
+        multipleFeeCurrencies = numFeeCurrencies > 1
+        status = self.parse_order_status(rawStatus)
         return self.safe_order({
-            'id': id,
-            'clientOrderId': clientOrderId,
+            'id': self.safe_string(order, 'id'),
+            'clientOrderId': self.safe_string(order, 'text'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': self.safe_timestamp_2(order, 'update_time', 'finish_time'),
             'status': status,
-            'symbol': symbol,
+            'symbol': self.safe_symbol(exchangeSymbol),
             'type': type,
             'timeInForce': timeInForce,
-            'postOnly': None,
+            'postOnly': postOnly,
             'side': side,
-            'price': price,
-            'stopPrice': None,
-            'average': average,
-            'amount': amount,
+            'price': self.parse_number(price),
+            'stopPrice': self.safe_number(trigger, 'price'),
+            'average': self.safe_number(order, 'fill_price'),
+            'amount': self.parse_number(Precise.string_abs(amount)),
             'cost': cost,
-            'filled': None,
-            'remaining': remaining,
-            'fee': None,
-            'fees': fees,
+            'filled': self.parse_number(filled),
+            'remaining': self.parse_number(Precise.string_abs(remaining)),
+            'fee': None if multipleFeeCurrencies else self.safe_value(fees, 0),
+            'fees': fees if multipleFeeCurrencies else [],
             'trades': None,
             'info': order,
         }, market)
@@ -2454,6 +2626,8 @@ class gateio(Exchange):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
+        stop = self.safe_value_2(params, 'is_stop_order', 'stop', False)
+        params = self.omit(params, ['is_stop_order', 'stop'])
         market = self.market(symbol)
         request = {
             'order_id': id,
@@ -2462,12 +2636,21 @@ class gateio(Exchange):
             request['currency_pair'] = market['id']
         else:
             request['settle'] = market['settleId']
-        method = self.get_supported_mapping(market['type'], {
-            'spot': 'privateSpotGetOrdersOrderId',
-            'margin': 'privateSpotGetOrdersOrderId',
-            'swap': 'privateFuturesGetSettleOrdersOrderId',
-            'future': 'privateDeliveryGetSettlePriceOrdersOrderId',
-        })
+        method = None
+        if stop:
+            method = self.get_supported_mapping(market['type'], {
+                'spot': 'privateSpotGetPriceOrdersOrderId',
+                'margin': 'privateSpotGetPriceOrdersOrderId',
+                'swap': 'privateFuturesGetSettlePriceOrdersOrderId',
+                'future': 'privateDeliveryGetSettlePriceOrdersOrderId',
+            })
+        else:
+            method = self.get_supported_mapping(market['type'], {
+                'spot': 'privateSpotGetOrdersOrderId',
+                'margin': 'privateSpotGetOrdersOrderId',
+                'swap': 'privateFuturesGetSettleOrdersOrderId',
+                'future': 'privateDeliveryGetSettleOrdersOrderId',
+            })
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_order(response, market)
 
@@ -2610,11 +2793,13 @@ class gateio(Exchange):
             request['settle'] = market['settleId']
         else:
             request['currency_pair'] = market['id']
+        isStop = self.safe_value(params, 'isStop', False)
+        pathMiddle = 'Price' if isStop else ''
         method = self.get_supported_mapping(market['type'], {
-            'spot': 'privateSpotDeleteOrdersOrderId',
-            'margin': 'privateSpotDeleteOrdersOrderId',
-            'swap': 'privateFuturesDeleteSettleOrdersOrderId',
-            'future': 'privateDeliveryDeleteSettleOrdersOrderId',
+            'spot': 'privateSpotDelete' + pathMiddle + 'OrdersOrderId',
+            'margin': 'privateSpotDelete' + pathMiddle + 'OrdersOrderId',
+            'swap': 'privateFuturesDeleteSettle' + pathMiddle + 'OrdersOrderId',
+            'future': 'privateDeliveryDeleteSettle' + pathMiddle + 'OrdersOrderId',
         })
         response = getattr(self, method)(self.extend(request, params))
         #
@@ -2939,6 +3124,224 @@ class gateio(Exchange):
         #
         result = self.parse_positions(response)
         return self.filter_by_array(result, 'symbol', symbols, False)
+
+    def fetch_leverage_tiers(self, symbols=None, params={}):
+        self.load_markets()
+        methodName = 'fetchLeverageTiers'
+        type, query = self.handle_market_type_and_params(methodName, None, params)
+        swap = type == 'swap'
+        defaultSettle = 'usdt' if swap else 'btc'
+        settle = self.safe_string_lower(query, 'settle', defaultSettle)
+        query['settle'] = settle
+        if type != 'future' and type != 'swap':
+            raise BadRequest(self.id + '.' + methodName + ' only supports swap and future')
+        method = self.get_supported_mapping(type, {
+            'swap': 'publicFuturesGetSettleContracts',
+            'future': 'publicDeliveryGetSettleContracts',
+        })
+        response = getattr(self, method)(query)
+        #  Perpetual swap
+        #      [
+        #          {
+        #              "name": "BTC_USDT",
+        #              "type": "direct",
+        #              "quanto_multiplier": "0.0001",
+        #              "ref_discount_rate": "0",
+        #              "order_price_deviate": "0.5",
+        #              "maintenance_rate": "0.005",
+        #              "mark_type": "index",
+        #              "last_price": "38026",
+        #              "mark_price": "37985.6",
+        #              "index_price": "37954.92",
+        #              "funding_rate_indicative": "0.000219",
+        #              "mark_price_round": "0.01",
+        #              "funding_offset": 0,
+        #              "in_delisting": False,
+        #              "risk_limit_base": "1000000",
+        #              "interest_rate": "0.0003",
+        #              "order_price_round": "0.1",
+        #              "order_size_min": 1,
+        #              "ref_rebate_rate": "0.2",
+        #              "funding_interval": 28800,
+        #              "risk_limit_step": "1000000",
+        #              "leverage_min": "1",
+        #              "leverage_max": "100",
+        #              "risk_limit_max": "8000000",
+        #              "maker_fee_rate": "-0.00025",
+        #              "taker_fee_rate": "0.00075",
+        #              "funding_rate": "0.002053",
+        #              "order_size_max": 1000000,
+        #              "funding_next_apply": 1610035200,
+        #              "short_users": 977,
+        #              "config_change_time": 1609899548,
+        #              "trade_size": 28530850594,
+        #              "position_size": 5223816,
+        #              "long_users": 455,
+        #              "funding_impact_value": "60000",
+        #              "orders_limit": 50,
+        #              "trade_id": 10851092,
+        #              "orderbook_id": 2129638396
+        #          }
+        #      ]
+        #
+        #  Delivery Futures
+        #      [
+        #          {
+        #            "name": "BTC_USDT_20200814",
+        #            "underlying": "BTC_USDT",
+        #            "cycle": "WEEKLY",
+        #            "type": "direct",
+        #            "quanto_multiplier": "0.0001",
+        #            "mark_type": "index",
+        #            "last_price": "9017",
+        #            "mark_price": "9019",
+        #            "index_price": "9005.3",
+        #            "basis_rate": "0.185095",
+        #            "basis_value": "13.7",
+        #            "basis_impact_value": "100000",
+        #            "settle_price": "0",
+        #            "settle_price_interval": 60,
+        #            "settle_price_duration": 1800,
+        #            "settle_fee_rate": "0.0015",
+        #            "expire_time": 1593763200,
+        #            "order_price_round": "0.1",
+        #            "mark_price_round": "0.1",
+        #            "leverage_min": "1",
+        #            "leverage_max": "100",
+        #            "maintenance_rate": "1000000",
+        #            "risk_limit_base": "140.726652109199",
+        #            "risk_limit_step": "1000000",
+        #            "risk_limit_max": "8000000",
+        #            "maker_fee_rate": "-0.00025",
+        #            "taker_fee_rate": "0.00075",
+        #            "ref_discount_rate": "0",
+        #            "ref_rebate_rate": "0.2",
+        #            "order_price_deviate": "0.5",
+        #            "order_size_min": 1,
+        #            "order_size_max": 1000000,
+        #            "orders_limit": 50,
+        #            "orderbook_id": 63,
+        #            "trade_id": 26,
+        #            "trade_size": 435,
+        #            "position_size": 130,
+        #            "config_change_time": 1593158867,
+        #            "in_delisting": False
+        #          }
+        #        ]
+        #
+        return self.parse_leverage_tiers(response, symbols, 'name')
+
+    def parse_market_leverage_tiers(self, info, market=None):
+        '''
+            https://www.gate.io/help/futures/perpetual/22162/instrctions-of-risk-limit
+            @param info: Exchange market response for 1 market
+            Perpetual swap
+            {
+                "name": "BTC_USDT",
+                "type": "direct",
+                "quanto_multiplier": "0.0001",
+                "ref_discount_rate": "0",
+                "order_price_deviate": "0.5",
+                "maintenance_rate": "0.005",
+                "mark_type": "index",
+                "last_price": "38026",
+                "mark_price": "37985.6",
+                "index_price": "37954.92",
+                "funding_rate_indicative": "0.000219",
+                "mark_price_round": "0.01",
+                "funding_offset": 0,
+                "in_delisting": False,
+                "risk_limit_base": "1000000",
+                "interest_rate": "0.0003",
+                "order_price_round": "0.1",
+                "order_size_min": 1,
+                "ref_rebate_rate": "0.2",
+                "funding_interval": 28800,
+                "risk_limit_step": "1000000",
+                "leverage_min": "1",
+                "leverage_max": "100",
+                "risk_limit_max": "8000000",
+                "maker_fee_rate": "-0.00025",
+                "taker_fee_rate": "0.00075",
+                "funding_rate": "0.002053",
+                "order_size_max": 1000000,
+                "funding_next_apply": 1610035200,
+                "short_users": 977,
+                "config_change_time": 1609899548,
+                "trade_size": 28530850594,
+                "position_size": 5223816,
+                "long_users": 455,
+                "funding_impact_value": "60000",
+                "orders_limit": 50,
+                "trade_id": 10851092,
+                "orderbook_id": 2129638396
+            Delivery Futures
+            {
+                "name": "BTC_USDT_20200814",
+                "underlying": "BTC_USDT",
+                "cycle": "WEEKLY",
+                "type": "direct",
+                "quanto_multiplier": "0.0001",
+                "mark_type": "index",
+                "last_price": "9017",
+                "mark_price": "9019",
+                "index_price": "9005.3",
+                "basis_rate": "0.185095",
+                "basis_value": "13.7",
+                "basis_impact_value": "100000",
+                "settle_price": "0",
+                "settle_price_interval": 60,
+                "settle_price_duration": 1800,
+                "settle_fee_rate": "0.0015",
+                "expire_time": 1593763200,
+                "order_price_round": "0.1",
+                "mark_price_round": "0.1",
+                "leverage_min": "1",
+                "leverage_max": "100",
+                "maintenance_rate": "1000000",
+                "risk_limit_base": "140.726652109199",
+                "risk_limit_step": "1000000",
+                "risk_limit_max": "8000000",
+                "maker_fee_rate": "-0.00025",
+                "taker_fee_rate": "0.00075",
+                "ref_discount_rate": "0",
+                "ref_rebate_rate": "0.2",
+                "order_price_deviate": "0.5",
+                "order_size_min": 1,
+                "order_size_max": 1000000,
+                "orders_limit": 50,
+                "orderbook_id": 63,
+                "trade_id": 26,
+                "trade_size": 435,
+                "position_size": 130,
+                "config_change_time": 1593158867,
+                "in_delisting": False
+            @param market: CCXT market
+       '''
+        maintenanceMarginUnit = self.safe_string(info, 'maintenance_rate')  # '0.005',
+        leverageMax = self.safe_string(info, 'leverage_max')  # '100',
+        riskLimitStep = self.safe_string(info, 'risk_limit_step')  # '1000000',
+        riskLimitMax = self.safe_string(info, 'risk_limit_max')  # '16000000',
+        initialMarginUnit = Precise.string_div('1', leverageMax)
+        maintenanceMarginRate = maintenanceMarginUnit
+        initialMarginRatio = initialMarginUnit
+        floor = '0'
+        tiers = []
+        while(Precise.string_lt(floor, riskLimitMax)):
+            cap = Precise.string_add(floor, riskLimitStep)
+            tiers.append({
+                'tier': self.parse_number(Precise.string_div(cap, riskLimitStep)),
+                'currency': self.safe_string(market, 'settle'),
+                'notionalFloor': self.parse_number(floor),
+                'notionalCap': self.parse_number(cap),
+                'maintenanceMarginRate': self.parse_number(maintenanceMarginRate),
+                'maxLeverage': self.parse_number(Precise.string_div('1', initialMarginRatio)),
+                'info': info,
+            })
+            maintenanceMarginRate = Precise.string_add(maintenanceMarginRate, maintenanceMarginUnit)
+            initialMarginRatio = Precise.string_add(initialMarginRatio, initialMarginUnit)
+            floor = cap
+        return tiers
 
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         authentication = api[0]  # public, private

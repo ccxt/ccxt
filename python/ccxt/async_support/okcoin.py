@@ -1288,29 +1288,26 @@ class okcoin(Exchange):
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string_2(trade, 'size', 'qty')
         amountString = self.safe_string(trade, 'order_qty', amountString)
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         takerOrMaker = self.safe_string_2(trade, 'exec_type', 'liquidity')
         if takerOrMaker == 'M':
             takerOrMaker = 'maker'
         elif takerOrMaker == 'T':
             takerOrMaker = 'taker'
         side = self.safe_string(trade, 'side')
-        feeCost = self.safe_number(trade, 'fee')
+        feeCostString = self.safe_string(trade, 'fee')
         fee = None
-        if feeCost is not None:
+        if feeCostString is not None:
             feeCurrency = base if (side == 'buy') else quote
             fee = {
                 # fee is either a positive number(invitation rebate)
                 # or a negative number(transaction fee deduction)
                 # therefore we need to invert the fee
                 # more about it https://github.com/ccxt/ccxt/issues/5909
-                'cost': -feeCost,
+                'cost': Precise.string_neg(feeCostString),
                 'currency': feeCurrency,
             }
         orderId = self.safe_string(trade, 'order_id')
-        return {
+        return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1320,11 +1317,11 @@ class okcoin(Exchange):
             'type': None,
             'takerOrMaker': takerOrMaker,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -2638,24 +2635,24 @@ class okcoin(Exchange):
         symbol = market['symbol']
         quoteId = market['quoteId']
         side = None
-        amount = None
-        cost = None
+        amountString = None
+        costString = None
         receivedCurrencyId = self.safe_string(userTrade, 'currency')
         feeCurrencyId = None
         if receivedCurrencyId == quoteId:
             side = self.safe_string(otherTrade, 'side')
-            amount = self.safe_number(otherTrade, 'size')
-            cost = self.safe_number(userTrade, 'size')
+            amountString = self.safe_string(otherTrade, 'size')
+            costString = self.safe_string(userTrade, 'size')
             feeCurrencyId = self.safe_string(otherTrade, 'currency')
         else:
             side = self.safe_string(userTrade, 'side')
-            amount = self.safe_number(userTrade, 'size')
-            cost = self.safe_number(otherTrade, 'size')
+            amountString = self.safe_string(userTrade, 'size')
+            costString = self.safe_string(otherTrade, 'size')
             feeCurrencyId = self.safe_string(userTrade, 'currency')
         id = self.safe_string(userTrade, 'trade_id')
-        price = self.safe_number(userTrade, 'price')
-        feeCostFirst = self.safe_number(otherTrade, 'fee')
-        feeCostSecond = self.safe_number(userTrade, 'fee')
+        priceString = self.safe_string(userTrade, 'price')
+        feeCostFirstString = self.safe_string(otherTrade, 'fee')
+        feeCostSecondString = self.safe_string(userTrade, 'fee')
         feeCurrencyCodeFirst = self.safe_currency_code(self.safe_string(otherTrade, 'currency'))
         feeCurrencyCodeSecond = self.safe_currency_code(self.safe_string(userTrade, 'currency'))
         fee = None
@@ -2664,31 +2661,31 @@ class okcoin(Exchange):
         # or a negative number(transaction fee deduction)
         # therefore we need to invert the fee
         # more about it https://github.com/ccxt/ccxt/issues/5909
-        if (feeCostFirst is not None) and (feeCostFirst != 0):
-            if (feeCostSecond is not None) and (feeCostSecond != 0):
+        if (feeCostFirstString is not None) and not Precise.string_equals(feeCostFirstString, '0'):
+            if (feeCostSecondString is not None) and not Precise.string_equals(feeCostSecondString, '0'):
                 fees = [
                     {
-                        'cost': -feeCostFirst,
+                        'cost': Precise.string_neg(feeCostFirstString),
                         'currency': feeCurrencyCodeFirst,
                     },
                     {
-                        'cost': -feeCostSecond,
+                        'cost': Precise.string_neg(feeCostSecondString),
                         'currency': feeCurrencyCodeSecond,
                     },
                 ]
             else:
                 fee = {
-                    'cost': -feeCostFirst,
+                    'cost': Precise.string_neg(feeCostFirstString),
                     'currency': feeCurrencyCodeFirst,
                 }
-        elif (feeCostSecond is not None) and (feeCostSecond != 0):
+        elif (feeCostSecondString is not None) and not Precise.string_equals(feeCostSecondString, '0'):
             fee = {
-                'cost': -feeCostSecond,
+                'cost': Precise.string_neg(feeCostSecondString),
                 'currency': feeCurrencyCodeSecond,
             }
         else:
             fee = {
-                'cost': 0,
+                'cost': '0',
                 'currency': self.safe_currency_code(feeCurrencyId),
             }
         #
@@ -2731,7 +2728,7 @@ class okcoin(Exchange):
         elif takerOrMaker == 'T':
             takerOrMaker = 'taker'
         orderId = self.safe_string(userTrade, 'order_id')
-        result = {
+        return self.safe_trade({
             'info': pair,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -2741,14 +2738,12 @@ class okcoin(Exchange):
             'type': None,
             'takerOrMaker': takerOrMaker,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        }
-        if fees is not None:
-            result['fees'] = fees
-        return result
+            'fees': fees,
+        }, market)
 
     def parse_my_trades(self, trades, market=None, since=None, limit=None, params={}):
         grouped = self.group_by(trades, 'trade_id')
@@ -2762,7 +2757,7 @@ class okcoin(Exchange):
             if numTradesInPair == 2:
                 trade = self.parse_my_trade(pair)
                 result.append(trade)
-        market = self.safeMarkt(None, market)
+        market = self.safe_market(None, market)
         return self.filter_by_symbol_since_limit(result, market['symbol'], since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):

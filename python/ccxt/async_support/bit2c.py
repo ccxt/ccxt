@@ -313,9 +313,7 @@ class bit2c(Exchange):
         timestamp = self.safe_integer(order, 'created')
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'amount')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        market = self.safe_market(None, market)
         side = self.safe_value(order, 'type')
         if side == 0:
             side = 'buy'
@@ -330,7 +328,7 @@ class bit2c(Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'status': status,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': None,
             'timeInForce': None,
             'postOnly': None,
@@ -407,15 +405,13 @@ class bit2c(Exchange):
                     side = 'buy'
                 else:
                     side = 'sell'
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        market = self.safe_market(None, market)
         return self.safe_trade({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': orderId,
             'type': None,
             'side': side,

@@ -20,7 +20,9 @@ class bybit extends Exchange {
             'countries' => array( 'VG' ), // British Virgin Islands
             'version' => 'v2',
             'userAgent' => null,
-            'rateLimit' => 100,
+            // 50 requests per second for GET requests, 1000ms / 50 = 20ms between requests
+            // 20 requests per second for POST requests, cost = 50 / 20 = 2.5
+            'rateLimit' => 20,
             'hostname' => 'bybit.com', // bybit.com, bytick.com
             'has' => array(
                 'CORS' => true,
@@ -42,6 +44,7 @@ class bybit extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchIndexOHLCV' => true,
                 'fetchLedger' => true,
+                'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
@@ -57,6 +60,8 @@ class bybit extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => false,
                 'fetchTransactions' => null,
                 'fetchWithdrawals' => true,
                 'setLeverage' => true,
@@ -239,20 +244,20 @@ class bybit extends Exchange {
                     'get' => array(
                         // inverse swap
                         'v2/public/orderBook/L2' => 1,
-                        'v2/public/kline/list' => 1,
+                        'v2/public/kline/list' => 3,
                         'v2/public/tickers' => 1,
                         'v2/public/trading-records' => 1,
                         'v2/public/symbols' => 1,
-                        'v2/public/mark-price-kline' => 1,
-                        'v2/public/index-price-kline' => 1,
-                        'v2/public/premium-index-kline' => 1,
+                        'v2/public/mark-price-kline' => 3,
+                        'v2/public/index-price-kline' => 3,
+                        'v2/public/premium-index-kline' => 2,
                         'v2/public/open-interest' => 1,
                         'v2/public/big-deal' => 1,
                         'v2/public/account-ratio' => 1,
                         'v2/public/funding-rate' => 1,
                         'v2/public/elite-ratio' => 1,
                         // linear swap USDT
-                        'public/linear/kline' => 1,
+                        'public/linear/kline' => 3,
                         'public/linear/recent-trading-records' => 1,
                         'public/linear/funding/prev-funding-rate' => 1,
                         'public/linear/mark-price-kline' => 1,
@@ -307,146 +312,146 @@ class bybit extends Exchange {
                 'private' => array(
                     'get' => array(
                         // inverse swap
-                        'v2/private/order/list' => 1,
-                        'v2/private/order' => 1,
-                        'v2/private/stop-order/list' => 1,
+                        'v2/private/order/list' => 5,
+                        'v2/private/order' => 5,
+                        'v2/private/stop-order/list' => 5,
                         'v2/private/stop-order' => 1,
-                        'v2/private/position/list' => 1,
-                        'v2/private/execution/list' => 1,
+                        'v2/private/position/list' => 25,
+                        'v2/private/execution/list' => 25,
                         'v2/private/trade/closed-pnl/list' => 1,
-                        'v2/public/risk-limit/list' => 1,
-                        'v2/public/funding/prev-funding-rate' => 1,
-                        'v2/private/funding/prev-funding' => 1,
-                        'v2/private/funding/predicted-funding' => 1,
-                        'v2/private/account/api-key' => 1,
+                        'v2/public/risk-limit/list' => 1, // TODO check
+                        'v2/public/funding/prev-funding-rate' => 25, // TODO check
+                        'v2/private/funding/prev-funding' => 25,
+                        'v2/private/funding/predicted-funding' => 25,
+                        'v2/private/account/api-key' => 5,
                         'v2/private/account/lcp' => 1,
-                        'v2/private/wallet/balance' => 1,
-                        'v2/private/wallet/fund/records' => 1,
-                        'v2/private/wallet/withdraw/list' => 1,
+                        'v2/private/wallet/balance' => 25, // 120 per minute = 2 per second => cost = 50 / 2 = 25
+                        'v2/private/wallet/fund/records' => 25,
+                        'v2/private/wallet/withdraw/list' => 25,
                         'v2/private/exchange-order/list' => 1,
                         // linear swap USDT
-                        'private/linear/order/list' => 1,
-                        'private/linear/order/search' => 1,
-                        'private/linear/stop-order/list' => 1,
-                        'private/linear/stop-order/search' => 1,
-                        'private/linear/position/list' => 1,
-                        'private/linear/trade/execution/list' => 1,
-                        'private/linear/trade/closed-pnl/list' => 1,
+                        'private/linear/order/list' => 5, // 600 per minute = 10 per second => cost = 50 / 10 =  5
+                        'private/linear/order/search' => 5,
+                        'private/linear/stop-order/list' => 5,
+                        'private/linear/stop-order/search' => 5,
+                        'private/linear/position/list' => 25,
+                        'private/linear/trade/execution/list' => 25,
+                        'private/linear/trade/closed-pnl/list' => 25,
                         'public/linear/risk-limit' => 1,
-                        'private/linear/funding/predicted-funding' => 1,
-                        'private/linear/funding/prev-funding' => 1,
+                        'private/linear/funding/predicted-funding' => 25,
+                        'private/linear/funding/prev-funding' => 25,
                         // inverse futures
-                        'futures/private/order/list' => 1,
-                        'futures/private/order' => 1,
-                        'futures/private/stop-order/list' => 1,
-                        'futures/private/stop-order' => 1,
-                        'futures/private/position/list' => 1,
-                        'futures/private/execution/list' => 1,
+                        'futures/private/order/list' => 5,
+                        'futures/private/order' => 5,
+                        'futures/private/stop-order/list' => 5,
+                        'futures/private/stop-order' => 5,
+                        'futures/private/position/list' => 25,
+                        'futures/private/execution/list' => 25,
                         'futures/private/trade/closed-pnl/list' => 1,
                         // spot
-                        'spot/v1/account' => 1,
-                        'spot/v1/order' => 1,
-                        'spot/v1/open-orders' => 1,
-                        'spot/v1/history-orders' => 1,
-                        'spot/v1/myTrades' => 1,
+                        'spot/v1/account' => 2.5,
+                        'spot/v1/order' => 2.5,
+                        'spot/v1/open-orders' => 2.5,
+                        'spot/v1/history-orders' => 2.5,
+                        'spot/v1/myTrades' => 2.5,
                         // account
-                        'asset/v1/private/transfer/list' => 1,
-                        'asset/v1/private/sub-member/transfer/list' => 1,
-                        'asset/v1/private/sub-member/member-ids' => 1,
+                        'asset/v1/private/transfer/list' => 50, // 60 per minute = 1 per second => cost = 50 / 1 = 50
+                        'asset/v1/private/sub-member/transfer/list' => 50,
+                        'asset/v1/private/sub-member/member-ids' => 50,
                     ),
                     'post' => array(
                         // inverse swap
-                        'v2/private/order/create' => 1,
-                        'v2/private/order/cancel' => 1,
-                        'v2/private/order/cancelAll' => 1,
-                        'v2/private/order/replace' => 1,
-                        'v2/private/stop-order/create' => 1,
-                        'v2/private/stop-order/cancel' => 1,
-                        'v2/private/stop-order/cancelAll' => 1,
-                        'v2/private/stop-order/replace' => 1,
-                        'v2/private/position/change-position-margin' => 1,
-                        'v2/private/position/trading-stop' => 1,
-                        'v2/private/position/leverage/save' => 1,
-                        'v2/private/tpsl/switch-mode' => 1,
-                        'v2/private/position/switch-isolated' => 1,
-                        'v2/private/position/risk-limit' => 1,
-                        'v2/private/position/switch-mode' => 1,
+                        'v2/private/order/create' => 30,
+                        'v2/private/order/cancel' => 30,
+                        'v2/private/order/cancelAll' => 300, // 100 per minute . 'consumes 10 requests'
+                        'v2/private/order/replace' => 30,
+                        'v2/private/stop-order/create' => 30,
+                        'v2/private/stop-order/cancel' => 30,
+                        'v2/private/stop-order/cancelAll' => 300,
+                        'v2/private/stop-order/replace' => 30,
+                        'v2/private/position/change-position-margin' => 40,
+                        'v2/private/position/trading-stop' => 40,
+                        'v2/private/position/leverage/save' => 40,
+                        'v2/private/tpsl/switch-mode' => 40,
+                        'v2/private/position/switch-isolated' => 2.5,
+                        'v2/private/position/risk-limit' => 2.5,
+                        'v2/private/position/switch-mode' => 2.5,
                         // linear swap USDT
-                        'private/linear/order/create' => 1,
-                        'private/linear/order/cancel' => 1,
-                        'private/linear/order/cancel-all' => 1,
-                        'private/linear/order/replace' => 1,
-                        'private/linear/stop-order/create' => 1,
-                        'private/linear/stop-order/cancel' => 1,
-                        'private/linear/stop-order/cancel-all' => 1,
-                        'private/linear/stop-order/replace' => 1,
-                        'private/linear/position/set-auto-add-margin' => 1,
-                        'private/linear/position/switch-isolated' => 1,
-                        'private/linear/position/switch-mode' => 1,
-                        'private/linear/tpsl/switch-mode' => 1,
-                        'private/linear/position/add-margin' => 1,
-                        'private/linear/position/set-leverage' => 1,
-                        'private/linear/position/trading-stop' => 1,
-                        'private/linear/position/set-risk' => 1,
+                        'private/linear/order/create' => 30, // 100 per minute = 1.666 per second => cost = 50 / 1.6666 = 30
+                        'private/linear/order/cancel' => 30,
+                        'private/linear/order/cancel-all' => 300, // 100 per minute . 'consumes 10 requests'
+                        'private/linear/order/replace' => 30,
+                        'private/linear/stop-order/create' => 30,
+                        'private/linear/stop-order/cancel' => 30,
+                        'private/linear/stop-order/cancel-all' => 300,
+                        'private/linear/stop-order/replace' => 30,
+                        'private/linear/position/set-auto-add-margin' => 40,
+                        'private/linear/position/switch-isolated' => 40,
+                        'private/linear/position/switch-mode' => 40,
+                        'private/linear/tpsl/switch-mode' => 2.5,
+                        'private/linear/position/add-margin' => 40,
+                        'private/linear/position/set-leverage' => 40, // 75 per minute = 1.25 per second => cost = 50 / 1.25 = 40
+                        'private/linear/position/trading-stop' => 40,
+                        'private/linear/position/set-risk' => 2.5,
                         // inverse futures
-                        'futures/private/order/create' => 1,
-                        'futures/private/order/cancel' => 1,
-                        'futures/private/order/cancelAll' => 1,
-                        'futures/private/order/replace' => 1,
-                        'futures/private/stop-order/create' => 1,
-                        'futures/private/stop-order/cancel' => 1,
-                        'futures/private/stop-order/cancelAll' => 1,
-                        'futures/private/stop-order/replace' => 1,
-                        'futures/private/position/change-position-margin' => 1,
-                        'futures/private/position/trading-stop' => 1,
-                        'futures/private/position/leverage/save' => 1,
-                        'futures/private/position/switch-mode' => 1,
-                        'futures/private/tpsl/switch-mode' => 1,
-                        'futures/private/position/switch-isolated' => 1,
-                        'futures/private/position/risk-limit' => 1,
+                        'futures/private/order/create' => 30,
+                        'futures/private/order/cancel' => 30,
+                        'futures/private/order/cancelAll' => 30,
+                        'futures/private/order/replace' => 30,
+                        'futures/private/stop-order/create' => 30,
+                        'futures/private/stop-order/cancel' => 30,
+                        'futures/private/stop-order/cancelAll' => 30,
+                        'futures/private/stop-order/replace' => 30,
+                        'futures/private/position/change-position-margin' => 40,
+                        'futures/private/position/trading-stop' => 40,
+                        'futures/private/position/leverage/save' => 40,
+                        'futures/private/position/switch-mode' => 40,
+                        'futures/private/tpsl/switch-mode' => 40,
+                        'futures/private/position/switch-isolated' => 40,
+                        'futures/private/position/risk-limit' => 2.5,
                         // spot
-                        'spot/v1/order' => 1,
+                        'spot/v1/order' => 2.5,
                         // account
-                        'asset/v1/private/transfer' => 1,
-                        'asset/v1/private/sub-member/transfer' => 1,
+                        'asset/v1/private/transfer' => 150, // 20 per minute = 0.333 per second => cost = 50 / 0.3333 = 150
+                        'asset/v1/private/sub-member/transfer' => 150,
                         // USDC endpoints are testnet only as of 2022 Jan 11 ----------
                         // option USDC (testnet only)
-                        'option/usdc/openapi/private/v1/place-order' => 1,
-                        'option/usdc/openapi/private/v1/batch-place-order' => 1,
-                        'option/usdc/openapi/private/v1/replace-order' => 1,
-                        'option/usdc/openapi/private/v1/batch-replace-orders' => 1,
-                        'option/usdc/openapi/private/v1/cancel-order' => 1,
-                        'option/usdc/openapi/private/v1/batch-cancel-orders' => 1,
-                        'option/usdc/openapi/private/v1/cancel-all' => 1,
-                        'option/usdc/openapi/private/v1/query-active-orders' => 1,
-                        'option/usdc/openapi/private/v1/query-order-history' => 1,
-                        'option/usdc/openapi/private/v1/execution-list' => 1,
-                        'option/usdc/openapi/private/v1/query-transaction-log' => 1,
-                        'option/usdc/openapi/private/v1/query-wallet-balance' => 1,
-                        'option/usdc/openapi/private/v1/query-asset-info' => 1,
-                        'option/usdc/openapi/private/v1/query-margin-info' => 1,
-                        'option/usdc/openapi/private/v1/query-position' => 1,
-                        'option/usdc/openapi/private/v1/query-delivery-list' => 1,
-                        'option/usdc/openapi/private/v1/query-position-exp-date' => 1,
-                        'option/usdc/openapi/private/v1/mmp-modify' => 1,
-                        'option/usdc/openapi/private/v1/mmp-reset' => 1,
+                        'option/usdc/openapi/private/v1/place-order' => 2.5,
+                        'option/usdc/openapi/private/v1/batch-place-order' => 2.5,
+                        'option/usdc/openapi/private/v1/replace-order' => 2.5,
+                        'option/usdc/openapi/private/v1/batch-replace-orders' => 2.5,
+                        'option/usdc/openapi/private/v1/cancel-order' => 2.5,
+                        'option/usdc/openapi/private/v1/batch-cancel-orders' => 2.5,
+                        'option/usdc/openapi/private/v1/cancel-all' => 2.5,
+                        'option/usdc/openapi/private/v1/query-active-orders' => 2.5,
+                        'option/usdc/openapi/private/v1/query-order-history' => 2.5,
+                        'option/usdc/openapi/private/v1/execution-list' => 2.5,
+                        'option/usdc/openapi/private/v1/query-transaction-log' => 2.5,
+                        'option/usdc/openapi/private/v1/query-wallet-balance' => 2.5,
+                        'option/usdc/openapi/private/v1/query-asset-info' => 2.5,
+                        'option/usdc/openapi/private/v1/query-margin-info' => 2.5,
+                        'option/usdc/openapi/private/v1/query-position' => 2.5,
+                        'option/usdc/openapi/private/v1/query-delivery-list' => 2.5,
+                        'option/usdc/openapi/private/v1/query-position-exp-date' => 2.5,
+                        'option/usdc/openapi/private/v1/mmp-modify' => 2.5,
+                        'option/usdc/openapi/private/v1/mmp-reset' => 2.5,
                         // perpetual swap USDC (testnet only)
-                        'perpetual/usdc/openapi/private/v1/place-order' => 1,
-                        'perpetual/usdc/openapi/private/v1/replace-order' => 1,
-                        'perpetual/usdc/openapi/private/v1/cancel-order' => 1,
-                        'perpetual/usdc/openapi/private/v1/cancel-all' => 1,
-                        'perpetual/usdc/openapi/private/v1/position/leverage/save' => 1,
-                        'option/usdc/openapi/private/v1/session-settlement' => 1,
-                        'perpetual/usdc/openapi/public/v1/risk-limit/list' => 1,
-                        'perpetual/usdc/openapi/private/v1/position/set-risk-limit' => 1,
+                        'perpetual/usdc/openapi/private/v1/place-order' => 2.5,
+                        'perpetual/usdc/openapi/private/v1/replace-order' => 2.5,
+                        'perpetual/usdc/openapi/private/v1/cancel-order' => 2.5,
+                        'perpetual/usdc/openapi/private/v1/cancel-all' => 2.5,
+                        'perpetual/usdc/openapi/private/v1/position/leverage/save' => 2.5,
+                        'option/usdc/openapi/private/v1/session-settlement' => 2.5,
+                        'perpetual/usdc/openapi/public/v1/risk-limit/list' => 2.5,
+                        'perpetual/usdc/openapi/private/v1/position/set-risk-limit' => 2.5,
                     ),
                     'delete' => array(
                         // spot
-                        'spot/v1/order' => 1,
-                        'spot/v1/order/fast' => 1,
-                        'spot/order/batch-cancel' => 1,
-                        'spot/order/batch-fast-cancel' => 1,
-                        'spot/order/batch-cancel-by-ids' => 1,
+                        'spot/v1/order' => 2.5,
+                        'spot/v1/order/fast' => 2.5,
+                        'spot/order/batch-cancel' => 2.5,
+                        'spot/order/batch-fast-cancel' => 2.5,
+                        'spot/order/batch-cancel-by-ids' => 2.5,
                     ),
                     // outdated endpoints -------------------------------------
                     'linear' => array(
@@ -1010,7 +1015,7 @@ class bybit extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = yield $this->v2PublicGetTickers (array_merge($request, $params));
+        $response = yield $this->publicGetV2PublicTickers (array_merge($request, $params));
         //
         //     {
         //         ret_code => 0,
@@ -1058,7 +1063,7 @@ class bybit extends Exchange {
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         yield $this->load_markets();
-        $response = yield $this->v2PublicGetTickers ($params);
+        $response = yield $this->publicGetV2PublicTickers ($params);
         //
         //     {
         //         ret_code => 0,
@@ -1168,15 +1173,15 @@ class bybit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // max 200, default 200
         }
-        $method = 'v2PublicGetKlineList';
+        $method = 'publicGetV2PublicKlineList';
         if ($price === 'mark') {
-            $method = 'v2PublicGetMarkPriceKline';
+            $method = 'publicGetV2PublicMarkPriceKline';
         } else if ($price === 'index') {
-            $method = 'v2PublicGetIndexPriceKline';
+            $method = 'publicGetV2PublicIndexPriceKline';
         } else if ($price === 'premiumIndex') {
-            $method = 'v2PublicGetPremiumIndexKline';
+            $method = 'publicGetV2PublicPremiumIndexKline';
         } else if ($market['linear']) {
-            $method = 'publicLinearGetKline';
+            $method = 'publicGetPublicLinearKline';
         }
         $response = yield $this->$method (array_merge($request, $params));
         //
@@ -1237,26 +1242,25 @@ class bybit extends Exchange {
             'symbol' => $market['id'],
         );
         $method = $market['linear'] ? 'publicLinearGetFundingPrevFundingRate' : 'v2PublicGetFundingPrevFundingRate';
+        // TODO $method = $market['linear'] ? 'publicGetPublicLinearFundingPrevFundingRate' : 'publicGetV2PublicFundingRate ???? throws ExchangeError';
         $response = yield $this->$method (array_merge($request, $params));
         //
-        // {
-        //     "ret_code" => 0,
-        //     "ret_msg" => "ok",
-        //     "ext_code" => "",
-        //     "result" => array(
-        //         "symbol" => "BTCUSD",
-        //         "funding_rate" => "0.00010000",
-        //         "funding_rate_timestamp" => 1577433600
-        //         // some pairs like BTC/USDT return an iso8601 string in funding_rate_timestamp
-        //         // "funding_rate_timestamp":"2022-02-05T08:00:00.000Z"
-        //
-        //     ),
-        //     "ext_info" => null,
-        //     "time_now" => "1577445586.446797",
-        //     "rate_limit_status" => 119,
-        //     "rate_limit_reset_ms" => 1577445586454,
-        //     "rate_limit" => 120
-        // }
+        //    {
+        //        "ret_code" => 0,
+        //        "ret_msg" => "ok",
+        //        "ext_code" => "",
+        //        "result" => array(
+        //            "symbol" => "BTCUSD",
+        //            "funding_rate" => "0.00010000",
+        //            "funding_rate_timestamp" => 1577433600  // v2PublicGetFundingPrevFundingRate
+        // //         "funding_rate_timestamp" => "2022-02-05T08:00:00.000Z"  // publicLinearGetFundingPrevFundingRate
+        //        ),
+        //        "ext_info" => null,
+        //        "time_now" => "1577445586.446797",
+        //        "rate_limit_status" => 119,
+        //        "rate_limit_reset_ms" => 1577445586454,
+        //        "rate_limit" => 120,
+        //    }
         //
         $result = $this->safe_value($response, 'result');
         $fundingRate = $this->safe_number($result, 'funding_rate');
@@ -1264,7 +1268,6 @@ class bybit extends Exchange {
         if ($fundingTimestamp === null) {
             $fundingTimestamp = $this->parse8601($this->safe_string($result, 'funding_rate_timestamp'));
         }
-        $nextFundingTimestamp = $this->sum($fundingTimestamp, 8 * 3600000);
         $currentTime = $this->milliseconds();
         return array(
             'info' => $result,
@@ -1279,8 +1282,8 @@ class bybit extends Exchange {
             'fundingTimestamp' => $fundingTimestamp,
             'fundingDatetime' => $this->iso8601($fundingTimestamp),
             'nextFundingRate' => null,
-            'nextFundingTimestamp' => $nextFundingTimestamp,
-            'nextFundingDatetime' => $this->iso8601($nextFundingTimestamp),
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
@@ -1407,7 +1410,7 @@ class bybit extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit; // default 500, max 1000
         }
-        $method = $market['linear'] ? 'publicLinearGetRecentTradingRecords' : 'v2PublicGetTradingRecords';
+        $method = $market['linear'] ? 'publicGetPublicLinearRecentTradingRecords' : 'publicGetV2PublicTradingRecords';
         $response = yield $this->$method (array_merge($request, $params));
         //
         //     {
@@ -1462,7 +1465,7 @@ class bybit extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = yield $this->v2PublicGetOrderBookL2 (array_merge($request, $params));
+        $response = yield $this->publicGetV2PublicOrderBookL2 (array_merge($request, $params));
         //
         //     {
         //         ret_code => 0,
@@ -1689,12 +1692,10 @@ class bybit extends Exchange {
         $remaining = $this->safe_string($order, 'leaves_qty');
         $marketTypes = $this->safe_value($this->options, 'marketTypes', array());
         $marketType = $this->safe_string($marketTypes, $symbol);
-        if ($market !== null) {
-            if ($marketType === 'linear') {
-                $feeCurrency = $market['quote'];
-            } else {
-                $feeCurrency = $market['base'];
-            }
+        if ($marketType === 'linear') {
+            $feeCurrency = $market['quote'];
+        } else {
+            $feeCurrency = $market['base'];
         }
         $lastTradeTimestamp = $this->safe_timestamp($order, 'last_exec_time');
         if ($lastTradeTimestamp === 0) {
@@ -3101,5 +3102,148 @@ class bybit extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }
+    }
+
+    public function fetch_market_leverage_tiers($symbol, $params = array ()) {
+        yield $this->load_markets();
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            if ($market['spot']) {
+                throw new BadRequest($this->id . '.fetchLeverageTiers $symbol supports contract markets only');
+            }
+            $request['symbol'] = $market['id'];
+        }
+        list($type, $query) = $this->handle_market_type_and_params('fetchMarketLeverageTiers', $market, $params);
+        $method = $this->get_supported_mapping($type, array(
+            'linear' => 'publicLinearGetRiskLimit', // Symbol required
+            'swap' => 'publicLinearGetRiskLimit',
+            'inverse' => 'v2PublicGetRiskLimitList', // Symbol not required, could implement fetchLeverageTiers
+            'future' => 'v2PublicGetRiskLimitList',
+        ));
+        $response = yield $this->$method (array_merge($request, $query));
+        //
+        //  publicLinearGetRiskLimit
+        //    {
+        //        ret_code => '0',
+        //        ret_msg => 'OK',
+        //        ext_code => '',
+        //        ext_info => '',
+        //        $result => array(
+        //            array(
+        //                id => '11',
+        //                $symbol => 'ETHUSDT',
+        //                limit => '800000',
+        //                maintain_margin => '0.01',
+        //                starting_margin => '0.02',
+        //                section => array(
+        //                    '1',  '2',  '3',
+        //                    '5',  '10', '15',
+        //                    '25'
+        //                ),
+        //                is_lowest_risk => '1',
+        //                created_at => '2022-02-04 23:30:33.555252',
+        //                updated_at => '2022-02-04 23:30:33.555254',
+        //                max_leverage => '50'
+        //            ),
+        //            ...
+        //        )
+        //    }
+        //
+        //  v2PublicGetRiskLimitList
+        //    {
+        //        ret_code => '0',
+        //        ret_msg => 'OK',
+        //        ext_code => '',
+        //        ext_info => '',
+        //        $result => array(
+        //            array(
+        //                id => '180',
+        //                is_lowest_risk => '0',
+        //                section => array(
+        //                  '1', '2', '3',
+        //                  '4', '5', '7',
+        //                  '8', '9'
+        //                ),
+        //                $symbol => 'ETHUSDH22',
+        //                limit => '30000',
+        //                max_leverage => '9',
+        //                starting_margin => '11',
+        //                maintain_margin => '5.5',
+        //                coin => 'ETH',
+        //                created_at => '2021-04-22T15:00:00Z',
+        //                updated_at => '2021-04-22T15:00:00Z'
+        //            ),
+        //        ),
+        //        time_now => '1644017569.683191'
+        //    }
+        //
+        $result = $this->safe_value($response, 'result');
+        return $this->parse_market_leverage_tiers($result, $market);
+    }
+
+    public function parse_market_leverage_tiers($info, $market) {
+        //
+        //    Linear
+        //    array(
+        //        array(
+        //            id => '11',
+        //            symbol => 'ETHUSDT',
+        //            limit => '800000',
+        //            maintain_margin => '0.01',
+        //            starting_margin => '0.02',
+        //            section => array(
+        //                '1',  '2',  '3',
+        //                '5',  '10', '15',
+        //                '25'
+        //            ),
+        //            is_lowest_risk => '1',
+        //            created_at => '2022-02-04 23:30:33.555252',
+        //            updated_at => '2022-02-04 23:30:33.555254',
+        //            max_leverage => '50'
+        //        ),
+        //        ...
+        //    )
+        //
+        //    Inverse
+        //    array(
+        //        {
+        //            id => '180',
+        //            is_lowest_risk => '0',
+        //            section => array(
+        //                '1', '2', '3',
+        //                '4', '5', '7',
+        //                '8', '9'
+        //            ),
+        //            symbol => 'ETHUSDH22',
+        //            limit => '30000',
+        //            max_leverage => '9',
+        //            starting_margin => '11',
+        //            maintain_margin => '5.5',
+        //            coin => 'ETH',
+        //            created_at => '2021-04-22T15:00:00Z',
+        //            updated_at => '2021-04-22T15:00:00Z'
+        //        }
+        //        ...
+        //    )
+        //
+        $notionalFloor = 0;
+        $tiers = array();
+        for ($i = 0; $i < count($info); $i++) {
+            $item = $info[$i];
+            $notionalCap = $this->safe_number($item, 'limit');
+            $tiers[] = array(
+                'tier' => $this->sum($i, 1),
+                'currency' => $market['base'],
+                'notionalFloor' => $notionalFloor,
+                'notionalCap' => $notionalCap,
+                'maintenanceMarginRate' => $this->safe_number($item, 'maintain_margin'),
+                'maxLeverage' => $this->safe_number($item, 'max_leverage'),
+                'info' => $item,
+            );
+            $notionalFloor = $notionalCap;
+        }
+        return $tiers;
     }
 }

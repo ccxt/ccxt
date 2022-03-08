@@ -251,11 +251,13 @@ async function main () {
                 let start = exchange.milliseconds ()
                 let end = exchange.milliseconds ()
 
+                let i = 0;
+
                 while (true) {
                     try {
                         const result = await exchange[methodName] (... args)
                         end = exchange.milliseconds ()
-                        console.log (end - start, 'ms')
+                        console.log (exchange.iso8601 (end), 'iteration', i++, 'passed in', end - start, 'ms\n')
                         start = end
                         printHumanReadable (exchange, result)
                     } catch (e) {
@@ -278,8 +280,9 @@ async function main () {
                         console.log (firstKey, httpsAgent.freeSockets[firstKey].length)
                     }
 
-                    if (!poll)
-                        break;
+                    if (!poll){
+                        break
+                    }
                 }
 
             } else if (exchange[methodName] === undefined) {

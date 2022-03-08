@@ -320,10 +320,7 @@ class bit2c extends Exchange {
         $timestamp = $this->safe_integer($order, 'created');
         $price = $this->safe_string($order, 'price');
         $amount = $this->safe_string($order, 'amount');
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market(null, $market);
         $side = $this->safe_value($order, 'type');
         if ($side === 0) {
             $side = 'buy';
@@ -339,7 +336,7 @@ class bit2c extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'status' => $status,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => null,
             'timeInForce' => null,
             'postOnly' => null,
@@ -428,16 +425,13 @@ class bit2c extends Exchange {
                 }
             }
         }
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market(null, $market);
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'order' => $orderId,
             'type' => null,
             'side' => $side,

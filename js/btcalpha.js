@@ -54,6 +54,8 @@ module.exports = class btcalpha extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': undefined,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -251,13 +253,8 @@ module.exports = class btcalpha extends Exchange {
         //          "my_side": "buy"
         //      }
         //
-        let symbol = undefined;
-        if (market === undefined) {
-            market = this.safeValue (this.markets_by_id, trade['pair']);
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (trade, 'pair');
+        market = this.safeMarket (marketId, market, '_');
         const timestamp = this.safeTimestamp (trade, 'timestamp');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
@@ -268,7 +265,7 @@ module.exports = class btcalpha extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': id,
             'type': 'limit',
             'side': side,

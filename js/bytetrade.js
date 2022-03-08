@@ -64,6 +64,8 @@ module.exports = class bytetrade extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
@@ -610,14 +612,8 @@ module.exports = class bytetrade extends Exchange {
         const side = this.safeString (trade, 'side');
         const datetime = this.iso8601 (timestamp); // this.safeString (trade, 'datetime');
         const order = this.safeString (trade, 'order');
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (trade, 'symbol');
-            market = this.safeValue (this.markets_by_id, marketId);
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
         const feeData = this.safeValue (trade, 'fee');
         const feeCostString = this.safeString (feeData, 'cost');
         const feeRateString = this.safeString (feeData, 'rate');
@@ -632,7 +628,7 @@ module.exports = class bytetrade extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': datetime,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'id': id,
             'order': order,
             'type': type,
@@ -659,6 +655,57 @@ module.exports = class bytetrade extends Exchange {
         }
         const response = await this.marketGetTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetSymbols (params);
+        //
+        //     [
+        //         {
+        //             "symbol": "122406567911",
+        //             "name": "BTC/USDT",
+        //             "base": "32",
+        //             "quote": "57",
+        //             "marketStatus": 0,
+        //             "baseName": "BTC",
+        //             "quoteName": "USDT",
+        //             "active": true,
+        //             "maker": "0.0008",
+        //             "taker": "0.0008",
+        //             "precision": {
+        //                 "amount": 6,
+        //                 "price": 2,
+        //                 "minPrice":1
+        //             },
+        //             "limits": {
+        //                 "amount": {
+        //                     "min": "0.000001",
+        //                     "max": "-1"
+        //                 },
+        //                 "price": {
+        //                     "min": "0.01",
+        //                     "max": "-1"
+        //                 }
+        //             }
+        //        }
+        //        ...
+        //    ]
+        //
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const symbolInfo = response[i];
+            const marketId = this.safeString (symbolInfo, 'name');
+            const symbol = this.safeSymbol (marketId);
+            result[symbol] = {
+                'info': symbolInfo,
+                'symbol': symbol,
+                'maker': this.safeNumber (symbolInfo, 'maker'),
+                'taker': this.safeNumber (symbolInfo, 'taker'),
+                'percentage': true,
+            };
+        }
+        return result;
     }
 
     parseOrder (order, market = undefined) {

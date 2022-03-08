@@ -1290,9 +1290,6 @@ module.exports = class okcoin extends Exchange {
         const priceString = this.safeString (trade, 'price');
         let amountString = this.safeString2 (trade, 'size', 'qty');
         amountString = this.safeString (trade, 'order_qty', amountString);
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         let takerOrMaker = this.safeString2 (trade, 'exec_type', 'liquidity');
         if (takerOrMaker === 'M') {
             takerOrMaker = 'maker';
@@ -1300,21 +1297,21 @@ module.exports = class okcoin extends Exchange {
             takerOrMaker = 'taker';
         }
         const side = this.safeString (trade, 'side');
-        const feeCost = this.safeNumber (trade, 'fee');
+        const feeCostString = this.safeString (trade, 'fee');
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             const feeCurrency = (side === 'buy') ? base : quote;
             fee = {
                 // fee is either a positive number (invitation rebate)
                 // or a negative number (transaction fee deduction)
                 // therefore we need to invert the fee
                 // more about it https://github.com/ccxt/ccxt/issues/5909
-                'cost': -feeCost,
+                'cost': Precise.stringNeg (feeCostString),
                 'currency': feeCurrency,
             };
         }
         const orderId = this.safeString (trade, 'order_id');
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1324,11 +1321,11 @@ module.exports = class okcoin extends Exchange {
             'type': undefined,
             'takerOrMaker': takerOrMaker,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -2737,25 +2734,25 @@ module.exports = class okcoin extends Exchange {
         const symbol = market['symbol'];
         const quoteId = market['quoteId'];
         let side = undefined;
-        let amount = undefined;
-        let cost = undefined;
+        let amountString = undefined;
+        let costString = undefined;
         const receivedCurrencyId = this.safeString (userTrade, 'currency');
         let feeCurrencyId = undefined;
         if (receivedCurrencyId === quoteId) {
             side = this.safeString (otherTrade, 'side');
-            amount = this.safeNumber (otherTrade, 'size');
-            cost = this.safeNumber (userTrade, 'size');
+            amountString = this.safeString (otherTrade, 'size');
+            costString = this.safeString (userTrade, 'size');
             feeCurrencyId = this.safeString (otherTrade, 'currency');
         } else {
             side = this.safeString (userTrade, 'side');
-            amount = this.safeNumber (userTrade, 'size');
-            cost = this.safeNumber (otherTrade, 'size');
+            amountString = this.safeString (userTrade, 'size');
+            costString = this.safeString (otherTrade, 'size');
             feeCurrencyId = this.safeString (userTrade, 'currency');
         }
         const id = this.safeString (userTrade, 'trade_id');
-        const price = this.safeNumber (userTrade, 'price');
-        const feeCostFirst = this.safeNumber (otherTrade, 'fee');
-        const feeCostSecond = this.safeNumber (userTrade, 'fee');
+        const priceString = this.safeString (userTrade, 'price');
+        const feeCostFirstString = this.safeString (otherTrade, 'fee');
+        const feeCostSecondString = this.safeString (userTrade, 'fee');
         const feeCurrencyCodeFirst = this.safeCurrencyCode (this.safeString (otherTrade, 'currency'));
         const feeCurrencyCodeSecond = this.safeCurrencyCode (this.safeString (userTrade, 'currency'));
         let fee = undefined;
@@ -2764,32 +2761,32 @@ module.exports = class okcoin extends Exchange {
         // or a negative number (transaction fee deduction)
         // therefore we need to invert the fee
         // more about it https://github.com/ccxt/ccxt/issues/5909
-        if ((feeCostFirst !== undefined) && (feeCostFirst !== 0)) {
-            if ((feeCostSecond !== undefined) && (feeCostSecond !== 0)) {
+        if ((feeCostFirstString !== undefined) && !Precise.stringEquals (feeCostFirstString, '0')) {
+            if ((feeCostSecondString !== undefined) && !Precise.stringEquals (feeCostSecondString, '0')) {
                 fees = [
                     {
-                        'cost': -feeCostFirst,
+                        'cost': Precise.stringNeg (feeCostFirstString),
                         'currency': feeCurrencyCodeFirst,
                     },
                     {
-                        'cost': -feeCostSecond,
+                        'cost': Precise.stringNeg (feeCostSecondString),
                         'currency': feeCurrencyCodeSecond,
                     },
                 ];
             } else {
                 fee = {
-                    'cost': -feeCostFirst,
+                    'cost': Precise.stringNeg (feeCostFirstString),
                     'currency': feeCurrencyCodeFirst,
                 };
             }
-        } else if ((feeCostSecond !== undefined) && (feeCostSecond !== 0)) {
+        } else if ((feeCostSecondString !== undefined) && !Precise.stringEquals (feeCostSecondString, '0')) {
             fee = {
-                'cost': -feeCostSecond,
+                'cost': Precise.stringNeg (feeCostSecondString),
                 'currency': feeCurrencyCodeSecond,
             };
         } else {
             fee = {
-                'cost': 0,
+                'cost': '0',
                 'currency': this.safeCurrencyCode (feeCurrencyId),
             };
         }
@@ -2834,7 +2831,7 @@ module.exports = class okcoin extends Exchange {
             takerOrMaker = 'taker';
         }
         const orderId = this.safeString (userTrade, 'order_id');
-        const result = {
+        return this.safeTrade ({
             'info': pair,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -2844,15 +2841,12 @@ module.exports = class okcoin extends Exchange {
             'type': undefined,
             'takerOrMaker': takerOrMaker,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        };
-        if (fees !== undefined) {
-            result['fees'] = fees;
-        }
-        return result;
+            'fees': fees,
+        }, market);
     }
 
     parseMyTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2869,7 +2863,7 @@ module.exports = class okcoin extends Exchange {
                 result.push (trade);
             }
         }
-        market = this.safeMarkt (undefined, market);
+        market = this.safeMarket (undefined, market);
         return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit);
     }
 

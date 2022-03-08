@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.73.67'
+__version__ = '1.75.16'
 
 # -----------------------------------------------------------------------------
 
@@ -18,6 +18,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import RateLimitExceeded
 
 # -----------------------------------------------------------------------------
@@ -299,6 +300,7 @@ class Exchange(object):
         'fetchLedger': None,
         'fetchLedgerEntry': None,
         'fetchLeverageTiers': None,
+        'fetchMarketLeverageTiers': None,
         'fetchMarkets': True,
         'fetchMarkOHLCV': None,
         'fetchMyTrades': None,
@@ -326,7 +328,6 @@ class Exchange(object):
         'fetchTransfers': None,
         'fetchWithdrawal': None,
         'fetchWithdrawals': None,
-        'loadLeverageBrackets': None,
         'loadMarkets': True,
         'reduceMargin': None,
         'setLeverage': None,
@@ -991,9 +992,6 @@ class Exchange(object):
     def extract_params(string):
         return re.findall(r'{([\w-]+)}', string)
 
-    def implode_hostname(self, url):
-        return Exchange.implode_params(url, {'hostname': self.hostname})
-
     @staticmethod
     def implode_params(string, params):
         if isinstance(params, dict):
@@ -1001,6 +999,15 @@ class Exchange(object):
                 if not isinstance(params[key], list):
                     string = string.replace('{' + key + '}', str(params[key]))
         return string
+
+    def implode_hostname(self, url):
+        return Exchange.implode_params(url, {'hostname': self.hostname})
+
+    def resolve_path(self, path, params):
+        return [
+            self.implode_params(path, params),
+            self.omit(params, self.extract_params(path))
+        ]
 
     @staticmethod
     def urlencode(params={}, doseq=False):
@@ -2773,3 +2780,27 @@ class Exchange(object):
         after = self.milliseconds()
         self.options['timeDifference'] = after - server_time
         return self.options['timeDifference']
+
+    def parse_leverage_tiers(self, response, symbols, market_id_key):
+        tiers = {}
+        for item in response:
+            id = self.safe_string(item, market_id_key)
+            market = self.safe_market(id)
+            symbol = market['symbol']
+            symbols_length = 0
+            if (symbols is not None):
+                symbols_length = symbols.length
+            contract = self.safe_value(market, 'contract', False)
+            if (contract and (symbols_length == 0 or symbols.includes(symbol))):
+                tiers[symbol] = self.parse_market_leverage_tiers(item, market)
+        return tiers
+
+    def fetch_market_leverage_tiers(self, symbol, params={}):
+        if self.has['fetchLeverageTiers']:
+            market = self.market(symbol)
+            if (not market['contract']):
+                raise BadRequest(self.id + ' fetch_leverage_tiers() supports contract markets only')
+            tiers = self.fetch_leverage_tiers([symbol])
+            return self.safe_value(tiers, symbol)
+        else:
+            raise NotSupported(self.id + 'fetch_market_leverage_tiers() is not supported yet')

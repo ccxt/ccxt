@@ -576,7 +576,8 @@ class wazirx(Exchange):
         return self.parse_order(response)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        if not (type == 'limit') or (type == 'stop_limit'):
+        type = type.lower()
+        if (type != 'limit') and (type != 'stop_limit'):
             raise ExchangeError(self.id + ' createOrder() supports limit and stop_limit orders only')
         if price is None:
             raise ExchangeError(self.id + ' createOrder() requires a price argument')

@@ -29,7 +29,7 @@ class poloniex(Exchange):
             'id': 'poloniex',
             'name': 'Poloniex',
             'countries': ['US'],
-            'rateLimit': 1000,  # up to 6 calls per second
+            'rateLimit': 166.667,  # 6 calls per second,  1000ms / 6 = 166.667ms between requests
             'certified': False,
             'pro': True,
             'has': {
@@ -62,6 +62,7 @@ class poloniex(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
@@ -88,49 +89,49 @@ class poloniex(Exchange):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'return24hVolume',
-                        'returnChartData',
-                        'returnCurrencies',
-                        'returnLoanOrders',
-                        'returnOrderBook',
-                        'returnTicker',
-                        'returnTradeHistory',
-                    ],
+                    'get': {
+                        'return24hVolume': 1,
+                        'returnChartData': 1,
+                        'returnCurrencies': 1,
+                        'returnLoanOrders': 1,
+                        'returnOrderBook': 1,
+                        'returnTicker': 1,
+                        'returnTradeHistory': 1,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'buy',
-                        'cancelLoanOffer',
-                        'cancelOrder',
-                        'cancelAllOrders',
-                        'closeMarginPosition',
-                        'createLoanOffer',
-                        'generateNewAddress',
-                        'getMarginPosition',
-                        'marginBuy',
-                        'marginSell',
-                        'moveOrder',
-                        'returnActiveLoans',
-                        'returnAvailableAccountBalances',
-                        'returnBalances',
-                        'returnCompleteBalances',
-                        'returnDepositAddresses',
-                        'returnDepositsWithdrawals',
-                        'returnFeeInfo',
-                        'returnLendingHistory',
-                        'returnMarginAccountSummary',
-                        'returnOpenLoanOffers',
-                        'returnOpenOrders',
-                        'returnOrderTrades',
-                        'returnOrderStatus',
-                        'returnTradableBalances',
-                        'returnTradeHistory',
-                        'sell',
-                        'toggleAutoRenew',
-                        'transferBalance',
-                        'withdraw',
-                    ],
+                    'post': {
+                        'buy': 1,
+                        'cancelLoanOffer': 1,
+                        'cancelOrder': 1,
+                        'cancelAllOrders': 1,
+                        'closeMarginPosition': 1,
+                        'createLoanOffer': 1,
+                        'generateNewAddress': 1,
+                        'getMarginPosition': 1,
+                        'marginBuy': 1,
+                        'marginSell': 1,
+                        'moveOrder': 1,
+                        'returnActiveLoans': 1,
+                        'returnAvailableAccountBalances': 1,
+                        'returnBalances': 1,
+                        'returnCompleteBalances': 1,
+                        'returnDepositAddresses': 1,
+                        'returnDepositsWithdrawals': 1,
+                        'returnFeeInfo': 1,
+                        'returnLendingHistory': 1,
+                        'returnMarginAccountSummary': 1,
+                        'returnOpenLoanOffers': 1,
+                        'returnOpenOrders': 1,
+                        'returnOrderTrades': 1,
+                        'returnOrderStatus': 1,
+                        'returnTradableBalances': 1,
+                        'returnTradeHistory': 1,
+                        'sell': 1,
+                        'toggleAutoRenew': 1,
+                        'transferBalance': 1,
+                        'withdraw': 1,
+                    },
                 },
             },
             'fees': {
@@ -397,7 +398,7 @@ class poloniex(Exchange):
 
     async def fetch_trading_fees(self, params={}):
         await self.load_markets()
-        fees = await self.privatePostReturnFeeInfo(params)
+        response = await self.privatePostReturnFeeInfo(params)
         #
         #     {
         #         makerFee: '0.00100000',
@@ -408,13 +409,18 @@ class poloniex(Exchange):
         #         nextTier: 500000,
         #     }
         #
-        return {
-            'info': fees,
-            'maker': self.safe_number(fees, 'makerFee'),
-            'taker': self.safe_number(fees, 'takerFee'),
-            'withdraw': {},
-            'deposit': {},
-        }
+        result = {}
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': self.safe_number(response, 'makerFee'),
+                'taker': self.safe_number(response, 'takerFee'),
+                'percentage': True,
+                'tierBased': True,
+            }
+        return result
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -602,6 +608,19 @@ class poloniex(Exchange):
 
     def parse_trade(self, trade, market=None):
         #
+        # fetchTrades
+        #
+        #      {
+        #          globalTradeID: "667563407",
+        #          tradeID: "1984256",
+        #          date: "2022-03-01 20:06:06",
+        #          type: "buy",
+        #          rate: "0.13361871",
+        #          amount: "28.40841257",
+        #          total: "3.79589544",
+        #          orderNumber: "159992152911"
+        #      }
+        #
         # fetchMyTrades
         #
         #     {
@@ -640,32 +659,24 @@ class poloniex(Exchange):
         fee = None
         priceString = self.safe_string(trade, 'rate')
         amountString = self.safe_string(trade, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = None
         costString = self.safe_string(trade, 'total')
-        if costString is None:
-            costString = Precise.string_mul(priceString, amountString)
-            cost = self.parse_number(costString)
-        else:
-            cost = self.parse_number(costString)
         feeDisplay = self.safe_string(trade, 'feeDisplay')
         if feeDisplay is not None:
             parts = feeDisplay.split(' ')
-            feeCost = self.safe_number(parts, 0)
-            if feeCost is not None:
+            feeCostString = self.safe_string(parts, 0)
+            if feeCostString is not None:
                 feeCurrencyId = self.safe_string(parts, 1)
                 feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
-                feeRate = self.safe_string(parts, 2)
-                if feeRate is not None:
-                    feeRate = feeRate.replace('(', '')
-                    feeRateParts = feeRate.split('%')
-                    feeRate = self.safe_string(feeRateParts, 0)
-                    feeRate = float(feeRate) / 100
+                feeRateString = self.safe_string(parts, 2)
+                if feeRateString is not None:
+                    feeRateString = feeRateString.replace('(', '')
+                    feeRateParts = feeRateString.split('%')
+                    feeRateString = self.safe_string(feeRateParts, 0)
+                    feeRateString = Precise.string_div(feeRateString, '100')
                 fee = {
-                    'cost': feeCost,
+                    'cost': feeCostString,
                     'currency': feeCurrencyCode,
-                    'rate': feeRate,
+                    'rate': feeRateString,
                 }
         else:
             feeCostString = self.safe_string(trade, 'fee')
@@ -674,15 +685,15 @@ class poloniex(Exchange):
                 feeBase = amountString if (side == 'buy') else costString
                 feeRateString = Precise.string_div(feeCostString, feeBase)
                 fee = {
-                    'cost': self.parse_number(feeCostString),
+                    'cost': feeCostString,
                     'currency': feeCurrencyCode,
-                    'rate': self.parse_number(feeRateString),
+                    'rate': feeRateString,
                 }
         takerOrMaker = None
         takerAdjustment = self.safe_number(trade, 'takerAdjustment')
         if takerAdjustment is not None:
             takerOrMaker = 'taker'
-        return {
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -692,11 +703,11 @@ class poloniex(Exchange):
             'type': 'limit',
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': fee,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()

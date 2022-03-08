@@ -51,8 +51,8 @@ module.exports = class bitfinex2 extends bitfinex {
                 'fetchStatus': true,
                 'fetchTickers': true,
                 'fetchTime': false,
-                'fetchTradingFee': undefined,
-                'fetchTradingFees': undefined,
+                'fetchTradingFee': false,
+                'fetchTradingFees': true,
                 'fetchTransactions': true,
                 'withdraw': true,
             },
@@ -313,6 +313,7 @@ module.exports = class bitfinex2 extends bitfinex {
                     'EUR': 'EUR',
                     'JPY': 'JPY',
                     'GBP': 'GBP',
+                    'CHN': 'CHN',
                 },
                 // actually the correct names unlike the v1
                 // we don't want to extend this with accountsByType in v1
@@ -1593,6 +1594,111 @@ module.exports = class bitfinex2 extends bitfinex {
                 'rate': undefined,
             },
         };
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostAuthRSummary (params);
+        //
+        //      Response Spec:
+        //      [
+        //         PLACEHOLDER,
+        //         PLACEHOLDER,
+        //         PLACEHOLDER,
+        //         PLACEHOLDER,
+        //         [
+        //            [
+        //             MAKER_FEE,
+        //             MAKER_FEE,
+        //             MAKER_FEE,
+        //             PLACEHOLDER,
+        //             PLACEHOLDER,
+        //             DERIV_REBATE
+        //            ],
+        //            [
+        //             TAKER_FEE_TO_CRYPTO,
+        //             TAKER_FEE_TO_STABLE,
+        //             TAKER_FEE_TO_FIAT,
+        //             PLACEHOLDER,
+        //             PLACEHOLDER,
+        //             DERIV_TAKER_FEE
+        //            ]
+        //         ],
+        //         PLACEHOLDER,
+        //         PLACEHOLDER,
+        //         PLACEHOLDER,
+        //         PLACEHOLDER,
+        //         {
+        //             LEO_LEV,
+        //             LEO_AMOUNT_AVG
+        //         }
+        //     ]
+        //
+        //      Example response:
+        //
+        //     [
+        //         null,
+        //         null,
+        //         null,
+        //         null,
+        //         [
+        //          [ 0.001, 0.001, 0.001, null, null, 0.0002 ],
+        //          [ 0.002, 0.002, 0.002, null, null, 0.00065 ]
+        //         ],
+        //         [
+        //          [
+        //              {
+        //              curr: 'Total (USD)',
+        //              vol: '0',
+        //              vol_safe: '0',
+        //              vol_maker: '0',
+        //              vol_BFX: '0',
+        //              vol_BFX_safe: '0',
+        //              vol_BFX_maker: '0'
+        //              }
+        //          ],
+        //          {},
+        //          0
+        //         ],
+        //         [ null, {}, 0 ],
+        //         null,
+        //         null,
+        //         { leo_lev: '0', leo_amount_avg: '0' }
+        //     ]
+        //
+        const result = {};
+        const fiat = this.safeValue (this.options, 'fiat', {});
+        const feeData = this.safeValue (response, 4, []);
+        const makerData = this.safeValue (feeData, 0, []);
+        const takerData = this.safeValue (feeData, 1, []);
+        const makerFee = this.safeNumber (makerData, 0);
+        const makerFeeFiat = this.safeNumber (makerData, 2);
+        const makerFeeDeriv = this.safeNumber (makerData, 5);
+        const takerFee = this.safeNumber (takerData, 0);
+        const takerFeeFiat = this.safeNumber (takerData, 2);
+        const takerFeeDeriv = this.safeNumber (takerData, 5);
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            const market = this.market (symbol);
+            const fee = {
+                'info': response,
+                'symbol': symbol,
+                'percentage': true,
+                'tierBased': true,
+            };
+            if (market['quote'] in fiat) {
+                fee['maker'] = makerFeeFiat;
+                fee['taker'] = takerFeeFiat;
+            } else if (market['contract']) {
+                fee['maker'] = makerFeeDeriv;
+                fee['taker'] = takerFeeDeriv;
+            } else { // TODO check if stable coin
+                fee['maker'] = makerFee;
+                fee['taker'] = takerFee;
+            }
+            result[symbol] = fee;
+        }
+        return result;
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {

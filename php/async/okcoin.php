@@ -1216,7 +1216,7 @@ class okcoin extends Exchange {
         //             time => "2018-12-17T23:31:08.268Z",
         //             $timestamp => "2018-12-17T23:31:08.268Z",
         //             trade_id => "409687906",
-        //             $price => "0.02677805",
+        //             price => "0.02677805",
         //             size => "0.923467",
         //             $side => "sell"
         //         }
@@ -1226,7 +1226,7 @@ class okcoin extends Exchange {
         //         {
         //             trade_id => "1989230840021013",
         //             $side => "buy",
-        //             $price => "92.42",
+        //             price => "92.42",
         //             qty => "184", // missing in swap markets
         //             size => "5", // missing in futures markets
         //             $timestamp => "2018-12-17T23:26:04.613Z"
@@ -1296,9 +1296,6 @@ class okcoin extends Exchange {
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string_2($trade, 'size', 'qty');
         $amountString = $this->safe_string($trade, 'order_qty', $amountString);
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $takerOrMaker = $this->safe_string_2($trade, 'exec_type', 'liquidity');
         if ($takerOrMaker === 'M') {
             $takerOrMaker = 'maker';
@@ -1306,21 +1303,21 @@ class okcoin extends Exchange {
             $takerOrMaker = 'taker';
         }
         $side = $this->safe_string($trade, 'side');
-        $feeCost = $this->safe_number($trade, 'fee');
+        $feeCostString = $this->safe_string($trade, 'fee');
         $fee = null;
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $feeCurrency = ($side === 'buy') ? $base : $quote;
             $fee = array(
                 // $fee is either a positive number (invitation rebate)
                 // or a negative number (transaction $fee deduction)
                 // therefore we need to invert the $fee
                 // more about it https://github.com/ccxt/ccxt/issues/5909
-                'cost' => -$feeCost,
+                'cost' => Precise::string_neg($feeCostString),
                 'currency' => $feeCurrency,
             );
         }
         $orderId = $this->safe_string($trade, 'order_id');
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -1330,11 +1327,11 @@ class okcoin extends Exchange {
             'type' => null,
             'takerOrMaker' => $takerOrMaker,
             'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
@@ -2743,25 +2740,25 @@ class okcoin extends Exchange {
         $symbol = $market['symbol'];
         $quoteId = $market['quoteId'];
         $side = null;
-        $amount = null;
-        $cost = null;
+        $amountString = null;
+        $costString = null;
         $receivedCurrencyId = $this->safe_string($userTrade, 'currency');
         $feeCurrencyId = null;
         if ($receivedCurrencyId === $quoteId) {
             $side = $this->safe_string($otherTrade, 'side');
-            $amount = $this->safe_number($otherTrade, 'size');
-            $cost = $this->safe_number($userTrade, 'size');
+            $amountString = $this->safe_string($otherTrade, 'size');
+            $costString = $this->safe_string($userTrade, 'size');
             $feeCurrencyId = $this->safe_string($otherTrade, 'currency');
         } else {
             $side = $this->safe_string($userTrade, 'side');
-            $amount = $this->safe_number($userTrade, 'size');
-            $cost = $this->safe_number($otherTrade, 'size');
+            $amountString = $this->safe_string($userTrade, 'size');
+            $costString = $this->safe_string($otherTrade, 'size');
             $feeCurrencyId = $this->safe_string($userTrade, 'currency');
         }
         $id = $this->safe_string($userTrade, 'trade_id');
-        $price = $this->safe_number($userTrade, 'price');
-        $feeCostFirst = $this->safe_number($otherTrade, 'fee');
-        $feeCostSecond = $this->safe_number($userTrade, 'fee');
+        $priceString = $this->safe_string($userTrade, 'price');
+        $feeCostFirstString = $this->safe_string($otherTrade, 'fee');
+        $feeCostSecondString = $this->safe_string($userTrade, 'fee');
         $feeCurrencyCodeFirst = $this->safe_currency_code($this->safe_string($otherTrade, 'currency'));
         $feeCurrencyCodeSecond = $this->safe_currency_code($this->safe_string($userTrade, 'currency'));
         $fee = null;
@@ -2770,32 +2767,32 @@ class okcoin extends Exchange {
         // or a negative number (transaction $fee deduction)
         // therefore we need to invert the $fee
         // more about it https://github.com/ccxt/ccxt/issues/5909
-        if (($feeCostFirst !== null) && ($feeCostFirst !== 0)) {
-            if (($feeCostSecond !== null) && ($feeCostSecond !== 0)) {
+        if (($feeCostFirstString !== null) && !Precise::string_equals($feeCostFirstString, '0')) {
+            if (($feeCostSecondString !== null) && !Precise::string_equals($feeCostSecondString, '0')) {
                 $fees = array(
                     array(
-                        'cost' => -$feeCostFirst,
+                        'cost' => Precise::string_neg($feeCostFirstString),
                         'currency' => $feeCurrencyCodeFirst,
                     ),
                     array(
-                        'cost' => -$feeCostSecond,
+                        'cost' => Precise::string_neg($feeCostSecondString),
                         'currency' => $feeCurrencyCodeSecond,
                     ),
                 );
             } else {
                 $fee = array(
-                    'cost' => -$feeCostFirst,
+                    'cost' => Precise::string_neg($feeCostFirstString),
                     'currency' => $feeCurrencyCodeFirst,
                 );
             }
-        } else if (($feeCostSecond !== null) && ($feeCostSecond !== 0)) {
+        } else if (($feeCostSecondString !== null) && !Precise::string_equals($feeCostSecondString, '0')) {
             $fee = array(
-                'cost' => -$feeCostSecond,
+                'cost' => Precise::string_neg($feeCostSecondString),
                 'currency' => $feeCurrencyCodeSecond,
             );
         } else {
             $fee = array(
-                'cost' => 0,
+                'cost' => '0',
                 'currency' => $this->safe_currency_code($feeCurrencyId),
             );
         }
@@ -2807,14 +2804,14 @@ class okcoin extends Exchange {
         //     array(
         //         "currency":"USDT",
         //         "fee":"-0.04647925", // ←--- $fee in received quote currency
-        //         "price":"129.13", // ←------ $price
-        //         "size":"30.98616393", // ←-- $cost
+        //         "price":"129.13", // ←------ price
+        //         "size":"30.98616393", // ←-- cost
         //     ),
         //     array(
         //         "currency":"ETH",
         //         "fee":"0",
         //         "price":"129.13",
-        //         "size":"0.23996099", // ←--- $amount
+        //         "size":"0.23996099", // ←--- amount
         //     ),
         //
         //     // market/limit buy
@@ -2822,14 +2819,14 @@ class okcoin extends Exchange {
         //     array(
         //         "currency":"ETH",
         //         "fee":"-0.00036049", // ←--- $fee in received base currency
-        //         "price":"129.16", // ←------ $price
-        //         "size":"0.240322", // ←----- $amount
+        //         "price":"129.16", // ←------ price
+        //         "size":"0.240322", // ←----- amount
         //     ),
         //     {
         //         "currency":"USDT",
         //         "fee":"0",
         //         "price":"129.16",
-        //         "size":"31.03998952", // ←-- $cost
+        //         "size":"31.03998952", // ←-- cost
         //     }
         //
         $timestamp = $this->parse8601($this->safe_string_2($userTrade, 'timestamp', 'created_at'));
@@ -2840,7 +2837,7 @@ class okcoin extends Exchange {
             $takerOrMaker = 'taker';
         }
         $orderId = $this->safe_string($userTrade, 'order_id');
-        $result = array(
+        return $this->safe_trade(array(
             'info' => $pair,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -2850,15 +2847,12 @@ class okcoin extends Exchange {
             'type' => null,
             'takerOrMaker' => $takerOrMaker,
             'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => $costString,
             'fee' => $fee,
-        );
-        if ($fees !== null) {
-            $result['fees'] = $fees;
-        }
-        return $result;
+            'fees' => $fees,
+        ), $market);
     }
 
     public function parse_my_trades($trades, $market = null, $since = null, $limit = null, $params = array ()) {
@@ -2875,7 +2869,7 @@ class okcoin extends Exchange {
                 $result[] = $trade;
             }
         }
-        $market = $this->safeMarkt (null, $market);
+        $market = $this->safe_market(null, $market);
         return $this->filter_by_symbol_since_limit($result, $market['symbol'], $since, $limit);
     }
 

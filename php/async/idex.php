@@ -69,6 +69,8 @@ class idex extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => true,
                 'fetchTransactions' => null,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
@@ -520,6 +522,45 @@ class idex extends Exchange {
             'cost' => $costString,
             'fee' => $fee,
         ), $market);
+    }
+
+    public function fetch_trading_fees($params = array ()) {
+        $this->check_required_credentials();
+        yield $this->load_markets();
+        $nonce = $this->uuidv1();
+        $request = array(
+            'nonce' => $nonce,
+        );
+        $response = null;
+        $response = yield $this->privateGetUser (array_merge($request, $params));
+        //
+        //     {
+        //         depositEnabled => true,
+        //         orderEnabled => true,
+        //         cancelEnabled => true,
+        //         withdrawEnabled => true,
+        //         totalPortfolioValueUsd => '0.00',
+        //         makerFeeRate => '0.0000',
+        //         takerFeeRate => '0.0025',
+        //         takerIdexFeeRate => '0.0005',
+        //         takerLiquidityProviderFeeRate => '0.0020'
+        //     }
+        //
+        $maker = $this->safe_number($response, 'makerFeeRate');
+        $taker = $this->safe_number($response, 'takerFeeRate');
+        $result = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $result[$symbol] = array(
+                'info' => $response,
+                'symbol' => $symbol,
+                'maker' => $maker,
+                'taker' => $taker,
+                'percentage' => true,
+                'tierBased' => false,
+            );
+        }
+        return $result;
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {

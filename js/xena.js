@@ -35,7 +35,8 @@ module.exports = class xena extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchLedger': true,
-                'fetchLeverageTiers': 'emulated',
+                'fetchLeverageTiers': true,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -45,6 +46,8 @@ module.exports = class xena extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
                 'fetchWithdrawals': true,
                 'withdraw': true,
             },
@@ -60,7 +63,7 @@ module.exports = class xena extends Exchange {
                 },
                 'www': 'https://xena.exchange',
                 'doc': 'https://support.xena.exchange/support/solutions/44000808700',
-                'fees': 'https://trading.xena.exchange/en/platform-specification/fee-schedule',
+                'fees': 'https://trading.xena.exchange/en/contracts/terms-and-condition',
             },
             'timeframes': {
                 '1m': '1m',
@@ -1687,16 +1690,8 @@ module.exports = class xena extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    async fetchLeverageTiers (symbol = undefined, params = {}) {
+    async fetchLeverageTiers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const symbolDefined = symbol !== undefined;
-        if (symbolDefined) {
-            const market = this.market (symbol);
-            if (!market['contract']) {
-                throw new BadRequest (this.id + ' fetchLeverageTiers symbol supports contract markets only');
-            }
-        }
-        const result = {};
         const response = await this.publicGetCommonInstruments (params);
         //
         //    [
@@ -1771,42 +1766,105 @@ module.exports = class xena extends Exchange {
         //           ...
         //        ]
         //
-        for (let i = 0; i < response.length; i++) {
-            const item = response[i];
-            const margin = this.safeValue (item, 'margin');
-            const rates = this.safeValue (margin, 'rates');
-            let floor = 0;
-            const id = this.safeString (item, 'symbol');
-            const market = this.market (id);
-            if (market['contract']) {
-                if (rates !== undefined) {
-                    const tiers = [];
-                    for (let j = 0; j < rates.length; j++) {
-                        const tier = rates[j];
-                        const cap = this.safeNumber (tier, 'maxVolume');
-                        const initialRate = this.safeString (tier, 'initialRate');
-                        tiers.push ({
-                            'tier': this.sum (j, 1),
-                            'notionalCurrency': market['base'],
-                            'notionalFloor': floor,
-                            'notionalCap': cap,
-                            'maintenanceMarginRate': this.safeNumber (tier, 'maintenanceRate'),
-                            'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialRate)),
-                            'info': tier,
-                        });
-                        floor = cap;
+        return this.parseLeverageTiers (response, symbols, 'symbol');
+    }
+
+    parseMarketLeverageTiers (info, market) {
+        /**
+            @param info: Exchange market response for 1 market
+            {
+                "id": "XBTUSD_3M_240622",
+                "type": "Margin",
+                "marginType": "XenaFuture",
+                "symbol": "XBTUSD_3M_240622",
+                "baseCurrency": "BTC",
+                "quoteCurrency": "USD",
+                "settlCurrency": "USDC",
+                "tickSize": 0,
+                "minOrderQuantity": "0.0001",
+                "orderQtyStep": "0.0001",
+                "limitOrderMaxDistance": "10",
+                "priceInputMask": "00000.0",
+                "enabled": true,
+                "liquidationMaxDistance": "0.01",
+                "contractValue": "1",
+                "contractCurrency": "BTC",
+                "lotSize": "1",
+                "maxOrderQty": "10",
+                "maxPosVolume": "200",
+                "mark": ".XBTUSD_3M_240622",
+                "underlying": ".BTC3_TWAP",
+                "openInterest": ".XBTUSD_3M_240622_OpenInterest",
+                "addUvmToFreeMargin": "ProfitAndLoss",
+                "margin": {
+                    "netting": "PositionsAndOrders",
+                    "rates": [
+                        { "maxVolume": "10", "initialRate": "0.05", "maintenanceRate": "0.025" },
+                        { "maxVolume": "20", "initialRate": "0.1", "maintenanceRate": "0.05" },
+                        { "maxVolume": "30", "initialRate": "0.2", "maintenanceRate": "0.1" },
+                        { "maxVolume": "40", "initialRate": "0.3", "maintenanceRate": "0.15" },
+                        { "maxVolume": "60", "initialRate": "0.4", "maintenanceRate": "0.2" },
+                        { "maxVolume": "150", "initialRate": "0.5", "maintenanceRate": "0.25" },
+                        { "maxVolume": "200", "initialRate": "1", "maintenanceRate": "0.5" }
+                    ],
+                    "rateMultipliers": {
+                        "LimitBuy": "1",
+                        "LimitSell": "1",
+                        "Long": "1",
+                        "MarketBuy": "1",
+                        "MarketSell": "1",
+                        "Short": "1",
+                        "StopBuy": "0",
+                        "StopSell": "0"
                     }
-                    result[market['symbol']] = tiers;
-                }
+                },
+                "clearing": { "enabled": true, "index": ".XBTUSD_3M_240622" },
+                "riskAdjustment": { "enabled": true, "index": ".RiskAdjustment_IR" },
+                "expiration": { "enabled": true, "index": ".BTC3_TWAP" },
+                "pricePrecision": 1,
+                "priceRange": {
+                    "enabled": true,
+                    "distance": "0.2",
+                    "movingBoundary": "0",
+                    "lowIndex": ".XBTUSD_3M_240622_LOWRANGE",
+                    "highIndex": ".XBTUSD_3M_240622_HIGHRANGE"
+                },
+                "priceLimits": {
+                    "enabled": true,
+                    "distance": "0.5",
+                    "movingBoundary": "0",
+                    "lowIndex": ".XBTUSD_3M_240622_LOWLIMIT",
+                    "highIndex": ".XBTUSD_3M_240622_HIGHLIMIT"
+                },
+                "serie": "XBTUSD",
+                "tradingStartDate": "2021-12-31 07:00:00",
+                "expiryDate": "2022-06-24 08:00:00"
+            }
+        */
+        const margin = this.safeValue (info, 'margin');
+        const rates = this.safeValue (margin, 'rates');
+        let floor = 0;
+        const id = this.safeString (info, 'symbol');
+        market = this.safeMarket (id, market);
+        const tiers = [];
+        if (rates !== undefined) {
+            for (let j = 0; j < rates.length; j++) {
+                const tier = rates[j];
+                const cap = this.safeNumber (tier, 'maxVolume');
+                const initialRate = this.safeString (tier, 'initialRate');
+                tiers.push ({
+                    'tier': this.sum (j, 1),
+                    'currency': market['base'],
+                    'notionalFloor': floor,
+                    'notionalCap': cap,
+                    'maintenanceMarginRate': this.safeNumber (tier, 'maintenanceRate'),
+                    'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialRate)),
+                    'info': tier,
+                });
+                floor = cap;
             }
         }
-        if (symbolDefined) {
-            const finalResult = {};
-            finalResult[symbol] = this.safeValue (result, symbol);
-            return finalResult;
-        } else {
-            return result;
-        }
+        return tiers;
     }
 
     nonce () {

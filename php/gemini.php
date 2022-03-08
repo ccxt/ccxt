@@ -69,6 +69,8 @@ class gemini extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => true,
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => null,
                 'reduceMargin' => false,
@@ -714,6 +716,58 @@ class gemini extends Exchange {
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
+    }
+
+    public function fetch_trading_fees($params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostV1Notionalvolume ($params);
+        //
+        //      {
+        //          "web_maker_fee_bps" => 25,
+        //          "web_taker_fee_bps" => 35,
+        //          "web_auction_fee_bps" => 25,
+        //          "api_maker_fee_bps" => 10,
+        //          "api_taker_fee_bps" => 35,
+        //          "api_auction_fee_bps" => 20,
+        //          "fix_maker_fee_bps" => 10,
+        //          "fix_taker_fee_bps" => 35,
+        //          "fix_auction_fee_bps" => 20,
+        //          "block_maker_fee_bps" => 0,
+        //          "block_taker_fee_bps" => 50,
+        //          "notional_30d_volume" => 150.00,
+        //          "last_updated_ms" => 1551371446000,
+        //          "date" => "2019-02-28",
+        //          "notional_1d_volume" => array(
+        //              array(
+        //                  "date" => "2019-02-22",
+        //                  "notional_volume" => 75.00
+        //              ),
+        //              {
+        //                  "date" => "2019-02-14",
+        //                  "notional_volume" => 75.00
+        //              }
+        //          )
+        //     }
+        //
+        $makerBps = $this->safe_string($response, 'api_maker_fee_bps');
+        $takerBps = $this->safe_string($response, 'api_taker_fee_bps');
+        $makerString = Precise::string_div($makerBps, '10000');
+        $takerString = Precise::string_div($takerBps, '10000');
+        $maker = $this->parse_number($makerString);
+        $taker = $this->parse_number($takerString);
+        $result = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $result[$symbol] = array(
+                'info' => $response,
+                'symbol' => $symbol,
+                'maker' => $maker,
+                'taker' => $taker,
+                'percentage' => true,
+                'tierBased' => true,
+            );
+        }
+        return $result;
     }
 
     public function fetch_balance($params = array ()) {

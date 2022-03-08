@@ -65,7 +65,7 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
 
 | logo                                                                                                                                                                                              | id                 | name                                                                                     | ver                                                                                                                                                | certified                                                                                                                   | pro                                                                          |
 |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|------------------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------:|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
-| [![aax](https://user-images.githubusercontent.com/1294454/104140087-a27f2580-53c0-11eb-87c1-5d9e81208fe9.jpg)](https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB)                     | aax                | [AAX](https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB)                     | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://www.aaxpro.com/apidoc/index.html)                                             | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![aax](https://user-images.githubusercontent.com/1294454/104140087-a27f2580-53c0-11eb-87c1-5d9e81208fe9.jpg)](https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB)                     | aax                | [AAX](https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB)                     | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://www.aaxpro.com/apidoc/index.html)                                             |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![ascendex](https://user-images.githubusercontent.com/1294454/112027508-47984600-8b48-11eb-9e17-d26459cc36c6.jpg)](https://ascendex.com/en-us/register?inviteCode=EL6BXBQM)                      | ascendex           | [AscendEX](https://ascendex.com/en-us/register?inviteCode=EL6BXBQM)                      | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://bitmax-exchange.github.io/bitmax-pro-api/#bitmax-pro-api-documentation)       | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) |                                                                              |
 | [![bequant](https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg)](https://bequant.io)                                                             | bequant            | [Bequant](https://bequant.io)                                                            | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://api.bequant.io/)                                                              |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![bibox](https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg)](https://w2.bibox365.com/login/register?invite_code=05Kj3I)                       | bibox              | [Bibox](https://w2.bibox365.com/login/register?invite_code=05Kj3I)                       | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://biboxcom.github.io/en/)                                                       |                                                                                                                             |                                                                              |
@@ -82,7 +82,7 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
 | [![bitfinex2](https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg)](https://www.bitfinex.com/?refcode=P61eYxFL)                                   | bitfinex2          | [Bitfinex](https://www.bitfinex.com/?refcode=P61eYxFL)                                   | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.bitfinex.com/v2/docs/)                                                   |                                                                                                                             |                                                                              |
 | [![bitflyer](https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg)](https://bitflyer.com)                                                          | bitflyer           | [bitFlyer](https://bitflyer.com)                                                         | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://lightning.bitflyer.com/docs?lang=en)                                          |                                                                                                                             |                                                                              |
 | [![bitforex](https://user-images.githubusercontent.com/51840849/87295553-1160ec00-c50e-11ea-8ea0-df79276a9646.jpg)](https://www.bitforex.com/en/invitationRegister?inviterId=1867438)             | bitforex           | [Bitforex](https://www.bitforex.com/en/invitationRegister?inviterId=1867438)             | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/githubdev2020/API_Doc_en/wiki)                                     |                                                                                                                             |                                                                              |
-| [![bitget](https://user-images.githubusercontent.com/51840849/88317935-a8a21c80-cd22-11ea-8e2b-4b9fac5975eb.jpg)](https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j)  | bitget             | [Bitget](https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j)  | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://bitgetlimited.github.io/apidoc/en/swap)                                       |                                                                                                                             |                                                                              |
+| [![bitget](https://user-images.githubusercontent.com/51840849/88317935-a8a21c80-cd22-11ea-8e2b-4b9fac5975eb.jpg)](https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j)  | bitget             | [Bitget](https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j)  | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://bitgetlimited.github.io/apidoc/en/swap)                                       |                                                                                                                             |                                                                              |
 | [![bithumb](https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg)](https://www.bithumb.com)                                                        | bithumb            | [Bithumb](https://www.bithumb.com)                                                       | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://apidocs.bithumb.com)                                                          |                                                                                                                             |                                                                              |
 | [![bitmart](https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg)](http://www.bitmart.com/?r=rQCFLh)                                              | bitmart            | [BitMart](http://www.bitmart.com/?r=rQCFLh)                                              | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://developer-pro.bitmart.com/)                                                   | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![bitmex](https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg)](https://www.bitmex.com/register/upZpOX)                                          | bitmex             | [BitMEX](https://www.bitmex.com/register/upZpOX)                                         | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://www.bitmex.com/app/apiOverview)                                               |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -147,7 +147,7 @@ The CCXT library currently supports the following 113 cryptocurrency exchange ma
 | [![lbank](https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg)](https://www.lbex.io/invite?icode=7QCY)                                            | lbank              | [LBank](https://www.lbex.io/invite?icode=7QCY)                                           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/LBank-exchange/lbank-official-api-docs)                            |                                                                                                                             |                                                                              |
 | [![liquid](https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg)](https://www.liquid.com/sign-up/?affiliate=SbzC62lt30976)                         | liquid             | [Liquid](https://www.liquid.com/sign-up/?affiliate=SbzC62lt30976)                        | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://developers.liquid.com)                                                        |                                                                                                                             |                                                                              |
 | [![luno](https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg)](https://www.luno.com/invite/44893A)                                                | luno               | [luno](https://www.luno.com/invite/44893A)                                               | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://www.luno.com/en/api)                                                          |                                                                                                                             |                                                                              |
-| [![lykke](https://user-images.githubusercontent.com/1294454/34487620-3139a7b0-efe6-11e7-90f5-e520cef74451.jpg)](https://www.lykke.com)                                                            | lykke              | [Lykke](https://www.lykke.com)                                                           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://hft-api.lykke.com/swagger/ui/)                                                |                                                                                                                             |                                                                              |
+| [![lykke](https://user-images.githubusercontent.com/1294454/155840500-1ea4fdf0-47c0-4daa-9597-c6c1cd51b9ec.jpg)](https://www.lykke.com)                                                           | lykke              | [Lykke](https://www.lykke.com)                                                           | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://hft-apiv2.lykke.com/swagger/ui/index.html)                                    |                                                                                                                             |                                                                              |
 | [![mercado](https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg)](https://www.mercadobitcoin.com.br)                                              | mercado            | [Mercado Bitcoin](https://www.mercadobitcoin.com.br)                                     | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://www.mercadobitcoin.com.br/api-doc)                                            |                                                                                                                             |                                                                              |
 | [![mexc](https://user-images.githubusercontent.com/1294454/137283979-8b2a818d-8633-461b-bfca-de89e8c446b2.jpg)](https://m.mexc.com/auth/signup?inviteCode=1FQ1G)                                  | mexc               | [MEXC Global](https://m.mexc.com/auth/signup?inviteCode=1FQ1G)                           | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://mxcdevelop.github.io/APIDoc/)                                                 | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) |                                                                              |
 | [![ndax](https://user-images.githubusercontent.com/1294454/108623144-67a3ef00-744e-11eb-8140-75c6b851e945.jpg)](https://one.ndax.io/bfQiSL)                                                       | ndax               | [NDAX](https://one.ndax.io/bfQiSL)                                                       | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://apidoc.ndax.io/)                                                              |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -2463,19 +2463,25 @@ The possible values in the `status` field are:
 - `'error'` means that either the exchange API is broken, or the implementation of the exchange in CCXT is broken
 - `'maintenance'` means regular maintenance, and the `eta` field should contain the datetime when the exchange is expected to be operational again
 
-## Fetch Leverage Tiers
+## Leverage Tiers and Market Leverage Tiers
+
+* These are private methods on **Binance**
 
 You can obtain the absolute maximum leverage for a market by accessing `market['limits']['leverage']['max']`.
 For many contracts, the maximum leverage will depend on the size of your position.
-You can access those limits via the `fetchLeverageTiers()` method.
+You can access those limits via the `fetchLeverageTiers()` (multiple symbols) and `fetchMarketLeverageTiers()` (single symbol) methods.
 
 ```Javascript
-fetchLeverageTiers(symbol, params = {})
+fetchLeverageTiers(symbols = undefined, params = {})
+```
+
+```Javascript
+fetchMarketLeverageTiers(symbol, params = {})
 ```
 
 The `fetchLeverageTiers()` method can be used to obtain the maximum leverage for a market at varying position sizes. It can also be used to obtain the maintenance margin rate, and the max tradeable amount for a market when that information is not available from the market object:
 
-### Fetch Leverage Tiers Structure
+### Leverage Tiers Structure
 
 The `fetchLeverageTiers()` method will return a structure like shown below:
 
@@ -2491,29 +2497,48 @@ The `fetchLeverageTiers()` method will return a structure like shown below:
             "maxLeverage": 75,               // max available leverage for this market when the value of the trade is > notionalFloor and < notionalCap
             "info": { ... }                  // Response from exchange
         },
-        {
-            "tier": 2,
-            "notionalCurrency": "USDT",
-            "notionalFloor": 10000,          // min stake amount at 50x leverage = 200.0
-            "notionalCap": 50000,            // max stake amount at 50x leverage = 1000.0
-            "maintenanceMarginRatio": 0.01,
-            "maxLeverage": 50,
-            "info": { ... },
-        },
         ...
-        {
-            "tier": 9,
-            "notionalCurrency": "USDT",
-            "notionalFloor": 20000000,
-            "notionalCap": 50000000,
-            "maintenanceMarginRate": 0.5,
-            "maxLeverage": 1,
-            "info": { ... },
-        },
     ]
     ...
   ],
 }
+```
+
+### Market Leverage Tiers Structure
+
+The `fetchMarketLeverageTiers()` method will return a structure like shown below:
+
+```JavaScript
+[
+    {
+        "tier": 1,                       // tier index
+        "notionalCurrency": "USDT",      // the currency that notionalFloor and notionalCap are in
+        "notionalFloor": 0,              // the lowest amount of this tier // stake = 0.0
+        "notionalCap": 10000,            // the highest amount of this tier // max stake amount at 75x leverage = 133.33333333333334
+        "maintenanceMarginRate": 0.0065, // maintenance margin rate
+        "maxLeverage": 75,               // max available leverage for this market when the value of the trade is > notionalFloor and < notionalCap
+        "info": { ... }                  // Response from exchange
+    },
+    {
+        "tier": 2,
+        "notionalCurrency": "USDT",
+        "notionalFloor": 10000,          // min stake amount at 50x leverage = 200.0
+        "notionalCap": 50000,            // max stake amount at 50x leverage = 1000.0
+        "maintenanceMarginRate": 0.01,
+        "maxLeverage": 50,
+        "info": { ... },
+    },
+    ...
+    {
+        "tier": 9,
+        "notionalCurrency": "USDT",
+        "notionalFloor": 20000000,
+        "notionalCap": 50000000,
+        "maintenanceMarginRate": 0.5,
+        "maxLeverage": 1,
+        "info": { ... },
+    },
+]
 ```
 
 In the example above:
@@ -2522,6 +2547,118 @@ In the example above:
 - stakes from 200 + 1000    = a max leverage of 50
 - a stake amount of 150     = a max leverage of (10000 / 150)   = 66.66
 - stakes between 133.33-200 = a max leverage of (10000 / stake) = 50.01 -> 74.99
+
+**Note for Huobi users:** Huobi uses both leverage and amount to determine maintenance margin rates: https://www.huobi.com/support/en-us/detail/900000089903
+
+## Funding Rate and Funding Rates
+
+- contract only
+
+Data on the current, most recent, and next funding rates can be obtained using the methods
+
+- `fetchFundingRates ()` for all market symbols
+- `fetchFundingRates ([ symbol1, symbol2, ... ])` for multiple market symbols
+- `fetchFundingRate (symbol)` for a single market symbol
+
+```Javascript
+fetchFundingRate (symbol, params = {})
+```
+
+- **symbol** (String) Unified CCXT symbol, required (e.g. `"BTC/USDT:USDT"`)
+- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+```Javascript
+fetchFundingRates (symbols = undefined, params = {})
+```
+
+- **symbols** (Array[String]) An optional array/list of unified CCXT symbols (e.g. `["BTC/USDT:USDT", "ETH/USDT:USDT"]`)
+- **params** (Dictionary) Optional extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+
+### Funding Rate Structure
+
+The `fetchFundingRate()` method will return a structure like shown below:
+
+```Javascript
+{
+    info: { ... },
+    symbol: 'BTC/USDT:USDT',
+    markPrice: 39294.43,
+    indexPrice: 39291.78,
+    interestRate: 0.0003,
+    estimatedSettlePrice: undefined,
+    timestamp: undefined,
+    datetime: undefined,
+    fundingRate: 0.000072,
+    fundingTimestamp: 1645833600000,
+    fundingDatetime: '2022-02-26T00:00:00.000Z',
+    nextFundingRate: -0.000018,
+    nextFundingTimestamp: undefined,
+    nextFundingDatetime: undefined,
+    previousFundingRate: undefined,
+    previousFundingTimestamp: undefined,
+    previousFundingDatetime: undefined
+}
+```
+
+### Funding Rates Structure
+
+The `fetchFundingRates()` method will return a structure like shown below:
+
+```Javascript
+{
+    'BTC/USDT:USDT': {
+        info: { ... },
+        symbol: 'BTC/USDT:USDT',
+        markPrice: 39294.43,
+        indexPrice: 39291.78,
+        interestRate: 0.0003,
+        estimatedSettlePrice: undefined,
+        timestamp: undefined,
+        datetime: undefined,
+        fundingRate: 0.000072,
+        fundingTimestamp: 1645833600000,
+        fundingDatetime: '2022-02-26T00:00:00.000Z',
+        nextFundingRate: -0.000018,
+        nextFundingTimestamp: undefined,
+        nextFundingDatetime: undefined,
+        previousFundingRate: undefined,
+        previousFundingTimestamp: undefined,
+        previousFundingDatetime: undefined
+    },
+    ...
+}
+```
+
+## Funding Rate History
+
+- contract only
+
+```Javascript
+fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {})
+```
+
+- **symbol** (String) Unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
+- **since** (Integer) Timestamp for the earliest funding rate (e.g. `1645807945000`)
+- **limit** (Integer) The maximum number of funding rates to retrieve (e.g. `10`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+### Funding Rate History Structure
+
+The `fetchFundingRateHistory()` method will return a structure like shown below:
+
+```Javascript
+[
+    {
+        info: { ... },
+        symbol: "BTC/USDT:USDT",
+        fundingRate: -0.000068,
+        timestamp: 1642953600000,
+        datetime: "2022-01-23T16:00:00.000Z"
+    },
+    ...
+]
+```
 
 # Private API
 
@@ -3049,7 +3186,7 @@ Most of methods returning orders within ccxt unified API will usually yield an o
     'datetime':          '2017-08-17 12:42:48.000', // ISO8601 datetime of 'timestamp' with milliseconds
     'timestamp':          1502962946216, // order placing/opening Unix timestamp in milliseconds
     'lastTradeTimestamp': 1502962956216, // Unix timestamp of the most recent trade on this order
-    'status':      'open',        // 'open', 'closed', 'canceled', 'expired'
+    'status':      'open',        // 'open', 'closed', 'canceled', 'expired', 'rejected'
     'symbol':      'ETH/BTC',     // symbol
     'type':        'limit',       // 'market', 'limit'
     'timeInForce': 'GTC',         // 'GTC', 'IOC', 'FOK', 'PO'

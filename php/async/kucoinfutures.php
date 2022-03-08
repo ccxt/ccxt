@@ -54,7 +54,8 @@ class kucoinfutures extends kucoin {
                 'fetchIndexOHLCV' => false,
                 'fetchL3OrderBook' => true,
                 'fetchLedger' => true,
-                'fetchLeverageTiers' => true,
+                'fetchLeverageTiers' => false,
+                'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -1631,11 +1632,8 @@ class kucoinfutures extends kucoin {
         throw new BadRequest($this->id . ' has no method fetchLedger');
     }
 
-    public function fetch_leverage_tiers($symbol = null, $params = array ()) {
+    public function fetch_market_leverage_tiers($symbol, $params = array ()) {
         yield $this->load_markets();
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchLeverageTiers() requires a $symbol argument');
-        }
         $market = $this->market($symbol);
         if (!$market['contract']) {
             throw new BadRequest($this->id . ' fetchLeverageTiers() supports contract markets only');
@@ -1662,17 +1660,29 @@ class kucoinfutures extends kucoin {
         //    }
         //
         $data = $this->safe_value($response, 'data');
-        $tiers = array();
-        for ($i = 0; $i < count($data); $i++) {
-            $tier = $data[$i];
-            $symbol = $this->safe_symbol($this->safe_string($tier, 'symbol'));
-            if (!(is_array($tiers) && array_key_exists($symbol, $tiers))) {
-                $tiers[$symbol] = array();
+        return $this->parse_market_leverage_tiers($data, $market);
+    }
+
+    public function parse_market_leverage_tiers($info, $market) {
+        /**
+            @param $info => Exchange $market response for 1 $market
+            {
+                "symbol" => "ETHUSDTM",
+                "level" => 1,
+                "maxRiskLimit" => 300000,
+                "minRiskLimit" => 0,
+                "maxLeverage" => 100,
+                "initialMargin" => 0.0100000000,
+                "maintainMargin" => 0.0050000000
             }
-            $market = $this->market($symbol);
-            $tiers[$symbol][] = array(
+            @param $market => CCXT $market
+        */
+        $tiers = array();
+        for ($i = 0; $i < count($info); $i++) {
+            $tier = $info[$i];
+            $tiers[] = array(
                 'tier' => $this->safe_number($tier, 'level'),
-                'notionalCurrency' => $market['base'],
+                'currency' => $market['base'],
                 'notionalFloor' => $this->safe_number($tier, 'minRiskLimit'),
                 'notionalCap' => $this->safe_number($tier, 'maxRiskLimit'),
                 'maintenanceMarginRate' => $this->safe_number($tier, 'maintainMargin'),

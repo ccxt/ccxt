@@ -38,7 +38,6 @@ class aax(Exchange):
             'rateLimit': 500,
             'version': 'v2',
             'hostname': 'aaxpro.com',  # aax.com
-            'certified': True,
             'pro': True,
             'has': {
                 'CORS': None,
@@ -57,7 +56,6 @@ class aax(Exchange):
                 'deposit': None,
                 'editOrder': True,
                 'fetchAccounts': None,
-                'fetchAllTradingFees': None,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
                 'fetchBorrowRate': False,
@@ -86,6 +84,8 @@ class aax(Exchange):
                 'fetchLedger': None,
                 'fetchLedgerEntry': None,
                 'fetchLeverage': None,
+                'fetchLeverageTiers': True,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
                 'fetchMyBuys': None,
@@ -108,15 +108,14 @@ class aax(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'fetchTradingFee': None,
-                'fetchTradingFees': None,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
                 'fetchTradingLimits': None,
                 'fetchTransactions': None,
                 'fetchTransfers': None,
                 'fetchWithdrawal': None,
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': None,
-                'loadLeverageBrackets': None,
                 'reduceMargin': None,
                 'setLeverage': True,
                 'setMarginMode': False,
@@ -766,7 +765,6 @@ class aax(Exchange):
         id = self.safe_string(trade, 'i', id)
         marketId = self.safe_string(trade, 'symbol')
         market = self.safe_market(marketId, market)
-        symbol = market['symbol']
         priceString = self.safe_string_2(trade, 'p', 'filledPrice')
         amountString = self.safe_string_2(trade, 'q', 'filledQty')
         orderId = self.safe_string(trade, 'orderID')
@@ -787,11 +785,10 @@ class aax(Exchange):
         feeCost = self.safe_string(trade, 'commission')
         if feeCost is not None:
             feeCurrency = None
-            if market is not None:
-                if side == 'buy':
-                    feeCurrency = market['base']
-                elif side == 'sell':
-                    feeCurrency = market['quote']
+            if side == 'buy':
+                feeCurrency = market['base']
+            elif side == 'sell':
+                feeCurrency = market['quote']
             fee = {
                 'currency': feeCurrency,
                 'cost': feeCost,
@@ -801,7 +798,7 @@ class aax(Exchange):
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': orderType,
             'side': side,
             'order': orderId,
@@ -1685,7 +1682,6 @@ class aax(Exchange):
         clientOrderId = self.safe_string(order, 'clOrdID')
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
-        symbol = market['symbol']
         price = self.safe_string(order, 'price')
         stopPrice = self.safe_number(order, 'stopPrice')
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
@@ -1704,11 +1700,10 @@ class aax(Exchange):
         feeCost = self.safe_number(order, 'commission')
         if feeCost is not None:
             feeCurrency = None
-            if market is not None:
-                if side == 'buy':
-                    feeCurrency = market['base']
-                elif side == 'sell':
-                    feeCurrency = market['quote']
+            if side == 'buy':
+                feeCurrency = market['base']
+            elif side == 'sell':
+                feeCurrency = market['quote']
             fee = {
                 'currency': feeCurrency,
                 'cost': feeCost,
@@ -1721,7 +1716,7 @@ class aax(Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
@@ -2212,6 +2207,92 @@ class aax(Exchange):
             'leverage': leverage,
         }
         return self.privatePostFuturesPositionLeverage(self.extend(request, params))
+
+    def fetch_leverage_tiers(self, symbols=None, params={}):
+        self.load_markets()
+        response = self.publicGetInstruments(params)
+        #
+        #     {
+        #         "code":1,
+        #         "message":"success",
+        #         "ts":1610159448962,
+        #         "data":[
+        #             {
+        #                 "tickSize":"0.01",
+        #                 "lotSize":"1",
+        #                 "base":"BTC",
+        #                 "quote":"USDT",
+        #                 "minQuantity":"1.0000000000",
+        #                 "maxQuantity":"30000",
+        #                 "minPrice":"0.0100000000",
+        #                 "maxPrice":"999999.0000000000",
+        #                 "status":"readOnly",
+        #                 "symbol":"BTCUSDTFP",
+        #                 "code":"FP",
+        #                 "takerFee":"0.00040",
+        #                 "makerFee":"0.00020",
+        #                 "multiplier":"0.001000000000",
+        #                 "mmRate":"0.00500",
+        #                 "imRate":"0.01000",
+        #                 "type":"futures",
+        #                 "settleType":"Vanilla",
+        #                 "settleCurrency":"USDT"
+        #             },
+        #             ...
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_leverage_tiers(data, symbols, 'symbol')
+
+    def parse_market_leverage_tiers(self, info, market):
+        '''
+            @param info: Exchange market response
+            {
+                "tickSize":"0.01",
+                "lotSize":"1",
+                "base":"BTC",
+                "quote":"USDT",
+                "minQuantity":"1.0000000000",
+                "maxQuantity":"30000",
+                "minPrice":"0.0100000000",
+                "maxPrice":"999999.0000000000",
+                "status":"readOnly",
+                "symbol":"BTCUSDTFP",
+                "code":"FP",
+                "takerFee":"0.00040",
+                "makerFee":"0.00020",
+                "multiplier":"0.001000000000",
+                "mmRate":"0.00500",
+                "imRate":"0.01000",
+                "type":"futures",
+                "settleType":"Vanilla",
+                "settleCurrency":"USDT"
+            @param market: CCXT Market
+       '''
+        maintenanceMarginRate = self.safe_string(info, 'mmRate')
+        initialMarginRate = self.safe_string(info, 'imRate')
+        maxVol = self.safe_string(info, 'maxQuantity')
+        riskIncrVol = maxVol  # TODO
+        riskIncrMmr = '0.0'  # TODO
+        riskIncrImr = '0.0'  # TODO
+        floor = '0'
+        tiers = []
+        while(Precise.string_lt(floor, maxVol)):
+            cap = Precise.string_add(floor, riskIncrVol)
+            tiers.append({
+                'tier': self.parse_number(Precise.string_div(cap, riskIncrVol)),
+                'currency': market['base'],
+                'notionalFloor': self.parse_number(floor),
+                'notionalCap': self.parse_number(cap),
+                'maintenanceMarginRate': self.parse_number(maintenanceMarginRate),
+                'maxLeverage': self.parse_number(Precise.string_div('1', initialMarginRate)),
+                'info': info,
+            })
+            maintenanceMarginRate = Precise.string_add(maintenanceMarginRate, riskIncrMmr)
+            initialMarginRate = Precise.string_add(initialMarginRate, riskIncrImr)
+            floor = cap
+        return tiers
 
     def nonce(self):
         return self.milliseconds()
