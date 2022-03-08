@@ -936,6 +936,9 @@ module.exports = class kucoinfutures extends kucoin {
             throw new InvalidOrder (this.id + ' createOrder() minimum contract order amount is 1');
         }
         const preciseAmount = parseInt (this.amountToPrecision (symbol, amount));
+        let timeInForce = this.safeString (params, 'timeInForce');
+        let postOnly = false;
+        [ type, postOnly, timeInForce, params ] = this.isPostOnly (type, timeInForce, undefined, params);
         const request = {
             'clientOid': clientOrderId,
             'side': side,
@@ -975,7 +978,6 @@ module.exports = class kucoinfutures extends kucoin {
             }
         }
         const uppercaseType = type.toUpperCase ();
-        let timeInForce = this.safeString (params, 'timeInForce');
         if (uppercaseType === 'LIMIT') {
             if (price === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for limit orders');
@@ -987,10 +989,12 @@ module.exports = class kucoinfutures extends kucoin {
                 request['timeInForce'] = timeInForce;
             }
         }
-        const postOnly = this.safeValue (params, 'postOnly', false);
-        const hidden = this.safeValue (params, 'hidden');
-        if (postOnly && hidden !== undefined) {
-            throw new BadRequest (this.id + ' createOrder() does not support the postOnly parameter together with a hidden parameter');
+        if (postOnly) {
+            const hidden = this.safeValue (params, 'hidden');
+            if (hidden !== undefined) {
+                throw new BadRequest (this.id + ' createOrder() does not support the postOnly parameter together with a hidden parameter');
+            }
+            request['postOnly'] = true;
         }
         const iceberg = this.safeValue (params, 'iceberg');
         if (iceberg) {
