@@ -562,7 +562,6 @@ module.exports = class vega extends Exchange {
         //     }
         //   ]
         // }
-
         const bid = this.safeNumber (marketData, 'bestBidPrice');
         const ask = this.safeNumber (marketData, 'bestOfferPrice');
         const bidVolume = this.safeNumber (marketData, 'bestBidVolume');
