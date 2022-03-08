@@ -1789,10 +1789,12 @@ module.exports = class okx extends Exchange {
                 throw new BadRequest (this.id + ' params["tdMode"] must be either "isolated" or "cross"');
             }
         }
-        const postOnly = this.safeValue (params, 'postOnly', false);
+        let timeInForce = this.safeString (params, 'timeInForce');
+        let postOnly = false;
+        [ type, postOnly, timeInForce, params ] = this.isPostOnly (type, timeInForce, type === 'post_only', params);
+        params = this.omit (params, [ 'timeInForce' ]);
         if (postOnly) {
             request['ordType'] = 'post_only';
-            params = this.omit (params, [ 'postOnly' ]);
         }
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         if (clientOrderId === undefined) {
