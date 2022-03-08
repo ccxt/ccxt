@@ -545,35 +545,34 @@ module.exports = class ripio extends Exchange {
         await this.loadMarkets ();
         const response = await this.publicGetPair (params);
         //
-        //      {
-        //          next: null,
-        //          previous: null,
-        //          results: [
-        //            {
-        //              base: 'BTC',
-        //              base_name: 'Bitcoin',
-        //              quote: 'USDC',
-        //              quote_name: 'USD Coin',
-        //              symbol: 'BTC_USDC',
-        //              fees: [
-        //                {
-        //                  traded_volume: '0.0',
-        //                  maker_fee: '0.0',
-        //                  taker_fee: '0.0',
-        //                  cancellation_fee: '0.0'
-        //                }
-        //              ],
-        //              country: 'ZZ',
-        //              enabled: true,
-        //              priority: '10',
-        //              min_amount: '0.0000100000',
-        //              price_tick: '0.000001',
-        //              min_value: '10',
-        //              limit_price_threshold: '25.00'
-        //            },
-        //            ...
-        //            ]
-        //      }
+        //     {
+        //         next: null,
+        //         previous: null,
+        //         results: [
+        //             {
+        //                 base: 'BTC',
+        //                 base_name: 'Bitcoin',
+        //                 quote: 'USDC',
+        //                 quote_name: 'USD Coin',
+        //                 symbol: 'BTC_USDC',
+        //                 fees: [
+        //                     {
+        //                         traded_volume: '0.0',
+        //                         maker_fee: '0.0',
+        //                         taker_fee: '0.0',
+        //                         cancellation_fee: '0.0'
+        //                     }
+        //                 ],
+        //                 country: 'ZZ',
+        //                 enabled: true,
+        //                 priority: '10',
+        //                 min_amount: '0.0000100000',
+        //                 price_tick: '0.000001',
+        //                 min_value: '10',
+        //                 limit_price_threshold: '25.00'
+        //             },
+        //         ]
+        //     }
         //
         const results = this.safeValue (response, 'results', []);
         const result = {};
