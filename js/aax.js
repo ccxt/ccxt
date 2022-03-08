@@ -973,6 +973,9 @@ module.exports = class aax extends Exchange {
         const orderSide = side.toUpperCase ();
         await this.loadMarkets ();
         const market = this.market (symbol);
+        let timeInForce = this.safeStringUpper (params, 'timeInForce');
+        let postOnly = false;
+        [ type, postOnly, timeInForce, params ] = this.isPostOnly (type, timeInForce, undefined, params);
         const request = {
             // 'orderType': orderType, // MARKET, LIMIT, STOP, STOP-LIMIT
             'symbol': market['id'],
@@ -983,15 +986,17 @@ module.exports = class aax extends Exchange {
             // 'timeInForce': 'GTC', // GTC, IOC, FOK, default is GTC
             // 'execInst': 'Post-Only', // the only value supported by the exchange, futures and spot
         };
+        if (timeInForce !== undefined) {
+            params['timeInForce'] = timeInForce;
+        }
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clOrdID'] = clientOrderId;
         }
-        const postOnly = this.safeValue (params, 'postOnly', false);
         if (postOnly !== undefined) {
             request['execInst'] = 'Post-Only';
         }
-        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'postOnly' ]);
+        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'timeInForce' ]);
         const stopPrice = this.safeNumber (params, 'stopPrice');
         if (stopPrice === undefined) {
             if ((orderType === 'STOP-LIMIT') || (orderType === 'STOP')) {
