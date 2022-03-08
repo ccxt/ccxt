@@ -80,23 +80,9 @@ class huobi(Exchange, ccxt.huobi):
     async def watch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        # only supports a limit of 150 at self time
         messageHash = 'market.' + market['id'] + '.detail'
-        api = self.safe_string(self.options, 'api', 'api')
-        hostname = {'hostname': self.hostname}
-        url = self.implode_params(self.urls['api']['ws'][api]['spot']['public'], hostname)
-        requestId = self.request_id()
-        request = {
-            'sub': messageHash,
-            'id': requestId,
-        }
-        subscription = {
-            'id': requestId,
-            'messageHash': messageHash,
-            'symbol': symbol,
-            'params': params,
-        }
-        return await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
+        url = self.get_url_by_market_type(market['type'], market['linear'])
+        return await self.subscribe_public(url, symbol, messageHash, None, params)
 
     def handle_ticker(self, client, message):
         #
