@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const { ExchangeError } = require ('ccxt/js/base/errors');
+const { ExchangeError, InvalidNonce } = require ('ccxt/js/base/errors');
 const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -345,20 +345,47 @@ module.exports = class huobi extends ccxt.huobi {
     async fetchOrderBookSnapshot (client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
-        const params = this.safeValue (subscription, 'params');
         const messageHash = this.safeString (subscription, 'messageHash');
-        const snapshot = await this.fetchOrderBook (symbol, limit, params);
-        const orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook !== undefined) {
-            orderbook.reset (snapshot);
-            // unroll the accumulated deltas
+        try {
+            const snapshot = await this.fetchOrderBook (symbol, limit);
+            const orderbook = this.orderbooks[symbol];
             const messages = orderbook.cache;
-            for (let i = 0; i < messages.length; i++) {
-                const message = messages[i];
-                this.handleOrderBookMessage (client, message, orderbook);
+            const firstMessage = this.safeValue (messages, 0, {});
+            const sequence = this.safeInteger (firstMessage, 'sequence');
+            const nonce = this.safeInteger (snapshot, 'nonce');
+            // if the received snapshot is earlier than the first cached delta
+            // then we cannot align it with the cached deltas and we need to
+            // retry synchronizing in maxAttempts
+            if ((sequence !== undefined) && (nonce < sequence)) {
+                const options = this.safeValue (this.options, 'fetchOrderBookSnapshot', {});
+                const maxAttempts = this.safeInteger (options, 'maxAttempts', 3);
+                let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
+                // retry to syncrhonize if we haven't reached maxAttempts yet
+                if (numAttempts < maxAttempts) {
+                    // safety guard
+                    if (messageHash in client.subscriptions) {
+                        numAttempts = this.sum (numAttempts, 1);
+                        subscription['numAttempts'] = numAttempts;
+                        client.subscriptions[messageHash] = subscription;
+                        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+                    }
+                } else {
+                    // throw upon failing to synchronize in maxAttempts
+                    throw new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + maxAttempts.toString () + ' attempts');
+                }
+            } else {
+                orderbook.reset (snapshot);
+                // unroll the accumulated deltas
+                // 3. Playback the cached Level 2 data flow.
+                for (let i = 0; i < messages.length; i++) {
+                    const message = messages[i];
+                    this.handleOrderBookMessage (client, message, orderbook);
+                }
+                this.orderbooks[symbol] = orderbook;
+                client.resolve (orderbook, messageHash);
             }
-            this.orderbooks[symbol] = orderbook;
-            client.resolve (orderbook, messageHash);
+        } catch (e) {
+            client.reject (e, messageHash);
         }
     }
 
