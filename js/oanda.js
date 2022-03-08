@@ -715,7 +715,6 @@ module.exports = class oanda extends Exchange {
         let type = undefined;
         let price = undefined;
         let timeInForce = undefined;
-        let amountRaw = undefined;
         let amount = undefined;
         let filled = undefined;
         let remaining = undefined;
@@ -761,8 +760,9 @@ module.exports = class oanda extends Exchange {
             timestamp = this.parseDate (this.safeString (chosenOrder, 'createTime'));
             price = this.safeString (chosenOrder, 'price');
             timeInForce = this.parseTimeInForce (this.safeString (chosenOrder, 'timeInForce'));
-            amount = Precise.stringAbs (this.safeString (chosenOrder, 'units'));
-            side = Precise.stringGt (amountRaw, '0') ? 'buy' : 'sell';
+            amount = this.safeString (chosenOrder, 'units');
+            side = Precise.stringGt (amount, '0') ? 'buy' : 'sell';
+            amount = Precise.stringAbs (amount);
             type = this.parseOrderType (this.safeString (chosenOrder, 'type'));
             const state = this.safeString (chosenOrder, 'state');
             status = this.parseOrderStatus (state);
@@ -798,7 +798,7 @@ module.exports = class oanda extends Exchange {
     }
 
     parseOrderStatus (status) {
-        let statuses = {
+        const statuses = {
             'PENDING': 'open',
             'FILLED': 'closed',
             'TRIGGERED': 'closed',
@@ -809,7 +809,7 @@ module.exports = class oanda extends Exchange {
     }
 
     parseOrderType (status) {
-        let statuses = {
+        const statuses = {
             'MARKET': 'market',
             'LIMIT': 'limit',
             'STOP': 'stop',
@@ -822,7 +822,7 @@ module.exports = class oanda extends Exchange {
     }
 
     parseOrderTransactionType (status) {
-        let statuses = {
+        const statuses = {
             'MARKET_ORDER': 'market',
             'LIMIT_ORDER': 'limit',
             'STOP_ORDER': 'stop',
@@ -838,7 +838,7 @@ module.exports = class oanda extends Exchange {
     }
 
     parseTimeInForce (timeInForce) {
-        let statuses = {
+        const statuses = {
             'GTC': 'GTC',
             'IOC': 'IOC',
             'FOK': 'FOK',
