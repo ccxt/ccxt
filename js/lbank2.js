@@ -20,7 +20,7 @@ module.exports = class lbank extends Exchange {
             'rateLimit': 20,
             'has': {
                 'CORS': false,
-                'spot': false,
+                'spot': true,
                 'margin': false,
                 'swap': false,
                 'future': false,
@@ -44,7 +44,7 @@ module.exports = class lbank extends Exchange {
                 'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
-                'fetchMarkets': false,
+                'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchOHLCV': false,
                 'fetchOpenOrders': false, // status 0 API doesn't work
@@ -145,6 +145,26 @@ module.exports = class lbank extends Exchange {
                 'cacheSecretAsPem': true,
             },
         });
+    }
+
+    async fetchMarkets (params = {}) {
+        const response = await this.publicGetAccuracy ();
+        return response;
+    }
+
+    sign2 (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const query = this.omit (params, this.extractParams (path));
+        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
+        // every endpoint ends in ".do"
+        url += '.do';
+        if (api === 'public') {
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
+            }
+        } else {
+            this.checkRequiredCredentials ();
+            // const query =
+        }
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
