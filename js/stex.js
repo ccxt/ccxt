@@ -66,6 +66,8 @@ module.exports = class stex extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
@@ -844,6 +846,31 @@ module.exports = class stex extends Exchange {
         //
         const trades = this.safeValue (response, 'data', []);
         return this.parseTrades (trades, market, since, limit);
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'currencyPairId': market['id'],
+        };
+        const response = await this.tradingGetFeesCurrencyPairId (this.extend (request, params));
+        //
+        //     {
+        //         success: true,
+        //         data: { buy_fee: '0.00200000', sell_fee: '0.00200000' },
+        //         unified_message: { message_id: 'operation_successful', substitutions: [] }
+        //      }
+        //
+        const data = this.safeValue (response, 'data');
+        return {
+            'info': response,
+            'symbol': market['symbol'],
+            'maker': this.safeNumber (data, 'sell_fee'),
+            'taker': this.safeNumber (data, 'buy_fee'),
+            'percentage': true,
+            'tierBased': true,
+        };
     }
 
     parseBalance (response) {
