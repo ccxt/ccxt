@@ -920,7 +920,7 @@ module.exports = class oanda extends Exchange {
     }
 
     parsePositionStatus (status) {
-        let statuses = {
+        const statuses = {
             'ALL': 'all',
             'OPEN': 'open',
             'CLOSED': 'closed',
@@ -1270,14 +1270,14 @@ module.exports = class oanda extends Exchange {
         const id = this.safeString (transaction, 'id');
         const amount = this.safeNumber (transaction, 'amount');
         const amountStr = this.safeString (transaction, 'amount');
-        const isIncome = Precise.stringGt (amountStr, '0');
         const txid = this.safeString (transaction, 'requestID');
         const trType = this.safeString (transaction, 'type');
         const fundingReason = this.safeString (transaction, 'fundingReason');
         let type = undefined;
         if (trType === 'TRANSFER_FUNDS') {
             if (fundingReason === 'CLIENT_FUNDING') {
-                type = isIncome ? 'deposit' : 'withdrawal';
+                const isDeposit = Precise.stringGt (amountStr, '0');
+                type = isDeposit ? 'deposit' : 'withdrawal';
             } else {
                 type = fundingReason;
             }
@@ -1285,7 +1285,6 @@ module.exports = class oanda extends Exchange {
         const date = this.safeString (transaction, 'time');
         const timestamp = this.parseDate (date);
         currency = this.safeCurrency (undefined, currency);
-        const code = this.safeString (currency, 'code');
         return {
             'id': id,
             'currency': code,
@@ -1304,7 +1303,7 @@ module.exports = class oanda extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'fee': {
-                'currency': code,
+                'currency': currency['code'],
                 'cost': undefined,
             },
             'info': transaction,
