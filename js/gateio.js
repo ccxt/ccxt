@@ -2274,7 +2274,12 @@ module.exports = class gateio extends Exchange {
         const reduceOnly = this.safeValue2 (params, 'reduce_only', 'reduceOnly');
         const defaultTimeInForce = this.safeValue2 (params, 'tif', 'time_in_force', 'gtc');
         let timeInForce = this.safeValue (params, 'timeInForce', defaultTimeInForce);
+        let postOnly = false;
+        [ type, postOnly, timeInForce, params ] = this.isPostOnly (type, timeInForce, undefined, params);
         params = this.omit (params, [ 'stopPrice', 'reduce_only', 'reduceOnly', 'tif', 'time_in_force', 'timeInForce' ]);
+        if (postOnly) {
+            timeInForce = 'poc';
+        }
         const isLimitOrder = (type === 'limit');
         const isMarketOrder = (type === 'market');
         if (isLimitOrder && price === undefined) {
