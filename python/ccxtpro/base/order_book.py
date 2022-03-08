@@ -76,27 +76,3 @@ class IndexedOrderBook(OrderBook):
             'bids': order_book_side.IndexedBids(snapshot.get('bids', []), depth),
         })
         super(IndexedOrderBook, self).__init__(copy, depth)
-
-# -----------------------------------------------------------------------------
-# adjusts the volumes by positive or negative relative changes or differences
-
-
-class IncrementalOrderBook(OrderBook):
-    def __init__(self, snapshot={}, depth=None):
-        copy = Exchange.extend(snapshot, {
-            'asks': order_book_side.IncrementalAsks(snapshot.get('asks', []), depth),
-            'bids': order_book_side.IncrementalBids(snapshot.get('bids', []), depth),
-        })
-        super(IncrementalOrderBook, self).__init__(copy, depth)
-
-# -----------------------------------------------------------------------------
-# incremental and indexed (2 in 1)
-
-
-class IncrementalIndexedOrderBook(OrderBook):
-    def __init__(self, snapshot={}, depth=None):
-        copy = Exchange.extend(snapshot, {
-            'asks': order_book_side.IncrementalIndexedAsks(snapshot.get('asks', []), depth),
-            'bids': order_book_side.IncrementalIndexedBids(snapshot.get('bids', []), depth),
-        })
-        super(IncrementalIndexedOrderBook, self).__init__(copy, depth)
