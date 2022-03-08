@@ -1216,7 +1216,6 @@ module.exports = class ascendex extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.loadAccounts ();
         const market = this.market (symbol);
         const [ style, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         const options = this.safeValue (this.options, 'createOrder', {});
@@ -1225,7 +1224,11 @@ module.exports = class ascendex extends Exchange {
         const account = this.safeValue (this.accounts, 0, {});
         const accountGroup = this.safeValue (account, 'id');
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'id');
-        const reduceOnly = this.safeValue (params, 'execInst');
+        const reduceOnly = this.safeValue (params, 'execInst', 'reduceOnly');
+        let timeInForce = this.safeStringUpper (params, 'timeInForce');
+        let postOnly = false;
+        [ type, postOnly, timeInForce, params ] = this.isPostOnly (type, timeInForce, undefined, params);
+        params = this.omit (params, 'timeInForce');
         if (reduceOnly !== undefined) {
             if ((style !== 'swap')) {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + style + ' orders, reduceOnly orders are supported for perpetuals only');
@@ -1245,6 +1248,12 @@ module.exports = class ascendex extends Exchange {
             // 'timeInForce': 'GTC', // GTC, IOC, FOK
             // 'respInst': 'ACK', // ACK, 'ACCEPT, DONE
         };
+        if (postOnly) {
+            request['postOnly'] = true;
+        }
+        if (timeInForce !== undefined) {
+            request['timeInForce'] = timeInForce;
+        }
         if (clientOrderId !== undefined) {
             request['id'] = clientOrderId;
             params = this.omit (params, [ 'clientOrderId', 'id' ]);
