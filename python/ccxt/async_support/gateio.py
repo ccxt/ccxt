@@ -1327,7 +1327,7 @@ class gateio(Exchange):
                 'amount': self.safe_number(entry, 'change'),
             })
         sorted = self.sort_by(result, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -1733,7 +1733,7 @@ class gateio(Exchange):
                 'datetime': self.iso8601(timestamp),
             })
         sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     async def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         request = {
