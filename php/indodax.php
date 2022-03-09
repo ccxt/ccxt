@@ -558,6 +558,7 @@ class indodax extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $request['pair'] = $market['id'];
         }
         $response = $this->privatePostOrderHistory (array_merge($request, $params));
