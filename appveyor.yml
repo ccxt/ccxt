@@ -43,8 +43,10 @@ test_script:
   - npm run force-build
   # - npm run test-base
 cache:
-  - '%APPDATA%\npm-cache'
-  - '%LOCALAPPDATA%\pip\Cache'
+  - '%APPDATA%\npm-cache' -> appveyor.yml
+  - '%LOCALAPPDATA%\pip\Cache' -> appveyor.yml
+  - C:\ProgramData\chocolatey\bin -> appveyor.yml
+  - C:\ProgramData\chocolatey\lib -> appveyor.yml
   - .cache
 after_build:
   # Remove old or huge cache files to hopefully not exceed the 1GB cache limit.
