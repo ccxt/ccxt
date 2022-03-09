@@ -5,8 +5,10 @@
 
 from ccxtpro.base.exchange import Exchange
 import ccxt.async_support as ccxt
-from ccxtpro.base.cache import ArrayCache, ArrayCacheByTimestamp
+from ccxtpro.base.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
+import hashlib
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 
 
 class huobi(Exchange, ccxt.huobi):
@@ -19,6 +21,7 @@ class huobi(Exchange, ccxt.huobi):
                 'watchTickers': False,  # for now
                 'watchTicker': True,
                 'watchTrades': True,
+                'watchMyTrades': True,
                 'watchBalance': False,  # for now
                 'watchOHLCV': True,
             },
@@ -170,22 +173,8 @@ class huobi(Exchange, ccxt.huobi):
         market = self.market(symbol)
         interval = self.timeframes[timeframe]
         messageHash = 'market.' + market['id'] + '.kline.' + interval
-        api = self.safe_string(self.options, 'api', 'api')
-        hostname = {'hostname': self.hostname}
-        url = self.implode_params(self.urls['api']['ws'][api]['spot']['public'], hostname)
-        requestId = self.request_id()
-        request = {
-            'sub': messageHash,
-            'id': requestId,
-        }
-        subscription = {
-            'id': requestId,
-            'messageHash': messageHash,
-            'symbol': symbol,
-            'timeframe': timeframe,
-            'params': params,
-        }
-        ohlcv = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
+        url = self.get_url_by_market_type(market['type'], market['linear'])
+        ohlcv = await self.subscribe_public(url, symbol, messageHash, None, params)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
@@ -461,6 +450,29 @@ class huobi(Exchange, ccxt.huobi):
         else:
             self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
 
+    async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        self.check_required_credentials()
+        type = None
+        marketId = '*'  # wildcard
+        if symbol is not None:
+            await self.load_markets()
+            market = self.market(symbol)
+            type = market['type']
+            marketId = market['id'].lower()
+        else:
+            type, params = self.handle_market_type_and_params('watchMyTrades', None, params)
+        if type != 'spot':
+            raise ArgumentsRequired(self.id + ' watchMyTrades supports spot markets only')
+        mode = None
+        if mode is None:
+            mode = self.safe_string_2(self.options, 'watchMyTrades', 'mode', 0)
+            mode = self.safe_string(params, 'mode', mode)
+        messageHash = 'trade.clearing' + '#' + marketId + '#' + mode
+        trades = await self.subscribe_private(messageHash, type, 'linear', params)
+        if self.newUpdates:
+            limit = trades.getLimit(symbol, limit)
+        return self.filter_by_since_limit(trades, since, limit)
+
     def handle_subscription_status(self, client, message):
         #
         #     {
@@ -535,6 +547,16 @@ class huobi(Exchange, ccxt.huobi):
         #         },
         #         "ts":1645023376098
         #      }
+        # spot private trade
+        #
+        #  {
+        #      "action":"push",
+        #      "ch":"trade.clearing#ltcusdt#1",
+        #      "data":{
+        #         "eventType":"trade",
+        #         "symbol":"ltcusdt",
+        #           (...)
+        #  }
         #
         ch = self.safe_value(message, 'ch')
         parts = ch.split('.')
@@ -554,15 +576,59 @@ class huobi(Exchange, ccxt.huobi):
                 return message
             else:
                 return method(client, message)
+        # private subjects
+        privateParts = ch.split('#')
+        privateType = self.safe_string(privateParts, 0)
+        if privateType == 'trade.clearing':
+            self.handle_my_trade(client, message)
 
     async def pong(self, client, message):
         #
         #     {ping: 1583491673714}
         #
-        await client.send({'pong': self.safe_integer(message, 'ping')})
+        # or
+        #     {action: 'ping', data: {ts: 1645108204665}}
+        #
+        # or
+        #     {op: 'ping', ts: '1645202800015'}
+        #
+        ping = self.safe_integer(message, 'ping')
+        if ping is not None:
+            await client.send({'pong': ping})
+            return
+        action = self.safe_string(message, 'action')
+        if action == 'ping':
+            data = self.safe_value(message, 'data')
+            ping = self.safe_integer(data, 'ts')
+            await client.send({'action': 'pong', 'data': {'ts': ping}})
+            return
+        op = self.safe_string(message, 'op')
+        if op == 'ping':
+            ping = self.safe_integer(message, 'ts')
+            await client.send({'op': 'pong', 'ts': ping})
 
     def handle_ping(self, client, message):
         self.spawn(self.pong, client, message)
+
+    def handle_authenticate(self, client, message):
+        # spot
+        # {
+        #     "action": "req",
+        #     "code": 200,
+        #     "ch": "auth",
+        #     "data": {}
+        # }
+        # non spot
+        #    {
+        #        op: 'auth',
+        #        type: 'api',
+        #        'err-code': 0,
+        #        ts: 1645200307319,
+        #        data: {'user-id': '35930539'}
+        #    }
+        #
+        client.resolve(message, 'auth')
+        return message
 
     def handle_error_message(self, client, message):
         #
@@ -597,13 +663,170 @@ class huobi(Exchange, ccxt.huobi):
             #
             #     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}
             #
+            # first ping format
+            #
+            #    {'ping': 1645106821667}
+            #
+            # second ping format
+            #
+            #    {"action":"ping","data":{"ts":1645106821667}}
+            #
+            # third pong format
+            #
+            #
+            # auth spot
+            #     {
+            #         "action": "req",
+            #         "code": 200,
+            #         "ch": "auth",
+            #         "data": {}
+            #     }
+            # auth non spot
+            #    {
+            #        op: 'auth',
+            #        type: 'api',
+            #        'err-code': 0,
+            #        ts: 1645200307319,
+            #        data: {'user-id': '35930539'}
+            #    }
+            # trade
+            # {
+            #     "action":"push",
+            #     "ch":"trade.clearing#ltcusdt#1",
+            #     "data":{
+            #        "eventType":"trade",
+            #          (...)
+            #     }
+            #  }
+            #
             if 'id' in message:
                 self.handle_subscription_status(client, message)
-            elif 'ch' in message:
-                # route by channel aka topic aka subject
-                self.handle_subject(client, message)
-            elif 'ping' in message:
+                return
+            if 'action' in message:
+                action = self.safe_string(message, 'action')
+                if action == 'ping':
+                    self.handle_ping(client, message)
+                    return
+                if action == 'sub':
+                    self.handle_subscription_status(client, message)
+                    return
+            if 'ch' in message:
+                if message['ch'] == 'auth':
+                    self.handle_authenticate(client, message)
+                    return
+                else:
+                    # route by channel aka topic aka subject
+                    self.handle_subject(client, message)
+                    return
+            if 'ping' in message:
                 self.handle_ping(client, message)
+
+    def handle_my_trade(self, client, message):
+        #
+        # spot
+        #
+        # {
+        #     "action":"push",
+        #     "ch":"trade.clearing#ltcusdt#1",
+        #     "data":{
+        #        "eventType":"trade",
+        #        "symbol":"ltcusdt",
+        #        "orderId":"478862728954426",
+        #        "orderSide":"buy",
+        #        "orderType":"buy-market",
+        #        "accountId":44234548,
+        #        "source":"spot-web",
+        #        "orderValue":"5.01724137",
+        #        "orderCreateTime":1645124660365,
+        #        "orderStatus":"filled",
+        #        "feeCurrency":"ltc",
+        #        "tradePrice":"118.89",
+        #        "tradeVolume":"0.042200701236437042",
+        #        "aggressor":true,
+        #        "tradeId":101539740584,
+        #        "tradeTime":1645124660368,
+        #        "transactFee":"0.000041778694224073",
+        #        "feeDeduct":"0",
+        #        "feeDeductType":""
+        #     }
+        #  }
+        #
+        if self.myTrades is None:
+            limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+            self.myTrades = ArrayCacheBySymbolById(limit)
+        cachedTrades = self.myTrades
+        messageHash = self.safe_string(message, 'ch')
+        if messageHash is not None:
+            data = self.safe_value(message, 'data')
+            parsed = self.parse_ws_trade(data)
+            symbol = self.safe_string(parsed, 'symbol')
+            if symbol is not None:
+                cachedTrades.append(parsed)
+            client.resolve(self.myTrades, messageHash)
+
+    def parse_ws_trade(self, trade):
+        # spot private
+        #
+        #   {
+        #        "eventType":"trade",
+        #        "symbol":"ltcusdt",
+        #        "orderId":"478862728954426",
+        #        "orderSide":"buy",
+        #        "orderType":"buy-market",
+        #        "accountId":44234548,
+        #        "source":"spot-web",
+        #        "orderValue":"5.01724137",
+        #        "orderCreateTime":1645124660365,
+        #        "orderStatus":"filled",
+        #        "feeCurrency":"ltc",
+        #        "tradePrice":"118.89",
+        #        "tradeVolume":"0.042200701236437042",
+        #        "aggressor":true,
+        #        "tradeId":101539740584,
+        #        "tradeTime":1645124660368,
+        #        "transactFee":"0.000041778694224073",
+        #        "feeDeduct":"0",
+        #        "feeDeductType":""
+        #  }
+        symbol = self.safe_symbol(self.safe_string(trade, 'symbol'))
+        side = self.safe_string_2(trade, 'side', 'orderSide')
+        tradeId = self.safe_string(trade, 'tradeId')
+        price = self.safe_string(trade, 'tradePrice')
+        amount = self.safe_string(trade, 'tradeVolume')
+        order = self.safe_string(trade, 'orderId')
+        timestamp = self.safe_integer(trade, 'tradeTime')
+        market = self.market(symbol)
+        orderType = self.safe_string(trade, 'orderType')
+        aggressor = self.safe_value(trade, 'aggressor')
+        takerOrMaker = None
+        if aggressor is not None:
+            takerOrMaker = 'taker' if aggressor else 'maker'
+        type = None
+        if orderType is not None:
+            orderType = orderType.split('-')
+            type = self.safe_string(orderType, 1)
+        fee = None
+        feeCurrency = self.safe_currency_code(self.safe_string(trade, 'feeCurrency'))
+        if feeCurrency is not None:
+            fee = {
+                'cost': self.safe_string(trade, 'transactFee'),
+                'currency': feeCurrency,
+            }
+        return self.safe_trade({
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'id': tradeId,
+            'order': order,
+            'type': type,
+            'takerOrMaker': takerOrMaker,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': None,
+            'fee': fee,
+        }, market)
 
     def get_url_by_market_type(self, type, isLinear=True, isPrivate=False):
         api = self.safe_string(self.options, 'api', 'api')
@@ -637,3 +860,96 @@ class huobi(Exchange, ccxt.huobi):
         if method is not None:
             subscription['method'] = method
         return await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
+
+    async def subscribe_private(self, messageHash, type, subtype, params={}):
+        requestId = self.nonce()
+        subscription = {
+            'id': requestId,
+            'messageHash': messageHash,
+            'params': params,
+        }
+        request = None
+        if type == 'spot':
+            request = {
+                'action': 'sub',
+                'ch': messageHash,
+            }
+        else:
+            request = {
+                'op': 'sub',
+                'topic': messageHash,
+                'cid': requestId,
+            }
+        isLinear = subtype == 'linear'
+        url = self.get_url_by_market_type(type, isLinear, True)
+        hostname = self.urls['hostnames']['spot'] if (type == 'spot') else self.urls['hostnames']['contract']
+        authParams = {
+            'type': type,
+            'url': url,
+            'hostname': hostname,
+        }
+        if type == 'spot':
+            self.options['ws']['gunzip'] = False
+        await self.authenticate(authParams)
+        return await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
+
+    async def authenticate(self, params={}):
+        url = self.safe_string(params, 'url')
+        hostname = self.safe_string(params, 'hostname')
+        type = self.safe_string(params, 'type')
+        if url is None or hostname is None or type is None:
+            raise ArgumentsRequired(self.id + ' authenticate requires a url, hostname and type argument')
+        self.check_required_credentials()
+        messageHash = 'auth'
+        relativePath = url.replace('wss://' + hostname, '')
+        client = self.client(url)
+        future = self.safe_value(client.subscriptions, messageHash)
+        if future is None:
+            future = client.future(messageHash)
+            timestamp = self.ymdhms(self.milliseconds(), 'T')
+            signatureParams = None
+            if type == 'spot':
+                signatureParams = {
+                    'accessKey': self.apiKey,
+                    'signatureMethod': 'HmacSHA256',
+                    'signatureVersion': '2.1',
+                    'timestamp': timestamp,
+                }
+            else:
+                signatureParams = {
+                    'AccessKeyId': self.apiKey,
+                    'SignatureMethod': 'HmacSHA256',
+                    'SignatureVersion': '2',
+                    'Timestamp': timestamp,
+                }
+            signatureParams = self.keysort(signatureParams)
+            auth = self.urlencode(signatureParams)
+            payload = "\n".join(['GET', hostname, relativePath, auth])  # eslint-disable-line quotes
+            signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
+            request = None
+            if type == 'spot':
+                params = {
+                    'authType': 'api',
+                    'accessKey': self.apiKey,
+                    'signatureMethod': 'HmacSHA256',
+                    'signatureVersion': '2.1',
+                    'timestamp': timestamp,
+                    'signature': signature,
+                }
+                request = {
+                    'params': params,
+                    'action': 'req',
+                    'ch': messageHash,
+                }
+            else:
+                request = {
+                    'op': messageHash,
+                    'type': 'api',
+                    'AccessKeyId': self.apiKey,
+                    'SignatureMethod': 'HmacSHA256',
+                    'SignatureVersion': '2',
+                    'Timestamp': timestamp,
+                    'Signature': signature,
+                }
+            await self.watch(url, messageHash, request, messageHash, future)
+        return await future
