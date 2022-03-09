@@ -1346,7 +1346,7 @@ module.exports = class gateio extends Exchange {
             });
         }
         const sorted = this.sortBy (result, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -1775,7 +1775,7 @@ module.exports = class gateio extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
     async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -2356,7 +2356,7 @@ module.exports = class gateio extends Exchange {
         } else {
             if (contract) {
                 // contract conditional order
-                const rule = (side === 'buy') ? 1 : 2;
+                const rule = (side === 'buy') ? 2 : 1;
                 request = {
                     'initial': {
                         'contract': market['id'],

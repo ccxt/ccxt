@@ -1050,6 +1050,10 @@ class exmo extends Exchange {
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         yield $this->load_markets();
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+        }
         $response = yield $this->privatePostUserOpenOrders ($params);
         $marketIds = is_array($response) ? array_keys($response) : array();
         $orders = array();

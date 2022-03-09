@@ -566,9 +566,9 @@ module.exports = class phemex extends Exchange {
             'expiryDatetime': undefined,
             'strike': undefined,
             'optionType': undefined,
-            'priceScale': this.parseNumber ('8'),
-            'valueScale': this.parseNumber ('8'),
-            'ratioScale': this.parseNumber ('8'),
+            'priceScale': 8,
+            'valueScale': 8,
+            'ratioScale': 8,
             'precision': {
                 'amount': precisionAmount,
                 'price': precisionPrice,

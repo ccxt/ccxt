@@ -1045,6 +1045,10 @@ module.exports = class exmo extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            symbol = market['symbol'];
+        }
         const response = await this.privatePostUserOpenOrders (params);
         const marketIds = Object.keys (response);
         let orders = [];

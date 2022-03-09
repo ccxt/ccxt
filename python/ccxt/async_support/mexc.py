@@ -2372,7 +2372,7 @@ class mexc(Exchange):
                 'datetime': self.iso8601(timestamp),
             })
         sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     async def fetch_leverage_tiers(self, symbols=None, params={}):
         await self.load_markets()

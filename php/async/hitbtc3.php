@@ -1548,6 +1548,7 @@ class hitbtc3 extends Exchange {
         );
         if ($symbol !== null) {
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $request['symbols'] = $market['id'];
         }
         if ($since !== null) {

@@ -4244,6 +4244,7 @@ module.exports = class binance extends Exchange {
         }
         if (symbol !== undefined) {
             const market = this.market (symbol);
+            symbol = market['symbol'];
             request['symbol'] = market['id'];
             if (market['linear']) {
                 method = 'fapiPublicGetFundingRate';
@@ -4628,7 +4629,7 @@ module.exports = class binance extends Exchange {
         //
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol');
         const leverageBrackets = this.safeValue (this.options, 'leverageBrackets', {});
         const leverageBracket = this.safeValue (leverageBrackets, symbol, []);
         const notionalString = this.safeString2 (position, 'notional', 'notionalValue');
@@ -4668,6 +4669,7 @@ module.exports = class binance extends Exchange {
         const linear = ('notional' in position);
         if (marginType === 'cross') {
             // calculate collateral
+            const precision = this.safeValue (market, 'precision');
             if (linear) {
                 // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
                 let onePlusMaintenanceMarginPercentageString = undefined;
@@ -4680,7 +4682,8 @@ module.exports = class binance extends Exchange {
                 }
                 const inner = Precise.stringMul (liquidationPriceString, onePlusMaintenanceMarginPercentageString);
                 const leftSide = Precise.stringAdd (inner, entryPriceSignString);
-                collateralString = Precise.stringDiv (Precise.stringMul (leftSide, contractsAbs), '1', market['precision']['quote']);
+                const quotePrecision = this.safeString (precision, 'quote');
+                collateralString = Precise.stringDiv (Precise.stringMul (leftSide, contractsAbs), '1', quotePrecision);
             } else {
                 // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
                 let onePlusMaintenanceMarginPercentageString = undefined;
@@ -4693,7 +4696,8 @@ module.exports = class binance extends Exchange {
                 }
                 const leftSide = Precise.stringMul (contractsAbs, contractSizeString);
                 const rightSide = Precise.stringSub (Precise.stringDiv ('1', entryPriceSignString), Precise.stringDiv (onePlusMaintenanceMarginPercentageString, liquidationPriceString));
-                collateralString = Precise.stringDiv (Precise.stringMul (leftSide, rightSide), '1', market['precision']['base']);
+                const basePrecision = this.safeString (precision, 'base');
+                collateralString = Precise.stringDiv (Precise.stringMul (leftSide, rightSide), '1', basePrecision);
             }
         } else {
             collateralString = this.safeString (position, 'isolatedMargin');

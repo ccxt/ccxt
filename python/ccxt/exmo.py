@@ -993,6 +993,9 @@ class exmo(Exchange):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
         response = self.privatePostUserOpenOrders(params)
         marketIds = list(response.keys())
         orders = []

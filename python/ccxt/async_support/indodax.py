@@ -535,6 +535,7 @@ class indodax(Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
             request['pair'] = market['id']
         response = await self.privatePostOrderHistory(self.extend(request, params))
         orders = self.parse_orders(response['return']['orders'], market)
