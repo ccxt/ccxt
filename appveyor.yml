@@ -46,8 +46,8 @@ test_script:
 cache:
   - '%APPDATA%\npm-cache'
   - '%LOCALAPPDATA%\pip\Cache'
-  # - C:\ProgramData\chocolatey\bin
-  # - C:\ProgramData\chocolatey\lib
+  - C:\ProgramData\chocolatey\bin
+  - C:\ProgramData\chocolatey\lib
   - C:\tools\php81
   - .cache
 after_build:
