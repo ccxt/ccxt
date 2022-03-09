@@ -584,6 +584,9 @@ module.exports = class okx extends Exchange {
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
                     'OMNI': 'Omni',
+                    'OEC': 'OEC',
+                    'POLYGON': 'Polygon',
+                    'SOLANA': 'Solana',
                 },
                 'layerTwo': {
                     'Lightning': true,
@@ -2711,6 +2714,14 @@ module.exports = class okx extends Exchange {
         //       "selected": true
         //     }
         //
+        //      {
+        //          "chain":"USDT-Polygon",
+        //          "ctAddr":"",
+        //          "ccy":"USDT",
+        //          "to":"6",
+        //          "addr":"0x1903441e386cc49d937f6302955b5feb4286dcfa",
+        //          "selected":true
+        //      }
         const address = this.safeString (depositAddress, 'addr');
         let tag = this.safeString2 (depositAddress, 'tag', 'pmtId');
         tag = this.safeString (depositAddress, 'memo', tag);
@@ -2718,16 +2729,13 @@ module.exports = class okx extends Exchange {
         currency = this.safeCurrency (currencyId, currency);
         const code = currency['code'];
         const chain = this.safeString (depositAddress, 'chain');
-        const networks = this.safeValue (currency, 'networks', {});
-        const networksById = this.indexBy (networks, 'id');
-        const networkData = this.safeValue (networksById, chain);
-        const network = this.safeString (networkData, 'network');
+        const rawNetwork = this.safeValue (chain.split ('-'), 1);
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': network,
+            'network': rawNetwork.toUpperCase (),
             'info': depositAddress,
         };
     }
@@ -2737,7 +2745,9 @@ module.exports = class okx extends Exchange {
         const currency = this.currency (code);
         const request = {
             'ccy': currency['id'],
+            'chain': currency['id'] + '-' + params['network'],
         };
+        params = this.omit (params, 'network');
         const response = await this.privateGetAssetDepositAddress (this.extend (request, params));
         //
         //     {
@@ -2771,6 +2781,9 @@ module.exports = class okx extends Exchange {
         const networks = this.safeValue (this.options, 'networks', {});
         const network = this.safeString (networks, rawNetwork, rawNetwork);
         params = this.omit (params, 'network');
+        if (network !== undefined) {
+            params['network'] = network;
+        }
         const response = await this.fetchDepositAddressesByNetwork (code, params);
         let result = undefined;
         if (network === undefined) {
@@ -2792,7 +2805,8 @@ module.exports = class okx extends Exchange {
             }
             return result;
         }
-        result = this.safeValue (response, network);
+        const upperCaseNetwork = network.toUpperCase ();
+        result = this.safeValue (response, upperCaseNetwork);
         if (result === undefined) {
             throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code);
         }
