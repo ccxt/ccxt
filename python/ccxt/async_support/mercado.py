@@ -622,7 +622,7 @@ class mercado(Exchange):
         ordersRaw = self.safe_value(responseData, 'orders', [])
         orders = self.parse_orders(ordersRaw, market, since, limit)
         trades = self.orders_to_trades(orders)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(trades, market['symbol'], since, limit)
 
     def orders_to_trades(self, orders):
         result = []
