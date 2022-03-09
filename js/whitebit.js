@@ -903,6 +903,7 @@ module.exports = class whitebit extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            symbol = market['symbol'];
             request['market'] = market['id'];
         }
         if (limit !== undefined) {
