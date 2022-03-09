@@ -2170,6 +2170,7 @@ class zb(Exchange):
         }
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
             request['symbol'] = market['id']
         if since is not None:
             request['startTime'] = since

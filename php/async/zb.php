@@ -2265,6 +2265,7 @@ class zb extends Exchange {
         );
         if ($symbol !== null) {
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $request['symbol'] = $market['id'];
         }
         if ($since !== null) {
