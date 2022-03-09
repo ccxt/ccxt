@@ -46,7 +46,7 @@
     "lint": "eslint",
     "check-syntax": "npm run transpile && npm run check-js-syntax && npm run check-python-syntax && npm run check-php-syntax",
     "check-js-syntax": "node -e \"console.log(process.cwd())\" && eslint --version && eslint \"js/*.js\"",
-    "check-python-syntax": "cd python && tox -e qa && cd ..",
+    "check-python-syntax": "python3 qa.py",
     "check-php-syntax": "php -f php/test/syntax.php",
     "browserify": "browserify ./ccxt.browser.js > ./dist/ccxt.browser.js",
     "copy-python-files": "npm run copy-python-package && npm run copy-python-license && npm run copy-python-keys && npm run copy-python-readme",
