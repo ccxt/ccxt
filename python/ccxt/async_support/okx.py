@@ -1462,7 +1462,7 @@ class okx(Exchange):
                 'datetime': self.iso8601(timestamp),
             })
         sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     async def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         request = {
@@ -3575,6 +3575,9 @@ class okx(Exchange):
         }
         if limit is not None:
             request['limit'] = str(limit)  # default 100, max 100
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
         response = await self.privateGetAccountBills(self.extend(request, params))
         #
         #     {
