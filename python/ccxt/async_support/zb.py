@@ -53,6 +53,7 @@ class zb(Exchange):
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
@@ -2927,6 +2928,45 @@ class zb(Exchange):
         if params['positionsId'] is None:
             raise ArgumentsRequired(self.id + ' addMargin() requires a positionsId argument in the params')
         return await self.modify_margin_helper(symbol, amount, 1, params)
+
+    async def fetch_borrow_rate(self, code, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'coin': currency['id'],
+        }
+        response = await self.spotV1PrivateGetGetLoans(self.extend(request, params))
+        #
+        #     {
+        #         code: '1000',
+        #         message: '操作成功',
+        #         result: [
+        #             {
+        #                 interestRateOfDay: '0.0005',
+        #                 repaymentDay: '30',
+        #                 amount: '148804.4841',
+        #                 balance: '148804.4841',
+        #                 rateOfDayShow: '0.05 %',
+        #                 coinName: 'USDT',
+        #                 lowestAmount: '0.01'
+        #             },
+        #         ]
+        #     }
+        #
+        timestamp = self.milliseconds()
+        data = self.safe_value(response, 'result')
+        rates = []
+        for i in range(0, len(data)):
+            entry = data[i]
+            rates.append({
+                'currency': self.safe_currency_code(self.safe_string(entry, 'coinName')),
+                'rate': self.safe_number(entry, 'interestRateOfDay'),
+                'period': self.safe_number(entry, 'repaymentDay'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'info': entry,
+            })
+        return rates
 
     def nonce(self):
         return self.milliseconds()

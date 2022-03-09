@@ -37,6 +37,8 @@ class paymium(Exchange):
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg',
@@ -91,8 +93,8 @@ class paymium(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': self.parse_number('0.002'),
-                    'taker': self.parse_number('0.002'),
+                    'maker': self.parse_number('-0.001'),
+                    'taker': self.parse_number('0.005'),
                 },
             },
         })
