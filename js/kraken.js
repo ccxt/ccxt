@@ -1142,6 +1142,21 @@ module.exports = class kraken extends Exchange {
             'ordertype': type,
             'volume': this.amountToPrecision (symbol, amount),
         };
+        let timeInForce = this.safeStringUpper (params, 'timeInForce');
+        let postOnly = false;
+        [ type, postOnly, timeInForce, params ] = this.isPostOnly (type, timeInForce, undefined, params);
+        params = this.omit (params, 'timeInForce');
+        const oflags = this.safeString (params, 'oflags');
+        if (postOnly) {
+            if (oflags !== undefined) {
+                request['oflags'] = 'post,' + oflags;
+            } else {
+                request['oflags'] = 'post';
+            }
+        }
+        if (timeInForce !== undefined) {
+            request['timeInForce'] = timeInForce;
+        }
         const clientOrderId = this.safeString2 (params, 'userref', 'clientOrderId');
         params = this.omit (params, [ 'userref', 'clientOrderId' ]);
         if (clientOrderId !== undefined) {
