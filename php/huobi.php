@@ -7,6 +7,7 @@ namespace ccxtpro;
 
 use Exception; // a common import
 use \ccxt\ExchangeError;
+use \ccxt\ArgumentsRequired;
 
 class huobi extends \ccxt\async\huobi {
 
@@ -20,6 +21,7 @@ class huobi extends \ccxt\async\huobi {
                 'watchTickers' => false, // for now
                 'watchTicker' => true,
                 'watchTrades' => true,
+                'watchMyTrades' => true,
                 'watchBalance' => false, // for now
                 'watchOHLCV' => true,
             ),
@@ -483,6 +485,34 @@ class huobi extends \ccxt\async\huobi {
         }
     }
 
+    public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->check_required_credentials();
+        $type = null;
+        $marketId = '*'; // wildcard
+        if ($symbol !== null) {
+            yield $this->load_markets();
+            $market = $this->market($symbol);
+            $type = $market['type'];
+            $marketId = strtolower($market['id']);
+        } else {
+            list($type, $params) = $this->handle_market_type_and_params('watchMyTrades', null, $params);
+        }
+        if ($type !== 'spot') {
+            throw new ArgumentsRequired($this->id . ' watchMyTrades supports spot markets only');
+        }
+        $mode = null;
+        if ($mode === null) {
+            $mode = $this->safe_string_2($this->options, 'watchMyTrades', 'mode', 0);
+            $mode = $this->safe_string($params, 'mode', $mode);
+        }
+        $messageHash = 'trade.clearing' . '#' . $marketId . '#' . $mode;
+        $trades = yield $this->subscribe_private($messageHash, $type, 'linear', $params);
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit ($symbol, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limit);
+    }
+
     public function handle_subscription_status($client, $message) {
         //
         //     {
@@ -562,6 +592,16 @@ class huobi extends \ccxt\async\huobi {
         //         ),
         //         "ts":1645023376098
         //      }
+        // spot private trade
+        //
+        //  {
+        //      "action":"push",
+        //      "ch":"trade.clearing#ltcusdt#1",
+        //      "data":{
+        //         "eventType":"trade",
+        //         "symbol":"ltcusdt",
+        //           (...)
+        //  }
         //
         $ch = $this->safe_value($message, 'ch');
         $parts = explode('.', $ch);
@@ -583,17 +623,66 @@ class huobi extends \ccxt\async\huobi {
                 return $method($client, $message);
             }
         }
+        // private subjects
+        $privateParts = explode('#', $ch);
+        $privateType = $this->safe_string($privateParts, 0);
+        if ($privateType === 'trade.clearing') {
+            $this->handle_my_trade($client, $message);
+        }
     }
 
     public function pong($client, $message) {
         //
-        //     array( ping => 1583491673714 )
+        //     array( $ping => 1583491673714 )
         //
-        yield $client->send (array( 'pong' => $this->safe_integer($message, 'ping') ));
+        // or
+        //     array( $action => 'ping', $data => array( ts => 1645108204665 ) )
+        //
+        // or
+        //     array( $op => 'ping', ts => '1645202800015' )
+        //
+        $ping = $this->safe_integer($message, 'ping');
+        if ($ping !== null) {
+            yield $client->send (array( 'pong' => $ping ));
+            return;
+        }
+        $action = $this->safe_string($message, 'action');
+        if ($action === 'ping') {
+            $data = $this->safe_value($message, 'data');
+            $ping = $this->safe_integer($data, 'ts');
+            yield $client->send (array( 'action' => 'pong', 'data' => array( 'ts' => $ping )));
+            return;
+        }
+        $op = $this->safe_string($message, 'op');
+        if ($op === 'ping') {
+            $ping = $this->safe_integer($message, 'ts');
+            yield $client->send (array( 'op' => 'pong', 'ts' => $ping ));
+        }
     }
 
     public function handle_ping($client, $message) {
         $this->spawn(array($this, 'pong'), $client, $message);
+    }
+
+    public function handle_authenticate($client, $message) {
+        // spot
+        // {
+        //     "action" => "req",
+        //     "code" => 200,
+        //     "ch" => "auth",
+        //     "data" => array()
+        // }
+        // non spot
+        //    {
+        //        op => 'auth',
+        //        type => 'api',
+        //        'err-code' => 0,
+        //        ts => 1645200307319,
+        //        data => array( 'user-id' => '35930539' )
+        //    }
+        //
+        $client->resolve ($message, 'auth');
+        return $message;
     }
 
     public function handle_error_message($client, $message) {
@@ -634,15 +723,186 @@ class huobi extends \ccxt\async\huobi {
             //
             //     array("id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143)
             //
+            // first ping format
+            //
+            //    array('ping' => 1645106821667 )
+            //
+            // second ping format
+            //
+            //    array("action":"ping","data":array("ts":1645106821667))
+            //
+            // third pong format
+            //
+            //
+            // auth spot
+            //     {
+            //         "action" => "req",
+            //         "code" => 200,
+            //         "ch" => "auth",
+            //         "data" => array()
+            //     }
+            // auth non spot
+            //    {
+            //        op => 'auth',
+            //        type => 'api',
+            //        'err-code' => 0,
+            //        ts => 1645200307319,
+            //        data => array( 'user-id' => '35930539' )
+            //    }
+            // trade
+            // {
+            //     "action":"push",
+            //     "ch":"trade.clearing#ltcusdt#1",
+            //     "data":{
+            //        "eventType":"trade",
+            //          (...)
+            //     }
+            //  }
+            //
             if (is_array($message) && array_key_exists('id', $message)) {
                 $this->handle_subscription_status($client, $message);
-            } else if (is_array($message) && array_key_exists('ch', $message)) {
-                // route by channel aka topic aka subject
-                $this->handle_subject($client, $message);
-            } else if (is_array($message) && array_key_exists('ping', $message)) {
+                return;
+            }
+            if (is_array($message) && array_key_exists('action', $message)) {
+                $action = $this->safe_string($message, 'action');
+                if ($action === 'ping') {
+                    $this->handle_ping($client, $message);
+                    return;
+                }
+                if ($action === 'sub') {
+                    $this->handle_subscription_status($client, $message);
+                    return;
+                }
+            }
+            if (is_array($message) && array_key_exists('ch', $message)) {
+                if ($message['ch'] === 'auth') {
+                    $this->handle_authenticate($client, $message);
+                    return;
+                } else {
+                    // route by channel aka topic aka subject
+                    $this->handle_subject($client, $message);
+                    return;
+                }
+            }
+            if (is_array($message) && array_key_exists('ping', $message)) {
                 $this->handle_ping($client, $message);
             }
         }
+    }
+
+    public function handle_my_trade($client, $message) {
+        //
+        // spot
+        //
+        // {
+        //     "action":"push",
+        //     "ch":"trade.clearing#ltcusdt#1",
+        //     "data":{
+        //        "eventType":"trade",
+        //        "symbol":"ltcusdt",
+        //        "orderId":"478862728954426",
+        //        "orderSide":"buy",
+        //        "orderType":"buy-market",
+        //        "accountId":44234548,
+        //        "source":"spot-web",
+        //        "orderValue":"5.01724137",
+        //        "orderCreateTime":1645124660365,
+        //        "orderStatus":"filled",
+        //        "feeCurrency":"ltc",
+        //        "tradePrice":"118.89",
+        //        "tradeVolume":"0.042200701236437042",
+        //        "aggressor":true,
+        //        "tradeId":101539740584,
+        //        "tradeTime":1645124660368,
+        //        "transactFee":"0.000041778694224073",
+        //        "feeDeduct":"0",
+        //        "feeDeductType":""
+        //     }
+        //  }
+        //
+        if ($this->myTrades === null) {
+            $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+            $this->myTrades = new ArrayCacheBySymbolById ($limit);
+        }
+        $cachedTrades = $this->myTrades;
+        $messageHash = $this->safe_string($message, 'ch');
+        if ($messageHash !== null) {
+            $data = $this->safe_value($message, 'data');
+            $parsed = $this->parse_ws_trade($data);
+            $symbol = $this->safe_string($parsed, 'symbol');
+            if ($symbol !== null) {
+                $cachedTrades->append ($parsed);
+            }
+            $client->resolve ($this->myTrades, $messageHash);
+        }
+    }
+
+    public function parse_ws_trade($trade) {
+        // spot private
+        //
+        //   {
+        //        "eventType":"trade",
+        //        "symbol":"ltcusdt",
+        //        "orderId":"478862728954426",
+        //        "orderSide":"buy",
+        //        "orderType":"buy-$market",
+        //        "accountId":44234548,
+        //        "source":"spot-web",
+        //        "orderValue":"5.01724137",
+        //        "orderCreateTime":1645124660365,
+        //        "orderStatus":"filled",
+        //        "feeCurrency":"ltc",
+        //        "tradePrice":"118.89",
+        //        "tradeVolume":"0.042200701236437042",
+        //        "aggressor":true,
+        //        "tradeId":101539740584,
+        //        "tradeTime":1645124660368,
+        //        "transactFee":"0.000041778694224073",
+        //        "feeDeduct":"0",
+        //        "feeDeductType":""
+        //  }
+        $symbol = $this->safe_symbol($this->safe_string($trade, 'symbol'));
+        $side = $this->safe_string_2($trade, 'side', 'orderSide');
+        $tradeId = $this->safe_string($trade, 'tradeId');
+        $price = $this->safe_string($trade, 'tradePrice');
+        $amount = $this->safe_string($trade, 'tradeVolume');
+        $order = $this->safe_string($trade, 'orderId');
+        $timestamp = $this->safe_integer($trade, 'tradeTime');
+        $market = $this->market($symbol);
+        $orderType = $this->safe_string($trade, 'orderType');
+        $aggressor = $this->safe_value($trade, 'aggressor');
+        $takerOrMaker = null;
+        if ($aggressor !== null) {
+            $takerOrMaker = $aggressor ? 'taker' : 'maker';
+        }
+        $type = null;
+        if ($orderType !== null) {
+            $orderType = explode('-', $orderType);
+            $type = $this->safe_string($orderType, 1);
+        }
+        $fee = null;
+        $feeCurrency = $this->safe_currency_code($this->safe_string($trade, 'feeCurrency'));
+        if ($feeCurrency !== null) {
+            $fee = array(
+                'cost' => $this->safe_string($trade, 'transactFee'),
+                'currency' => $feeCurrency,
+            );
+        }
+        return $this->safe_trade(array(
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'symbol' => $symbol,
+            'id' => $tradeId,
+            'order' => $order,
+            'type' => $type,
+            'takerOrMaker' => $takerOrMaker,
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => null,
+            'fee' => $fee,
+        ), $market);
     }
 
     public function get_url_by_market_type($type, $isLinear = true, $isPrivate = false) {
@@ -681,5 +941,106 @@ class huobi extends \ccxt\async\huobi {
             $subscription['method'] = $method;
         }
         return yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
+    }
+
+    public function subscribe_private($messageHash, $type, $subtype, $params = array ()) {
+        $requestId = $this->nonce();
+        $subscription = array(
+            'id' => $requestId,
+            'messageHash' => $messageHash,
+            'params' => $params,
+        );
+        $request = null;
+        if ($type === 'spot') {
+            $request = array(
+                'action' => 'sub',
+                'ch' => $messageHash,
+            );
+        } else {
+            $request = array(
+                'op' => 'sub',
+                'topic' => $messageHash,
+                'cid' => $requestId,
+            );
+        }
+        $isLinear = $subtype === 'linear';
+        $url = $this->get_url_by_market_type($type, $isLinear, true);
+        $hostname = ($type === 'spot') ? $this->urls['hostnames']['spot'] : $this->urls['hostnames']['contract'];
+        $authParams = array(
+            'type' => $type,
+            'url' => $url,
+            'hostname' => $hostname,
+        );
+        if ($type === 'spot') {
+            $this->options['ws']['gunzip'] = false;
+        }
+        yield $this->authenticate($authParams);
+        return yield $this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription);
+    }
+
+    public function authenticate($params = array ()) {
+        $url = $this->safe_string($params, 'url');
+        $hostname = $this->safe_string($params, 'hostname');
+        $type = $this->safe_string($params, 'type');
+        if ($url === null || $hostname === null || $type === null) {
+            throw new ArgumentsRequired($this->id . ' authenticate requires a $url, $hostname and $type argument');
+        }
+        $this->check_required_credentials();
+        $messageHash = 'auth';
+        $relativePath = str_replace('wss://' . $hostname, '', $url);
+        $client = $this->client($url);
+        $future = $this->safe_value($client->subscriptions, $messageHash);
+        if ($future === null) {
+            $future = $client->future ($messageHash);
+            $timestamp = $this->ymdhms($this->milliseconds(), 'T');
+            $signatureParams = null;
+            if ($type === 'spot') {
+                $signatureParams = array(
+                    'accessKey' => $this->apiKey,
+                    'signatureMethod' => 'HmacSHA256',
+                    'signatureVersion' => '2.1',
+                    'timestamp' => $timestamp,
+                );
+            } else {
+                $signatureParams = array(
+                    'AccessKeyId' => $this->apiKey,
+                    'SignatureMethod' => 'HmacSHA256',
+                    'SignatureVersion' => '2',
+                    'Timestamp' => $timestamp,
+                );
+            }
+            $signatureParams = $this->keysort($signatureParams);
+            $auth = $this->urlencode($signatureParams);
+            $payload = implode("\n", array('GET', $hostname, $relativePath, $auth)); // eslint-disable-line quotes
+            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
+            $request = null;
+            if ($type === 'spot') {
+                $params = array(
+                    'authType' => 'api',
+                    'accessKey' => $this->apiKey,
+                    'signatureMethod' => 'HmacSHA256',
+                    'signatureVersion' => '2.1',
+                    'timestamp' => $timestamp,
+                    'signature' => $signature,
+                );
+                $request = array(
+                    'params' => $params,
+                    'action' => 'req',
+                    'ch' => $messageHash,
+                );
+            } else {
+                $request = array(
+                    'op' => $messageHash,
+                    'type' => 'api',
+                    'AccessKeyId' => $this->apiKey,
+                    'SignatureMethod' => 'HmacSHA256',
+                    'SignatureVersion' => '2',
+                    'Timestamp' => $timestamp,
+                    'Signature' => $signature,
+                );
+            }
+            yield $this->watch($url, $messageHash, $request, $messageHash, $future);
+        }
+        return yield $future;
     }
 }
