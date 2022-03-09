@@ -1287,7 +1287,7 @@ module.exports = class oanda extends Exchange {
         currency = this.safeCurrency (undefined, currency);
         return {
             'id': id,
-            'currency': code,
+            'currency': currency['code'],
             'amount': amount,
             'network': undefined,
             'address': undefined,
