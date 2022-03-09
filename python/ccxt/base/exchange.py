@@ -487,6 +487,7 @@ class Exchange(object):
 
         def partialer():
             outer_kwargs = {'path': path, 'api': api_argument, 'method': uppercase_method, 'config': config}
+
             @functools.wraps(entry)
             def inner(_self, params=None, context=None):
                 """
