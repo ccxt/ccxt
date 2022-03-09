@@ -4637,7 +4637,7 @@ class binance extends Exchange {
         //
         $marketId = $this->safe_string($position, 'symbol');
         $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol');
         $leverageBrackets = $this->safe_value($this->options, 'leverageBrackets', array());
         $leverageBracket = $this->safe_value($leverageBrackets, $symbol, array());
         $notionalString = $this->safe_string_2($position, 'notional', 'notionalValue');
@@ -4677,6 +4677,7 @@ class binance extends Exchange {
         $linear = (is_array($position) && array_key_exists('notional', $position));
         if ($marginType === 'cross') {
             // calculate $collateral
+            $precision = $this->safe_value($market, 'precision');
             if ($linear) {
                 // walletBalance = ($liquidationPrice * (±1 . mmp) ± $entryPrice) * $contracts
                 $onePlusMaintenanceMarginPercentageString = null;
@@ -4689,7 +4690,8 @@ class binance extends Exchange {
                 }
                 $inner = Precise::string_mul($liquidationPriceString, $onePlusMaintenanceMarginPercentageString);
                 $leftSide = Precise::string_add($inner, $entryPriceSignString);
-                $collateralString = Precise::string_div(Precise::string_mul($leftSide, $contractsAbs), '1', $market['precision']['quote']);
+                $quotePrecision = $this->safe_string($precision, 'quote');
+                $collateralString = Precise::string_div(Precise::string_mul($leftSide, $contractsAbs), '1', $quotePrecision);
             } else {
                 // walletBalance = ($contracts * $contractSize) * (±1/entryPrice - (±1 - mmp) / $liquidationPrice)
                 $onePlusMaintenanceMarginPercentageString = null;
@@ -4702,7 +4704,8 @@ class binance extends Exchange {
                 }
                 $leftSide = Precise::string_mul($contractsAbs, $contractSizeString);
                 $rightSide = Precise::string_sub(Precise::string_div('1', $entryPriceSignString), Precise::string_div($onePlusMaintenanceMarginPercentageString, $liquidationPriceString));
-                $collateralString = Precise::string_div(Precise::string_mul($leftSide, $rightSide), '1', $market['precision']['base']);
+                $basePrecision = $this->safe_string($precision, 'base');
+                $collateralString = Precise::string_div(Precise::string_mul($leftSide, $rightSide), '1', $basePrecision);
             }
         } else {
             $collateralString = $this->safe_string($position, 'isolatedMargin');
