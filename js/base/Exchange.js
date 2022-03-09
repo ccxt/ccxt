@@ -79,6 +79,7 @@ module.exports = class Exchange {
                 'createLimitOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
+                'createPostOnlyOrder': undefined,
                 'editOrder': 'emulated',
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
@@ -2258,5 +2259,12 @@ module.exports = class Exchange {
         } else {
             return [type, false, timeInForce, params];
         }
+    }
+
+    async createPostOnlyOrder (symbol, side, amount, price = undefined, params = {}) {
+        if (!this.has['createPostOnlyOrder']) {
+            throw new NotSupported (this.id + 'createPostOnlyOrder() is not supported yet');
+        }
+        return this.createOrder (symbol, 'postOnly', side, amount, price, params);
     }
 }

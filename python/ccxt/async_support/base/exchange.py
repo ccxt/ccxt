@@ -396,3 +396,8 @@ class Exchange(BaseExchange):
             return self.safe_value(tiers, symbol)
         else:
             raise NotSupported(self.id + 'fetch_market_leverage_tiers() is not supported yet')
+
+    async def create_post_only_order(self, symbol, side, amount, price=None, params={}):
+        if not self.has['createPostOnlyOrder']:
+            raise NotSupported(self.id + 'create_post_only_order() is not supported yet')
+        return await self.create_order(symbol, 'postOnly', side, amount, price, params)

@@ -255,6 +255,7 @@ class Exchange(object):
         'createLimitOrder': True,
         'createMarketOrder': True,
         'createOrder': True,
+        'createPostOnlyOrder': None,
         'editOrder': 'emulated',
         'fetchAccounts': None,
         'fetchBalance': True,
@@ -2825,3 +2826,8 @@ class Exchange(object):
                 return ['limit', True, time_in_force, params]
         else:
             return [type, False, time_in_force, params]
+
+    def create_post_only_order(self, symbol, side, amount, price=None, params={}):
+        if not self.has['createPostOnlyOrder']:
+            raise NotSupported(self.id + 'create_post_only_order() is not supported yet')
+        return self.create_order(symbol, 'postOnly', side, amount, price, params)

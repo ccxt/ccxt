@@ -357,4 +357,11 @@ class Exchange extends \ccxt\Exchange {
             });
         });
     }
+
+    public function create_post_only_order($symbol, $side, $amount, $price = null, $params = array()) {
+        if (!$this->has['createPostOnlyOrder']) {
+            throw new NotSupported($this->id + 'create_post_only_order() is not supported yet');
+        }
+        return yield $this.create_order($symbol, 'postOnly', $side, $amount, $price, $params);
+    }
 }
