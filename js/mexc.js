@@ -1769,12 +1769,19 @@ module.exports = class mexc extends Exchange {
         if (openType === undefined) {
             throw new ArgumentsRequired (this.id + ' createSwapOrder() requires an integer openType parameter, 1 for isolated margin, 2 for cross margin');
         }
+        let timeInForce = this.safeStringUpper (params, 'timeInForce');
+        let postOnly = false;
+        [ type, postOnly, timeInForce, params ] = this.isPostOnly (type, timeInForce, type === 2, params);
+        params = this.omit (params, 'timeInForce');
         if ((type !== 'limit') && (type !== 'market') && (type !== 1) && (type !== 2) && (type !== 3) && (type !== 4) && (type !== 5) && (type !== 6)) {
             throw new InvalidOrder (this.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
         }
-        const postOnly = this.safeValue (params, 'postOnly', false);
         if (postOnly) {
             type = 2;
+        } else if (timeInForce === 'IOC') {
+            type = 3;
+        } else if (timeInForce === 'FOK') {
+            type = 4;
         } else if (type === 'limit') {
             type = 1;
         } else if (type === 'market') {
