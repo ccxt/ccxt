@@ -1464,6 +1464,7 @@ class ascendex extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
         }
         $account = $this->safe_value($this->accounts, 0, array());
         $accountGroup = $this->safe_value($account, 'id');

@@ -1419,6 +1419,7 @@ class ascendex(Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
         account = self.safe_value(self.accounts, 0, {})
         accountGroup = self.safe_value(account, 'id')
         type, query = self.handle_market_type_and_params('fetchOpenOrders', market, params)
