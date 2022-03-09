@@ -377,6 +377,7 @@ class Exchange {
         'loadTimeDifference' => 'load_time_difference',
         'parseLeverageTiers' => 'parse_leverage_tiers',
         'fetchMarketLeverageTiers' => 'fetch_market_leverage_tiers',
+        'createPostOnlyOrder' => 'create_post_only_order',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -1204,6 +1205,7 @@ class Exchange {
             'createLimitOrder' => true,
             'createMarketOrder' => true,
             'createOrder' => true,
+            'createPostOnlyOrder' => null,
             'deposit' => null,
             'editOrder' => 'emulated',
             'fetchAccounts' => null,
@@ -3734,5 +3736,12 @@ class Exchange {
         } else {
             return [$type, False, $time_in_force, $params];
         }
+    }
+
+    public function create_post_only_order($symbol, $side, $amount, $price = null, $params = array()) {
+        if (!$this->has['createPostOnlyOrder']) {
+            throw new NotSupported($this->id + 'create_post_only_order() is not supported yet');
+        }
+        return $this.create_order($symbol, 'postOnly', $side, $amount, $price, $params);
     }
 }
