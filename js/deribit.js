@@ -1239,6 +1239,15 @@ module.exports = class deribit extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        let timeInForce = this.parseTimeInForce (this.safeString (params, 'timeInForce'));
+        let postOnly = undefined;
+        [ type, postOnly, timeInForce, params ] = this.isPostOnly (type, timeInForce, undefined, params);
+        const timeInForceOptions = {
+            'GTC': 'good_til_cancelled',
+            'FOK': 'fill_or_kill',
+            'IOC': 'immediate_or_cancel',
+        };
+        timeInForce = this.safeString (timeInForceOptions, timeInForce, timeInForce);
         const request = {
             'instrument_name': market['id'],
             // for perpetual and futures the amount is in USD
@@ -1249,13 +1258,16 @@ module.exports = class deribit extends Exchange {
             // 'price': this.priceToPrecision (symbol, 123.45), // only for limit and stop_limit orders
             // 'time_in_force' : 'good_til_cancelled', // fill_or_kill, immediate_or_cancel
             // 'max_show': 123.45, // max amount within an order to be shown to other customers, 0 for invisible order
-            // 'post_only': false, // if the new price would cause the order to be filled immediately (as taker), the price will be changed to be just below the spread.
+            'post_only': postOnly, // if the new price would cause the order to be filled immediately (as taker), the price will be changed to be just below the spread.
             // 'reject_post_only': false, // if true the order is put to order book unmodified or request is rejected
             // 'reduce_only': false, // if true, the order is intended to only reduce a current position
             // 'stop_price': false, // stop price, required for stop_limit orders
             // 'trigger': 'index_price', // mark_price, last_price, required for stop_limit orders
             // 'advanced': 'usd', // 'implv', advanced option order type, options only
         };
+        if (timeInForce !== undefined) {
+            request['timeInForce'] = timeInForce;
+        }
         let priceIsRequired = false;
         let stopPriceIsRequired = false;
         if (type === 'limit') {
