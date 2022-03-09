@@ -1860,6 +1860,19 @@ module.exports = class bybit extends Exchange {
         } else {
             qty = parseFloat (qty);
         }
+        let timeInForce = this.parseTimeInForce (this.safeString (params, 'timeInForce', 'time_in_force', 'GTC'));
+        let postOnly = false;
+        [ type, postOnly, timeInForce, params ] = this.isPostOnly (type, timeInForce, undefined, params);
+        timeInForce = timeInForce.toUpperCase ();
+        if (postOnly) {
+            timeInForce = 'PostOnly';
+        } else if (timeInForce === 'IOC') {
+            timeInForce = 'ImmediateOrCancel';
+        } else if (timeInForce === 'GTC') {
+            timeInForce = 'GoodTillCancel';
+        } else if (timeInForce === 'FOK') {
+            timeInForce = 'FillOrKill';
+        }
         const request = {
             // orders ---------------------------------------------------------
             'side': this.capitalize (side),
@@ -1867,7 +1880,7 @@ module.exports = class bybit extends Exchange {
             'order_type': this.capitalize (type),
             'qty': qty, // order quantity in USD, integer only
             // 'price': parseFloat (this.priceToPrecision (symbol, price)), // required for limit orders
-            'time_in_force': 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
+            'time_in_force': timeInForce, // ImmediateOrCancel, FillOrKill, PostOnly
             // 'take_profit': 123.45, // take profit price, only take effect upon opening the position
             // 'stop_loss': 123.45, // stop loss price, only take effect upon opening the position
             // 'reduce_only': false, // reduce only, required for linear orders
@@ -1934,6 +1947,10 @@ module.exports = class bybit extends Exchange {
             }
         } else if (basePrice !== undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires both the stop_px and base_price params for a conditional ' + type + ' order');
+        }
+        const reduceOnly = this.safeValue (params, 'reduceOnly', 'reduce_only');
+        if (reduceOnly) {
+            request['reduce_only'] = true;
         }
         const response = await this[method] (this.extend (request, params));
         //
